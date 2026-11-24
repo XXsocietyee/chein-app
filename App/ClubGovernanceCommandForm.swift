@@ -71,7 +71,6 @@ import SwiftUI
     @StateObject private var seriesLeadPicker = ClubSeriesLeadReadModel()
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.clubDissolveAcknowledged) private var dissolveAcknowledged
     @Environment(\.locale) private var locale
     @Environment(\.clubProfileDraftFlow) private var profileDraftFlow
     @QuestifyReduceMotion private var reduceMotion
@@ -764,7 +763,6 @@ import SwiftUI
             if route.operation == .cancelOccurrence, submittedRequestID == draft.requestID, !Task.isCancelled {
                 occurrenceCancellationReturn?.acknowledged(review, value)
             }
-            if route.operation == .dissolve { dissolveAcknowledged?() }
             if route.operation == .issueGroupCode {
                 guard let clubID = review.command.scope.clubID, let activityID = review.command.scope.activityID,
                       scenePhase == .active, !Task.isCancelled else { throw ClubGovernanceFailure.staleReview }

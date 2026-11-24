@@ -343,6 +343,7 @@ import SwiftUI
         case "pages/club/roles/index":
             // CLB-roles-02: the event tools put 「活动名 · 开始时间」 in `activityLabel`; the picker shows it (or 未命名).
             clubRead(.roles, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
+                .environment(\.clubRoleActivityLabel, ClubRoleActivityLabel.entry(query["activityLabel"]))
         case "pages/topic/catalog/index":
             // A canonical id is the topic screen. Every other catalog link, including a non-canonical id, is home.
             if let link = MiniProgramPageLink(path: page, query: query), case .topic(let id) = link.catalogDestination {

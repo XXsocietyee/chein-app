@@ -229,20 +229,38 @@ struct ClubHeaderInviteButton: View {
     }
 }
 
-/// Share in the navigation bar (a glass circle on iOS 26+ bars): the club detail path.
+/// Share in the navigation bar (a glass circle on iOS 26+ bars): the club detail path from `ClubShareLink`.
+/// CLB-detail-30 (fix-r3-club-a round 3, re-applied on the wired path): the path travels as an in-app
+/// `chein://mp/…` link (`ClubShareURL`) with the MP invitation as its message, so the receiver can open it.
 struct ClubHeaderShareButton: View {
     let clubID: Int
+    var clubName: String? = nil
+    @Environment(\.locale) private var locale
+
+    private var message: String? {
+        guard let clubName, !clubName.isEmpty else { return nil }
+        return String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)
+    }
 
     var body: some View {
-        if let path = ClubShareLink.club(id: clubID)?.path {
-            ShareLink(item: path) {
-                Image(systemName: "square.and.arrow.up")
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                    .contentShape(Rectangle())
+        if let link = ClubShareLink.club(id: clubID) {
+            Group {
+                if let url = ClubShareURL.url(link) {
+                    if let message { ShareLink(item: url, message: Text(verbatim: message)) { glyph } }
+                    else { ShareLink(item: url) { glyph } }
+                } else {
+                    ShareLink(item: link.path) { glyph }
+                }
             }
             .accessibilityLabel(ClubR4Text.text("r4club.header.share"))
             .accessibilityIdentifier("club.detail.share")
         }
+    }
+
+    private var glyph: some View {
+        Image(systemName: "square.and.arrow.up")
+            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Rectangle())
     }
 }
 

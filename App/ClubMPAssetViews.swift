@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Round 2 (owner MP-asset rule): club pages show the mini-program default artwork wherever the MP falls back to
-/// a bundled image. `docs/mp-assets/mapping.md` rows applied here: `MPAsset.AvatarDefault.dProfile`
-/// (`/images/d_profile.png`, every club `cy-avatar` fallback).
+/// Club App helpers from fix-r3-club-a (share link, 活动倾向 icons, host-apply field copy, role activity label).
+/// `ClubMPAvatar` and `ClubMoneyText` live in `ClubKit/ClubMPArt.swift`.
 
 /// cursor/core-club hand-off (CLB-detail-30): club and post shares carry the MP page path from `ClubShareLink`
 /// (`/pages/club/detail/index?id=…[&postId=…]`) as an in-app `chein://mp/…` link, which `MiniProgramPageLink`
@@ -14,18 +13,6 @@ enum ClubShareURL {
     }
     static func club(_ id: Int?) -> URL? { url(id.flatMap { ClubShareLink.club(id: $0) }) }
     static func post(clubID: Int?, postID: Int) -> URL? { url(clubID.flatMap { ClubShareLink.post(clubID: $0, postID: postID) }) }
-}
-
-/// cursor/core-club hand-off (CLB-r7-C-06): the club edit page installs this so the dissolve form can drop the local
-/// edit draft (`ClubProfileLocalDraftFlow.clearAfterConfirmedDissolve()`) once the server acknowledged the dissolve.
-private struct ClubDissolveAcknowledgedKey: EnvironmentKey {
-    static let defaultValue: (@MainActor () -> Void)? = nil
-}
-extension EnvironmentValues {
-    var clubDissolveAcknowledged: (@MainActor () -> Void)? {
-        get { self[ClubDissolveAcknowledgedKey.self] }
-        set { self[ClubDissolveAcknowledgedKey.self] = newValue }
-    }
 }
 
 /// MP `utils/tag-library.js` club 活动倾向 set: every preset direction carries its line icon
