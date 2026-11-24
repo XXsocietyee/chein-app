@@ -107,6 +107,7 @@ import SwiftUI
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("team.detail.card")
                     // U06-01: seats, applications and the invitation deadline, separate from the member list.
+                    if invitationCode != nil { TeamJoinSeatRow(detail: detail) }
                     TeamSeatFactsCard(detail: detail)
                     TeamRoleAndSharedSection(role: detail.roleFacts, shared: detail.sharedOutcome)
                     TeamViewerRelationshipLine(detail: detail, invitation: invitationCode != nil)

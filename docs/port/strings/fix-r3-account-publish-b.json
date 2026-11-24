@@ -355,5 +355,22 @@
         }
       }
     }
+  },
+  "fixr3.team.seats.a11y %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld joined, %lld seats open"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已入队 %lld 人，空位 %lld 个"
+        }
+      }
+    }
   }
 }
