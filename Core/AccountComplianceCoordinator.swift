@@ -17,6 +17,8 @@ public struct ComplianceState {
     public var marketingOriginalResults: [MerchantMarketingConsentOriginalReceipt] = []
     public var busy = false
     public var smsSent = false
+    /// Set after the bound-phone SMS send. Nil until that send succeeds.
+    public var smsNotice: String?
     public var error: String?
     public var roamCleanup: ComplianceRoamCleanup = .idle
     public var roamConsent: ComplianceRoamConsent = .unknown
@@ -75,6 +77,7 @@ public struct AccountMarketingReadIntent {
     private var reviewIssuance: UUID?
     private var noticeAccepted = false
     private var requestID = UUID().uuidString.lowercased()
+    private var boundSMSSentAt: Date?
     private var reviewCode: String? // In memory only; cleared on apply, invalidation and failed SMS.
     private var retainedNPCChatData: NPCChatDataCoordinator?
     /// Dormant: nil keeps NPC log deletion OFF; the service also needs its own endpoint approval.
@@ -267,7 +270,7 @@ public struct AccountMarketingReadIntent {
             else { self.state.step = result.pending ? .pending : result.completed ? .completed : result.blocked ? .blocked : result.startable ? .notice : .unknown }
         }
     }
-    public func precheckAndAgree(documentRead: Bool, explicitAgreement: Bool, expectedConsentVersion: String? = nil, intent: AccountDeregistrationIntent? = nil) async {
+    public func precheckAndAgree(documentRead: Bool, explicitAgreement: Bool, expectedConsentVersion: String? = nil, recordConsent: Bool = true, intent: AccountDeregistrationIntent? = nil) async {
         guard acceptsDeregistrationIntent(intent), documentRead, explicitAgreement, state.localCancellationConsent.allowsNewConsent,
               state.step == .notice || state.step == .blocked else { return }
         let issuance = service.deregistrationOriginalRevision
@@ -294,19 +297,24 @@ public struct AccountMarketingReadIntent {
             guard result.eligible else { self.state.step = result.blocked ? .blocked : .unknown; return }
             // No consent is recorded when this device cannot complete the server's verification method.
             guard result.verificationAvailableOnThisDevice else { self.state.step = .verificationUnavailable; return }
-            do {
-                _ = try await self.service.consent(.cancellation, event: .agree, requestID: self.requestID, session: session,
-                    expectedConsentVersion: expectedConsentVersion,
-                    whileCurrent: { self.generation == stamp && self.current() == session })
-                try self.deregistrationFence(session, stamp, issuance: issuance)
-                self.state.localCancellationConsent = try self.service.readDeregistrationConsent(session: session)
-                guard self.state.localCancellationConsent.allowsNewConsent else { throw ComplianceFailure.unresolved }
-                self.noticeAccepted = true; self.state.step = .verify
-            } catch {
-                try self.deregistrationFence(session, stamp, issuance: issuance)
-                self.noticeAccepted = false; self.state.smsSent = false
-                self.state.localCancellationConsent = try self.service.readDeregistrationConsent(session: session)
-                throw error
+            if recordConsent {
+                do {
+                    _ = try await self.service.consent(.cancellation, event: .agree, requestID: self.requestID, session: session,
+                        expectedConsentVersion: expectedConsentVersion,
+                        whileCurrent: { self.generation == stamp && self.current() == session })
+                    try self.deregistrationFence(session, stamp, issuance: issuance)
+                    self.state.localCancellationConsent = try self.service.readDeregistrationConsent(session: session)
+                    guard self.state.localCancellationConsent.allowsNewConsent else { throw ComplianceFailure.unresolved }
+                    self.noticeAccepted = true; self.state.step = .verify
+                } catch {
+                    try self.deregistrationFence(session, stamp, issuance: issuance)
+                    self.noticeAccepted = false; self.state.smsSent = false
+                    self.state.localCancellationConsent = try self.service.readDeregistrationConsent(session: session)
+                    throw error
+                }
+            } else {
+                // Mini-program records AGREE inside apply(), after SMS. Notice only reads the precheck.
+                self.noticeAccepted = true; self.state.step = .verify; self.state.error = nil
             }
         }
     }
@@ -322,13 +330,37 @@ public struct AccountMarketingReadIntent {
             try self.deregistrationFence(session, stamp, issuance: issuance); self.state.smsSent = true
         }
     }
+    /// `pages/deregister` sendSms: read `POST /api/user/info` `{member_id}`, then `POST /api/sms/send` `{phone}` of that number.
+    /// A successful send blocks another request for 60 seconds. An empty phone does not call SMS.
+    public func sendBoundPhoneSMS(explicitlyRequested: Bool, now: Date = Date(), intent: AccountDeregistrationIntent? = nil) async {
+        guard acceptsDeregistrationIntent(intent), explicitlyRequested, noticeAccepted, state.localCancellationConsent.allowsNewConsent, state.step == .verify else { return }
+        if state.smsSent, let sent = boundSMSSentAt, now.timeIntervalSince(sent) < 60 { return }
+        let issuance = service.deregistrationOriginalRevision
+        await run(deregistration: true) { session, stamp in
+            self.state.smsSent = false; self.state.smsNotice = nil; self.reviewCode = nil
+            try self.deregistrationFence(session, stamp, issuance: issuance)
+            self.state.localCancellationConsent = try self.service.readDeregistrationConsent(session: session)
+            guard self.state.localCancellationConsent.allowsNewConsent else { throw ComplianceFailure.unresolved }
+            guard let bound = try await self.service.boundPhone(session: session) else {
+                self.state.error = DeregistrationBoundPhone.missingMessage
+                return
+            }
+            try self.deregistrationFence(session, stamp, issuance: issuance)
+            try await self.auth.sendBoundDeregistrationCode(phone: bound.phone)
+            try self.deregistrationFence(session, stamp, issuance: issuance)
+            self.boundSMSSentAt = now
+            self.state.smsSent = true
+            self.state.smsNotice = bound.sentNotice
+            self.state.error = nil
+        }
+    }
     public func prepareReview(code: String) {
         guard !state.busy, noticeAccepted, state.localCancellationConsent.allowsNewConsent, state.smsSent, state.step == .verify else { return }
         do { reviewCode = try AuthChannelInput.code(code); reviewSession = current(); reviewIssuance = service.deregistrationOriginalRevision; state.step = .review; state.error = nil }
         catch { state.error = "compliance.codeRequired" }; changed()
     }
     public func backToVerification() { guard !state.busy else { return }; reviewCode = nil; state.step = .verify; changed() }
-    public func apply(explicitlyConfirmed: Bool, intent: AccountDeregistrationIntent? = nil) async {
+    public func apply(explicitlyConfirmed: Bool, recordNoticeConsent: Bool = false, expectedConsentVersion: String? = nil, intent: AccountDeregistrationIntent? = nil) async {
         guard explicitlyConfirmed, noticeAccepted, state.smsSent, state.step == .review, let code = reviewCode else { return }
         guard acceptsDeregistrationIntent(intent), state.localCancellationConsent.allowsNewConsent,
               reviewSession == current(), reviewIssuance == service.deregistrationOriginalRevision else { return }
@@ -336,6 +368,12 @@ public struct AccountMarketingReadIntent {
         let issuance = service.deregistrationOriginalRevision
         await run(deregistration: true) { session, stamp in
             do {
+                if recordNoticeConsent {
+                    _ = try await self.service.consent(.cancellation, event: .agree, requestID: self.requestID, session: session,
+                        expectedConsentVersion: expectedConsentVersion,
+                        whileCurrent: { self.generation == stamp && self.current() == session })
+                    try self.deregistrationFence(session, stamp, issuance: issuance)
+                }
                 let result = try await self.service.apply(smscode: code, requestID: self.requestID, session: session, impact: self.state.status?.impact,
                     whileCurrent: { self.generation == stamp && self.current() == session })
                 try self.deregistrationFence(session, stamp, issuance: issuance); self.state.status = result

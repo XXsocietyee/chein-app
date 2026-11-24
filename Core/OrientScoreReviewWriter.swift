@@ -44,7 +44,7 @@ import FoundationNetworking
         self.score = score
     }
 
-    public func submit(kind: OrientScoreReviewModel.Kind, reason: String, key: String, entryID: Int?) async throws {
+    public func submit(kind: OrientScoreReviewModel.Kind, reason: String, key: String, entryID: Int?, nodeID: Int? = nil) async throws {
         if let saved {
             guard saved.pending.key == key else { throw OrientScoreReviewOutcome.unknown }
             if try await confirmed(saved.pending) {
@@ -54,19 +54,27 @@ import FoundationNetworking
             try await transmit(saved.pending)
             return
         }
-        let pending = try makePending(kind: kind, reason: reason, key: key, entryID: entryID)
+        let pending = try makePending(kind: kind, reason: reason, key: key, entryID: entryID, nodeID: nodeID)
         try await transmit(pending)
     }
 
-    private func makePending(kind: OrientScoreReviewModel.Kind, reason: String, key: String, entryID: Int?) throws -> OrientSessionPending {
+    private func makePending(kind: OrientScoreReviewModel.Kind, reason: String, key: String, entryID: Int?, nodeID: Int?) throws -> OrientSessionPending {
         let text = try OrientSessionScoreReason.normalized(reason)
         let operation: OrientSessionOperation
         switch kind {
         case .appeal:
-            guard let entryID, entryID > 0, timelineEntryIDs().contains(entryID) else {
+            // MP submitReview: a selected ledger row wins; otherwise the 漏记任务 node id.
+            let node = nodeID.flatMap { $0 > 0 ? $0 : nil }
+            if let entryID, entryID > 0 {
+                guard timelineEntryIDs().contains(entryID) else {
+                    throw OrientScoreReviewOutcome.rejected(W8Text.t("请选择一条计分记录", "Choose a ledger entry"))
+                }
+                operation = .appeal(sessionID: score.sessionID, entryID: entryID, nodeID: nil, reason: text)
+            } else if let node {
+                operation = .appeal(sessionID: score.sessionID, entryID: nil, nodeID: node, reason: text)
+            } else {
                 throw OrientScoreReviewOutcome.rejected(W8Text.t("请选择一条计分记录", "Choose a ledger entry"))
             }
-            operation = .appeal(sessionID: score.sessionID, entryID: entryID, nodeID: nil, reason: text)
         case .dispute:
             guard score.status == 1 || score.status == 2 else {
                 throw OrientScoreReviewOutcome.rejected(W8Text.t("对局结束后才能提交争议", "A dispute can be sent after the round ends"))

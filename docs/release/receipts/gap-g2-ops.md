@@ -62,3 +62,25 @@ All mount hooks (target file + location + snippet) are listed in:
 - **Cloud acceptance:** `ci/acceptance` is currently failing on `origin/ci/acceptance` (checked via `gh run list --branch ci/acceptance`), so `origin/ci/acceptance` was not merged yet; ready to merge and run once `ci/acceptance` is green.
 
 DONE-ROUND-2
+
+## 6. Round 3 Alignment (against `origin/ui/combined-r7`)
+- **Copy alignment:** [copy-g2-ops.md](docs/mp-gap/copy-g2-ops.md) — audited 632 `club`, 855 `merchant-coop`, and 1,384 `account-publish` MP strings against `Resources/Localizable.xcstrings` and area `.xcstrings` on `origin/ui/combined-r7`. Listed 16 near-mismatches in existing `Localizable.xcstrings` for the coordinator and verified all `MPGap` strings.
+- **Contract alignment:** [contracts-g2-ops.md](docs/mp-gap/contracts-g2-ops.md) — audited 102 `club`, 131 `merchant-coop`, and 92 `account-publish` MP endpoints against `Core/`. Fixed all 8 mismatches inside `Core/MPGap/*` (`POST /api/ai/merchant/insight`, `POST /api/merchant/claims/submit`, split `POST /api/merchant/update` vs `decor/save`, `follow_member_id`/`follow` on `user/follow/action`, `POST /api/team/applications`, `GET /api/topic/cast/voice`, `ids: [Int]` on `fe/reference-settlement/settle`, `manualCaseId` on `manual-case-detail`) and updated `Tests/CoreTests/MPGap/G2OpsGapTests.swift`.
+- **Swift symbol & signature audit (coordinator note):** checked every external type, case, method, and initializer in `Core/MPGap/*`, `App/MPGap/*`, and `Tests/CoreTests/MPGap/*` against `origin/ui/combined-r7` and fixed all mismatches:
+  - `Core/MPGap/MPGapHTTP.swift`: replaced non-existent `APIError.serverMessage(...)` with `APIError.httpStatus(status)` and `APIError.businessCode(code)`.
+  - `App/MPGap/Club/ClubGapManageExtensions.swift`: fixed `CYAvatarView(url:fallbackText:size:)` -> `CYAvatarView(url:name:size: .sm)` and `CYColor.surfaceSecondary` -> `CYColor.bgSurfaceSubtle`.
+  - `App/MPGap/Club/ClubGapRemainingViews.swift`, `App/MPGap/MerchantCoop/{MerchantGapOperationsViews,MerchantGapRemainingViews}.swift`, `App/MPGap/AccountPublish/AccountPublishGapViews.swift`: fixed `CYColor.accent` -> `CYColor.brand`, `CYColor.warning` -> `CYColor.warningText`, `CYColor.danger` -> `CYColor.dangerText`.
+  - `Tests/CoreTests/MPGap/G2OpsGapTests.swift`: fixed `APIConfiguration(baseURL:)` -> `try! APIConfiguration(baseURL:)` (throwing initializer).
+- `swiftc -parse` passed on all 19 Swift files after final edits.
+
+DONE-ROUND-3
+
+## 7. Compile-Fix Pass (`docs/mp-gap/compile-errors-r7.md`)
+- Merged `origin/ui/combined-r7` (`7fdfad1f1`) cleanly into `gap/g2-ops`.
+- Fixed all remaining G2 `App/MPGap` compiler errors:
+  - `App/MPGap/AccountPublish/AccountPublishGapRemainingViews.swift:159-164` & `App/MPGap/Club/ClubGapRemainingViews.swift:190-195`: replaced `CYEmptyState(..., verbatimTitle:, actionTitle:)` with `CYEmptyState(..., LocalizedStringKey(...), actionTitle: LocalizedStringKey(...), action:)`.
+  - `App/MPGap/Club/ClubGapRemainingViews.swift:51-92`: extracted `pickerContent` `@ViewBuilder` to resolve SwiftUI type-checker timeout/failure in `ClubGapPlayRecordPickerRow`.
+  - `App/MPGap/AccountPublish/AccountPublishGapViews.swift:19,261`, `App/MPGap/Club/ClubGapManageExtensions.swift:172,181`, `App/MPGap/Club/ClubGapRemainingViews.swift:43,181`, `App/MPGap/MerchantCoop/MerchantGapOperationsViews.swift:172`, `App/MPGap/MerchantCoop/MerchantGapRemainingViews.swift:31,103`: already aligned with `CYColor.brand`/`warningText`/`dangerText`/`bgSurfaceSubtle` and `CYAvatarView(url:name:size: .sm)` in commit `38ee5b52f`.
+- `swiftc -parse` passed on all G2 `Core/MPGap`, `App/MPGap`, and `Tests/CoreTests/MPGap` Swift files.
+
+DONE-COMPILE-FIX

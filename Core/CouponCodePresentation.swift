@@ -6,7 +6,7 @@ import FoundationNetworking
 
 /// `serviceDisabled` is the server saying code issuance is switched off (source code 503);
 /// `disabled` stays the local build gate where no request was sent.
-public enum CouponCodeFailure: Error, Equatable { case disabled, invalid, expired, unavailable, unauthorized, failed, stale, mediaUnavailable, serviceDisabled }
+public enum CouponCodeFailure: Error, Equatable { case disabled, invalid, expired, unavailable, unauthorized, failed, stale, mediaUnavailable, serviceDisabled, notMine }
 public struct CouponCodeSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
@@ -88,6 +88,7 @@ public struct CouponCodeReceipt: Decodable {
         try Task.checkCancellation()
         let (data, status) = try await transport.send(request)
         try Task.checkCancellation()
+        if Self.notMine(data) { throw CouponCodeFailure.notMine }
         if status == 401 { throw CouponCodeFailure.unauthorized }
         if status == 410 { throw CouponCodeFailure.unavailable }
         if status == 503 { throw CouponCodeFailure.serviceDisabled }
@@ -104,6 +105,7 @@ public struct CouponCodeReceipt: Decodable {
         catch APIError.httpStatus(410) { throw CouponCodeFailure.unavailable }
         catch APIError.httpStatus(503) { throw CouponCodeFailure.serviceDisabled }
         catch OrderLifecycleFailure.response(code: 503, message: _) { throw CouponCodeFailure.serviceDisabled }
+        catch let OrderLifecycleFailure.response(_, message) where Self.notMine(message) { throw CouponCodeFailure.notMine }
     }
     public func image(_ receipt: CouponCodeReceipt) async throws -> Data {
         guard enabled, let url = receipt.imageURL, let host = url.host, approvedImageHosts.contains(host.lowercased()) else { throw CouponCodeFailure.mediaUnavailable }
@@ -112,12 +114,22 @@ public struct CouponCodeReceipt: Decodable {
         guard (200..<300).contains(status), !bytes.isEmpty, bytes.count <= 5 * 1024 * 1024 else { throw CouponCodeFailure.mediaUnavailable }
         return bytes
     }
+    /// `coupon-qr/index.js` `onNotMine`: the server text 无权查看该券, on any status.
+    nonisolated static func notMine(_ data: Data) -> Bool {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return false }
+        return notMine(object["msg"] as? String)
+    }
+    nonisolated static func notMine(_ message: String?) -> Bool {
+        message?.contains("无权查看该券") == true
+    }
     private struct CouponCodeEnvelope: Decodable {
         let data: CouponCodeReceipt
-        enum CodingKeys: String, CodingKey { case code, data }
+        enum CodingKeys: String, CodingKey { case code, msg, data }
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self)
             let code = try c.decode(Int.self, forKey: .code)
+            let message = try? c.decode(String.self, forKey: .msg)
+            if CouponCodeHTTPService.notMine(message) { throw CouponCodeFailure.notMine }
             if code == 401 { throw CouponCodeFailure.unauthorized }
             if code == 410 { throw CouponCodeFailure.unavailable }
             if code == 503 { throw CouponCodeFailure.serviceDisabled }
@@ -145,7 +157,7 @@ public struct CouponCodeReceipt: Decodable {
 
 @available(macOS 14.0, *)
 @MainActor @Observable public final class CouponCodeCoordinator {
-    public enum Phase: String { case review, loading, ready, waiting, failed, disabled, login, used, expired, invalid, unavailable, stale, paused, serviceDisabled }
+    public enum Phase: String { case review, loading, ready, waiting, failed, disabled, login, used, expired, invalid, unavailable, stale, paused, serviceDisabled, notMine }
     public let historyID: Int
     public private(set) var phase: Phase = .review
     public private(set) var receipt: CouponCodeReceipt?
@@ -376,6 +388,9 @@ public struct CouponCodeReceipt: Decodable {
             terminal = true; generation &+= 1; receipt = nil; imageBytes = nil; expiry = nil; remainingSeconds = 0
             self.polling = false; issuing = false; phase = failure == .unavailable ? .unavailable : .login; issue = failure
             if failure == .unauthorized, let owner { onUnauthorized(owner) }
+        } else if failure == .notMine {
+            terminal = true; generation &+= 1; receipt = nil; imageBytes = nil; expiry = nil; remainingSeconds = 0
+            self.polling = false; issuing = false; phase = .notMine; issue = failure
         } else if failure == .serviceDisabled {
             // Source parity: stop refresh and polling until the person explicitly retries.
             receipt = nil; imageBytes = nil; expiry = nil; remainingSeconds = 0; pollDelayed = false
