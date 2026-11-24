@@ -246,7 +246,7 @@ extension EnvironmentValues {
                 case .cancel where biz == .activity:
                     // Topic cancel goes through the source cancel-preview flow, which has no native model yet.
                     Button("myProject.op.cancel", role: .destructive) {
-                        Task { await mutation.begin(.cancelActivity(id: project.sourceID)) }
+                        Task { await mutation.beginActivityCancel(id: project.sourceID, title: project.title) }
                     }
                     .accessibilityIdentifier("myProject.op.cancel.\(project.id)")
                 case .delete:

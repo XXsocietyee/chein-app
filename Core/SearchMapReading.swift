@@ -28,6 +28,8 @@ public struct SearchMapContext: Equatable {
     var topicReader: (any TopicReading)? { get }
     func selectManualArea(_ area: RoamSearchArea?)
     func categories() async throws -> [DiscoveryCategory]
+    /// City 商家发现 filter. Production readers post `type=MERCHANT`. Fixtures may keep `categories()`.
+    func merchantCategories() async throws -> [DiscoveryCategory]
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow]
     func search(_ query: GlobalSearchQuery) async throws -> GlobalSearchResults
     func cityNodes(_ query: CityNodeSearchQuery) async throws -> [SearchMapCityNode]
@@ -45,6 +47,7 @@ public extension SearchMapReading {
     var publicLayerCoordinator: MapPublicLayerCoordinator? { nil }
     var topicReader: (any TopicReading)? { nil }
     func selectManualArea(_ area: RoamSearchArea?) {}
+    func merchantCategories() async throws -> [DiscoveryCategory] { try await categories() }
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] { throw APIError.notConfigured }
     func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage { throw APIError.notConfigured }
     func publicLayers(area: RoamSearchArea, body: Data) async throws -> Data { throw APIError.notConfigured }
@@ -83,6 +86,7 @@ public extension SearchMapReading {
         try await read { try await $0.merchantDiscovery(tag: tag, token: $1) }
     }
     public func categories() async throws -> [DiscoveryCategory] { try await read { try await $0.categories(token: $1) } }
+    public func merchantCategories() async throws -> [DiscoveryCategory] { try await read { try await $0.merchantCategories(token: $1) } }
     public func search(_ query: GlobalSearchQuery) async throws -> GlobalSearchResults {
         try await read { service, token in
             let result = try await service.search(query, token: token)

@@ -239,6 +239,9 @@ struct TopicXcxActionBar: View {
     var openSessions: () -> Void
     var openSelfPlay: () -> Void
     var openPricing: (() -> Void)?
+    var openEditor: (() -> Void)? = nil
+    /// `via=session`: the bar opens the session picker before self-play.
+    var preferSession = false
     var openTickets: (() -> Void)? = nil
     var shareURL: URL? = nil
     var shareTitle: String? = nil
@@ -259,7 +262,7 @@ struct TopicXcxActionBar: View {
 
     @ViewBuilder private var priceColumn: some View {
         VStack(alignment: .leading, spacing: 2) {
-            switch TopicXcxFacts.action(topic) {
+            switch TopicXcxFacts.action(topic, preferSession: preferSession) {
             case .ticketWallet:
                 Text("topicXcx.bar.signedUp").cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
             case .locked, .closed:
@@ -301,7 +304,7 @@ struct TopicXcxActionBar: View {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     priceColumn
                     Spacer(minLength: CYSpacing.sm)
-                    switch TopicXcxFacts.action(topic) {
+                    switch TopicXcxFacts.action(topic, preferSession: preferSession) {
                     case .ticketWallet:
                         if let openTickets {
                             Button(action: openTickets) {
@@ -315,12 +318,16 @@ struct TopicXcxActionBar: View {
                             Label("topicXcx.cta.ticketWallet", systemImage: "ticket").foregroundStyle(palette.textSecondary)
                         }
                     case .locked(let lifecycle):
-                        if TopicXcxFacts.opensPricing(topic), let openPricing {
-                            Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                        switch TopicXcxFacts.ownerSaleRoute(topic) {
+                        case .pricing where openPricing != nil:
+                            Button(action: { openPricing?() }) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
                                 .modifier(TopicBarHeroSource(sheet: .pricing, namespace: heroNamespace))
                                 .pageTemplateControl(label: Text("topicXcx.cta.confirmPrice"), traits: .isButton)
                                 .accessibilityIdentifier("topic.cta.pricing")
-                        } else {
+                        case .editor where openEditor != nil:
+                            Button(action: { openEditor?() }) { Text("topicXcx.cta.edit").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                                .accessibilityIdentifier("topic.cta.editor")
+                        default:
                             Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
                         }
                     case .closed:
@@ -420,11 +427,17 @@ struct TopicXcxToolbarActions: View {
 }
 
 private struct TopicPricingDestinationKey: EnvironmentKey { static let defaultValue: ((Int) -> AnyView)? = nil }
+private struct TopicEditorDestinationKey: EnvironmentKey { static let defaultValue: ((Int, String?) -> AnyView)? = nil }
 extension EnvironmentValues {
     /// Owner-only final-price page (source `pages/topic/pricing`); nil hides the entry.
     var topicPricingDestination: ((Int) -> AnyView)? {
         get { self[TopicPricingDestinationKey.self] }
         set { self[TopicPricingDestinationKey.self] = newValue }
+    }
+    /// Owner lifecycle-2 free explore opens `pages/publish/fabu/index`. Nil hides the entry. This does not grant pricing.
+    var topicEditorDestination: ((Int, String?) -> AnyView)? {
+        get { self[TopicEditorDestinationKey.self] }
+        set { self[TopicEditorDestinationKey.self] = newValue }
     }
 }
 

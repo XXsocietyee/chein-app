@@ -5,6 +5,7 @@ struct TopicDetailView: View {
     @Environment(\.cyPalette) private var palette
     let id: Int
     let reader: any TopicReading
+    var preferSession = false
     var activityDestination: ((Int) -> AnyView)? = nil
     var publicMerchant: PublicMerchantHomeContext? = nil
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
@@ -27,9 +28,11 @@ struct TopicDetailView: View {
     @State private var generation = 0
     @State private var loads = SignedInContentDetailLoadOwner()
     @Environment(\.topicPricingDestination) private var pricingDestination
+    @Environment(\.topicEditorDestination) private var editorDestination
     @Environment(\.locale) private var locale
     @Environment(\.popupCloseActions) private var popupCloseActions
     @State private var showsPricing = false
+    @State private var showsEditor = false
     @State private var showingGraduateBetaConfirm = false
     @State private var showingClubTransferPicker = false
     @State private var transferClubs: [ClubRecord] = []
@@ -547,6 +550,8 @@ struct TopicDetailView: View {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { barSheetOrigin = .selfPlay; showingSelfPlay = true },
                               openPricing: pricingDestination == nil ? nil : { barSheetOrigin = .pricing; showsPricing = true },
+                              openEditor: editorDestination == nil ? nil : { showsEditor = true },
+                              preferSession: preferSession,
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
                               heroNamespace: barHero)
         }
@@ -555,6 +560,13 @@ struct TopicDetailView: View {
                 .modifier(TopicBarHeroDestination(sheet: .sessions, origin: .sessions, namespace: barHero)) // only the bar opens it
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
+        }
+        .sheet(isPresented: $showsEditor) {
+            if let editorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
+                NavigationStack { editorDestination(value.id, scope) }
+                    .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.full])
+            }
         }
         .sheet(isPresented: $showsPricing, onDismiss: { barSheetOrigin = nil }) {
             if let pricingDestination {

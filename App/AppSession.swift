@@ -7667,8 +7667,15 @@ final class AppSession: ObservableObject {
     }
 
     func activityDetail(id:Int) async throws -> ActivityDetailAccess {
-        guard account != nil, let credential = token else { throw APIError.unauthorized }
         guard let activityService else { throw APIError.notConfigured }
+        // Guests read api/activity/info with a nil token. A signed-in account still needs its token.
+        let credential: String?
+        if account == nil {
+            credential = nil
+        } else {
+            guard let token else { throw APIError.unauthorized }
+            credential = token
+        }
         let stamp = gate.currentStamp, viewerRevision = compositionViewerRevision
         do {
             let result = try await activityService.detail(id:id,token:credential)

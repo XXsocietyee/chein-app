@@ -34,6 +34,8 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
     let id: Int
     @ObservedObject var session: AppSession
     var topicReaderOverride: (any TopicReading)? = nil
+    /// Club session card (`via=session`): the bar opens the session picker before self-play.
+    var preferSession = false
     var body: some View {
         Group {
             if session.account == nil {
@@ -42,7 +44,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                 ContentUnavailableView("topic.detail", systemImage: "network.slash", description: Text(LocalizedStringKey(message)))
                     .accessibilityIdentifier("topic.detail.configurationUnavailable")
             } else {
-                TopicDetailView(id: id, reader: topicReaderOverride ?? session.topicReader,
+                TopicDetailView(id: id, reader: topicReaderOverride ?? session.topicReader, preferSession: preferSession,
                     activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)) },
                     publicMerchant: session.publicMerchantHomeContext,
                     makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,
@@ -70,6 +72,11 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     .environment(\.topicPricingDestination, session.publisherLifecycleContext.map { context -> (Int) -> AnyView in
                         { topicID in AnyView(PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)) }
                     })
+                    .environment(\.topicEditorDestination) { topicID, scope in
+                        var query = ["id": String(topicID)]
+                        if let scope { query["scope"] = scope }
+                        return AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: query).environmentObject(session))
+                    }
                     .environment(\.playRuntimeTopicClient, PlayRuntimeGapBridge.topicClient(session: session))
             }
         }

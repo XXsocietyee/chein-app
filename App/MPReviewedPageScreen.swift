@@ -313,8 +313,20 @@ import SwiftUI
             }
         case "pages/club/roles/index":
             clubRead(.roles, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
+        case "pages/topic/catalog/index":
+            // A canonical id is the topic screen. Every other catalog link, including a non-canonical id, is home.
+            if let link = MiniProgramPageLink(path: page, query: query), case .topic(let id) = link.catalogDestination {
+                SessionTopicDetailView(id: id, session: session)
+            } else if rootTabSwitch.isAvailable {
+                MPTabHandoff { session.dismissNativeEntry(); rootTabSwitch(.home) }
+            } else {
+                SessionHomeFeedView().environmentObject(session)
+            }
         case "pages/topic/index/index":
-            if let id = reviewedID(query) { SessionTopicDetailView(id: id, session: session) } else { unavailable }
+            if let id = reviewedID(query) {
+                let preferSession = MiniProgramPageLink(path: page, query: query)?.opensSessionPickerFirst == true
+                SessionTopicDetailView(id: id, session: session, preferSession: preferSession)
+            } else { unavailable }
         case "pages/templatedetail/templatedetail":
             // R7-PC-A6-1: MP `scope=my` is the viewer's own template (member read), never the public `api/template/info`.
             if query["scope"] == "my", let id = positiveID(query["id"]).flatMap(MemberPlayTemplateID.init(rawValue:)) {
