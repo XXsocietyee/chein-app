@@ -336,7 +336,7 @@ private struct TicketWalletEntitlementRow: View {
                         .accessibilityLabel(Text(LocalizedStringKey("ticketWallet.entitlementStatus." + entitlement.statusKey)))
                 }
             }
-            // B-16: no 已含 / 需消费 / 需预约 line here. The backend sends those perk terms only on `/api/play/nodes`
+            // B-16: no 已含 / 需消费 / 需预约 line here. The backend sends those perk terms only on the play-nodes perk map
             // and the free-explore catalog, never on the ticket-wallet entitlement, so the row could never render.
             TicketWalletOptionalField(label: "ticketWallet.redeemedAt", value: entitlement.redeemedAt).font(.caption)
             if let reason = entitlement.invalidReason, !reason.isEmpty {

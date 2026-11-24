@@ -137,3 +137,10 @@ r7-rev-a covers play runtime only. In r7-rev-c, the F-C* rows on parked `App/MPG
 | PLY-21-6, PLY-26-2 (P1) | Still blocked by the pinned tests named in round 1. Neither `test_ticket_wallet_team.py:16` nor `test_owned_template_pagination.py` / `TemplateOwnShelfFlowTests` was retired on r7. |
 | PLY-21-4 (rest), FIN-16-7 (rest), R7-MEM-17-2 (rest) | Same Core requests as round 1: no game flag, no `ProfileOrder` cover, no settle fields. `cursor/core-member` added `TicketWalletTicket.coverURL` only. |
 | Cursor's App wiring list (`cursor-core-member.md` "F-agent (App)") | Not touched, per brief item 6: those call sites are being wired by Cursor. They are `ProfileOrdersView` → `orderHistory` paging (FIN-16-2), `TicketWalletView` → `ticket.coverURL` and the `focusId` `ticketDetail` fallback (R7-MEM-21-3, PLY-21-2), `TemplateAuthoringMineView` → `operationScope = "MERCHANT"` (PLY-26-5), and `MPReviewedPageScreen` invoice `?id=`. **If the coordinator wants member-b to do them instead, say so and they are small.** The wallet-card illustration above is the no-cover fallback, so `coverURL` can be layered on top without moving it. |
+
+### Round 2 verification (cloud, contract layer only)
+- I ran every ContractChecks module that names a round-2 file (34 modules) on this branch and on the pre-round-2 merge (b7f978cc5, which is r7 + round 1). Both runs: 15 failures and 5 errors, with the same test ids. **0 new.** The pre-existing ones are r7-wide (for example `test_ticket_wallet_read_lifetime` and the SHA projections).
+- A first run caught one regression, now fixed: the B-16 comment quoted the `api/…` path, which the forbidden-literal guards in `test_ticket_wallet_play_entry` and `test_ticket_wallet_read_lifetime` reject. The comment no longer quotes it.
+- `tools/check_typography_lint.py` passes.
+- Not run here: Xcode build, `swift test`, AppUnit, screenshots. All APIs used were grepped on r7: `MPAsset.*` accessors, `MoneyDisplay.text`, `cyText(.bodyCompact)`, `CYColor.bgSurfaceStrong`, `CYSpacing.md`. The coordinator should compile.
+- `origin/ui/combined-r7` was re-fetched before the final push and is still 82388e4a5, already merged.

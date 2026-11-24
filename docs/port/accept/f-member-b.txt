@@ -38,6 +38,4 @@ e4-template-mine
 e4-complaint
 # 29 举报进度 appeal copy
 member-popup-report-appeal
-# Round 2: MP assets on 16/17/21/22/23, B-16/B-21 entitlement row, two-decimal money (reuse the fixtures above)
-orders-list
-order-detail
+# Round 2: MP assets on 16/17/21/22/23, B-16/B-21 entitlement row and two-decimal money are covered by the fixtures above.
