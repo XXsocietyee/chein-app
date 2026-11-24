@@ -82,3 +82,57 @@
   - Two regressions found during the run were fixed in place.
   - `test_club_leaderboard_member_navigation`: the byte pin on the span from `} else if operation == .customer {` was re-hashed, with a comment. That span holds the notify retry footnote and the check-in error-phase guard; its customer rows are unchanged.
   - `test_club_management_review_owner`: the pinned line `case .received(let result): snapshot = result` is kept. The slide-out now comes from a list `.animation(value:)`.
+
+## Round 2 (2026-11-24)
+
+- Brief: `origin/design/handoff-r2:docs/briefs/fix-r3-round2.md`, plus `owner-decisions-1124.md`.
+- Synced: `origin/ui/combined-r7` @ 82388e4a5 merged (Core K1–K10, W1 wiring, C7 MP assets). One conflict, `tools/check_typography_lint.py`, was resolved to r7's version (the newer one).
+- **Not compiled** (no Swift toolchain in the cloud). Every API used was grepped on r7: `MPAsset.AvatarDefault.dProfile`, `MPAsset.EmptyState.*`, `MoneyDisplay.text`, `ClubOpsNetworkFailureClassifier.classify/title(for:kind:)`, `ClubOpsPageFailureCopy.literalTitle/prefersBack`, `ClubOpsFailureCopy.literalTitle/backTitle`, `CYEmptyState(systemImage:verbatimTitle:kind:)`, `ifLet`, `CYPillButtonStyle`.
+- **New Swift file:** `App/ClubKit/ClubMPArt.swift`. `App/ClubKit/*.swift` is already globbed in `tools/generate_project.py`, and the project was regenerated (+12 pbxproj lines, this file only).
+
+### Fixed in round 2
+
+| id | files | what changed |
+|---|---|---|
+| MP asset: avatar default | App/ClubKit/ClubMPArt.swift (`ClubMPAvatar`), ClubBadgeManagementView, ClubCheckinRailView, ClubManagementView, ClubOpsCustomerViews | Where the MP writes `avatar \|\| '/images/d_profile.png'` (badges 颁给谁？, check-in detail, join requests), a member with no photo shows `MPAsset.AvatarDefault.dProfile`. Customers and customer detail follow `cy-avatar`: the initial when there is a name, d_profile only without one. The generated cover-art fallback on customer detail is gone. |
+| MP asset: empty illustration | ClubMPArt.swift (`ClubMPEmptyState`), ClubPayoutReceiverView, ClubOpsCustomerViews, ClubSettlementDetail | `cy-empty kind="empty"` pages use the MP two-layer art (`MPAsset.EmptyState.emptyStateBg` + `emptyStateFigure`): 还没有平台分润记录 (club and personal settlement), 还没有客户, 还没有自己的俱乐部. The filtered 没有符合条件的客户 has no kind in the MP, so it keeps the glyph. |
+| Owner decision 9 (money) | ClubMPArt.swift (`ClubMoneyText`), ClubPayoutReceiverView, ClubOpsCustomerViews, ClubCheckinRailView, ClubGovernanceViews (`ClubGovernanceFactRows.shown`) | Server amount text goes through the one shared `MoneyDisplay.text` (lexical, no Double), so it reads ¥12.50. Covers the settled total, topic amounts, 原始/调整/净额, customer 累计实付, check-in 实付, and the governance money facts. Non-numeric text (待核验, —, a permission sentence) is shown as sent. `ClubDirectLedger.amountText` was already two decimals. |
+| CLB-notify-04 | App/ClubOpsJoinNotifyViews.swift (`ClubOpsPageFailureSection`) | Shows Core's `literalTitle` (网络连接失败 vs 通知工具暂时不可用). When `prefersBack` is set, the button is 返回 (dismiss), not reload. |
+| CLB-settlement-10 | App/ClubOpsCustomerViews.swift (`ClubOpsFailureSection`) | Settlement failure shows `literalTitle` (网络连接失败 vs 结算数据暂不可用). |
+| CLB-customer-detail-05 | same | A business refusal shows the server sentence with 返回 (`backTitle`). No reload. |
+| CLB-join-requests-06 (classifier) | App/ClubManagementView.swift, App/ClubOpsJoinNotifyViews.swift | The list read records `ClubOpsNetworkFailureClassifier.classify(error)`. The failed state titles 网络连接失败 or 入会申请加载失败. |
+| CLB-group-code-03 (auto) | App/ClubGroupCodePresentation.swift | MP L08-070/071: one timer re-issues 30 s before expiry. Returning to the foreground with 30 s or less left re-issues at once. It never runs in the background, and there is one automatic re-issue per code (a failure leaves the 重新出码 button, not a loop). |
+| CLB-customer-detail-04 (failure copy) | App/ClubGovernanceCommandForm.swift, strings | The tag/remark save failure reads 标签与备注没保存成功, then the server sentence or 请重试, then **重试保存**. The retry is hidden when the outcome is unknown (`locked`). |
+
+### MP-asset rows applied (`docs/mp-assets/mapping.md`)
+
+- [x] `MPAsset.AvatarDefault.dProfile` (`images_d_profile`): badges, check-in detail, join requests, customers, customer detail.
+- [x] `MPAsset.EmptyState.emptyStateBg` and `MPAsset.EmptyState.emptyStateFigure`: settlement, customers, payout receiver.
+- [ ] `MPAsset.TabIcon.iconTabWorkbench` / `iconTabWorkbenchOn`: shared `CYDomainTabBar`, not a club-b page. Left to the tab-bar owner.
+- Not MP images, so they stay SF Symbols: `cy-icon` glyphs on these pages (phone, arrow-right, slide-arrow, back) are the icon font and have no mapping row. The disclosure chevron, close, share and search are system controls.
+
+### Owner decisions (1124)
+
+- 9 money: done on these pages (above).
+- 3 / 6 / 12 money writes: these pages add no money write. Payout bind/unbind stays behind `payoutOpen`.
+- 7 cast, 8 arrival lock, 10 game kits: there is no such surface on the club-b pages.
+
+### Left after round 2
+
+| id | owner | reason |
+|---|---|---|
+| CLB-notify-01 / -05 / -06 (one composer) | Claude, after `cursor/wire16` lands | `cursor/wire16` is rewiring the notify audience rows (`ClubOpsNotifySections.swift`, `ClubNotifyPage.project`). Restructuring the composer now would collide with that call site. The brief says not to touch it. |
+| CLB-group-code-04 (session name) / -06 | Cursor (`cursor/wire14`) | wire14 is wiring `ClubGroupCodePage` into the event list and `ClubGovernanceEventView`. The session label can ride on that page model once it lands. |
+| CLB-join-requests-01 | Claude, next round | Same reason as round 1 (r1 UI tests, member actions). `cursor/wire15` also edits this page's header now. |
+| CLB-join-requests-06 (drop 刷新) | — | Kept: UI tests tap `club.management.refresh`. |
+| CLB-settlement-04 / -06 (personal) | Cursor | `ClubSettlementDetailTarget.init` is still `fileprivate`, and there is no personal funds-stage read on r7. The round-1 request stands. |
+| CLB-workbench-03 | Claude | The route still never reaches `unavailable`. |
+| CLB-workbench-04 | Claude (club-a, detail page) | The tiles live in `ClubWorkbenchKit` on the club detail 管理 tab, which is the first half's page. |
+| CLB-payout-receiver-01, CLB-settlement-05 | owner | Unchanged. |
+| B-11 (review b) | Cursor | Core only; not on this layer. Review a and c have no club-b App rows. |
+
+### Gates (round 2)
+
+- **Contract ratchet:** the r7 merge commit and this branch both fail 200 (baseline 184, 16 new). That is the **identical set**, compared line by line in a separate worktree, so this round adds 0 new failures. The 16 are pre-existing on r7, for example search map, coupons, and `test_localization_key_catalog_contract`, which lists the not-yet-merged `clubR3b.*` fragment keys of every round.
+- **Typography lint:** PASS.
+- **Strings:** `docs/port/strings/fix-r3-club-b.json` adds `clubR3b.customer.saveFailed`, `clubR3b.customer.saveFailedRetry` and `clubR3b.customer.retrySave` (en + zh-Hans).

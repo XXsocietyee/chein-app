@@ -19,3 +19,10 @@
 --design-fixture cur3-payout-closed
 # Check-in refund consequence sheet
 --design-fixture popups-club-refund
+# Round 2 checks (same launch lines):
+# - join requests / badges 颁给谁？ / check-in detail: a member without a photo shows the MP d_profile face, not an initial
+# - customers 还没有客户, settlement 还没有平台分润记录, payout 还没有自己的俱乐部: MP two-layer empty illustration
+# - settlement and check-in amounts read with two decimals (¥12.50)
+# - join requests loadFailure: title 入会申请加载失败 (service) or 网络连接失败 (transport)
+# - customer detail tag/remark save failure: 标签与备注没保存成功 + 重试保存
+--uitesting-club-management-fixture loadFailure
