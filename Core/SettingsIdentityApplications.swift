@@ -3,8 +3,9 @@ import Foundation
 /// Mini-program pages/shezhi shows "成为俱乐部主理人" and "成为商家" only to a signed-in
 /// player view (`!isMerchantView && !isClubView`); the server role decides, never a local choice.
 public enum SettingsIdentityApplications {
-    public static func isOffered(toRole role: String?) -> Bool {
-        guard let role else { return false }
+    /// A club leader (`roleGuard.isClubLeader()`) does not see the apply rows, even with a player role string.
+    public static func isOffered(toRole role: String?, isClubLeader: Bool = false) -> Bool {
+        guard let role, !isClubLeader else { return false }
         return role != "merchant" && role != "club"
     }
 }
@@ -29,12 +30,16 @@ public enum SettingsHomePage {
         case loading
         case failed
         case signedOut
+        /// `POST /api/user/info` returned 403. The row stays an error the user can tap to read again.
+        case denied
         case signedIn(role: String)
     }
 
     public enum Copy {
         public static let loading = "settings.home.loading"
         public static let error = "settings.home.error"
+        public static let denied = "settings.home.denied"
+        public static let deniedRetry = "settings.home.deniedRetry"
         public static let unknown = "settings.home.unknown"
         public static let signedOut = "member.settings.signedOut"
         public static let title = "settings.title"
@@ -48,12 +53,15 @@ public enum SettingsHomePage {
         public let showsSignOut: Bool
         public let copyKey: String
         public let accessibilityIdentifier: String
+        /// 403 account row: tap reads `POST /api/user/info` again.
+        public let retriesProfileOnTap: Bool
     }
 
-    /// Loading wins over a failure. A nil role is signed out. The raw role is kept;
-    /// an empty role is not rewritten to player.
-    public static func sessionFact(loading: Bool, failed: Bool, role: String?) -> SessionFact {
+    /// Loading wins over a denial, and a denial wins over a generic failure.
+    /// A nil role is signed out. The raw role is kept; an empty role is not rewritten to player.
+    public static func sessionFact(loading: Bool, failed: Bool, role: String?, accessDenied: Bool = false) -> SessionFact {
         if loading { return .loading }
+        if accessDenied { return .denied }
         if failed { return .failed }
         guard let role else { return .signedOut }
         return .signedIn(role: role)
@@ -81,34 +89,90 @@ public enum SettingsHomePage {
         case .failed:
             return hidden(phase: .error, marketText: marketText, copyKey: Copy.error,
                           accessibilityIdentifier: "settings.home.error")
+        case .denied:
+            return hidden(phase: .error, marketText: marketText, copyKey: Copy.denied,
+                          accessibilityIdentifier: "settings.home.denied", retriesProfileOnTap: true)
         case .signedOut:
             return Facts(phase: .empty, marketText: marketText, roleText: unknownDisplay,
                          offersIdentityApplications: false, showsSignOut: false,
-                         copyKey: Copy.signedOut, accessibilityIdentifier: "settingsNative.profileSignedOut")
+                         copyKey: Copy.signedOut, accessibilityIdentifier: "settingsNative.profileSignedOut",
+                         retriesProfileOnTap: false)
         case .signedIn(let role):
             let trimmed = role.trimmingCharacters(in: .whitespacesAndNewlines)
             guard knownRoles.contains(trimmed) else {
                 return Facts(phase: .unknown, marketText: marketText, roleText: unknownDisplay,
                              offersIdentityApplications: false, showsSignOut: true,
-                             copyKey: Copy.unknown, accessibilityIdentifier: "settings.home.unknown")
+                             copyKey: Copy.unknown, accessibilityIdentifier: "settings.home.unknown",
+                             retriesProfileOnTap: false)
             }
             let offers = SettingsIdentityApplications.isOffered(toRole: trimmed)
             if market == nil {
                 return Facts(phase: .unknown, marketText: unknownDisplay, roleText: trimmed,
                              offersIdentityApplications: offers, showsSignOut: true,
-                             copyKey: Copy.unknown, accessibilityIdentifier: "settings.home.unknown")
+                             copyKey: Copy.unknown, accessibilityIdentifier: "settings.home.unknown",
+                             retriesProfileOnTap: false)
             }
             return Facts(phase: .ready, marketText: marketText, roleText: trimmed,
                          offersIdentityApplications: offers, showsSignOut: true,
-                         copyKey: Copy.title, accessibilityIdentifier: "settings.home.ready")
+                         copyKey: Copy.title, accessibilityIdentifier: "settings.home.ready",
+                         retriesProfileOnTap: false)
         }
     }
 
     private static func hidden(phase: Phase, marketText: String, copyKey: String,
-                               accessibilityIdentifier: String) -> Facts {
+                               accessibilityIdentifier: String, retriesProfileOnTap: Bool = false) -> Facts {
         Facts(phase: phase, marketText: marketText, roleText: unknownDisplay,
               offersIdentityApplications: false, showsSignOut: false,
-              copyKey: copyKey, accessibilityIdentifier: accessibilityIdentifier)
+              copyKey: copyKey, accessibilityIdentifier: accessibilityIdentifier,
+              retriesProfileOnTap: retriesProfileOnTap)
+    }
+}
+
+/// Fresh `POST /api/user/info` for settings appear. Role and `isClubLeader` come from this read, not a cached session.
+public struct SettingsAccountProfile: Equatable {
+    public let role: String
+    public let isClubLeader: Bool
+    /// shezhi `syncViewStateAndTheme`: merchant view versus the player theme.
+    public var theme: String { role == "merchant" ? "merchant" : "player" }
+}
+
+public enum SettingsAccountProfileAccess: Equatable {
+    case ready(SettingsAccountProfile)
+    case denied
+    case signedOut
+    case failed
+}
+
+public struct SettingsAccountProfileClient {
+    public static let deniedCopy = "当前身份不能查看账号信息"
+    public static let deniedRetry = "点击刷新并确认当前账号权限"
+    private let configuration: APIConfiguration
+    private let transport: any HTTPTransport
+    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+        self.configuration = configuration
+        self.transport = transport
+    }
+    public func refresh(memberID: Int, token: String) async -> SettingsAccountProfileAccess {
+        guard memberID > 0, AuthRequestBuilder.isValidToken(token) else { return .failed }
+        let url = configuration.baseURL.appendingPathComponent("api/user/info")
+        guard let request = try? AuthRequestBuilder.makeFormRequest(url: url, fields: ["member_id": String(memberID)], token: token) else {
+            return .failed
+        }
+        let data: Data
+        let status: Int
+        do { (data, status) = try await transport.send(request) } catch { return .failed }
+        if status == 401 { return .signedOut }
+        if status == 403 { return .denied }
+        guard (200..<300).contains(status),
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return .failed }
+        let code = (root["code"] as? Int) ?? Int(root["code"] as? String ?? "")
+        if code == 401 { return .signedOut }
+        if code == 403 { return .denied }
+        guard code == 200, let object = root["data"] as? [String: Any] else { return .failed }
+        let role = (object["role"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !role.isEmpty else { return .failed }
+        let leader = (object["isClubLeader"] as? Bool) ?? (role == "club")
+        return .ready(SettingsAccountProfile(role: role, isClubLeader: leader))
     }
 }
 
