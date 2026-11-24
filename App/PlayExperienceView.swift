@@ -253,28 +253,7 @@ import SwiftUI
             report.load()
         }
         .onChange(of: model.hasCurrentMediaSnapshot) { _, current in if !current { invalidateShopNPC?() } }
-        .onAppear { adoptCast() }
-        .onChange(of: model.castPayload) { _, _ in adoptCast() }
-        .onChange(of: model.snapshot?.route?.sessionID) { old, new in
-            if old != new { castPlaybillSeen = false }
-            adoptCast()
-        }
-        .onChange(of: castOpeningStep) { _, step in castCover = step != nil }
-        .fullScreenCover(isPresented: $castCover) {
-            if let config = castModel?.config {
-                CastOpeningFlow(config: config, profile: castModel?.profile, routeName: model.snapshot?.result.topicName,
-                                suggestedName: castModel?.profile?.name ?? "", initial: castOpeningStep ?? .playbill,
-                                save: { name, identity in Task { await castModel?.saveProfile(name: name, identityKey: identity) } },
-                                finish: { castPlaybillSeen = true; castCover = false })
-            }
-        }
-        .sheet(isPresented: $showingCastRoster) {
-            if let config = castModel?.config {
-                NavigationStack {
-                    CastPlaybillView(config: config, profile: castModel?.profile, routeName: model.snapshot?.result.topicName, start: { showingCastRoster = false })
-                }
-            }
-        }
+        .modifier(PlayExperienceCastMounts(host: self))
         .modifier(PlaySessionLocationHold(identity: model.identity, running: model.clock.phase == .running,
                                           currentIdentity: { [model] in model.identity }))
         .onChange(of: scenePhase) { _, next in
@@ -759,7 +738,6 @@ import SwiftUI
     @ViewBuilder private func freeStoreDestination(_ id: Int) -> some View {
         if model.gameplayMode == .freeExploration {
             FreeExplorationStoreView(nodeID: id, model: model, device: deviceModel?(id), shopNPC: shopNPCModel?(id), mediaScope: mediaScope,
-                arrivalLocation: RuntimeNativeLocationProvider(enabled: true),
                 makeExternalMaps: makeExternalMaps, storyDestination: { node in
                     guard model.hasCurrentMediaSnapshot, let chapterID = node.chapterID,
                           model.chapterStories[chapterID] != nil else { return nil }
@@ -767,7 +745,8 @@ import SwiftUI
                         mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts,
                         castModel: castModel,
                         nodeDestination: { AnyView(freeStoreDestination($0)) }))
-                }, storeDayModel: storeDayModel)
+                }, storeDayModel: storeDayModel,
+                arrivalLocation: RuntimeNativeLocationProvider(enabled: true))
         } else { Text("playMode.unavailable") }
     }
     /// Chapters whose visible places are all done and unlocked (the same rule as the 旅程记录 stage rows).
@@ -1726,4 +1705,40 @@ struct PlayExperiencePresentationKey: Hashable {
 struct PlayStageSettlementTarget: Identifiable, Equatable {
     let chapterID: Int
     var id: Int { chapterID }
+}
+
+/// Cast mounts (W1) split out of `PlayExperienceView.body` so the modifier chain type-checks in time.
+private struct PlayExperienceCastMounts: ViewModifier {
+    let host: PlayExperienceView
+    func body(content: Content) -> some View {
+        host.castMounts(content)
+    }
+}
+
+extension PlayExperienceView {
+    @ViewBuilder fileprivate func castMounts<C: View>(_ content: C) -> some View {
+        content
+            .onAppear { adoptCast() }
+            .onChange(of: model.castPayload) { _, _ in adoptCast() }
+            .onChange(of: model.snapshot?.route?.sessionID) { old, new in
+                if old != new { castPlaybillSeen = false }
+                adoptCast()
+            }
+            .onChange(of: castOpeningStep) { _, step in castCover = step != nil }
+            .fullScreenCover(isPresented: $castCover) {
+                if let config = castModel?.config {
+                    CastOpeningFlow(config: config, profile: castModel?.profile, routeName: model.snapshot?.result.topicName,
+                                    suggestedName: castModel?.profile?.name ?? "", initial: castOpeningStep ?? .playbill,
+                                    save: { name, identity in Task { await castModel?.saveProfile(name: name, identityKey: identity) } },
+                                    finish: { castPlaybillSeen = true; castCover = false })
+                }
+            }
+            .sheet(isPresented: $showingCastRoster) {
+                if let config = castModel?.config {
+                    NavigationStack {
+                        CastPlaybillView(config: config, profile: castModel?.profile, routeName: model.snapshot?.result.topicName, start: { showingCastRoster = false })
+                    }
+                }
+            }
+    }
 }

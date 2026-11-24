@@ -82,7 +82,7 @@ public final class PlayRoamRound2Service {
     /// `JREPORT-3`: `GET /api/rank/list` as `journey-api.js` `rank` (`scope`, `scopeId`, `period` via `idQuery`).
     /// Topic, city, country, club and team ids are the `scopeId` of one tab, not extra query keys.
     public func fetchLeaderboard(_ queryModel: JourneyLeaderboardScopeQuery) async -> PlayerGapReply {
-        let items = JourneyRankBoard.query(scope: queryModel.scope, scopeID: queryModel.scopeID ?? "", period: queryModel.period)
+        let items = JourneyRankBoardContract.query(scope: queryModel.scope, scopeID: queryModel.scopeID ?? "", period: queryModel.period)
         var q: [String: String] = [:]
         for item in items {
             if let value = item.value { q[item.name] = value }

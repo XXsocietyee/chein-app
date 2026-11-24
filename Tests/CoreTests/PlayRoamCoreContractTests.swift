@@ -44,7 +44,7 @@ final class PlayRoamCoreContractTests: XCTestCase {
         XCTAssertNil(items["topicId"])
         XCTAssertNil(items["cityCode"])
         XCTAssertNil(items["teamId"])
-        XCTAssertEqual(JourneyRankBoard.query(scope: "world", scopeID: "", period: "0").map(\.name), ["scope"])
+        XCTAssertEqual(JourneyRankBoardContract.query(scope: "world", scopeID: "", period: "0").map(\.name), ["scope"])
     }
 
     func testReportAndSettleReasonCodes() {
@@ -117,21 +117,21 @@ final class PlayRoamCoreContractTests: XCTestCase {
     }
 
     func testRankMenuChoicesAndReportLinkCodes() {
-        let menu = JourneyRankBoard.menu(topicID: "12", cityCode: "310100", countryCode: "cn", clubID: "7", teamID: "4")
+        let menu = JourneyRankBoardContract.menu(topicID: "12", cityCode: "310100", countryCode: "cn", clubID: "7", teamID: "4")
         XCTAssertEqual(menu.tabs.map(\.kind), [.quest, .team])
         XCTAssertEqual(menu.tabs.map(\.scopeID), ["12", "4"])
         XCTAssertEqual(menu.more.map(\.kind), [.city, .country, .world, .club])
         XCTAssertEqual(menu.more.map(\.scopeID), ["310100", "CN", "", "7"])
-        let bare = JourneyRankBoard.menu(topicID: "0", cityCode: "bad code", countryCode: "CHN", clubID: "x", teamID: nil)
+        let bare = JourneyRankBoardContract.menu(topicID: "0", cityCode: "bad code", countryCode: "CHN", clubID: "x", teamID: nil)
         XCTAssertTrue(bare.tabs.isEmpty)
         XCTAssertEqual(bare.more.map(\.kind), [.world])
-        let codes = JourneyRankBoard.LinkCodes.parse(["cityCode": "310100", "countryCode": "cn", "clubId": "0"])
+        let codes = JourneyRankBoardContract.LinkCodes.parse(["cityCode": "310100", "countryCode": "cn", "clubId": "0"])
         XCTAssertEqual(codes.cityCode, "310100")
         XCTAssertEqual(codes.countryCode, "cn")
         XCTAssertEqual(codes.clubID, "")
         let choices = Data(#"{"choices":[{"key":"SOLO"},{"key":"SHARED_TEAM","teamCapacity":{"teamId":"15","joinedCount":1}}]}"#.utf8)
-        XCTAssertEqual(JourneyRankBoard.teamID(choicesJSON: choices), "15")
-        XCTAssertNil(JourneyRankBoard.teamID(choicesJSON: Data(#"{"choices":[]}"#.utf8)))
+        XCTAssertEqual(JourneyRankBoardContract.teamID(choicesJSON: choices), "15")
+        XCTAssertNil(JourneyRankBoardContract.teamID(choicesJSON: Data(#"{"choices":[]}"#.utf8)))
     }
 
     func testPendingCheckInKeepsTheUnknownAttempt() throws {

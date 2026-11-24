@@ -115,11 +115,11 @@ public struct CouponCodeReceipt: Decodable {
         return bytes
     }
     /// `coupon-qr/index.js` `onNotMine`: the server text 无权查看该券, on any status.
-    static func notMine(_ data: Data) -> Bool {
+    nonisolated static func notMine(_ data: Data) -> Bool {
         guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return false }
         return notMine(object["msg"] as? String)
     }
-    static func notMine(_ message: String?) -> Bool {
+    nonisolated static func notMine(_ message: String?) -> Bool {
         message?.contains("无权查看该券") == true
     }
     private struct CouponCodeEnvelope: Decodable {

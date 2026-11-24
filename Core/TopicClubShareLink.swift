@@ -58,7 +58,7 @@ public enum TopicClubShareLinkParser {
         if let codeRaw {
             let trimmed = codeRaw.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.isEmpty { clubCode = nil }
-            else if let code = clubCode(trimmed) { clubCode = code }
+            else if let code = Self.clubCode(trimmed) { clubCode = code }
             else { return nil }
         } else { clubCode = nil }
         return TopicClubShareLink(topicID: topicID, sourceClubId: sourceClubId, clubCode: clubCode)

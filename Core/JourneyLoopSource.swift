@@ -729,7 +729,7 @@ public enum JourneyLandingClaim {
 
 /// `journey-view.js` `rankScopes` plus the report page's 更多 split.
 /// Wire query is `GET /api/rank/list` with `scope`, `scopeId`, `period` (`journey-api.js` `rank` + `idQuery`).
-public enum JourneyRankBoard {
+public enum JourneyRankBoardContract {
     public struct Tab: Equatable, Sendable {
         public enum Kind: String, Equatable, Sendable {
             case quest, city, country, world, club, team
