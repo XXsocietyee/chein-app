@@ -73,7 +73,37 @@
 3. `CYEmptyState` / `CYErrorState` → `ContentUnavailableView` (spec §3.5). R5 has ~117 call sites that will follow automatically.
 4. `CYTypography` statics on icons (`JourneyLandingViews`, `JourneyReportViews`, `JourneyFeedbackSheet`, `CityTerritoryNoticeCard`, `PlayInPlayTools`) are icon sizing; left until R0 re-points the tokens.
 
+## Round 2 (2026-11-24)
+- Merged `origin/restyle/r6-system-rest` (aa235bbab) first; clean merge.
+- `origin/ci/acceptance`: **not merged**. It has no green run (runs 1–3 all fail: the debug build fails on the base and the contract ratchet already reports 1 new failure, `test_workshop_paid_professional…bounded_paging`, outside R5). Coordinator rule (3) only merges it once green.
+- Every one of the 197 owned files was scanned against the brief/spec checklist (title mode, sheet chrome, static type, sub-caption text, card radius, shadows, glass on content, custom back, destructive confirm, state views, toggles). After this round all non-exempt hits are 0; 53 owned files are changed across both rounds, the other 144 already passed the checklist (they route through `cyText` / `CYColor` / `CYRadius` / `CYEmptyState`, which R6 re-pointed centrally).
+
+| pattern | before | after | sites |
+|---|---|---|---:|
+| sheet chrome | R5's own `.presentationDetents([.large]).presentationDragIndicator(.visible)` wrappers, `[.medium, .large]` with or without the indicator, bare `[.medium]` | R6's `cySheet(detents:)` (system detents, visible indicator, role appearance) | 24 + 7 + 5 |
+| share sheets without detents | roam finish / history share and medal share `NavigationStack` sheets | `Group { … }.cySheet(detents: [.large])` | 3 |
+| custom sheet header | `CYSheetHeader` in `safeAreaInset` + `.toolbar(.hidden, for: .navigationBar)` (roam event card, live rules, check-in) | system `.navigationTitle` + `.inline` + one `xmark` cancellation item (`roam.home.sheet.close` kept) | 3 |
+| title mode unset | city rent ledger, bundle review, journey check fixture, play OS, POI fixture, roam session | `+ .navigationBarTitleDisplayMode(.inline)`; owned files now have 0 unset | 6 |
+| state view | `PlayIssueView` = `CYEmptyState` + extra text + `CYPillButton` in a VStack | one `ContentUnavailableView` (label, description, `.bordered` capsule retry, 44 pt, `play.retry` kept) | 1 |
+| toggles | default tint (near-white accent reads as off on black) | `.tint(.green)` (spec §2.2) | 8 |
+| sheet corner | `CitySheetHost` `.presentationCornerRadius(28)` | system corners | 1 |
+| static type | `CYTypography.dataXL.italic()` on the roam finish stat | `.cyText(.dataXL).italic()` | 1 |
+
+Round 2 files (2 commits, 41 files): CityAcquisitionView, CityArrivalEvidenceView, CityKit/{CityBoardScreens, CityPropertySheet}, CityMerchantValueView, CityNeutralTaskView, CityOnsiteTaskView, CityPlayerValuePanel, CityPlayerView, FreeExploreBundleLaunchView, JourneyContentFixtureSupport, JourneyFeedbackSheet, JourneyLandingViews, JourneyReportViews, PlayAdvancedTeamViews, PlayAnswerReview, PlayComponents, PlayCreatorTailViews, PlayDirectorView, PlayInPlayTools, PlayJourneyContentViews, PlayPreferenceViews, PlayRPGComponents, PlaySharedPlanLifecycleView, PlayTaskSummaryView, PlayTeamBackpackView, PlayThemeRecordsView, RoamBrowserView, RoamExperienceHubView, RoamFinishReportView, RoamHistoryShareView, RoamHistoryViews, RoamHomeTabsView, RoamLiveSessionView, RoamPOIActions, RoamPassportHistoryView, RoamPassportToolsViews, RoamPosterScanView, RoamStampCameraView, RoamSubpageFixtureSupport, RoamSubpageParityViews.
+
+Contract pins updated: **none needed**. Full `python3 -m unittest discover -s Tests/ContractChecks` after the r6 merge: 186 failures+errors before and after, identical sorted lists (0 new). `tools/check_typography_lint.py`: PASS.
+
+Component requests, status after R6:
+1. Button wrappers → system styles: still open (R6 receipt §4.2 gates it on the colour tests).
+2. `cyDomainSheet` drag indicator / `cySheet`: **done by R6**; R5 adopted `cySheet`.
+3. `CYEmptyState` / `CYErrorState` → `ContentUnavailableView`: **done by R6** centrally (covers R5's ~117 sites).
+4. `cyPlayerSheetGlass()` (6 R5 sites) still sets a 24 pt corner and glass background; spec §3.4 retires it, but `test_global_chrome_domain_contract` pins it on `JourneyLandingViews` / `PlayStoreDayMerchantView`. Re-point it centrally in `App/Theme/RoleTheme.swift` (R6) to `.themeDomain(.player)` only.
+5. `CYTypography` statics on SF Symbol icons (5 files): icon sizing; leave until R0 re-points the tokens.
+
 ## Left
-- Acceptance run + screenshot check against the MP once the workflow lands.
-- Sheet kinds that should be `[.medium, .large]` (pickers/filters) per spec §3.4: kept at `[.large]` for now to avoid behaviour change; revisit with screenshots.
-- `RoamFinishReportView` keeps its in-content ✕ (full-bleed report); revisit if the owner wants the system bar there.
+- Acceptance run once `ci/acceptance` is green and merged; then screenshots against the MP for `docs/port/accept/r5.txt`.
+- Pickers/filters that should be `[.medium, .large]` per spec §3.4 are still `[.large]` (no behaviour change without screenshots).
+- In-page reload buttons on error states (CityFairness, CityActionBudget, CityAcquisition, Play refresh…) stay: they are the retry of an error state, not a toolbar 刷新, and removing them would change behaviour.
+- Exempt on purpose (spec §3.10): map/live/finish-report hidden bars, map and camera glass with Reduce Transparency fallbacks, dice/pin/moment shadows, the City moment stamp (radius 14), the property sheet's custom detents and material.
+
+DONE-ROUND-2
