@@ -563,6 +563,10 @@ struct SessionRootView: View {
     private func chain3_3<V: View>(_ v: V) -> some View {
         v
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
+        // fix/r3-merchant-coop-a: MerchantDeniedState offers 申请入驻 only when access/me has no active merchant.
+        .environment(\.merchantGateActions, MerchantGateActions(
+            hasMerchantIdentity: { (try? await session.merchantAccess())?.active == true },
+            applicationDestination: { AnyView(MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)) }))
     }
 
     private func chain3_4<V: View>(_ v: V) -> some View {

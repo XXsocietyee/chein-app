@@ -251,6 +251,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
     @Environment(\.merchantCoopInboxDestination) private var coopInboxDestination
     @Environment(\.merchantInboxSources) private var inboxSources
+    @Environment(\.merchantCouponManagementDestination) private var couponManagementDestination
     @State private var operationsAccess: MerchantOperationsAccess?
     @State private var businessStatus: MerchantBusinessStatus?
 
@@ -297,6 +298,17 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     }
     private var showsScanAction: Bool { access.allows(.verify) && nativeVerificationDestination != nil }
 
+    /// 品牌中心 (MerchantOperationsHomeView), shared by the header avatar and the 更多 row.
+    @ViewBuilder private func operationsHome(_ operationsReader: any MerchantOperationsReading) -> some View {
+        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
+            .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
+                { AnyView(MerchantPerkTemplatesHost(reader: flowReader, executor: coopFlowWrite?.executor())) }
+            })
+            .id(operationsReader.scope)
+            .onDisappear(perform: onChildReturn)
+            .cyPushedChrome(domain: .merchant)
+    }
+
     var body: some View {
         // Source pages/merchant/index order: hero (name, revenue), quick actions (scan, customers,
         // finance), due reminders, projects, then the remaining tools ("更多") and recent activity.
@@ -341,7 +353,21 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                     .accessibilityIdentifier("merchant.store.businessStatus")
                             }
                         }
-                    } trailing: { EmptyView() }
+                    } trailing: {
+                        // MC7-01-5: MP header store avatar (index.wxml:62) opens 品牌中心 for roles that can write the profile.
+                        if access.allows(.profileWrite), let operationsReader {
+                            NavigationLink {
+                                operationsHome(operationsReader)
+                            } label: {
+                                CYAvatarView(name: displayName, size: .md)
+                                    .frame(minWidth: 44, minHeight: 44)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text("merchant.operations.title"))
+                            .accessibilityIdentifier("merchant.header.brandCenter")
+                        }
+                    }
                     if access.canReadDashboard {
                         MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
                             // HANDOFF-R1 MR-20 (owner Q-C): the hero is today — 今日核销 · 今日收入 · 待处理.
@@ -457,6 +483,15 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .accessibilityIdentifier("merchant.workbench.bundleReservations")
                     }
                 }
+                // MC7-01-4: MP 更多 › 管理优惠券 (index.wxml:308) for roles holding merchant:coupon:manage.
+                if access.allows(.couponManage), let couponManagementDestination {
+                    NavigationLink {
+                        couponManagementDestination()
+                            .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
+                    } label: { Label("merchant.workbench.coupons", systemImage: "ticket") }
+                        .accessibilityIdentifier("merchant.workbench.coupons")
+                }
                 if let businessReader, let businessJournal {
                     NavigationLink {
                         MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)
@@ -484,13 +519,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 }
                 if let operationsReader {
                     NavigationLink {
-                        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
-                            .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
-                                { AnyView(MerchantPerkTemplatesHost(reader: flowReader, executor: coopFlowWrite?.executor())) }
-                            })
-                            .id(operationsReader.scope)
-                            .onDisappear(perform: onChildReturn)
-                            .cyPushedChrome(domain: .merchant)
+                        operationsHome(operationsReader)
                     } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
                     .accessibilityIdentifier("merchant.operations.open")
                 }

@@ -1,0 +1,82 @@
+{
+  "merchant.apply.address.openMapsHint": {
+    "en": "Opens in Maps",
+    "zh-Hans": "在地图中打开"
+  },
+  "merchant.apply.signInTitle": {
+    "en": "Sign in to apply as a merchant",
+    "zh-Hans": "登录后申请商家入驻"
+  },
+  "merchant.apply.submitted.home": {
+    "en": "Back to Home",
+    "zh-Hans": "返回首页"
+  },
+  "merchant.apply.submitted.title": {
+    "en": "Your application has been submitted",
+    "zh-Hans": "你的申请已提交"
+  },
+  "merchant.apply.timeline.completed": {
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  "merchant.apply.timeline.license": {
+    "en": "License Verification",
+    "zh-Hans": "资质核验"
+  },
+  "merchant.apply.timeline.result": {
+    "en": "Review Result",
+    "zh-Hans": "审核结果"
+  },
+  "merchant.apply.timeline.result.active": {
+    "en": "Active",
+    "zh-Hans": "已生效"
+  },
+  "merchant.apply.timeline.result.disabled": {
+    "en": "Account disabled",
+    "zh-Hans": "账号已停用"
+  },
+  "merchant.apply.timeline.result.identityPending": {
+    "en": "Waiting for identity conditions",
+    "zh-Hans": "待身份条件完成"
+  },
+  "merchant.apply.timeline.result.rejected": {
+    "en": "Not approved",
+    "zh-Hans": "未通过"
+  },
+  "merchant.apply.timeline.review": {
+    "en": "Initial Review",
+    "zh-Hans": "资料初审"
+  },
+  "merchant.apply.timeline.reviewing": {
+    "en": "Under review by our team",
+    "zh-Hans": "审核团队审核中"
+  },
+  "merchant.apply.timeline.submit": {
+    "en": "Submit Application",
+    "zh-Hans": "提交申请"
+  },
+  "merchant.apply.timeline.submitted": {
+    "en": "Submitted",
+    "zh-Hans": "已提交"
+  },
+  "merchant.apply.timeline.title": {
+    "en": "Review Progress",
+    "zh-Hans": "审核进度"
+  },
+  "merchant.apply.timeline.waiting": {
+    "en": "Waiting for the previous step",
+    "zh-Hans": "等待上一步完成"
+  },
+  "merchant.gate.back": {
+    "en": "Back",
+    "zh-Hans": "返回"
+  },
+  "merchant.gate.reload": {
+    "en": "Reload",
+    "zh-Hans": "重新加载"
+  },
+  "merchant.workbench.coupons": {
+    "en": "Manage Coupons",
+    "zh-Hans": "管理优惠券"
+  }
+}

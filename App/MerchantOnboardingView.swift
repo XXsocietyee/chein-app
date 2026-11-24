@@ -42,10 +42,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                     Text("auth.notConfigured").cyText(.body).foregroundStyle(CYColor.textSecondary)
                 }
             } else if !session.isSignedIn {
-                VStack(spacing: CYSpacing.md) {
-                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "merchant.onboarding.title")
-                    Text("merchant.signIn").cyText(.body).foregroundStyle(CYColor.textSecondary)
-                }
+                // MC7-02-1 (apply/index.wxml:52): 登录后申请商家入驻 + 登录.
+                MerchantSignInState(title: "merchant.apply.signInTitle", identifier: "merchant.onboarding.signIn")
             } else if model.identity != model.coordinator.identity {
                 CYSkeleton().accessibilityLabel(Text("merchant.onboarding.checking"))
             } else {
@@ -482,7 +480,31 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @ViewBuilder private var submissionSection: some View {
         switch model.coordinator.submission {
         case .acknowledged:
-            Section { Text("merchant.onboarding.submitted").accessibilityIdentifier("merchant.onboarding.submitted") }
+            // MC7-02-5 (apply/index.wxml:253-300): 你的申请已提交, the receipt, the four-step timeline and 返回首页.
+            Section {
+                VStack(spacing: CYSpacing.sm) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(.largeTitle))
+                        .foregroundStyle(CYColor.successText)
+                        .accessibilityHidden(true)
+                    Text("merchant.apply.submitted.title")
+                        .cyText(.sectionTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, CYSpacing.sm)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("merchant.onboarding.submitted")
+                LabeledContent("merchant.onboarding.name", value: model.draft.name.isEmpty ? "—" : model.draft.name)
+                LabeledContent("merchant.onboarding.phone", value: model.draft.phone.isEmpty ? "—" : model.draft.phone)
+            }
+            MerchantApplyTimelineSection(steps: MerchantApplyTimelineStep.submitted)
+            Section {
+                Button("merchant.apply.submitted.home") { dismiss() }
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("merchant.onboarding.submitted.home")
+            }
         case .outcomeUnknown:
             Section { Text("merchant.onboarding.outcomeUnknown").accessibilityIdentifier("merchant.onboarding.outcomeUnknown") }
         case .rejected(let failure):
@@ -497,7 +519,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         default: EmptyView()
         }
     }
-    private func statusSection(_ application: MerchantOnboardingApplication) -> some View {
+    @ViewBuilder private func statusSection(_ application: MerchantOnboardingApplication) -> some View {
         Section("merchant.onboarding.serverStatus") {
             CYStatusChip(LocalizedStringKey(application.statusKey), tone: application.accountStatus == 2 || application.status == 2 ? .danger : application.status == 1 ? .success : .warning)
                 .accessibilityIdentifier("merchant.onboarding.status")
@@ -505,7 +527,11 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             if let reason = application.displayedReason { Text(reason) }
             if !application.name.isEmpty { LabeledContent("merchant.onboarding.name", value: application.name) }
             if !application.createTime.isEmpty { LabeledContent("merchant.onboarding.submittedAt", value: application.createTime) }
+            // MC7-02-5 / MC7-02-6: 联系电话 and a tappable 店铺地址 (opens Maps), as the MP status card shows.
+            LabeledContent("merchant.onboarding.phone", value: application.phone.isEmpty ? "—" : application.phone)
+            MerchantApplyAddressRow(name: application.name, address: application.address)
         }
+        MerchantApplyTimelineSection(steps: MerchantApplyTimelineStep.status(application))
     }
     private var refreshButton: some View {
         CYPillButton("merchant.onboarding.checkAgain", style: .tertiary) { Task { await model.load() } }
