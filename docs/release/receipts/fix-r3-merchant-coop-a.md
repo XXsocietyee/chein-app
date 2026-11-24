@@ -155,7 +155,7 @@ The strings are in `docs/port/strings/fix-r3-merchant-coop-a.json` (91 keys, zh-
 - **Sync:** merged `origin/ui/combined-r7` at `97ee2bc9e`. The only conflict was `tools/check_typography_lint.py`, which I took from r7.
   - r7 did **not** yet contain Cursor's merchant Core or the MP assets, so I also merged `origin/cursor/mp-assets` (`05d527e12`) and `origin/cursor/core-merchant-coop` (`c9cbcd24b`).
   - `tools/generate_project.py` conflict: I kept both the `App/MPGap/**` and the `App/MPAssets/*` globs.
-  - I merged r7 again before the final push (`82388e4a5`, which integrates Cursor W1, C7 and K1–K10). It merged cleanly, and I re-grepped every Core and MPAsset API used here.
+  - I merged r7 again before the final push (`82388e4a5`, then `aee32a61f`, a Swift 6 annotation fix in Core; together they integrate Cursor W1, C7 and K1–K10). It merged cleanly, and I re-grepped every Core and MPAsset API used here.
 - **Review findings:** `review/r7-rev-a`, `-b` and `-c` have **no** Claude-owned rows for merchant-coop. The Claude rows are B-02…B-16 (topic, IM, ticket wallet, club), which belong to other areas, so nothing changed here.
 - **Cursor wiring call sites:** `cursor-core-merchant-coop.md` lists no `cursor/wire-merchant-coop` call sites. I followed its "For the Claude F-agent (App)" list instead.
 
