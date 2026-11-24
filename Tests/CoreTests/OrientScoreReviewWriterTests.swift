@@ -133,6 +133,22 @@ import FoundationNetworking
         XCTAssertNil(finished.lockedKey)
     }
 
+    func testMissedTaskAppealSendsNodeIdWithoutAnEntry() async throws {
+        let transport = OrientTestTransport()
+        transport.append("""
+        {"id":"72","sessionId":"9","memberId":"1","entryId":null,"nodeId":"12","reason":"漏记任务",\
+        "status":0,"idempotencyKey":"score-key-node","resolutionEntryId":null,"resolutionNote":null,"windowDeadline":null}
+        """)
+        let writer = try writer(transport)
+        try await writer.submit(kind: .appeal, reason: "漏记任务", key: "score-key-node", entryID: nil, nodeID: 12)
+        XCTAssertNil(writer.lockedKey)
+        XCTAssertEqual(paths(transport), ["/api/orient/scoring/appeal"])
+        let body = String(data: transport.requests[0].httpBody ?? Data(), encoding: .utf8) ?? ""
+        XCTAssertTrue(body.contains("nodeId=12"))
+        XCTAssertFalse(body.contains("entryId="))
+        XCTAssertTrue(body.contains("sessionId=9"))
+    }
+
     func testMissingEntryDoesNotBuildARequest() async throws {
         let transport = OrientTestTransport()
         let writer = try writer(transport)
