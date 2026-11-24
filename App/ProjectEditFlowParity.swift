@@ -59,10 +59,16 @@ struct ProjectEditScheduleSpan: View {
 struct ProjectEditNotLoadedState: View {
     let reload: () -> Void
     var body: some View {
-        CYEmptyStateView(systemImage: "doc.badge.clock", title: "projectEdit.notLoaded",
-                         description: "projectEdit.notLoaded.detail", actionTitle: "projectEdit.reload", action: reload)
-            .frame(maxWidth: .infinity)
-            .accessibilityIdentifier("projectEdit.notLoaded")
+        // C-F15-r7 (MP fabu wxml:24-38): 这份主题加载失败 with one full-width 重新加载.
+        VStack(spacing: CYSpacing.lg) {
+            CYEmptyStateView(systemImage: "doc.badge.clock", title: "fixr3.projectEdit.notLoaded",
+                             description: "projectEdit.notLoaded.detail")
+                .accessibilityIdentifier("projectEdit.notLoaded")
+            Button(action: reload) { Text("projectEdit.reload") }
+                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                .accessibilityIdentifier("projectEdit.reload")
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

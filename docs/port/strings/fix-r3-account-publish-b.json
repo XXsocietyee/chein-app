@@ -219,5 +219,22 @@
         }
       }
     }
+  },
+  "fixr3.projectEdit.notLoaded": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This topic couldn't be loaded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这份主题加载失败"
+        }
+      }
+    }
   }
 }

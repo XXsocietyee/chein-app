@@ -673,9 +673,9 @@ import SwiftUI
                     } else {
                         // Figma 237:31646: the bar is 保存草稿 + 下一步 (`projectEdit.review` now reads 下一步); it opens the
                         // publish preview, which holds the one confirmation.
+                        // C-F18-r7: same pill style as the bar's other actions.
                         Button("projectEdit.review") { focusedField = nil; model.review() }
-                            .buttonStyle(.questifyPrimary).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")
-                            .environment(\.questifyPrimaryFillsWidth, true)
+                            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true)).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")
                     }
                 }
                 if model.coordinator.canSaveCloudDraft {
