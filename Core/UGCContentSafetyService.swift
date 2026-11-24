@@ -131,7 +131,7 @@ public protocol UGCContentSafetyServing: Sendable {
 /// Shared UGC 1.2 service implementing mini-program taxonomy discovery (`/api/v1/community/capabilities`),
 /// surface reporting, user blocking/unblocking (`/api/im/block`, `/api/im/unblock`, `/api/native/blacklist/list`),
 /// and AI safety moderation prechecks (`/api/ai/safety/precheck`).
-public struct UGCContentSafetyHTTPService: UGCContentSafetyServing {
+public struct UGCContentSafetyHTTPService: UGCContentSafetyServing, @unchecked Sendable {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
 
