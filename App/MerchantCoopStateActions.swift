@@ -89,3 +89,63 @@ struct MerchantCoopApplyState: View {
                                 actionTitle: actionTitle, action: openApplication, identifier: identifier)
     }
 }
+
+/// MP image-with-default for merchant-coop rows: an absolute https URL loads through `AsyncImage`; anything else
+/// (nil, empty, site-relative) shows the MP default asset (`/images/d_profile.png` avatars, `/images/d_logo.png` logos).
+struct MerchantCoopMPThumb: View {
+    enum Fallback { case avatar, logo }
+    let urlString: String?
+    let fallback: Fallback
+    var side: CGFloat = 40
+
+    private var url: URL? {
+        guard let raw = urlString?.trimmingCharacters(in: .whitespacesAndNewlines),
+              let url = URL(string: raw), url.scheme?.lowercased() == "https" else { return nil }
+        return url
+    }
+    /// The MP default (`d_profile` / `d_logo`), decorative: the row's name carries the meaning.
+    private func placeholder() -> some View {
+        (fallback == .avatar ? MPAsset.AvatarDefault.dProfile : MPAsset.BrandLogo.dLogo)
+            .resizable().scaledToFill().accessibilityHidden(true)
+    }
+
+    var body: some View {
+        Group {
+            if let url {
+                AsyncImage(url: url) { phase in
+                    if case .success(let image) = phase { image.resizable().scaledToFill().accessibilityHidden(true) }
+                    else { placeholder() }
+                }
+            } else {
+                placeholder()
+            }
+        }
+        .frame(width: side, height: side)
+        .clipShape(fallback == .avatar ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)))
+        .accessibilityHidden(true)
+    }
+}
+
+/// MC7-31-2: set by `pages/coop/invite` around its send editor. The send preview calls it when the outcome is
+/// unknown (`CoopFlowFailure.ambiguous`), so the page can show the 原请求 block (MP `unknownTargets`).
+private struct CoopInviteOutcomeUnknownKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> Void)? = nil
+}
+extension EnvironmentValues {
+    var coopInviteOutcomeUnknown: (@MainActor () -> Void)? {
+        get { self[CoopInviteOutcomeUnknownKey.self] }
+        set { self[CoopInviteOutcomeUnknownKey.self] = newValue }
+    }
+}
+
+/// MC7-32-5: opens the IM conversation `coop/contact` returned (MP invite-detail index.js:435-460 navigates to the chat).
+/// Nil keeps the preview ending on 已提交.
+private struct CoopConversationDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int) -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    var coopConversationDestination: (@MainActor (Int) -> AnyView)? {
+        get { self[CoopConversationDestinationKey.self] }
+        set { self[CoopConversationDestinationKey.self] = newValue }
+    }
+}

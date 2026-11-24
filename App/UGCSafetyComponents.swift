@@ -310,6 +310,7 @@ struct UGCReportSheet: View {
                             .accessibilityHidden(true)
                             .cyText(.pageTitle)
                             .foregroundStyle(CYColor.brand)
+                            .accessibilityHidden(true)
                     }
 
                     if let subject = presentation.subjectTitle, !subject.isEmpty {

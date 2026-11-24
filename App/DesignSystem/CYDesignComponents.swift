@@ -296,6 +296,7 @@ public struct CYButtonSpinner: View {
                 .font(.system(.subheadline, weight: .bold))
                 .foregroundStyle(tint)
                 .frame(width: 16, height: 16)
+                .accessibilityHidden(true)
         } else {
             Circle()
                 .trim(from: 0.12, to: 0.85)

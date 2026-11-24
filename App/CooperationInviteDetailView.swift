@@ -9,6 +9,7 @@ import UIKit
     var body: some View {
         CooperationInviteDetailContent(key: key, reader: reader, peerReader: peerReader)
             .id(CopyHost(reader: ObjectIdentifier(reader), key: key))
+            .environment(\.cooperationMissingInvite, true)
     }
 }
 
@@ -125,6 +126,18 @@ import UIKit
                 let slotPage = CooperationInviteDetailPage.project(key: key, result: .success(detail))
                 if case .text(let slotCount) = slotPage.slotCount, case .text(let slotCapacity) = slotPage.slotCapacity, let kind = detail.slotLine?.kind {
                     CooperationField(key: kind == .gamePending ? "cooperation.slot.game" : "cooperation.slot.topic", value: "\(slotCount) / \(slotCapacity)")
+                }
+                // MC7-32-3: MP invite-detail/index.wxml:85 核销据点 (supplyStationView): name, else 据点 #id, plus the lock note.
+                if let stationID = row.supplyStationId {
+                    LabeledContent {
+                        VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
+                            if let name = row.supplyStationName { Text(verbatim: name) }
+                            else { Text("merchantCoop.station.fallback \(stationID)") }
+                            Text(LocalizedStringKey(row.status == 1 ? "merchantCoop.station.note.accepted" : "merchantCoop.station.note.beforeAccept"))
+                                .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        }
+                    } label: { Text("merchantCoop.station.label") }
+                        .accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.detail.supplyStation")
                 }
                 LabeledContent { CooperationInviteDepositText(deposit: view.deposit) } label: { Text("cooperation.detail.section.deposit") }
                     .accessibilityIdentifier("cooperation.detail.deposit")

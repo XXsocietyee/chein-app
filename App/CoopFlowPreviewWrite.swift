@@ -9,6 +9,9 @@ import SwiftUI
     /// Parity perks P0: an executor for unprotected template writes (perk-template/save, perk-template/delete),
     /// nil where merchant writes are closed so the perks page stays read-only there.
     var executor: () -> (any CoopFlowExecuting)? = { nil }
+    /// MC7-30-6: station-topic accept (`acceptSupplyStation`), nil where merchant writes are closed. Same gate and the
+    /// same per-operation `.handle` approval as the generic accept; production stays closed.
+    var stationAccept: () -> ((_ inviteID: Int, _ reason: String?, _ stationID: Int) async throws -> CoopFlowJSON)? = { nil }
 
     static func live(_ session: AppSession) -> CoopFlowPreviewWriteFactory {
         var factory = coordinators(session)
@@ -17,6 +20,20 @@ import SwiftUI
                   ReviewedAreaSwitch.merchantWrites(apiHost: api.baseURL.host) else { return nil }
             return CoopFlowDormantExecutor(service: CoopFlowService(configuration: api, transport: session.runtimeHTTPTransport,
                                                                     dormantWritesEnabled: true))
+        }
+        factory.stationAccept = { [weak session] in
+            guard let session, let api = session.regionalConfiguration?.apiConfiguration,
+                  let flowSession = session.cooperationFlowReader.session,
+                  ReviewedAreaSwitch.merchantWrites(apiHost: api.baseURL.host),
+                  !ReleaseMoneyWriteSwitch.blocks("/" + CoopSupplyStationAccept.path) else { return nil }
+            let transport = session.runtimeHTTPTransport
+            return { inviteID, reason, stationID in
+                let protected = CoopFlowProtectedOperation(.handle(inviteID: inviteID, action: .accept, reason: reason))
+                let endpoint = api.baseURL
+                let service = CoopFlowService(configuration: api, transport: transport, dormantWritesEnabled: true,
+                                              executionApproval: { protected.map { CoopFlowExecutionApproval(operations: [$0], endpoint: endpoint) } })
+                return try await service.acceptSupplyStation(inviteID: inviteID, reason: reason, supplyStationID: stationID, session: flowSession)
+            }
         }
         return factory
     }

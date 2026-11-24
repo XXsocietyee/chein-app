@@ -1,4 +1,191 @@
 {
+  "merchantCoop.aiNpc.intro.avatar.line": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "It appears on the roam map and your shop page and greets passing players for you"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "出现在漫游地图和店铺主页上，替你招呼路过的玩家"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.avatar.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your shop's stand-in in Chengyin"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "它是你的店在城瘾里的分身"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.done": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Got it"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "知道了"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.greet.line": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "It speaks with the greeting and personality you set"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按你写的招呼语和性格说话"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.greet.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Players pass by, it says hello first"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩家路过，它先打招呼"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.menu.line": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "It reads what is in your store profile"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读的是你门店资料里的内容"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.menu.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "It knows your menu and opening hours"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "菜单和营业时间它都答得上"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.next": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Next"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "下一步"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.persona.line": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Gentle, cute or savage — change it any time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "温柔、可爱、毒舌，随时可改"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.persona.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Give it a name and a personality"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "起个名字、选个性格就能用"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.skip": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Skip"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "跳过"
+        }
+      }
+    }
+  },
   "merchantCoop.cityNode.poster.save": {
     "extractionState": "manual",
     "localizations": {
@@ -12,6 +199,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "保存打卡码"
+        }
+      }
+    }
+  },
+  "merchantCoop.cityNode.writesClosed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Placing, claiming and switching city nodes on or off isn't available in the app yet."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城市节点的投放、认领和上下线暂未在 App 开放"
         }
       }
     }
@@ -148,6 +352,108 @@
         "stringUnit": {
           "state": "translated",
           "value": "删除第%lld张图片"
+        }
+      }
+    }
+  },
+  "merchantCoop.gameNode.readyIssue.capacity": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter the capacity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写接待容量"
+        }
+      }
+    }
+  },
+  "merchantCoop.gameNode.readyIssue.checklist": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tick every item on the checklist first"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先勾完准备清单"
+        }
+      }
+    }
+  },
+  "merchantCoop.gameNode.readyIssue.date": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose the service date and time slot"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择服务日期和服务时段"
+        }
+      }
+    }
+  },
+  "merchantCoop.gameNode.readyIssue.timeWindow": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The end time must be after the start time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结束时间需晚于开始时间"
+        }
+      }
+    }
+  },
+  "merchantCoop.invite.backToList": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back to invitations"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回协作邀请"
+        }
+      }
+    }
+  },
+  "merchantCoop.invite.missing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This invitation is no longer in your list"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这条邀约不在当前列表里了"
         }
       }
     }
@@ -339,6 +645,210 @@
       }
     }
   },
+  "merchantCoop.settlement.adjustment": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Adjustments applied"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已执行调整"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.arrived": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Arrival time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "到账时间"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.back": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "返回"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.clubPerspective": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Club revenue share"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "俱乐部分润"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Couldn't load the settlement details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结算详情加载失败"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.lineType": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Share type"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分润类型"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.missing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This settlement record is not visible"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结算记录不可见"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.missingParam": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Settlement record information is missing"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "缺少结算记录信息"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.net": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Net amount"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核算净额"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.original": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Original amount due"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原始应结"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.paid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Payout status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打款状态"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Settlement details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结算详情"
+        }
+      }
+    }
+  },
   "merchantCoop.state.signIn": {
     "extractionState": "manual",
     "localizations": {
@@ -352,6 +862,108 @@
         "stringUnit": {
           "state": "translated",
           "value": "登录"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.confirmTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm the redemption station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认核销据点"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.fallback %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Station #%lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "据点 #%lld"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.label": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemption station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销据点"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.note.accepted": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Accepted. The station can no longer change."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已接受，据点不能再换"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.note.beforeAccept": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm before accepting. The station cannot change after you accept."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "接受前请确认，接受后据点不能再换"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.reasonPlaceholder": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reply note (optional)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回复说明（选填）"
         }
       }
     }

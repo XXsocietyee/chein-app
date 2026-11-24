@@ -29,7 +29,8 @@ extension AppSession {
             inboxDestination: { close in
                 AnyView(CooperationBrowserView(reader: session.cooperationReader, onClose: close, peerReader: session.cooperationFlowReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) })
                     .id(session.cooperationReader.scope))
-            })
+            },
+            messagesDestination: { AnyView(SessionMessagingHome(session: session).cyPushedChrome()) })
             .id(official.scope)
             .onChange(of: scenePhase) { _, phase in official.setActive(phase == .active) }
             .onAppear { official.setActive(scenePhase == .active) }

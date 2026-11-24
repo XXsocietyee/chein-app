@@ -14,6 +14,8 @@ struct MerchantOperationsHomeView: View {
     @State private var generation = 0
     @StateObject private var readLifetime = MerchantOperationsHomeReadLifetime()
     @Environment(\.scenePhase) private var scenePhase
+    /// MC7-24-4: MP decor `goCityNode` (index.js:1213-1215) opens pages/merchant/citynode directly.
+    @Environment(\.merchantCityNodeHubDestination) private var cityNodeHub
     /// Source pages/merchant/decor groups: 门店信息, 品牌介绍, 门店相册, AI 店铺角色, 合作经营.
     private let groups: [(titleKey: LocalizedStringKey, destinations: [MerchantOperationsDestination])] = [
         ("merchant.decor.section.store", [.profile, .businessStatus]),
@@ -59,7 +61,8 @@ struct MerchantOperationsHomeView: View {
                         Section(group.titleKey) {
                             ForEach(visible) { destination in
                                 NavigationLink {
-                                    if let destinationFactory { destinationFactory(destination, access) }
+                                    if destination == .cityNodes, let cityNodeHub { cityNodeHub() }
+                                    else if let destinationFactory { destinationFactory(destination, access) }
                                     else { MerchantOperationsDocumentView(reader: reader, destination: destination) }
                                 } label: {
                                     Label(LocalizedStringKey(destination.titleKey), systemImage: symbol(destination))

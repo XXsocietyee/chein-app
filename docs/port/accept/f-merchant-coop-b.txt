@@ -17,3 +17,6 @@ core-nearby-merchant-empty
 nearby-empty
 t13-coop-profit
 t13-coop-profit-failed
+cur8-npc
+cur8-npc-failed
+cur8-team

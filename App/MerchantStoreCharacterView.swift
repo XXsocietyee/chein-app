@@ -28,6 +28,9 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @State private var toastMessage: String?
+    /// MP `cy_ai_npc_intro_seen`: the four-step intro shows once; ✕ / 跳过 / 知道了 all count as seen.
+    @AppStorage(StoreCharacterIntroSheet.seenKey) private var introSeen = false
+    @State private var introPresented = false
     init(coordinator: StoreCharacterCoordinator, reform: StoreCharacterReformContext? = nil, authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil) {
         _model = StateObject(wrappedValue: .init(coordinator, reform: reform, authorFlow: authorFlow))
     }
@@ -58,6 +61,14 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
             .sheet(isPresented: presetsPresented) {
                 StoreCharacterPresetSheet(model: model)
                     .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
+            }
+            .onChange(of: isReady, initial: true) { _, ready in
+                if ready, !introSeen { introPresented = true }
+            }
+            .sheet(isPresented: $introPresented, onDismiss: { introSeen = true }) {
+                StoreCharacterIntroSheet { introSeen = true; introPresented = false }
+                    .cyDomainSheet(detents: [.full])
                     .themeDomain(.merchant)
             }
             .sheet(isPresented: voicePresented) {
@@ -96,6 +107,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
             .cyDomainScreen(.merchant)
     }
 
+    private var isReady: Bool { if case .ready = c.phase { return true }; return false }
     private var deniedKey: Bool { if case .denied = c.phase { return true }; return false }
     /// Source gate: a zero-button fail sheet that leaves after two seconds.
     private func autoExit() async {
@@ -148,6 +160,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                     .accessibilityHidden(true)
                     .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityHidden(true)
                 t("storeCharacter.gate.deniedTitle")
                     .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
@@ -166,6 +179,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                     .accessibilityHidden(true)
                     .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityHidden(true)
                 t("storeCharacter.gate.deniedTitle")
                     .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
@@ -187,6 +201,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                     .accessibilityHidden(true)
                     .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityHidden(true)
                 t("storeCharacter.load.failedTitle")
                     .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
@@ -207,6 +222,10 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .ready:
             List {
                 if let notice = c.notice { Section { StoreCharacterNoticeText(notice: notice) } }
+                // MC7-23-1 (until the npc/save review): say up front that saving is closed, instead of only on a tap.
+                else if !c.canSave {
+                    Section { StoreCharacterNoticeText(notice: .writesDisabled) }.accessibilityIdentifier("aiNPC.writesClosed")
+                }
                 Section { hero }
                 if c.screen == .home { homeRows } else { avatarRows }
                 if c.showsReformScopes, let reform = model.reform { StoreCharacterReformSection(context: reform) }
@@ -778,5 +797,79 @@ private struct StoreCharacterReformSection: View {
         case .editedAfterReview: return t("storeCharacter.blocker.editedAfterReview")
         case .capabilityDisabled: return t("storeCharacter.blocker.capabilityDisabled")
         }
+    }
+}
+
+/// MP `pages/merchant/decor/ai-npc` first-visit intro (`introSteps`): four pages, each with the two MP npc-intro
+/// images (`MPAsset.FeatureIcon.*`), a title and a line. Paged `TabView`; 跳过 in the toolbar, 下一步 / 知道了 below.
+@MainActor struct StoreCharacterIntroSheet: View {
+    static let seenKey = "cy_ai_npc_intro_seen"
+    let onDone: () -> Void
+    @State private var step = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private struct Step { let a: Image; let b: Image; let title: LocalizedStringKey; let line: LocalizedStringKey }
+    private var steps: [Step] {
+        [
+            Step(a: MPAsset.FeatureIcon.convenienceStore, b: MPAsset.FeatureIcon.sparkles,
+                 title: "merchantCoop.aiNpc.intro.avatar.title", line: "merchantCoop.aiNpc.intro.avatar.line"),
+            Step(a: MPAsset.FeatureIcon.wavingHand, b: MPAsset.FeatureIcon.speechBalloon,
+                 title: "merchantCoop.aiNpc.intro.greet.title", line: "merchantCoop.aiNpc.intro.greet.line"),
+            Step(a: MPAsset.FeatureIcon.forkAndKnifeWithPlate, b: MPAsset.FeatureIcon.alarmClock,
+                 title: "merchantCoop.aiNpc.intro.menu.title", line: "merchantCoop.aiNpc.intro.menu.line"),
+            Step(a: MPAsset.FeatureIcon.nameBadge, b: MPAsset.FeatureIcon.performingArts,
+                 title: "merchantCoop.aiNpc.intro.persona.title", line: "merchantCoop.aiNpc.intro.persona.line"),
+        ]
+    }
+    private var isLast: Bool { step >= steps.count - 1 }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: CYSpacing.lg) {
+                TabView(selection: $step) {
+                    ForEach(steps.indices, id: \.self) { index in
+                        page(steps[index]).tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .always))
+                .indexViewStyle(.page(backgroundDisplayMode: .always))
+                CYPillButton(isLast ? "merchantCoop.aiNpc.intro.done" : "merchantCoop.aiNpc.intro.next") {
+                    if isLast { onDone() } else if reduceMotion { step += 1 } else { withAnimation { step += 1 } }
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.bottom, CYSpacing.lg)
+                .accessibilityIdentifier("aiNPC.intro.next")
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if !isLast {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("merchantCoop.aiNpc.intro.skip", action: onDone)
+                            .accessibilityIdentifier("aiNPC.intro.skip")
+                    }
+                }
+            }
+        }
+        .accessibilityIdentifier("aiNPC.intro")
+    }
+
+    private func page(_ item: Step) -> some View {
+        VStack(spacing: CYSpacing.md) {
+            HStack(alignment: .bottom, spacing: CYSpacing.sm) {
+                item.a.resizable().scaledToFit().frame(width: 120, height: 120)
+                item.b.resizable().scaledToFit().frame(width: 64, height: 64)
+            }
+            .accessibilityHidden(true)
+            Text(item.title)
+                .cyText(.sectionTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .multilineTextAlignment(.center)
+            Text(item.line)
+                .cyText(.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .accessibilityElement(children: .combine)
     }
 }

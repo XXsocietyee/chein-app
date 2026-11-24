@@ -65,7 +65,12 @@ struct MerchantCityNodeInlineError: View {
     @State private var canVerify = false
     /// MC7-24-2: MP `canManageProjects` (`merchant:project:manage`). Nil = no access reader here (fixture) → unchanged.
     @State private var canManageProjects: Bool?
-    private var showsProjectActions: Bool { canManageProjects != false }
+    private var showsProjectActions: Bool { canManageProjects != false && writesOpen }
+    /// MC7-24-1 (until the endpoint review approves the city-node writes): when no write path is open, the
+    /// 投放 / 认领 / 撤回 / 上下线 affordances are hidden and one notice says so, instead of buttons that only toast.
+    private var writesOpen: Bool {
+        MerchantCityNodeWriteGate.paths.contains { MerchantCityNodeWriteGate.enabled(permitsWrites: service.permitsWrites, isOfflineExample: isOfflineFixture, path: $0) }
+    }
     @State private var showsClaim = false
     @State private var showsCreate = false
     @State private var showsInfo = false
@@ -181,6 +186,11 @@ struct MerchantCityNodeInlineError: View {
     @ViewBuilder private func ready(_ s: MerchantContentSnapshot) -> some View {
         let p = MerchantCityNodeHubProjection(list: s.value)
         intro(p.quota)
+        if !writesOpen, canManageProjects != false {
+            Label { Text("merchantCoop.cityNode.writesClosed") } icon: { Image(systemName: "info.circle") }
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .accessibilityIdentifier("cityNodeHub.writesClosed")
+        }
         // Source 投放节点: the screen's one primary action. A full or empty quota is explained on tap.
         if showsProjectActions {
             Button { goCreate(p.quota) } label: {
@@ -221,7 +231,7 @@ struct MerchantCityNodeInlineError: View {
                 Image(systemName: "mappin.slash").font(.largeTitle).foregroundStyle(.secondary)
                 MerchantCityNodeCopy.text("merchantCityNode.empty.title").cyText(.cardTitle)
                 MerchantCityNodeCopy.text("merchantCityNode.empty.sub").font(.subheadline).foregroundStyle(.secondary)
-                if p.showsEmptyPlacementAction {
+                if p.showsEmptyPlacementAction && showsProjectActions {
                     Button { goCreate(p.quota) } label: { MerchantCityNodeCopy.text("merchantCityNode.place.action") }
                         .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.empty.place")
                 }
@@ -285,7 +295,7 @@ struct MerchantCityNodeInlineError: View {
                     Text(verbatim: reason).cyText(.bodyCompact)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("cityNodeHub.reason.\(row.id)")
             }
-            if row.withdrawable {
+            if row.withdrawable && writesOpen {
                 Button { prepare(cancel) } label: {
                     MerchantCityNodeCopy.text(working ? "merchantCityNode.withdraw.working" : "merchantCityNode.withdraw.action")
                 }.buttonStyle(.bordered).disabled(!idle).accessibilityIdentifier("cityNodeHub.withdraw.\(row.id)")

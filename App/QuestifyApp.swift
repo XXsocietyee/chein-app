@@ -595,6 +595,12 @@ struct SessionRootView: View {
         v
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.coopFlowPreviewWrite, CoopFlowPreviewWriteFactory.live(session))
+        // MC7-32-5: after 联系对方 succeeds, the preview opens the returned conversation.
+        .environment(\.coopConversationDestination, { id in
+            AnyView(MessagingHistoryView(conversationID: id, reader: session.messagingReader,
+                sender: session.messageSender(for: id), mediaReader: session.socialMessageMediaReader,
+                expanded: session.imExpandedNavigation))
+        })
         .environment(\.merchantCoopInboxDestination, {
             AnyView(CooperationBrowserView(reader: session.cooperationReader, peerReader: session.cooperationFlowReader,
                                            operationScope: "MERCHANT", embedsNavigationStack: false))

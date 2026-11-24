@@ -128,13 +128,17 @@ func mcc(_ key: String, _ locale: Locale) -> String {
     @Environment(\.locale) private var locale
     private let officialActions: OfficialActionCoordinator?
     private let inboxDestination: ((@escaping () -> Void) -> AnyView)?
+    /// MC7-27-1: MP `goInbox` pushes the in-app 消息 home (subpackageB/pages/im/list). When the host provides it, the bell
+    /// pushes it; otherwise the bell keeps the 协作邀请 sheet.
+    private let messagesDestination: (() -> AnyView)?
 
     init(content: MerchantContentService, official: any OfficialEventReading, initialTab: MerchantCoopCenterTab = .plaza,
          focusTopicID: Int? = nil, officialActions: OfficialActionCoordinator? = nil, now: @escaping () -> Date = { Date() },
-         inboxDestination: ((@escaping () -> Void) -> AnyView)? = nil) {
+         inboxDestination: ((@escaping () -> Void) -> AnyView)? = nil, messagesDestination: (() -> AnyView)? = nil) {
         _model = StateObject(wrappedValue: MerchantCoopCenterModel(content: content, official: official, focusTopicID: focusTopicID, now: now))
         _tab = State(initialValue: initialTab)
         self.officialActions = officialActions; self.inboxDestination = inboxDestination
+        self.messagesDestination = messagesDestination
     }
 
     var body: some View {
@@ -164,7 +168,13 @@ func mcc(_ key: String, _ locale: Locale) -> String {
         .navigationTitle(mcc("merchantCoopCenter.title", locale)).navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.merchant)
         .toolbar {
-            if inboxDestination != nil {
+            if let messagesDestination {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink { messagesDestination() } label: { Image(systemName: "bell") }
+                        .accessibilityLabel(mcc("merchantCoopCenter.inbox", locale))
+                        .accessibilityIdentifier("merchantCoopCenter.inbox")
+                }
+            } else if inboxDestination != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showsInbox = true } label: { Image(systemName: "bell") }
                         .accessibilityLabel(mcc("merchantCoopCenter.inbox", locale))

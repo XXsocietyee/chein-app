@@ -106,3 +106,103 @@
 
 ## Acceptance
 There is no compiler in the cloud. Every API used was grepped on the base. The coordinator compiles and returns exact errors.
+
+---
+
+# Round 2 (2026-11-24)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round2.md`, plus `wave-x10.md` and `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` @ 97ee2bc9e. The one conflict, `tools/check_typography_lint.py`, was taken from r7.
+- **The brief says r7 already has the K-branches and the C7 assets. It does not:** neither `cursor/mp-assets` nor `cursor/core-merchant-coop` is an ancestor of `ui/combined-r7` @ 97ee2bc9e. Both are merged into this branch so the APIs used here exist:
+  - `origin/cursor/mp-assets` @ 05d527e12 (C7). One conflict in `tools/generate_project.py`: kept r7's `App/MPGap/**` glob and added `App/MPAssets/*.swift`.
+  - `origin/cursor/core-merchant-coop` @ c9cbcd24b (K3). Clean merge.
+  - Coordinator: these merge cleanly again when they land on r7.
+- **Strings:** `docs/port/strings/fix-r3-merchant-coop-b.json`, now 60 keys (en + zh-Hans).
+- **New App files** (covered by the `App/*.swift` glob): `CoopSupplyStationAcceptView.swift`, `CoopClubSettlementDetailView.swift`.
+
+## MP assets (rows of `docs/mp-assets/mapping.md` applied)
+- [x] `MPAsset.FeatureIcon.convenienceStore`, `.sparkles`, `.wavingHand`, `.speechBalloon`, `.forkAndKnifeWithPlate`, `.alarmClock`, `.nameBadge`, `.performingArts`: the ai-npc first-visit intro (MP `introSteps`) was missing in the app. It is now `StoreCharacterIntroSheet` in `MerchantStoreCharacterView.swift`: four paged steps, 跳过 / 下一步 / 知道了, and the seen flag `cy_ai_npc_intro_seen` (catalogued in `docs/ops-safety/client-data-catalog.json`).
+- [x] `MPAsset.AvatarDefault.dProfile`: team member rows (MP team/index.wxml:65 `item.avatar || d_profile`). `MerchantCoopMPThumb` loads an https avatar and otherwise shows the MP default (`MerchantBusinessViews.swift`).
+- [x] `MPAsset.BrandLogo.dLogo`: invite target rows (MP coop/invite/index.wxml:93,106). The candidate has no decoded `logo` yet, so the MP default always shows (Core request below).
+- Not mine or not applicable:
+  - The `MerchantBusinessViews.swift` reviews/customer icons are half-a pages (reviews, customer).
+  - `iconBell`: the MP coop-center bell is `cy-icon`, not this asset.
+  - `MerchantHomeView` rows are half a.
+  - The relation composer avatar is in the club-owned feed composer (MC7-28-3).
+  - Nearby venue card art needs MC7-33-6 Core fields.
+
+## Fixed in round 2
+| id | what | files |
+|---|---|---|
+| MC7-19-2 | 经营类目 is a multi-select of the MP `PREFERENCE_OPTIONS` plus any existing values, joined with 、, inside the existing field sheet (same limit, save and discard) | MerchantStoreFieldEntry.swift |
+| MC7-24-4 | The decor 城市节点 row pushes the city-node hub (`merchantCityNodeHubDestination`). The old list remains only as the fallback when the hub is not injected. | MerchantOperationsViews.swift |
+| MC7-24-1 / MC7-25-1 (interim) | With every city-node write path closed: one notice, and 投放 / 认领 / 撤回 / 上下线 are hidden instead of only toasting. The offline fixtures keep them. | MerchantCityNodeHubView.swift |
+| MC7-26-1 (interim) | With writes closed, the existing notice replaces the invite, ready, pause, resume and verify actions (hidden, not disabled) | MerchantGameNodeView.swift |
+| MC7-23-1 (interim) | 保存暂未开放 notice shown up front when `canSave` is false | MerchantStoreCharacterView.swift |
+| MC7-26-4 (App) | Per-field errors under 准备清单, 接待容量, 服务日期 and 服务时段 from `readyFieldIssues`, after 确认准备完成 is tapped. Submit still goes through `ready()`. | MerchantGameNodeView.swift |
+| MC7-27-1 | The coop-center bell pushes 消息 home (`SessionMessagingHome`). The sheet stays as the fallback. | MerchantCoopCenterView.swift, MerchantCoopCenterSessionBinding.swift |
+| MC7-31-2 | 原请求 shows only after an unknown-outcome send (preview → `coopInviteOutcomeUnknown`), with the MP warning and human row copy (邀请已创建 / 结果仍待确认). Raw state and requestId are hidden. | CooperationContextualViews.swift, CooperationFlowEditors.swift |
+| MC7-32-1 | Missing invite shows 这条邀约不在当前列表里了 + 回协作邀请 | CooperationComponents.swift, CooperationInviteDetailView.swift |
+| MC7-32-3 (App) | 核销据点 row in 合作条款 (name, or 据点 #id), with the MP lock note | CooperationInviteDetailView.swift |
+| MC7-30-6 (App) | Accept on a station invite → confirm screen + dialog → `CoopFlowService.acceptSupplyStation`. Same `ReviewedAreaSwitch.merchantWrites` gate and per-op `.handle` approval as every accept, so production stays closed and the button is disabled with 暂不可提交. No `.handle` 3-arg change. | CoopSupplyStationAcceptView.swift, CooperationInviteActionSections.swift, CoopFlowPreviewWrite.swift |
+| MC7-32-5 | After 联系对方 succeeds, the preview pushes the returned `conversationId` chat (`MessagingHistoryView`, injected as `coopConversationDestination`) | CooperationFlowEditors.swift, QuestifyApp.swift |
+| MC7-34-3 | Deep link `pages/coop/finance/index` → `CoopFinanceProfitView` (+ wallet reader) | MPReviewedPageScreen.swift |
+| MC7-35-2 | Deep link `pages/coop/settlement-detail/index` → `MerchantSettlementDetailLink.resolve`. finance/ledger go to `CoopSettlementDetailView`. Missing params show 缺少结算记录信息 + 返回. | MPReviewedPageScreen.swift |
+| MC7-35-1 (App) | `source=club` → `CoopClubSettlementDetailView`: reads `.clubSettlementSummary(clubID:personal:)`, finds the row by the link's record key, renders `CoopClubSettlementDetail` (MP `buildClubSettlementDetail` labels). States: loading, 结算记录不可见, and 结算详情加载失败 + 重试. No withdrawal. | CoopClubSettlementDetailView.swift |
+| MC7-32-7 | Deep link invite-detail `inviteId` + `box` | MPReviewedPageScreen.swift |
+| MC7-30-2 (part) | Deep link coop list opens on the linked `tab` | MPReviewedPageScreen.swift |
+| MC7-31-10 (part) | Deep link `pages/coop/invite/index` opens the new-invitation page | MPReviewedPageScreen.swift |
+| MC7-29-12 | Deep link `pages/merchant/team/index?invite=` → `MerchantOperatorInvitationLandingView` | MPReviewedPageScreen.swift |
+| MC7-29-7 (avatar part) | Member row avatar with the MP default | MerchantBusinessViews.swift |
+| Owner #9 | Two-decimal money through the one shared formatter `MoneyDisplay.plain`: invite fixed fee and owed deposit (were 0…8 places) and perks retail/cost. Finance and settlement were already two places via Core. | CooperationInviteActionSections.swift, MerchantPerkTemplatesView.swift |
+
+## Owner decisions 2026-11-24, as they apply to merchant-coop half b
+- **#9 two decimals:** done (above).
+- **#12 / #3 / #6 money:** nothing here moves money. The station accept is not a money route, and it still sits behind the TEST-only `merchantWrites` gate and `ReleaseMoneyWriteSwitch`.
+- **#5 merchant approvals in-app:** no endpoint grant was flipped (new gates default off). Where a grant is missing, the App now hides the dead actions behind one notice (24-1, 25-1, 26-1, 23-1). The grants themselves are still owner/coordinator: MC7-23-1, 24-1, 25-1, 26-1, 29-3 and 29-8.
+- **#7, #8, #10** (cast, GPS arrival lock, game-kit pilot gate): play-area. No half-b page touches them.
+
+## Review findings
+- `review/r7-rev-a`, `-b` and `-c` have **no rows owned by Claude for merchant-coop**:
+  - REV-A is play runtime.
+  - REV-B's Claude rows are topic, messaging and ticket-wallet (P3/P5).
+  - REV-C's Claude rows are integration (F-C02) and the club settlement mount (F-C21).
+  - The merchant rows (B-11, B-12, B-18, B-19, B-27, F-C04/06/07/08/22/25) are Cursor or Gemini.
+- Open P1 rows of `audit/parity-r7-merchant-coop` for half b, all closed above or listed below.
+
+## Tests touched
+- `Tests/ContractChecks/test_merchant_station_submission_import.py`: `App/MerchantOperationsViews.swift` sha re-pinned (MC7-24-4 only; comment in the file).
+- `Tests/AppUITests/MerchantGameNodeFlowTests.swift` `testReadOnlyCompositionDisablesWrites`: now asserts that pause is **absent** rather than disabled (MC7-26-1; comment in the file). Cursor owns Tests/, so please confirm.
+- `docs/ops-safety/client-data-catalog.json`: entry for the ai-npc intro flag (`test_ops_safety_contracts`).
+
+## Still left, with reasons
+- **Core requests (cursor/core-merchant-coop):**
+  - MC7-19-4: expose `businessLicense` on the decor store profile, so the read-only 营业执照 row can render.
+  - MC7-31-10 / MC7-30-2 full: apply invite presets (`type`, `toId`, `topicId`) and seed `CooperationInboxTopicFilter` from `CoopListLink` after the inbox loads. That needs App model hooks plus Core: a preset initializer on `CoopInvitationReadModel`, and a filter seed on the browser.
+  - `logo` on `CoopFlowTargetCandidate` (invite target thumbnails).
+  - Plus the round-1 Core list, unchanged.
+- **Gemini:** MC7-33-4, 33-5 and 33-1 (topic context on nearby).
+- **Owner/privacy:** MC7-33-2 (persist the nearby location-purpose consent; `test_runtime_dependency_wiring` pins the reset). MC7-29-6 and MC7-34-1 are still reverted, as in round 1.
+- **P2 not done:**
+  - MC7-19-7: inline 营业状态 toggle.
+  - MC7-19-8: hub counts, which need counts the hub does not read.
+  - MC7-19-9: featured activity name.
+  - MC7-19-10: a 口碑 row; the hub has no reviews reader.
+  - MC7-30-4, 30-5 and 30-13: coop list card layout, copy phone and the all-empty state.
+  - MC7-31-8: send summary.
+- **Do-not-touch:** there is no `cursor/wire-merchant-coop` branch, and `cursor-core-merchant-coop.md` hands these App call sites to the F-agent, so they were wired here.
+
+## Round 2 final sync and checks
+- Merged `origin/ui/combined-r7` again @ aee32a61f. Clean merge; this r7 now includes K1–K10, W1 and C7.
+- `tools/check_a11y_lint.py`: **PASS** (0 new). Four findings came in with the round-1 `restyle/r3-merchant-creator` merge: `.font(...)` → `.cyText(...)` changed their signatures. The fix adds `.accessibilityHidden(true)` to these decorative glyphs:
+  - `CYDesignComponents.swift` (reduce-motion ellipsis);
+  - `ExternalGameImportView.swift` (header circle; the Button carries the label);
+  - `MerchantPredictionInboxView.swift`;
+  - `UGCSafetyComponents.swift`.
+  - The three StoreCharacter state glyphs got the same change.
+- `tools/check_typography_lint.py`: **PASS**.
+- **ContractChecks:**
+  - Scope: every module that references any of the 329 App/Core files this branch changes relative to r7 @ aee32a61f, run on r7 and on the branch.
+  - Result: **39 failing on r7, 39 on the branch, the same set, 0 new.**
+  - Not covered: the rest of `Tests/ContractChecks/`. A full-directory run was started, then stopped because r7 had moved under it.
+- No compiler in the cloud. Every API used was grepped on the merged tree. The coordinator compiles.
