@@ -7,6 +7,30 @@ struct SearchMapPin: Identifiable, Equatable {
     let title: String
     let coordinate: RoamCoordinate
     let symbol: String
+    /// Roam places only: MP `images/roam/pin/pin-<category>.png` (utils/roam-place-map.js). nil keeps the symbol marker.
+    var category: RoamPinCategory? = nil
+}
+
+/// MP `categoryKey` (utils/roam-place-map.js + roam-poi-presentation.js): type 2 → merchant, then tags roam:park / roam:street /
+/// roam:shop, else landmark. Selects the MP map-marker artwork.
+enum RoamPinCategory: String, Equatable {
+    case merchant, park, street, shop, landmark
+    init(place: RoamPlace) {
+        if place.type == 2 { self = .merchant }
+        else if place.tags.contains("roam:park") { self = .park }
+        else if place.tags.contains("roam:street") { self = .street }
+        else if place.tags.contains("roam:shop") { self = .shop }
+        else { self = .landmark }
+    }
+    var pin: Image {
+        switch self {
+        case .merchant: MPAsset.MapMarker.pinMerchant
+        case .park: MPAsset.MapMarker.pinPark
+        case .street: MPAsset.MapMarker.pinStreet
+        case .shop: MPAsset.MapMarker.pinShop
+        case .landmark: MPAsset.MapMarker.pinLandmark
+        }
+    }
 }
 /// Rendering consumes only supplied coordinates. No device location manager, tracking mode,
 /// user annotation, camera-to-network callback or geocoder exists in this surface.
@@ -95,9 +119,30 @@ enum QuestifyMapAppearance {
 struct QuestifyMapPinSymbol: View {
     let symbol: String
     var selected = false
+    /// MP marker artwork (roam pins / cluster); drawn at the MP size inside a 44 pt hit area.
+    var art: Image? = nil
     @ScaledMetric(relativeTo: .body) private var diameter = 44.0
     @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
+        if let art {
+            art.resizable().scaledToFit().frame(width: 28, height: 34)
+                .frame(width: max(44, diameter), height: max(44, diameter))
+                .contentShape(Rectangle())
+                .scaleEffect(selected ? 1.2 : 1)
+                .overlay(alignment: .bottomTrailing) {
+                    if selected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.body.bold())
+                            .foregroundStyle(QuestifyMapAppearance.markerEdge)
+                            .background(QuestifyMapAppearance.surface, in: Circle())
+                    }
+                }
+                .accessibilityHidden(true)
+        } else {
+            symbolMarker
+        }
+    }
+    private var symbolMarker: some View {
         Image(systemName: symbol)
             .font(.body.bold())
             .foregroundStyle(QuestifyMapAppearance.markerGlyph)

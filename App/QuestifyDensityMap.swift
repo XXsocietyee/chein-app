@@ -102,10 +102,11 @@ struct QuestifyDensityMap: View {
                                         else { expand(group) }
                                     } label: {
                                         if group.members.count == 1 {
-                                            QuestifyMapPinSymbol(symbol: anchor.symbol, selected: anchor.id == selectedID)
+                                            QuestifyMapPinSymbol(symbol: anchor.symbol, selected: anchor.id == selectedID, art: anchor.category?.pin)
                                         } else {
                                             VStack(spacing: 0) {
-                                                QuestifyMapPinSymbol(symbol: anchor.id == selectedID ? anchor.symbol : "circle.grid.2x2", selected: anchor.id == selectedID)
+                                                QuestifyMapPinSymbol(symbol: anchor.id == selectedID ? anchor.symbol : "circle.grid.2x2", selected: anchor.id == selectedID,
+                                                                     art: anchor.category.map { anchor.id == selectedID ? $0.pin : MPAsset.MapMarker.dotCluster })
                                                 Text(group.members.count, format: .number).cyText(.cardTitle)
                                                     .padding(.horizontal, 6).background(QuestifyMapAppearance.surface, in: Capsule())
                                             }

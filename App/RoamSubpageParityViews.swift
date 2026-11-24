@@ -438,6 +438,9 @@ struct RoamPOIMissingView: View {
             NavigationLink { if let cameraDestination { cameraDestination() } else { RoamStampCameraView() } } label: {
                 Label("roamSub.w208.stamp.takePhoto", systemImage: "camera")
             }.frame(minHeight: 44).accessibilityIdentifier("roamSub.w208.stamp.takePhoto")
+            // MP citystamp send step: the mailbox photo (`subpackageRoam/citystamp/mailbox.png`) above 投进信箱.
+            MPAsset.Other.mailbox.resizable().scaledToFit().frame(maxWidth: 200)
+                .frame(maxWidth: .infinity).accessibilityHidden(true)
             Button {
                 Task { await send() }
             } label: { Text(LocalizedStringKey(working ? "roamSub.w208.stamp.sending" : "roamSub.w208.stamp.send")).frame(maxWidth: .infinity, minHeight: 44) }

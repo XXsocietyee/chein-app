@@ -7,6 +7,20 @@ struct CYMedalItem: Identifiable, Equatable {
     var subtitle: String? = nil
     var imageURL: String? = nil
     var systemImage: String = "rosette"
+    /// MP default artwork when the server sends no medal image; nil keeps `systemImage`.
+    var mpDefault: MPDefault? = nil
+    enum MPDefault: Equatable {
+        /// `images/play/trophy.png` (pages/play medal screen: 没配勋章图用金奖杯).
+        case trophy
+        /// `pages/play/images/frames/glass-badge.png` (play ending badge frame).
+        case glassBadge
+        var image: Image {
+            switch self {
+            case .trophy: MPAsset.BadgeMedal.trophy
+            case .glassBadge: MPAsset.BadgeMedal.glassBadge
+            }
+        }
+    }
 }
 
 /// Hexagon used by the medal deck and the medal screen (mini-program `.ms__hex` / `.hex`).
@@ -55,6 +69,9 @@ struct CYMedalFace: View {
                 CYCachedAsyncImage(url, role: .shelf)
                     .frame(width: side * 0.7, height: side * 0.7)
                     .clipShape(CYHexagon())
+            } else if let art = item.mpDefault {
+                art.image.resizable().scaledToFit()
+                    .frame(width: side * 0.62, height: side * 0.62)
             } else {
                 Image(systemName: item.systemImage)
                     .font(.system(size: side * 0.36, weight: .semibold))

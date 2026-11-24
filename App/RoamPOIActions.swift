@@ -233,6 +233,8 @@ struct RoamPOIActionRows: View {
     /// RPOI-3 查询当前状态 / 重新现场核验: re-read the node (the detail screen's load).
     var reload: () -> Void = {}
     @Environment(\.openURL) private var openURL
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.challengePOIPhotoUploader) private var makePhotoUploader
     @Environment(\.locale) private var locale
     @State private var answerPrompt = false
@@ -383,6 +385,12 @@ struct RoamPOIActionRows: View {
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .signIn:
                 Label("roam.poi.signIn", systemImage: "person.crop.circle.badge.exclamationmark").cyText(.body)
+                // poi-detail #20: MP ensureLoginFor → the sign-in entry. Close the place sheet first, then open 我的.
+                if rootTabSwitch.isAvailable {
+                    Button("auth.signIn") { dismiss(); rootTabSwitch(.mine) }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("roam.poi.signIn.action")
+                }
             case .network:
                 Label("roam.poi.action.failed", systemImage: "wifi.exclamationmark").cyText(.body)
                 Button("action.retry", action: retry).frame(minHeight: 44)
