@@ -415,6 +415,14 @@ import SwiftUI
         }.cySheet(detents: [.large])
         }
         .onChange(of: access.authorizationGeneration) { _, _ in scheduleSession = nil }
+        // CLB-governance-12 (MP governance js:584-605): after the transfer is acknowledged, leave the form after 1.5 s
+        // so the governance page re-reads under the new owner.
+        .task(id: route.operation == .transferOwner && receipt != nil) {
+            guard route.operation == .transferOwner, receipt != nil else { return }
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            guard !Task.isCancelled, receipt != nil else { return }
+            dismiss()
+        }
         .onChange(of: identity) { _, _ in scheduleSession = nil; retirePresentation(); review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }
         .task(id: rolePickerContext) {
             guard route.operation == .assignRole, let permit = rolePicker.activate(rolePickerContext) else { return }

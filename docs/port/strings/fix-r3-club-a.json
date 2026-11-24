@@ -42,5 +42,21 @@
   "club.story.answer.notice": {
     "zh-Hans": "答案只给主办方和这一站的接待方看，用于现场判定玩家能否通过。玩家端看不到这一段。",
     "en": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
+  },
+  "club.gov.action.ban": {
+    "zh-Hans": "封禁",
+    "en": "Ban"
+  },
+  "club.gov.action.unban": {
+    "zh-Hans": "解封",
+    "en": "Unban"
+  },
+  "club.gov.action.report": {
+    "zh-Hans": "填写事实并提交平台",
+    "en": "State the facts and report to the platform"
+  },
+  "club.gov.action.appeal": {
+    "zh-Hans": "填写理由并提交申诉",
+    "en": "State your reason and appeal"
   }
 }

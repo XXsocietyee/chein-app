@@ -274,9 +274,21 @@ import SwiftUI
             // MP governance onLoad (ClubGovernanceEntryRoute): manage → the governance workspace; report / appeal → 我的平台工单.
             switch ClubGovernanceEntryRoute.resolve(query) {
             case .success(let route):
-                if case .manage = route.mode {
-                    clubGovernance { g in ClubGovernanceWorkspaceView(clubID: route.clubID, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
-                } else { clubRead(.cases, .init(clubID: route.clubID), needsClub: true) }
+                // CLB-governance-11 (MP governance js:197-228): report opens the report form seeded with its target and
+                // label; manage opens 成员治理 (the ban list and member actions); appeal opens the cases.
+                switch route.mode {
+                case .manage:
+                    clubRead(.bans, .init(clubID: route.clubID), needsClub: true)
+                case .report(let type, let targetID, let label):
+                    clubGovernance { g in
+                        ClubGovernanceCommandForm(route: .init(operation: .report, scope: .init(clubID: route.clubID),
+                                                               seed: ["targetType": .string(type.rawValue), "targetId": .integer(targetID),
+                                                                      "targetName": .string(label)]),
+                                                  identity: session.clubIdentity, access: g.access, coordinator: g.coordinator)
+                    }
+                case .appeal:
+                    clubRead(.cases, .init(clubID: route.clubID), needsClub: true)
+                }
             case .failure: unavailable
             }
         case "pages/club/roles/index":
