@@ -915,6 +915,7 @@ import MapKit
     private var helpEnabled: Bool { help?.enabled == true && help?.identity.nodeID == nodeID }
     private var gameStage: PlayGameStage? {
         guard let result = model.snapshot?.result else { return nil }
+        guard PlayKitPilotGate.allows(eventID: result.topicID) else { return nil }
         return PlayGameStage.resolve(nodeID: nodeID, nodes: result.nodes, chapters: result.chapters)
     }
     var body: some View {

@@ -138,6 +138,7 @@ public struct OrderLifecycleDormantAdapter {
     }
     public func cancellation(_ review: OrderLifecycleReview, token: String) async throws -> OrderCancellationResponse {
         try requireFixture()
+        if review.action == .refund, !ReleaseMoneyWriteSwitch.isEnabled(.refund) { throw OrderLifecycleFailure.notDispatched }
         let request = try OrderLifecycleRequestContract.cancellation(review: review, baseURL: configuration.baseURL, token: token)
         let data = try await execute(request)
         return try JSONDecoder().decode(OrderCancellationResponse.self, from: data)

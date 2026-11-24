@@ -78,7 +78,7 @@ public struct FreeExplorationStoryArchive: Codable, Equatable {
         }
         var chapters: [Chapter] = []
         for (index, chapter) in snapshot.result.chapters.enumerated()
-        where chapter.chapterLocked == false || (chapter.chapterLocked == nil && visitedChapters.contains(chapter.id)) {
+        where ChapterArrivalLock.opens(arrivedAtStop: visitedChapters.contains(chapter.id), chapterLocked: chapter.chapterLocked) {
             let story = chapterStories[chapter.id]
             let raw = [chapter.description, story?.description] + (story?.blocks ?? []).flatMap(Self.blockText)
             chapters.append(.init(id: chapter.id, name: Self.clip(chapter.name ?? story?.title), sortID: index, paragraphs: Self.unique(raw)))

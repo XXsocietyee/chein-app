@@ -148,6 +148,8 @@ private final class HostCancelScopeTransport: HTTPTransport, @unchecked Sendable
     }
 
     func testDefaultSendsNoScopeLikeTheClubHostFlow() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .hostCancelRefund }
         let t = HostCancelScopeTransport(); let a = try make(t)
         _ = try await a.preview(activityID: 9)
         _ = try await a.cancel(activityID: 9, reason: "rain")
@@ -155,6 +157,8 @@ private final class HostCancelScopeTransport: HTTPTransport, @unchecked Sendable
     }
 
     func testMerchantScopeIsSentOnPreviewAndCancel() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .hostCancelRefund }
         let t = HostCancelScopeTransport(); let a = try make(t)
         a.operationScope = .merchant
         _ = try await a.preview(activityID: 9)

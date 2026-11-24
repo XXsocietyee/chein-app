@@ -87,7 +87,7 @@ import XCTest
         func perk(_ record: ClubRecord) -> String? {
             ClubMemberWelcome(id: UUID(), identity: .init(accountID: 8, epoch: 1), club: record, role: nil, namespace: "test").memberPricePerk
         }
-        XCTAssertEqual(try perk(club(#"{"id":9,"memberDiscountPrice":39}"#)), "成员价 ¥39.0")
+        XCTAssertEqual(try perk(club(#"{"id":9,"memberDiscountPrice":39}"#)), "成员价 ¥39.00")
         XCTAssertEqual(try perk(club(#"{"id":9,"memberDiscountPrice":29.9,"memberDiscountPriceText":"29.9"}"#)), "成员价 29.9")
         XCTAssertEqual(try perk(club(#"{"id":9,"memberDiscountPrice":12.35}"#)), "成员价 ¥12.35")
         XCTAssertNil(try perk(club(#"{"id":9,"memberDiscountPrice":0}"#)))

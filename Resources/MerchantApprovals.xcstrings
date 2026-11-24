@@ -1,0 +1,54 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "merchant.approvals.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Approvals" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "审核申请" } }
+      }
+    },
+    "merchant.approvals.denied" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You do not have permission to approve requests." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有审核权限" } }
+      }
+    },
+    "merchant.approvals.empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No pending requests" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有待审核申请" } }
+      }
+    },
+    "merchant.approvals.approve" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Approve" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "通过" } }
+      }
+    },
+    "merchant.approvals.reject" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reject" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "拒绝" } }
+      }
+    },
+    "merchant.approvals.confirmReject" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Confirm reject" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "确认拒绝" } }
+      }
+    },
+    "merchant.approvals.reason" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reason" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "原因" } }
+      }
+    },
+    "merchant.approvals.id %lld" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Request %lld" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "申请 %lld" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

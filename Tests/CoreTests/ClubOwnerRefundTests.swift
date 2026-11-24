@@ -159,6 +159,8 @@ import FoundationNetworking
         }
     }
     func testHTTPServerFailureCannotBeMisclassifiedAsDefiniteRejection() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         let service = ClubOwnerRefundService(offlineConfiguration: try APIConfiguration(baseURL: URL(string: "https://example.com/")!), offlineTransport: ClubOwnerRefundFixtureTransport(status: 503, body: #"{"code":403}"#))
         do { _ = try await service.cancel(registrationID: 121, token: "synthetic") {}; XCTFail() }
         catch { XCTAssertEqual(error as? ClubOwnerRefundFailure, .unconfirmed(message: nil)) }
@@ -259,6 +261,8 @@ import FoundationNetworking
         XCTAssertEqual(access.sent, 1)
     }
     func testHTTP408Business408HTTP499AndMalformedResponsesStayUnconfirmed() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         for (status, body, message) in [(408, #"{"code":408,"msg":"Timed out"}"#, "Timed out" as String?), (200, #"{"code":408,"msg":"Business timeout"}"#, "Business timeout"), (499, #"{"code":499}"#, nil), (200, #"{"code":200,"msg":"Incomplete","data":{}}"#, "Incomplete"), (200, "not-json", nil)] {
             let service = ClubOwnerRefundService(offlineConfiguration: try APIConfiguration(baseURL: URL(string: "https://example.com/")!), offlineTransport: ClubOwnerRefundFixtureTransport(status: status, body: body))
             do { _ = try await service.cancel(registrationID: 121, token: "synthetic") {}; XCTFail() }

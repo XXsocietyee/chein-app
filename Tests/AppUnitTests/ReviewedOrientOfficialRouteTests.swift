@@ -101,6 +101,8 @@ final class ReviewedOrientOfficialRouteTests: XCTestCase {
     }
 
     func testReviewedCompositionAllowsExactlyThoseRoutes() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .hostCancelRefund }
         let wire = Wire()
         let transport = try composition(gates: true, wire: wire).transport()
         transport.current = { self.viewer }
