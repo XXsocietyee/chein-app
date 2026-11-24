@@ -386,6 +386,7 @@ struct MessagingHistoryView: View {
             sessionPage = IMChatSessionWire.fromReader(conversation: conversation, page: page)
             loadedIdentity = identity; loadedReaderID = source; visibleMessageID = history.messages.last?.id
             phase = .loaded(())
+            markReadAfterFirstPage(request, identity, source: source)
         } catch is CancellationError {} catch {
             guard isCurrent(request, identity, source: source) else { return }
             sessionPage = IMChatSessionWire.failed(error, conversation: conversation)
@@ -460,6 +461,15 @@ struct MessagingHistoryView: View {
                 history = MessagingHistory(conversationID: conversationID); phase = .failed(failure, retry: nil)
             } else { earlierPhase = .failed(failure, retry: nil) }
         }
+    }
+    /// R7-PC-D9-1 (MP im/chat: `api/im/read` after the first page). Runs only when the ordinary-read grant is on
+    /// (`.imRead`, default off, so `canReviewOrdinaryRead` is false) and the row reports unread messages. It goes through
+    /// the coordinator's own review → confirm, so the frozen cursor, journal and recovery are the explicit path's.
+    private func markReadAfterFirstPage(_ request: UInt64, _ identity: MessagingReadIdentity?, source: ObjectIdentifier) {
+        guard let owner = expanded?.coordinator(conversationID), owner.isCurrent else { return }
+        let policy = IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted(imReadGranted: owner.canReviewOrdinaryRead)
+        guard policy.shouldAutoMarkRead(unreadCount: conversation?.unread), owner.reviewOrdinaryRead() else { return }
+        Task { await owner.confirm(stillAuthorized: { isCurrent(request, identity, source: source) }) }
     }
     private func isCurrent(_ request: UInt64, _ identity: MessagingReadIdentity?, source: ObjectIdentifier) -> Bool {
         generation == request && !Task.isCancelled && identity != nil && reader.identity == identity
