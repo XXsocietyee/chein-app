@@ -49,5 +49,22 @@
         }
       }
     }
+  },
+  "objects.badge.meta.locked": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not lit yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未点亮"
+        }
+      }
+    }
   }
 }

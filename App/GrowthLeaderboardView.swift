@@ -4,7 +4,9 @@ import SwiftUI
     @Environment(\.locale) private var locale
     let reader: any GrowthCenterReading
     @Environment(\.cyPalette) private var palette
-    @Environment(\.growthExploreHomeAction) private var onExploreHome
+    @Environment(\.growthExploreHomeAction) private var injectedExploreHome
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    private var onExploreHome: (() -> Void)? { rootTabSwitch.growthExploreFallback(injectedExploreHome) }
     @Environment(\.scenePhase) private var scenePhase
     private var reads: GrowthNormalReadTask { model.overviewReads }
     @State private var query = GrowthBoardQuery()
@@ -148,17 +150,18 @@ private struct GrowthLeaderboardRow: View {
                 else if let rank = entry.rank { Text(rank, format: .number).monospacedDigit() }
                 else { Text("growth.unranked") }
             }
-            .font(.headline).foregroundStyle(palette.textTertiary)
+            // LEADER-5: MP `.gc-row-rank` subtitle size, semibold, secondary.
+            .cyText(.cardTitle, monospacedDigit: true).foregroundStyle(palette.textSecondary)
             .frame(minWidth: 28, alignment: .leading)
             VStack(alignment: .leading, spacing: 4) {
                 let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(spacing: 8))
                 layout {
-                    GrowthCenterName(name: entry.nickname, fallback: fallback).font(.headline)
+                    GrowthCenterName(name: entry.nickname, fallback: fallback).cyText(.bodyMedium)
                         .foregroundStyle(palette.textPrimary).lineLimit(2)
                     if isMe { CYStatusChip("growth.board.meTag") }
                 }
                 if let percentage = GrowthCenterFormatting.nonempty(entry.rankPercentage) {
-                    Text(verbatim: percentage).font(.caption).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: percentage).cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
                 if stacked { score(alignment: .leading) }
             }
@@ -171,8 +174,8 @@ private struct GrowthLeaderboardRow: View {
     }
     private func score(alignment: HorizontalAlignment) -> some View {
         VStack(alignment: alignment, spacing: 2) {
-            GrowthCenterInteger(value: entry.score).font(.headline).foregroundStyle(palette.textPrimary)
-            Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
+            GrowthCenterInteger(value: entry.score).cyText(.label, weight: .semibold, monospacedDigit: true).foregroundStyle(palette.textPrimary)
+            Text(LocalizedStringKey("growth.unit." + metric.rawValue)).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
     }
 }
@@ -241,7 +244,7 @@ private struct GrowthLeaderboardPodiumView: View {
         return VStack(spacing: CYSpacing.sm) {
             ZStack(alignment: .bottom) {
                 Text(verbatim: name.map { String($0.prefix(1)) } ?? "—")
-                    .font(place == 1 ? .largeTitle.weight(.heavy) : .title.weight(.heavy)).foregroundStyle(palette.textPrimary)
+                    .cyText(place == 1 ? .display : .pageTitle, weight: .heavy).foregroundStyle(palette.textPrimary)
                     .frame(width: side, height: side)
                     .background(palette.bgRaised, in: Circle())
                     .overlay(Circle().strokeBorder(ring, lineWidth: 3))
@@ -254,7 +257,8 @@ private struct GrowthLeaderboardPodiumView: View {
             GrowthCenterName(name: entry.nickname, fallback: "growth.explorer").cyText(.label, weight: .semibold)
                 .foregroundStyle(palette.textPrimary).cyWrapText(alignment: .center)
             HStack(spacing: 4) {
-                GrowthCenterInteger(value: entry.score).cyText(.dataXL)
+                // LEADER-5: `dataXL` overflowed a ⅓ column; MP `.gc-num` is label-sized.
+                GrowthCenterInteger(value: entry.score).cyText(.numericBody)
                     .foregroundStyle(palette.textPrimary)
                 Text(LocalizedStringKey("growth.unit." + metric.rawValue)).cyText(.caption).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
