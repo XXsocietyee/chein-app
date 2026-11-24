@@ -129,6 +129,8 @@ enum MPParityRoute: Hashable, Identifiable {
     case myProjects
     /// `pages/merchant/ledger/index`. Read-only settlement overview. Payout stays off.
     case merchantLedger
+    /// MC7-06-1 (merchant-finance.js normalizeMerchantFinanceRoute): `view=settlement` / `tab=2|3` opens the 结算 segment.
+    case merchantLedgerSettlement
     /// A page-map path whose native screen already exists. The query is the one `MiniProgramPageLink` accepted.
     case screen(page: String, query: [String: String])
 
@@ -297,7 +299,7 @@ enum MPParityRoute: Hashable, Identifiable {
             MerchantPayoutAccountView()
         case .clubSettlement(let clubID, let mine, let personal):
             if let clubID { ClubPersonalSettlementView(clubID: clubID, personal: personal) } else if mine { ClubSettlementMineView() } else { unavailable }
-        case .playerOrderList, .coopList, .myProjects, .merchantLedger:
+        case .playerOrderList, .coopList, .myProjects, .merchantLedger, .merchantLedgerSettlement:
             SubscribeMessageTapEntry(route: route)
         case .screen(let page, let query):
             MPReviewedPageScreen(page: page, query: query)

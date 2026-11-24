@@ -78,6 +78,7 @@ struct MerchantOperationsHomeView: View {
             } else if let issue, loadedScope == reader.scope {
                 VStack(spacing: CYSpacing.md) {
                     Image(systemName: "exclamationmark.triangle")
+                        .accessibilityHidden(true)
                         .cyText(.display)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityHidden(true)

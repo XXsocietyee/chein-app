@@ -975,7 +975,9 @@ import SwiftUI
             Section {
                 Picker("merchant.business.reviews.filter", selection: $model.listFilters.review) {
                     ForEach(MerchantReviewFilter.allCases, id: \.self) { filter in
-                        Text(LocalizedStringKey("merchant.business.reviews.filter." + filter.rawValue)).tag(filter)
+                        // MC7-13-3 (reviews/index.wxml:84-98): the tab label carries the server `filterCounts` value when the
+                        // manage read sent a complete tab object; unknown counts keep the bare label (never a local count).
+                        Text(verbatim: reviewFilterLabel(filter)).tag(filter)
                     }
                 }.pickerStyle(.segmented).accessibilityIdentifier("merchant.business.reviews.filter")
                     .onChange(of: model.listFilters.review) { _, selected in
@@ -1004,6 +1006,12 @@ import SwiftUI
             .pickerStyle(.segmented)
             .accessibilityIdentifier("merchant.business.redemptions.filter")
         }
+    }
+    private func reviewFilterLabel(_ filter: MerchantReviewFilter) -> String {
+        let title = appLocalized(String.LocalizationValue("merchant.business.reviews.filter." + filter.rawValue), locale: locale)
+        let key = filter == .photos ? "photo" : filter.rawValue
+        guard let count = state.snapshot?.document.reviewFilterCounts?[key] else { return title }
+        return "\(title) \(count)"
     }
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
         if !document.summary.isEmpty || document.query == .overview || MerchantReviewSummaryPresentation(document: document) != nil {

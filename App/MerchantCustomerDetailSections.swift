@@ -16,7 +16,7 @@ import SwiftUI
     var paidAmount: String? {
         guard canRead, access.allows("merchant:crm:sensitive:read"),
               let amount = try? MerchantBusinessMoney(detail.customer.fields["paidAmount"]), amount.raw != nil else { return nil }
-        return amount.display
+        return amount.yuanDisplay
     }
     /// Cumulative-paid card state. Missing/null is `.unknown` (never 0); refunds never feed this value.
     enum PaidCardState: Equatable {
@@ -34,11 +34,9 @@ import SwiftUI
             if canRead {
                 // Source customer/detail order: name and 累计实付 first, then 客户概览, 参与记录, 标签与备注, 跟进与触达.
                 Section {
-                    // MC7-15-4 (customer/detail/index.wxml:29): the customer avatar (initial fallback) beside the name.
+                    // MC7-15-4 (customer/detail/index.wxml:29): the customer avatar (MP d_profile fallback) beside the name.
                     HStack(spacing: CYSpacing.sm) {
-                        CYAvatarView(url: detail.customer.fields.mbText("avatar").flatMap(URL.init(string:)),
-                                     name: detail.customer.title, size: .lg)
-                            .accessibilityHidden(true)
+                        MerchantMPAvatar(url: detail.customer.fields.mbText("avatar").flatMap(URL.init(string:)), size: 60)
                         Text(verbatim: detail.customer.title).cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

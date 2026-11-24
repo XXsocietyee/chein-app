@@ -37,6 +37,55 @@ enum MerchantVerifyRecordsParity {
     }
 }
 
+/// MC7-04-2 (verify-records/index.js:132-170): append the next finance/redemptions rows when the last row appears.
+/// The first read is Core's 50-row `.verificationRecords`; later pages go through the existing 20-row
+/// `.redemptions(filter: "all", page:)` read of the same endpoint and permission (merchant:verify:record:read).
+/// The first appended page overlaps the 50 rows already shown; rows are de-duplicated by `recordKey`.
+@MainActor final class MerchantVerifyRecordsPager: ObservableObject {
+    static let pageSize = 20
+    @Published private(set) var extra: [MerchantBusinessRecord] = []
+    @Published private(set) var loading = false
+    @Published private(set) var failed = false
+    @Published private(set) var exhausted = false
+    private var baseIDs: [String] = []
+    @Published private(set) var nextPage = 1
+    @Published private(set) var generation = 0
+    /// Changes after a reset or an appended page, so a still-visible 正在加载更多… row asks for the next page.
+    var loadToken: String { "\(generation)-\(nextPage)" }
+
+    func reset(base: [MerchantBusinessRecord], hasMore: Bool) {
+        let ids = base.map(\.id)
+        guard ids != baseIDs || generation == 0 else { return }
+        generation += 1
+        baseIDs = ids
+        extra = []; loading = false; failed = false
+        exhausted = !hasMore
+        nextPage = ids.count / Self.pageSize + 1
+    }
+
+    func loadMore(reader: any MerchantBusinessReading, total: Int?) async {
+        guard !loading, !exhausted, generation > 0 else { return }
+        loading = true; failed = false
+        let ticket = generation, page = nextPage
+        do {
+            let snapshot = try await reader.snapshot(.redemptions(filter: "all", page: page), isCurrent: { [weak self] in
+                self?.generation == ticket && !Task.isCancelled
+            })
+            guard ticket == generation else { return }
+            var known = Set(baseIDs + extra.map(\.id))
+            let pageRows = snapshot.document.rows.filter { $0.kind == .redemption }
+            for row in pageRows where !known.contains(row.id) { extra.append(row); known.insert(row.id) }
+            nextPage = page + 1
+            let serverTotal = snapshot.document.total ?? total ?? 0
+            exhausted = pageRows.count < Self.pageSize || baseIDs.count + extra.count >= serverTotal
+        } catch {
+            guard ticket == generation else { return }
+            failed = !(error is CancellationError)
+        }
+        if ticket == generation { loading = false }
+    }
+}
+
 struct MerchantVerifyRecordsSections: View {
     let records: [MerchantBusinessRecord]
     /// Server total; when it exceeds the loaded rows the counts read "n+" (MP `+` when truncated).
@@ -45,10 +94,15 @@ struct MerchantVerifyRecordsSections: View {
     var onNeedMore: (() -> Void)? = nil
     var loadingMore = false
     @State private var bucket: MerchantVerifyRecordsParity.Bucket = .verified
+    @StateObject private var pager = MerchantVerifyRecordsPager()
     @Environment(\.locale) private var locale
 
-    private var rows: [MerchantVerifyRecordsParity.Row] { records.filter { $0.kind == .verification }.map(MerchantVerifyRecordsParity.row) }
-    private var truncated: Bool { (total ?? 0) > records.count }
+    private var loaded: [MerchantBusinessRecord] { records + pager.extra }
+    private var rows: [MerchantVerifyRecordsParity.Row] {
+        loaded.filter { $0.kind == .verification || $0.kind == .redemption }.map(MerchantVerifyRecordsParity.row)
+    }
+    private var truncated: Bool { (total ?? 0) > loaded.count }
+    private var canAppend: Bool { reader != nil && truncated && !pager.exhausted }
 
     var body: some View {
         let all = rows
@@ -63,6 +117,7 @@ struct MerchantVerifyRecordsSections: View {
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
             .accessibilityIdentifier("merchant.verifyRecords.tabs")
+            .task(id: records.map(\.id)) { pager.reset(base: records, hasMore: hasMore) }
         }
         if groups.isEmpty {
             Section {

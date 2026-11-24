@@ -237,6 +237,11 @@ import SwiftUI
                 if let text = interest.text { CYListRow("merchantMarketing.interest", trailing: .value(text)) }
             }
         }
+        // MC7-11-3 (ai-insight/index.js:611 `_buildSlots`): 到店时段 reads facts.checkin.slotBuckets (早/午/晚/夜) via Core
+        // MerchantInsightSlots — four bars, 共 N 次打卡 and the peak line. No buckets or a zero total hides the section.
+        if let slots = MerchantInsightSlots.build(insight.facts) {
+            MerchantInsightSlotsSection(slots: slots)
+        }
         MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
                 && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)

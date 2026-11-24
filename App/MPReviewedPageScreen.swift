@@ -425,6 +425,16 @@ import SwiftUI
             } else {
                 MerchantMissingParamState(title: "merchant.gate.batch.missingParam")
             }
+        case "pages/merchant/ledger/order-detail/index":
+            // MC7-07-1 / MC7-07-2 (ledger/order-detail/index.js:23-31,63): recordType + recordId open that ledger record;
+            // activity_ticket / session_fee keep their type (Core MerchantOrderDetailLink). Missing pair → 缺少核销记录信息.
+            if let ref = MerchantOrderDetailLink.record(query) {
+                MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                     query: .redemption(recordID: ref.recordType == "redemption" ? ref.recordID : ref.recordKey))
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                MerchantMissingParamState(title: "merchant.gate.redemption.missingParam")
+            }
         case "pages/merchant/apply/index":
             MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
         case "pages/merchant/verify-records/index":

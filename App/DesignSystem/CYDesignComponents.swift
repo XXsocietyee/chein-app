@@ -292,6 +292,7 @@ public struct CYButtonSpinner: View {
     public var body: some View {
         if reduceMotion {
             Image(systemName: "ellipsis")
+                .accessibilityHidden(true)
                 .font(.system(.subheadline, weight: .bold))
                 .foregroundStyle(tint)
                 .frame(width: 16, height: 16)

@@ -14,7 +14,7 @@ struct MerchantAftercareProgressView: View {
                     .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                 if progress.amount.raw != nil {
-                    Text(verbatim: progress.amount.display)
+                    Text(verbatim: progress.amount.yuanDisplay)
                         .cyText(.data2XL)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
