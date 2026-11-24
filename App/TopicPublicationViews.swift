@@ -68,7 +68,7 @@ enum PublishClarityText {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             TopicPublicationHeadlineChip(headline: headline)
             Text("result.nextStep", tableName: PublishClarityText.table)
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.micro).foregroundStyle(CYColor.textSecondary)
             Group {
                 if let text = next.serverText { Text(verbatim: text) }
                 else if let key = next.fallbackKey { Text(LocalizedStringKey(key), tableName: PublishClarityText.table) }
@@ -374,11 +374,11 @@ enum PublishClarityText {
                 TopicPublicationHeadlineChip(headline: fact.headline)
                 if fact.headline == .listedPublic || fact.headline == .listedOffline {
                     Text("list.reviewOnStatusPage", tableName: PublishClarityText.table)
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.micro).foregroundStyle(CYColor.textSecondary)
                 }
                 if let key = fact.editScopeNoticeKey {
                     Text(LocalizedStringKey(key), tableName: PublishClarityText.table)
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.micro).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("publishClarity.list.editScope.\(project.sourceID)")
                 }

@@ -1526,7 +1526,7 @@ struct PublishTabFloatingSheetView: View {
                                         .foregroundStyle(CYColor.textTertiary)
                                     if let reason = item.disabledReason, !item.isEnabled {
                                         Text(verbatim: copy.tr(reason))
-                                            .cyText(.meta)
+                                            .cyText(.micro)
                                             .foregroundStyle(CYColor.warningText)
                                             .accessibilityIdentifier("publishTab.sheet.disabledReason.\(item.id)")
                                     }

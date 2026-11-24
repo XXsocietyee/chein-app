@@ -135,10 +135,10 @@ import QuestifyCore
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                 Text(row.title).cyText(.label).foregroundStyle(palette.textPrimary).lineLimit(2)
                 if row.blocking {
-                    Text(W8Text.t("挡住发布", "Blocks publishing")).cyText(.meta).foregroundStyle(palette.danger)
+                    Text(W8Text.t("挡住发布", "Blocks publishing")).cyText(.micro).foregroundStyle(palette.danger)
                         .accessibilityIdentifier("locationTodos.blocking")
                 } else if row.warning {
-                    Text(W8Text.t("待复核", "To review")).cyText(.meta).foregroundStyle(palette.textSecondary)
+                    Text(W8Text.t("待复核", "To review")).cyText(.micro).foregroundStyle(palette.textSecondary)
                 }
             }
             if let mapped { Text(mapped.node.place).cyText(.meta).foregroundStyle(palette.textSecondary).lineLimit(1) }

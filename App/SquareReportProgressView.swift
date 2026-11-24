@@ -34,7 +34,7 @@ struct MemberReportProgressTimeView: View {
                         // Source report-mine row: 「对象 · 原因」 over 「编号 N · 时间」, stage and chevron on the right.
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             memberReportProgressText("report.stage.\(record.stageKey)")
-                                .cyText(.meta)
+                                .cyText(.micro)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .padding(.horizontal, CYSpacing.sm)
                                 .frame(minHeight: 20)

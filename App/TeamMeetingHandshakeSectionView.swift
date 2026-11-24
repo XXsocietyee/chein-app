@@ -105,7 +105,7 @@ public struct TeamMeetingHandshakeSectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
     }
 
     // MARK: - U05–U07: Team First Meeting Card
@@ -184,7 +184,7 @@ public struct TeamMeetingHandshakeSectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
     }
 
     // MARK: - U02 & U04: Friend Multi-Invite Batch Card
@@ -262,7 +262,7 @@ public struct TeamMeetingHandshakeSectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
     }
 
     // MARK: - U04: Revoke-Wins Ledger Badge
@@ -290,6 +290,6 @@ public struct TeamMeetingHandshakeSectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
     }
 }

@@ -97,7 +97,7 @@ import SwiftUI
                         ZStack(alignment: .topLeading) {
                             if contents.isEmpty {
                                 Text(verbatim: copy("有什么新鲜好玩的分享吗？", "Share something new?"))
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(.secondary)
                                     .accessibilityHidden(true)
                             }
                             TextEditor(text: $contents)
@@ -280,7 +280,7 @@ import SwiftUI
                                 HStack {
                                     Text(verbatim: row.nickname).cyText(.cardTitle).foregroundStyle(.primary).cyWrapText()
                                     Spacer(minLength: CYSpacing.sm)
-                                    Text(verbatim: row.date).cyText(.meta).foregroundStyle(.tertiary)
+                                    Text(verbatim: row.date).cyText(.meta).foregroundStyle(.secondary)
                                 }
                                 Text(verbatim: row.summary).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
                             }
@@ -297,7 +297,7 @@ import SwiftUI
                     }
                 }
                 Text(verbatim: copy("只有 \(drafts.count) 条草稿", "Only \(drafts.count) drafts"))
-                    .cyText(.meta).foregroundStyle(.tertiary)
+                    .cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityIdentifier("square.cloud.drafts.count")
             }
             if let undo {

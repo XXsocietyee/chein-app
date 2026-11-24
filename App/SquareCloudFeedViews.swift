@@ -141,7 +141,7 @@ struct SquareCloudStravaBlock: View {
             if card.cleared == true { clearedBanner }
             if onDoubleTapLike != nil {
                 Text(verbatim: copy("双击路线点赞", "Double-tap the route to give kudos"))
-                    .cyText(.meta).foregroundStyle(.tertiary)
+                    .cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityAction(named: Text(verbatim: copy("点赞", "Kudos"))) { onDoubleTapLike?() }
                     .accessibilityIdentifier("square.cloud.doubleTap")
             }
@@ -157,7 +157,7 @@ struct SquareCloudStravaBlock: View {
 
     private func stat(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(verbatim: label).cyText(.meta).foregroundStyle(.tertiary)
+            Text(verbatim: label).cyText(.meta).foregroundStyle(.secondary)
             Text(verbatim: value).cyText(.bodyMedium).foregroundStyle(.primary).monospacedDigit().cyWrapText()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -428,7 +428,7 @@ struct SquareCloudJoinedActivityList: View {
                 Button { onSelect(item) } label: {
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                         Text(verbatim: item.name).cyText(.cardTitle).foregroundStyle(.primary).cyWrapText()
-                        Text(verbatim: item.sourceLabel).cyText(.meta).foregroundStyle(.tertiary)
+                        Text(verbatim: item.sourceLabel).cyText(.meta).foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                 }

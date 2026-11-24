@@ -508,7 +508,7 @@ import SwiftUI
                     if let address = node.address { Text(verbatim: address).font(.subheadline) }
                     if node.coordinate == nil { Label("searchMap.noCoordinates", systemImage: "mappin.slash").font(.caption) }
                 }.padding().frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-                    .background(.secondary.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
+                    .background(.secondary.opacity(0.07), in: RoundedRectangle(cornerRadius: 20))
             }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.nearby.node.\(node.id)")
             if node.coordinate != nil { selectPlace("nearby-\(node.id)", title: node.addressName) }
         }
