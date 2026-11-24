@@ -142,7 +142,7 @@ public enum HapticEvent: String, Equatable, Sendable, CaseIterable {
 /// Central haptics coordinator honoring system haptics policy, in-app `SettingsSoundPreferences.haptics`,
 /// and a minimum 120 ms cooldown (`HapticFeedbackAndMotionReduceComplianceAudit`).
 @MainActor public final class HapticsService {
-    public static let minimumCooldownSeconds: TimeInterval = 0.12
+    nonisolated public static let minimumCooldownSeconds: TimeInterval = 0.12
     public static let shared = HapticsService()
 
     private var driver: any HapticsFeedbackDriver
