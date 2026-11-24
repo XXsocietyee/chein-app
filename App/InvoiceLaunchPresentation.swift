@@ -129,7 +129,8 @@ struct InvoiceLaunchWriteNotice: Equatable {
                 do { _ = try await coordinator.recover(); recheckMissed = false; writeNotice = nil }
                 catch {
                     guard accept(visit) else { return }
-                    if manual { recheckMissed = true }
+                    // A proven original-request miss keeps 暂未查到. A transport failure stays the unknown copy.
+                    recheckMissed = manual && (error as? InvoiceLaunchIssue) == .notFound
                 }
             } else { recheckMissed = false }
             let result = try await coordinator.overview()
@@ -207,7 +208,7 @@ struct InvoiceLaunchWriteNotice: Equatable {
         case .rejected(let value)?:
             code = value; kind = value == "INVOICE_ORDERS_TOO_MANY" ? .tooMany : .rejected
         case .invalid?: kind = .rejected
-        case .outcomeUnknown?, .pendingConflict?, .originalReadUnavailable?: kind = .unknown
+        case .outcomeUnknown?, .pendingConflict?, .originalReadUnavailable?, .notFound?: kind = .unknown
         default: fail(error, visit: visit); return
         }
         guard overview != nil else { fail(error, visit: visit); return }
@@ -241,7 +242,7 @@ struct InvoiceLaunchWriteNotice: Equatable {
         switch error as? InvoiceLaunchIssue {
         case .staleSession, .unauthorized: invalidate(); issue = "session"
         case .disabled: issue = "unavailable"
-        case .outcomeUnknown, .originalReadUnavailable, .pendingConflict: unresolved = true; issue = "unknown"
+        case .outcomeUnknown, .originalReadUnavailable, .pendingConflict, .notFound: unresolved = true; issue = "unknown"
         case .storageUnavailable: unresolved = true; issue = "storage"
         case .invalid, .rejected: issue = "notSaved"
         default: issue = "loadFailed"; overview = shown
