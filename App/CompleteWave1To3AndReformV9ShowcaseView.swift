@@ -193,7 +193,7 @@ public struct CompleteWave1To3AndReformV9ShowcaseView: View {
                     ) {
                         CYCoverArt(seed: item.id, symbol: "square.stack.3d.up", showsDebugLabel: false)
                             .frame(width: 40, height: 40)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                             .accessibilityHidden(true)
                     }
                     batchFacts(item)

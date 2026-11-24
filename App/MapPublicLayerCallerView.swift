@@ -111,7 +111,7 @@ enum Cloud21Copy {
             CYListRow(verbatim: shown(title), meta: item.key.type.rawValue, trailing: .none) {
                 CYCoverArt(seed: item.key.id + item.title, symbol: item.state.symbolName, showsDebugLabel: false)
                     .frame(width: 40, height: 40)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .accessibilityHidden(true)
             }
             MapCoreEntryText.state(item.state)

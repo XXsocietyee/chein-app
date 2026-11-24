@@ -162,7 +162,7 @@ struct CYShareReadyRow: View {
             Image(uiImage: image).resizable().scaledToFit()
                 .frame(height: 72)
                 .overlay { CYFoilSheen() }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .accessibilityLabel(Text(previewLabel))
                 .accessibilityIdentifier(identifier)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {

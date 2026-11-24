@@ -430,7 +430,7 @@ private struct NPCChatThumb: View {
     let seed: String
     var symbol: String
     var body: some View {
-        CYCoverArt(seed: seed.isEmpty ? "npc" : seed, symbol: symbol, showsDebugLabel: false, cornerRadius: CYRadius.xs)
+        CYCoverArt(seed: seed.isEmpty ? "npc" : seed, symbol: symbol, showsDebugLabel: false, cornerRadius: CYRadius.sm)
             .frame(width: 40, height: 40)
             .accessibilityHidden(true)
     }

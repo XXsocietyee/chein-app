@@ -627,7 +627,7 @@ public struct ClubChannelMessagingView: View {
                         }
                         .padding(CYSpacing.lg)
                     }
-                    .onChange(of: viewportState.pendingNewMessageCount) { _ in
+                    .onChange(of: viewportState.pendingNewMessageCount) { _, _ in
                         if viewportState.isNearBottom, let lastID = burstGroups.last?.items.last?.id {
                             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
                                 proxy.scrollTo(lastID, anchor: .bottom)

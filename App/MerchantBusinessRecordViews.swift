@@ -238,7 +238,7 @@ struct MerchantBusinessField: View {
     }
     var body: some View {
         let intent = model.intentID
-        let chinese = locale.languageCode == "zh"
+        let chinese = locale.language.languageCode?.identifier == "zh"
         VStack(alignment: .leading, spacing: 4) {
             Button {
                 model.copy(intent: intent) { text in

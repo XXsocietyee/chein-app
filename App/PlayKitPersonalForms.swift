@@ -47,7 +47,7 @@ extension PlayKitScreen {
             Text("playkit.profile.seal")
                 .cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).strokeBorder(CYColor.dangerText, lineWidth: 2))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(CYColor.dangerText, lineWidth: 2))
                 .rotationEffect(.degrees(-6))
                 .frame(maxWidth: .infinity)
                 .accessibilityLabel(Text("playkit.profile.sealLabel"))

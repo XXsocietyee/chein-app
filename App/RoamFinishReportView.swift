@@ -170,8 +170,8 @@ struct RoamFinishReport: Equatable {
             if let address = report.currentAddress {
                 Text(verbatim: address).cyText(.label).foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
-                    .background(CYNight.ink0, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                    .background(CYNight.ink0, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
                     .padding(CYSpacing.lg)
             }
         }

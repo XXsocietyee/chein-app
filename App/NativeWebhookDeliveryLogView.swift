@@ -77,8 +77,8 @@ import SwiftUI
         .nativeChannelFlowPage()
         .cyHeroScreen()
         .task { await read() }
-        .onChange(of: filter) { _ in Task { await read() } }
-        .onChange(of: includePayload) { _ in Task { await read() } }
+        .onChange(of: filter) { _, _ in Task { await read() } }
+        .onChange(of: includePayload) { _, _ in Task { await read() } }
         .refreshable { await read() }
         .accessibilityIdentifier("webhook.deliveryLogs")
     }
