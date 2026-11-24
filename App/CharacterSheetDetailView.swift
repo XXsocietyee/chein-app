@@ -10,6 +10,8 @@ import QuestifyCore
     var rpgSheet: CharacterRpgSheet? = nil
     var definitionSource: String? = nil
     var attributeLevels: [String: [CharacterAttributeLevel]] = [:]
+    /// PLY-24-6: MP character/index.wxml:61 ends the ready card with a secondary 刷新角色卡. Nil hides it.
+    var onRefresh: (() -> Void)? = nil
 
     @Environment(\.locale) private var locale
     @State private var showingDice = false
@@ -44,6 +46,12 @@ import QuestifyCore
                     CYSectionHeader("characterCard.rpgStatus")
                     CYCard { rpgContent(rpg) }
                 }
+
+                if let onRefresh {
+                    Button(action: onRefresh) { Text("characterCard.refresh") }
+                        .buttonStyle(.cySecondary(fullWidth: true))
+                        .accessibilityIdentifier("characterCard.refresh.ready")
+                }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.lg)
@@ -59,8 +67,6 @@ import QuestifyCore
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("characterSheet.diceRoller")
                 .accessibilityLabel(Text("characterCard.dice"))
-                .accessibilityValue(Text(verbatim: card.statusText.isEmpty ? "—" : card.statusText))
-                .accessibilityHint(Text("characterCard.dice"))
             }
         }
         .sheet(isPresented: $showingDice) { DiceRollerSheet() }
@@ -72,8 +78,9 @@ import QuestifyCore
         CYCard(variant: .elevated) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .firstTextBaseline) {
+                    // PLY-24-5: a pushed page's header card uses the card title style, not the sheet title.
                     Text(card.heading)
-                        .cyText(.sheetTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Spacer(minLength: CYSpacing.sm)

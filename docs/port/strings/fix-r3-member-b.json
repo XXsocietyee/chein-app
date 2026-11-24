@@ -1,4 +1,21 @@
 {
+  "orientScore.review.submittingLabel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submitting appeal…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在提交申诉…"
+        }
+      }
+    }
+  },
   "profile.orderParity.error.title": {
     "extractionState": "manual",
     "localizations": {

@@ -104,25 +104,31 @@ extension EnvironmentValues {
     @ViewBuilder private var statusView: some View {
         switch model.state {
         case .submitting:
-            ProgressView().accessibilityIdentifier("orientScore.review.submitting")
+            // PLY-25-9: the spinner names what it waits for.
+            ProgressView { Text("orientScore.review.submittingLabel") }
+                .accessibilityIdentifier("orientScore.review.submitting")
         case .submitted:
             Label("orientScore.review.submitted", systemImage: "checkmark.circle.fill")
                 .foregroundStyle(CYColor.successText)
+                .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("orientScore.review.submitted")
         case .failed(let message):
             if message == OrientScoreReviewOutcome.unknownMark {
                 Label("orientScore.review.unknown", systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(CYColor.dangerText)
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("orientScore.review.failed")
             } else {
                 Label(message, systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(CYColor.dangerText)
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("orientScore.review.failed")
             }
         case .unavailable:
             Label("orientScore.review.unavailable",
                   systemImage: "exclamationmark.circle")
                 .foregroundStyle(CYColor.textSecondary)
+                .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("orientScore.review.unavailable")
         case .idle, .awaitingConfirmation:
             EmptyView()

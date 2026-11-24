@@ -86,9 +86,29 @@ extension EnvironmentValues {
 @MainActor private struct OrientScoreParticipationSessionEntry: View {
     let detail: ParticipationDetail
     @EnvironmentObject private var session: AppSession
+    @Environment(\.locale) private var locale
+    /// Bumped by 重新加载 so the binding is asked again.
+    @State private var attempt = 0
 
     var body: some View {
-        if let loader = OrientScoreEntryBinding.makeLoader(detail, session) {
+        let loader = OrientScoreEntryBinding.makeLoader(detail, session)
+        if loader == nil {
+            // PLY-23-8: MP mycanyuinfo cy-error 角色卡与成绩入口暂不可用 + 重新加载, instead of hiding the entry.
+            let c = CoreLoopCopy(locale: locale)
+            Section {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: c.t("角色卡与成绩入口暂不可用", "Character card and score are unavailable right now"))
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                    Button { attempt += 1 } label: { Text(verbatim: c.t("重新加载", "Reload")) }
+                        .buttonStyle(.borderless)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("playerJourney.orientScore.entry.retry")
+                }
+                .id(attempt)
+                .accessibilityIdentifier("playerJourney.orientScore.entry.issue")
+            }
+        }
+        if let loader {
             Section {
                 NavigationLink {
                     OrientScoreView(model: OrientScoreModel(rounds: loader))
