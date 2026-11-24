@@ -287,56 +287,5 @@
         }
       }
     }
-  },
-  "objects.rename.label": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Card name"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "卡名"
-        }
-      }
-    }
-  },
-  "objects.rename.hint": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Give this card a name"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "给这张卡起个名字"
-        }
-      }
-    }
-  },
-  "objects.rename.count %lld %lld": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "%1$lld of %2$lld characters"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "已输入 %1$lld 个字,最多 %2$lld 个"
-        }
-      }
-    }
   }
 }

@@ -108,8 +108,8 @@ public struct ObjectCardRenameSheetView: View {
         NavigationStack {
             Form {
                 Section {
-                    // MP cy-field label 卡名, placeholder 给这张卡起个名字, maxlength 64, show-count.
-                    TextField("objects.rename.hint", text: $name)
+                    // MP cy-field (label 卡名, maxlength 64, show-count); catalog keys 卡片名称 / 输入藏品名称.
+                    TextField("objects.rename.placeholder", text: $name)
                         .submitLabel(.done)
                         .onSubmit { if canSave { onSave(trimmed) } }
                         .onChange(of: name) { _, newValue in
@@ -118,7 +118,7 @@ public struct ObjectCardRenameSheetView: View {
                         }
                         .accessibilityIdentifier("objects.rename.field")
                 } header: {
-                    Text("objects.rename.label")
+                    Text("playerGap.card.renamePlaceholder")
                 } footer: {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         if let errorMessage, !errorMessage.isEmpty {
@@ -131,7 +131,6 @@ public struct ObjectCardRenameSheetView: View {
                             .cyText(.meta, monospacedDigit: true)
                             .foregroundStyle(CYColor.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .trailing)
-                            .accessibilityLabel(Text("objects.rename.count \(name.count) \(ObjectCardRenameValidator.maxLength)"))
                     }
                 }
             }
