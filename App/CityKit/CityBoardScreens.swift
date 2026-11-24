@@ -51,7 +51,7 @@ struct CityBoardView: View {
         }
         .background(palette.bgPage.ignoresSafeArea())
         .navigationTitle(Text(verbatim: copy("城市大富翁", "City Monopoly")))
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable { if let center = store.center { await store.load(center: center) } }
         .accessibilityIdentifier("city.board")
     }
@@ -79,7 +79,7 @@ struct CityBoardView: View {
                     Text(verbatim: copy("持有 \(holdings.count) / \(holdings.limit)", "Holding \(holdings.count) / \(holdings.limit)"))
                     if let rent = store.todayRent { Text(verbatim: copy("今天 +\(rent) 积分", "Today +\(rent) pts")) }
                 }
-                .cyText(.caption, weight: .semibold).foregroundStyle(palette.textPrimary)
+                .cyText(.meta, weight: .semibold).foregroundStyle(palette.textPrimary)
                 .padding(.horizontal, 10).padding(.vertical, 6).background(.ultraThinMaterial, in: Capsule()).padding(CYSpacing.md)
             }
         }
@@ -141,7 +141,7 @@ struct CityBoardView: View {
     private func moreLink(_ text: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack { Text(verbatim: text); Image(systemName: "chevron.right").imageScale(.small) }
-                .font(CYTypography.meta).foregroundStyle(palette.textSecondary).frame(minHeight: 44)
+                .cyText(.meta).foregroundStyle(palette.textSecondary).frame(minHeight: 44)
         }
         .buttonStyle(.plain)
     }
@@ -154,13 +154,13 @@ struct CityBoardView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                    if let detail { Text(verbatim: detail).cyText(.caption).foregroundStyle(palette.textSecondary) }
+                    if let detail { Text(verbatim: detail).cyText(.meta).foregroundStyle(palette.textSecondary) }
                 }
                 Spacer()
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
             }
             .padding(CYSpacing.md).frame(minHeight: 60)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -207,7 +207,7 @@ struct CityMyPropertiesView: View {
         }
         .background(palette.bgPage.ignoresSafeArea())
         .navigationTitle(Text(verbatim: copy("我的地盘", "My places")))
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("city.mine")
     }
 
@@ -262,7 +262,7 @@ struct CityRentLedgerView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: place.map { copy.title($0) } ?? copy("我的地盘", "My place")).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                             Text(verbatim: [event.visitorMasked, event.createdAt.map { copy.clock($0.date) }].compactMap { $0 }.joined(separator: " · "))
-                                .cyText(.caption).foregroundStyle(palette.textSecondary)
+                                .cyText(.meta).foregroundStyle(palette.textSecondary)
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 2) {
@@ -292,7 +292,7 @@ struct CityRentLedgerView: View {
         VStack(spacing: 2) {
             Text(verbatim: value.map { "\($0)" } ?? "—").cyText(.dataXL).foregroundStyle(palette.textPrimary)
                 .contentTransition(.numericText(value: Double(value ?? 0)))
-            Text(verbatim: label).cyText(.caption).foregroundStyle(palette.textSecondary)
+            Text(verbatim: label).cyText(.meta).foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)

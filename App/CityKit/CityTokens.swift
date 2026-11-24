@@ -108,7 +108,7 @@ struct CityStatusTag: View {
             if let symbol { Image(systemName: symbol).imageScale(.small).accessibilityHidden(true) }
             Text(verbatim: text).lineLimit(1)
         }
-        .cyText(.caption, weight: .semibold)
+        .cyText(.meta, weight: .semibold)
         .foregroundStyle(foreground)
         .padding(.horizontal, 8).padding(.vertical, 4)
         .background(background, in: Capsule())
@@ -142,7 +142,7 @@ struct CityDistrictChip: View {
             Circle().fill(CityTokens.district(index)).frame(width: 7, height: 7).accessibilityHidden(true)
             Text(verbatim: text).lineLimit(1)
         }
-        .cyText(.caption, weight: .medium)
+        .cyText(.meta, weight: .medium)
         .foregroundStyle(palette.textSecondary)
         .padding(.horizontal, 8).padding(.vertical, 4)
         .background(palette.bgRaised, in: Capsule())
@@ -183,7 +183,7 @@ struct CityGlassCircle: View {
                 .overlay(Circle().strokeBorder(palette.borderStrong, lineWidth: 0.5))
                 .overlay(alignment: .topTrailing) {
                     if let badge, badge > 0 {
-                        Text(verbatim: String(badge)).cyText(.caption, weight: .bold).foregroundStyle(.white)
+                        Text(verbatim: String(badge)).cyText(.meta, weight: .bold).foregroundStyle(.white)
                             .padding(.horizontal, 5).frame(minWidth: 18, minHeight: 18)
                             .background(palette.actionDangerBg, in: Capsule()).offset(x: 4, y: -4)
                     }

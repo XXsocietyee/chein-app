@@ -141,7 +141,7 @@ import Observation
                 Text(verbatim: String(Set(service.submissions.map(\.requestId)).count)).accessibilityIdentifier("cityGame.recorder.requestIds")
             }
             // Test instrumentation only: kept in the accessibility tree for UITests, never drawn (it read as a stray "0 0 0" above the CITY actions).
-            .cyText(.caption).foregroundStyle(.clear).frame(height: 1).clipped().allowsHitTesting(false)
+            .cyText(.meta).foregroundStyle(.clear).frame(height: 1).clipped().allowsHitTesting(false)
         }
     }
 }
@@ -204,7 +204,7 @@ import Observation
                 HStack {
                     Text(verbatim: String(service.restores.count)).accessibilityIdentifier("homeReturn.recorder.restores")
                     Text(verbatim: String(service.effects)).accessibilityIdentifier("homeReturn.recorder.effects")
-                }.cyText(.caption)
+                }.cyText(.meta)
             }
     }
 }

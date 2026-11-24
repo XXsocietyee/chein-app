@@ -406,7 +406,7 @@ struct CityNearbyDrawer: View {
                         if detent != .large {
                             Button { set(.large) } label: {
                                 HStack(spacing: 2) { Text(verbatim: copy("全部", "All")); Image(systemName: "chevron.right").imageScale(.small) }
-                                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary).frame(minHeight: 44)
+                                    .cyText(.meta).foregroundStyle(palette.textSecondary).frame(minHeight: 44)
                             }
                             .buttonStyle(.plain)
                         }
@@ -479,7 +479,7 @@ struct CityNearbyDrawer: View {
                                 CityDeedCard(place: place, size: .row, trailing: place.ownership == .open ? .price : .status)
                                     .overlay(alignment: .bottomTrailing) {
                                         if let text = copy.distance(place.distance(from: origin)) {
-                                            Text(verbatim: text).cyText(.caption, monospacedDigit: true).foregroundStyle(palette.textTertiary)
+                                            Text(verbatim: text).cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textTertiary)
                                                 .padding(.trailing, CYSpacing.md).padding(.bottom, 6)
                                         }
                                     }

@@ -134,7 +134,7 @@ import SwiftUI
             CYFactRow(label: Text(verbatim: copy("消耗", "Spent")), value: String(result.costUnits))
             CYFactRow(label: Text(verbatim: copy("剩余", "Remaining")), value: String(result.afterUnits))
             Text(verbatim: cloud06Shown(result.resultId))
-                .cyText(.caption)
+                .cyText(.meta)
                 .foregroundStyle(palette.textTertiary)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)

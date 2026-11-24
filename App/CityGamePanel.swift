@@ -106,7 +106,7 @@ struct CityGamePanel: View {
             CYCityBoardRing(properties: snapshot.properties, title: { title(for: $0) }, selection: $selectedProperty)
                 .frame(maxWidth: 420).frame(maxWidth: .infinity)
             if selectedProperty == nil {
-                Text("cityGame.board.selectHint", tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                Text("cityGame.board.selectHint", tableName: "CityGame").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
         }
     }
@@ -200,7 +200,7 @@ struct CityGamePanel: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(verbatim: value ?? "—").font(.system(.title3, design: .rounded).weight(.bold)).monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.7).lineLimit(1)
-            Text(label, tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+            Text(label, tableName: "CityGame").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.md)
@@ -209,7 +209,7 @@ struct CityGamePanel: View {
     }
 
     private func chip(_ text: Text, tone: CYStatusTone) -> some View {
-        text.cyText(.caption).foregroundStyle(CYColor.textSecondary)
+        text.cyText(.meta).foregroundStyle(CYColor.textSecondary)
             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + 1)
             .background(Capsule(style: .continuous).fill(CYColor.bgRaised))
     }

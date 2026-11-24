@@ -171,7 +171,7 @@ struct CityClaimSheet: View {
                 ])
                 primary
                 Text(verbatim: copy("报价 5 分钟内有效 · 确认前不扣积分", "Quote valid 5 minutes · nothing is charged before you confirm"))
-                    .cyText(.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
+                    .cyText(.meta).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
                 if let issue = store.issueCode {
                     CityBanner(text: CityReasonCopy.text(issue, chinese: copy.chinese), symbol: "exclamationmark.circle", tone: .error)
                 }

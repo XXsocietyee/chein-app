@@ -107,7 +107,7 @@ import SwiftUI
             .cyHeroScreen()
             .roleTheme(.player)
             .accessibilityIdentifier("city.acquisition.screen")
-            .sheet(item: confirmationBinding) { captured in confirmationSheet(captured) }
+            .sheet(item: confirmationBinding) { captured in Group { confirmationSheet(captured) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .task(id: readID) { guard visible, scenePhase == .active, !Task.isCancelled else { return }; await controller.open(activity: controller.activityID) }
             .onAppear { visible = true; controller.activate(); readID = UUID() }
             .onChange(of: scenePhase) { _, phase in
@@ -259,7 +259,7 @@ import SwiftUI
         Text("cityAcquire.quote.currentRelease", tableName: table).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
         Text("cityAcquire.quote.assurance", tableName: table).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
         Text(verbatim: cloud06Shown(q.evidenceAcceptanceReason)).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
-        Text(verbatim: cloud06Shown(q.quoteHash)).cyText(.caption).monospacedDigit().foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        Text(verbatim: cloud06Shown(q.quoteHash)).cyText(.meta).monospacedDigit().foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         if !q.unexpired {
             CYNoteBanner(text: Text("cityAcquire.quote.expired", tableName: table), symbol: "clock.badge.exclamationmark", tone: .danger)
         }
@@ -307,7 +307,7 @@ import SwiftUI
             CYFactRow(label: Text("cityAcquire.title.debit", tableName: table), value: t.pointCost.map { String($0) } ?? "—")
             CYFactRow(label: Text("cityAcquire.title.after", tableName: table), value: t.pointsAfter.map { String($0) } ?? "—")
             CYFactRow(label: Text("cityAcquire.quote.actions", tableName: table), value: t.actionCost.map { String($0) } ?? "—")
-            Text(verbatim: cloud06Shown(t.titleId)).cyText(.caption).foregroundStyle(palette.textTertiary).textSelection(.enabled)
+            Text(verbatim: cloud06Shown(t.titleId)).cyText(.meta).foregroundStyle(palette.textTertiary).textSelection(.enabled)
         }
         .accessibilityElement(children: .contain)
     }
@@ -324,7 +324,7 @@ import SwiftUI
         if let code = receipt.errorCode {
             Text(Self.failure(code), tableName: table).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
-        Text(verbatim: cloud06Shown(receipt.requestId)).cyText(.caption).monospacedDigit().foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        Text(verbatim: cloud06Shown(receipt.requestId)).cyText(.meta).monospacedDigit().foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         if let title = receipt.title {
             Text("cityAcquire.receipt.historical", tableName: table).cyText(.meta).foregroundStyle(palette.textSecondary)
             titleContent(title)

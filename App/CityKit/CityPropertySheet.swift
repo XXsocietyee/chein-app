@@ -315,7 +315,7 @@ struct CityPropertySheet: View {
                     .accessibilityIdentifier("city.property.claim")
                 if let holdings = store.holdings {
                     Text(verbatim: copy("持有 \(holdings.count) / \(holdings.limit)", "Holding \(holdings.count) / \(holdings.limit)"))
-                        .cyText(.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
+                        .cyText(.meta).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
                 }
             case .other:
                 if let until = display.protectedUntil, until > Date() {
