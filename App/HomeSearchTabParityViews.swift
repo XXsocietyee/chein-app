@@ -266,7 +266,7 @@ private struct HomeActionBannerPoster: View {
         case "activity_list": MPAsset.BannerCover.homeBannerFriends.resizable().scaledToFill()
         case "club_apply": MPAsset.BannerCover.homeBannerClub.resizable().scaledToFill()
         case "merchant_apply": MPAsset.BannerCover.homeBannerMerchant.resizable().scaledToFill()
-        default: Image(systemName: "arrow.up.right")
+        default: Image(systemName: "arrow.up.right").accessibilityHidden(true)
         }
     }
 }
