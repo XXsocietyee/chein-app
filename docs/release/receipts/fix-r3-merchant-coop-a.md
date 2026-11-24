@@ -226,3 +226,75 @@ New helper files: `MerchantMPIcon.swift` (`MerchantMPIcon`, Dynamic-Type scaled 
   - `check_a11y_lint` was failing with 8 new findings. These were the decorative glyphs the restyle merge had re-lined. They are now `.accessibilityHidden(true)`, and the lint passes. `check_typography_lint` passes.
 - **Strings:** 7 new keys in `docs/port/strings/fix-r3-merchant-coop-a.json` (98 keys, en + zh-Hans).
 - **Fixture routes:** unchanged (`docs/port/accept/f-merchant-coop-a.txt`). `merchant-home`, `t12-reviews`, `t12-marketing`, `merchant-customers` and `t12-ledger-batches` cover the round-2 changes.
+
+---
+
+## Round 3 (2026-11-24 evening)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round3.md`, plus `wave-x10.md`, `fix-r3-round2.md` and `owner-decisions-1124.md`.
+- **Sync:** `git merge origin/ui/combined-r7` at `b0ac0108d` fast-forwarded (my round 2 was already integrated there). I merged r7 again before the final push.
+- **No compiler here.** Every API used below was grepped on the new base first. No new type name collides with App/ or Core/.
+
+### Round 3 · re-applied
+
+I diffed each round-2 commit (`1617b471c`, `08afe8867`, `be3f55013`) against the new base, line by line. Everything survived except the hunks below. Each was re-applied on top of Cursor's wiring, not as a second implementation.
+
+| Round-2 hunk | State on b0ac0108d | Re-applied as |
+|---|---|---|
+| MC7-04-2 / 04-3 verify-records pager (`MerchantVerifyRecordsPager` over `.redemptions`) | Replaced by Cursor's `MerchantVerificationAppendList` (`reader.verificationPage`). Its failures set `stopped`, so the footer vanished: no 重新加载 and no 已经到底了. | On Cursor's list: a failed page shows 重新加载 (retry), cancellation is ignored, and `hasMore == false` shows 已经到底了 even when `total` disagrees. The 正在加载更多… row re-asks after each page through `.task(id: records.count)` (`onAppear` fired only once). `MerchantVerifyRecordsSections` gains `loadFailed` / `onRetry` / `exhausted`. |
+| MC7-06-1 `pages/merchant/ledger/index?view=settlement` → `.merchantLedgerSettlement` | The `MPParityRoute` case survived, but Cursor's `topicID` branch dropped the `view` check, so the case was unreachable. | Inside Cursor's no-topic `else` branch (`MPParityKit.swift`). |
+| MC7-11-3 slot bars | Both mine (`MerchantInsightSlotsSection`) and a second inline copy inside 经营数据 were rendered. | Removed the inline duplicate. The one section remains. |
+| `MPReviewedPageScreen` order-detail | The merge left two `case "pages/merchant/ledger/order-detail/index"`. Only the first (Cursor's `record.recordKey`) can match. | Deleted the dead second case. |
+
+### Fixed in round 3
+
+| id | What changed | Files |
+|---|---|---|
+| flows-g2 MISSING-ROUTE (half a) | These bare MP links now open the workbench's native screens instead of 该页面暂未开放:<br>• `pages/merchant/aftercare/index` → `.aftercare(.pending, page: 1)`;<br>• `aftercare/detail/index` lands on the list (MP `onLoad` redirects without a valid id; the link rule admits no query yet);<br>• `reviews/index` → `.reviews(page: 1)`;<br>• `customer/index` → `.customers`;<br>• `crm-campaigns/index` → `MerchantCampaignHistoryHost`;<br>• `marketing/index` and `marketing/ai-insight/index` (`.insight`) → `MerchantMarketingView` with the 营销 tab's links;<br>• `predict/index` → the prediction inbox, or 登录后查看预测 + 登录 when there is no reader. | MPReviewedPageScreen, MerchantMPLinkScreens (new) |
+| MC7-06-9 | 收入明细 rows open `pages/coop/settlement-detail/index?source=ledger&id=refId` (Cursor's `CoopSettlementDetailRoute`, ledger → mybiz). This happens only for the MP rule: `COOP_SHARE` + `coop_settlement`, payee merchant/club/unset, and a positive safe-integer `refId`. Other rows stay plain. | MerchantLedgerSettlementOverview, MerchantLedgerRedemptionsSection (`MerchantLedgerCoopDetail`, env key), QuestifyApp (`chain3_3`) |
+| MC7-06-5 (结算 part) | 收入明细 and 结算批次 append on scroll:<br>• 正在加载更多… while loading;<br>• 重新加载 on a failed page, with the loaded rows kept;<br>• 已经到底了 at the end.<br>The 上一页 / 下一页 pager is gone. The App model accumulates rows by id, page 1 replaces them, and an owner change clears them. A popped batch cover reloads from page 1. Core `MerchantLedgerReadSlot` is unchanged. | MerchantLedgerSettlementOverview |
+| Strings | `docs/port/strings/fix-r3-merchant-coop-a.json` is now xcstrings-shaped (`sourceLanguage` / `strings` / `localizations`): 98 keys, en + zh-Hans. No new keys this round. The new UI reuses `merchant.gate.reload`, `merchant.list.loadingMore`, `merchant.list.end` and `merchant.predict.signIn`. | fragment |
+
+New Swift file: `App/MerchantMPLinkScreens.swift` (`SessionMerchantMarketingLinkScreen`, `SessionMerchantPredictionLinkScreen`). It is matched by `App/*.swift`, so the integrator needs to regenerate `project.pbxproj`.
+
+### Checked, nothing to do
+
+- **Review findings:** `review/r7-rev-{a,b,c}` are unchanged since round 2. There are still no Claude rows for merchant-coop.
+- **Audit:** every MC7-01-* … MC7-18-* row is accounted for in this receipt (script check against `parity-r7-merchant-coop`).
+- **MP assets (`docs/mp-assets/mapping.md`):** every half-a row is applied except `iconCopy` and `iconSend`. Those files are still SHA-pinned (`test_merchant_customer_contact.py` and others for `MerchantBusinessRecordViews.swift`; about 20 tests for `MerchantBusinessEditor.swift`). The new mapping rows (template-detail shelf tabs, leaderboard memojis, member-journey icons) are not on merchant pages.
+- **Now done by Cursor's wiring (no App work left):**
+  - MC7-13-3 server review tabs (pending/low/photo);
+  - MC7-06-10 ledger `topicId`;
+  - MC7-04-2 `verificationPage`;
+  - MC7-07-1/2 typed order-detail;
+  - MC7-08-4 batch missing copy.
+
+### Still open after round 3
+
+**Requests for Cursor (Core):**
+
+- **`MiniProgramPageLink`:**
+  - `pages/merchant/ledger/batch-detail/index` (MC7-08-5) and `aftercare/detail/index` (`refundId` / `manualCaseId` / `recordType`) are still in the no-query list, so their screens only ever see bare links;
+  - `reviews/index?mode=manage` (decor link) is rejected for the same reason;
+  - `pages/merchant/bundle-reservations/index` is not a reviewed page at all, so the flows-g2 row from merchant home stays unroutable as a deep link. In-app it is the workbench 更多 row.
+- **MC7-03-2 `poiId`:** `MerchantPublicHomeLink.poi` exists, but `PublicMerchantHomeTarget` has no POI case. `poiId` stays on the invalid state (MC-G03, Gemini).
+- **MC7-13-3 platform tab:** `MerchantReviewFilter` has no `platform` case, so the 平台复审 segment is still missing.
+- **MC7-12-1:** campaign reads still require `marketing:write`.
+- **MC7-14-7:** customers need a loaded-pages accumulator (`MerchantBusinessViews` customer block is under slice-pinned tests).
+- **MC7-17-3:** aftercare evidence has no URLs.
+
+**Re-pin requests:** unchanged from round 1 (MC7-13-7 `version`, MC7-12-2/3, MC7-17-4, MC7-15-6, `iconCopy`, `iconSend`).
+
+**Left for a reason:**
+
+- **flows-g2 `customer/index.js:1017` → 触达记录 row on the customer page:** the MP shows it only when a probe finds at least one campaign (owner decision B, 2026-11-22). That probe is the `.campaigns` read, which still needs `marketing:write` in Core (MC7-12-1). Adding the row without the probe would break the owner rule. The page stays reachable from the workbench 更多 › 触达记录.
+- **Owner rows and X6 rows:** unchanged.
+- **Duplicate `case "pages/coop/settlement-detail/index"` in `MPReviewedPageScreen`:** this is coop (half b) and dead code, not a compile error (string patterns). I left it for half b or the integrator.
+
+### Verification (round 3)
+
+- `test_appsec_review`, `test_merchant_settlement_overview` and `test_global_chrome_domain_contract` pass.
+- The `test_merchant_insight_*` modules and `check_merchant_marketing` fail identically before and after (stash comparison): `check_merchant_marketing` fails on the base too.
+- `check_typography_lint` passes.
+- `check_a11y_lint` fails on the base, with no new merchant findings from this branch. The only merchant hit is Gemini's parked `MPGap/MerchantCoop/MerchantGapAIInsightViews.swift:146`.
+- **Fixture routes:** unchanged (`docs/port/accept/f-merchant-coop-a.txt`). `cur9-ledger` and `t12-ledger-batches` cover the 结算 paging, and `t12-aftercare`, `t12-reviews`, `t12-marketing` and `merchant-customers` cover the deep-linked screens.
