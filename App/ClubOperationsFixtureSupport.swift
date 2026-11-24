@@ -29,9 +29,9 @@ import SwiftUI
                 Button("club.ops.create") { createTapCount += 1; destination = .init(target: .create) }.accessibilityIdentifier("club.ops.openCreate")
                 Button("club.ops.manage") { manageTapCount += 1; destination = .init(target: .club(81)) }.accessibilityIdentifier("club.ops.openManage")
                 controls
-            }.navigationTitle("club.ops.manage")
+            }.navigationTitle("club.ops.manage").navigationBarTitleDisplayMode(.inline)
         }
-        .sheet(item: $destination) { value in
+        .sheet(item: $destination) { value in Group {
             NavigationStack {
                 ClubOperationsWorkspaceView(target: value.target, identity: store.identity, access: store.access, coordinator: store.coordinator, hostApplication: hostApplication)
                     .accessibilityIdentifier("club.ops.fixture.workspace")
@@ -39,6 +39,7 @@ import SwiftUI
             }
             .onAppear { sheetAppearCount += 1; sheetVisible = true }
             .onDisappear { sheetDisappearCount += 1; sheetVisible = false }
+        }.cySheet(detents: [.large])
         }
     }
     @ViewBuilder private var controls: some View {

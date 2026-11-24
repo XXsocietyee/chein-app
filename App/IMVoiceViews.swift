@@ -59,7 +59,7 @@ import SwiftUI
             if owner.canUpload {
                 if recording {
                     Image(systemName: "waveform")
-                        .font(CYTypography.sectionTitle)
+                        .cyText(.sectionTitle)
                         .foregroundStyle(CYColor.textSecondary)
                         .symbolEffect(.variableColor.iterative, isActive: !reduceMotion)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -232,7 +232,7 @@ import SwiftUI
                     .foregroundStyle(CYColor.textPrimary)
                     if loading {
                         Image(systemName: "waveform")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(CYColor.textSecondary)
                             .symbolEffect(.variableColor.iterative, isActive: !reduceMotion)
                             .accessibilityHidden(true)

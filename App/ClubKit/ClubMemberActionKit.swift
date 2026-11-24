@@ -60,7 +60,7 @@ struct ClubMemberActionMenu: View {
             }
         } label: {
             Image(systemName: "ellipsis")
-                .font(CYTypography.body.weight(.semibold))
+                .cyText(.body, weight: .semibold)
                 .foregroundStyle(palette.textSecondary)
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 .contentShape(Rectangle())
@@ -109,8 +109,8 @@ struct ClubConsequenceSheet: View {
             }
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated))
-            VStack(spacing: CYSpacing.s2_5) {
+            .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
+            VStack(spacing: CYSpacing.md) {
                 if let alternativeTitle, let onAlternative {
                     Button {
                         dismiss()
@@ -166,8 +166,8 @@ struct ClubPageEndActions: View {
                 row(key: "club.report", symbol: "flag", identifier: "club.end.report", action: onReport)
             }
         }
-        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated))
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
     }
 
     private func row(key: String, symbol: String, identifier: String, action: @escaping () -> Void) -> some View {
@@ -198,7 +198,7 @@ struct ClubWithdrawalHandOffNote: View {
             Image(systemName: "person.crop.circle.badge.questionmark")
                 .foregroundStyle(palette.textSecondary)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: clubR1("funds.handOff.title", locale))
                     .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)

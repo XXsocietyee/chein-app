@@ -173,7 +173,7 @@ struct MessagingHistoryView: View {
             } else if let block = replyBlock, block != .systemNotice, currentHistoryReady {
                 Label(LocalizedStringKey(block == .blockedByMe ? "im.chat.blockedByMe" : "im.chat.peerUnavailable"),
                       systemImage: "hand.raised")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
                     .background(CYColor.bgElevated)
@@ -191,12 +191,13 @@ struct MessagingHistoryView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingPollComposer) {
+        .sheet(isPresented: $showingPollComposer) { Group {
             NavigationStack {
                 if let owner = expanded?.pollCoordinator?(conversationID, nil) { GroupPollView(owner: owner, creating: true) }
                 else { GroupPollUnavailableView().toolbar { Button("action.cancel") { showingPollComposer = false } } }
             }
             .themeDomain(.player)
+        }.cySheet(detents: [.large])
         }
         .privacySensitive()
         .appNavigationTitle("messaging.history.title")
@@ -518,7 +519,7 @@ private struct MessagingBubble: View {
         }
         .padding(CYSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.bgElevated.opacity(0.6), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .background(CYColor.bgElevated.opacity(0.6), in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("messaging.openDetail"))
     }

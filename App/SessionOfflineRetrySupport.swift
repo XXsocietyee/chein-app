@@ -489,7 +489,7 @@ struct SessionOfflineBannerModifier: ViewModifier {
     private var offlineQueueStatusCard: some View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: "arrow.triangle.2.circlepath")
-                .font(CYTypography.meta.weight(.semibold))
+                .cyText(.meta, weight: .semibold)
             Text("cy.state.offline.queue.pending \(syncModel.queuedCount)")
                 .cyText(.caption)
             Spacer(minLength: CYSpacing.xs)
@@ -510,7 +510,7 @@ struct SessionOfflineBannerModifier: ViewModifier {
         }
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.xs)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("cy.state.offline.queue.pending \(syncModel.queuedCount)"))
         .accessibilityValue(Text(verbatim: "\(syncModel.queuedCount)"))
