@@ -125,7 +125,7 @@ struct MessagingMessageDetailView: View {
                     Section {
                         HStack(alignment: .center, spacing: CYSpacing.md) {
                             CYRowIcon(systemImage: "person")
-                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Text("messaging.message.sender")
                                     .cyText(.meta)
                                     .foregroundStyle(CYColor.textSecondary)

@@ -238,11 +238,12 @@ extension EnvironmentValues {
     }
     var body: some View {
         Color.clear
-            .sheet(isPresented: presentationBinding) {
+            .sheet(isPresented: presentationBinding) { Group {
                 NavigationStack {
                     ClubTerminalSessionBrowser(flow: item.flow, identity: item.source.context.identity,
                                                access: access, coordinator: coordinator)
                 }
+            }.cySheet(detents: [.large])
             }
             .onChange(of: presentation.isCurrent(item), initial: true) { _, current in
                 if !current { presentation.close(item.id) }

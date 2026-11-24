@@ -68,7 +68,7 @@ struct ClubRow: View {
                         }
                         .foregroundStyle(palette.textPrimary)
                         .padding(8).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(palette.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(palette.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                     } else { Spacer(minLength: 0) }
                     statusPill
                 }
@@ -77,16 +77,15 @@ struct ClubRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(palette.cardFill)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 0.5))
-        .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 0.5))
         .accessibilityElement(children: .combine)
     }
     private var glyph: some View {
         CYIMCoverArt(seed: club.name + String(club.id))
     }
     @ViewBuilder private var logo: some View {
-        let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
         ZStack {
             palette.bgRaised
             if let url = QuestifyCardArtwork.safeURL(club.logo) {
@@ -259,7 +258,7 @@ struct E3NoticeRow: View {
         let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
         layout {
             Image(systemName: systemImage).font(.body.weight(.semibold)).foregroundStyle(tint)
-                .frame(width: 44, height: 44).background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .frame(width: 44, height: 44).background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 Text(verbatim: title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
@@ -292,7 +291,7 @@ struct E3LocationCard: View {
                     p.move(to: CGPoint(x: 40, y: 0)); p.addLine(to: CGPoint(x: 120, y: 120))
                     p.move(to: CGPoint(x: 200, y: 0)); p.addLine(to: CGPoint(x: 170, y: 120))
                 }.stroke(Color.white.opacity(0.14), lineWidth: 6)
-                Image(systemName: "mappin.circle.fill").font(CYTypography.dataXL).foregroundStyle(.white, Color.red)
+                Image(systemName: "mappin.circle.fill").cyText(.dataXL).foregroundStyle(.white, Color.red)
                     .symbolRenderingMode(.palette)
             }
             .frame(height: 96).clipped().accessibilityHidden(true)
@@ -302,8 +301,8 @@ struct E3LocationCard: View {
             }.padding(CYSpacing.md)
         }
         .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
-        .frame(width: 240, alignment: .leading).background(isOwn ? CYChat.sent : CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .frame(width: 240, alignment: .leading).background(isOwn ? CYChat.sent : CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
@@ -343,7 +342,7 @@ struct E3FileCard: View {
         let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.md))
         layout {
             Image(systemName: kind).font(.title3).foregroundStyle(isOwn ? CYChat.sent : CYColor.textInverse)
-                .frame(width: 44, height: 44).background(isOwn ? Color.white : CYColor.textPrimary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .frame(width: 44, height: 44).background(isOwn ? Color.white : CYColor.textPrimary, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: name).cyText(.bodyMedium).fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: size).cyText(.meta).opacity(0.72)
@@ -353,7 +352,7 @@ struct E3FileCard: View {
         }
         .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
         .padding(CYSpacing.md).frame(maxWidth: typeSize.isAccessibilitySize ? 340 : 260, alignment: .leading)
-        .background(isOwn ? CYChat.sent : CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(isOwn ? CYChat.sent : CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
@@ -375,7 +374,7 @@ struct E3VideoCard: View {
             Text(verbatim: duration).cyText(.meta, weight: .semibold).monospacedDigit().foregroundStyle(.white)
                 .padding(.horizontal, 8).padding(.vertical, 3).background(.black.opacity(0.55), in: Capsule()).padding(CYSpacing.sm)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
@@ -457,8 +456,8 @@ struct E3PostCard: View {
             }
             .cyText(.meta).padding(CYSpacing.md).frame(minHeight: 44)
         }
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
     }
     /// Unknown counts show an em dash, never 0.
     private func count(_ v: Int?) -> String { v.map(String.init) ?? "—" }
@@ -477,10 +476,10 @@ struct E3SectionTitle: View {
     }
 }
 
-/// Elevated card surface (`CYColor.bgElevated` on `CYColor.bgPage`), continuous `CYRadius.xxl`.
+/// Elevated card surface (`CYColor.bgElevated` on `CYColor.bgPage`), continuous radius 12 (native card style).
 extension View {
     func e3Card(padding: CGFloat = CYSpacing.lg) -> some View {
         self.padding(padding).frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
     }
 }

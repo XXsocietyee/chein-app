@@ -103,12 +103,12 @@ import SwiftUI
             cardCopy(card)
         }
         .frame(width: 280, alignment: .leading)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .strokeBorder(palette.borderSubtle, lineWidth: 1)
         }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: inviteLabel(card)))
         .accessibilityHint(Text(verbatim: copy("打开邀请详情", "Opens invite details")))

@@ -62,7 +62,7 @@ import Observation
                 Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount")
                 Button("club.gov.simulateUnknown") { store.access.writeFailure = .unknown(message: nil) }.accessibilityIdentifier("club.gov.simulateUnknown")
                 ClubOpsFixtureControls(access: store.access)
-            }.accessibilityIdentifier("club.gov.fixture.root").navigationTitle("club.gov.workspace")
+            }.accessibilityIdentifier("club.gov.fixture.root").navigationTitle("club.gov.workspace").navigationBarTitleDisplayMode(.inline)
         }.environment(\.clubEnrollmentProfile, store.leaderboardProfile)
     }
 }

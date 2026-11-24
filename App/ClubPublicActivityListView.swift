@@ -234,7 +234,7 @@ private struct ClubCloud14Banner: View {
         Color.clear
             .aspectRatio(2.4, contentMode: .fit)
             .overlay { CYCoverArt(seed: seed, symbol: symbol) }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityHidden(true)
     }
 }
