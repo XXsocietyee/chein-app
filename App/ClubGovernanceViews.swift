@@ -73,7 +73,7 @@ struct ClubGovernanceEntryButton: View {
                     .environment(\.clubStoryTemplates, storyTemplates)
                     .environment(\.clubTerminalSessions, terminalSessions)
                     .environment(\.clubOwnerFunds, ownerFunds)
-                    .cyDomainSheet(detents: [.half, .full])
+                    .cyDomainSheet(detents: [.full]) // CLB-topic-detail-13 / CLB-governance-19: dense workspace pages open large
             }
     }
 }
@@ -686,7 +686,7 @@ struct ClubGovernanceReadView: View {
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
         .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in
             NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) }
-                .cyDomainSheet(detents: [.half, .full])
+                .cyDomainSheet(detents: [.full])
         }
         .background {
             if let item = seriesUpdateReturn.item {
@@ -1383,11 +1383,33 @@ struct ClubGovernanceReadView: View {
             let topicDisplay = canDirect ? ClubTopicDetailPort.Display(state: topicState, cancelled: false)
                 : ClubTopicDetailPort.display(audit: topicState, sessionStatus: stats["sessionStatus"].string)
             Section {
+                // CLB-topic-detail-08 (MP wxml:28-61): cover (none → no block), merchant logo, status, the name as the
+                // page title, one date-range line and the verify-mode line.
+                let coverURL = QuestifyCardArtwork.safeURL(
+                    (value["imgUrl"].string?.split(separator: ",").first.map(String.init)) ?? value["cover"].string ?? value["coverUrl"].string)
+                let logoURL = QuestifyCardArtwork.safeURL(value["merchantLogo"].string)
+                if let coverURL {
+                    AsyncImage(url: coverURL) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() } else { CYColor.bgSurfaceSubtle }
+                    }
+                    .frame(height: 160).frame(maxWidth: .infinity).clipped()
+                    .listRowInsets(EdgeInsets())
+                    .accessibilityHidden(true)
+                }
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    if let logoURL {
+                        AsyncImage(url: logoURL) { phase in
+                            if let image = phase.image { image.resizable().scaledToFill() } else { CYColor.bgSurfaceSubtle }
+                        }
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                        .accessibilityLabel(Text("club.topic.merchantLogo"))
+                    }
                     Text(verbatim: value["name"].string ?? value["title"].string ?? "—")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.pageTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
                     HStack(spacing: CYSpacing.sm) {
                         let chipState = topicDisplay.state == .selfrun ? ClubTopicDetailPort.State.running : topicDisplay.state
                         CYStatusChip(LocalizedStringKey(topicDisplay.cancelled ? "club.topic.status.cancelled" : "club.topic.status." + chipState.rawValue),
@@ -1398,8 +1420,20 @@ struct ClubGovernanceReadView: View {
                             Text(LocalizedStringKey(notOnSale)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         }
                     }
+                    let dateRange = [value["startDate"].text, value["endDate"].text].compactMap { $0?.isEmpty == false ? $0 : nil }
+                    if !dateRange.isEmpty {
+                        Label { Text(verbatim: dateRange.joined(separator: " ~ ")) } icon: { Image(systemName: "calendar") }
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    if let verifyMode = value["verifyModeText"].text, !verifyMode.isEmpty {
+                        Label { Text(verbatim: verifyMode) } icon: { Image(systemName: "clock") }
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    } else if logoURL != nil {
+                        Label { Text("club.topic.verifyAtStore") } icon: { Image(systemName: "clock") }
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
                 }.accessibilityElement(children: .combine)
-                ClubGovernanceFactRows(value: value, fields: ["startDate", "endDate", "playModeText"])
+                ClubGovernanceFactRows(value: value, fields: ["playModeText"])
             }
             .task(id: snapshotGeneration) {
                 guard scope.clubID != nil, scope.topicID != nil else { topicStats = nil; return }
@@ -1425,8 +1459,9 @@ struct ClubGovernanceReadView: View {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
                 if sessions.isEmpty { CYEmptyState(systemImage: "calendar", "club.topic.noSessions") }
-                // CLB-topic-detail-07: 接下来 links to event ops (MP 管理场次 → pages/club/event-ops).
-                if scope.clubID != nil {
+                // CLB-topic-detail-07: 接下来 links to event ops (MP 管理场次 → pages/club/event-ops), only when the
+                // manage stats grant `canManageSessions` (MP wxml:684-700).
+                if scope.clubID != nil, stats["canManageSessions"] == .bool(true) {
                     NavigationLink { ClubOpsEventView(scope: .init(clubID: scope.clubID, topicID: scope.topicID), identity: identity, access: access, coordinator: coordinator) } label: {
                         Label("club.topic.manageSessions", systemImage: "calendar.badge.plus")
                     }.accessibilityIdentifier("club.topic.manageSessions")
@@ -1668,8 +1703,13 @@ struct ClubGovernanceReadView: View {
                         }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
                     }
                 case .rejected:
-                    // 修改并重新提交 opens the topic editor (pages/publish/fabu?id=), which has no native screen yet.
-                    EmptyView()
+                    // CLB-topic-detail-02 (MP onPrimary → goEditTopic, js:886, 1303): 修改并重新提交 opens the topic
+                    // editor by id (pages/publish/fabu?id=), the native ProjectEditView behind the MP route.
+                    if let topicID = scope.topicID {
+                        NavigationLink { MPReviewedPageScreen(page: "pages/publish/fabu/index", query: ["id": String(topicID)]) } label: {
+                            Text(LocalizedStringKey(phase.primaryKey))
+                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    }
                 }
             }
         }.listRowBackground(Color.clear)
@@ -1780,12 +1820,15 @@ struct ClubGovernanceEventView: View {
     let coordinator: ClubGovernanceCoordinator
     let reload: () async -> Void
     @Environment(\.clubStoryTemplates) private var templates
+    @Environment(\.locale) private var locale
     @State private var tab: ClubStoryTab = .route
     @State private var selectedChapter = 0
     @State private var storyExpanded = false
     @State private var selectedTemplate: ClubStoryTemplateSelection?
     @State private var selectedAnswer: ClubStoryAnswerRoute?
     @State private var answerSheetTarget: ClubStoryAnswerRoute?
+    /// CLB-topic-story-03: the answer sheet is titled 答案 · <node name>.
+    @State private var answerSheetName: String?
     @State private var storyToastMessage: String?
     @State private var mediaScope = UUID()
 
@@ -1900,7 +1943,7 @@ struct ClubGovernanceEventView: View {
         }
         .sheet(item: $answerSheetTarget) { target in
             PlayCloseSheetHost(
-                title: appLocalized("club.gov.nodeAnswer", locale: .current),
+                title: [appLocalized("club.story.answerTitle", locale: locale), answerSheetName].compactMap { $0 }.joined(separator: " · "),
                 detents: [.half, .full],
                 onClose: { answerSheetTarget = nil }
             ) {
@@ -1971,33 +2014,35 @@ struct ClubGovernanceEventView: View {
             ForEach(chapter.gameplay) { play in
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     ClubStoryGameplayCard(play: play, imageReader: templates.imageReader)
-                    if let selection = templateSelection(play) {
-                        Button("club.story.viewTemplate") {
-                            guard selectedTemplate == nil, selectedAnswer == nil, sourceIsCurrent,
-                                  selection.isCurrent(snapshot: snapshot, context: context,
-                                      snapshotGeneration: snapshotGeneration, templates: templates) else { return }
-                            selectedTemplate = selection
-                        }.accessibilityIdentifier("club.story.template.\(play.id)")
-                    } else {
-                        Text("club.story.templateUnavailable").font(.footnote).foregroundStyle(.secondary)
-                            .accessibilityIdentifier("club.story.templateUnavailable.\(play.id)")
-                    }
-                    if let target = answerRoute(play) {
-                        Button("club.gov.nodeAnswer") {
-                            guard selectedAnswer == nil, selectedTemplate == nil, current(target) else { return }
-                            selectedAnswer = target
-                        }.accessibilityIdentifier("club.story.answer.\(play.id)")
-                        Button {
-                            guard current(target) else {
-                                storyToastMessage = "请先刷新剧情数据"
-                                return
+                    // CLB-topic-story-02 (MP wxml:97-104): one row of borderless actions; 查看答案 opens one sheet.
+                    HStack(spacing: CYSpacing.lg) {
+                        if let selection = templateSelection(play) {
+                            Button("club.story.viewTemplate") {
+                                guard selectedTemplate == nil, selectedAnswer == nil, sourceIsCurrent,
+                                      selection.isCurrent(snapshot: snapshot, context: context,
+                                          snapshotGeneration: snapshotGeneration, templates: templates) else { return }
+                                selectedTemplate = selection
                             }
-                            answerSheetTarget = target
-                        } label: {
-                            Text(verbatim: "弹窗查看答案")
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityIdentifier("club.story.template.\(play.id)")
+                        } else {
+                            Text("club.story.templateUnavailable").cyText(.meta).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("club.story.templateUnavailable.\(play.id)")
                         }
-                        .accessibilityIdentifier("club.story.answerSheet.\(play.id)")
+                        if let target = answerRoute(play) {
+                            Button("club.gov.nodeAnswer") {
+                                guard selectedAnswer == nil, selectedTemplate == nil, current(target) else {
+                                    storyToastMessage = appLocalized("club.story.sourceUnavailable", locale: locale)
+                                    return
+                                }
+                                answerSheetName = play.nodeName ?? play.title
+                                answerSheetTarget = target
+                            }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityIdentifier("club.story.answer.\(play.id)")
+                        }
                     }
+                    .buttonStyle(.borderless)
                 }.id("\(mediaScope).play.\(play.id)")
             }
         } header: { Text("club.story.chapterPlays \(chapter.gameplay.count)") }
