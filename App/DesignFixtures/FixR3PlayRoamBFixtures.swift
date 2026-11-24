@@ -24,7 +24,7 @@ enum FixR3PlayRoamBFixtures {
                     JourneyNodeRow(id: "4", name: "平湖秋月", mode: nil, score: 250),
                     JourneyNodeRow(id: "5", name: "苏堤", mode: nil, score: 250)
                 ],
-                finished: true, inProgress: false)
+                finished: true, inProgress: false, assistedCount: 2, startModeText: "桌面完成")
             return player(NavigationStack {
                 JourneySettleView(phase: .ready(report), rank: JourneyRankState(), rate: .idle, shareURL: nil,
                                   topicName: "西湖夜游漫步", onRetry: {}, onSignIn: {}, onLoadRank: {},

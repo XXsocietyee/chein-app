@@ -139,6 +139,7 @@ import SwiftUI
                 hero(node)
                 VStack(alignment: .leading, spacing: CYSpacing.xxl) {
                     header(node)
+                    if let perk = node.perk, perk.name != nil { perkSection(perk) }
                     proofSection(node)
                     referenceSection(node)
                     if let notice = model.notice {
@@ -192,6 +193,17 @@ import SwiftUI
                     .accessibilityIdentifier("storeDayPage.meta.onsite")
             }.padding(.top, CYSpacing.xs)
         }
+    }
+    /// PLAYM-2: 本店权益 when `perk.name` is set. The rule is the subtitle. No catalog key.
+    private func perkSection(_ perk: PlayStoreDayPerk) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: "本店权益").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+            if let name = perk.name { Text(verbatim: name).cyText(.body).foregroundStyle(CYColor.textPrimary) }
+            if let rule = perk.redeemRule { Text(verbatim: rule).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("storeDayPage.perk")
     }
     /// Letter-spaced key + primary value, baseline aligned (mini-program .mp-mc).
     private func metaRow(label: Text, value: Text) -> some View {
@@ -347,6 +359,11 @@ import SwiftUI
         .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md).background(.bar)
     }
     @ViewBuilder private func primaryButton(_ node: PlayStoreDayNode) -> some View {
+        if let notice = node.redeemBlockedNotice {
+            Text(verbatim: notice).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier("storeDayPage.perk.blocked")
+        } else {
         switch PlayStoreDayPrimaryAction.resolve(node, receipt: model.receipt, arriveRetry: model.arriveRetry) {
         case .confirmPending: primary(L("playStoreDay.cta.confirmPending"), disabled: false) { Task { await model.retryProofReadback() } }
         case .arrive: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.arrive"), disabled: model.busy) { arriveHere() }
@@ -356,6 +373,7 @@ import SwiftUI
         case .photo: primary(L(model.busy ? "playStoreDay.cta.photoBusy" : "playStoreDay.cta.photo"), disabled: model.busy) { model.preparePhoto() }
         case .verify: primary(L(model.consentBusy ? "playStoreDay.cta.verifyBusy" : "playStoreDay.cta.verify"), disabled: model.consentBusy) { model.openVerifyCode() }
         case .redeemed: primary(L("playStoreDay.cta.redeemed"), disabled: true) {}
+        }
         }
     }
     /// MP `arriveHere`: purpose prompt once, then one foreground GCJ-02 fix handed to /api/play/arrive.

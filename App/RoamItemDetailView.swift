@@ -209,7 +209,11 @@ struct RoamItemDetailView: View {
                 let isCompleted = poiActionModel.completedOverride ?? node.completed
                 Label(LocalizedStringKey(isCompleted ? "roam.completed" : "roam.notCompleted"), systemImage: isCompleted ? "checkmark.circle" : "circle")
                 // RPOI-2: favorite shows once — the action row's toggle when writes exist, else the node card's state line.
-                if let poiActions { RoamPOIActionRows(node: node, actions: poiActions, model: poiActionModel) }
+                if let poiActions {
+                    RoamPOIActionRows(node: node, actions: poiActions, model: poiActionModel, ownerID: checkInOwnerID) {
+                        startLoad(visit: eventPresentationID)
+                    }
+                }
                 NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: { Label("media.poster.title", systemImage: "qrcode.viewfinder") }
                     .accessibilityIdentifier("media.poster.open")
                 if node.isPublished && !node.completed {
@@ -419,6 +423,10 @@ struct RoamItemDetailView: View {
         }
         }
     }
+    private var checkInOwnerID: String? {
+        let text = String(reader.identity.accountID)
+        return JourneyLoopSource.isID(text) ? text : nil
+    }
     private func suspendReads() {
         merchantRetry.cancel(); readOwner.deactivate(); generation += 1; loading = false
     }
@@ -446,6 +454,8 @@ struct RoamItemDetailView: View {
             try Task.checkCancellation()
             guard operation == generation, readsActive else { return }
             node = detail
+            poiActionModel.adopt(ownerID: checkInOwnerID, poiID: detail.poiId)
+            poiActionModel.noteReloaded(poiID: detail.poiId, completed: detail.completed)
             if let id = detail.merchantId, id > 0 {
                 do {
                     let result = try await reader.roamMerchantDetail(id: id)

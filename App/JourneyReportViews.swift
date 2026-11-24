@@ -29,6 +29,17 @@ struct JourneyNodeRow: Identifiable, Equatable {
     let mode: Mode?
     /// Nil when the node is not scored ("not scored"), never 0.
     let score: Int?
+    /// Player photo (`PostGameRunReport.Node.photoURL`). Empty stays nil. The viewer mounts only for https.
+    var photoURL: String? = nil
+}
+
+struct JourneyNodePhoto: Identifiable, Equatable {
+    let url: URL
+    var id: String { url.absoluteString }
+    static func url(_ raw: String?) -> URL? {
+        guard let raw, let url = URL(string: raw), url.scheme == "https" else { return nil }
+        return url
+    }
 }
 
 struct JourneyReport: Equatable {
@@ -52,6 +63,12 @@ struct JourneyReport: Equatable {
     var nodes: [JourneyNodeRow]
     var finished: Bool
     var inProgress: Bool
+    /// Nodes finished SKIPPED or REVEALED. The settle cell shows only when this is above 0.
+    var assistedCount: Int = 0
+    /// 桌面完成 / 替代站开局. Nil hides the start-mode cell.
+    var startModeText: String? = nil
+    var showsAssistedCount: Bool { assistedCount > 0 }
+    var showsStartMode: Bool { startModeText != nil }
 }
 
 struct JourneyMoment: Identifiable, Equatable {
@@ -85,7 +102,25 @@ enum JourneyMemoryPhase: Equatable {
 struct JourneyRankScope: Identifiable, Hashable {
     enum Kind: String { case team, quest, teams, city, country, world, club }
     let kind: Kind
+    /// `JourneyRankBoardContract.Tab.scopeID`. Empty for world and for the team-to-team board.
+    var scopeID: String = ""
     var id: String { kind.rawValue }
+
+    init(kind: Kind, scopeID: String = "") {
+        self.kind = kind
+        self.scopeID = scopeID
+    }
+
+    init(_ tab: JourneyRankBoardContract.Tab) {
+        switch tab.kind {
+        case .quest: self.init(kind: .quest, scopeID: tab.scopeID)
+        case .city: self.init(kind: .city, scopeID: tab.scopeID)
+        case .country: self.init(kind: .country, scopeID: tab.scopeID)
+        case .world: self.init(kind: .world, scopeID: tab.scopeID)
+        case .club: self.init(kind: .club, scopeID: tab.scopeID)
+        case .team: self.init(kind: .team, scopeID: tab.scopeID)
+        }
+    }
     var label: LocalizedStringKey {
         switch kind {
         case .team: "mp.rank.scope.team"
@@ -419,6 +454,8 @@ struct JourneyReportView: View {
     @State private var rankShown = false
     @State private var memoryShown = false
     @State private var feedbackShown = false
+    /// JREPORT-2: the station photo opened from a node row. https only.
+    @State private var nodePhoto: JourneyNodePhoto?
 
     private var title: LocalizedStringKey {
         if case .ready(let report) = phase, report.legacy { return "mp.report.legacyTitle" }
@@ -480,6 +517,23 @@ struct JourneyReportView: View {
                                      onRecheck: onRecheckFeedback, onReset: onResetFeedback, onClose: { feedbackShown = false })
             }
         }.cySheet(detents: [.large]) }
+        .sheet(item: $nodePhoto) { photo in
+            NavigationStack {
+                AsyncImage(url: photo.url) { phase in
+                    switch phase {
+                    case .success(let image): image.resizable().scaledToFit()
+                    case .failure: CYEmptyState(systemImage: "photo", "mp.report.photos.empty")
+                    default: ProgressView()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(CYNight.ink0)
+                .navigationTitle(Text("mp.report.photos.title"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button { nodePhoto = nil } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly) } }
+            }
+            .cySheet()
+        }
         .cyDomainScreen(.player)
     }
 
@@ -548,9 +602,17 @@ struct JourneyReportView: View {
                 if !report.nodes.isEmpty {
                     MPSectionHeader(title: "mp.report.nodes")
                     MPRows(items: report.nodes) { node in
-                        MPRow(title: node.name.map { Text(verbatim: $0) } ?? Text("mp.report.node"),
-                              sub: node.mode.map { $0 == .skipped ? Text("mp.report.node.skipped") : Text("mp.report.node.revealed") },
-                              value: node.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.node.notScored"))
+                        let row = MPRow(title: node.name.map { Text(verbatim: $0) } ?? Text("mp.report.node"),
+                                        sub: node.mode.map { $0 == .skipped ? Text("mp.report.node.skipped") : Text("mp.report.node.revealed") },
+                                        value: node.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.node.notScored"),
+                                        chevron: JourneyNodePhoto.url(node.photoURL) != nil)
+                        if let photo = JourneyNodePhoto.url(node.photoURL) {
+                            Button { nodePhoto = JourneyNodePhoto(url: photo) } label: { row }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("journeyReport.node.photo." + node.id)
+                        } else {
+                            row
+                        }
                     }
                 }
             }
@@ -873,16 +935,19 @@ struct JourneySettleView: View {
                     Text("mp.settle.nodes").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityElement(children: .combine)
-                // JSETTLE-4 (MP settle wxml:28, journey-view.js CG-07-P2-2): nodes finished with help (skipped or answer
-                // seen) are counted apart, and only when there are any.
-                let assisted = report.nodes.filter { $0.mode != nil }.count
-                if assisted > 0 {
+                // JSETTLE-4: assisted cell only when `showsAssistedCount`; start mode only when `showsStartMode`.
+                // The words are the report's own labels (桌面完成 / 替代站开局).
+                if report.showsAssistedCount {
                     VStack(spacing: CYSpacing.xxs) {
-                        Text(verbatim: String(assisted)).cyText(.data2XL).monospacedDigit()
+                        Text(verbatim: String(report.assistedCount)).cyText(.data2XL).monospacedDigit()
                         Text("mp.settle.assisted").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("journeySettle.assisted")
+                }
+                if report.showsStartMode, let start = report.startModeText {
+                    Text(verbatim: start).cyText(.body).multilineTextAlignment(.center)
+                        .accessibilityIdentifier("journeySettle.startMode")
                 }
             }
             .settleRise(overviewOn, 3, skipped: skipped, reduceMotion: reduceMotion)

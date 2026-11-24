@@ -274,6 +274,8 @@ enum JourneyLandingPhase: Equatable {
         JourneyLandingView(phase: binding.phase, onRetry: { binding.load() }, onSelectMode: { binding.selectMode($0) }, onPrimary: { binding.primary() },
                            onBrowse: onBrowse ?? (rootTabSwitch.isAvailable ? { dismiss(); rootTabSwitch(.home) } : nil))
             .task { binding.load() }
+            // JLAND-r7-1: account switch re-reads stay here (landing onShow after the sign-in sheet closes).
+            .onChange(of: PlayerJourneySignInBridge.shared.presented) { was, now in if was && !now { binding.load() } }
             .mpParityRouteDestination(Binding(get: { binding.route }, set: { binding.route = $0 }))
     }
 }
@@ -489,7 +491,7 @@ struct JourneySeatsContent: Equatable {
 enum JourneySeatsPhase: Equatable {
     case loading
     case missing
-    /// JSEAT-6: signed out (no session, or the read answered 401). 403 stays `.denied`.
+    /// JSEAT-6: no valid token is `.auth`. 403 stays `.denied`. A 401 that still had a session is `.failed`.
     case auth
     case denied(String?)
     case failed
