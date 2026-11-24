@@ -89,7 +89,7 @@ import SwiftUI
                 .accessibilityLabel(Text("mp.feedback.text"))
                 .accessibilityIdentifier("journeyFeedback.text")
             Text("mp.feedback.count \(text.unicodeScalars.count) \(PostGameFeedbackDraft.maxContent)")
-                .cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary)
         }
         status
         CYScreenOfflineWriteBanner(

@@ -63,7 +63,7 @@ enum PlayEmergencyHelp {
                             dismiss()
                         } label: {
                             Label { Text("mpd.sos.call \(number)") } icon: { Image(systemName: "phone.fill") }
-                                .font(CYTypography.bodyMedium).foregroundStyle(CYColor.dangerText)
+                                .cyText(.bodyMedium).foregroundStyle(CYColor.dangerText)
                                 .frame(minHeight: CYSpacing.minTouchTarget)
                         }
                         .accessibilityIdentifier("play.sos.call.\(number)")

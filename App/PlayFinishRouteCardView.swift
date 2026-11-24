@@ -17,7 +17,7 @@ import SwiftUI
 
     private var content: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s3) {
-            Text("playx.finishRoute.eyebrow").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+            Text("playx.finishRoute.eyebrow").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             if let title = card.title { Text(verbatim: title).cyText(.cardTitle) }
             else { Text("playx.finishRoute.untitled").cyText(.cardTitle) }
             if let meta = metaLine { Text(meta).cyText(.meta).foregroundStyle(CYColor.textSecondary) }

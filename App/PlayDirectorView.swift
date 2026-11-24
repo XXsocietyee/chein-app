@@ -45,7 +45,7 @@ import UIKit
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
                             if planFallbackStatus?.available == false {
                                 Text(verbatim: PlayCloseCopy.text("当前暂无待处理的 Plan Fallback", "No active Plan Fallback state.", locale))
-                                    .cyText(.caption)
+                                    .cyText(.meta)
                                     .foregroundStyle(CYColor.textSecondary)
                             }
                             CYField(

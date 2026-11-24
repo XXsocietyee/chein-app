@@ -36,12 +36,12 @@ import SwiftUI
         .accessibilityIdentifier("playx.themeRecords")
         .task { if model.rows.isEmpty { await model.open() } }
         .onDisappear { model.close() }
-        .sheet(isPresented: Binding(get: { model.cardSessionID != nil }, set: { if !$0 { model.closeCard() } })) {
+        .sheet(isPresented: Binding(get: { model.cardSessionID != nil }, set: { if !$0 { model.closeCard() } })) { Group {
             NavigationStack { cardContent.toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { model.closeCard() } label: { Image(systemName: "xmark") }
                     .accessibilityLabel(Text("playx.themeRecords.backToList")).accessibilityIdentifier("playx.themeRecords.closeCard")
             } } }
-        }
+        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 
     private func rowLabel(_ row: PlayThemeHistoryRow) -> some View {
@@ -55,8 +55,8 @@ import SwiftUI
                 if let summary = row.summary { Text(verbatim: summary).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }
             Spacer()
-            if let ended = row.endedAt { Text(ended, format: .dateTime.year().month().day()).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
-            else { Text("playx.themeRecords.inProgress").cyText(.caption).foregroundStyle(CYColor.textTertiary) }
+            if let ended = row.endedAt { Text(ended, format: .dateTime.year().month().day()).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
+            else { Text("playx.themeRecords.inProgress").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .accessibilityElement(children: .combine)

@@ -43,7 +43,7 @@ extension PlayKitScreen {
         )
         if projection.complete, let explanation = raw["explanation"].text, !explanation.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("playkit.trueFalse.explanation").cyText(.caption).foregroundStyle(.secondary)
+                Text("playkit.trueFalse.explanation").cyText(.meta).foregroundStyle(.secondary)
                 Text(verbatim: explanation).cyText(.body)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -202,7 +202,7 @@ extension PlayKitScreen {
                         ZStack(alignment: .topLeading) {
                             tileArtwork(piece: piece)
                             Text(verbatim: "#\(piece + 1)")
-                                .cyText(.caption).monospacedDigit()
+                                .cyText(.meta).monospacedDigit()
                                 .padding(.horizontal, CYSpacing.xs)
                                 .padding(.vertical, 2)
                                 .background(Capsule().fill(CYNight.ink2.opacity(0.85)))

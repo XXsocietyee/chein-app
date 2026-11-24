@@ -476,12 +476,12 @@ struct JourneyReportView: View {
             .presentationDragIndicator(.visible)
             .onAppear(perform: onLoadMemory)
         }
-        .sheet(isPresented: $feedbackShown) {
+        .sheet(isPresented: $feedbackShown) { Group {
             if case .ready(let report) = phase {
                 JourneyFeedbackSheet(nodes: report.nodes, state: feedback, onSubmit: onSubmitFeedback,
                                      onRecheck: onRecheckFeedback, onReset: onResetFeedback, onClose: { feedbackShown = false })
             }
-        }
+        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .cyDomainScreen(.player)
     }
 
@@ -490,7 +490,7 @@ struct JourneyReportView: View {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 VStack(spacing: CYSpacing.sm) {
                     let eyebrow = [report.dateLabel, topicName].compactMap { $0 }.joined(separator: " · ")
-                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary) }
+                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.meta).tracking(0.6).foregroundStyle(CYColor.textSecondary) }
                     if let result = report.result {
                         Text(result.label).cyText(.label)
                             .foregroundStyle(result.win ? CYNight.ink0 : CYColor.textPrimary)
@@ -917,7 +917,7 @@ struct JourneySettleView: View {
                             stars = value; localError = nil
                         } label: {
                             Image(systemName: value <= stars ? "star.fill" : "star")
-                                .font(CYTypography.dataXL)
+                                .cyText(.dataXL)
                                 .foregroundStyle(value <= stars ? CYNight.lantern : CYColor.textTertiary)
                                 .scaleEffect(value <= stars && !reduceMotion ? 1.08 : 1)
                                 .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.5).delay(Double(value) * 0.04), value: stars)
@@ -959,7 +959,7 @@ struct JourneySettleView: View {
                             localError = nil
                         }
                         .accessibilityIdentifier("journeySettle.review")
-                    Text(verbatim: "\(review.count) / \(Self.reviewMax)").cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: "\(review.count) / \(Self.reviewMax)").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary)
                 }
                 if let localError { MPInlineError(text: Text(localError)) }
                 else if case .error(let message) = rate { MPInlineError(text: Text(verbatim: message)) }
