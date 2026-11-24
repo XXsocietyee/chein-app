@@ -301,7 +301,7 @@ struct FreeExplorationStoreName: View {
                     .disabled(model.phase == .loading || model.phase == .submitting)
             }
         }
-        .privacySensitive().navigationTitle("playFree.store.title").accessibilityIdentifier("playFree.store.detail")
+        .privacySensitive().cyPageTitle("playFree.store.title").accessibilityIdentifier("playFree.store.detail")
             .cyModalConfirm(
                 isPresented: showingReview,
                 title: appLocalized("playx.review", locale: .current),
@@ -395,6 +395,6 @@ struct FreeExplorationVisitSteps: View {
                 Button("play.refresh") { Task { await model.load(keepingReceipt: true) } }
             } else if model.isLoading { ProgressView("play.loading") }
             else { Text("playFree.store.unavailable") }
-        }.cyGroupedSurface().privacySensitive().navigationTitle("playFree.store.title").accessibilityIdentifier("playFree.read.store")
+        }.cyGroupedSurface().privacySensitive().cyPageTitle("playFree.store.title").accessibilityIdentifier("playFree.read.store")
     }
 }

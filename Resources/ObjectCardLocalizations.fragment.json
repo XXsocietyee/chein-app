@@ -376,13 +376,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to view your object cards"
+            "value": "Sign in to view your collection"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录后查看你的物件卡"
+            "value": "登录后查看你的藏品"
           }
         }
       }
@@ -712,13 +712,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Object cards"
+            "value": "Collection"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "物件卡"
+            "value": "藏品册"
           }
         }
       }

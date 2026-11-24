@@ -323,7 +323,7 @@ private struct RoamExportFileSaveLink: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "\(model.percent)%").cyText(.pageTitle).monospacedDigit()
                 Spacer()
-                Text("roam.export.readCount \(model.read) \(model.expected)").font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
+                Text("roam.export.readCount \(model.read) \(model.expected)").cyText(.meta).foregroundStyle(.secondary).monospacedDigit()
             }.accessibilityElement(children: .combine).accessibilityIdentifier("roam.export.progress")
             ProgressView(value: Double(model.percent), total: 100).accessibilityLabel(Text("roam.export.title"))
         }

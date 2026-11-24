@@ -90,7 +90,7 @@ extension EnvironmentValues {
                 Text("roamSub.w208.voucher.countdown \(model.remainingSeconds)").monospacedDigit()
                     .cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityIdentifier("roamSub.w208.voucher.countdown")
-                Text("roamSub.w208.voucher.desc").font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                Text("roamSub.w208.voucher.desc").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
             } else {
                 CYPillButton("verificationCode.retry", style: .secondary) { run { await model.present() } }
                     .accessibilityIdentifier("verificationCode.refresh")
@@ -102,7 +102,7 @@ extension EnvironmentValues {
             Text(LocalizedStringKey(phaseKey))
                 .multilineTextAlignment(.center).accessibilityIdentifier("verificationCode.phase")
             if [.review, .expired, .paused, .failed, .invalid].contains(model.phase) {
-                CYPillButton(model.phase == .review ? "verificationCode.show" : "verificationCode.retry") { run { await model.present() } }
+                CYPillButton(model.phase == .review ? "verificationCode.show" : (model.target.kind == .cityVoucher && autoIssue ? "roamSub.w208.voucher.retry" : "verificationCode.retry")) { run { await model.present() } }
                     .accessibilityIdentifier("verificationCode.show")
             } else if model.phase == .login, rootTabSwitch.isAvailable {
                 // RCODE-1: MP access gate — 登录 instead of a dead-end line.
@@ -112,7 +112,7 @@ extension EnvironmentValues {
         }
     }
     private var phaseKey: String {
-        if model.target.kind == .cityVoucher, autoIssue, let key = RoamCityVoucherCopy.phaseKey(model.phase) { return key }
+        if model.target.kind == .cityVoucher, autoIssue, let key = RoamCityVoucherCopy.phaseKey(model.phase, network: model.failedOnNetwork) { return key }
         return "verificationCode.phase." + model.phase.rawValue
     }
     private func run(_ work: @escaping @MainActor () async -> Void) {

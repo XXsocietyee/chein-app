@@ -276,7 +276,12 @@ struct PlayerJourneySignInSheet: ViewModifier {
         }
         if invite { inviteURL = nil }
         content.inviteShareURL = inviteURL
-        content.actionError = envelope?.message ?? JourneyEnvelope.networkFailure.message
+        // JSEAT-7: an unknown answer (sent, result not read back) says so instead of a network error.
+        if let envelope, envelope.unconfirmed {
+            content.actionError = appLocalized("mp.seats.unconfirmed", locale: .current)
+        } else {
+            content.actionError = envelope?.message ?? JourneyEnvelope.networkFailure.message
+        }
         phase = .ready(content)
     }
 }

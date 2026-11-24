@@ -165,6 +165,8 @@ public struct VerificationCodeApproval {
     public private(set) var readback: OrderLifecycleDetail?
     public private(set) var checkingOrder = false
     public private(set) var readbackFailed = false
+    /// RCODE-2: the last `.failed` came from the transport (no connection / timeout), not from the server.
+    public private(set) var failedOnNetwork = false
     private var code: String?
     private var expiry: Date?
     private var issuedAt: Date?
@@ -187,6 +189,7 @@ public struct VerificationCodeApproval {
     }
     public func present() async {
         guard !issuing, !checkingOrder else { return }
+        failedOnNetwork = false
         guard target.id > 0 else { clear(); phase = .invalid; return }
         guard let context = current() else { clear(); phase = .login; return }
         guard service.enabled else { clear(); phase = .disabled; return }
@@ -268,7 +271,9 @@ public struct VerificationCodeApproval {
         case .invalid: phase = .invalid
         case .unavailable: phase = .unavailable
         case .stale: phase = .stale
-        default: phase = .failed
+        default:
+            phase = .failed
+            failedOnNetwork = error is URLError || (error as NSError).domain == NSURLErrorDomain
         }
     }
 }

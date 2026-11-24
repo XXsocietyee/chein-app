@@ -274,7 +274,13 @@ import UIKit
         case .unknown: return "unknown"
         case .created: return "created"
         case .unavailable: return "unavailable"
-        case .failed: return "failed"
+        case .failed:
+            // RSTAMP-4: name the step that failed (upload / save); the exchange step has its own line below.
+            switch coordinator?.failedStep {
+            case .upload?: return "failed.upload"
+            case .create?: return "failed.create"
+            case nil: return "failed"
+            }
         }
     }
 }

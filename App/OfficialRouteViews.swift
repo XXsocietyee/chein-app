@@ -124,7 +124,9 @@ import SwiftUI
             artSymbol: "point.topleft.down.to.point.bottomright.curvepath",
             brand: appLocalized("share.card.brand", locale: locale))
     }
+    /// RROUTE-2: the route's own name is the inline title once loaded; 路线详情 only while loading / on errors.
     private var navTitle: Text {
+        if case .ready(let detail) = state, !detail.route.name.isEmpty { return Text(verbatim: detail.route.name) }
         return Text("officialRoute.detail.title")
     }
     private func content(_ detail: OfficialRouteDetail) -> some View {

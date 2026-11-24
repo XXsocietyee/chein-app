@@ -267,6 +267,11 @@ public struct RoamPOINodePresentation: Equatable {
 /// `citynode-code` copy for the city voucher. Missing parameters are not a failed issue:
 /// there is no retry for them.
 public enum RoamCityVoucherCopy {
+    /// RCODE-2: a transport failure says 网络异常，请稍后重试 (MP qr-voucher) instead of the generic issue line.
+    public static func phaseKey(_ phase: VerificationCodeCoordinator.Phase, network: Bool) -> String? {
+        if phase == .failed, network { return "roamSub.w208.voucher.network" }
+        return phaseKey(phase)
+    }
     public static func phaseKey(_ phase: VerificationCodeCoordinator.Phase) -> String? {
         switch phase {
         case .failed, .invalid: return "roamSub.w208.voucher.issueFailed"

@@ -30,7 +30,7 @@ enum RoamPreflightRule: String, CaseIterable, Identifiable {
         List {
             Section {
                 Label("roam.preflightRules.availability", systemImage: "info.circle")
-                    .font(.subheadline)
+                    .cyText(.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.preflightRules.availability")

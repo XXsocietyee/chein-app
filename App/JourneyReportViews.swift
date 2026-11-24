@@ -387,11 +387,16 @@ enum JourneyFeedbackState: Equatable {
             },
             onOpenSeats: { if let id = scope.registrationID { route = .journeySeats(registrationID: id) } })
             .task { binding.load() }
+            // Reload once the shared sign-in sheet closes (MP onShow re-reads after login).
+            .onChange(of: PlayerJourneySignInBridge.shared.presented) { was, now in if was && !now { binding.load() } }
             .mpParityRouteDestination($route)
     }
 }
 
 struct JourneyReportView: View {
+    @Environment(\.dismiss) private var backFromMissing
+    /// MP missing link: navigateBack (the sheet / push closes).
+    private func missingBack() { backFromMissing() }
     let phase: JourneyReportPhase
     let memory: JourneyMemoryPhase
     let rank: JourneyRankState
@@ -427,7 +432,8 @@ struct JourneyReportView: View {
                 CYLoadingStateView(rows: 3).padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
                     .accessibilityIdentifier("journeyReport.loading")
             case .missing:
-                CYEmptyState(systemImage: "map", "mp.common.linkExpired", messageIdentifier: "journeyReport.missing").frame(maxHeight: .infinity)
+                CYEmptyState(systemImage: "map", "mp.common.linkExpired", messageIdentifier: "journeyReport.missing",
+                             actionTitle: "action.back", actionIdentifier: "journeyReport.back", action: { missingBack() }).frame(maxHeight: .infinity)
             case .auth:
                 CYEmptyState(systemImage: "person.crop.circle", "mp.report.auth", messageIdentifier: "journeyReport.auth",
                              actionTitle: "mp.common.signIn", actionIdentifier: "journeyReport.signIn", action: onSignIn).frame(maxHeight: .infinity)
@@ -703,10 +709,15 @@ enum JourneyRateState: Equatable {
                           onRankScope: { binding.selectRankScope($0) }, onRankPeriod: { binding.selectRankPeriod($0) },
                           onSubmitRating: { binding.submitRating(stars: $0, text: $1) }, onDone: { binding.leave(); dismiss() })
             .task { binding.load() }
+            // Reload once the shared sign-in sheet closes (MP onShow re-reads after login).
+            .onChange(of: PlayerJourneySignInBridge.shared.presented) { was, now in if was && !now { binding.load() } }
     }
 }
 
 struct JourneySettleView: View {
+    @Environment(\.dismiss) private var backFromMissing
+    /// MP missing link: navigateBack (the sheet / push closes).
+    private func missingBack() { backFromMissing() }
     let phase: JourneySettlePhase
     let rank: JourneyRankState
     let rate: JourneyRateState
@@ -750,7 +761,8 @@ struct JourneySettleView: View {
                 CYLoadingStateView(rows: 3).padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
                     .accessibilityIdentifier("journeySettle.loading")
             case .missing:
-                CYEmptyState(systemImage: "map", "mp.common.linkExpired", messageIdentifier: "journeySettle.missing").frame(maxHeight: .infinity)
+                CYEmptyState(systemImage: "map", "mp.common.linkExpired", messageIdentifier: "journeySettle.missing",
+                             actionTitle: "action.back", actionIdentifier: "journeySettle.back", action: { missingBack() }).frame(maxHeight: .infinity)
             case .auth:
                 CYEmptyState(systemImage: "person.crop.circle", "mp.settle.auth", messageIdentifier: "journeySettle.auth",
                              actionTitle: "mp.common.signIn", actionIdentifier: "journeySettle.signIn", action: onSignIn).frame(maxHeight: .infinity)

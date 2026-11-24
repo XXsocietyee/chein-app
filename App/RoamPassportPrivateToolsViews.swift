@@ -676,7 +676,11 @@ extension RoamGoalState {
                     }.buttonStyle(.plain).accessibilityIdentifier("roam.goals.row")
                 }
                 if !model.isBusy && model.rows.isEmpty && model.phase == .ready {
-                    Text("roam.goals.empty").foregroundStyle(.secondary).accessibilityIdentifier("roam.goals.empty")
+                    // TGOALS-1: the standard empty state (owner V3-28), with 新目标 when writes are open.
+                    let canCreate = page.acceptsInput && !creating && tools.allowsWrites
+                    CYEmptyState(systemImage: "target", "roam.goals.empty", messageIdentifier: "roam.goals.empty",
+                                 actionTitle: canCreate ? "roam.goals.new" : nil, actionIdentifier: "roam.goals.emptyNew",
+                                 action: canCreate ? { startCreating() } : nil)
                 }
                 if model.hasMore && !model.isBusy {
                     Button("roam.tools.loadMore") { page.read { await model.load(more: true) } }.accessibilityIdentifier("roam.goals.more")

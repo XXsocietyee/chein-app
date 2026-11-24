@@ -140,6 +140,7 @@
     "growth.points",
     "growth.refresh",
     "growth.retry",
+    "growthCenter.signIn",
     "growthExplore.badges.openHome"
   ]
 }

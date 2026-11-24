@@ -26,7 +26,7 @@ import SwiftUI
             Button("journey.record.refresh") { Task { await model.load() } }.disabled(model.busy || !model.available)
                 .accessibilityIdentifier("journey.record.refresh")
         }.cyGroupedSurface()
-        .navigationTitle(LocalizedStringKey(model.query.titleKey)).privacySensitive()
+        .navigationTitle(LocalizedStringKey(model.query.titleKey)).navigationBarTitleDisplayMode(.inline).privacySensitive()
         .accessibilityIdentifier("journey.record." + model.query.key)
         .task(id: model.identity) { await model.load() }
         .refreshable { await model.load() }

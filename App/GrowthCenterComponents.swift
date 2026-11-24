@@ -19,6 +19,7 @@ import SwiftUI
 struct GrowthCenterIssueView: View {
     let issue: GrowthCenterIssue
     var retry: (() -> Void)? = nil
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
         Group {
             if issue == .network {
@@ -28,6 +29,12 @@ struct GrowthCenterIssueView: View {
                              actionIdentifier: "growth.retry",
                              kind: .offline,
                              action: retry)
+            } else if issue == .login, rootTabSwitch.isAvailable {
+                // GROWTH-3: MP access gate — 登录 opens 我的 instead of a dead-end line.
+                CYEmptyState(systemImage: "lock", LocalizedStringKey(issue.localizationKey),
+                             messageIdentifier: "growth.issue",
+                             actionTitle: "auth.signIn", actionIdentifier: "growthCenter.signIn",
+                             action: { rootTabSwitch(.mine) })
             } else if issue == .login || issue == .notConfigured {
                 Label {
                     Text(LocalizedStringKey(issue.localizationKey))

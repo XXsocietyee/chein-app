@@ -135,7 +135,8 @@ import SwiftUI
                 RoamPassportRecordView(reader: session.roamPassportHistoryReader, sessionID: sessionID, localReader: session.roamExperienceReader)
             } else { unavailable }
         case "subpackageRoam/official-route/index":
-            if let reader = session.officialRouteReader, let id = query["id"] { OfficialRouteDetailView(reader: reader, routeID: id) } else { unavailable }
+            // RROUTE-1: MP official-route takes a decimal id only.
+            if let reader = session.officialRouteReader, let id = positiveID(query["id"]) { OfficialRouteDetailView(reader: reader, routeID: String(id)) } else { unavailable }
         case "pages/play/poi-challenge/index":
             // PLAYPOI-2: the challenge reads its node by poiId.
             if let id = positiveID(query["poiId"]) { ChallengePOIHostView(poiID: id, reader: session.roamReader) } else { unavailable }

@@ -15,6 +15,11 @@ import SwiftUI
     @State private var liveEntry = RoamHistoryLiveEntry()
     @State private var localWalk = RoamHistoryLocalWalkState()
     @Namespace private var hero
+    @ViewBuilder private var unreadableNotice: some View {
+        Label("roam.historyLocal.unreadable", systemImage: "exclamationmark.circle")
+            .cyText(.meta).foregroundStyle(.secondary)
+        Button("action.retry", action: load).accessibilityIdentifier("roam.historyLocal.retry")
+    }
     var body: some View {
         let records = historyRead.records(for: reader)
         let error = historyRead.error(for: reader)
@@ -48,11 +53,7 @@ import SwiftUI
                             .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("roam.experience.history.empty")
                     }
-                    if localWalk.failed(reader: reader) {
-                        Label("roam.historyLocal.unreadable", systemImage: "exclamationmark.circle")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Button("action.retry", action: load).accessibilityIdentifier("roam.historyLocal.retry")
-                    }
+                    if localWalk.failed(reader: reader) { unreadableNotice }
                     if liveEntry.canOpen(reader: reader, hasDestination: liveDestination != nil) {
                         let presentationID = liveEntry.presentationID
                         Button("roam.experience.live", systemImage: "figure.walk") {
@@ -62,6 +63,8 @@ import SwiftUI
                         .accessibilityIdentifier("roam.experience.history.live.open")
                     }
                 } else {
+                    // RHIST-7: the local-unreadable warning also shows above existing rows (MP index.wxml:7).
+                    if localWalk.failed(reader: reader) { unreadableNotice }
                     let summary = RoamHistorySummary(records)
                     // Mini-program order: total (big km, then trips and shops), tools, then run cards.
                     RoamExperienceCard { VStack(alignment: .leading, spacing: 12) {

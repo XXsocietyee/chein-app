@@ -222,6 +222,8 @@ struct PlayHUDCircleButtonStyle: ButtonStyle {
             .background(reduceTransparency ? AnyShapeStyle(Color.black) : AnyShapeStyle(.ultraThinMaterial), in: Circle())
             .overlay(Circle().strokeBorder(Color.white.opacity(contrast == .increased ? 0.5 : 0.14), lineWidth: contrast == .increased ? 1.5 : 1))
             .contentShape(Circle())
+            // PLAY-11: white glyphs need the dark material on light map tiles.
+            .environment(\.colorScheme, .dark)
             .scaleEffect(configuration.isPressed && !reduceMotion ? CYMotion.Scale.press : 1)
             .animation(configuration.isPressed ? CYMotion.press : CYMotion.release, value: configuration.isPressed)
     }

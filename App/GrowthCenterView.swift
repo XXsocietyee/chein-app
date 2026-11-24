@@ -25,7 +25,6 @@ extension EnvironmentValues {
     @State private var unlockTrackerKey: GrowthCenterLoadKey?
     @State private var newlyLitBadges: [String] = []
     @State private var celebrations = CYCelebrationCenter()
-    @State private var expandedBadge: Int?
     @State private var lastKnownLevel: [GrowthCenterLoadKey: Int] = [:]
     /// Design hand-off r1 PL-45: a level increase is a full-screen moment, not a small dialog.
     @State private var levelUp: CYLevelUpPayload?
@@ -218,10 +217,8 @@ extension EnvironmentValues {
                     }
                 }
                 ForEach(Array(center.badges.enumerated()), id: \.offset) { index, badge in
-                    GrowthBadgeMomentRow(badge: badge, expanded: expandedBadge == index) {
-                        expandedBadge = expandedBadge == index ? nil : index
-                    }
-                    .accessibilityIdentifier("growth.badge.\(index)")
+                    GrowthBadgeMomentRow(badge: badge)
+                        .accessibilityIdentifier("growth.badge.\(index)")
                 }
             }
         }
@@ -287,41 +284,31 @@ struct GrowthProfileDisc: View {
     }
 }
 
-/// gc-badge-row: initial tile, name, 查看获得时刻 (or 获得于 … / 获得时间未记录 when open), 查看 / 收起.
+/// gc-badge-row: initial tile, name and the obtained date shown directly (GROWTH-2: MP removed 查看获得时刻 / 查看 / 收起).
 struct GrowthBadgeMomentRow: View {
     @Environment(\.cyPalette) private var palette
     let badge: GrowthCenterBadge
-    let expanded: Bool
-    let toggle: () -> Void
     var body: some View {
-        Button(action: toggle) {
-            HStack(spacing: CYSpacing.md) {
-                Text(verbatim: badge.displayName.map { String($0.prefix(1)) } ?? "—")
-                    .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(minWidth: 40, minHeight: 40)
-                    .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 2) {
-                    GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed")
-                        .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                    Group {
-                        if !expanded { Text("u10.growth.badge.hint") }
-                        else if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) { Text("u10.growth.badge.obtained \(moment)") }
-                        else { Text("u10.growth.badge.noTime") }
-                    }
-                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+        HStack(spacing: CYSpacing.md) {
+            Text(verbatim: badge.displayName.map { String($0.prefix(1)) } ?? "—")
+                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(minWidth: 40, minHeight: 40)
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed")
+                    .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
+                Group {
+                    if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) { Text("u10.growth.badge.obtained \(moment)") }
+                    else { Text("u10.growth.badge.noTime") }
                 }
-                Spacer(minLength: CYSpacing.sm)
-                Group { if expanded { Text("u10.template.cap.collapse") } else { Text("u10.growth.badge.view") } }
-                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                .cyText(.meta).foregroundStyle(palette.textSecondary)
             }
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
+            Spacer(minLength: 0)
         }
-        .buttonStyle(.plain)
+        .frame(minHeight: 44)
         .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(expanded ? [.isSelected] : [])
     }
 }
 
