@@ -793,6 +793,8 @@ enum JourneyRateState: Equatable {
     var shareURL: URL? { get }
     /// Topic name filled from `/api/topic/info-to-user` when the link did not carry it.
     var topicName: String? { get }
+    /// JSETTLE-r7-1 完局优惠卡; nil hides it.
+    var finishOffer: JourneyFinishOffer? { get }
     func load()
     func signIn()
     func loadRank()
@@ -802,16 +804,25 @@ enum JourneyRateState: Equatable {
     func leave()
 }
 
+extension JourneySettleBinding {
+    var finishOffer: JourneyFinishOffer? { nil }
+}
+
 @MainActor struct JourneySettleHost: View {
     let binding: any JourneySettleBinding
     let scope: JourneyRunScope
     @Environment(\.dismiss) private var dismiss
+    /// JSETTLE-r7-1: MP `openOffer` navigateTo(offer.url) — membership for the month pass, pass detail for a product.
+    @State private var offerRoute: MPParityRoute?
     var body: some View {
         JourneySettleView(phase: binding.phase, rank: binding.rank, rate: binding.rate, shareURL: binding.shareURL,
                           topicName: binding.topicName ?? scope.topicName,
                           onRetry: { binding.load() }, onSignIn: { binding.signIn() }, onLoadRank: { binding.loadRank() },
                           onRankScope: { binding.selectRankScope($0) }, onRankPeriod: { binding.selectRankPeriod($0) },
-                          onSubmitRating: { binding.submitRating(stars: $0, text: $1) }, onDone: { binding.leave(); dismiss() })
+                          onSubmitRating: { binding.submitRating(stars: $0, text: $1) }, onDone: { binding.leave(); dismiss() },
+                          finishOffer: binding.finishOffer,
+                          onOpenOffer: { offer in offerRoute = offer.kind == .pass ? .membership : .pass(productID: offer.id) })
+            .mpParityRouteDestination($offerRoute)
             .task { binding.load() }
             // Reload once the shared sign-in sheet closes (MP onShow re-reads after login).
             .onChange(of: PlayerJourneySignInBridge.shared.presented) { was, now in if was && !now { binding.load() } }
@@ -834,6 +845,9 @@ struct JourneySettleView: View {
     let onRankPeriod: (JourneyRankPeriod) -> Void
     let onSubmitRating: (Int, String) -> Void
     let onDone: () -> Void
+    /// JSETTLE-r7-1 (MP settle wxml:32): the 完局优惠卡 under the overview, only when the server has one on sale.
+    var finishOffer: JourneyFinishOffer? = nil
+    var onOpenOffer: (JourneyFinishOffer) -> Void = { _ in }
 
     enum Step: Int, CaseIterable { case overview, rank, rate, share }
     enum ShareKind: String, CaseIterable, Identifiable { case post, story; var id: String { rawValue } }
@@ -1009,6 +1023,13 @@ struct JourneySettleView: View {
                 }
             }
             .settleRise(overviewOn, 3, skipped: skipped, reduceMotion: reduceMotion)
+            // JSETTLE-r7-1: name and price as the server sent them; purchase stays gated (money TEST-only, owner #12).
+            if let offer = finishOffer {
+                JourneyFinishOfferCardView(offer: offer, purchaseGated: !PlatformPass.writesReachable,
+                                           onTapOffer: { onOpenOffer(offer) })
+                    .accessibilityIdentifier("journeySettle.finishOffer")
+                    .settleRise(overviewOn, 4, skipped: skipped, reduceMotion: reduceMotion)
+            }
             Spacer()
         }
         .padding(.horizontal, CYSpacing.pageHorizontal)

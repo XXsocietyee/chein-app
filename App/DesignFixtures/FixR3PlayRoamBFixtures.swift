@@ -39,6 +39,14 @@ enum FixR3PlayRoamBFixtures {
                                   topicName: "西湖夜游漫步", onRetry: {}, onSignIn: {}, onLoadRank: {},
                                   onRankScope: { _ in }, onRankPeriod: { _ in }, onSubmitRating: { _, _ in }, onDone: {})
             })
+        case "r3prb-settle-offer":
+            // Round 3 JSETTLE-r7-1: the 完局优惠卡 under the overview (month pass; purchase gated, money TEST-only).
+            return player(NavigationStack {
+                JourneySettleView(phase: .ready(sampleReport()), rank: JourneyRankState(), rate: .idle, shareURL: nil,
+                                  topicName: "西湖夜游漫步", onRetry: {}, onSignIn: {}, onLoadRank: {},
+                                  onRankScope: { _ in }, onRankPeriod: { _ in }, onSubmitRating: { _, _ in }, onDone: {},
+                                  finishOffer: JourneyFinishOffer(kind: .pass, id: "MONTH", name: "城市通行证 · 月卡", priceText: "¥29.90"))
+            })
         case "r3prb-report-nodephotos":
             // Round 2 JREPORT-2: node rows with the player's own photo thumb; tap opens the paged preview.
             var report = sampleReport()
