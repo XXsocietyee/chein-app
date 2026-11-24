@@ -300,7 +300,8 @@ struct RegistrationSheetView: View {
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     Color.clear.frame(width: 72, height: 72)
-                        .overlay { E1CoverArt(seed: name, symbol: "ticket", imageURL: summary.imageURL, debugLabel: false) }
+                        .overlay { E1CoverArt(seed: name, symbol: "ticket", imageURL: summary.imageURL, debugLabel: false,
+                                              fallbackImage: MPAsset.BannerCover.coverRoute, fallbackFills: false) } // MP baoming.wxml:85
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         if name.isEmpty { Text("registrationParity.activityNamePending").cyText(.cardTitle) }

@@ -12,6 +12,8 @@ struct QuestifyImageEntityCard<Details:View>:View {
     var progressiveBlur:ProgressiveBlurParameters?=nil
     var artworkIdentity:QuestifyProgressiveBlurIdentity?=nil
     var cachesFeedImage = false
+    /// MP default cover (`MPAsset.BannerCover.*`) drawn aspect-fit when there is no artwork, instead of the glyph.
+    var fallbackArtwork: Image? = nil
     private let details:()->Details
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
@@ -30,6 +32,12 @@ struct QuestifyImageEntityCard<Details:View>:View {
     func cachingFeedImage(_ enabled: Bool = true) -> Self {
         var copy = self
         copy.cachesFeedImage = enabled
+        return copy
+    }
+
+    func fallbackArtwork(_ image: Image) -> Self {
+        var copy = self
+        copy.fallbackArtwork = image
         return copy
     }
 
@@ -89,7 +97,14 @@ struct QuestifyImageEntityCard<Details:View>:View {
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style:.continuous))
         .contentShape(RoundedRectangle(cornerRadius: CYRadius.hero, style:.continuous))
     }
-    private var placeholder:some View {
+    @ViewBuilder private var placeholder:some View {
+        if let fallbackArtwork {
+            fallbackArtwork.resizable().scaledToFit().frame(maxWidth:160,maxHeight:160).padding(28)
+                .frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.top)
+                .accessibilityHidden(true)
+        } else { glyphPlaceholder }
+    }
+    private var glyphPlaceholder:some View {
         Image(systemName:fallbackSymbol).font(.largeTitle.weight(.light)).imageScale(.large)
             .foregroundStyle(.white.opacity(0.2)).padding(28)
             .frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topTrailing)

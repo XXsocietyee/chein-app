@@ -244,7 +244,7 @@ extension EnvironmentValues {
                     }
                     .accessibilityIdentifier("myProject.op.toggle.\(project.id)")
                 case .cancel where biz == .activity:
-                    // Topic cancel goes through the source cancel-preview flow, which has no native model yet.
+                    // R7-PC-D1-2 (MP myproject/index.js:589-607): read cancel_preview first; the confirm names the paid players.
                     Button("myProject.op.cancel", role: .destructive) {
                         Task { await mutation.beginActivityCancel(id: project.sourceID, title: project.title) }
                     }

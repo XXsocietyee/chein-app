@@ -179,7 +179,8 @@ private struct CreatorContentIssueView: View {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 let title = project.title.trimmingCharacters(in: .whitespacesAndNewlines)
                 Color.clear.frame(width: 92, height: 92)
-                    .overlay { E1CoverArt(seed: title, symbol: "map", imageURL: project.cover, debugLabel: false) }
+                    .overlay { E1CoverArt(seed: title, symbol: "map", imageURL: project.cover, debugLabel: false,
+                                              fallbackImage: MPAsset.BannerCover.subpackageAImagesRouteFreeCover) } // MP myproject.wxml:38
                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {

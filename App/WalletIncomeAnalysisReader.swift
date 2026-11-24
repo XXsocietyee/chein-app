@@ -138,6 +138,7 @@ struct WalletIncomeAnalysisReadIdentity: Equatable {
 
     private func collect(_ reader: WalletCommerceReader, scope: WalletCommerceScope, stamp: UUID) async {
         var accumulator = WalletIncomeAnalysisAccumulator()
+        accumulator.cutoff = WalletIncomeAnalysisAccumulator.sixMonthCutoff(now: Date())
         defer { if generation == stamp { loading = false } }
         do {
             for pageNumber in 1...WalletIncomeAnalysisAccumulator.runawayPageCap {

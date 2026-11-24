@@ -168,7 +168,7 @@ enum WalletPayoutCapability {
                               earnings.loadedScope == reader.scope, reader.scope != nil {
                         // PC-D-5-3: MP label 账户收益 (the currency symbol is drawn beside the number).
                         WalletEarningsHero(label: appLocalized("wallet.earnings.balance", locale: locale),
-                                           number: WalletNumberLocalization.text(value.balance.text, locale: locale),
+                                           number: WalletNumberLocalization.money(value.balance.text, locale: locale),
                                            symbol: WalletCurrencySymbol.symbol(value.currency))
                             .privacySensitive()
                             .accessibilityIdentifier("wallet.earnings.balance")
@@ -328,7 +328,7 @@ enum WalletPayoutCapability {
     }
     private func assetAmount(_ amount: WalletAmount, _ currency: String?) -> String {
         guard let symbol = WalletCurrencySymbol.symbol(currency) else { return format.amount(amount, currency: currency) }
-        return symbol + WalletNumberLocalization.text(amount.text, locale: locale)
+        return symbol + WalletNumberLocalization.money(amount.text, locale: locale)
     }
     private func assetRow(_ icon: String, _ title: LocalizedStringKey, _ value: String?) -> some View {
         HStack(spacing: CYSpacing.md) {
@@ -652,7 +652,7 @@ extension EnvironmentValues {
                 Text(points ? "wallet.pointsBalance" : "wallet.balanceLedger")
                     .cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                    Text(verbatim: value.map { WalletNumberLocalization.text($0.text, locale: locale) } ?? "—")
+                    Text(verbatim: value.map { points ? WalletNumberLocalization.text($0.text, locale: locale) : WalletNumberLocalization.money($0.text, locale: locale) } ?? "—")
                         .cyText(.data2XL, monospacedDigit: true)
                         .cyWrapText()
                         .foregroundStyle(CYColor.textPrimary)
@@ -774,6 +774,8 @@ private struct WalletIncomeListCard: ViewModifier {
         #if DEBUG
         if WalletEarningsDebugFinance.enabled { return debugFinance.access }
         #endif
+        // R7-PC-D4-1 (P1): no coop-finance read grant means no 主办分润 tab at all, never a tab that can only show "—".
+        guard let organizerFinance, organizerFinance.allowsRead() else { return nil }
         return organizerFinance
     }
     private var showIncome: Bool { financeAccess == nil || hold.tab == .income }

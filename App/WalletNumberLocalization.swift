@@ -3,7 +3,13 @@ import Foundation
 /// Read-only presentation of source decimals. Currency and direction stay explicit.
 /// Roundtrip validation keeps Foundation formatting from silently rounding money.
 enum WalletNumberLocalization {
-    static func text(_ source: String, locale: Locale) -> String {
+    /// Money text (owner decision 9, 2026-11-24): the same exact-decimal policy, padded to
+    /// `MoneyDisplay.minimumFractionDigits()` places (¥12.50). Never rounds; points use `text`.
+    static func money(_ source: String, locale: Locale) -> String {
+        text(source, locale: locale, minimumFractionDigits: MoneyDisplay.minimumFractionDigits())
+    }
+
+    static func text(_ source: String, locale: Locale, minimumFractionDigits: Int = 0) -> String {
         let sign: String
         let magnitude: String
         if let first = source.first, first == "+" || first == "-" || first == "−" {
@@ -19,7 +25,7 @@ enum WalletNumberLocalization {
         formatter.usesGroupingSeparator = true
         formatter.minimumIntegerDigits = 1
         formatter.maximumIntegerDigits = 166
-        formatter.minimumFractionDigits = 0
+        formatter.minimumFractionDigits = minimumFractionDigits
         formatter.maximumFractionDigits = 128
         guard let formatted = formatter.string(from: NSDecimalNumber(decimal: value)),
               let readback = formatter.number(from: formatted), readback.decimalValue == value else { return source }
@@ -33,7 +39,7 @@ struct WalletFormatting {
 
     func amount(_ value: WalletAmount?, currency: String? = nil) -> String {
         guard let value else { return appLocalized("wallet.unknown", locale: locale) }
-        return WalletNumberLocalization.text(value.text, locale: locale) + " "
+        return WalletNumberLocalization.money(value.text, locale: locale) + " "
             + (currency ?? appLocalized("wallet.currencyUnknown", locale: locale))
     }
 
@@ -44,7 +50,7 @@ struct WalletFormatting {
 
     func points(_ value: WalletAmount?) -> String {
         guard let value else { return appLocalized("wallet.unknownPoints", locale: locale) }
-        return WalletNumberLocalization.text(value.text, locale: locale) + " " + pointsUnit(for: value)
+        return WalletNumberLocalization.money(value.text, locale: locale) + " " + pointsUnit(for: value)
     }
 
     func signed(_ row: WalletLedgerRow, points: Bool, income: Bool) -> String {
@@ -52,7 +58,7 @@ struct WalletFormatting {
             // A missing points change is an em dash. Money stays the existing unknown label.
             return points ? PointsHistoryPageModel.unknownMark : appLocalized("wallet.unknown", locale: locale)
         }
-        return WalletNumberLocalization.text(source, locale: locale)
+        return points ? WalletNumberLocalization.text(source, locale: locale) : WalletNumberLocalization.money(source, locale: locale)
     }
 
     func count(_ value: Int?) -> String {

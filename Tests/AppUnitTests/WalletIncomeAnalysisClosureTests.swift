@@ -1,6 +1,9 @@
 import XCTest
 @testable import Questify
 
+/// R7-PC-D6-1: the reader pages by the MP size (200); every count below scales with it.
+private let P = WalletIncomeAnalysisAccumulator.pageSize
+
 @MainActor final class WalletIncomeAnalysisClosureTests: XCTestCase {
     func testRealOriginalIncomeRouteReadsBoundedPagesToEnd() async throws {
         let h = try Harness(total: 201); await h.model.load(h.reader)
@@ -136,6 +139,12 @@ import XCTest
     }
     @MainActor private final class Wire: HTTPTransport {
         static let base = URL(string: "https://example.test/")!
+        /// Inside the six-month window whenever the test runs, so the cutoff never ends a read early.
+        static let recent: String = {
+            let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.calendar = Calendar(identifier: .gregorian)
+            f.timeZone = BeijingServerTime.beijing; f.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            return f.string(from: Date())
+        }()
         let total: Int
         var requests: [URLRequest] = []
         var omitTotal = false, changedTotal = false, duplicateBoundary = false, suspendSecond = false, staleDates = false
@@ -167,7 +176,7 @@ import XCTest
             let count = max(0, min(pageSize, total - offset))
             let stamp = staleDates ? "2020-01-01 00:00:00" : "2026-11-01 00:00:00"
             let rows: [[String: Any]] = (0..<count).map { i in
-                ["id": duplicateBoundary && number == 2 ? 981 : 1000 - offset - i,
+                ["id": duplicateBoundary && number == 2 ? 99_981 : 100_000 - offset - i,
                  "changeBalance": "1.2345", "currency": "USD", "changeType": 1, "eventType": 1,
                  "createTime": stamp]
             }
