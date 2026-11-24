@@ -1541,7 +1541,9 @@ struct ClubGovernanceReadView: View {
             let delivery = ClubNotifyDeliveryPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
             Section { ClubOpsNotifyCampaignRows(campaign: campaign, delivery: delivery.hidden ? nil : delivery) } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title") }
             if campaign.canRetryFailed {
-                Text("club.gov.deliveryPending"); ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.retryOnlyFailed").font(.footnote).foregroundStyle(.secondary)
+                // CLB-notify-09/-10 (fix-r3-club-b): the retry button itself reads 只重试失败项 (fragment value of
+                // club.gov.action.retryNotification), so the separate footnote is gone.
+                Text("club.gov.deliveryPending").cyText(.meta).foregroundStyle(.secondary)
                 if delivery.retryOffered { edit(.retryNotification) }
             }
         } else {

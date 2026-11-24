@@ -269,8 +269,18 @@ import SwiftUI
                     }
                     if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["inApp", "wechatSubscription"], localizesEnums: true) }
                     if route.operation == .sendNotification { ClubOpsNotifyPreviewSummary(value: review.snapshot.value) }
-                    Button(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction") {
+                    // CLB-notify-01 (fix-r3-club-b), MC-26: the send primary names the action and the head count.
+                    Button {
                         if route.operation == .cancelOccurrence { cancelConfirmReview = review } else { Task { await confirm(review) } }
+                    } label: {
+                        if route.operation == .sendNotification, !access.allowsOfflineWrites,
+                           let count = ClubNotifyPage.previewRecipient(review.snapshot.value).literal {
+                            Text("clubR3b.notify.sendTo \(count)")
+                        } else if route.operation == .sendNotification, !access.allowsOfflineWrites {
+                            Text("clubR3b.notify.send")
+                        } else {
+                            Text(LocalizedStringKey(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction"))
+                        }
                     }
                         .buttonStyle(.questifyPrimary)
                         .frame(maxWidth: .infinity)
@@ -300,7 +310,8 @@ import SwiftUI
                     .accessibilityIdentifier("club.gov.prepare")
                 }
                 if route.operation != .hostApply {
-                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
+                // CLB-notify-01 (fix-r3-club-b): MP 预览受众 before the send, not a generic 下一步.
+                Button(LocalizedStringKey(route.operation == .sendNotification ? "clubR3b.notify.preview" : "club.gov.review")) { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
                 }
             }
             if route.operation == .createSeries {

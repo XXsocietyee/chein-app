@@ -2,6 +2,23 @@
   "sourceLanguage": "zh-Hans",
   "version": "1.0",
   "strings": {
+    "club.gov.action.retryNotification": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry failed only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只重试失败项"
+          }
+        }
+      }
+    },
     "clubR3b.badges.descriptionOptional": {
       "extractionState": "manual",
       "localizations": {
@@ -117,6 +134,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "颁给谁？"
+          }
+        }
+      }
+    },
+    "clubR3b.notify.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview audience"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览受众"
+          }
+        }
+      }
+    },
+    "clubR3b.notify.send": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send in-app notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送站内通知"
+          }
+        }
+      }
+    },
+    "clubR3b.notify.sendTo %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send to %lld people"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送给 %lld 人"
           }
         }
       }

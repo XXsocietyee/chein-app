@@ -235,6 +235,20 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     var personal = false
     @State private var state: PayoutPageState<ClubSettlementSummaryView> = .loading
     var body: some View {
+        // CLB-settlement-03 (fix-r3-club-b): the club view (`?clubId=` without personal=1) is the same page as
+        // 管理 → 俱乐部结算, so it renders that one implementation (summary card, sessions, ledger, funds, topic rows).
+        if !personal, let g = session.clubManagementContext.governance {
+            ClubGovernanceReadView(operation: .settlement, scope: .init(clubID: clubID), identity: session.clubIdentity,
+                                   access: g.access, coordinator: g.coordinator)
+                .environment(\.clubOwnerRefundCoordinator, g.ownerRefund)
+                .environment(\.clubOwnerFunds, g.ownerFunds)
+                .environment(\.clubCustomerTopics, g.customerTopics)
+        } else {
+            personalBody
+        }
+    }
+
+    private var personalBody: some View {
         List {
             if !PayoutReceiverBridge.payoutOpen(session) {
                 PayoutAreaClosedNote()
@@ -268,18 +282,23 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         }
         if !summary.topics.isEmpty {
             Section {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                // CLB-settlement-07 (fix-r3-club-b), MC-29: the same card as 管理 → 结算: an unverified total is "—"
+                // (VoiceOver: 金额待核验) and the unverified count is a warning chip.
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text("clubSettlement.settled", tableName: "PayoutReceiver").cyText(.label).foregroundStyle(CYColor.textSecondary)
                     if let amount = summary.settledAmountText {
                         Text(verbatim: amount).cyText(.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     } else {
-                        Text("clubSettlement.amountUnverified", tableName: "PayoutReceiver").cyText(.cardTitle).foregroundStyle(CYColor.warningText)
+                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).cyText(.data2XL).monospacedDigit()
+                            .foregroundStyle(CYColor.textPrimary)
+                            .accessibilityLabel(Text("clubSettlement.amountUnverified", tableName: "PayoutReceiver"))
                     }
                     if summary.unverifiedSettledCount > 0 {
-                        Text("clubSettlement.unverifiedCount \(summary.unverifiedSettledCount)", tableName: "PayoutReceiver")
-                            .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubSettlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "PayoutReceiver", locale: locale)),
+                                     tone: .warning, systemImage: "questionmark.circle")
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("clubSettlement.settledCard")
             }

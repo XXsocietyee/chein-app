@@ -147,7 +147,8 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                 .accessibilityIdentifier("club.audience.loading")
             }
             if isCurrent(), let permit, let options = model.accepted(expected, access: access) {
-                ForEach(options) { option in
+                // CLB-r7-D-06 (fix-r3-club-b): MP hides 本场 audiences without an activityId (notify/index.js:109-111).
+                ForEach(options.filter { !$0.needsActivity }) { option in
                     Button {
                         guard canEdit(), isCurrent(), model.canSelect(option.id, snapshotID: snapshot, permit: permit, access: access) else { return }
                         if selection != option.id {
