@@ -53,7 +53,7 @@ private func tailText(_ key: String) -> String { String(localized: String.Locali
                            confirmTitle: tailText("lead.unlock.confirm.action"), confirmIdentifier: "playx.lead.unlock.confirm") {
                 Task { await model.unlockChapter(context: context) }
             }
-            .presentationDetents([.medium])
+            .cySheet(detents: [.medium])
         }
         .sheet(item: $releasing) { request in
             CYConfirmSheet(title: tailText("lead.release.confirm.title"),
@@ -61,7 +61,7 @@ private func tailText(_ key: String) -> String { String(localized: String.Locali
                            confirmTitle: tailText("lead.release.confirm.action"), confirmIdentifier: "playx.lead.release.confirm") {
                 Task { await model.releaseStation(request, context: context) }
             }
-            .presentationDetents([.medium])
+            .cySheet(detents: [.medium])
         }
     }
 

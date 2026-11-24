@@ -790,7 +790,7 @@ private struct JourneyInviteSheet: View {
             Button("action.close") { dismiss() }.frame(minHeight: CYSpacing.minTouchTarget)
         }
         .padding(CYSpacing.pageHorizontal)
-        .presentationDetents([.medium])
+        .cySheet(detents: [.medium])
         .cyPlayerSheetGlass()
     }
 }

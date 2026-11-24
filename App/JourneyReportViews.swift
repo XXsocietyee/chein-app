@@ -235,7 +235,7 @@ struct JourneyRankBoardView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { moreShown = false } } }
             }
-            .presentationDetents([.medium])
+            .cySheet(detents: [.medium])
         }
         .cyDomainScreen(.player)
     }

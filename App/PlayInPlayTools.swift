@@ -95,7 +95,7 @@ enum PlayEmergencyHelp {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } }
             }
         }
-        .presentationDetents([.medium])
+        .cySheet(detents: [.medium])
         .sensoryFeedback(.success, trigger: notice) { _, new in new == "mpd.sos.copied" }
         .accessibilityIdentifier("play.sos.sheet")
     }
