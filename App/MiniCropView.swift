@@ -11,13 +11,16 @@ import UIKit
     let ratio: String
     let onFinish: ([Result]) -> Void
     let onCancel: () -> Void
+    /// A7-04: true when the cropper is its own pushed page (MP pages/crop); embedded hosts keep their title.
+    var showsNavigationTitle = false
     @State private var session: MiniCropSession
     @State private var gestureScale = 1.0
     @State private var gestureOffset = CGSize.zero
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    init(images: [UIImage], ratio: String, onFinish: @escaping ([Result]) -> Void, onCancel: @escaping () -> Void) {
+    init(images: [UIImage], ratio: String, showsNavigationTitle: Bool = false, onFinish: @escaping ([Result]) -> Void, onCancel: @escaping () -> Void) {
+        self.showsNavigationTitle = showsNavigationTitle
         self.images = images
         self.ratio = ratio
         self.onFinish = onFinish
@@ -36,19 +39,22 @@ import UIKit
     var body: some View {
         // Mini `pages/crop`: bar / near-black stage with a fixed frame / bottom bar (取消 text left, 选取 solid right).
         VStack(spacing: 0) {
-            CYHeroHeader("publishParity.crop.title")
+            // A7-04: no hero header. Standalone, the inline nav title reads 裁剪 (i/n); embedded in a host form, one
+            // compact 裁剪 i/n line stands in, so the host page keeps its own navigation title.
+            if !showsNavigationTitle {
+                HStack(spacing: CYSpacing.sm) {
+                    // `publishParity.crop.progress` already reads 裁剪 i/n; one image reads 裁剪.
+                    Group {
+                        if images.count > 1 { progressLabel.monospacedDigit().accessibilityIdentifier("miniCrop.progress") }
+                        else { Text("publishParity.crop.title") }
+                    }
+                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                    Spacer(minLength: 0)
+                }
                 .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.top, CYSpacing.sm)
-            if images.count > 1 {
-                progressLabel
-                    .cyText(.caption)
-                    .monospacedDigit()
-                    .foregroundStyle(CYColor.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.sm)
-                    .accessibilityIdentifier("miniCrop.progress")
+                .padding(.vertical, CYSpacing.sm)
+                .accessibilityElement(children: .combine)
             }
             Group {
                 // The canvas measures the frame, so it stays mounted while the page model is still loading.
@@ -60,8 +66,20 @@ import UIKit
                     CYEmptyState(systemImage: "questionmark.square.dashed", LocalizedStringKey(CropPageModel.Copy.unknown), messageIdentifier: "miniCrop.unknown")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    CYEmptyState(systemImage: "crop", "publishParity.crop.failed", messageIdentifier: "miniCrop.failed")
+                    // A7-08-r7: MP source error 图片没能打开 (pages.crop.error); 使用原图 / 取消 stay in the bar.
+                    // MiniCropSession has no per-image retry yet (Core request in the receipt).
+                    CYEmptyState(systemImage: "photo.badge.exclamationmark", LocalizedStringKey(CropPageModel.Copy.error),
+                                 messageIdentifier: "miniCrop.failed")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+            .overlay {
+                // A7-08-r7: MP waiting state 正在准备图片 until the frame is measured.
+                if page.phase == .loading, !images.isEmpty {
+                    ProgressView { Text(LocalizedStringKey(CropPageModel.Copy.loading)) }
+                        .padding(CYSpacing.md)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .accessibilityIdentifier("miniCrop.loading")
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -73,7 +91,7 @@ import UIKit
                 .overlay(alignment: .top) { Rectangle().fill(CYColor.borderSubtle).frame(height: 1).accessibilityHidden(true) }
         }
         .background(CYColor.bgPage.ignoresSafeArea())
-        .cyHeroScreen()
+        .modifier(MiniCropNavigationTitle(enabled: showsNavigationTitle, count: images.count, index: index))
         .transaction { transaction in
             if reduceMotion { transaction.disablesAnimations = true }
         }
@@ -137,6 +155,12 @@ import UIKit
                         MagnifyGesture().onChanged { gestureScale = $0.magnification }.onEnded { _ in commit(image: size, frame: frame) },
                         DragGesture().onChanged { gestureOffset = $0.translation }.onEnded { _ in commit(image: size, frame: frame) }))
                     .accessibilityLabel(Text("image.crop.preview"))
+                    .accessibilityValue(Text(verbatim: "\(Int((live.scale * 100).rounded()))%"))
+                    // A7-07: VoiceOver swipe up / down zooms in 25% steps (pinch has no accessible equivalent).
+                    .accessibilityAdjustableAction { direction in
+                        let step = direction == .increment ? 1.25 : 0.8
+                        session.applyGesture(scale: scale * step, x: offset.width, y: offset.height)
+                    }
                     .accessibilityIdentifier("miniCrop.canvas")
                     .task(id: frame.width * 10_000 + frame.height) { session.setFrame(width: frame.width, height: frame.height) }
             }
@@ -165,6 +189,25 @@ import UIKit
                 case .crop(let rect): return .crop(rect)
                 }
             })
+        }
+    }
+}
+
+
+/// A7-04: MP pages/crop nav bar title 裁剪, with i/n for a batch. Inline, system back.
+private struct MiniCropNavigationTitle: ViewModifier {
+    let enabled: Bool
+    let count: Int
+    let index: Int
+    func body(content: Content) -> some View {
+        if enabled {
+            if count > 1 {
+                content.navigationTitle(Text("publishParity.crop.progress \(index + 1) \(count)")).navigationBarTitleDisplayMode(.inline)
+            } else {
+                content.navigationTitle(Text("publishParity.crop.title")).navigationBarTitleDisplayMode(.inline)
+            }
+        } else {
+            content
         }
     }
 }

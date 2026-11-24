@@ -21,7 +21,7 @@ import UIKit
                     ForEach(MiniCropGeometry.presets, id: \.self) { Text(verbatim: $0).tag($0) }
                 }.pickerStyle(.menu).accessibilityIdentifier("miniCrop.ratio")
                 if let outcome { Text(verbatim: outcome).accessibilityIdentifier("miniCrop.outcome") }
-                MiniCropView(images: images, ratio: ratio, onFinish: { results in
+                MiniCropView(images: images, ratio: ratio, showsNavigationTitle: true, onFinish: { results in
                     outcome = results.map { result -> String in
                         switch result {
                         case .original: return "original"

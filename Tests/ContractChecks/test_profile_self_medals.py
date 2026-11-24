@@ -64,7 +64,7 @@ class ProfileSelfMedalsSourceChecks(unittest.TestCase):
  def test_no_new_image_reader_or_preview_claim(self):
   for term in ['AsyncImage','RetainedPublicImage','media:','URLSession','previewImage']:self.assertNotIn(term,self.view)
  def test_previous_public_features_preserved(self):
-  for term in ['ProfileAuthorPostsSection','ProfileLocalCoverSection','ProfileSelfEditDestination','profile.published','purpose: .toggleFollow']:self.assertIn(term,self.public)
+  for term in ['ProfileAuthorPostsSection','ProfileLocalCoverSection','ProfileSelfEditDestination','profile.published','SocialProfileInlineFollowButton(memberID: profile.id']:self.assertIn(term,self.public)
  def test_fragment_has_seven_bilingual_keys(self):
   reg=json.loads(read('docs/profile-self-medals-registration.fragment.json'));loc=json.loads(read(reg['localization_fragment']))['strings']
   self.assertEqual(len(loc),7);self.assertEqual(reg['new_endpoints'],[]);self.assertEqual(reg['new_approvals'],[]);self.assertFalse(reg['media_reader_injection'])
