@@ -368,6 +368,7 @@ struct SessionRootView: View {
                     clubTab
                     mineTab
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
+                .environment(\.growthSessionProfile, session.account.map { GrowthSessionProfile(name: $0.nickname, avatar: $0.avatar) })
                 .sessionOfflineBanner(reachability: reachability, session: session)
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)

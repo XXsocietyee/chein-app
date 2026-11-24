@@ -489,6 +489,8 @@ struct JourneySeatsContent: Equatable {
 enum JourneySeatsPhase: Equatable {
     case loading
     case missing
+    /// JSEAT-6: signed out (no session, or the read answered 401). 403 stays `.denied`.
+    case auth
     case denied(String?)
     case failed
     case ready(JourneySeatsContent)
@@ -510,8 +512,11 @@ enum JourneySeatsPhase: Equatable {
     let binding: any JourneySeatsBinding
     var body: some View {
         JourneySeatsView(phase: binding.phase, onRetry: { binding.load() }, onInvite: { binding.requestInvite() },
-                         onCancel: { binding.cancelInvitation($0) }, onStart: { binding.goToStart() }, onEditMe: { binding.editMe() })
+                         onCancel: { binding.cancelInvitation($0) }, onStart: { binding.goToStart() }, onEditMe: { binding.editMe() },
+                         onSignIn: { PlayerJourneySignInBridge.shared.request() })
             .task { binding.load() }
+            // JSEAT-6: re-read once the shared sign-in sheet closes (MP onShow re-reads after login).
+            .onChange(of: PlayerJourneySignInBridge.shared.presented) { was, now in if was && !now { binding.load() } }
             .mpParityRouteDestination(Binding(get: { binding.route }, set: { binding.route = $0 }))
     }
 }
@@ -526,6 +531,7 @@ struct JourneySeatsView: View {
     let onCancel: (String) -> Void
     let onStart: () -> Void
     let onEditMe: () -> Void
+    var onSignIn: () -> Void = {}
     @State private var inviteShown = false
     @State private var cancelTarget: JourneyInvitedRow?
 
@@ -538,6 +544,10 @@ struct JourneySeatsView: View {
             case .missing:
                 CYEmptyState(systemImage: "link", "mp.common.linkExpired", messageIdentifier: "journeySeats.missing",
                              actionTitle: "action.back", actionIdentifier: "journeySeats.back", action: { missingBack() }).frame(maxHeight: .infinity)
+            case .auth:
+                CYEmptyState(systemImage: "person.crop.circle", "mp.seats.auth", messageIdentifier: "journeySeats.auth",
+                             actionTitle: "mp.common.signIn", actionIdentifier: "journeySeats.signIn", action: onSignIn)
+                    .frame(maxHeight: .infinity)
             case .denied(let message):
                 CYStateLayout(kind: .generic, title: message.map { Text(verbatim: $0) } ?? Text("mp.seats.denied"))
                     .frame(maxHeight: .infinity).accessibilityIdentifier("journeySeats.denied")
@@ -615,7 +625,7 @@ struct JourneySeatsView: View {
                                             .accessibilityIdentifier("journeySeats.cancel.\(row.no)")
                                     } label: {
                                         Image(systemName: "ellipsis")
-                                            .font(.body.weight(.semibold))
+                                            .cyText(.bodyMedium)
                                             .foregroundStyle(CYColor.textSecondary)
                                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                                             .contentShape(Rectangle())
@@ -647,16 +657,17 @@ struct JourneySeatsView: View {
     private func party(_ content: JourneySeatsContent) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text("mp.seats.party").cyText(.sectionTitle)
+                // JSEAT-9: MP seats.wxss `.lb-party__h` is body size, bold; the count `.lb-party__n` is body, secondary.
+                Text("mp.seats.party").cyText(.bodyMedium).accessibilityAddTraits(.isHeader)
                 Text(verbatim: content.occupied.map { o in "\(o)/\(MPText.orDash(content.seatCount))" } ?? MPText.orDash(content.seatCount))
-                    .cyText(.bodyMedium).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                    .cyText(.body).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                 Spacer()
                 if content.openCount > 0 {
                     CYStatusTag("mp.seats.waiting", state: .neutral).accessibilityIdentifier("journeySeats.waiting")
                 }
                 if content.canInvite || !content.invited.isEmpty {
                     Button("mp.seats.invite") { openInvite(content) }
-                        .cyText(.label).frame(minHeight: CYSpacing.minTouchTarget)
+                        .cyText(.body).frame(minHeight: CYSpacing.minTouchTarget)
                         .disabled(!content.canInvite)
                         .accessibilityIdentifier("journeySeats.invite")
                 }
@@ -749,7 +760,7 @@ struct JourneyLobbyHowToCard: View {
     }
     private func row(_ symbol: String, _ title: Text, _ note: Text) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            Image(systemName: symbol).font(.body).foregroundStyle(CYColor.textSecondary).frame(width: 24).accessibilityHidden(true)
+            Image(systemName: symbol).cyText(.body).foregroundStyle(CYColor.textSecondary).frame(width: 24).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 title.cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 note.cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -870,27 +881,36 @@ struct JourneyPromoView: View {
     let onSignIn: () -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                switch phase {
-                case .loading:
-                    CYLoadingStateView(rows: 3).accessibilityIdentifier("journeyPromo.loading")
-                case .auth:
-                    CYEmptyState(systemImage: "person.crop.circle", "mp.promo.auth", messageIdentifier: "journeyPromo.auth",
-                                 actionTitle: "mp.common.signIn", actionIdentifier: "journeyPromo.signIn", action: onSignIn)
-                case .failed:
-                    CYErrorState("mp.promo.error", retryTitle: "mp.common.reload", onRetry: onRetry).accessibilityIdentifier("journeyPromo.error")
-                case .ready(let content):
-                    ready(content)
+        // JPROMO-6: the whole-page states fill the screen (centred, native state layout); only the content scrolls.
+        Group {
+            switch phase {
+            case .loading:
+                CYLoadingStateView(rows: 3).padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityIdentifier("journeyPromo.loading")
+            case .auth:
+                CYEmptyState(systemImage: "person.crop.circle", "mp.promo.auth", messageIdentifier: "journeyPromo.auth",
+                             actionTitle: "mp.common.signIn", actionIdentifier: "journeyPromo.signIn", action: onSignIn)
+                    .frame(maxHeight: .infinity)
+            case .failed:
+                CYErrorState("mp.promo.error", retryTitle: "mp.common.reload", onRetry: onRetry).frame(maxHeight: .infinity)
+                    .accessibilityIdentifier("journeyPromo.error")
+            case .ready(let content):
+                ScrollView {
+                    VStack(alignment: .leading, spacing: CYSpacing.lg) { ready(content) }
+                        .padding(.horizontal, CYSpacing.pageHorizontal)
+                        .padding(.vertical, CYSpacing.lg)
                 }
+                .refreshable { onRetry() }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
-        .refreshable { onRetry() }
         .background { MPNightGround() }
         .cyPageTitle("mp.promo.title")
         .cyDomainScreen(.player)
+    }
+
+    /// MP promo wxml:19: a count the server did not send reads 未知, not a dash.
+    static func countOrUnknown(_ value: Int?) -> String {
+        value.map(String.init) ?? appLocalized("mp.promo.unknown", locale: .current)
     }
 
     @ViewBuilder private func ready(_ content: JourneyPromoContent) -> some View {
@@ -913,7 +933,7 @@ struct JourneyPromoView: View {
             MPSectionHeader(title: "mp.promo.deals")
             MPRows(items: content.campaigns) { campaign in
                 MPRow(title: campaign.title.map { Text(verbatim: $0) } ?? Text("mp.promo.topic"),
-                      sub: Text("mp.promo.deal.line \(MPText.orDash(campaign.attributed)) \(MPText.orDash(campaign.paid))")
+                      sub: Text("mp.promo.deal.line \(Self.countOrUnknown(campaign.attributed)) \(Self.countOrUnknown(campaign.paid))")
                         + (campaign.refunded.flatMap { $0 > 0 ? $0 : nil }.map { Text(verbatim: " · ") + Text("mp.promo.deal.refunded \($0)") } ?? Text(verbatim: "")))
             }
         }

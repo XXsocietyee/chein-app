@@ -316,8 +316,32 @@ struct ObjectBadgeWallBadgeLabel: View {
             // Titles wrap on word boundaries only (one column at accessibility sizes keeps the width generous).
             Group { if badge.name.isEmpty { Text(badge.familyKey) } else { Text(verbatim: badge.name) } }
                 .allowsTightening(true)
-            CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked", tone: badge.isLocked ? .neutral : .success).singleLine()
+            // BWALL-5 (MP badge-wall wxml:38): locked → condition ?? 尚未点亮; lit → obtained date ?? 已点亮.
+            Text(verbatim: Self.meta(badge, locale: locale)).cyText(.meta).foregroundStyle(.secondary)
+                // The meta may be a condition or a date; VoiceOver still hears the lit state.
+                .accessibilityValue(Text(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked"))
         }
+    }
+
+    static func meta(_ badge: ProfileBadgeSelection, locale: Locale) -> String {
+        func nonempty(_ value: String?) -> String? {
+            guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
+            return value
+        }
+        /// MP `displayDate`: `YYYY-MM-DD` from a date or date-time string; anything else is not shown.
+        func day(_ value: String?) -> String? {
+            guard let value = nonempty(value), value.count >= 10 else { return nil }
+            let head = String(value.prefix(10))
+            return head.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) == nil ? nil : head
+        }
+        let condition: String?
+        let obtained: String?
+        switch badge {
+        case .identity(let value): condition = nonempty(value.unlockHint); obtained = day(value.unlockTime)
+        case .medal(let value): condition = nonempty(value.displayCondition); obtained = day(value.getTime)
+        }
+        if badge.isLocked { return condition ?? appLocalized("objects.badge.meta.locked", locale: locale) }
+        return obtained ?? appLocalized("profile.badges.unlocked", locale: locale)
     }
 }
 

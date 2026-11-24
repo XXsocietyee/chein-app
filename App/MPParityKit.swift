@@ -356,7 +356,7 @@ struct MPRow: View {
                 }
                 if !stack { Spacer(minLength: CYSpacing.sm) }
                 if let value {
-                    value.font(strong ? CYTypography.cardTitle : CYTypography.bodyCompact)
+                    value.font(strong ? CYTypography.bodyMedium : CYTypography.bodyCompact)
                         .monospacedDigit()
                         .foregroundStyle(muted ? CYColor.textTertiary : (strong ? CYColor.textPrimary : CYColor.textSecondary))
                         .multilineTextAlignment(stack ? .leading : .trailing)
@@ -398,7 +398,8 @@ struct MPRows<Item: Identifiable, Row: View>: View {
 struct MPSectionHeader: View {
     let title: LocalizedStringKey
     var body: some View {
-        Text(title).cyText(.label).foregroundStyle(CYColor.textSecondary)
+        // MP journey.wxss `.jn-sec__h`: card-title size, bold, primary text (JPROMO-3).
+        Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .padding(.horizontal, CYSpacing.xs)
             .accessibilityAddTraits(.isHeader)

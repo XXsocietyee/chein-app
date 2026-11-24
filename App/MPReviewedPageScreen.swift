@@ -168,7 +168,9 @@ import SwiftUI
         case "subpackageRoam/citynode-code/index":
             RoamCityVoucherCodeView(poiID: positiveID(query["poiId"]), name: query["name"])
         case "subpackageP3/pages/stamp-album/index/index":
-            RoamStampAlbumView(reader: session.roamExperienceReader)
+            // SALBUM-r7-1: the session camera, so 打开集邮相机 is not the disabled bare camera.
+            RoamStampAlbumView(reader: session.roamExperienceReader,
+                               stampDestination: { [session] in AnyView(SessionRoamStampCameraView().environmentObject(session)) })
         case "subpackageP3/pages/badge-wall/index/index":
             ObjectBadgeWallView(reader: session.profileReader, media: session.makeObjectCardImageLoader())
         case "subpackageP3/pages/object-cards/index/index":

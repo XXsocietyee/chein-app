@@ -153,6 +153,7 @@ enum DesignFixtureRegistry {
         // Pop-up parity fixtures (PopupsSocialFixtures): popups-*
         case let n where n.hasPrefix("popups-") && PopupsSocialFixtures.make(n) != nil: return PopupsSocialFixtures.make(n)!
         default:
+            if let r3prb = MainActor.assumeIsolated({ FixR3PlayRoamBFixtures.make(name) }) { return r3prb }
             if let t5 = MainActor.assumeIsolated({ T5PageFixtures.make(name) }) { return t5 }
             if let gap = MainActor.assumeIsolated({ CoreGapPageFixtures.make(name) }) { return gap }
             if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }

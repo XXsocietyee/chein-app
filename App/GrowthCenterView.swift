@@ -10,11 +10,38 @@ extension EnvironmentValues {
         get { self[GrowthExploreHomeActionKey.self] }
         set { self[GrowthExploreHomeActionKey.self] = newValue }
     }
+    /// GROWTH-5: the signed-in viewer's own name and avatar (MP `app.getNickname()` / `app.getAvatar()`), set by the
+    /// tab root. The growth person row reads it, so it shows even when the rank read fails.
+    var growthSessionProfile: GrowthSessionProfile? {
+        get { self[GrowthSessionProfileKey.self] }
+        set { self[GrowthSessionProfileKey.self] = newValue }
+    }
+}
+
+struct GrowthSessionProfile: Equatable {
+    let name: String?
+    /// Carried for when the owner allows the avatar fetch in Growth views; not drawn today.
+    let avatar: String?
+}
+private struct GrowthSessionProfileKey: EnvironmentKey {
+    static let defaultValue: GrowthSessionProfile? = nil
+}
+
+extension RootTabSwitch {
+    /// GROWTH-6 / LEADER-8: an entry that injected no explore action still gets 去探索 when the root tabs can switch.
+    @MainActor func growthExploreFallback(_ injected: (() -> Void)?) -> (() -> Void)? {
+        if let injected { return injected }
+        guard isAvailable else { return nil }
+        return { MainActor.assumeIsolated { self(.home) } }
+    }
 }
 
 @MainActor struct GrowthCenterView: View {
     let reader: any GrowthCenterReading
-    @Environment(\.growthExploreHomeAction) private var onExploreHome
+    @Environment(\.growthExploreHomeAction) private var injectedExploreHome
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.growthSessionProfile) private var sessionProfile
+    private var onExploreHome: (() -> Void)? { rootTabSwitch.growthExploreFallback(injectedExploreHome) }
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.cyPalette) private var palette
     @State private var badgePresentationID = UUID()
@@ -33,7 +60,7 @@ extension EnvironmentValues {
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope) }
     var body: some View {
         List {
-            if reader.isOfflineExample { Text("growth.offlineExample").font(.caption) }
+            if reader.isOfflineExample { Text("growth.offlineExample").cyText(.meta) }
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedKey != key {
@@ -91,12 +118,7 @@ extension EnvironmentValues {
         Group {
             if let board = overview.rank.value {
                 CurA11yPair(
-                    leading: HStack(spacing: CYSpacing.md) {
-                        GrowthProfileDisc(name: board.me.nickname)
-                        if let name = GrowthCenterFormatting.nonempty(board.me.nickname) {
-                            Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(palette.textPrimary).cyWrapText()
-                        }
-                    },
+                    leading: person(fallbackName: board.me.nickname),
                     trailing: HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
                         GrowthCenterInteger(value: board.me.score).cyText(.data2XL)
                             .foregroundStyle(palette.textPrimary)
@@ -111,8 +133,10 @@ extension EnvironmentValues {
                 )
                 .padding(.vertical, CYSpacing.xs)
                 leaderboardRow(rank: board.me.rank)
-                if let percentage = GrowthCenterFormatting.nonempty(board.me.rankPercentage) { Text(verbatim: percentage).font(.caption) }
+                if let percentage = GrowthCenterFormatting.nonempty(board.me.rankPercentage) { Text(verbatim: percentage).cyText(.meta) }
             } else if let issue = overview.rank.issue {
+                // GROWTH-5: the person row does not depend on the rank read.
+                if sessionProfile != nil { person(fallbackName: nil).padding(.vertical, CYSpacing.xs) }
                 // Own-center points are not leaderboard score/rank and do not fall back
                 // to the legacy identity-bearing leaderboard while that producer is HOLD.
                 GrowthCenterMetricRow("profile.selfGrowth.points") { GrowthCenterInteger(value: overview.center.value?.points) }
@@ -120,6 +144,18 @@ extension EnvironmentValues {
                 if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }
                 else { GrowthCenterIssueView(issue: issue, retry: reload) }
                 if reader.offersLeaderboard { leaderboardRow(rank: nil, showsRank: false) }
+            }
+        }
+    }
+    /// gc-score-person: the session's avatar and name first, the rank read's nickname only as a fallback.
+    private func person(fallbackName: String?) -> some View {
+        let name = GrowthCenterFormatting.nonempty(sessionProfile?.name) ?? GrowthCenterFormatting.nonempty(fallbackName)
+        return HStack(spacing: CYSpacing.md) {
+            // The avatar image is not fetched here (test_growth_source_contract: no third-party media in Growth views);
+            // the session name's initial stands in.
+            GrowthProfileDisc(name: name)
+            if let name {
+                Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(palette.textPrimary).cyWrapText()
             }
         }
     }
@@ -151,9 +187,17 @@ extension EnvironmentValues {
     private func growthHeader(_ key: LocalizedStringKey) -> some View {
         Text(key).cyText(.sectionTitle).textCase(nil).foregroundStyle(palette.textPrimary).padding(.top, 8)
     }
+    /// GROWTH-8 (MP growthcenter index.js:513 `footprintEmpty`): when every read succeeded and every figure is 0,
+    /// 我的足迹 is left out instead of a column of zeros. A failed read keeps the section (its issue row explains it).
+    static func footprintEmpty(_ overview: GrowthCenterOverview) -> Bool {
+        guard let center = overview.center.value, let progress = overview.progress.value, overview.completed.value != nil else { return false }
+        let figures: [Double] = [Double(center.experience ?? 0), Double(center.badges.count),
+                                 Double(overview.completedTopicCount ?? 0), progress.totalMileage ?? 0]
+        return figures.allSatisfy { !$0.isFinite || $0 == 0 }
+    }
     @ViewBuilder private func footprint(_ overview: GrowthCenterOverview) -> some View {
         // 我的足迹 in the mini-program order: 探索值, 徽章 (枚), 完成主题 (个), 累计距离 (km); level sits in the header.
-        Section {
+        if !Self.footprintEmpty(overview) { Section {
             GrowthCenterMetricRow("growth.experience") { GrowthCenterInteger(value: overview.center.value?.experience) }.accessibilityIdentifier("growth.experience")
             GrowthCenterMetricRow("growth.badgeCount") { growthCount(overview.center.value?.badges.count, unit: "u10.growth.unit.badge") }
                 .accessibilityIdentifier("growth.badgeCount")
@@ -178,6 +222,7 @@ extension EnvironmentValues {
             }
         }
         .listRowBackground(palette.bgElevated)
+        }
     }
     @ViewBuilder private func growthCount(_ value: Int?, unit: LocalizedStringKey) -> some View {
         if let value = GrowthCenterFormatting.nonnegative(value) {
@@ -272,7 +317,7 @@ struct GrowthProfileDisc: View {
         ZStack {
             Circle().fill(palette.bgRaised)
             if let initial { Text(verbatim: initial).cyText(.sectionTitle).foregroundStyle(palette.textPrimary) }
-            else { Image(systemName: "person.fill").font(.title3).foregroundStyle(palette.textTertiary) }
+            else { Image(systemName: "person.fill").cyText(.sectionTitle).foregroundStyle(palette.textTertiary) }
         }
         .frame(width: 48, height: 48)
         .overlay {

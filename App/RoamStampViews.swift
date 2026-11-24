@@ -136,6 +136,8 @@ struct RoamAlbumReadOwner: Hashable {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.collectionAlbumHosted) private var hosted
+    /// SALBUM-3: the 收集册 collage, except at accessibility sizes where the readable card grid stays.
+    private var collage: Bool { hosted && !dynamicTypeSize.isAccessibilitySize }
     @Environment(\.cyPalette) private var palette
     @Namespace private var hero
     @StateObject private var presentation: RoamAlbumReadPresentation
@@ -191,14 +193,26 @@ struct RoamAlbumReadOwner: Hashable {
                             .accessibilityIdentifier("roam.experience.album.openCamera")
                     }
                 }
-                LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
-                    ForEach(pager.stamps) { stamp in
+                LazyVGrid(columns: collage ? Array(repeating: GridItem(.flexible(), spacing: CYSpacing.sm), count: 4)
+                                           : CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize),
+                          alignment: .leading, spacing: collage ? CYSpacing.sm : CYCollectionGrid.spacing) {
+                    ForEach(Array(pager.stamps.enumerated()), id: \.element.id) { index, stamp in
                         NavigationLink {
                             RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope, allowsRemoteImages: allowsRemoteImages)
                                 .cyHeroDestination(stamp.id, in: hero)
                         } label: {
-                            RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages, kit: true)
-                                .modifier(RoamStampPerforatedTile(seed: stamp.id, enabled: hosted))
+                            Group {
+                                if collage {
+                                    // SALBUM-3 (MP stamp-album wxml:18-23): image-only stamps, 4 across, tilted up to ±12°.
+                                    // The push keeps the hero zoom, the native form of the MP fly-to-centre.
+                                    RoamStampCollageTile(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages)
+                                        .modifier(RoamStampPerforatedTile(seed: stamp.id, enabled: true, maxTilt: 12))
+                                        .accessibilityLabel(Text("stampAlbum.openStamp \(index + 1)"))
+                                } else {
+                                    RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages, kit: true)
+                                        .modifier(RoamStampPerforatedTile(seed: stamp.id, enabled: hosted))
+                                }
+                            }
                                 .cyFoilSheen()
                                 .cyNewPulse(CYAlbumRecency.isNew(stamp.createTime), text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
                                 .cyHeroSource(stamp.id, in: hero)
@@ -251,7 +265,10 @@ struct RoamAlbumReadOwner: Hashable {
 struct RoamStampPerforatedTile: ViewModifier {
     let seed: Int
     let enabled: Bool
-    private var angle: Double { Double(abs(seed &* 37) % 13) - 6 }
+    /// Largest tilt in degrees either way (the 收集册 collage uses the MP ±12°).
+    var maxTilt: Int = 6
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private var angle: Double { reduceMotion ? 0 : Double(abs(seed &* 37) % (maxTilt * 2 + 1) - maxTilt) }
     func body(content: Content) -> some View {
         if enabled {
             content
@@ -262,6 +279,28 @@ struct RoamStampPerforatedTile: ViewModifier {
         } else {
             content
         }
+    }
+}
+
+/// SALBUM-3: the collage cell is the stamp photo alone (4:5, the camera crop), no caption or number.
+private struct RoamStampCollageTile: View {
+    let stamp: RoamAlbumStamp
+    let offline: Bool
+    let allowsRemoteImages: Bool
+    @Environment(\.cyPalette) private var palette
+    var body: some View {
+        Color.clear
+            .aspectRatio(0.8, contentMode: .fit)
+            .overlay {
+                if !offline, allowsRemoteImages, let url = QuestifyCardArtwork.safeURL(stamp.picUrl) {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() } else { palette.bgRaised }
+                    }
+                } else {
+                    CYCoverArt(seed: String(stamp.id), symbol: "building.2.crop.circle.fill", cornerRadius: 0)
+                }
+            }
+            .clipped()
     }
 }
 
