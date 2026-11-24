@@ -456,6 +456,14 @@ import SwiftUI
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
     private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
+    /// fix/r3-merchant-coop-a: page-specific full-page sign-in / denied / not-found / load-failed states.
+    private var pageGate: MerchantBusinessPageGate? {
+        MerchantBusinessPageGate.resolve(query: query, failureKey: model.aftercareLoadFailureKey ?? state.failureKey,
+                                         failure: state.failure, hasSnapshot: state.snapshot != nil, isBusy: state.isBusy,
+                                         loadedRecordMissing: state.snapshot.map { snapshot in
+                                             state.isCurrent && snapshot.document.query == query && !snapshot.document.rows.contains { $0.kind == .redemption }
+                                         } ?? false)
+    }
     @ViewBuilder private var pageContent: some View {
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
@@ -470,12 +478,7 @@ import SwiftUI
                     if !state.isBusy, !state.isLocked { CYPillButton("action.retry", style: .secondary) { Task { await reload() } } }
                 }
             }
-            if case .reviews = query, MerchantReviewsPageState.isDenied(failureKey: model.aftercareLoadFailureKey ?? state.failureKey) {
-                Section { CloseW5dStateView(state: .denied, emptyTitle: "closew5d.state.empty.title", emptyMessage: "closew5d.state.empty.message") { Task { await reload() } } }
-            }
-            if case .reviews = query, MerchantReviewsPageState.showsGatedNotice(hasSnapshot: state.snapshot != nil, failureKey: state.failureKey, isBusy: state.isBusy, reviewSourceOpen: reviewSource != nil) {
-                Section { CloseW5dGatedNotice(message: "merchant.business.reviews.writeGated") }
-            }
+            // MC7-13-9: no developer notice above the review list; write gating stays in the confirm sheet.
             if state.isLocked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.business.locked") }
             if case .reviews = query, let snapshot = state.snapshot, state.isCurrent, !state.isBusy, state.failureKey == nil {
                 MerchantReviewReplyRecoverySection(reader: reader, journal: journal, access: snapshot.access)
@@ -656,7 +659,13 @@ import SwiftUI
         let presentedReview = state.confirmation
         // Preserve the outgoing host until its original dismissal consumes the review handoff.
         let presentedEditorID = editor?.id ?? pendingMutationEditorID
-        pageContent
+        Group {
+            if let pageGate {
+                MerchantBusinessPageGateView(gate: pageGate) { Task { await reload() } }
+            } else {
+                pageContent
+            }
+        }
         .scrollContentBackground(.hidden)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             // verify-r1 3.6 / Figma 183:1731: the refund decision is a pinned pair, 不同意 · 同意退款 ¥X. Each opens the

@@ -108,3 +108,22 @@ struct MerchantLoadFailedState: View {
         .accessibilityIdentifier(identifier)
     }
 }
+
+/// MP kind="missing-param": a link without its record id — the title and 返回上一页.
+struct MerchantMissingParamState: View {
+    let title: LocalizedStringKey
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ContentUnavailableView {
+            Label(title, systemImage: "link.badge.plus")
+        } actions: {
+            Button { dismiss() } label: {
+                Text("merchant.gate.backToPrevious").frame(minHeight: CYSpacing.minTouchTarget)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("merchant.gate.missingParam.back")
+        }
+        .accessibilityIdentifier("merchant.gate.missingParam")
+    }
+}

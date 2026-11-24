@@ -67,13 +67,101 @@
     "en": "Waiting for the previous step",
     "zh-Hans": "等待上一步完成"
   },
+  "merchant.gate.aftercare.denied": {
+    "en": "Your role can't view refunds and after-sales",
+    "zh-Hans": "当前身份不能查看退款售后"
+  },
   "merchant.gate.back": {
     "en": "Back",
     "zh-Hans": "返回"
   },
+  "merchant.gate.backToPrevious": {
+    "en": "Back",
+    "zh-Hans": "返回上一页"
+  },
+  "merchant.gate.batch.missingParam": {
+    "en": "Settlement batch info is missing",
+    "zh-Hans": "缺少结算批次信息"
+  },
+  "merchant.gate.customer.backToList": {
+    "en": "Back to Customers",
+    "zh-Hans": "返回客户列表"
+  },
+  "merchant.gate.customer.loadFailed": {
+    "en": "Couldn't load customer details",
+    "zh-Hans": "客户详情加载失败"
+  },
+  "merchant.gate.customer.notFound": {
+    "en": "Customer not found",
+    "zh-Hans": "找不到这位客户"
+  },
+  "merchant.gate.customers.denied": {
+    "en": "Your role can't view customers",
+    "zh-Hans": "当前身份不能查看客户"
+  },
+  "merchant.gate.ledger.denied": {
+    "en": "Your role can't view this merchant ledger",
+    "zh-Hans": "当前身份不能查看这份商家账本"
+  },
+  "merchant.gate.payout.denied": {
+    "en": "Your role can't view the payout account",
+    "zh-Hans": "当前身份不能查看收款账户"
+  },
+  "merchant.gate.redemption.backToList": {
+    "en": "Back to Redemptions",
+    "zh-Hans": "返回核销列表"
+  },
+  "merchant.gate.redemption.loadFailed": {
+    "en": "Couldn't load redemption details",
+    "zh-Hans": "核销详情加载失败"
+  },
+  "merchant.gate.redemption.missing": {
+    "en": "This redemption record isn't visible",
+    "zh-Hans": "核销记录不可见"
+  },
   "merchant.gate.reload": {
     "en": "Reload",
     "zh-Hans": "重新加载"
+  },
+  "merchant.gate.reviews.denied": {
+    "en": "Your role can't manage reviews",
+    "zh-Hans": "当前身份不能管理口碑"
+  },
+  "merchant.gate.reviews.signIn": {
+    "en": "Sign in to manage reviews",
+    "zh-Hans": "登录后查看口碑管理"
+  },
+  "merchant.gate.signIn": {
+    "en": "Sign in to view",
+    "zh-Hans": "登录后查看"
+  },
+  "merchant.gate.verifyRecords.denied": {
+    "en": "Your role can't view redemption records",
+    "zh-Hans": "当前身份不能查看核销记录"
+  },
+  "merchant.ledger.coopShare": {
+    "en": "Co-op Revenue Share",
+    "zh-Hans": "合作分润"
+  },
+  "merchant.ledger.redemptions.empty": {
+    "en": "No records yet",
+    "zh-Hans": "还没有记录"
+  },
+  "merchant.ledger.redemptions.header": {
+    "en": "Redemptions & Refunds",
+    "zh-Hans": "核销与退款"
+  },
+  "merchant.ledger.redemptions.loadFailed": {
+    "en": "Couldn't load redemption records",
+    "zh-Hans": "核销记录加载失败"
+  },
+  "merchant.list.end": {
+    "en": "You've reached the end",
+    "zh-Hans": "已经到底了"
+  },
+  "merchant.list.loadingMore": {
+    "en": "Loading more…",
+    "zh-Hans": "正在加载更多…"
   },
   "merchant.workbench.coupons": {
     "en": "Manage Coupons",

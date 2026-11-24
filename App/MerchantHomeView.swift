@@ -612,7 +612,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                    route.isCurrent(reader: businessReader, journal: businessJournal) {
                     // Source 财务 opens the settlement ledger (pages/merchant/ledger), as the business workspace does.
                     if route.shortcut == .finance {
-                        MerchantLedgerSettlementOverview(reader: route.reader)
+                        MerchantLedgerSettlementOverview(reader: route.reader, journal: route.journal)
                             .environment(\.merchantR1CumulativeRevenue, dashboard.value.map { $0.revenue })
                             .onDisappear(perform: onChildReturn)
                     } else {
@@ -716,7 +716,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     private func inboxEventDestination(_ item: MerchantInboxItem) -> AnyView? {
         guard case .event(let type, _) = item.kind, type == "income" || type == "verify",
               access.allows(.finance) || access.allows(.verifyRecordRead), let businessReader else { return nil }
-        return AnyView(MerchantLedgerSettlementOverview(reader: businessReader, initialView: type == "income" ? .settlements : .redemptions)
+        return AnyView(MerchantLedgerSettlementOverview(reader: businessReader, journal: businessJournal, initialView: type == "income" ? .settlements : .redemptions)
             .environment(\.merchantR1CumulativeRevenue, dashboard.value.map { $0.revenue })
             .onDisappear(perform: onChildReturn)
             .cyPushedChrome(domain: .merchant))

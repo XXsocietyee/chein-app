@@ -82,6 +82,18 @@ struct MerchantVerifyRecordsSections: View {
                     .foregroundStyle(CYColor.textSecondary)
                 }
             }
+            // MC7-04-3 (verify-records/index.wxml:81): 已经到底了 once every record is loaded. Paging past the first
+            // read (正在加载更多…) needs a page on `.verificationRecords` (Core request in the receipt).
+            if !truncated {
+                Section {
+                    Text("merchant.list.end")
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("merchant.verifyRecords.listEnd")
+                }
+            }
         }
     }
 

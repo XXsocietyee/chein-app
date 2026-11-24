@@ -153,6 +153,8 @@ struct MerchantLedgerBatchHero: View {
 
 struct MerchantLedgerBatchStatementCard: View {
     let statement: MerchantLedgerParity.BatchStatementSummary
+    /// MC7-08-3: the batch detail shows the stamps in the 打款进度 timeline instead.
+    var showsTimestamps = true
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
             Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview")
@@ -170,7 +172,7 @@ struct MerchantLedgerBatchStatementCard: View {
                 Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
                     .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
-            ForEach(Array(statement.stepTimestamps.enumerated()), id: \.offset) { _, stamp in
+            ForEach(Array((showsTimestamps ? statement.stepTimestamps : []).enumerated()), id: \.offset) { _, stamp in
                 Text(verbatim: stamp).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
             }
         }
