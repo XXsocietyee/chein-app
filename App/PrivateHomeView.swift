@@ -102,9 +102,12 @@ import SwiftUI
         .formStyle(.grouped).cyGroupedSurface().cyHeroScreen().privacySensitive().accessibilityIdentifier("privateHome.host")
         .task { await model.load() }
         .task { await nativeHomeReturnSelection?.load() }
-        .sheet(isPresented: Binding(get: { picker.isPresented }, set: { if !$0 { picker.close() } })) {
+        .sheet(isPresented: Binding(get: { picker.isPresented }, set: { if !$0 { picker.close() } })) { Group {
             PrivateHomeMapPickerView(picker: picker, initialLabel: label)
                 .id(picker.selection.generation)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .onDisappear { picker.close(); clearInput(); model.cancelReview() }
         .onDisappear { nativeHomeReturnSelection?.cancelVerification() }

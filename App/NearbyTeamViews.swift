@@ -121,11 +121,8 @@ import SwiftUI
         // RNEAR-3 / RTEAMS-2: one inline bar title, no page-type header in the content.
         .cyPageTitle(tab == 1 ? String.LocalizationValue(stringLiteral: "nearby.mine") : String.LocalizationValue(stringLiteral: "nearby.title"))
             .toolbar {
+                // Native restyle (native-ios-r1 §3.1): refresh is pull-to-refresh only (`.refreshable` above calls the same refresh()).
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { Task { await refresh() } } label: { Label("nearby.refresh", systemImage: "arrow.clockwise") }
-                        .disabled(model.running || !coordinator.authenticated).accessibilityIdentifier("nearby.refresh")
-                }
             }
             .sheet(item: model.review) { review in
                 NearbyTeamReviewView(model: model, snapshot: review)
@@ -183,11 +180,14 @@ import SwiftUI
             .onDisappear { ownedReadVisible = false; ownedReadVisit = UUID(); discovery.cancel(); coordinator.leave() }
             .sheet(item: $discoverySelection, onDismiss: {
                 if ownedReadVisible { reloadDiscovery(force: true) }
-            }) { selection in
+            }) { selection in Group {
                 if scenePhase == .active, let sources = discoverySources,
                    selection.scope == currentDiscoveryScope(selection.item), discovery.mayRemainOpen(selection) {
                     sources.destination(selection.item)
                 } else { RoamStatusView(issue: .unauthorized) }
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
     }
     private var discoveryInput: NearbyMapDiscoveryInput { .init(sources: discoverySources, query: submittedContext) }

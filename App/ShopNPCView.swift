@@ -290,7 +290,7 @@ import SwiftUI
             }
                 .disabled(sending).accessibilityIdentifier("shopNPC.cancel")
         }.padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
     }
     /// The text that would actually leave the device for this review; nil for voice or a stale review.
     private func finalText(of review: ShopNPCReview) -> (String, UUID?)? {

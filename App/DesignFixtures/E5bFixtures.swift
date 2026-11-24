@@ -61,7 +61,7 @@ struct E5bBadgeWallFixture: View {
                 .padding(CYSpacing.pageHorizontal)
             }
             .cyDomainPageBackground()
-            .navigationTitle(Text(verbatim: tt("Badges", "徽章")))
+            .navigationTitle(Text(verbatim: tt("Badges", "徽章"))).navigationBarTitleDisplayMode(.inline)
         }
         .themeDomain(.player)
         .preferredColorScheme(.dark)

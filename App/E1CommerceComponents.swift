@@ -138,7 +138,7 @@ struct E1IconHeader: View {
     @Environment(\.cyPalette) private var palette
     var body: some View {
         Label { Text(verbatim: title) } icon: { Image(systemName: systemImage).foregroundStyle(palette.textSecondary) }
-            .font(CYTypography.sectionTitle.weight(.semibold))
+            .cyText(.sectionTitle, weight: .semibold)
             .foregroundStyle(palette.textPrimary)
             .textCase(nil)
             .accessibilityAddTraits(.isHeader)

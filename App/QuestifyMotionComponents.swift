@@ -8,9 +8,9 @@ private struct QuestifyCardSurface: ViewModifier {
         content
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous)
                     .strokeBorder(Color.primary.opacity(contrast == .increased ? 0.3 : 0.06), lineWidth: 1)
                     .allowsHitTesting(false)
             }
@@ -63,7 +63,7 @@ struct QuestifyStatusBadge: View {
             .foregroundStyle(emphasized ? QuestifyPalette.accent : Color.primary)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(emphasized ? QuestifyPalette.accent.opacity(contrast == .increased ? 0.16 : 0.09) : Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+            .background(emphasized ? QuestifyPalette.accent.opacity(contrast == .increased ? 0.16 : 0.09) : Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
             .fixedSize(horizontal: false, vertical: true)
             .layoutPriority(1)
             .contentTransition(.opacity)
@@ -139,7 +139,7 @@ private struct QuestifyPrimaryLabel: View {
             .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))
             .padding(.vertical, controlSize == .large ? Theme.Space.s3_5 : Theme.Space.s2)
             .padding(.horizontal, controlSize == .large ? Theme.Space.s5 : Theme.Space.s3_5)
-            .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: fillsWidth ? CYSpacing.minTouchTarget : nil)
+            .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
             .background(Theme.Color.actionPrimaryBackground(in: domain), in: Capsule())
             .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1) : 0.4)
             .contentShape(Capsule())

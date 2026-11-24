@@ -36,7 +36,8 @@ class ReferenceMapLayoutContracts(unittest.TestCase):
         self.assertIn('.accessibilityAddTraits', self.read('App/SearchMapCanvas.swift'))
     def test_card_retains_full_bleed_tokens_and_complete_text(self):
         source = self.read('App/QuestifyImageEntityCard.swift')
-        for token in ['.padding(20)', 'cornerRadius:24', 'scrimOpacity', '0.94 : 0.86', 'scaledToFill()', '.lineLimit(nil)', '.fixedSize(horizontal:false,vertical:true)', '} else { placeholder }']:
+        # Native restyle R6 r2: the full-bleed hero card uses the one hero radius (native-ios-r1 §2.3, was literal 24).
+        for token in ['.padding(20)', 'cornerRadius: CYRadius.hero', 'scrimOpacity', '0.94 : 0.86', 'scaledToFill()', '.lineLimit(nil)', '.fixedSize(horizontal:false,vertical:true)', '} else { placeholder }']:
             self.assertIn(token, source)
         for forbidden in ['questifyCardSurface', '.stroke(', '.strokeBorder(', '.border(', 'lineLimit(3)', 'minimumScaleFactor']:
             self.assertNotIn(forbidden, source)

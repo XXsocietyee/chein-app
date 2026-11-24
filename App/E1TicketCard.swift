@@ -134,7 +134,7 @@ struct E1TicketCard: View {
                     .cyText(.cardTitle).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             }
             if let number = ticket.registrationNumber, !number.isEmpty {
-                Text(verbatim: number).font(CYTypography.caption.monospaced()).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: number).cyText(.caption).monospaced().foregroundStyle(CYColor.textTertiary)
                     .textSelection(.enabled)
             }
             if let fulfillmentNotice {

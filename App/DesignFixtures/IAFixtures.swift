@@ -38,7 +38,7 @@ struct IAExploreCreateFixture: View {
             Text(verbatim: "Synthetic fixture: Explore root")
                 .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .navigationTitle(Text("tabBar.explore"))
+                .navigationTitle(Text("tabBar.explore")).navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         if hasPublishingSession {
@@ -50,8 +50,11 @@ struct IAExploreCreateFixture: View {
                             .labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44)
                     }
                 }
-                .sheet(isPresented: $showsCreate) {
+                .sheet(isPresented: $showsCreate) { Group {
                     Text(verbatim: "Synthetic fixture: former Publish tab content").padding()
+                    }
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
                 }
         }
         .cyDomainPageBackground()
@@ -75,7 +78,7 @@ struct IAPassportFixture: View {
             }
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
-            .navigationTitle(Text("tabBar.passport"))
+            .navigationTitle(Text("tabBar.passport")).navigationBarTitleDisplayMode(.inline)
             .cyPassportStampHost()
         }
         // Player domain is dark: the real app sets this through roleTheme(.player); without it the preview renders light.

@@ -17,12 +17,17 @@ struct HostTipConfigScreen: View {
     @State private var saving = false
     @State private var notice: HostTipNotice = .none
 
+    // Native restyle (native-ios-r1 §3.2): a settings page is a grouped Form; the explanation is the section footer.
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                Text("hostTip.config.share").cyText(.bodyMedium)
-                Text("hostTip.config.shareNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                if channelClosed { Text("hostTip.config.unavailable").cyText(.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("hostTip.config.unavailable") }
+        Form {
+            Section {
+                if channelClosed { Text("hostTip.config.unavailable").foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("hostTip.config.unavailable") }
+            } header: {
+                Text("hostTip.config.share")
+            } footer: {
+                Text("hostTip.config.shareNote")
+            }
+            Section {
                 if signedOut {
                     CYEmptyState(systemImage: "person.crop.circle", "hostTip.signedOut", messageIdentifier: "hostTip.signedOut")
                 } else {
@@ -30,12 +35,12 @@ struct HostTipConfigScreen: View {
                         form(rows)
                     }
                 }
-                noticeText
             }
-            .padding(CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
+            if notice != .none {
+                Section { noticeText }
+            }
         }
-        .background { MPNightGround() }
+        .cyScreenStyle()
         .navigationTitle(Text("hostTip.config.title"))
         .navigationBarTitleDisplayMode(.inline)
         .task { await reload() }
@@ -51,8 +56,9 @@ struct HostTipConfigScreen: View {
         }
     }
 
-    private func form(_ rows: [HostTipConfigFact]) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+    /// One Form row per control (the Form lays the rows out; no hand-built stack).
+    @ViewBuilder private func form(_ rows: [HostTipConfigFact]) -> some View {
+        Group {
             if rows.isEmpty {
                 CYEmptyState(systemImage: "heart", "hostTip.config.empty", messageIdentifier: "hostTip.config.empty")
             }

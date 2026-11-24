@@ -91,11 +91,14 @@ struct PrivacyProtectionView: View {
         }
         .cyGroupedSurface()
         .navigationTitle(Text("authEntry.privacy.title", tableName: "AuthEntry")).navigationBarTitleDisplayMode(.inline)
-        .sheet(item: $document) { sheet in
+        .sheet(item: $document) { sheet in Group {
             NavigationStack {
                 SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { document = nil } } }
             }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
     }
 }

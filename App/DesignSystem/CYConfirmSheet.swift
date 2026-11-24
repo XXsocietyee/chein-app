@@ -163,8 +163,6 @@ public struct CYConfirmSheet: View {
             .background(CYColor.sheetGlass)
         }
         .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : (consequences.isEmpty ? [.fraction(0.36), .large] : [.medium, .large]))
-        .presentationCornerRadius(CYRadius.sheet)
-        .presentationBackground(CYColor.sheetGlass)
         .presentationDragIndicator(.visible)
         .overlay { if rewarding { joinReward } }
     }

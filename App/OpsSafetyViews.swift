@@ -33,7 +33,7 @@ struct OpsGateNoticeView: View {
                 }
             }
             .padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("opsSafety.notice.blocked")
         }
     }
@@ -86,7 +86,7 @@ struct OfflineNodeSafetyView: View {
                     .accessibilityIdentifier("opsSafety.action.contactSupport")
             }
             .padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("opsSafety.offline.stopped")
         }
     }

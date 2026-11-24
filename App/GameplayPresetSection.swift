@@ -22,7 +22,7 @@ import SwiftUI
         }
         .padding(CYSpacing.lg)
         .background(CYColor.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityIdentifier("preset.gameplay.section")
         .task(id: client?.token) { await reload() }
     }

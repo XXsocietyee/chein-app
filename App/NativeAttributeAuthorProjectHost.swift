@@ -191,7 +191,7 @@ extension EnvironmentValues {
         }
         .sheet(item: Binding<NativeAttributeAuthorProjectPresentation?>(get: {
             guard scenePhase == .active, let presentation, presentation.visit.isCurrent else { return nil }; return presentation
-        }, set: { next in if next == nil, let original { close(original) } })) { original in
+        }, set: { next in if next == nil, let original { close(original) } })) { original in Group {
             NavigationStack {
                 Group {
                     if original.visit.isCurrent {
@@ -207,6 +207,9 @@ extension EnvironmentValues {
                     } else { Text("nativeCondition.unavailable") }
                 }
             }.interactiveDismissDisabled()
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .onChange(of: scenePhase) { _, phase in if phase != .active, let original = presentation { close(original, readback: false) } }
         .onChange(of: presentation?.visit.isCurrent) { _, current in

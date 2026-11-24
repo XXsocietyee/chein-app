@@ -140,7 +140,7 @@ import WebKit
                 }
             )
         }
-        .sheet(item: $store.activeLaunchingGame) { game in
+        .sheet(item: $store.activeLaunchingGame) { game in Group {
             ExternalGameRunnerSheet(
                 store: store,
                 game: game,
@@ -148,23 +148,32 @@ import WebKit
                 review: review,
                 onReport: { reportGame = game }
             )
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .navigationDestination(isPresented: $showSubmissions) {
             ExternalGameSubmissionsScreen(model: review, session: session)
         }
-        .sheet(item: $ageTarget) { game in
+        .sheet(item: $ageTarget) { game in Group {
             ExternalGameAgeGateSheet(game: game, onConfirm: {
                 store.acceptAgeGate(game.manifest)
                 ageTarget = nil
                 store.activeLaunchingGame = game
             }, onCancel: { ageTarget = nil })
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
-        .sheet(item: $reportGame) { game in
+        .sheet(item: $reportGame) { game in Group {
             ExternalGameReportSheet(manifest: game.manifest, onSend: { draft in
                 if draft.blocked { store.block(game.manifest) }
                 Task { await review.report(draft, session: session) }
                 reportGame = nil
             }, onCancel: { reportGame = nil })
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .task(id: session?.token) { await review.reload(session: session) }
         .fileImporter(isPresented: $submitForReview, allowedContentTypes: [.json, .data], allowsMultipleSelection: false) { result in
@@ -448,7 +457,7 @@ import WebKit
             }
             .navigationTitle(confirmation.isUpdate
                 ? String(localized: LocalizedStringResource("playx.externalGame.confirmUpdateTitle", defaultValue: "Confirm External Game Update", locale: locale))
-                : String(localized: LocalizedStringResource("playx.externalGame.confirmInstallTitle", defaultValue: "Confirm Import of External Game", locale: locale)))
+                : String(localized: LocalizedStringResource("playx.externalGame.confirmInstallTitle", defaultValue: "Confirm Import of External Game", locale: locale))).navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier("externalGame.permissions")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -589,7 +598,7 @@ struct ExternalGameNodePlayContext: Equatable, Sendable {
                     await reportSignedResult(passed: reported.passed, score: reported.score, digest: reported.digest)
                 }
             }
-            .navigationTitle(game.manifest.name)
+            .navigationTitle(game.manifest.name).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("common.close", defaultValue: "Close", locale: locale))) {

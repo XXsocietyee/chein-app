@@ -18,7 +18,11 @@ import SwiftUI
             Text(copy.text("zeroHP.copy.003")).cyText(.bodyCompact)
         }
         // Keep the original ProjectEdit visit mounted; route departure retires leases.
-        .sheet(isPresented: $showing) { NavigationStack { NativeZeroHPAuthorView(model: model) } }
+        .sheet(isPresented: $showing) { Group { NavigationStack { NativeZeroHPAuthorView(model: model) }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
     }
 }
 

@@ -47,7 +47,7 @@ struct DesignKitFixture: View {
                 .padding(.vertical, CYSpacing.lg)
             }
             .background(CYColor.bgPage.ignoresSafeArea())
-            .navigationTitle(Text(verbatim: "Design Kit"))
+            .navigationTitle(Text(verbatim: "Design Kit")).navigationBarTitleDisplayMode(.inline)
         }
         .themeDomain(domainMode == .merchant ? .merchant : .player)
     }

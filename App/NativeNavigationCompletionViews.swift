@@ -19,7 +19,7 @@ import SwiftUI
                 CYPillButton("homeFeed.title", style: .primary, action: goHome).accessibilityIdentifier("nativeNav.error.home")
                 CYPillButton("nativeNav.close", style: .tertiary) { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
             }.padding(.horizontal, CYSpacing.lg)
-        }.navigationTitle("nativeNav.error.title")
+        }.navigationTitle("nativeNav.error.title").navigationBarTitleDisplayMode(.inline)
             .accessibilityElement(children: .contain).accessibilityIdentifier("nativeNav.error")
     }
 }
@@ -97,12 +97,15 @@ private struct TeamInvitationPresentation: Hashable {
                 invalid = false; route = BadgeRoutePresentation(parameters: parameters, scope: scope)
             }.disabled(text.isEmpty)
             if invalid { Text("nativeNav.invalid") }
-        }.navigationTitle("nativeNav.badge.open")
-            .sheet(item: $route) { target in
+        }.navigationTitle("nativeNav.badge.open").navigationBarTitleDisplayMode(.inline)
+            .sheet(item: $route) { target in Group {
                 NavigationStack {
                     ObjectBadgeRoutePreview(parameters: target.parameters, expectedScope: target.scope, currentScope: { scope }, media: media)
                         .toolbar { Button("nativeNav.close") { route = nil } }
                 }
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
             .onChange(of: reader.identity) { _, _ in scope = UUID(); route = nil; text = "" }
             .onDisappear { scope = UUID(); route = nil }

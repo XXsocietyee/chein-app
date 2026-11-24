@@ -145,7 +145,7 @@ import QuestifyCore
                             .foregroundStyle(.secondary)
                     }
                     .padding(10)
-                    .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                    .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .padding(.leading, CGFloat(row.depth * 16))
@@ -188,7 +188,7 @@ import QuestifyCore
                 }
             }
             .padding(10)
-            .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
 
             if row.open, let editor = row.editor {
                 rowInlineEditor(path: row.path, editor: editor)
@@ -293,7 +293,7 @@ import QuestifyCore
             .buttonStyle(.borderless)
         }
         .padding(10)
-        .background(CYColor.textSecondary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+        .background(CYColor.textSecondary.opacity(0.05), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
     }
 
     @ViewBuilder
@@ -331,7 +331,7 @@ import QuestifyCore
                                 }
                             }
                             .padding(8)
-                            .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                            .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                         }
                         .buttonStyle(.plain)
                     }

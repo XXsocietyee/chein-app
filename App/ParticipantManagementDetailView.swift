@@ -67,10 +67,13 @@ struct ParticipantManagementDetailView: View {
                     .accessibilityIdentifier("participant.detail.refresh")
             }
         }
-        .sheet(isPresented: $showsEditor, onDismiss: { Task { await model.load() } }) {
+        .sheet(isPresented: $showsEditor, onDismiss: { Task { await model.load() } }) { Group {
             NavigationStack {
                 ParticipantFormView(id: model.id, reader: model.reader, coordinator: model.coordinator)
             }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .alert("participant.form.confirmDelete", isPresented: $model.showConfirmation) {
             Button("participant.form.delete", role: .destructive) {

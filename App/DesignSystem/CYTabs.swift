@@ -46,10 +46,12 @@ enum CYTabsTokens {
                 containerBackground: variant == .sticky ? palette.bgPage : nil
             )
         case .segmented:
+            // Native restyle (native-ios-r1 §3.7): drawn like `UISegmentedControl` (fill track, raised thumb, label
+            // ink), so it reads as `Picker(.segmented)` while keeping one accessibility identifier per segment.
             return Resolved(
-                foreground: isSelected ? palette.textInverse : palette.textSecondary,
-                badgeForeground: isSelected ? palette.textInverse : palette.textTertiary,
-                indicatorFill: isSelected ? palette.textPrimary : nil,
+                foreground: isSelected ? palette.textPrimary : palette.textSecondary,
+                badgeForeground: isSelected ? palette.textPrimary : palette.textTertiary,
+                indicatorFill: isSelected ? palette.segmentThumb : nil,
                 trackFill: palette.bgSurfaceSubtle,
                 divider: nil,
                 containerBackground: nil
@@ -265,10 +267,10 @@ public struct CYTabs<ID: Hashable>: View {
                         HStack(spacing: CYSpacing.xs) {
                             if let systemImage = item.systemImage {
                                 Image(systemName: systemImage)
-                                    .font(CYTypography.caption.weight(.semibold))
+                                    .font(.footnote.weight(.semibold))
                             }
                             Text(verbatim: item.title)
-                                .font(CYTypography.label.weight(selectedStyle ? .bold : .semibold))
+                                .font(.subheadline.weight(selectedStyle ? .semibold : .medium))
                                 .cyWrapText(alignment: .center)
                         }
                         .foregroundStyle(tokens.foreground)
@@ -282,9 +284,9 @@ public struct CYTabs<ID: Hashable>: View {
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
-        .modifier(indicatorLayer(cornerRadius: CYRadius.sm + 2))
-        .padding(3)
-        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(trackFill))
+        .modifier(indicatorLayer(cornerRadius: CYRadius.inner - 1))
+        .padding(2)
+        .background(RoundedRectangle(cornerRadius: CYRadius.inner + 1, style: .continuous).fill(trackFill))
     }
 
     private var chipBar: some View {

@@ -141,7 +141,7 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -193,7 +193,7 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                         .fill(Color.primary.opacity(0.04))
                 )
                 .accessibilityElement(children: .combine)
