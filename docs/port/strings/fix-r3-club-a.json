@@ -58,5 +58,21 @@
   "club.gov.action.appeal": {
     "zh-Hans": "填写理由并提交申诉",
     "en": "State your reason and appeal"
+  },
+  "club.gov.a11y.unban %@": {
+    "zh-Hans": "解封 %@",
+    "en": "Unban %@"
+  },
+  "club.gov.a11y.ban %@": {
+    "zh-Hans": "封禁 %@",
+    "en": "Ban %@"
+  },
+  "club.gov.a11y.transfer %@": {
+    "zh-Hans": "把主理人转让给 %@",
+    "en": "Transfer ownership to %@"
+  },
+  "club.gov.a11y.revoke %@": {
+    "zh-Hans": "撤销 %@ 的角色",
+    "en": "Remove %@'s role"
   }
 }

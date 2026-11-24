@@ -1355,13 +1355,9 @@ struct ClubGovernanceReadView: View {
             }
             ClubRoleRevocationRecoverySection(recovery: coordinator.roleRevocation, context: readContext, access: access) { Task { await load() } }
             ClubRoleAssignmentRecoverySection(recovery: coordinator.roleAssignment, context: readContext, access: access) { Task { await load() } }
-            // Role names only; the raw role code and scope type are internal.
-            Section("club.gov.roleDefinitions") { ForEach(Array((value["roles"].array ?? []).enumerated()), id: \.offset) { _, row in
-                if let name = row["name"].string { Text(verbatim: name) }
-                else if let code = row["roleCode"].string { Text(LocalizedStringKey("club.gov.role." + code)) }
-            } }
+            // CLB-roles-05: the MP roles page has no 可委派角色 list; the role choice lives in the assign picker.
         } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
-            ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }
+            ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:], role: .inlineLink)) }
             Section { link(.members) }
         } else if operation == .members, let members = try? ClubOpsGovernanceMembers(snapshot: snapshot) {
             ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed, role: .inlineDestructive)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) },
@@ -2104,7 +2100,7 @@ struct ClubGovernanceFactRows: View {
     }
 }
 
-private enum ClubGovActionRole { case primary, secondary, destructive, inlineDestructive }
+private enum ClubGovActionRole { case primary, secondary, destructive, inlineDestructive, inlineLink }
 
 /// One filled action per screen. Other commands stay outlined; dissolve stays destructive.
 private struct ClubGovActionChrome: ViewModifier {
@@ -2117,6 +2113,13 @@ private struct ClubGovActionChrome: ViewModifier {
             content.buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
         case .destructive:
             content.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+        case .inlineLink:
+            // CLB-governance-02: 解封 is a row-level borderless link (MP text action), not a full-width pill. 44 pt target.
+            content
+                .buttonStyle(.borderless)
+                .cyText(.label)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
         case .inlineDestructive:
             // CLB-roles-08 / CLB-governance-02 (parity r2): row-level 撤销 / 封禁 / 转让 read as a red inline action
             // (MP red link, MC-20), not a full-width secondary pill. 44 pt target.
