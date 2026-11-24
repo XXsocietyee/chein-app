@@ -7,6 +7,7 @@ import FoundationNetworking
 public struct DiscoveryService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration
         self.transport = transport
@@ -133,13 +134,19 @@ public struct DiscoveryService {
     }
     private func post(_ path: String, fields: [String: String]?, token: String?,
                       templateDetail: Bool = false, templateMetadata: Bool = false) async throws -> Data {
-        var request = try AuthRequestBuilder.makeFormRequest(
-            url: configuration.baseURL.appendingPathComponent(path), fields: fields ?? [:], token: token)
-        if fields == nil {
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = Data("{}".utf8)
+        let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields ?? [:], token: token,
+                                         tag: "\(fields == nil)")
+        let response = try await reads.join(key) {
+            var request = try AuthRequestBuilder.makeFormRequest(
+                url: self.configuration.baseURL.appendingPathComponent(path), fields: fields ?? [:], token: token)
+            if fields == nil {
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.httpBody = Data("{}".utf8)
+            }
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
         }
-        let (data, status) = try await transport.send(request)
+        let (data, status) = (response.data, response.status)
         // Check gateway status and envelope code before payload decoding, including detail refusals.
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
