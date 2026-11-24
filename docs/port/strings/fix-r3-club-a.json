@@ -86,5 +86,21 @@
   "club.host.signIn.action": {
     "zh-Hans": "登录",
     "en": "Sign In"
+  },
+  "club.ops.recheck": {
+    "zh-Hans": "重新检查",
+    "en": "Check Again"
+  },
+  "club.ops.discardTitle": {
+    "zh-Hans": "放弃本轮修改？",
+    "en": "Discard these changes?"
+  },
+  "club.ops.discard": {
+    "zh-Hans": "确认放弃",
+    "en": "Discard"
+  },
+  "club.ops.quotaUnit": {
+    "zh-Hans": "个",
+    "en": "spots"
   }
 }
