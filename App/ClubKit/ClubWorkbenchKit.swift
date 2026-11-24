@@ -213,16 +213,28 @@ struct ClubHeaderInviteButton: View {
 /// Share in the navigation bar (a glass circle on iOS 26+ bars): the same text invitation.
 struct ClubHeaderShareButton: View {
     let clubName: String
+    /// When set, the share carries the club link (`ClubShareURL.club`) with the invitation as its message.
+    var clubID: Int? = nil
     @Environment(\.locale) private var locale
 
+    private var message: String { String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName) }
+
     var body: some View {
-        ShareLink(item: String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)) {
-            Image(systemName: "square.and.arrow.up")
-                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                .contentShape(Rectangle())
+        Group {
+            if let url = ClubShareURL.club(clubID) {
+                ShareLink(item: url, message: Text(verbatim: message)) { glyph }
+            } else {
+                ShareLink(item: message) { glyph }
+            }
         }
         .accessibilityLabel(ClubR4Text.text("r4club.header.share"))
         .accessibilityIdentifier("club.detail.share")
+    }
+
+    private var glyph: some View {
+        Image(systemName: "square.and.arrow.up")
+            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Rectangle())
     }
 }
 

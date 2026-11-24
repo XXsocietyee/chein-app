@@ -330,7 +330,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
             .toolbar {
                 // MC-22: share sits in the bar beside the system back (a glass circle on iOS 26+ bars).
-                ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubName: club.name) }
+                ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubName: club.name, clubID: club.id) }
             }
             .navigationDestination(item: $openedTopicID) { topicID in
                 // CLB-r7-A-01 (MP goTopic js:2957-2966): governors and activity managers open the club topic-detail;

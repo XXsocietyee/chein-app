@@ -109,7 +109,7 @@ import SwiftUI
                     }
                 }
                 if let issue = schedule.issue(now: clock.date) {
-                    Section { ClubSeriesScheduleIssueLabel(issue: issue).accessibilityIdentifier("club.schedule.error") }
+                    Section { ClubSeriesScheduleIssueLabel(issue: issue, draft: schedule, now: clock.date).accessibilityIdentifier("club.schedule.error") }
                 }
                 if stale || !canApply() { Section { Text("club.schedule.expired").accessibilityIdentifier("club.schedule.expired") } }
                 Section {
@@ -158,8 +158,19 @@ import SwiftUI
 
 struct ClubSeriesScheduleIssueLabel: View {
     let issue: ClubSeriesScheduleDraft.Issue
+    /// cursor/core-club hand-off (CLB-event-ops-06): the weekly-horizon sentence names the real maximum
+    /// (MP 首次日期起 90 天内最多可排 N 期). Pass the draft and the clock to show it.
+    var draft: ClubSeriesScheduleDraft? = nil
+    var now: Date = Date()
+
+    private var weeklyMax: Int? {
+        guard issue == .weeklyHorizon, let draft else { return nil }
+        return ClubEventOpsFormRules.maxWeeklyOccurrences(startDate: draft.startDate, todayKey: ClubSeriesScheduleDraft.day(now))
+    }
+
     var body: some View {
         if issue == .futureOnly { Text("club.schedule.futureOnly", tableName: "ClubSeriesSchedule") }
+        else if let weeklyMax { Text("club.schedule.error.weeklyHorizonMax \(weeklyMax)") }
         else { Text(LocalizedStringKey(issue.localizationKey)) }
     }
 }

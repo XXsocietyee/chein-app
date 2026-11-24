@@ -71,6 +71,7 @@ import SwiftUI
     @StateObject private var seriesLeadPicker = ClubSeriesLeadReadModel()
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.clubDissolveAcknowledged) private var dissolveAcknowledged
     @Environment(\.locale) private var locale
     @QuestifyReduceMotion private var reduceMotion
     @State private var audienceVisible = false
@@ -207,8 +208,9 @@ import SwiftUI
                             Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
                                 .accessibilityIdentifier("club.schedule.formConversion")
                         }
-                        if let issue = ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) {
-                            ClubSeriesScheduleIssueLabel(issue: issue)
+                        let scheduleDraft = ClubSeriesScheduleDraft(form: draft, now: Date())
+                        if let issue = scheduleDraft.issue(now: Date()) {
+                            ClubSeriesScheduleIssueLabel(issue: issue, draft: scheduleDraft)
                         }
                     } else { Text("club.schedule.choose") }
                 }
@@ -658,6 +660,7 @@ import SwiftUI
             if route.operation == .cancelOccurrence, submittedRequestID == draft.requestID, !Task.isCancelled {
                 occurrenceCancellationReturn?.acknowledged(review, value)
             }
+            if route.operation == .dissolve { dissolveAcknowledged?() }
             if route.operation == .issueGroupCode {
                 guard let clubID = review.command.scope.clubID, let activityID = review.command.scope.activityID,
                       scenePhase == .active, !Task.isCancelled else { throw ClubGovernanceFailure.staleReview }

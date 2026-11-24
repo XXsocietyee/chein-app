@@ -576,8 +576,17 @@ struct ClubCommunityPostTile: View {
                     }
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                     .accessibilityIdentifier("club.community.repost.\(post.id)")
-                    ShareLink(item: ClubPostShareText.text(post: post, locale: locale)) {
-                        Label("club.community.share", systemImage: "square.and.arrow.up")
+                    Group {
+                        // CLB-detail-30: the post link (`?id=&postId=`) when Core can build it, the excerpt as message.
+                        if let url = ClubShareURL.post(clubID: clubID, postID: post.id) {
+                            ShareLink(item: url, message: Text(verbatim: ClubPostShareText.text(post: post, locale: locale))) {
+                                Label("club.community.share", systemImage: "square.and.arrow.up")
+                            }
+                        } else {
+                            ShareLink(item: ClubPostShareText.text(post: post, locale: locale)) {
+                                Label("club.community.share", systemImage: "square.and.arrow.up")
+                            }
+                        }
                     }
                     .accessibilityIdentifier("club.community.share.\(post.id)")
                 }

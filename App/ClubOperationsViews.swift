@@ -426,6 +426,7 @@ struct ClubOperationsWorkspaceView: View {
                 NavigationLink {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
+                        .environment(\.clubDissolveAcknowledged, { [profileDraft] in _ = profileDraft.clearAfterConfirmedDissolve() })
                 } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(CYColor.dangerText) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
