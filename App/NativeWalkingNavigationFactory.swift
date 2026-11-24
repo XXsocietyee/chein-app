@@ -154,7 +154,7 @@ extension EnvironmentValues {
 }
 
 
-@MainActor struct WalkingSavedDestination: Equatable, Identifiable {
+@MainActor struct WalkingSavedDestination: @preconcurrency Equatable, @preconcurrency Identifiable {
     let record: WalkingSavedDestinationRecord
     let bytes: Data
     let owner: RuntimeDependencyContext

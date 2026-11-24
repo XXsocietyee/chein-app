@@ -17,7 +17,7 @@ extension EnvironmentValues {
 }
 
 /// Replacing a reader or its authorization creates a new page-scoped reader.
-@MainActor struct ClubEnrollmentHostContext: Hashable {
+@MainActor struct ClubEnrollmentHostContext: @preconcurrency Equatable, @preconcurrency Hashable {
     let clubID: Int
     let focusTopicID: Int?
     let identity: ClubReadIdentity?

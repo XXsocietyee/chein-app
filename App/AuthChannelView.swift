@@ -227,7 +227,8 @@ struct PhoneSignInForm<AppleContent: View>: View {
     private var hasError: Bool { issueKey != nil && !issueIsSoft }
 
     private var codeBoxes: some View {
-        ZStack {
+        let reduced = reduceMotion
+        return ZStack {
             TextField("auth.channels.code", text: $code)
                 .keyboardType(.numberPad).textContentType(.oneTimeCode)
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -250,7 +251,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
                         .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.6), value: chars.count)
                 }
             }
-            .keyframeAnimator(initialValue: 0.0, trigger: shakes) { view, x in view.offset(x: reduceMotion ? 0 : x) } keyframes: { _ in
+            .keyframeAnimator(initialValue: 0.0, trigger: shakes) { view, x in view.offset(x: reduced ? 0 : x) } keyframes: { _ in
                 KeyframeTrack { CubicKeyframe(10, duration: 0.06); CubicKeyframe(-10, duration: 0.08); CubicKeyframe(6, duration: 0.07); CubicKeyframe(0, duration: 0.06) }
             }
             .allowsHitTesting(false).accessibilityHidden(true)
