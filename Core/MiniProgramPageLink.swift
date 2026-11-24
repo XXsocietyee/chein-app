@@ -181,7 +181,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/shezhi/marketing/index",
         "pages/mylike/mylike",
         "pages/crop/index",
-        "subpackageMember/invoice/index",
         "subpackageMember/invoice-apply/index",
         "subpackageMember/invoice-titles/index",
         "subpackageMember/invoice-title-edit/index",
@@ -251,6 +250,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
     private static let optionalIDPages: [String] = [
         "pages/activity/official-detail/index",
         "subpackageA/pages/infomationdetail/infomationdetail",
+        // invoice/index.js invoiceOnLoad: `?id=` opens the detail; a bare path is the history.
+        "subpackageMember/invoice/index",
     ]
 
     /// Keys whose MP values are a closed set: anything else would open a state the MP page never shows.

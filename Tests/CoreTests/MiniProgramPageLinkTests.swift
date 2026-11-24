@@ -82,6 +82,15 @@ final class MiniProgramPageLinkTests: XCTestCase {
         XCTAssertNil(MiniProgramPageLink(path: "pages/topic/pricing/index", query: ["topicId": "05"]))
     }
 
+    func testInvoiceHistoryAcceptsAnOptionalApplicationId() {
+        let bare = MiniProgramPageLink(path: "subpackageMember/invoice/index", query: [:])
+        XCTAssertEqual(bare?.page, "subpackageMember/invoice/index")
+        XCTAssertEqual(bare?.query, [:])
+        XCTAssertEqual(MiniProgramPageLink(path: "/subpackageMember/invoice/index", query: ["id": "15"])?.query, ["id": "15"])
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/invoice/index", query: ["id": "0"]))
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/invoice/index", query: ["other": "1"]))
+    }
+
     func testTableCoversEveryReviewedPage() {
         XCTAssertEqual(Set(table.map(\.1)), Set(MiniProgramPageLink.reviewedPages.keys))
     }
