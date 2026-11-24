@@ -39,7 +39,7 @@
 | P2 play runtime (arrival, free-explore, images, photo record) | `port/p2-play-runtime` | Cursor |
 | P4 game-page kits (pool, ladder extras, stage header) | `port/p4-game-kits` | Cursor |
 | P3 route detail (chapter cards, 出发前, totalTime seconds fix) | `port/p3-route-detail` | Claude cloud |
-| P5 small contract fixes + owner rulings (one-decimal money pending the owner's confirmation: implement it behind one `MoneyDisplay` switch) | `port/p5-contracts` | Gemini (local, can compile) |
+| P5 small contract fixes + owner rulings (one-decimal money pending the owner's confirmation: implement it behind one `MoneyDisplay` switch) | `port/p5-contracts` | Claude cloud (reassigned from Gemini) |
 | P6a native-iOS restyle **design spec** (NO code; see below) | `design/native-ios-r1` | Claude cloud |
 | P6b archive of chengyin-ios unique docs, branches and rulings (plan §5) | `port/p6-archive` | Claude cloud |
 
