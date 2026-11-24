@@ -71,7 +71,7 @@ enum ActivityPublishingStatusHelper {
                 EditorSaveChip(state: chipState, detail: chipDetail)
                 if let onRetry = retryAction {
                     Button(action: onRetry) { EditorKitText.text("editorKit.retry") }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.editorSecondary)
                         .accessibilityIdentifier("publishModes.activity.wizard.saveRetry")
                 }
                 Spacer(minLength: 0)

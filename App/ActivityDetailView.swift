@@ -363,7 +363,7 @@ struct ActivityDetailView: View {
                 Label("activity.requiredClub.open", systemImage: "person.3")
                     .fixedSize(horizontal: false, vertical: true)
             }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(CYPillButtonStyle())
                 .disabled(requiredClubDestination == nil || renderedScope == nil || !gateIsVisible || requiredClubSelection != nil)
                 .accessibilityIdentifier("activity.requiredClub.open")
                 .accessibilityLabel(Text("activity.requiredClub.open"))

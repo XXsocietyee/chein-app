@@ -202,13 +202,13 @@ import UIKit
                         .accessibilityIdentifier("activityCover.remotePreview")
                 }
                 Button(action: owner.openAction()) { label("open") }.disabled(!owner.canOpen)
-                    .buttonStyle(.bordered)
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .accessibilityIdentifier("activityCover.open")
                 VStack(spacing: CYSpacing.xs) {
                     Button(action: owner.previewAction()) { label("preview") }
-                        .buttonStyle(.borderless).accessibilityIdentifier("activityCover.preview")
+                        .buttonStyle(CYPillButtonStyle(style: .tertiary)).accessibilityIdentifier("activityCover.preview")
                     Button(role: .destructive, action: owner.clearAction()) { label("remove") }
-                        .buttonStyle(.borderless).foregroundStyle(palette.danger)
+                        .buttonStyle(CYPillButtonStyle(style: .tertiary)).foregroundStyle(palette.danger)
                         .accessibilityIdentifier("activityCover.remove")
                 }
             } else {
@@ -216,7 +216,7 @@ import UIKit
                     .cyText(.body).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("activityCover.status")
                 Button(action: owner.chooseAction()) { label("choose") }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .disabled(!owner.canChoose).accessibilityIdentifier("activityCover.choose")
                 if let crop = owner.crop, owner.current {
                     MerchantImageCropView(draft: crop, confirm: owner.confirmCrop, cancel: { owner.cancelCrop(crop.id) }).id(crop.id)
@@ -228,15 +228,15 @@ import UIKit
                 }
                 if let review = owner.review, owner.current {
                     Button(action: owner.uploadAction(review)) { label(owner.status == "rejected" ? "retry" : "upload") }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
                         .disabled(owner.busy).accessibilityIdentifier("activityCover.upload")
                 }
                 if let receipt = owner.receipt, owner.current {
                     Button(action: owner.applyAction(receipt)) { label("apply") }
-                        .buttonStyle(.bordered).accessibilityIdentifier("activityCover.apply")
+                        .buttonStyle(CYPillButtonStyle(style: .secondary)).accessibilityIdentifier("activityCover.apply")
                 }
                 Button(action: owner.closeAction()) { label("cancel") }
-                    .buttonStyle(.borderless).disabled(owner.busy).accessibilityIdentifier("activityCover.cancel")
+                    .buttonStyle(CYPillButtonStyle(style: .tertiary)).disabled(owner.busy).accessibilityIdentifier("activityCover.cancel")
             }
         }.buttonStyle(.borderless)
     }

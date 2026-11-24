@@ -35,7 +35,7 @@ import Observation
                     NavigationLink {
                         WalkingNavigationView(reference: navigationReference, factory: walkingFactory, offline: offline)
                     } label: { CYPillButtonLabel("walking.title", systemImage: "figure.walk") }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(CYPillButtonStyle(style: .primary))
                         .accessibilityIdentifier("walking.open")
                 }
                 if let walkingFactory, walkingFactory.available, !offline {
@@ -103,7 +103,7 @@ import Observation
                     WalkingNavigationView(reference: saved.record.reference, factory: factory,
                                           restoringDestination: saved)
                 } label: { CYPillButtonLabel("walking.saved.open", systemImage: "bookmark") }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .accessibilityIdentifier("walking.saved.open")
                 Text("walking.saved.notice").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 Button(role: .destructive) { confirmsRemoval = true } label: { Text("walking.saved.remove") }

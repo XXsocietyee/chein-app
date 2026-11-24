@@ -90,7 +90,7 @@ import SwiftUI
                         Button(action: { model.flow.prepare() }) {
                             Text("contextSelfPlay.review").frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.cyPrimary)
                         .disabled(!model.flow.canCreate)
                         .accessibilityIdentifier("contextSelfPlay.review")
                     }
@@ -175,7 +175,7 @@ import SwiftUI
                     Button(action: { confirm(consented) }) {
                         Text("contextSelfPlay.continuePayment").frame(maxWidth: .infinity)
                     }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.questifyPrimary)
                         .frame(maxWidth: .infinity)
                         .listRowBackground(Color.clear)
                         .disabled(!consented)

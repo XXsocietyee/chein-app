@@ -38,7 +38,7 @@ struct HomeCityLocationConsentCard: View {
             .frame(minHeight: CYSpacing.minTouchTarget)
             .accessibilityIdentifier("homeCityConsent.decline")
         Button("homeCityConsent.agree", action: onAgree)
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.cyPrimary)
             .frame(minHeight: CYSpacing.minTouchTarget)
             .accessibilityIdentifier("homeCityConsent.agree")
     }

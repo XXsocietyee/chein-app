@@ -364,7 +364,7 @@ private struct ParticipationCoverPlaceholder: View {
                             .accessibilityIdentifier("playerJourney.start.ticketWallet")
                     }
                 }
-                .buttonStyle(.borderedProminent).controlSize(.large).frame(maxWidth: .infinity)
+                .buttonStyle(.cyPrimary).controlSize(.large).frame(maxWidth: .infinity)
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
                 .background(.bar)
             }

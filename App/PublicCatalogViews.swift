@@ -209,7 +209,7 @@ struct PublicCatalogDetailView: View {
         }
         .safeAreaInset(edge: .bottom) {
             Button("publicCatalog.detail.open") { onOpenWork(card) }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.cyPrimary)
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .padding(CYSpacing.pageHorizontal)
                 .background(.ultraThinMaterial)
