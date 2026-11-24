@@ -7,11 +7,16 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class RetainedImageLocalizationTests(unittest.TestCase):
     def test_production_review_paths_use_catalog_interpolation(self):
-        for filename in ["RetainedImageSelectionView.swift", "MerchantGalleryBatchView.swift"]:
+        for filename in ["RetainedImageSelectionView.swift"]:
             source = (ROOT / "App" / filename).read_text()
             self.assertIn(r'Text("image.retained.byteCount \(review.selection.jpeg.count)")', source)
             self.assertNotIn(r'Text("\(review.selection.jpeg.count) bytes")', source)
             self.assertIn('Text(verbatim: review.scope.realm)', source)
+        # fix/r3-merchant-coop-b MC7-20-2: the merchant gallery batch uploads on crop confirm (MP gallery/index.js:206-217)
+        # and shows neither the API realm nor a byte count; it must not regress to an uncatalogued byte string either.
+        batch = (ROOT / "App" / "MerchantGalleryBatchView.swift").read_text()
+        self.assertNotIn(r'Text("\(review.selection.jpeg.count) bytes")', batch)
+        self.assertNotIn('Text(verbatim: review.scope.realm)', batch)
 
     def test_byte_count_is_bilingual_and_fragment_matches_shipped_catalog(self):
         catalog = json.loads((ROOT / "Resources/Localizable.xcstrings").read_text())["strings"]

@@ -1,21 +1,4 @@
 {
-  "merchantCoop.cityNode.poster.hint": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Save it and post it in store. It stays valid."
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "保存后张贴，长期有效"
-        }
-      }
-    }
-  },
   "merchantCoop.cityNode.poster.save": {
     "extractionState": "manual",
     "localizations": {
@@ -403,40 +386,6 @@
         "stringUnit": {
           "state": "translated",
           "value": "成员操作"
-        }
-      }
-    }
-  },
-  "merchantCoop.team.shareInvite %@ %@": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Join the %1$@ team. Invite code: %2$@"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "邀请你加入%1$@经营团队，邀请码：%2$@"
-        }
-      }
-    }
-  },
-  "merchantCoop.team.shareInvite.action": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Share invite"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "分享邀请"
         }
       }
     }

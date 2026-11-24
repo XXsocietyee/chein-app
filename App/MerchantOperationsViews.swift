@@ -39,7 +39,7 @@ struct MerchantOperationsHomeView: View {
                 switch blocked {
                 case .empty:
                     MerchantCoopApplyState(title: "merchant.decor.state.empty.title", message: "merchant.decor.state.empty.message",
-                                           actionTitle: "merchantCoop.decor.openApplication", identifier: "merchant.operations.inactive")
+                                           actionTitle: "merchantCoop.decor.openApplication", identifier: "merchantCoop.decor.inactive")
                         .listRowBackground(Color.clear)
                 case .denied:
                     MerchantCoopActionState(systemImage: "lock", title: "merchantCoop.decor.denied.title", identifier: "closew5d.state.denied")

@@ -97,12 +97,6 @@ import SwiftUI
                             Text(verbatim: code).font(.system(.body, design: .monospaced))
                                 .textSelection(.enabled).privacySensitive()
                                 .accessibilityIdentifier("merchant.operatorInvite.code")
-                            // MC7-29-6: MP shares the invite (邀请你加入{门店}经营团队) beside the revealed code.
-                            ShareLink(item: String(localized: "merchantCoop.team.shareInvite \(metadata.merchantName ?? String(metadata.merchantID)) \(code)")) {
-                                Label("merchantCoop.team.shareInvite.action", systemImage: "square.and.arrow.up")
-                                    .frame(minHeight: CYSpacing.minTouchTarget)
-                            }
-                            .accessibilityIdentifier("merchant.operatorInvite.share")
                             Button("merchant.operatorInvite.hide") { model.hide() }
                                 .accessibilityIdentifier("merchant.operatorInvite.hide")
                         } else {

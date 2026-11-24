@@ -524,7 +524,7 @@ struct MerchantCityNodeInlineError: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("cityNodeHub.poster.save")
-                        Text("merchantCoop.cityNode.poster.hint").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                        MerchantCityNodeCopy.text("merchantCityNode.poster.hintPrint").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     case .failed(let message):
                         VStack(spacing: 10) {
                             MerchantCityNodeCopy.text("merchantCityNode.poster.failedTitle").cyText(.cardTitle)
