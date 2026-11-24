@@ -117,7 +117,7 @@ import Combine
                 .disabled(!editor.canAdd).accessibilityIdentifier(questionIndex == nil ? "creator.profile.addQuestion" : "creator.profile.addOption")
             if !editor.canEditList { Text("templateProfile.reopen").cyText(.meta) }
         }.disabled(!editor.canEditList).toolbar { EditButton() }
-            .navigationTitle(LocalizedStringKey(questionIndex == nil ? "creator.field.questions" : "creator.field.options"))
+            .navigationTitle(LocalizedStringKey(questionIndex == nil ? "creator.field.questions" : "creator.field.options")).navigationBarTitleDisplayMode(.inline)
             .onAppear { editor.reload() }.onDisappear { editor.retire() }
             .onChange(of: model.mediaReviewGeneration) { _, _ in editor.reload() }
     }

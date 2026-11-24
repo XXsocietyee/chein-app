@@ -57,7 +57,7 @@ import SwiftUI
             if let r=flow.review{review(r)}
             if flow.busy{Section{ProgressView("核对原退出请求…")}}
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .tint(Theme.Generated.color("--cy-color-brand",in:domain))
         .scrollContentBackground(Theme.Generated.color("--cy-color-bg-page",in:domain) == nil ? .automatic : .hidden)
         .background { if let page=Theme.Generated.color("--cy-color-bg-page",in:domain){page} }

@@ -138,7 +138,7 @@ struct EditorSectionBar: View {
                                 if state == .error {
                                     Circle().fill(palette.danger).frame(width: 6, height: 6).accessibilityHidden(true)
                                 } else if state == .done {
-                                    Image(systemName: "checkmark").font(.caption2.weight(.bold))
+                                    Image(systemName: "checkmark").font(.caption.weight(.bold))
                                         .foregroundStyle(palette.textTertiary).accessibilityHidden(true)
                                 }
                             }
@@ -183,7 +183,7 @@ struct EditorSaveChip: View {
         Button { if detail != nil { showsDetail = true } } label: {
             HStack(spacing: 4) {
                 Image(systemName: state.symbol)
-                    .font(.caption2.weight(.bold))
+                    .font(.caption.weight(.bold))
                     .contentTransition(.symbolEffect(.replace))
                     .accessibilityHidden(true)
                 EditorKitText.text(state.key).cyText(.bodyMedium)

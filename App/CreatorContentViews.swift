@@ -38,7 +38,7 @@ private struct CreatorContentIssueView: View {
             Group {
                 if case .server(let text) = issue { Text(verbatim: text) }
                 else { Text(LocalizedStringKey(issue.localizationKey)) }
-            }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            }.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 .accessibilityIdentifier("creatorContent.issue")
             if issue != .login && issue != .notConfigured {
                 CYPillButton("creatorContent.retry", style: .secondary, fullWidth: false, action: retry)
@@ -145,7 +145,7 @@ private struct CreatorContentIssueView: View {
                 Button { query.type = value } label: {
                     VStack(spacing: CYSpacing.sm) {
                         Text(LocalizedStringKey("creatorContent.filter." + value))
-                            .font(selected ? CYTypography.cardTitle : CYTypography.body)
+                            .cyText(selected ? .cardTitle : .body)
                             .foregroundStyle(selected ? CYColor.textPrimary : CYColor.textSecondary)
                         Capsule().fill(selected ? CYColor.textPrimary : Color.clear).frame(height: 3)
                     }
@@ -174,7 +174,7 @@ private struct CreatorContentIssueView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     if let state = project.stateText { CYStatusChip(verbatim: state, tone: .neutral) }
-                    if let type = project.projectTypeText { Text(verbatim: type).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                    if let type = project.projectTypeText { Text(verbatim: type).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     if title.isEmpty { Text("creatorContent.untitled").cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
                     else { Text(verbatim: title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                     MyProjectCardMeta(project: project, chinese: locale.language.languageCode?.identifier == "zh")
@@ -230,7 +230,7 @@ private struct CreatorContentIssueView: View {
                     Text(LocalizedStringKey("creatorContent.status." + center.status.rawValue))
                         .cyText(.sectionTitle).accessibilityIdentifier("creatorContent.status")
                     if let name = center.creatorName { Text(verbatim: name).cyText(.cardTitle) }
-                    if let bio = center.bio { Text(verbatim: bio).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                    if let bio = center.bio { Text(verbatim: bio).cyText(.body).foregroundStyle(CYColor.textSecondary) }
                     if center.status == .rejected {
                         if let reason = center.rejectReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(verbatim: reason) }
                         else { Text("creatorContent.noReason") }
@@ -263,7 +263,7 @@ private struct CreatorContentIssueView: View {
         }
         .cyDomainScreen(.topicEditor)
         .cyHideTabBar(true)
-        .appNavigationTitle("creatorContent.center")
+        .appNavigationTitle("creatorContent.center").navigationBarTitleDisplayMode(.inline)
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
     }
     private func metric(_ title: LocalizedStringKey, _ count: Int?) -> some View { LabeledContent { Text(verbatim: count.map(String.init) ?? "—").cyText(.numericBody).monospacedDigit() } label: { Text(title) } }

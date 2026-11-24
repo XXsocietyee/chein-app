@@ -140,7 +140,10 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
             }.accessibilityIdentifier("templateLocalCategories.open")
         }
         .sheet(item: $presented) { field in
-            NavigationStack { TemplateAuthoringMetadataSelector(model: model, reader: reader, field: field) }
+            Group {
+                NavigationStack { TemplateAuthoringMetadataSelector(model: model, reader: reader, field: field) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }
@@ -190,7 +193,7 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
                 }
             }
         }
-        .navigationTitle(LocalizedStringKey(editor.field.titleKey))
+        .navigationTitle(LocalizedStringKey(editor.field.titleKey)).navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("templateAuthor.cancel") { editor.close(); dismiss() }.accessibilityIdentifier("templateMetadata.cancel")
@@ -285,7 +288,10 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
             .accessibilityIdentifier("templateVenue.open")
         }
         .sheet(item: $presented) { presentation in
-            NavigationStack { TemplateAuthoringVenueSelector(model: model).id(presentation.id) }
+            Group {
+                NavigationStack { TemplateAuthoringVenueSelector(model: model).id(presentation.id) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }
@@ -321,7 +327,7 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
                 }
             } else { Text("templateMetadata.unavailable").accessibilityIdentifier("templateVenue.unavailable") }
         }
-        .navigationTitle("templateAuthor.field.usageLocation")
+        .navigationTitle("templateAuthor.field.usageLocation").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("templateAuthor.cancel") { editor.close(); dismiss() }.accessibilityIdentifier("templateVenue.cancel")

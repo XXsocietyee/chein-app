@@ -99,7 +99,7 @@ struct ProjectNodeBusinessHoursHostIdentity: Hashable {
             Button { if let capture { controller.open(capture) } } label: { Text("projectNodeHours.edit", tableName: "ProjectNodeBusinessHours") }
                 .disabled(capture == nil || original != nil).accessibilityIdentifier("projectNodeHours.edit")
         } header: { Text("projectNodeHours.title", tableName: "ProjectNodeBusinessHours") }
-        .sheet(item: controller.binding(original)) { original in sheet(original) }
+        .sheet(item: controller.binding(original)) { original in Group { sheet(original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
     }

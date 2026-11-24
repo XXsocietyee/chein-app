@@ -37,7 +37,10 @@ import SwiftUI
             Text("merchantKnowledge.boundary").font(.footnote).foregroundStyle(.secondary)
         }
         .sheet(isPresented: $isPresented, onDismiss: { model.cancel() }) {
-            NavigationStack { MerchantNPCKnowledgeDraftView(model: model) }
+            Group {
+                NavigationStack { MerchantNPCKnowledgeDraftView(model: model) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: document.coordinator.reader.scope) { _, _ in reset() }
         .onChange(of: document.coordinator.draftIdentity) { _, _ in reset() }

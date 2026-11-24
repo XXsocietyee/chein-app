@@ -119,7 +119,7 @@ import SwiftUI
                 Section { MerchantOperationsIssueView(issue: issue) }
             } else { ProgressView("merchant.loading") }
         }
-        .appNavigationTitle(key: MerchantOperationsDestination.npcMapPoint.titleKey)
+        .appNavigationTitle(key: MerchantOperationsDestination.npcMapPoint.titleKey).navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("merchantMapPoint.details")
         // Keep the pushed editor independent of the read snapshot cleared on disappear.
         .navigationDestination(isPresented: $showEditor) {
@@ -214,7 +214,10 @@ import SwiftUI
                 .accessibilityIdentifier("merchantMapPoint.enter")
         }
         .sheet(item: $manual, onDismiss: cancelManual) { presentation in
-            MerchantNPCMapPointManualView(model: presentation.model)
+            Group {
+                MerchantNPCMapPointManualView(model: presentation.model)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: document.coordinator.reader.scope) { _, _ in cancelManual() }
         .onChange(of: document.coordinator.draftIdentity) { _, _ in cancelManual() }

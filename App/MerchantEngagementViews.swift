@@ -26,11 +26,11 @@ import SwiftUI
                 Section { CloseW5dStateView(state: pageState, emptyTitle: "closew5d.state.empty.title", emptyMessage: "closew5d.state.empty.message") { Task { await model.load() } } }
             }
             Section {
-                if reader.isSyntheticEnabled { Text("merchant.engagement.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
-                if let name = model.access?.identity?.name { Text(name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                if let issue = model.issue { Text(LocalizedStringKey(issue)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                if let failure = state.failure { Text(LocalizedStringKey(failure.key)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("merchant.engagement.error") }
-                if state.locked { Text("merchant.business.unknownResult").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.engagement.locked") }
+                if reader.isSyntheticEnabled { Text("merchant.engagement.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                if let name = model.access?.identity?.name { Text(name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                if let issue = model.issue { Text(LocalizedStringKey(issue)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                if let failure = state.failure { Text(LocalizedStringKey(failure.key)).cyText(.meta).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("merchant.engagement.error") }
+                if state.locked { Text("merchant.business.unknownResult").cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.engagement.locked") }
                 if model.loading || state.busy { CYSkeleton(variant: .row) }
             }
             if allowed("merchant:crm:read") {
@@ -132,10 +132,16 @@ import SwiftUI
         .onChange(of: reader.scope) { _, _ in pending = nil; editor = nil; model.invalidate() }
         .onDisappear { model.cancel(); model.clearReceipt() }
         .sheet(item: $editor, onDismiss: { if let command = pending { pending = nil; Task { await model.prepare(command) } } }) { context in
-            MerchantEngagementComposer(context: context, filter: filter, segments: model.segments, coupons: model.coupons, canCoupon: allowed("merchant:coupon:manage")) { command in pending = command; editor = nil }
+            Group {
+                MerchantEngagementComposer(context: context, filter: filter, segments: model.segments, coupons: model.coupons, canCoupon: allowed("merchant:coupon:manage")) { command in pending = command; editor = nil }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .sheet(item: Binding(get: { state.review }, set: { if $0 == nil && !state.busy { model.cancel() } })) { review in
-            MerchantEngagementReviewView(review: review, enabled: reader.canExecute(review.command, merchantID: review.proof.access.merchantID ?? 0), synthetic: reader.isSyntheticEnabled, busy: state.busy, cancel: model.cancel) { Task { await model.confirm(review) } }
+            Group {
+                MerchantEngagementReviewView(review: review, enabled: reader.canExecute(review.command, merchantID: review.proof.access.merchantID ?? 0), synthetic: reader.isSyntheticEnabled, busy: state.busy, cancel: model.cancel) { Task { await model.confirm(review) } }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
     @ViewBuilder private var receiptSection: some View {

@@ -594,7 +594,7 @@ struct MerchantOnboardingIdentitySection: View {
             Text("merchant.onboarding.identity.title")
         } footer: {
             Label { Text("merchant.onboarding.identity.privacy") } icon: { Image(systemName: "lock.fill") }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .accessibilityIdentifier("merchant.onboarding.identity.privacy")
         }
@@ -653,18 +653,21 @@ struct MerchantOnboardingIdentitySection: View {
             .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.xs, bottom: 0, trailing: CYSpacing.xs))
         }
         .sheet(isPresented: $showsRule) {
-            NavigationStack {
-                SettingsLegalDocumentView(type: .privacyPolicy, market: RegionalLaunchConfiguration.market,
-                                          reader: SettingsBundledLegalReader(privacyPolicyApproved:
-                                            RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true))
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button { showsRule = false } label: { Image(systemName: "xmark") }
-                                .accessibilityLabel(Text("action.close"))
+            Group {
+                NavigationStack {
+                    SettingsLegalDocumentView(type: .privacyPolicy, market: RegionalLaunchConfiguration.market,
+                                              reader: SettingsBundledLegalReader(privacyPolicyApproved:
+                                                RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true))
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button { showsRule = false } label: { Image(systemName: "xmark") }
+                                    .accessibilityLabel(Text("action.close"))
+                            }
                         }
-                    }
+                }
+                .presentationDragIndicator(.visible)
             }
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
 
@@ -682,7 +685,7 @@ struct MerchantOnboardingIdentitySection: View {
     @ViewBuilder private func fieldError(_ key: String?, id: String) -> some View {
         if let key {
             Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.dangerText)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("merchant.onboarding.identity.error.\(id)")

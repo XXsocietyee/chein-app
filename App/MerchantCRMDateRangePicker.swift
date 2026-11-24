@@ -26,12 +26,15 @@ import SwiftUI
             editor = .init(context: context, original: .init(start: start, end: end))
         }.disabled(context == nil).accessibilityIdentifier("merchant.crmDate.open")
         .sheet(item: $editor) { captured in
-            MerchantCRMDateRangeSheet(initial: captured.original, cancel: { editor = nil }) { value in
-                guard context == captured.context, start == captured.original.start, end == captured.original.end,
-                      value.isValid else { return false }
-                if value != captured.original { apply(value) }
-                editor = nil; return true
+            Group {
+                MerchantCRMDateRangeSheet(initial: captured.original, cancel: { editor = nil }) { value in
+                    guard context == captured.context, start == captured.original.start, end == captured.original.end,
+                          value.isValid else { return false }
+                    if value != captured.original { apply(value) }
+                    editor = nil; return true
+                }
             }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
         .onChange(of: context) { _, _ in editor = nil }
         .onChange(of: start) { _, _ in editor = nil }

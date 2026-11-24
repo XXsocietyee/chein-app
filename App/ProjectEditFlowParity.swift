@@ -41,7 +41,7 @@ struct ProjectEditScheduleSpan: View {
     }
     private func column(_ title: LocalizedStringKey, _ date: Date?) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(title).cyText(.micro).textCase(.uppercase).foregroundStyle(CYColor.textTertiary)
+            Text(title).cyText(.meta).textCase(.uppercase).foregroundStyle(CYColor.textTertiary)
             Text(verbatim: date.map(format) ?? "—").cyText(.bodyMedium).monospacedDigit()
                 .foregroundStyle(date == nil ? CYColor.textTertiary : CYColor.textPrimary)
                 .lineLimit(1).minimumScaleFactor(0.7)

@@ -92,7 +92,7 @@ struct MerchantTemplateAssistPresentation: Identifiable {
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { focused = false } }
             }
         }
-        .sheet(item: $suggestionEdit) { edit in MerchantTemplateSuggestionEditSheet(document: document, flow: flow, edit: edit) }
+        .sheet(item: $suggestionEdit) { edit in Group { MerchantTemplateSuggestionEditSheet(document: document, flow: flow, edit: edit) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: document.coordinator.reader.scope) { _, _ in close() }
         .onChange(of: document.coordinator.draftIdentity) { _, _ in close() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { close() } }
