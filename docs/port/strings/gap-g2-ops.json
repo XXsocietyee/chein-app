@@ -1,59 +1,918 @@
 {
-  "gap.club.coopPool.title": { "zh-Hans": "可对接的活动", "en": "Available Coop Activities" },
-  "gap.club.coopPool.myCoop": { "zh-Hans": "我的合作", "en": "My Cooperations" },
-  "gap.club.coopPool.apply": { "zh-Hans": "申请带队", "en": "Apply to Lead" },
-  "gap.club.coopPool.submitting": { "zh-Hans": "提交中…", "en": "Submitting…" },
-  "gap.club.coopPool.viewApplication": { "zh-Hans": "查看申请", "en": "View Application" },
-  "gap.club.coopPool.empty": { "zh-Hans": "暂无开放承接的主题", "en": "No open topics available" },
-  "gap.club.director.prepOverview": { "zh-Hans": "准备总览", "en": "Preparation Overview" },
-  "gap.club.director.chapterRelease": { "zh-Hans": "章节放行", "en": "Chapter Release" },
-  "gap.club.director.teamProgress": { "zh-Hans": "队伍进度", "en": "Team Progress" },
-  "gap.club.director.roleAssignment": { "zh-Hans": "角色分配", "en": "Role Assignment" },
-  "gap.club.director.liveEvents": { "zh-Hans": "现场事件", "en": "Live Events" },
-  "gap.club.director.targetedBroadcast": { "zh-Hans": "定向广播", "en": "Targeted Broadcast" },
-  "gap.club.director.resubmit": { "zh-Hans": "修改并重新提交", "en": "Edit & Resubmit" },
-  "gap.club.director.rowTitle": { "zh-Hans": "活动导演台", "en": "Activity Director" },
-  "gap.club.director.sessionTools": { "zh-Hans": "场次工具", "en": "Session Tools" },
-  "gap.club.director.rosterAndVerify": { "zh-Hans": "名册与核销", "en": "Roster & Verification" },
-  "gap.club.director.assignLeader": { "zh-Hans": "分配领队", "en": "Assign Leader" },
-  "gap.club.director.notifyMembers": { "zh-Hans": "通知本场成员", "en": "Notify Session Members" },
-  "gap.club.apply.certTitle": { "zh-Hans": "资质 / 案例图片", "en": "Certificates & Case Images" },
-  "gap.club.groupCode.select": { "zh-Hans": "选择场次", "en": "Select Session" },
-  "gap.club.groupCode.empty": { "zh-Hans": "暂无可带队的场次", "en": "No Sessions Available" },
-  "gap.club.groupCode.invalid": { "zh-Hans": "缺少路线或场次信息", "en": "Missing Route or Session Info" },
-  "gap.club.groupCode.enterManage": { "zh-Hans": "进入俱乐部管理", "en": "Open Club Management" },
-  "gap.club.settlement.feReference": { "zh-Hans": "自由探索结算（参考）", "en": "Free-Explore Reference Settlement" },
-  "gap.club.settlement.markSettled": { "zh-Hans": "标记已结清", "en": "Mark Settled" },
-  "gap.club.settlement.rangeClear": { "zh-Hans": "清除", "en": "Clear" },
-  "gap.club.settlement.rangeExport": { "zh-Hans": "导出", "en": "Export" },
-  "gap.merchant.aiInsight.window7": { "zh-Hans": "近7天", "en": "Last 7 Days" },
-  "gap.merchant.aiInsight.window30": { "zh-Hans": "近30天", "en": "Last 30 Days" },
-  "gap.merchant.aiInsight.window90": { "zh-Hans": "近90天", "en": "Last 90 Days" },
-  "gap.merchant.aiInsight.sources": { "zh-Hans": "客源主题", "en": "Visitor Sources" },
-  "gap.merchant.aiInsight.grow": { "zh-Hans": "经营优化", "en": "Growth Tips" },
-  "gap.merchant.aiInsight.clubPool": { "zh-Hans": "俱乐部合作", "en": "Club Cooperation" },
-  "gap.merchant.aftercare.contactSupport": { "zh-Hans": "联系平台客服", "en": "Contact Platform Support" },
-  "gap.merchant.ledger.voucherPrefix": { "zh-Hans": "打款凭证", "en": "Payout Voucher" },
-  "gap.coop.supplyStations": { "zh-Hans": "核销据点", "en": "Verification Stations" },
-  "gap.coop.nearbyReplacement": { "zh-Hans": "选择补位操作", "en": "Select Replacement Action" },
-  "gap.coop.invite.emptyTopics": { "zh-Hans": "还没有可关联的主题", "en": "No Linkable Topics Yet" },
-  "gap.coop.invite.publishFirst": { "zh-Hans": "先发布主题", "en": "Publish Topic First" },
-  "gap.coop.invite.fixTerms": { "zh-Hans": "主题条款没配好？", "en": "Topic Terms Incomplete?" },
-  "gap.coop.deposit.pay": { "zh-Hans": "去缴纳保证金", "en": "Pay Deposit" },
-  "gap.account.ownComposer": { "zh-Hans": "有什么新鲜好玩的分享吗？", "en": "Anything fun to share?" },
-  "gap.account.joinDate": { "zh-Hans": "加入时间", "en": "Joined" },
-  "gap.account.initiateCoop": { "zh-Hans": "发起合作", "en": "Initiate Cooperation" },
-  "gap.publish.addPrologue": { "zh-Hans": "添加序章", "en": "Add Prologue" },
-  "gap.publish.endingChapter": { "zh-Hans": "结局章", "en": "Ending Chapter" },
-  "gap.publish.staffOpening": { "zh-Hans": "由工作人员开幕", "en": "Staff Opening" },
-  "gap.template.relaxLowHP": { "zh-Hans": "状态不好时松一点", "en": "Relax on Low HP" },
-  "gap.template.outcomes": { "zh-Hans": "可触发的结果", "en": "Triggerable Outcomes" },
-  "gap.template.scanReply": { "zh-Hans": "扫完回复", "en": "Post-Scan Reply" },
-  "gap.square.playableTemplate": { "zh-Hans": "可直接开局的模板", "en": "Ready-to-Play Template" },
-  "gap.square.viewTemplate": { "zh-Hans": "看看模板", "en": "View Template" },
-  "gap.square.tryPlay": { "zh-Hans": "试玩", "en": "Try Play" },
-  "gap.team.applicants": { "zh-Hans": "入队申请", "en": "Join Applications" },
-  "gap.team.joinCode": { "zh-Hans": "加入码", "en": "Join Code" },
-  "gap.team.buyTicket": { "zh-Hans": "去买这一场的票", "en": "Buy Ticket for This Session" },
-  "gap.team.saveInviteImage": { "zh-Hans": "保存图片", "en": "Save Image" }
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "gap.club.coopPool.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available Coop Activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可对接的活动"
+          }
+        }
+      }
+    },
+    "gap.club.coopPool.myCoop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Cooperations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的合作"
+          }
+        }
+      }
+    },
+    "gap.club.coopPool.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to Lead"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请带队"
+          }
+        }
+      }
+    },
+    "gap.club.coopPool.submitting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitting…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交中…"
+          }
+        }
+      }
+    },
+    "gap.club.coopPool.viewApplication": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看申请"
+          }
+        }
+      }
+    },
+    "gap.club.coopPool.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No open topics available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无开放承接的主题"
+          }
+        }
+      }
+    },
+    "gap.club.director.prepOverview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparation Overview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备总览"
+          }
+        }
+      }
+    },
+    "gap.club.director.chapterRelease": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter Release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "章节放行"
+          }
+        }
+      }
+    },
+    "gap.club.director.teamProgress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team Progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍进度"
+          }
+        }
+      }
+    },
+    "gap.club.director.roleAssignment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Role Assignment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色分配"
+          }
+        }
+      }
+    },
+    "gap.club.director.liveEvents": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Events"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场事件"
+          }
+        }
+      }
+    },
+    "gap.club.director.targetedBroadcast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Targeted Broadcast"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定向广播"
+          }
+        }
+      }
+    },
+    "gap.club.director.resubmit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit & Resubmit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改并重新提交"
+          }
+        }
+      }
+    },
+    "gap.club.director.rowTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity Director"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动导演台"
+          }
+        }
+      }
+    },
+    "gap.club.director.sessionTools": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session Tools"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次工具"
+          }
+        }
+      }
+    },
+    "gap.club.director.rosterAndVerify": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roster & Verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名册与核销"
+          }
+        }
+      }
+    },
+    "gap.club.director.assignLeader": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assign Leader"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分配领队"
+          }
+        }
+      }
+    },
+    "gap.club.director.notifyMembers": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notify Session Members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知本场成员"
+          }
+        }
+      }
+    },
+    "gap.club.apply.certTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificates & Case Images"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资质 / 案例图片"
+          }
+        }
+      }
+    },
+    "gap.club.groupCode.select": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择场次"
+          }
+        }
+      }
+    },
+    "gap.club.groupCode.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Sessions Available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可带队的场次"
+          }
+        }
+      }
+    },
+    "gap.club.groupCode.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missing Route or Session Info"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少路线或场次信息"
+          }
+        }
+      }
+    },
+    "gap.club.groupCode.enterManage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Club Management"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入俱乐部管理"
+          }
+        }
+      }
+    },
+    "gap.club.settlement.feReference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free-Explore Reference Settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自由探索结算（参考）"
+          }
+        }
+      }
+    },
+    "gap.club.settlement.markSettled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark Settled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记已结清"
+          }
+        }
+      }
+    },
+    "gap.club.settlement.rangeClear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除"
+          }
+        }
+      }
+    },
+    "gap.club.settlement.rangeExport": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出"
+          }
+        }
+      }
+    },
+    "gap.merchant.aiInsight.window7": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 7 Days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近7天"
+          }
+        }
+      }
+    },
+    "gap.merchant.aiInsight.window30": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 30 Days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近30天"
+          }
+        }
+      }
+    },
+    "gap.merchant.aiInsight.window90": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 90 Days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近90天"
+          }
+        }
+      }
+    },
+    "gap.merchant.aiInsight.sources": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visitor Sources"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客源主题"
+          }
+        }
+      }
+    },
+    "gap.merchant.aiInsight.grow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Growth Tips"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经营优化"
+          }
+        }
+      }
+    },
+    "gap.merchant.aiInsight.clubPool": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club Cooperation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部合作"
+          }
+        }
+      }
+    },
+    "gap.merchant.aftercare.contactSupport": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact Platform Support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系平台客服"
+          }
+        }
+      }
+    },
+    "gap.merchant.ledger.voucherPrefix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payout Voucher"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打款凭证"
+          }
+        }
+      }
+    },
+    "gap.coop.supplyStations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verification Stations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销据点"
+          }
+        }
+      }
+    },
+    "gap.coop.nearbyReplacement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Replacement Action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择补位操作"
+          }
+        }
+      }
+    },
+    "gap.coop.invite.emptyTopics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Linkable Topics Yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有可关联的主题"
+          }
+        }
+      }
+    },
+    "gap.coop.invite.publishFirst": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish Topic First"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先发布主题"
+          }
+        }
+      }
+    },
+    "gap.coop.invite.fixTerms": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic Terms Incomplete?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题条款没配好？"
+          }
+        }
+      }
+    },
+    "gap.coop.deposit.pay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay Deposit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去缴纳保证金"
+          }
+        }
+      }
+    },
+    "gap.account.ownComposer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anything fun to share?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有什么新鲜好玩的分享吗？"
+          }
+        }
+      }
+    },
+    "gap.account.joinDate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Joined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入时间"
+          }
+        }
+      }
+    },
+    "gap.account.initiateCoop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initiate Cooperation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发起合作"
+          }
+        }
+      }
+    },
+    "gap.publish.addPrologue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Prologue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加序章"
+          }
+        }
+      }
+    },
+    "gap.publish.endingChapter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ending Chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结局章"
+          }
+        }
+      }
+    },
+    "gap.publish.staffOpening": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Staff Opening"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由工作人员开幕"
+          }
+        }
+      }
+    },
+    "gap.template.relaxLowHP": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relax on Low HP"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态不好时松一点"
+          }
+        }
+      }
+    },
+    "gap.template.outcomes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Triggerable Outcomes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可触发的结果"
+          }
+        }
+      }
+    },
+    "gap.template.scanReply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post-Scan Reply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫完回复"
+          }
+        }
+      }
+    },
+    "gap.square.playableTemplate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready-to-Play Template"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可直接开局的模板"
+          }
+        }
+      }
+    },
+    "gap.square.viewTemplate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Template"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看模板"
+          }
+        }
+      }
+    },
+    "gap.square.tryPlay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try Play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试玩"
+          }
+        }
+      }
+    },
+    "gap.team.applicants": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join Applications"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入队申请"
+          }
+        }
+      }
+    },
+    "gap.team.joinCode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join Code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入码"
+          }
+        }
+      }
+    },
+    "gap.team.buyTicket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Ticket for This Session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去买这一场的票"
+          }
+        }
+      }
+    },
+    "gap.team.saveInviteImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存图片"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
 }
