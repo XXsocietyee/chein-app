@@ -268,10 +268,16 @@ import SwiftUI
                 ProjectStoryImageAuthorView(original: original, picker: model.storyImagePicker?(), apply: { storyImages.apply($0) }, close: { storyImages.close(original) })
             }
             .sheet(item: storyAudios.binding(audioPresentation)) { original in
-                ProjectStoryAudioAuthorView(original: original, picker: model.storyAudioPicker?(), apply: { storyAudios.apply($0) }, close: { storyAudios.close(original) })
+                Group {
+                    ProjectStoryAudioAuthorView(original: original, picker: model.storyAudioPicker?(), apply: { storyAudios.apply($0) }, close: { storyAudios.close(original) })
+                }
+                .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
             }
             .sheet(item: storyTemplates.binding(templateOpening)) { original in
-                ProjectStoryTemplateView(controller: storyTemplates, original: original)
+                Group {
+                    ProjectStoryTemplateView(controller: storyTemplates, original: original)
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
             .modifier(ProjectPendingNodeRemovalPresentation(controller: pendingNodeRemoval))
             .modifier(ProjectCityStoryNodeRemovalPresentation(controller: cityRemoval))

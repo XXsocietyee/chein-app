@@ -123,7 +123,7 @@ import SwiftUI
                 if flow.state == .unauthorized { Text(text("projectStoryAudio.unauthorized", "Sign in again before uploading another audio file. The unresolved attempt is retained.")) }
                 if flow.state == .uploading { CYSkeleton().accessibilityIdentifier("projectStoryAudio.uploading") }
             }
-            .navigationTitle(text("projectStoryAudio.title", "Story audio"))
+            .navigationTitle(text("projectStoryAudio.title", "Story audio")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(text("projectStoryAudio.close", "Close")) { model.close(); close() }.accessibilityIdentifier("projectStoryAudio.close")
             } }

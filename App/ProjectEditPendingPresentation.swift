@@ -56,7 +56,10 @@ import SwiftUI
         content.sheet(item: Binding<ProjectEditPendingController.Destination?>(get: {
             guard let value = controller.destination, controller.isCurrent(value) else { return nil }; return value
         }, set: { next in if next == nil, let original { controller.close(original) } })) { value in
-            NavigationStack { ProjectEditPendingDestination(model: model, controller: controller, original: value) }
+            Group {
+                NavigationStack { ProjectEditPendingDestination(model: model, controller: controller, original: value) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }
@@ -81,7 +84,7 @@ import SwiftUI
                             .merchantDraftSelection(.init(
                             model: model, node: controller.node(for: original), sourceID: "pending:\(original.id)",
                             nodeRevision: { controller.candidateRevision }, isCurrent: { controller.isCurrent(original) }))
-                    }.appNavigationTitle("projectPending.edit")
+                    }.appNavigationTitle("projectPending.edit").navigationBarTitleDisplayMode(.inline)
                         .scrollDismissesKeyboard(.interactively)
                         .toolbar { ToolbarItem(placement: .confirmationAction) {
                             Button("projectPending.saveMaterial") { controller.save(original) }.disabled(!controller.canSave(original)).accessibilityIdentifier("projectPending.save")
@@ -95,7 +98,7 @@ import SwiftUI
                             Button("projectPending.remove", role: .destructive) { controller.remove(original) }
                                 .buttonStyle(.borderless).accessibilityIdentifier("projectPending.confirmRemove")
                         }
-                    }.appNavigationTitle("projectPending.remove")
+                    }.appNavigationTitle("projectPending.remove").navigationBarTitleDisplayMode(.inline)
                 case .story(let chapterID):
                     ProjectEditChapterView(model: model, chapterID: chapterID,
                         chapterOverride: controller.storyChapter(original), chapterIsCurrent: { controller.isCurrent(original) },

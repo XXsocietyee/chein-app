@@ -27,7 +27,10 @@ import SwiftUI
             }
         }
         .sheet(item: images.binding(original)) { captured in
-            ProjectStoryImageAuthorView(original: captured, apply: { images.apply($0) }, close: { images.close(captured) })
+            Group {
+                ProjectStoryImageAuthorView(original: captured, apply: { images.apply($0) }, close: { images.close(captured) })
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onAppear { images.setAlbumHostActive(scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in images.setAlbumHostActive(phase == .active) }

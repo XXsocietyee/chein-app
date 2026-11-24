@@ -25,7 +25,10 @@ import SwiftUI
             }
         } header: { if visible { Text("projectTopicMedia.title") } }
         .sheet(item: controller.binding(original)) { captured in
-            ProjectTopicMediaSheet(controller: controller, original: captured)
+            Group {
+                ProjectTopicMediaSheet(controller: controller, original: captured)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: editor.topicMediaContext) { _, _ in controller.synchronize() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { controller.retire() } }

@@ -63,10 +63,13 @@ import SwiftUI
             }
         }
         .sheet(item: controller.binding(original)) { original in
-            ProjectDraftStoryPreviewView(controller: controller, original: original)
-                .themeDomain(.topicEditor)
-                .presentationCornerRadius(CYRadius.sheet)
-                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+            Group {
+                ProjectDraftStoryPreviewView(controller: controller, original: original)
+                    .themeDomain(.topicEditor)
+                    .presentationCornerRadius(CYRadius.sheet)
+                    .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: model.draftMutationRevision) { _, _ in controller.synchronize() }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
