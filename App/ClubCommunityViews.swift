@@ -30,6 +30,9 @@ final class ClubCommunityViewModel: ObservableObject {
     private var generation: UInt64 = 0
     private var postCursor = ClubCommunityReadCursor()
     var canLoadMorePosts: Bool { postCursor.hasMore && !loading && !busy }
+    /// A8-10-r7 (talent/list js:233-238 onReachBottom): the cross-club `scope:"all"` feed pages by `beforeId` too.
+    private var feedCursor = ClubCommunityFeedCursor()
+    var canLoadMoreFeed: Bool { feedCursor.hasMore && !loading && !busy }
     private var identity: ClubReadIdentity?
     private var pendingDraft: (ClubCommunityOperation, Int, ClubCommunityPost?, ClubReadIdentity)?
     func stageDraft(_ operation: ClubCommunityOperation, clubID: Int, post: ClubCommunityPost?) {
@@ -47,7 +50,7 @@ final class ClubCommunityViewModel: ObservableObject {
         context.coordinator?.cancel()
     }
     func invalidate() {
-        suspend(); postCursor.reset(); imageReadScope = UUID(); snapshot = nil; notice = nil; pendingRecord = nil
+        suspend(); postCursor.reset(); feedCursor.reset(); imageReadScope = UUID(); snapshot = nil; notice = nil; pendingRecord = nil
     }
     private func pendingEvidenceProbe(
         clubID: Int,
@@ -138,10 +141,22 @@ final class ClubCommunityViewModel: ObservableObject {
         guard canLoadMorePosts, postCursor.clubID == clubID, let beforeID = postCursor.beforeID else { return }
         await load(.posts(clubID: clubID, beforeID: beforeID, limit: 20))
     }
+    /// A8-10-r7: next cross-club feed page (`limit 20`, `beforeId` = last row's paging id).
+    func loadMoreFeed() async {
+        guard canLoadMoreFeed, let beforeID = feedCursor.beforeID else { return }
+        await load(.feed(limit: 20, beforeID: beforeID))
+    }
     func load(_ operation: ClubCommunityRead) async {
         generation &+= 1; let ticket = generation
-        imageReadScope = UUID(); snapshot = nil; loading = true; notice = nil
-        feedSourceReadScope = nil
+        // A next page (`beforeId` set) appends to the list on screen; only a first-page read clears it.
+        let continues: Bool = {
+            switch operation {
+            case let .posts(_, beforeID, _), let .feed(_, beforeID): return beforeID != nil
+            default: return false
+            }
+        }()
+        if !continues { imageReadScope = UUID(); snapshot = nil; feedSourceReadScope = nil }
+        loading = true; notice = nil
         let sourceScope = context.feedSourceScope()
         do {
             let session = try context.currentSession(); identity = session.identity
@@ -150,6 +165,7 @@ final class ClubCommunityViewModel: ObservableObject {
             }
             guard ticket == generation, try context.currentSession() == session else { return }
             if case .posts = operation { snapshot = try postCursor.accept(result, identity: session.identity) }
+            else if case .feed = operation { snapshot = try feedCursor.accept(result, identity: session.identity) }
             else { snapshot = result }
             if case .feed = operation, context.feedSourceScope() == sourceScope {
                 feedSourceReadScope = sourceScope
@@ -309,6 +325,13 @@ struct ClubCommunityFeedView: View {
                             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                             .accessibilityLabel(Text("club.community.loading"))
                             .onAppear { Task { await model.loadMorePosts(clubID: clubID) } }
+                    } else if clubID == nil, model.canLoadMoreFeed {
+                        // A8-10-r7: the 发现 home feed (no club) also loads the next page at the end of the list.
+                        ProgressView()
+                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityLabel(Text("club.community.loading"))
+                            .accessibilityIdentifier("club.community.feed.loadMore")
+                            .onAppear { Task { await model.loadMoreFeed() } }
                     }
                 }
                 // CLB-detail-15: pull to refresh covers a loaded feed; the button is only the retry when nothing loaded.

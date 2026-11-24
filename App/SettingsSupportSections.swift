@@ -35,7 +35,12 @@ import UIKit
             ForEach(SettingsLegalType.allCases) { type in
                 NavigationLink {
                     SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
-                } label: { Label(LocalizedStringKey(type.titleKey), systemImage: "doc.text") }
+                } label: {
+                    // MP shezhi 用户服务协议 = icon_lc_scroll-text; the other legal rows use about's icon_agreement.
+                    Label { Text(LocalizedStringKey(type.titleKey)) } icon: {
+                        AccountPublishMPGlyph(type == .userAgreement ? MPAsset.FeatureIcon.iconLcScrollText : MPAsset.FeatureIcon.iconAgreement)
+                    }
+                }
                 .accessibilityIdentifier("settingsNative.openLegal.\(type.rawValue)")
             }
         }
@@ -50,7 +55,7 @@ import UIKit
                         Text("settingsNative.about.title")
                         Text("settingsNative.about.entryHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
-                } icon: { Image(systemName: "info.circle.fill") }
+                } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcInfo) }
             }
             .accessibilityIdentifier("settingsNative.openAbout")
         }

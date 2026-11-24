@@ -128,7 +128,7 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
         if ProfileSettingsFavoritesAccess.current(session) != nil {
             Section {
                 Button { owner.open(.current(session)) } label: {
-                    Label("accountCollection.favorites.title", systemImage: "heart")
+                    Label { Text("accountCollection.favorites.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconHeart) }
                 }
                 .accessibilityHint(Text("settingsNative.favorites.openHint", tableName: "ProfileSettingsFavorites"))
                 .accessibilityIdentifier("settingsNative.openFavorites")

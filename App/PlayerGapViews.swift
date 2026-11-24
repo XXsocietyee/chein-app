@@ -408,8 +408,8 @@ struct CityFavoriteNodesSection: View {
                 if let cover = node.cover.flatMap(URL.init(string:)), cover.scheme == "https" {
                     AsyncImage(url: cover) { $0.resizable().scaledToFill() } placeholder: { CYColor.bgSurfaceSubtle }
                 } else {
-                    Image(systemName: "mappin.and.ellipse").foregroundStyle(CYColor.textTertiary)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity).background(CYColor.bgSurfaceSubtle)
+                    // MP mylike.wxml:42 cover default `/pages/mylike/images/mer1.jpg`.
+                    MPAsset.BannerCover.pagesMylikeImagesMer1.resizable().scaledToFill()
                 }
             }
             .frame(width: 56, height: 56)

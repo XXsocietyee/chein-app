@@ -9,6 +9,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
     @State private var showsSignIn = false
+    /// B-SZ-14-r7 / B-SZ-09: shezhi re-reads `POST /api/user/info` on every show; nil until that read answers.
+    @State private var freshProfile: SettingsAccountProfileAccess?
+    @State private var refreshingProfile = false
 #if DEBUG
     /// Design fixtures only: stub signed-in identity and search text injected into the real page.
     struct DesignOverride { var nickname = "Mia Chen"; var level = 7; var query = "" }
@@ -35,13 +38,27 @@ struct SettingsView: View {
             } else {
                 // B-SZ-04: the MP signed-out row starts sign-in.
                 Button { showsSignIn = true } label: {
-                    Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { Image(systemName: "person.crop.circle") }
+                    Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconQaPerson) }
                 }
                 .accessibilityIdentifier("settingsNative.profileSignedOut")
             }
             // pages/shezhi: `SettingsHomePage` phases beyond signed-in/out. Loading and error say so; an unknown
             // role or market says so instead of falling through to the player rows.
             switch homeFacts.phase {
+            case .error where homeFacts.retriesProfileOnTap:
+                // B-SZ-09: 403 on the profile read. MP row 当前身份不能查看账号信息 / 点击刷新并确认当前账号权限; a tap reads again.
+                Button { Task { await refreshProfile() } } label: {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(LocalizedStringKey(SettingsHomePage.Copy.denied)).foregroundStyle(CYColor.textPrimary)
+                            Text(LocalizedStringKey(SettingsHomePage.Copy.deniedRetry)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        }
+                    } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconQaPerson) }
+                }
+                .disabled(refreshingProfile)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .padding(.horizontal, CYSpacing.lg)
+                .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
             case .loading, .error, .unknown:
                 Label {
                     Text(LocalizedStringKey(homeFacts.copyKey), tableName: "MemberProfile")
@@ -65,9 +82,33 @@ struct SettingsView: View {
 #if DEBUG
         if designOverride != nil { return SettingsHomePage.facts(session: .signedIn(role: "player"), market: session.operationalMarket ?? .china) }
 #endif
+        // B-SZ-14-r7: the fresh read decides the role (and 403 ⇒ denied); until it answers, the session role stands in.
+        var role = session.account?.effectiveRole
+        if session.account != nil, case .ready(let profile)? = freshProfile { role = profile.role }
         return SettingsHomePage.facts(
-            session: SettingsHomePage.sessionFact(loading: !session.restorationFinished, failed: false, role: session.account?.effectiveRole),
+            session: SettingsHomePage.sessionFact(loading: !session.restorationFinished, failed: false, role: role,
+                                                  accessDenied: session.account != nil && freshProfile == .denied),
             market: session.operationalMarket)
+    }
+
+    /// Fresh club-leader flag for 成为俱乐部主理人 (B-SZ-05); false until the read answers.
+    private var isClubLeader: Bool {
+        if case .ready(let profile)? = freshProfile { return profile.isClubLeader }
+        return false
+    }
+
+    private func refreshProfile() async {
+#if DEBUG
+        if designOverride != nil { return }
+#endif
+        guard !refreshingProfile else { return }
+        refreshingProfile = true
+        let accountID = session.account?.id
+        let result = await session.refreshSettingsAccountProfile()
+        refreshingProfile = false
+        // A read that finished after a sign-out or account switch is dropped.
+        guard session.account?.id == accountID else { return }
+        freshProfile = result
     }
 
     private var language: Binding<AppLanguage> {
@@ -84,7 +125,8 @@ struct SettingsView: View {
             Form {
                 // Mini-program pages/shezhi order: 个人资料, 成为俱乐部主理人/成为商家, 城瘾玩法, 我的收藏.
                 accountHeader
-                SettingsIdentityApplicationEntries(session: session).environment(\.settingsTileTint, SettingsTint.orange)
+                SettingsIdentityApplicationEntries(session: session, isClubLeader: isClubLeader,
+                                                   roleOverride: homeFacts.phase == .ready ? homeFacts.roleText : nil).environment(\.settingsTileTint, SettingsTint.orange)
                 AccountRoleSections(gatesCreatorByCapability: true).environment(\.settingsTileTint, SettingsTint.orange)
                 Section {
                     NavigationLink {
@@ -92,7 +134,7 @@ struct SettingsView: View {
                             makeArticleReader: { session.makeProfileGuideArticleReader($0) },
                             onOpenDestination: onOpenGuideDestination, templateReader: session)
                             .id(session.socialAccountReader.identity)
-                    } label: { Label("social.guide.title", systemImage: "questionmark.circle") }
+                    } label: { Label { Text("social.guide.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcCompass) } }
                         .accessibilityIdentifier("settings.playGuide")
                 }
                 .environment(\.settingsTileTint, SettingsTint.teal)
@@ -168,6 +210,8 @@ struct SettingsView: View {
 #endif
         }
         .onDisappear { profileOwner.retire() }
+        // B-SZ-14-r7: MP onShow refetch; also when the signed-in account changes.
+        .task(id: session.account?.id) { freshProfile = nil; await refreshProfile() }
         .themeDomain(.player)
         .modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))
         // Explicitly update sheets as well as the app root when preference changes.
@@ -324,7 +368,7 @@ private struct SettingsSearchResults: View {
         if bindings.journeyPromo != nil, !bindings.isMerchant {
             Section {
                 NavigationLink { MPParityDestination(route: .journeyPromo) } label: {
-                    Label("mp.account.promo", systemImage: "person.2.wave.2")
+                    Label { Text("mp.account.promo") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcGift) }
                 }
                 .accessibilityIdentifier("settings.invitePromo")
             }

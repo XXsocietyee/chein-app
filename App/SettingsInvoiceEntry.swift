@@ -11,7 +11,7 @@ import SwiftUI
                     InvoiceLaunchSessionHistory(session: session, model: invoice)
                 } label: {
                     Label { invoiceText("history") } icon: {
-                        Image(systemName: "doc.text").accessibilityHidden(true)
+                        AccountPublishMPGlyph(MPAsset.FeatureIcon.iconAgreement)
                     }
                 }
                 .accessibilityIdentifier("settings.invoices")

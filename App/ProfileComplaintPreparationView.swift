@@ -16,7 +16,7 @@ import SwiftUI
                 isCurrent: { session.sessionRevision == revision && session.cooperationFlowReader.session == owner },
                 submitter: Self.submitterFactory?(session))
                 .id(revision)
-        } label: { Label("profile.complaint.title", systemImage: "text.bubble") }
+        } label: { Label { Text("profile.complaint.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcMegaphone) } }
             .accessibilityIdentifier("profile.complaint.open")
     }
 }

@@ -25,11 +25,16 @@ struct NPCChatDataReadPresentation: Identifiable {
         let renderedIdentity = session.npcChatDataReadIdentity
         Section {
             // Mini-program settings row 「AI 对话记录」 (OFF-AI-DEL-01): option sheet -> view, export (copy) and delete.
-            Button("mpd.aiChat.title") {
+            Button {
                 guard scene == .active, session.npcChatDataReadIdentity == renderedIdentity else { return }
                 pendingIdentity = renderedIdentity
                 showsOptions = true
-            }.accessibilityIdentifier("npcData.open")
+            } label: {
+                // MP shezhi AI 对话记录 = icon_lc_message-square-text.
+                Label { Text("mpd.aiChat.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcMessageSquareText) }
+            }
+            .foregroundStyle(CYColor.textPrimary)
+            .accessibilityIdentifier("npcData.open")
         }
         .sheet(isPresented: $showsOptions) {
             MemberAIChatRecordsOptionSheet(onSelect: { option in

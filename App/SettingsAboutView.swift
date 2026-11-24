@@ -22,15 +22,11 @@ import UIKit
         Form {
             Section {
                 VStack(spacing: CYSpacing.md) {
-                    Image(uiImage: UIImage(named: "SettingsBrandMark") ?? UIImage())
+                    // MP about: `/images/cy_logo_mark.png`, aspectFit, no backdrop.
+                    MPAsset.BrandLogo.cyLogoMark
                         .resizable()
                         .scaledToFit()
-                        .padding(CYSpacing.lg)
                         .frame(width: 112, height: 112)
-                        .background {
-                            CYCoverArt(seed: "about-brand", symbol: "mappin", showsDebugLabel: false, showsGlyph: false)
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
-                        }
                         .accessibilityHidden(true)
                     appName
                     Text("settingsNative.about.tagline")
@@ -67,7 +63,7 @@ import UIKit
                                     Text("settingsNative.about.agreementHint").cyText(.meta).foregroundStyle(palette.textTertiary)
                                 }
                             }
-                        } icon: { Image(systemName: type == .privacyPolicy ? "hand.raised.fill" : "doc.text.fill") }
+                        } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconAgreement) } // MP about: icon_agreement on both
                             .environment(\.settingsTileTint, type == .privacyPolicy ? SettingsTint.blue : SettingsTint.gray)
                     }
                     .accessibilityIdentifier("settingsNative.about.openLegal.\(type.rawValue)")
@@ -78,6 +74,8 @@ import UIKit
                 // B-AB-05: the MP about page has no footer bar; copying the number is the contact row's own action.
                 Section {
                     HStack(spacing: CYSpacing.md) {
+                        AccountPublishMPGlyph(MPAsset.FeatureIcon.iconHeadset) // MP about 联系我们 = icon_headset
+                            .foregroundStyle(palette.textSecondary)
                         Text(verbatim: phone)
                             .cyText(.numericBody)
                             .foregroundStyle(palette.textPrimary)
@@ -105,7 +103,7 @@ import UIKit
                 // B-AB-03: the MP always offers 联系我们; without a phone the support contact page is the way in.
                 Section {
                     NavigationLink { WithdrawalSupportContactView() } label: {
-                        Label("settingsNative.about.contact", systemImage: "bubble.left.and.bubble.right")
+                        Label { Text("settingsNative.about.contact") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconHeadset) }
                     }
                     .accessibilityIdentifier("settingsNative.about.contactFallback")
                 }

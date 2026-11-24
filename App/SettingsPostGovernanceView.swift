@@ -11,7 +11,7 @@ import SwiftUI
         if let coordinator = session.squareGovernance() {
             Section {
                 Button { presented = true } label: {
-                    Label("mpd.postGov.title", systemImage: "exclamationmark.shield")
+                    Label { Text("mpd.postGov.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcShieldAlert) }
                 }
                 .accessibilityIdentifier("settings-post-governance")
             }
