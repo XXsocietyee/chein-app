@@ -45,7 +45,8 @@ import SwiftUI
     var body: some View {
         Form {
             InvoiceLaunchStateSection(model: model, sessionTitle: "u9cde.invoice.login.titles", onSignIn: onSignIn, loadFailedKey: "titlesLoadFailed")
-            if saveLocked {
+            if saveLocked, !model.unresolved {
+                // R7-MEM-14-1: shown only when the shared state section is not already stating it.
                 // Source 保存结果未确认 · 确认前请勿重复保存. The request number is never shown (FIN-15-2).
                 Section {
                     invoiceText("write.save.unknown").cyText(.bodyMedium)

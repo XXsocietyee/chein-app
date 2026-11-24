@@ -306,10 +306,13 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
             Section {
                 // Source cy-inline-error: 上次的开票申请结果未确认 · 确认前请勿重复提交 · 查询结果,
                 // and after a miss 暂未查到这次申请 · 请稍后再查，或联系客服 · 再查一次 (FIN-11-4, FIN-11-6).
+                // R7-MEM-14-1: an unconfirmed title save reads 上次保存结果未确认 · 确认前请勿修改抬头 (MP invoice-titles).
+                let savingTitle = model.overview?.pending?.kind == .saveTitle
+                let key = model.recheckMissed ? "notFound" : (savingTitle ? "titleSave.unknown" : "unknown")
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Label { invoiceText(model.recheckMissed ? "notFound" : "unknown") } icon: { Image(systemName: "clock.badge.questionmark") }
+                    Label { invoiceText(key) } icon: { Image(systemName: "clock.badge.questionmark") }
                         .cyText(.bodyMedium)
-                    invoiceText(model.recheckMissed ? "notFound.sub" : "unknown.sub")
+                    invoiceText(key + ".sub")
                         .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityElement(children: .combine).accessibilityIdentifier("invoice.pending")
