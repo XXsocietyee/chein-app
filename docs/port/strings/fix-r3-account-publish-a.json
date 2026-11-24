@@ -84,6 +84,23 @@
       }
     }
   },
+  "participant.form.required": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Required"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "必填"
+        }
+      }
+    }
+  },
   "participant.form.save": {
     "extractionState": "manual",
     "localizations": {
@@ -97,6 +114,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "保存参与人信息"
+        }
+      }
+    }
+  },
+  "participant.form.savedToast": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Participant information saved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "参与人信息已保存"
         }
       }
     }
