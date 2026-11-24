@@ -391,7 +391,7 @@ import SwiftUI
         case "subpackageMember/mycanyu/mycanyu":
             SessionPlayerJourneyView(destination: .participations).environmentObject(session)
         case "subpackageMember/myinvite/myinvite":
-            SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator)
+            SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, onSignIn: openSignIn)
         case "subpackageMember/report-mine/index":
             SquareReportProgressView(session: session)
         case "subpackageMember/appeal-mine/index":
@@ -432,7 +432,9 @@ import SwiftUI
         case "subpackageMember/tixian/tixian":
             WithdrawalSupportLandingView(reader: session.walletHistoryReader)
         case "subpackageMember/tixianjilu/tixianjilu", "pages/coop/withdraw/records/index":
-            WithdrawalHistoryView(reader: session.walletHistoryReader)
+            WithdrawalHistoryView(reader: session.walletHistoryReader,
+                                  domain: page == "pages/coop/withdraw/records/index" ? .merchant : .player,
+                                  onSignIn: openSignIn)
         case "pages/coop/withdraw/index":
             CoopWithdrawNoticeView(isSignedIn: session.account != nil)
         case "pages/userinfo/userinfo":

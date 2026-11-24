@@ -15,6 +15,52 @@ struct ProfileInviteHistoryIssueView: View {
     }
 }
 
+/// FIN-20-4: the full-page failure used while no row is loaded (MP cy-error fill, size lg).
+struct ProfileInviteHistoryPageIssueView: View {
+    let error: Error
+    var onSignIn: (() -> Void)? = nil
+    var retry: (() -> Void)? = nil
+    var body: some View {
+        let kind = ProfileInviteHistoryIssueKind(error)
+        let action: (() -> Void)? = kind == .signIn ? onSignIn : (kind.canRetry ? retry : nil)
+        CYEmptyState(systemImage: kind == .signIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle",
+                     LocalizedStringKey(kind.titleKey),
+                     detail: kind.detailKey.map { LocalizedStringKey($0) },
+                     messageIdentifier: "profile.inviteHistory.issue",
+                     actionTitle: action == nil ? nil : (kind == .signIn ? "auth.signIn" : "action.retry"),
+                     actionIdentifier: action == nil ? nil : "profile.inviteHistory.issue.action",
+                     kind: .failure,
+                     action: action)
+    }
+}
+
+/// R7-MEM-20-1: MP `ir-earn`: +N 积分, nickname · 首购奖励已到账, time. Static (no scan animation).
+struct ProfileInviteLatestEarnCard: View {
+    let member: SocialInvitedMember
+    let reward: SocialInviteReward
+    var body: some View {
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            CYAvatarView(url: member.avatar.flatMap { URL(string: $0) }, name: member.nickname ?? "—", size: .lg)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text("u9cde.invite.points \(NSDecimalNumber(decimal: reward.points).stringValue)")
+                    .cyText(.cardTitle).monospacedDigit().foregroundStyle(CYColor.brand)
+                HStack(spacing: 0) {
+                    if let nickname = member.nickname, !nickname.isEmpty { Text(verbatim: nickname + " · ") }
+                    Text("social.invites.earned")
+                }
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+            }
+            Spacer(minLength: CYSpacing.sm)
+            if let time = reward.createdAt, !time.isEmpty {
+                Text(verbatim: WalletPointsShortTime.text(time)).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+            }
+        }
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("profile.inviteHistory.latestEarn")
+    }
+}
+
 /// Source empty state: 还没有人接受你的邀请 with its hint.
 struct ProfileInviteHistoryEmptyView: View {
     var body: some View {

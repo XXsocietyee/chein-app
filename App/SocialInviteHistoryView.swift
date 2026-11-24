@@ -4,6 +4,8 @@ import SwiftUI
     let reader: any SocialAccountReading
     let squareReader: any SquareReading
     var actions: SocialActionCoordinator? = nil
+    /// FIN-20-4: MP 登录 on the signed-out state. Nil keeps the state without a button.
+    var onSignIn: (() -> Void)? = nil
     @StateObject private var model = SocialInviteHistoryModel()
     @Environment(\.cyPalette) private var palette
     private var groups: [(String, [SocialInvitedMember])] {
@@ -14,20 +16,25 @@ import SwiftUI
         let permit = model.permit(reader)
         List {
             if reader.isOfflineExample { CYStatusChip("social.offline", tone: .neutral, systemImage: "wifi.slash") }
-            if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
+            // FIN-20-4: with no rows the MP shows a full-page cy-error (登录 / 当前身份不能查看 / 加载失败 + 重试).
+            if reader.identity.accountID == nil { ProfileInviteHistoryPageIssueView(error: APIError.unauthorized, onSignIn: onSignIn) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else if !model.matches(reader) { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
             else if model.accessDenied, let error = model.error {
-                ProfileInviteHistoryIssueView(error: error)
+                ProfileInviteHistoryPageIssueView(error: error, onSignIn: onSignIn)
+            }
+            else if let error = model.error, model.pagination.members.isEmpty {
+                ProfileInviteHistoryPageIssueView(error: error, onSignIn: onSignIn) { model.start(reader, permit: permit, reset: true) }
             }
             else {
-                if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
                 // FIN-20-2: one hero (首购奖励积分 / 已邀请 N 人 · 已到账 M 人); no duplicate 累计邀请 row.
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), total: model.pagination.total,
                                                  coverageIncomplete: ProfileInviteHistoryPageReady.rewardCoverage(model.scan) != .complete,
                                                  isLoading: model.loading) {
                     model.start(reader, permit: permit, reset: true)
                 }
+                // R7-MEM-20-1: the latest real first-purchase reward (MP ir-earn), without the scan animation.
+                if let latest = latestEarn { ProfileInviteLatestEarnCard(member: latest.0, reward: latest.1) }
                 ForEach(groups, id: \.0) { group in
                     Section {
                         ForEach(group.1) { member in
@@ -46,6 +53,8 @@ import SwiftUI
                 }
                 if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
                 if model.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
+                // A next-page failure keeps the rows and shows the inline retry at the bottom.
+                if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: false) } }
                 if model.pagination.continuationInvalid { CYStatusChip("social.invites.continuationInvalid", tone: .danger, systemImage: "exclamationmark.triangle") }
                 if model.pagination.hasMore && !model.loading && model.error == nil {
                     CYPillButton("wallet.loadMore", style: .secondary) { model.start(reader, permit: permit, reset: false) }.accessibilityIdentifier("social.invites.more")
@@ -60,10 +69,15 @@ import SwiftUI
             .onDisappear { model.suspend() }
             .accessibilityIdentifier("social.invites")
     }
+    private var latestEarn: (SocialInvitedMember, SocialInviteReward)? {
+        guard let rewards = model.scan?.rewards, !rewards.isEmpty else { return nil }
+        let earned = model.pagination.members.compactMap { member in rewards[String(member.id)].map { (member, $0) } }
+        return earned.max { ($0.1.createdAt ?? "") < ($1.1.createdAt ?? "") }
+    }
     private func memberRow(_ member: SocialInvitedMember) -> some View {
         // Source myinvite row: initial avatar, name over the timeline line, reward chip on the right.
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            CYAvatarView(name: member.nickname ?? "—", size: .md)
+            CYAvatarView(url: member.avatar.flatMap { URL(string: $0) }, name: member.nickname ?? "—", size: .md)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let nickname = member.nickname { Text(verbatim: nickname).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
                 else { Text("profile.inviteHistory.nicknameUnknown").cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }

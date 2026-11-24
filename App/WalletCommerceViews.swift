@@ -434,11 +434,27 @@ enum WalletPayoutCapability {
 }
 @MainActor private final class WalletPagerScreen: ObservableObject {
     @Published var revision = 0
-    let pager = WalletLedgerPager()
+    private(set) var pager = WalletLedgerPager()
     func reset() { pager.reset(); revision += 1 }
     func cancel() { pager.cancel(); revision += 1 }
     func load(_ reader: WalletCommerceReader, kind: WalletLedgerKind) async {
         revision += 1; await pager.load(reader: reader, kind: kind); revision += 1
+    }
+    /// FIN-18-2: MP points-history load(fromPull) reads into a fresh page and swaps it in on success. A retryable
+    /// failure over loaded rows keeps them and returns false (the page toasts 刷新失败，稍后再试); a sign-in or
+    /// availability failure still retires the rows, as the pager does.
+    func refresh(_ reader: WalletCommerceReader, kind: WalletLedgerKind) async -> Bool {
+        guard pager.hasLoadedPage, !pager.rows.isEmpty else { reset(); await load(reader, kind: kind); return true }
+        let fresh = WalletLedgerPager()
+        revision += 1
+        await fresh.load(reader: reader, kind: kind)
+        if Task.isCancelled { return true }
+        if fresh.hasLoadedPage && !fresh.failed || fresh.requiresLogin || fresh.unavailable {
+            pager.cancel(); pager = fresh; revision += 1
+            return true
+        }
+        revision += 1
+        return !fresh.failed
     }
 }
 /// Continuity r1 (10): true when the ledger was pushed with a zoom out of a balance card, so the balance header arrives
@@ -470,7 +486,13 @@ extension EnvironmentValues {
     @StateObject private var model = WalletPagerScreen()
     @State private var direction = "all"
     @State private var incomeDetail: WalletIncomeDetailSelection?
+    /// FIN-18-8: MP points-history reveals the full list 20 rows at a time (rows.js PAGE_SIZE).
+    @State private var shownCount = WalletLedgerView.pointsPageSize
+    @State private var refreshToast: LocalizedStringKey?
+    static let pointsPageSize = 20
     private var points: Bool { kind == .points || kind == .assetPoints }
+    private var shownRows: [WalletLedgerRow] { points ? Array(filtered.prefix(shownCount)) : filtered }
+    private var hasLocalMore: Bool { points && shownCount < filtered.count }
     private var income: Bool { if case .income = kind { return true }; return false }
     private var filtered: [WalletLedgerRow] {
         model.pager.rows.filter { row in
@@ -501,7 +523,7 @@ extension EnvironmentValues {
                     }
                 }
                 if points || kind == .balance {
-                    ForEach(WalletPointsMonthGroup.group(filtered)) { group in
+                    ForEach(WalletPointsMonthGroup.group(shownRows)) { group in
                         Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
                             .cyText(.caption, weight: .semibold)
                             .foregroundStyle(CYColor.textSecondary)
@@ -518,7 +540,8 @@ extension EnvironmentValues {
                         ForEach(group.rows) { row in ledgerRowButton(row) }
                     }
                 }
-                if points && !filtered.isEmpty && !model.pager.hasMore && !model.pager.isLoading && !model.pager.failed {
+                // FIN-18-8: 已经到底了 only once the list was paged (more than one page of 20), as MP `paged`.
+                if points && filtered.count > Self.pointsPageSize && !hasLocalMore && !model.pager.hasMore && !model.pager.isLoading && !model.pager.failed {
                     Text("wallet.points.endOfList").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("wallet.ledger.endOfList")
                 }
@@ -536,6 +559,10 @@ extension EnvironmentValues {
                 if income { CYSkeleton().accessibilityLabel(Text("wallet.loading")) }
                 else { CYSkeleton() }
             }
+            else if hasLocalMore && model.pager.hasLoadedPage && reader.isConfigured && reader.scope != nil {
+                Button("wallet.loadMore") { shownCount += Self.pointsPageSize }.frame(minHeight: 44)
+                    .accessibilityIdentifier("wallet.ledger.loadMore")
+            }
             else if model.pager.hasLoadedPage && model.pager.hasMore && !model.pager.failed && reader.isConfigured && reader.scope != nil {
                 Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
                     .accessibilityIdentifier("wallet.ledger.loadMore")
@@ -551,9 +578,14 @@ extension EnvironmentValues {
             .cyHideTabBar()
             .task(id: reader.scope) { model.reset(); await model.load(reader, kind: kind) }
             .onDisappear { if incomeDetail == nil { model.cancel() } }
-            .refreshable { incomeDetail = nil; model.reset(); await model.load(reader, kind: kind) }
-            .onChange(of: reader.scope) { _, _ in incomeDetail = nil }
-            .onChange(of: direction) { _, _ in incomeDetail = nil }
+            .refreshable {
+                incomeDetail = nil
+                if await model.refresh(reader, kind: kind) { shownCount = Self.pointsPageSize }
+                else { refreshToast = "profile.refreshFailed" }
+            }
+            .cyToast(message: $refreshToast, tone: .warning)
+            .onChange(of: reader.scope) { _, _ in incomeDetail = nil; shownCount = Self.pointsPageSize }
+            .onChange(of: direction) { _, _ in incomeDetail = nil; shownCount = Self.pointsPageSize }
             .onChange(of: scenePhase) { _, phase in if phase != .active { incomeDetail = nil } }
             .appSwitcherPrivacyShield()
             .sheet(item: $incomeDetail) { selection in
@@ -665,7 +697,11 @@ extension EnvironmentValues {
                 }
                 if income { Text(LocalizedStringKey(row.incomeEventKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
-                else if let date = row.createTime { Text(verbatim: date).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                else if let date = row.createTime {
+                    // FIN-18-6: MP rows.js shortTimeText (10月27日 10:30); the month is already the group title.
+                    Text(verbatim: points ? WalletPointsShortTime.text(date, isEnglish: locale.language.languageCode?.identifier == "en") : date)
+                        .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                }
                 if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
             }
             Spacer(minLength: 8)
@@ -676,7 +712,8 @@ extension EnvironmentValues {
                     else if !points { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
                 .cyText(.bodyMedium).monospacedDigit()
-                .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
+                // FIN-18-8: MP `.is-income` uses the brand colour on 积分明细.
+                .foregroundStyle(isIn ? (points ? CYColor.brand : CYColor.successText) : CYColor.textPrimary)
                 if !points, let balance = row.afterBalance {
                     Text(verbatim: format.amount(balance, currency: row.currency)).cyText(.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit()
                 }
@@ -1143,5 +1180,19 @@ private struct WalletEarningsHero: View {
         .padding(.vertical, CYSpacing.lg)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// FIN-18-6: MP points-history rows.js `shortTimeText`: `YYYY-MM-DD HH:MM…` → `M月D日 HH:MM`; anything else verbatim.
+enum WalletPointsShortTime {
+    static func text(_ value: String, isEnglish: Bool = false) -> String {
+        let text = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let chars = Array(text)
+        guard chars.count >= 16, chars[4] == "-", chars[7] == "-", chars[10] == " " || chars[10] == "T", chars[13] == ":",
+              let month = Int(String(chars[5...6])), let day = Int(String(chars[8...9])),
+              (1...12).contains(month), (1...31).contains(day),
+              chars[11...12].allSatisfy(\.isNumber), chars[14...15].allSatisfy(\.isNumber) else { return text }
+        let time = String(chars[11...15])
+        return isEnglish ? "\(month)/\(day) \(time)" : "\(month)月\(day)日 \(time)"
     }
 }
