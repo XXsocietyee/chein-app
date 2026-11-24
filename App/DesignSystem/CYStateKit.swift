@@ -174,38 +174,58 @@ struct CYStateLayout: View {
     @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        VStack(spacing: CYSpacing.md) {
-            CYStateArt(kind: kind, size: artSize)
-                .padding(.bottom, CYSpacing.xs)
-            title
-                .cyText(.sectionTitle)
-                .foregroundStyle(palette.textPrimary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-            if let detail {
-                detail
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(palette.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
+        // Native iOS restyle r1: the system `ContentUnavailableView` (title, one sentence, one action).
+        ContentUnavailableView {
+            Label {
+                title
+            } icon: {
+                Image(systemName: kind.symbol)
+                    .foregroundStyle(palette.textTertiary)
             }
-            if let primary {
-                CYPillButton(primary.title, style: primaryStyle, fullWidth: false, action: primary.action)
-                    .padding(.top, CYSpacing.sm)
-                    .ifLet(primaryIdentifier) { $0.accessibilityIdentifier($1) }
-            } else if let primaryVerbatim {
-                CYPillButton(verbatim: primaryVerbatim.title, style: primaryStyle, fullWidth: false, action: primaryVerbatim.action)
-                    .padding(.top, CYSpacing.sm)
-                    .ifLet(primaryIdentifier) { $0.accessibilityIdentifier($1) }
-            }
-            if let secondaryVerbatim {
-                CYPillButton(verbatim: secondaryVerbatim.title, style: .tertiary, fullWidth: false, action: secondaryVerbatim.action)
-            }
+        } description: {
+            if let detail { detail }
+        } actions: {
+            actions
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.xxl)
-        .padding(.horizontal, CYSpacing.xxl)
         .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder private var actions: some View {
+        if let primary {
+            CYStateActionButton(style: primaryStyle, action: primary.action) { Text(primary.title) }
+                .ifLet(primaryIdentifier) { $0.accessibilityIdentifier($1) }
+        } else if let primaryVerbatim {
+            CYStateActionButton(style: primaryStyle, action: primaryVerbatim.action) { Text(verbatim: primaryVerbatim.title) }
+                .ifLet(primaryIdentifier) { $0.accessibilityIdentifier($1) }
+        }
+        if let secondaryVerbatim {
+            CYStateActionButton(style: .tertiary, action: secondaryVerbatim.action) { Text(verbatim: secondaryVerbatim.title) }
+        }
+    }
+}
+
+/// System button for state actions: `.borderedProminent` for the screen's one primary, `.bordered` for a retry or
+/// secondary, borderless for a quiet link. 44 pt minimum target.
+struct CYStateActionButton<ButtonLabel: View>: View {
+    let style: CYPillStyle
+    let action: () -> Void
+    @ViewBuilder let label: () -> ButtonLabel
+
+    var body: some View {
+        switch style {
+        case .primary:
+            Button(action: action, label: label)
+                .buttonStyle(.borderedProminent)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+        case .secondary:
+            Button(action: action, label: label)
+                .buttonStyle(.bordered)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+        case .tertiary:
+            Button(action: action, label: label)
+                .buttonStyle(.borderless)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+        }
     }
 }
 
