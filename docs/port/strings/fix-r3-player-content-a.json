@@ -137,6 +137,40 @@
         }
       }
     },
+    "play.prep.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start playing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始游玩"
+          }
+        }
+      }
+    },
+    "play.prep.startHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tick every prep item to start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勾完全部准备项后才能开始"
+          }
+        }
+      }
+    },
     "searchMap.categoryFailed.mp": {
       "extractionState": "manual",
       "localizations": {
@@ -252,6 +286,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "收藏没有成功，请稍后再试"
+          }
+        }
+      }
+    },
+    "topic.source.sessionNote.mp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free order within a session, no guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次内自由顺序，不带队"
           }
         }
       }

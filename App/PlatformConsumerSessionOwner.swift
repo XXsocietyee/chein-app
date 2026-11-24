@@ -56,6 +56,9 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     })
                     .id(session.contentDetailRevision)
                     .modifier(TopicFavoriteInjection(session: session))
+                    .environment(\.topicLineupClubDestination, { clubID in
+                        AnyView(MPReviewedPageScreen(page: "pages/club/detail/index", query: ["id": String(clubID)]).environmentObject(session))
+                    })
                     // PC-B-4-3 / PC-B-1-3 (X1): every entry gets the owner pricing page and the play runtime client,
                     // not only the topic browser sheet (SessionTopicBrowserView).
                     .environment(\.topicPricingDestination, session.publisherLifecycleContext.map { context -> (Int) -> AnyView in
