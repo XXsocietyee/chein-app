@@ -108,3 +108,22 @@ enum ClubMoneyText {
 enum ClubHostApplyFieldCopy {
     static let required: Set<String> = ["leaderName", "phone"]
 }
+
+/// CLB-roles-02 (MP roles js:196-200, CU-C-57): a session-scoped role page names the session as 「活动名 · 开始时间」,
+/// or 未命名 when the entry did not say, never the id. Set by the event tools and the MP `activityLabel` query.
+private struct ClubRoleActivityLabelKey: EnvironmentKey {
+    static let defaultValue: String? = nil
+}
+extension EnvironmentValues {
+    var clubRoleActivityLabel: String? {
+        get { self[ClubRoleActivityLabelKey.self] }
+        set { self[ClubRoleActivityLabelKey.self] = newValue }
+    }
+}
+enum ClubRoleActivityLabel {
+    /// MP `entryLabel`: trimmed, empty → nil, capped so a crafted link cannot flood the header.
+    static func entry(_ raw: String?) -> String? {
+        guard let text = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+        return String(text.prefix(60))
+    }
+}

@@ -97,6 +97,7 @@ import SwiftUI
     var applySelection: (String, String) -> Void = { _, _ in }
     private enum Expanded: Equatable { case member, role }
     @State private var expanded: Expanded?
+    @Environment(\.clubRoleActivityLabel) private var activityLabel
     private var context: ClubGovernanceReadContext { ClubRoleAssignmentReadModel.context(scope: scope, identity: identity, access: access) }
     var body: some View {
         let expected = context
@@ -105,6 +106,13 @@ import SwiftUI
             // CLB-roles-02: name the scope, never the activity id (MC-044).
             if scope.activityID != nil {
                 Text("club.rolePicker.eventScopeOnly").cyText(.bodyCompact).accessibilityIdentifier("club.rolePicker.eventScope")
+                // CLB-roles-02: the session by its label (MP activitySubtitle), 未命名 when the entry did not carry one.
+                Group {
+                    if let activityLabel { Text(verbatim: activityLabel) } else { Text("club.rolePicker.untitledSession") }
+                }
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("club.rolePicker.eventLabel")
             } else { Text("club.rolePicker.clubScope").cyText(.bodyCompact) }
             if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.rolePicker.loading") }
             if permit != nil, let failure = model.failure {

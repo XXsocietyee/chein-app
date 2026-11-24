@@ -301,7 +301,9 @@ import SwiftUI
             case .failure: unavailable
             }
         case "pages/club/roles/index":
+            // CLB-roles-02: the event tools put 「活动名 · 开始时间」 in `activityLabel`; the picker shows it (or 未命名).
             clubRead(.roles, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
+                .environment(\.clubRoleActivityLabel, ClubRoleActivityLabel.entry(query["activityLabel"]))
         case "pages/topic/index/index":
             if let id = reviewedID(query) { SessionTopicDetailView(id: id, session: session) } else { unavailable }
         case "pages/templatedetail/templatedetail":
