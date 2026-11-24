@@ -79,9 +79,16 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         // receipt) has no by-number read, so it lands on 我的订单.
         pages["subpackageMember/order/order"] = Rule(allowed: ["detailId"], required: [], ids: ["detailId"])
         pages["subpackageMember/orderinfo/orderinfo"] = Rule(allowed: ["id", "outTradeNo"], required: [], ids: ["id"])
-        pages["pages/coop/list/index"] = Rule(allowed: ["tab"], required: [], ids: [])
+        pages["pages/coop/list/index"] = Rule(allowed: ["tab", "topicId", "topicName", "scope"], required: [], ids: ["topicId"])
         pages["subpackageA/pages/myproject/index"] = open
-        pages["pages/merchant/ledger/index"] = open
+        pages["pages/merchant/ledger/index"] = Rule(allowed: ["view", "topicId", "ownerType", "ownerId", "source", "tab"], required: [], ids: ["topicId", "ownerType", "ownerId"])
+        pages["pages/merchant/ledger/order-detail/index"] = Rule(allowed: ["recordType", "recordId"], required: [], ids: ["recordId"])
+        pages["pages/merchant/profile/index"] = Rule(allowed: ["id", "poiId", "topicId", "topicName"], required: [], ids: ["id", "poiId", "topicId"])
+        pages["pages/merchant/team/index"] = Rule(allowed: ["invite"], required: [], ids: [])
+        pages["pages/coop/invite/index"] = Rule(allowed: ["type", "toId", "topicId"], required: [], ids: ["toId", "topicId"])
+        pages["pages/coop/invite-detail/index"] = Rule(allowed: ["inviteId", "box"], required: [], ids: ["inviteId"])
+        pages["pages/coop/nearby/index"] = Rule(allowed: ["topicId", "topicName"], required: [], ids: ["topicId"])
+        pages["pages/coop/settlement-detail/index"] = Rule(allowed: ["source", "id", "topicId", "clubId", "personal"], required: [], ids: ["id", "topicId", "clubId"])
         // Play / roam pages whose MP onLoad reads a query (fix-parity play-roam: PLAY-10, PLAYC-1, RSESS-1, RSTAMP-1).
         pages["pages/play/index"] = Rule(allowed: ["topicId", "activityId", "registrationId", "regId", "topicName", "inviteCode"],
                                          required: [], ids: ["topicId", "activityId", "registrationId", "regId"])
@@ -143,13 +150,11 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/club/create/index",
         "pages/merchant/index/index",
         "pages/merchant/apply/index",
-        "pages/merchant/ledger/index",
         "pages/merchant/ledger/order-detail/index",
         "pages/merchant/ledger/batch-detail/index",
         "pages/merchant/aftercare/index",
         "pages/merchant/predict/index",
         "pages/merchant/aftercare/detail/index",
-        "pages/merchant/profile/index",
         "pages/merchant/marketing/index",
         "pages/merchant/reviews/index",
         "pages/merchant/marketing/ai-insight/index",
@@ -166,13 +171,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/merchant/game-node/index",
         "pages/merchant/verify-records/index",
         "pages/merchant/crm-campaigns/index",
-        "pages/merchant/team/index",
-        "pages/coop/list/index",
-        "pages/coop/invite-detail/index",
         "pages/coop/invite/index",
-        "pages/coop/nearby/index",
         "pages/coop/finance/index",
-        "pages/coop/settlement-detail/index",
         "pages/coop/withdraw/index",
         "pages/coop/withdraw/records/index",
         "pages/square/list/index",
@@ -265,6 +265,11 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/publish/activity/index": ["scope": ["MERCHANT"]],
         "pages/publish/template-intro/index": ["scope": ["MERCHANT"]],
         "pages/team/join/index": ["entry": ["code"]],
+        "pages/merchant/ledger/order-detail/index": ["recordType": ["redemption", "activity_ticket", "session_fee"]],
+        "pages/coop/list/index": ["scope": ["MERCHANT"]],
+        "pages/coop/invite/index": ["type": ["0", "1"]],
+        "pages/coop/invite-detail/index": ["box": ["received", "sent"]],
+        "pages/coop/settlement-detail/index": ["personal": ["1"]],
     ]
 
     public init?(path: String, query: [String: String]) {
@@ -279,6 +284,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         }
         if page == "subpackageJourney/pages/landing/index", !["r", "g", "s"].contains(present["k"] ?? "") { return nil }
         if page == "pages/coop/list/index", let tab = present["tab"], tab != "sent", tab != "received" { return nil }
+        if page == "pages/merchant/ledger/index", MerchantFinanceRoute.normalize(present) == nil { return nil }
+        if page == "pages/merchant/profile/index", MerchantPublicHomeLink.target(present) == nil { return nil }
+        if page == "pages/merchant/team/index", let invite = present["invite"], (try? MerchantOperatorAcceptance(token: invite)) == nil { return nil }
         if let values = Self.enumeratedValues[page] {
             for (key, value) in present { if let allowed = values[key], !allowed.contains(value) { return nil } }
         }
