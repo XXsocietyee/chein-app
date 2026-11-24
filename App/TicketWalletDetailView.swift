@@ -61,8 +61,8 @@ import SwiftUI
                                                presentationID: presentationID)
                         } label: {
                             // PLY-21-4: MP signup wxml:103-105 labels a cleared ticket 查看记录.
-                            if ticket.clearedFlag == true { Label(c.t("查看记录", "View record"), systemImage: "clock.arrow.circlepath") }
-                            else { Label("playerJourney.start", systemImage: "play.fill") }
+                            if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() } }
+                            else { Label { Text("playerJourney.start") } icon: { TicketWalletPlayGlyph() } }
                         }
                         .modifier(TicketWalletPlayButtonStyle(secondary: ticket.status == .ready))
                         .listRowBackground(Color.clear)
@@ -326,15 +326,18 @@ private struct TicketWalletEntitlementRow: View {
                 }
                 .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                Label {
-                    if let label = entitlement.displayStatusLabel { Text(verbatim: label) }
-                    else { Text(LocalizedStringKey("ticketWallet.entitlementStatus." + entitlement.statusKey)) }
-                } icon: { Image(systemName: symbol).accessibilityHidden(true) }
-                .font(.subheadline).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                // B-21 (FE-G6): MP order-detail wxml:278 prints `statusLabel || ''`, so an empty server label shows no text.
+                // The glyph stays and carries the local state name for VoiceOver, so the state is never colour or shape alone.
+                if let label = entitlement.displayStatusLabel {
+                    Label { Text(verbatim: label) } icon: { Image(systemName: symbol).accessibilityHidden(true) }
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Image(systemName: symbol).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityLabel(Text(LocalizedStringKey("ticketWallet.entitlementStatus." + entitlement.statusKey)))
+                }
             }
-            if entitlement.included == true { Text("ticketWallet.perk.included").cyText(.caption) }
-            else if let spend = entitlement.extraSpendText, !spend.isEmpty { Text(verbatim: spend).cyText(.caption) }
-            if entitlement.reserveRequired == true { Text("ticketWallet.perk.reserveRequired").cyText(.caption) }
+            // B-16: no 已含 / 需消费 / 需预约 line here. The backend sends those perk terms only on `/api/play/nodes`
+            // and the free-explore catalog, never on the ticket-wallet entitlement, so the row could never render.
             TicketWalletOptionalField(label: "ticketWallet.redeemedAt", value: entitlement.redeemedAt).font(.caption)
             if let reason = entitlement.invalidReason, !reason.isEmpty {
                 Text(verbatim: reason).font(.caption).foregroundStyle(CYColor.textSecondary)

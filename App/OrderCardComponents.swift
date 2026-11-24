@@ -42,6 +42,8 @@ struct OrderCoverTile: View {
     var url: URL? = nil
     var size: CGFloat = 88
     var seed = ""
+    /// MP default artwork (for example `icon_ticket_empty.svg` on the order detail hero) shown instead of the generated cover.
+    var fallback: Image? = nil
     var body: some View {
         Group {
             if let url {
@@ -54,8 +56,14 @@ struct OrderCoverTile: View {
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityHidden(true)
     }
-    private var placeholder: some View {
-        E1CoverArt(seed: seed.isEmpty ? systemImage : seed, symbol: systemImage, debugLabel: false)
+    @ViewBuilder private var placeholder: some View {
+        if let fallback {
+            fallback.resizable().scaledToFit().padding(size * 0.18)
+                .frame(width: size, height: size)
+                .background(CYColor.bgSurfaceStrong)
+        } else {
+            E1CoverArt(seed: seed.isEmpty ? systemImage : seed, symbol: systemImage, debugLabel: false)
+        }
     }
 }
 

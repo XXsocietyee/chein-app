@@ -90,3 +90,50 @@
   - workshop_paid_professional
 - Contract modules touching the edited files all pass: pkg05, w2_04_orders, w2_04_member_tools, social_invitation_lifetime, ticket_wallet_team, native_design_motion, c02, owned_template_pagination (87 tests).
 - **Not run here:** the Xcode build, the Core `swift test`, AppUnit and the screenshots. There is no macOS runner in this session, so they need the coordinator or the Acceptance workflow. Fixture routes are in `docs/port/accept/f-member-b.txt`.
+
+## Round 2 (2026-11-24)
+
+- **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round2.md` plus `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` @ 82388e4a5 (Cursor K1–K10, W1, C7 MP assets). The only conflict was `tools/check_typography_lint.py`; I took the r7 side (the newer `BELOW_CAPTION` rule). The lint passes.
+- **Cursor W1 call sites:** none of them touch a member-b App file. The only exception is `CouponCodeView` `.notMine`, which is half a and was already wired by the integrator.
+
+### MP assets (`docs/mp-assets/mapping.md` rows applied)
+
+| mapping row | page | where | files |
+|---|---|---|---|
+| [x] `MPAsset.FeatureIcon.dOrderIcon` | 16 我的订单 | Time-range and date line on the order card (was SF `clock` / `calendar`) | App/ProfileOrdersView.swift |
+| [x] `MPAsset.FeatureIcon.dOrderIcon2` | 16 | Address line, both the Maps button and the plain text (was SF `mappin.and.ellipse`) | App/ProfileOrdersView.swift |
+| [x] `MPAsset.EmptyState.iconTicketEmpty` | 17 订单详情 | Hero tile fallback when there is no cover (MP `resolveHeroImage` fallback). `OrderCoverTile` gained an optional `fallback:` image; the default is unchanged for the other callers. | App/OrderCardComponents.swift, App/OrderLifecycleView.swift |
+| [x] `MPAsset.FeatureIcon.iconGo` | 21 票夹 | Round tinted `wc__go` badge, top-trailing on each wallet card (decorative) | App/TicketWalletView.swift |
+| [x] `MPAsset.BannerCover.coverRoute` | 21 | Replaces the SF `ticket.fill` watermark with the MP no-cover illustration (`wc__im--illus`, cover-route.svg) | App/TicketWalletView.swift |
+| [x] `MPAsset.FeatureIcon.iconPlay` | 21 | Icon of 开始游戏 / 查看记录, in both the detail and the pass sheet (was SF `play.fill` / `clock.arrow.circlepath`). It uses the template imageset, so it tints with the button. | App/TicketWalletDetailView.swift, App/TicketPassSheet.swift (`TicketWalletPlayGlyph`) |
+| [x] `MPAsset.BrandLogo.dCyIcon` / `dCyIcon2` | 22 我的参与 | Row date and mode · place icons (was SF `clock` / `mappin.and.ellipse`) | App/PlayerJourneyViews.swift (`ParticipationMPGlyph`) |
+| [x] `MPAsset.FeatureIcon.dCyinfo1` / `dCyinfo2` | 23 参与详情 | 最终分配节点 and 接待时间 label icons | App/PlayerJourneyViews.swift |
+| [x] `MPAsset.FeatureIcon.dCyinfo4` | 23 | Figure beside the fixed 退出与暂停规则 text | App/PlayerJourneyViews.swift |
+| [ ] `MPAsset.EmptyState.emptyStateBg` / `emptyStateFigure` | 16, 21, 22, 28, 30 empty states | **Not mine.** `CYEmptyState` / `CYStates` is the shared design-system component (mapping says `App/DesignSystem/CYStates.swift (shared)`). Request for the DS/restyle owner: draw the MP art there, and every member empty state picks it up. | — |
+| [ ] `MPAsset.AvatarDefault.dProfile` | 20 邀请记录 | **Not mine.** The avatar placeholder lives in the shared `CYAvatarView`; same request. | — |
+
+System-control glyphs (chevrons, close, share, search, ellipsis) and generic action icons with no MP artwork (`list.bullet.rectangle`, `arrow.clockwise`, `info.circle`, the status-chip state symbols) stay SF Symbols.
+
+### Review findings (r7-rev-a/b/c, Claude-owned, member pages 16–30)
+
+| id | what changed | files |
+|---|---|---|
+| B-16 (P1) | The 已含 / 需消费 / 需预约 lines are removed from the ticket-wallet entitlement row. The backend never sends those fields on that payload. The Core fields are left alone (Cursor's layer). Porting FE-G5 to the route-detail perk card is a play/topic-area gap, not member. | App/TicketWalletDetailView.swift |
+| B-21 (P2) | An empty server `statusLabel` now shows no text, like MP `{{statusLabel \|\| ''}}`. The state glyph stays and carries the local state name as its VoiceOver label. The row font is `.cyText(.bodyCompact)` instead of `.font(.subheadline)`. | App/TicketWalletDetailView.swift |
+
+r7-rev-a covers play runtime only. In r7-rev-c, the F-C* rows on parked `App/MPGap/Member` views belong to Gemini. Nothing else is Claude-owned on these pages.
+
+### Owner decisions
+
+- **#9 two-decimal money:** the 我的订单 card amount, the 订单详情 hero amount and `ProfileOrderAmountLabel` now go through `ProfileOrderYuan.text` = `"¥" + MoneyDisplay.text(OwnedOrderMoneyText.string(amount))`, so ¥12.5 shows as ¥12.50. This is lexical, with no Double. The pinned `OwnedOrderMoneyText.string(amount)` call is kept. 提现记录 `amountText` was already two decimals (Core). 积分 and 邀请 numbers are points, not money.
+- **#3, #6, #12 money TEST-only:** nothing on these pages adds a money write. 立即支付 is still behind `ReleaseMoneyWriteSwitch`.
+- **#7 cast, #8 arrival lock, #10 game-kit pilot gate:** no surface on member pages 16–30.
+
+### Still left (round 2)
+
+| id | why |
+|---|---|
+| PLY-21-6, PLY-26-2 (P1) | Still blocked by the pinned tests named in round 1. Neither `test_ticket_wallet_team.py:16` nor `test_owned_template_pagination.py` / `TemplateOwnShelfFlowTests` was retired on r7. |
+| PLY-21-4 (rest), FIN-16-7 (rest), R7-MEM-17-2 (rest) | Same Core requests as round 1: no game flag, no `ProfileOrder` cover, no settle fields. `cursor/core-member` added `TicketWalletTicket.coverURL` only. |
+| Cursor's App wiring list (`cursor-core-member.md` "F-agent (App)") | Not touched, per brief item 6: those call sites are being wired by Cursor. They are `ProfileOrdersView` → `orderHistory` paging (FIN-16-2), `TicketWalletView` → `ticket.coverURL` and the `focusId` `ticketDetail` fallback (R7-MEM-21-3, PLY-21-2), `TemplateAuthoringMineView` → `operationScope = "MERCHANT"` (PLY-26-5), and `MPReviewedPageScreen` invoice `?id=`. **If the coordinator wants member-b to do them instead, say so and they are small.** The wallet-card illustration above is the no-cover fallback, so `coverURL` can be layered on top without moving it. |

@@ -343,10 +343,11 @@ private struct TicketWalletRow: View {
     @State private var topHeight: CGFloat = 140
     /// Generated cover art (no ticket image exists in the model yet; R7-MEM-21-3 asks Core for `imgUrl`).
     /// PLY-21-15: token colours only, one tint per id so neighbouring cards still differ.
-    private var art: [Color] {
+    private var tint: Color {
         let tints: [Color] = [CYColor.brandStrong, CYColor.gameAccent, CYColor.rare, CYColor.coverFallback]
-        return [tints[abs(ticket.id) % tints.count].opacity(0.55), CYColor.bgSurfaceStrong]
+        return tints[abs(ticket.id) % tints.count]
     }
+    private var art: [Color] { [tint.opacity(0.55), CYColor.bgSurfaceStrong] }
     private var hasStub: Bool {
         (ticket.participateDate?.isEmpty == false) || (ticket.addressName?.isEmpty == false) || ticket.needsScheduleSync
             || ticket.action != .detail || ticket.walletTypeKey != nil || showsPendingOrderAction
@@ -356,8 +357,9 @@ private struct TicketWalletRow: View {
         VStack(spacing: 0) {
             ZStack(alignment: .bottomLeading) {
                 LinearGradient(colors: art, startPoint: .topLeading, endPoint: .bottomTrailing)
-                Image(systemName: "ticket.fill").resizable().scaledToFit().frame(width: 120, height: 120).rotationEffect(.degrees(-14))
-                    .foregroundStyle(.white.opacity(0.07)).offset(x: 90, y: -10).accessibilityHidden(true)
+                // MP signup wxml:68 `wc__im--illus`: with no cover the card shows the shipped route illustration (cover-route.svg).
+                MPAsset.BannerCover.coverRoute.resizable().scaledToFit().frame(width: 120, height: 120)
+                    .opacity(0.35).offset(x: 90, y: -10).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     // Owner rule (MP 2026-10-28): no status on the card. Only the MP tag: M月D日开始 / 退款中 / 已通关 / 未通关.
                     TicketWalletCardTag(ticket: ticket)
@@ -368,6 +370,14 @@ private struct TicketWalletRow: View {
                 }
                 .padding(CYSpacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .overlay(alignment: .topTrailing) {
+                // MP signup wxml:64 `wc__go`: round tinted badge with the shipped `icon_go.svg` arrow. Decorative; the card is the control.
+                MPAsset.FeatureIcon.iconGo.resizable().scaledToFit().frame(width: 14, height: 14)
+                    .frame(width: 31, height: 31)
+                    .background(Circle().fill(tint))
+                    .padding(CYSpacing.md)
+                    .accessibilityHidden(true)
             }
             .background(GeometryReader { Color.clear.preference(key: TicketTopHeightKey.self, value: $0.size.height) })
             .overlay(alignment: .bottom) { Rectangle().fill(.clear).frame(height: 0) }
