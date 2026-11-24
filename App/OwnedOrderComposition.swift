@@ -26,19 +26,23 @@ import SwiftUI
     @State private var coordinator: OrderLifecycleCoordinator
     private let session: AppSession
     private let onSignIn: (() -> Void)?
-    init(session: AppSession, onSignIn: (() -> Void)? = nil) {
+    /// R7-MEM-17-1: a deep-link order id mounts the detail on this same coordinator and ticket reader.
+    private let detailID: Int?
+    init(session: AppSession, onSignIn: (() -> Void)? = nil, detailID: Int? = nil) {
         self.session = session
         self.onSignIn = onSignIn
-        _coordinator = State(initialValue: Self.makeCoordinator(session: session))
-    }
-    /// The only lifecycle coordinator factory for owned orders (list and deep-link detail share it).
-    static func makeCoordinator(session: AppSession) -> OrderLifecycleCoordinator {
-        OrderLifecycleCoordinator(
+        self.detailID = detailID
+        _coordinator = State(initialValue: OrderLifecycleCoordinator(
             reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader),
-            production: { [weak session] in session?.makeOrderLifecycleDispatcher() })
+            production: { [weak session] in session?.makeOrderLifecycleDispatcher() }))
     }
     var body: some View {
-        ProfileOrdersView(reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader, onSignIn: onSignIn)
+        if let detailID {
+            ProfileOrderDetailView(id: detailID, reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader)
+                .environment(\.profileReadSignIn, onSignIn)
+        } else {
+            ProfileOrdersView(reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader, onSignIn: onSignIn)
+        }
     }
 }
 
@@ -50,30 +54,13 @@ import SwiftUI
     let id: Int
     @State private var showsSignIn = false
     var body: some View {
-        OwnedOrderDetailLifecycleHost(session: session, id: id, onSignIn: { showsSignIn = true })
+        OwnedOrdersLifecycleHost(session: session, onSignIn: { showsSignIn = true }, detailID: id)
             .environment(\.freeExploreBundleReadProvider, session.freeExploreBundleReadProvider)
             .environment(\.bundleCommerceBaseURL, session.currentRuntimeDependencyContext?.baseURL)
             .environment(\.bundleCommercePublicMerchant, session.publicMerchantHomeContext)
             .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
             .id(session.ownedOrderReader.identity)
             .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
-    }
-}
-
-@MainActor struct OwnedOrderDetailLifecycleHost: View {
-    @State private var coordinator: OrderLifecycleCoordinator
-    private let session: AppSession
-    private let id: Int
-    private let onSignIn: (() -> Void)?
-    init(session: AppSession, id: Int, onSignIn: (() -> Void)? = nil) {
-        self.session = session
-        self.id = id
-        self.onSignIn = onSignIn
-        _coordinator = State(initialValue: OwnedOrdersLifecycleHost.makeCoordinator(session: session))
-    }
-    var body: some View {
-        ProfileOrderDetailView(id: id, reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader)
-            .environment(\.profileReadSignIn, onSignIn)
     }
 }
 

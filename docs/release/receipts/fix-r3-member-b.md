@@ -14,7 +14,7 @@
 
 | id | page | what changed | files |
 |---|---|---|---|
-| R7-MEM-17-1 (P1) | 17 订单详情 | The `orderinfo?id=` / `order?detailId=` deep link now mounts `SessionOwnedOrderDetailView`. It shares the lifecycle coordinator factory with 我的订单 (`OwnedOrdersLifecycleHost.makeCoordinator`, one `production:` site) and gets the session ticket reader, so 取消订单 / 申请退款 and 查看票 appear, with 登录 when signed out. | App/OwnedOrderComposition.swift, App/MPReviewedPageScreen.swift, App/ProfileReadScreen.swift |
+| R7-MEM-17-1 (P1) | 17 订单详情 | The `orderinfo?id=` / `order?detailId=` deep link now mounts `SessionOwnedOrderDetailView`. It shares the lifecycle coordinator factory with 我的订单 (`OwnedOrdersLifecycleHost(detailID:)`, one `production:` site) and gets the session ticket reader, so 取消订单 / 申请退款 and 查看票 appear, with 登录 when signed out. | App/OwnedOrderComposition.swift, App/MPReviewedPageScreen.swift, App/ProfileReadScreen.swift |
 | FIN-17-6 (P2) | 17 | `orderinfo?outTradeNo=` opens `OrderCenterEntryView` prefilled when the G2 order-center grant exists. Without the grant it falls back to 我的订单. | App/MPReviewedPageScreen.swift |
 | R7-MEM-16-2 (P2) | 16 我的订单 | A merchant-role session is sent to 我的项目 (MP M-25, order.js:20-23), both from the deep link and from the `.playerOrderList` notification route. | App/MPReviewedPageScreen.swift, App/SubscribeMessageTapScreens.swift |
 | FIN-16-7 (P2, partial) | 16 | Card: 已下架 when neither the activity nor the topic reads back (OR-034). The address opens Apple Maps as a separate 44 pt borderless control with a VO label 在地图中打开 …. `.manualRefund` shows 查看处理进度. | App/ProfileOrdersView.swift |
@@ -75,3 +75,18 @@
 ## Verification
 - No compiler in the cloud; every API used was grepped on the base. The coordinator should compile.
 - `python3 tools/contract_ratchet.py --check`: see the acceptance section below.
+
+## Acceptance (cloud, contract layer only)
+- `tools/contract_ratchet.py --check` on this branch: 196 failing against a baseline of 184, so **11 new**. Every one of the 11 also fails on untouched `origin/ui/combined-r7` (checked by running the same tests in a worktree of the base). **0 are introduced by this branch.** The 11:
+  - app_store_privacy usage strings
+  - appsec_review 5
+  - design_system raw colour/radius
+  - violet 7a5cff
+  - journey_role_view ×2
+  - localization_key_catalog
+  - ops_safety audit catalog
+  - play_gameplay_mode bilingual
+  - view_literal_localization
+  - workshop_paid_professional
+- Contract modules touching the edited files all pass: pkg05, w2_04_orders, w2_04_member_tools, social_invitation_lifetime, ticket_wallet_team, native_design_motion, c02, owned_template_pagination (87 tests).
+- **Not run here:** the Xcode build, the Core `swift test`, AppUnit and the screenshots. There is no macOS runner in this session, so they need the coordinator or the Acceptance workflow. Fixture routes are in `docs/port/accept/f-member-b.txt`.
