@@ -181,21 +181,53 @@ import SwiftUI
             .onAppear { focusTopic(proxy) }
             .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy); focusRegistration(proxy) }
             .onChange(of: model.isLoading) { _, loading in if !loading { focusRegistration(proxy) } }
+            .task { await followFocusedRegistration() }
         }
         }
     }
     /// PLY-21-2: open the focused registration once. In the usable list → scroll to it and open its detail (the detail
-    /// re-reads `registration/info` by id). Not in the usable list → 未定位到原报名凭证 + 重试 (MP index.js:158-219).
-    /// No extra task: the owned wallet presentation stays the only read here.
+    /// re-reads `registration/info` by id). Not in the usable list → `ticketDetail` decides; a miss stays
+    /// 未定位到原报名凭证 + 重试 (MP index.js:158-219).
     private func focusRegistration(_ proxy: ScrollViewProxy) {
         guard let focusRegistrationID, focusPhase == .idle, let tickets = model.value(owner: key)?.tickets else { return }
-        guard let index = tickets.firstIndex(where: { $0.id == focusRegistrationID }) else { focusPhase = .missing; return }
+        guard let index = tickets.firstIndex(where: { $0.id == focusRegistrationID }) else { focusPhase = .resolving; return }
         focusPhase = .found
         proxy.scrollTo(index, anchor: .center)
         if !tickets[index].isWalletLocked { carouselTicketID = focusRegistrationID }
     }
+    /// Waits until the usable list misses `focusId`, then reads that registration. One read at a time.
+    private func followFocusedRegistration() async {
+        guard focusRegistrationID != nil else { return }
+        while !Task.isCancelled {
+            if focusPhase == .found { return }
+            if focusPhase == .resolving, let id = focusRegistrationID {
+                await readFocusedRegistration(id)
+            }
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+    }
+    private func readFocusedRegistration(_ id: Int) async {
+        do {
+            let ticket = try await reader.ticketDetail(id: id)
+            guard !Task.isCancelled, focusPhase == .resolving, focusRegistrationID == id else { return }
+            guard ticket.id == id else { focusPhase = .missing; return }
+            focusPhase = .found
+            carouselTicketID = id
+        } catch is CancellationError {
+            return
+        } catch {
+            guard focusPhase == .resolving, focusRegistrationID == id else { return }
+            focusPhase = .missing
+        }
+    }
     @ViewBuilder private var focusSection: some View {
-        if focusPhase == .missing {
+        if focusPhase == .resolving {
+            ProgressView()
+                .accessibilityLabel(Text("ticketWallet.loading"))
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .listRowBackground(Color.clear)
+                .accessibilityIdentifier("ticketWallet.focus.resolving")
+        } else if focusPhase == .missing {
             CYStateView(content: .empty(glyph: "ticket", title: appLocalized("ticketWallet.focus.missing", locale: locale),
                                         body: "", actionTitle: appLocalized("ticketWallet.focus.retry", locale: locale)),
                         onPrimary: { focusPhase = .idle; schedule(model.presentation ?? model.beginPresentation(owner: key)) },
@@ -309,7 +341,7 @@ private struct TicketWalletStack<Content: View>: View {
     }
 }
 
-enum TicketWalletFocusPhase: Equatable { case idle, found, missing }
+enum TicketWalletFocusPhase: Equatable { case idle, resolving, found, missing }
 
 extension TicketWalletTicket {
     /// MP `wLocked`: an upcoming or refunding ticket stays in the wallet but does not open (no code, no start).
@@ -341,11 +373,31 @@ private struct TicketWalletRow: View {
     @Environment(\.ticketWalletCompletionReader) private var completionReader
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var topHeight: CGFloat = 140
-    /// Generated cover art (no ticket image exists in the model yet; R7-MEM-21-3 asks Core for `imgUrl`).
+    /// R7-MEM-21-3: activity image, else topic image. The illustration stays only when that URL is absent.
     /// PLY-21-15: token colours only, one tint per id so neighbouring cards still differ.
+    private var httpsCover: URL? {
+        guard let raw = ticket.coverURL?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty, raw.utf8.count <= 512,
+              !raw.contains("\\"),
+              !raw.contains(where: \.isWhitespace),
+              let url = URL(string: raw),
+              url.scheme == "https",
+              let host = url.host, !host.isEmpty,
+              url.user == nil, url.password == nil, url.fragment == nil else { return nil }
+        return url
+    }
     private var art: [Color] {
         let tints: [Color] = [CYColor.brandStrong, CYColor.gameAccent, CYColor.rare, CYColor.coverFallback]
         return [tints[abs(ticket.id) % tints.count].opacity(0.55), CYColor.bgSurfaceStrong]
+    }
+    private var coverIllustration: some View {
+        ZStack(alignment: .topTrailing) {
+            LinearGradient(colors: art, startPoint: .topLeading, endPoint: .bottomTrailing)
+            Image(systemName: "ticket.fill").resizable().scaledToFit().frame(width: 120, height: 120).rotationEffect(.degrees(-14))
+                .foregroundStyle(.white.opacity(0.07)).offset(x: 90, y: -10).accessibilityHidden(true)
+        }
+        .frame(maxWidth: .infinity, minHeight: 140)
+        .accessibilityHidden(true)
     }
     private var hasStub: Bool {
         (ticket.participateDate?.isEmpty == false) || (ticket.addressName?.isEmpty == false) || ticket.needsScheduleSync
@@ -355,9 +407,24 @@ private struct TicketWalletRow: View {
         let dimmed = ticket.status == .cancelled || ticket.status == .expired || ticket.isWalletLocked
         VStack(spacing: 0) {
             ZStack(alignment: .bottomLeading) {
-                LinearGradient(colors: art, startPoint: .topLeading, endPoint: .bottomTrailing)
-                Image(systemName: "ticket.fill").resizable().scaledToFit().frame(width: 120, height: 120).rotationEffect(.degrees(-14))
-                    .foregroundStyle(.white.opacity(0.07)).offset(x: 90, y: -10).accessibilityHidden(true)
+                if let url = httpsCover {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image.resizable().scaledToFill()
+                        } else {
+                            CYColor.bgSurfaceStrong
+                        }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 140)
+                    .clipped()
+                    .accessibilityHidden(true)
+                    LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .center, endPoint: .bottom)
+                        .frame(maxWidth: .infinity, minHeight: 140)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                } else {
+                    coverIllustration
+                }
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     // Owner rule (MP 2026-10-28): no status on the card. Only the MP tag: M月D日开始 / 退款中 / 已通关 / 未通关.
                     TicketWalletCardTag(ticket: ticket)

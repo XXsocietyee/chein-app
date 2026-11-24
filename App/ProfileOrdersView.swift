@@ -24,11 +24,35 @@ struct ProfileOrdersView: View {
     @State private var filterSelection = ProfileOrderFilterSelection()
     @State private var orderEntry: SupportLookupEntry?
     @State private var lookedUpOrderID: Int64?
+    /// Pages after the first `orderHistory` page. The first page stays on `ProfileReadScreen`.
+    @State private var appendedOrders: [ProfileOrder] = []
+    @State private var nextHistoryPage = 2
+    @State private var historyMore = false
+    @State private var historyLoading = false
+    @State private var historyGeneration = 0
     private var filterOwner: ProfileOrderFilterOwner {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, onSignIn: onSignIn, load: { try await reader.profileOrders() }) { orders in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, onSignIn: onSignIn, load: {
+            if let paged = reader as? ProfileOrderPageReading {
+                let page = try await paged.profileOrderHistory(pageNum: 1)
+                await MainActor.run {
+                    appendedOrders = []
+                    nextHistoryPage = 2
+                    historyMore = page.hasMore
+                    historyGeneration += 1
+                }
+                return page.rows
+            }
+            await MainActor.run {
+                appendedOrders = []
+                historyMore = false
+                historyGeneration += 1
+            }
+            return try await reader.profileOrders()
+        }) { loaded in
+            let orders = displayedOrders(loaded)
             if orders.isEmpty {
                 VStack(spacing: 12) {
                     CYEmptyState(systemImage: "ticket", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
@@ -65,6 +89,18 @@ struct ProfileOrdersView: View {
                                 .padding(.horizontal, CYSpacing.pageHorizontal)
                                 .questifyCardListRow()
                             }
+                            if historyMore {
+                                Group {
+                                    if historyLoading {
+                                        ProgressView().accessibilityLabel(Text("profile.loading"))
+                                            .frame(maxWidth: .infinity, minHeight: 44)
+                                    } else {
+                                        Color.clear.frame(height: 1).onAppear { loadNextHistoryPage() }
+                                    }
+                                }
+                                .listRowBackground(Color.clear)
+                                .accessibilityIdentifier("profile.orders.more")
+                            }
                         }
                     }
                     .listStyle(.plain)
@@ -78,6 +114,42 @@ struct ProfileOrdersView: View {
         .onAppear { appearOrderSupport() }
         .onChange(of: filterOwner) { _, _ in
             filterSelection.retire(); orderEntry = nil; lookedUpOrderID = nil
+        }
+        .onChange(of: filterOwner) { _, _ in
+            appendedOrders = []; nextHistoryPage = 2; historyMore = false; historyLoading = false; historyGeneration += 1
+        }
+    }
+    /// First page plus later `orderHistory` pages, in server order, without repeating an id.
+    private func displayedOrders(_ first: [ProfileOrder]) -> [ProfileOrder] {
+        var seen = Set(first.map(\.id))
+        var rows = first
+        for row in appendedOrders where row.id > 0 && seen.insert(row.id).inserted { rows.append(row) }
+        return rows
+    }
+    /// Bottom sentinel. The unpaged `orders()` path never sets `historyMore`.
+    private func loadNextHistoryPage() {
+        guard historyMore, !historyLoading, let paged = reader as? ProfileOrderPageReading else { return }
+        let owner = filterOwner
+        let page = nextHistoryPage
+        let generation = historyGeneration
+        historyLoading = true
+        Task {
+            defer { historyLoading = false }
+            await appendHistoryPage(page, owner: owner, reader: paged, generation: generation)
+        }
+    }
+    private func appendHistoryPage(_ page: Int, owner: ProfileOrderFilterOwner, reader: any ProfileOrderPageReading, generation: Int) async {
+        guard owner == filterOwner, generation == historyGeneration, historyMore else { return }
+        do {
+            let next = try await reader.profileOrderHistory(pageNum: page)
+            guard owner == filterOwner, generation == historyGeneration else { return }
+            var seen = Set(appendedOrders.map(\.id))
+            appendedOrders.append(contentsOf: next.rows.filter { $0.id > 0 && seen.insert($0.id).inserted })
+            nextHistoryPage = page + 1
+            historyMore = next.hasMore
+        } catch {
+            guard owner == filterOwner else { return }
+            historyMore = false
         }
     }
     /// Appearance records the entry only. It does not look up and does not send.
@@ -129,6 +201,14 @@ struct ProfileOrdersView: View {
         return nil
     }
 }
+
+/// History-screen opt-in. Readers without it keep unpaged `profileOrders()`.
+@MainActor protocol ProfileOrderPageReading: AnyObject {
+    func profileOrderHistory(pageNum: Int) async throws -> ProfileOrderPage
+}
+
+extension ProfileSessionReader: ProfileOrderPageReading {}
+extension OwnedOrderSessionReader: ProfileOrderPageReading {}
 
 private struct ProfileOrderRow: View {
     let order: ProfileOrder

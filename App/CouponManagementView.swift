@@ -58,7 +58,7 @@ import SwiftUI
                     }
                     ForEach(model.core.rows) { row in
                         NavigationLink {
-                            CouponManagementDetailView(model: model, id: row.id)
+                            CouponManagementDetailView(model: model, id: row.id, scope: scope)
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
                                 Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale))
@@ -142,6 +142,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     @Environment(\.locale) private var locale
     @ObservedObject var model: CouponManagementScreenModel
     let id: CouponDefinitionID
+    let scope: CouponPublishListScope
     var body: some View {
         List {
             CouponManagementNotice(model: model, surface: .detail)
@@ -185,11 +186,11 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         .cyPageTitle("couponManagement.detail")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { model.run { await model.core.load() } } label: { Label("couponManagement.refresh", systemImage: "arrow.clockwise") }
+                Button { model.run { model.core.publishListScope = scope; await model.core.load() } } label: { Label("couponManagement.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.working)
             }
         }
-        .task { await model.core.load(); model.revision += 1 }
+        .task { model.core.publishListScope = scope; await model.core.load(); model.revision += 1 }
         .onDisappear { model.cancelReview() }
         .cyDomainScreen(.merchant)
     }
