@@ -36,20 +36,6 @@ extension EnvironmentValues {
     }
 }
 
-/// Mini "发布单场活动" row above a non-empty activity list.
-@MainActor struct MyProjectCreateActivityRow: View {
-    let type: String
-    let rowCount: Int
-    @Environment(\.myProjectPublishEntry) private var entry
-    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
-    var body: some View {
-        if type == MyProjectTab.activity.rawValue, rowCount > 0, let entry, entry.canPublishActivity, !merchantScopeAccess.isBrowseOnly {
-            NavigationLink { entry.make() } label: { Label("myProject.cta.activity", systemImage: "plus") }
-                .accessibilityIdentifier("myProject.createActivity")
-        }
-    }
-}
-
 @MainActor struct MyProjectTemplateTabSection: View {
     let shelf: MyProjectTemplateShelfHost?
     var body: some View {
@@ -156,6 +142,33 @@ extension EnvironmentValues {
 
 /// Long-press list management. Every mutation stays disabled: toggle/cancel/delete have no reviewed
 /// endpoint allowlist entry yet, so the menu only explains which actions the mini-program offers here.
+/// PC-D-1-4: the row's operations are also on a visible 「···」 (MP PG-084); a context menu must not be the only
+/// entry. Shown only when the menu would offer something.
+@MainActor struct MyProjectRowMoreButton: View {
+    let project: CreatorContentProject
+    @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
+    @Environment(\.myProjectMutation) private var mutation
+    @Environment(\.myProjectTopicCancel) private var topicCancel
+    private var hasItems: Bool {
+        let card = MyProjectListPresentation.card(project, merchantScopeAccess: merchantScopeAccess)
+        if topicCancel != nil, MyProjectBiz(rawValue: project.bizType) == .topic, card.operations.contains(.cancel) { return true }
+        return mutation != nil && MyProjectBiz(rawValue: project.bizType) != nil && !card.operations.isEmpty
+    }
+    var body: some View {
+        if hasItems {
+            Menu { MyProjectRowOperationsMenu(project: project) } label: {
+                Image(systemName: "ellipsis")
+                    .cyText(.cardTitle)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(Text("myProject.more"))
+            .accessibilityIdentifier("myProject.more.\(project.id)")
+        }
+    }
+}
+
 @MainActor struct MyProjectRowOperationsMenu: View {
     let project: CreatorContentProject
     @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess

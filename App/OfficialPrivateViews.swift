@@ -20,13 +20,7 @@ import SwiftUI
             // pages/activity/official-inbox/index: a path this repo does not mark live stays hidden.
             if let page = OfficialInboxPageModel.state(loading: false, failed: false, rows: rows) {
             List {
-                // Mini-program `oi-hero`: eyebrow, headline and one explanatory paragraph above the invitations.
-                Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("officialInbox.hero.eyebrow").cyText(.label).foregroundStyle(palette.textSecondary)
-                        CYHeroHeader("officialInbox.hero.title", subtitle: "officialInbox.hero.sub")
-                    }.accessibilityElement(children: .combine)
-                }
+                // PC-C-5-3: the current MP inbox has only the page title (drawn by the bar); the stale oi-hero preamble is gone.
                 if page == .empty {
                     CYEmptyState(systemImage: "envelope.open", "official.inbox.empty", detail: "official.inbox.emptyDetail")
                         .accessibilityIdentifier("official.inbox" + ".empty")

@@ -78,7 +78,9 @@ import SwiftUI
         }
         .sheet(isPresented:$showsTemplates) {
             NavigationStack {
-                DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext).id(session.templateAuthoringViewIdentity)
+                // PC-A-2-6: 浏览模板 keeps 发布 like the 发布 tab entry.
+                DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
+                    publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) }).id(session.templateAuthoringViewIdentity)
                     .toolbar {
                         ToolbarItem(placement:.cancellationAction) {
                             Button("action.close") { showsTemplates=false }

@@ -9,6 +9,8 @@ public struct TopicChapterItinerary: Equatable {
         public let id: Int
         public let node: TopicNode
         public let estimatedWalkingMinutes: Int?
+        /// PC-B-1-7: MP `walkText` — straight-line metres from the previous stop (no walking time is claimed).
+        public let straightLineMeters: Double?
     }
 
     public let stops: [Stop]
@@ -17,7 +19,8 @@ public struct TopicChapterItinerary: Equatable {
     public init(chapter: TopicChapter) {
         stops = chapter.nodes.enumerated().map { index, node in
             Stop(id: index, node: node, estimatedWalkingMinutes: index > 0
-                ? Self.walkingMinutes(from: chapter.nodes[index - 1], to: node) : nil)
+                ? Self.walkingMinutes(from: chapter.nodes[index - 1], to: node) : nil,
+                 straightLineMeters: index > 0 ? Self.meters(from: chapter.nodes[index - 1], to: node) : nil)
         }
     }
 
@@ -27,6 +30,18 @@ public struct TopicChapterItinerary: Equatable {
         // Zero is an absent-coordinate sentinel in the topic source. Finite/range checks
         // additionally prevent malformed data from becoming a plausible walking estimate.
         return RoamCoordinate(latitude: latitude, longitude: longitude)
+    }
+
+    private static func meters(from previous: TopicNode, to current: TopicNode) -> Double? {
+        guard let origin = coordinate(previous), let destination = coordinate(current) else { return nil }
+        let meters = RoamExperienceMath.distanceMeters(origin, destination)
+        return meters.isFinite && meters > 0 ? meters : nil
+    }
+
+    /// MP `utils/geo.js distanceText`: ≥ 1000 m → one-decimal 公里, else whole 米.
+    public static func distanceText(meters: Double, chinese: Bool) -> String {
+        if meters >= 1000 { return String(format: "%.1f", meters / 1000) + (chinese ? " 公里" : " km") }
+        return String(Int(meters.rounded())) + (chinese ? " 米" : " m")
     }
 
     private static func walkingMinutes(from previous: TopicNode, to current: TopicNode) -> Int? {

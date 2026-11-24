@@ -208,7 +208,6 @@ import SwiftUI
     let publisher: Bool
     var window: OfficialServiceWindow? = nil
     @Environment(\.locale) private var locale
-    @State private var pendingAction: OfficialResponseAction?
     @State private var reviewed: OfficialActionCommand?
     @State private var reviewedAction: OfficialResponseAction?
     @State private var transferHint = false
@@ -229,36 +228,24 @@ import SwiftUI
                     .accessibilityElement(children: .combine).accessibilityIdentifier("official.inbox.organizerTransfer.\(invite.id)")
             }
             ForEach(actions, id: \.self) { action in
-                CYPillButton(LocalizedStringKey(OfficialInboxPresentation.buttonKey(action)), style: .secondary) {
+                // PC-C-5-2: 接受职责 is the likely action (MP primary); decline / withdraw stay secondary.
+                CYPillButton(LocalizedStringKey(OfficialInboxPresentation.buttonKey(action)), style: action == .accept ? .primary : .secondary) {
                     if OfficialInboxPresentation.requiresOrganizerTransfer(invite, action: action) {
                         transferHint = true
                         toastMessage = PlayCloseCopy.text("请前往主办方转移入口处理", "Handle this in organizer transfer", locale)
                         return
                     }
                     transferHint = false
-                    pendingAction = action
+                    // PC-C-5-1: one confirmation. The review sheet already carries the action's MP title and body
+                    // (接受本场职责 / 拒绝本场邀约 / 退出本场职责), so the generic modal step is gone.
+                    reviewedAction = action
+                    reviewed = OfficialActionCommand.sourceInboxResponse(to: invite, action: action)
                 }
                     .accessibilityIdentifier("official.inbox.\(action.rawValue.lowercased()).\(invite.id)").e1ActionRow()
             }
             if transferHint {
                 Text("official.privateParity.inbox.organizerTransferHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                     .accessibilityIdentifier("official.inbox.transferHint.\(invite.id)")
-            }
-        }
-        .cyModalOverlay(isPresented: pendingAction != nil) {
-            if let action = pendingAction {
-                CYModal(
-                    title: PlayCloseCopy.text("确认回应官方邀约", "Respond to official invite", locale),
-                    message: appLocalized(String.LocalizationValue(stringLiteral: OfficialInboxPresentation.confirmationBodyKey(invite, action: action)), locale: locale),
-                    cancelTitle: PlayCloseCopy.cancel(locale),
-                    confirmTitle: PlayCloseCopy.confirm(locale),
-                    onCancel: { pendingAction = nil },
-                    onConfirm: {
-                        pendingAction = nil
-                        reviewedAction = action
-                        reviewed = OfficialActionCommand.sourceInboxResponse(to: invite, action: action)
-                    }
-                )
             }
         }
         .cyToast(verbatimMessage: $toastMessage)

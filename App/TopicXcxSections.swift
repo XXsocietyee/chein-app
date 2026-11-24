@@ -255,7 +255,7 @@ struct TopicXcxActionBar: View {
             switch TopicXcxFacts.action(topic) {
             case .ticketWallet:
                 Text("topicXcx.bar.signedUp").cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
-            case .locked:
+            case .locked, .closed:
                 EmptyView()
             case .selfPlay(let price):
                 priceText(price).cyText(.sectionTitle).foregroundStyle(palette.textPrimary).monospacedDigit()
@@ -316,6 +316,10 @@ struct TopicXcxActionBar: View {
                         } else {
                             Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
                         }
+                    case .closed:
+                        // PC-B-1-3: after the sale deadline the bar only states 已截止 (MP is-off pill); no buy entry.
+                        Text("topicXcx.cta.closed").frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("topic.cta.closed")
                     case .selfPlay:
                         Button(action: openSelfPlay) {
                             Text("topicXcx.cta.selfPlayNoPrice").frame(minWidth: 132)
@@ -419,6 +423,7 @@ extension EnvironmentValues {
 
 /// Source tab "路线": every stop in order with its walking estimate.
 struct TopicXcxRouteSection: View {
+    @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     let topic: TopicDetail
     var body: some View {
@@ -438,7 +443,11 @@ struct TopicXcxRouteSection: View {
                 if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                 ForEach(TopicChapterItinerary(chapter: chapter).stops) { stop in
                     VStack(alignment: .leading, spacing: 2) {
-                        if let minutes = stop.estimatedWalkingMinutes { Text("topicXcx.route.walk \(minutes)").cyText(.label).foregroundStyle(.secondary) }
+                        // PC-B-1-7: the API has no walking time; say only the straight-line distance (MP 直线约 X).
+                        if let meters = stop.straightLineMeters {
+                            Text("topicXcx.route.straightLine \(TopicChapterItinerary.distanceText(meters: meters, chinese: locale.language.languageCode?.identifier == "zh"))")
+                                .cyText(.label).foregroundStyle(.secondary)
+                        }
                         HStack(alignment: .top) {
                             Text(verbatim: String(stop.id + 1)).cyText(.label, weight: .bold, monospacedDigit: true).frame(minWidth: 24, minHeight: 24).background(Circle().fill(palette.bgRaised)).accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 2) {

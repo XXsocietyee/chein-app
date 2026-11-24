@@ -102,7 +102,7 @@ private struct CreatorContentIssueView: View {
                     if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
                     if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
                     let rowScope = key.scope
-                    MyProjectCreateActivityRow(type: query.type, rowCount: page.rows.count)
+                    // PC-D-1-5: no 发布单场活动 row above a non-empty list (MP owner ruling m693; the empty state keeps it).
                     ForEach(MyProjectListPresentation.sorted(page.rows)) { project in
                         if let destination = project.destination {
                             Button {
@@ -113,6 +113,7 @@ private struct CreatorContentIssueView: View {
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .accessibilityIdentifier("creatorContent.project.\(project.id)")
                                 .contextMenu { MyProjectRowOperationsMenu(project: project) }
+                                .overlay(alignment: .topTrailing) { MyProjectRowMoreButton(project: project) }
                                 .questifyCardListRow()
                             MyProjectSaveAsTemplateEntry(project: project) { Task { await refresh() } }
                             MyProjectAuditEntry(project: project)
@@ -129,7 +130,7 @@ private struct CreatorContentIssueView: View {
         .environment(\.myProjectMerchantScopeAccess, loadedAccess)
         .environment(\.myProjectMutation, loadedAccess.isBrowseOnly ? nil : mutation)
         .task(id: entryScope) { mutation = MyProjectMutationFactory.liveModel(scope: entryScope) }
-        .appNavigationTitle("creatorContent.projects")
+        .cyPageTitle("creatorContent.projects") // PC-D-1-7
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
         .onChange(of: listRefresh) { _, request in
             guard let request, request.readerScope == reader.scope, reader.isAuthenticated else { return }

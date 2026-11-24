@@ -87,7 +87,9 @@ struct TopicDetailView: View {
             }
         }
         .environment(\.ugcSafetySubjectID, detail?.id ?? id)
-        .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.topic")
+        // PC-B-1-8 / PC-C-1-9 (type-and-chrome §3): the hero is an inset list row, not a full-bleed image, so the page keeps
+        // the system back and its edge swipe; share / 举报 stay in the bar beside it.
+        .cyPushedChrome(domain: .player)
         .task(id: key) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
@@ -497,8 +499,21 @@ struct TopicDetailView: View {
                     Label("topic.lockedNotice", systemImage: "lock")
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
                     Text(TopicXcxFacts.showsInStorePerks(value) ? "topicXcx.paywall.detail" : "topicXcx.paywall.detailNoPerks").cyText(.bodyCompact)
+                    // PC-B-1-15: the price of what unlocks (MP paywall price row); unknown price → row hidden.
+                    if value.selfPlay == 1, let price = value.selfPlayPrice {
+                        Text(price, format: .currency(code: "CNY").precision(.fractionLength(0...2)))
+                            .cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
+                            .accessibilityIdentifier("topic.paywall.price")
+                    }
                     if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) {
                         CYPillButton("topicXcx.paywall.unlock", style: .primary) { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
+                    }
+                    // PC-B-1-15: a buyer whose purchase has not synced yet has a way out (MP 已购？去票夹).
+                    if ticketWalletDestination != nil {
+                        Button { showingTickets = true } label: { Text("topicXcx.paywall.purchased").cyText(.meta) }
+                            .buttonStyle(.plain).foregroundStyle(CYColor.brand)
+                            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                            .accessibilityIdentifier("topic.paywall.tickets")
                     }
                 }
             }
@@ -557,8 +572,8 @@ struct TopicDetailView: View {
     /// Source `topicSaleClosed`: the sale end (endDate) has passed. Mainland wall-clock source, as in the mini-program.
     /// A purchased topic keeps its 去票夹 path; an unparsable end never closes the topic.
     private func saleClosed(_ value: TopicDetail) -> Bool {
-        guard !value.isSignUp, let end = HomeFeedDate.parse(value.endDate, sourceTimeZone: TimeZone(identifier: "Asia/Shanghai")) else { return false }
-        return Date() >= end
+        // PC-B-1-3: one rule with the bottom bar (MP `topicSaleClosed`: `saleEndAt`, else `endDate`).
+        !value.isSignUp && TopicXcxFacts.saleClosed(value)
     }
     /// Guard: only an in-flight load falls back to idle; loaded/failed results are kept.
     private func settleLoading() { if phase.isLoading { phase = .idle } }

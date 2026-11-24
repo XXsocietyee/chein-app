@@ -260,6 +260,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let totalTimeSeconds: Int?
     public let startDate: String?
     public let endDate: String?
+    /// PC-B-1-3: sale deadline (`saleEndAt`, backend `assertFreeTopicOpen`); nil falls back to `endDate`.
+    public let saleEndAt: String?
     public let totalMileage: Double?
     public let audioURL: String?
     public let audioDuration: Int?
@@ -317,6 +319,7 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         totalTimeSeconds = c.int("totalTime")
         startDate = c.text("startDate") ?? c.text("start_date")
         endDate = c.text("endDate")
+        saleEndAt = c.text("saleEndAt")
         totalMileage = c.number("totalMileage")
         audioURL = c.text("audioUrl")
         audioDuration = c.int("audioDuration")

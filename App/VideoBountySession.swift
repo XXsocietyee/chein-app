@@ -45,6 +45,7 @@ extension MPParityBindings {
     func load() {
         generation += 1
         let generation = generation
+        state.signedOut = false
         state.submissions = .loading
         state.accruals = .loading
         campaigns = .loading
@@ -185,6 +186,7 @@ extension MPParityBindings {
     private func reload(_ generation: Int) async {
         guard let source = source(), let token = token() else {
             guard generation == self.generation else { return }
+            state.signedOut = source() != nil   // PC-D-7-1: configured but no token → sign-in gate
             state.submissions = .failed(nil)
             state.accruals = .failed(nil)
             campaigns = .failed(nil)

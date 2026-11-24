@@ -91,7 +91,9 @@ public struct ActivityDetail: Decodable, Equatable {
     /// Source `cancelTime`/`cancelReason`: a non-empty cancel time means the host cancelled.
     public let cancelTime: String?
     public let cancelReason: String?
-    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList, isSignUp, cancelTime, cancelReason }
+    /// PC-C-1-4 (MP check-1104 j1 F14): a shop-hosted activity names the shop as 主办方, not the creator member.
+    public let organizerShopName: String?
+    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList, isSignUp, cancelTime, cancelReason, organizerShopName }
     public init(from decoder:Decoder) throws {
         publisherAuthoritySource = try? PublisherActivityAuthoritySource(from: decoder)
         summary=try ActivitySummary(from:decoder)
@@ -104,6 +106,7 @@ public struct ActivityDetail: Decodable, Equatable {
         let flag = (try? c.decodeIfPresent(Int.self,forKey:.isSignUp)) ?? nil
         signUpFlag = flag == 0 || flag == 1 ? flag : nil
         cancelTime=Self.text(c,.cancelTime); cancelReason=Self.text(c,.cancelReason)
+        organizerShopName=Self.text(c,.organizerShopName)
     }
     private static func text(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
         // Dates may arrive as text or epoch milliseconds; either one is a present cancellation.
@@ -113,6 +116,15 @@ public struct ActivityDetail: Decodable, Equatable {
         return trimmed.isEmpty ? nil : trimmed
     }
     public var isCancelled: Bool { cancelTime != nil }
+    /// PC-C-1-3: MP `selectableTickets` — a ticket is selectable unless its stock is confirmed 0 or its window has
+    /// passed. With none selectable the sign-up pill is disabled and says why (暂无可报名票种 / 暂未开放票种).
+    public func signUpBlock(now: Date) -> ActivitySignUpBlock? {
+        let selectable = tickets.filter { ticket in
+            (ticket.remainingInventory.map { $0 > 0 } ?? true) && !ticket.registrationClosed(at: now)
+        }
+        guard selectable.isEmpty else { return nil }
+        return tickets.isEmpty ? .noTicketsOpen : .noneSelectable
+    }
     /// Mirrors the source detail CTA (scene-play-activity-detail actionFor). A missing flag keeps
     /// the existing registration entry, whose sheet and server still own eligibility checks.
     public func primaryAction(now: Date) -> ActivityPrimaryAction {
@@ -123,6 +135,11 @@ public struct ActivityDetail: Decodable, Equatable {
            let last = Calendar.chinaActivity.date(byAdding: DateComponents(day: 1, second: -1), to: end), now > last { return .viewTrace }
         return .continueExploring
     }
+}
+
+public enum ActivitySignUpBlock: Equatable {
+    case noneSelectable, noTicketsOpen
+    public var titleKey: String { self == .noneSelectable ? "activity.cta.noSelectableTicket" : "activity.cta.noTicketOpen" }
 }
 
 public enum ActivityPrimaryAction: Equatable {

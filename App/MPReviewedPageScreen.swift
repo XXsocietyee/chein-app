@@ -21,9 +21,25 @@ import SwiftUI
     @ViewBuilder private var screen: some View {
         switch page {
         case "pages/index/index":
-            SessionHomeFeedView().environmentObject(session)
+            // PC-A-1-8: 首页 is a tab root (MP switchTab). Close the link and select the tab instead of pushing a second
+            // home with its own NavigationStack; a host without the tab switch keeps the old screen.
+            if rootTabSwitch.isAvailable {
+                MPTabHandoff { session.dismissNativeEntry(); rootTabSwitch(.home) }
+            } else {
+                SessionHomeFeedView().environmentObject(session)
+            }
         case "pages/template/index", "pages/templatedetail2/templatedetail2":
-            DiscoveryTemplateBrowserView(reader: session)
+            // PC-A-2-6: the same 应用 / 发布 capabilities as the 发布 tab entry.
+            DiscoveryTemplateBrowserView(
+                reader: session,
+                authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
+                authoringRevision: session.sessionRevision,
+                authoringCompletion: session.templateAuthoringCompletionContext,
+                publishDestination: {
+                    AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch))
+                }
+            )
+            .id(session.templateAuthoringViewIdentity)
         case "pages/templatedetail/topic-preview/index", "pages/templatedetail/topic-detail/index":
             // PC-A-7-1 / PC-A-8-1: a shared topic-template link lands on that template, not the shelf root.
             if let id = reviewedID(query) {
@@ -105,7 +121,13 @@ import SwiftUI
         case "pages/activity/official-mine/index":
             OfficialPublishedView(reader: session.officialEventReader, actions: session.officialActionCoordinator)
         case "subpackageA/pages/infomation/infomation":
-            SocialPlayGuideView(reader: session.socialAccountReader, templateReader: session)
+            // PC-D-2-1: the mode cards keep their 去看看 (MP switchTab to 首页 / 漫游).
+            SocialPlayGuideView(reader: session.socialAccountReader,
+                                onOpenDestination: rootTabSwitch.isAvailable ? { destination in
+                                    session.dismissNativeEntry()
+                                    rootTabSwitch(destination == .roam ? .roam : .home)
+                                } : nil,
+                                templateReader: session)
         case "subpackageA/pages/infomationdetail/infomationdetail":
             if let id = reviewedID(query) {
                 SocialInformationView(id: id, reader: session.socialAccountReader)
@@ -117,7 +139,7 @@ import SwiftUI
             SessionWalletCommerceView().environmentObject(session)
         case "subpackageA/pages/assetcenter/analysis/index":
             // PC-D-6-1: 分析 is the income analysis page, not 我的资产.
-            WalletIncomeAnalysisView(reader: session.walletHistoryReader)
+            WalletIncomeAnalysisView(reader: session.walletHistoryReader, onSignIn: signIn)
         case "subpackageP3/pages/growthcenter/index/index":
             GrowthCenterView(reader: session.growthCenterReader)
         case "subpackageP3/pages/growthcenter/leaderboard/index":
@@ -261,7 +283,12 @@ import SwiftUI
         case "pages/topic/index/index":
             if let id = reviewedID(query) { SessionTopicDetailView(id: id, session: session) } else { unavailable }
         case "pages/templatedetail/templatedetail":
-            if let id = reviewedID(query) { DiscoveryTemplateDetailView(id: id, reader: session) } else { unavailable }
+            // PC-A-6-2: the link opens the template with 应用, as in-app entries do.
+            if let id = reviewedID(query) {
+                DiscoveryTemplateDetailView(id: id, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
+                                            authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
+                    .id(session.templateAuthoringViewIdentity)
+            } else { unavailable }
         case "pages/square/detail/index":
             if let id = reviewedID(query) {
                 SquareDetailView(id: id, reader: session.squareReader, accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
@@ -602,4 +629,15 @@ private func reviewedID(_ query: [String: String], key: String = "id") -> Int? {
     guard let text = query[key], text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
           let value = Int(text), value > 0, String(value) == text else { return nil }
     return value
+}
+
+/// PC-A-1-8: a link to a tab root performs the tab switch once and draws nothing.
+private struct MPTabHandoff: View {
+    let perform: @MainActor () -> Void
+    @State private var done = false
+    var body: some View {
+        Color.clear
+            .accessibilityHidden(true)
+            .onAppear { guard !done else { return }; done = true; perform() }
+    }
 }

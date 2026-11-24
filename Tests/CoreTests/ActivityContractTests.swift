@@ -77,4 +77,17 @@ final class ActivityContractTests: XCTestCase {
         XCTAssertEqual(ActivityPrimaryAction.signUp.titleKey, "activity.cta.signUp")
         XCTAssertEqual(ActivityPrimaryAction.cancelled.titleKey, "activity.cta.cancelled")
     }
+    /// PC-C-1-3: MP selectableTickets — confirmed sold-out or past-window tickets do not count; null stock does.
+    func testSignUpBlockFollowsSelectableTickets() throws {
+        func detail(_ fields: String) throws -> ActivityDetail {
+            try JSONDecoder().decode(ActivityDetail.self, from: Data((#"{"id":1,"name":"A""# + fields + "}").utf8))
+        }
+        let now = try XCTUnwrap(ActivityPrimaryAction.chinaDate("2026-10-19 12:00:00"))
+        XCTAssertEqual(try detail("").signUpBlock(now: now), .noTicketsOpen)
+        XCTAssertNil(try detail(#","omsTicketList":[{"id":1,"name":"T"}]"#).signUpBlock(now: now))
+        XCTAssertEqual(try detail(#","omsTicketList":[{"id":1,"name":"T","remainingInventory":0}]"#).signUpBlock(now: now), .noneSelectable)
+        XCTAssertEqual(try detail(#","omsTicketList":[{"id":1,"name":"T","startTime":"2026-10-18 09:00:00"}]"#).signUpBlock(now: now), .noneSelectable)
+        XCTAssertNil(try detail(#","omsTicketList":[{"id":1,"name":"T","remainingInventory":0},{"id":2,"name":"U","remainingInventory":3}]"#).signUpBlock(now: now))
+        XCTAssertEqual(ActivitySignUpBlock.noTicketsOpen.titleKey, "activity.cta.noTicketOpen")
+    }
 }

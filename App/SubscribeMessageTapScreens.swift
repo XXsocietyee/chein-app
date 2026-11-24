@@ -27,39 +27,12 @@ import SwiftUI
     }
 }
 
-/// `subpackageA/pages/myproject/index`. The list is the existing projects screen. Opening a row uses
-/// the same topic, activity, and template screens the publish hub already uses. Registration stays off.
+/// `subpackageA/pages/myproject/index`. PC-D-1-1: the link opens the same 我的项目 screen as the in-app entry
+/// (`SessionCreatorProjectsView`: covers, tabs, row ops menu), not the older publishing list.
 @MainActor struct SubscribeMessageProjectsEntry: View {
     @ObservedObject var session: AppSession
-    @State private var resource: PublishedResource?
 
     var body: some View {
-        PublishingProjectsView(service: session.publishingService, account: session.publishingSession, openResource: { resource = $0 })
-            .navigationDestination(item: $resource) { destination in
-                switch destination.kind {
-                case .topic:
-                    SessionTopicDetailView(id: destination.value, session: session).id(session.topicReader.scope)
-                case .activity:
-                    ActivityDetailView(id: destination.value, reader: session, registrationEnabled: true)
-                        .toolbar {
-                            PublisherLifecycleNavigationLink(session: session, resource: destination)
-                            if let editor = session.activityEditingController(id: destination.value) {
-                                NavigationLink {
-                                    ActivityEditingView(owner: editor, makeActivityCover: { session.makeActivityCoverService() }).id(session.publishingSession?.epoch)
-                                } label: {
-                                    Text("entry", tableName: "ActivityEditing")
-                                }.accessibilityIdentifier("activityEdit.entry")
-                            }
-                        }
-                case .template:
-                    DiscoveryTemplateDetailView(id: destination.value, reader: session,
-                        authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
-                        authoringRevision: session.sessionRevision).id(session.templateAuthoringViewIdentity)
-                }
-            }
-            .onChange(of: session.publishingSession) { _, _ in
-                session.publishingService?.invalidateReviews()
-                resource = nil
-            }
+        SessionCreatorProjectsView(session: session)
     }
 }

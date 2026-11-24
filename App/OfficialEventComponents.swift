@@ -93,6 +93,9 @@ struct OfficialIssueView: View {
     @State private var loadedKey: Key?
     @State private var generation: UInt64 = 0
     @State private var loading = false
+    /// PC-C-3-2: a pull on loaded content keeps the cards (MP 正在更新活动列表…) instead of blanking them.
+    @State private var refreshing = false
+    @State private var refreshFailed = false
     private struct Key: Hashable {
         let scope: UUID
         let configured: Bool
@@ -117,12 +120,23 @@ struct OfficialIssueView: View {
                 else if !reader.isConfigured { OfficialIssueView(issue: .unconfigured) }
                 else if loadedKey != key || loading { Color.clear }
                 else if let issue { OfficialIssueView(issue: issue, onLogin: onLogin, retry: { Task { await refresh() } }, copy: copy, onBack: onBack) }
-                else if let value { content(value) }
+                else if let value {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if refreshing || refreshFailed {
+                            Text(refreshing ? "official.refreshing" : "official.refreshFailed")
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                .padding(.horizontal).padding(.vertical, CYSpacing.xs)
+                                .accessibilityIdentifier(refreshing ? "official.refreshing" : "official.refreshFailed")
+                        }
+                        content(value)
+                    }
+                }
             }
         }
         .task(id: key) { await refresh() }
         .refreshable { await refresh() }
         .onDisappear { generation &+= 1; loading = false }
+        .onDisappear { refreshing = false }
         .onAppear { sourceObservation.bind(reader) }
         .onChange(of: ObjectIdentifier(reader)) { _, _ in sourceObservation.bind(reader) }
         .onChange(of: sourceObservation.revision) { _, _ in
@@ -137,17 +151,24 @@ struct OfficialIssueView: View {
     private func refresh() async {
         generation &+= 1
         let operation = generation, captured = key
-        value = nil; issue = nil; loadedKey = nil; loading = false
-        copy = nil
+        // PC-C-3-2: same key with cards on screen → keep them and show one 正在更新… line; any other case starts blank.
+        let keeps = loadedKey == captured && value != nil && issue == nil
+        refreshFailed = false; refreshing = false
+        if !keeps {
+            value = nil; issue = nil; loadedKey = nil; loading = false
+            copy = nil
+        }
         guard reader.isConfigured, !isPrivate || reader.isAuthenticated else { return }
-        loading = true
-        defer { if generation == operation { loading = false } }
+        if keeps { refreshing = true } else { loading = true }
+        defer { if generation == operation { loading = false; refreshing = false } }
         do {
             let result = try await load()
             guard !Task.isCancelled, generation == operation, key == captured else { return }
             value = result; loadedKey = captured
         } catch {
             guard !Task.isCancelled, !(error is CancellationError), generation == operation, key == captured else { return }
+            // A failed pull keeps the cards (MP toast 刷新失败，稍后再试); a failed first load shows the issue.
+            if keeps { refreshFailed = true; return }
             copy = issueCopy?(error)
             issue = OfficialScreenIssue(error); loadedKey = captured
         }

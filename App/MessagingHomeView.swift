@@ -18,7 +18,7 @@ struct MessagingHomeView: View {
             if let predictionEntry { predictionEntry().padding(.horizontal) }
             if let coopInviteStrip { coopInviteStrip().padding(.horizontal) }
             MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
-        }.appNavigationTitle("messaging.title")
+        }.cyPageTitle("messaging.title") // PC-D-8-2
         .themeDomain(.player)
         .cyHideTabBar()
     }

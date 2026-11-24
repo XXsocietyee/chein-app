@@ -153,7 +153,8 @@ enum WalletPayoutCapability {
                         CYSkeleton().accessibilityIdentifier("wallet.earnings.loading")
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
-                        WalletEarningsHero(label: appLocalized("withdrawal.support.balance", locale: locale),
+                        // PC-D-5-3: MP label 账户收益 (the currency symbol is drawn beside the number).
+                        WalletEarningsHero(label: appLocalized("wallet.earnings.balance", locale: locale),
                                            number: WalletNumberLocalization.text(value.balance.text, locale: locale),
                                            symbol: WalletCurrencySymbol.symbol(value.currency))
                             .privacySensitive()
@@ -170,7 +171,7 @@ enum WalletPayoutCapability {
             if visibility.income { monthIncomeSection }
             if visibility.assets { assetsSection }
         }.listStyle(.plain).scrollContentBackground(.hidden)
-            .appNavigationTitle("wallet.title")
+            .cyPageTitle("wallet.title") // PC-D-5-5
             .cyHideTabBar()
             .task(id: reader.scope) {
                 isVisible = true
@@ -753,7 +754,7 @@ private struct WalletIncomeListCard: ViewModifier {
     }
     private var incomeBody: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYHeroHeader("wallet.income").padding(.horizontal)
+            // PC-D-4-3 (MC-41): 收益明细 is drawn once, by the bar; no second in-content title.
             Picker("wallet.income", selection: $filter) {
                 Text("wallet.all").tag(WalletIncomeFilter.all)
                 Text("wallet.creationIncome").tag(WalletIncomeFilter.create)

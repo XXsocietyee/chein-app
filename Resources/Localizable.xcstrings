@@ -3098,6 +3098,40 @@
         }
       }
     },
+    "activity.cta.noSelectableTicket": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tickets available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可报名票种"
+          }
+        }
+      }
+    },
+    "activity.cta.noTicketOpen": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tickets not open yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未开放票种"
+          }
+        }
+      }
+    },
     "activity.cta.signUp": {
       "extractionState": "manual",
       "localizations": {
@@ -3449,6 +3483,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "主理人"
+          }
+        }
+      }
+    },
+    "activity.people.organizerShop": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主办方"
           }
         }
       }
@@ -137870,6 +137921,23 @@
         }
       }
     },
+    "mp.vb.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see your video submissions and rewards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看你的视频投稿与奖励"
+          }
+        }
+      }
+    },
     "mp.vb.status.appealing": {
       "extractionState": "manual",
       "localizations": {
@@ -140322,6 +140390,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "长按卡片可上下架 / 删除"
+          }
+        }
+      }
+    },
+    "myProject.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目操作"
           }
         }
       }
@@ -151203,6 +151288,23 @@
         }
       }
     },
+    "official.organizer.refreshing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading the latest platform record…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取平台最新记录…"
+          }
+        }
+      }
+    },
     "official.organizer.resume.body": {
       "localizations": {
         "en": {
@@ -152344,6 +152446,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "阅读人数"
+          }
+        }
+      }
+    },
+    "official.refreshFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't refresh. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新失败，稍后再试"
+          }
+        }
+      }
+    },
+    "official.refreshing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新活动列表…"
           }
         }
       }
@@ -210231,13 +210367,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cost floor"
+            "value": "Minimum price"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "成本地板"
+            "value": "最低价"
           }
         }
       }
@@ -238103,13 +238239,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No games to show here yet."
+            "value": "No ready-made games yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可展示的玩法。"
+            "value": "还没有上架的现成玩法"
           }
         }
       }
@@ -238120,13 +238256,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Game templates could not be loaded. Other guide sections are still available."
+            "value": "Couldn't load ready-made games"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法模板加载失败，仍可查看指南的其他内容。"
+            "value": "现成玩法加载失败"
           }
         }
       }
@@ -268357,6 +268493,40 @@
         }
       }
     },
+    "topicTemplate.useCta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this template"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用这个模板"
+          }
+        }
+      }
+    },
+    "topicTemplate.useUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copying a template is not available in this version yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本暂未开放复制模板"
+          }
+        }
+      }
+    },
     "topicXcx.bar.free": {
       "extractionState": "manual",
       "localizations": {
@@ -268453,6 +268623,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "往下滑动看玩法、场次和报名"
+          }
+        }
+      }
+    },
+    "topicXcx.cta.closed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已截止"
           }
         }
       }
@@ -268953,6 +269140,23 @@
         }
       }
     },
+    "topicXcx.paywall.purchased": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already bought? Open your tickets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已购？去票夹"
+          }
+        }
+      }
+    },
     "topicXcx.paywall.recover": {
       "localizations": {
         "en": {
@@ -269397,6 +269601,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "这条路线还没有站点"
+          }
+        }
+      }
+    },
+    "topicXcx.route.straightLine %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %@ in a straight line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直线约 %@"
           }
         }
       }
@@ -274002,6 +274223,23 @@
         }
       }
     },
+    "wallet.earnings.balance": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account earnings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户收益"
+          }
+        }
+      }
+    },
     "wallet.earnings.finance.separate": {
       "extractionState": "manual",
       "localizations": {
@@ -274049,6 +274287,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "—"
+          }
+        }
+      }
+    },
+    "wallet.earnings.goPublish": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish a route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去发布路线"
           }
         }
       }

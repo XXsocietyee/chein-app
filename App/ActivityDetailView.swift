@@ -444,7 +444,7 @@ struct ActivityDetailView: View {
                     }.accessibilityIdentifier("activity.openTopic")
                 }
             }
-            ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail))
+            ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail), organizerShopName: detail.organizerShopName)
             Section {
                 if detail.tickets.isEmpty {
                     // Source empty ticket copy: title plus host explanation.
@@ -514,7 +514,9 @@ struct ActivityDetailView: View {
         .background(CYColor.bgPage)
         .accessibilityIdentifier("activity.detail.content")
         .cyTracksHeroScroll($heroScrolledAway)
-        .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.activity")
+        // PC-B-1-8 / PC-C-1-9 (type-and-chrome §3): the hero is an inset list row, not a full-bleed image, so the page keeps
+        // the system back and its edge swipe; share / 举报 stay in the bar beside it.
+        .cyPushedChrome(domain: .player)
         // E2E-20261113b N3: the List did not inset for the pinned action, so the last section ("More info", which holds
         // the play row) ended under it. Reserve the pinned action's height below the content.
         .contentMargins(.bottom, registrationEnabled ? 112 : 0, for: .scrollContent)
@@ -607,11 +609,15 @@ struct ActivityDetailView: View {
         return .signUp
     }
     /// The pill and the first tile share one action: sign up opens the registration sheet, a registered viewer opens the wallet, cancelled does nothing.
+    private var signUpBlocked: Bool {
+        if let access, case .allowed(let detail) = access { return detail.signUpBlock(now: Date()) != nil }
+        return false
+    }
     private var primaryActionEnabled: Bool {
-        primaryAction == .signUp || (primaryAction != .cancelled && reader is AppSession)
+        (primaryAction == .signUp && !signUpBlocked) || (primaryAction != .signUp && primaryAction != .cancelled && reader is AppSession)
     }
     private func performPrimaryAction() {
-        if primaryAction == .signUp { tileOpenedSheet = true; showsRegistration = true }
+        if primaryAction == .signUp { guard !signUpBlocked else { return }; tileOpenedSheet = true; showsRegistration = true }
         else if primaryAction == .continueExploring, playReaderForActivity != nil { showsPlay = true }
         else if primaryAction != .cancelled, reader is AppSession { tileOpenedSheet = true; showsTicketWallet = true }
     }
@@ -635,7 +641,12 @@ struct ActivityDetailView: View {
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("activity.pinned.summary")
             }
-            if primaryAction == .signUp {
+            if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
+                // PC-C-1-3: nothing can be bought; the pill is disabled and names the reason (MP noTicketText).
+                CYPillButton(LocalizedStringKey(block.titleKey)) {}
+                    .disabled(true)
+                    .accessibilityIdentifier("activity.openRegistration.blocked")
+            } else if primaryAction == .signUp {
                 CYPillButton(LocalizedStringKey(primaryAction.titleKey)) { showsRegistration = true }
                     .cyHeroSource(ActivityFooterHeroDestination.id, in: footerHero, cornerRadius: CYRadius.pill)
                     .accessibilityIdentifier("activity.openRegistration")
