@@ -104,6 +104,9 @@ enum OfficialDetailID {
                 OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
                 HStack(spacing: CYSpacing.sm) {
                     CYStatusChip(LocalizedStringKey(presentation.categoryKey), tone: .neutral)
+                    // MP official-detail/index.wxml:31: the 城瘾官方 organizer logo.
+                    MPAsset.BrandLogo.cyLogoMark.resizable().scaledToFill()
+                        .frame(width: 24, height: 24).clipShape(Circle()).accessibilityHidden(true)
                     Text("official.detailParity.organizer").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.organizer)
                 Section("official.facts") {

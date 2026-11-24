@@ -219,6 +219,8 @@ struct OfficialEventCard: View {
                 else { Text("official.card.collectiveUnknown") }
             }
         }
+        // MP list/index.wxml:51: no cover shows `/images/cover-route.svg`, not a glyph.
+        .fallbackArtwork(MPAsset.BannerCover.coverRoute)
     }
 }
 

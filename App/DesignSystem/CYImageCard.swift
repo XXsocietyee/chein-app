@@ -12,6 +12,8 @@ struct CYImageCard: View {
     private let aspectRatio: CGFloat
     private let seed: String
     var cachesFeedImage = false
+    /// MP default cover (`MPAsset.BannerCover.*`), drawn aspect-fit on the neutral tile when there is no image.
+    var fallbackArtwork: Image? = nil
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -112,6 +114,12 @@ struct CYImageCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    func fallbackArtwork(_ image: Image) -> CYImageCard {
+        var copy = self
+        copy.fallbackArtwork = image
+        return copy
+    }
+
     func cachingFeedImage(_ enabled: Bool = true) -> CYImageCard {
         var copy = self
         copy.cachesFeedImage = enabled
@@ -130,7 +138,13 @@ struct CYImageCard: View {
         }
     }
     /// Generated art (never a grey box): deterministic per title, tiny DEBUG label in debug builds.
-    private var placeholder: some View { CYCoverArt(seed: seed) }
+    @ViewBuilder private var placeholder: some View {
+        if let fallbackArtwork {
+            LinearGradient(colors: [palette.bgStrong, palette.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .overlay { fallbackArtwork.resizable().scaledToFit().padding(CYSpacing.lg) }
+                .accessibilityHidden(true)
+        } else { CYCoverArt(seed: seed) }
+    }
 }
 
 private struct CYImageCardPreviewBody: View {

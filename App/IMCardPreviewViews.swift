@@ -27,6 +27,8 @@ import MapKit
                         imageURL: coverURL(detail),
                         style: .hero
                     )
+                    // MP im/chat/index.wxml:92: no cover shows `/images/cover-route.svg`.
+                    .fallbackArtwork(MPAsset.BannerCover.coverRoute)
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("im.card.route.loaded")
