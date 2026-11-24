@@ -194,7 +194,7 @@ struct CooperationInviteTermsText: View {
         switch terms {
         case .traffic: Text("cooperation.terms.traffic")
         case .share(let rate): Text("cooperation.detail.terms.share \(rate.map(cooperationInviteNumber) ?? "?")")
-        case .fixed(let fee): Text("cooperation.detail.terms.fixed \(fee.map(cooperationInviteNumber) ?? "?")")
+        case .fixed(let fee): Text("cooperation.detail.terms.fixed \(fee.map(cooperationInviteMoney) ?? "?")")
         case .unknown: Text(verbatim: "—")
         }
     }
@@ -204,13 +204,17 @@ struct CooperationInviteDepositText: View {
     var body: some View {
         switch deposit {
         case .notRequired: Text("cooperation.detail.deposit.none")
-        case .owed(let amount?): Text("cooperation.detail.deposit.owed \(cooperationInviteNumber(amount))").monospacedDigit().foregroundStyle(CYColor.dangerText)
+        case .owed(let amount?): Text("cooperation.detail.deposit.owed \(cooperationInviteMoney(amount))").monospacedDigit().foregroundStyle(CYColor.dangerText)
         case .owed(nil): Text("cooperation.detail.deposit.owedUnknown").foregroundStyle(CYColor.dangerText)
         }
     }
 }
 /// No default amount, exchange rate, estimated deposit or contract total.
 func cooperationInviteNumber(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(0...8))) }
+/// Owner decision #9 (2026-11-24): money shows two decimals through the one shared formatter (`MoneyDisplay`).
+func cooperationInviteMoney(_ value: Double) -> String {
+    MoneyDisplay.plain(Decimal(string: String(value), locale: Locale(identifier: "en_US_POSIX")) ?? Decimal(value))
+}
 
 /// MR-36 star rating: five stars, tap to set; the word under them changes with the tap; one `.selection` tick per tap.
 /// The cooperation contract (`test_cooperation_structure`) keeps these pages free of custom motion, so the stars fill

@@ -203,6 +203,23 @@
       }
     }
   },
+  "merchantCoop.cityNode.writesClosed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Placing, claiming and switching city nodes on or off isn't available in the app yet."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城市节点的投放、认领和上下线暂未在 App 开放"
+        }
+      }
+    }
+  },
   "merchantCoop.coop.signIn": {
     "extractionState": "manual",
     "localizations": {

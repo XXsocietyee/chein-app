@@ -235,10 +235,12 @@ enum MerchantGameNodeCopy {
         // MC7-26-5: ROUTE stations without a player task have no runbook card (index.wxml:67-69).
         if station.playerTask != nil || c.projection?.playMode != .route { runbook(station) }
         Group {
-            if station.canAccept || station.canDecline { invitation(station) }
-            if station.canReady { readyCard(station) }
+            // MC7-26-1 (until the endpoint review approves the chapter-node commands): with writes closed the one
+            // notice above stands in for the invite / ready / pause / resume / verify actions; no disabled buttons.
+            if c.permitsWrites, station.canAccept || station.canDecline { invitation(station) }
+            if c.permitsWrites, station.canReady { readyCard(station) }
             if station.status == "PAUSED" { pauseInfo(station) }
-            if !station.playable && (station.canPause || station.canVerify) { runCard(station) }
+            if c.permitsWrites, !station.playable && (station.canPause || station.canVerify) { runCard(station) }
         }
         receiptsCard
         recapCard(station)
@@ -386,7 +388,7 @@ enum MerchantGameNodeCopy {
             info("merchantGameNode.pauseInfo.fallback", station.fallbackPlanCode.isEmpty ? "" : station.fallbackPlanCode + (station.fallbackPlanVersion.map { " v\($0)" } ?? ""),
                  fallback: "merchantGameNode.pauseInfo.fallbackMissing")
             MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.refund").cyText(.bodyCompact).foregroundStyle(.secondary)
-            if station.canResume {
+            if station.canResume && c.permitsWrites {
                 Button { c.prepareResume() } label: { MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.resume").frame(maxWidth: .infinity) }
                     .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.resume")
             }
@@ -403,7 +405,7 @@ enum MerchantGameNodeCopy {
         // verify-r1 3.6 / Figma 233:9703 (MR-30): one primary, 核验 N 位玩家 (scan); the two other ways in as a pair of
         // secondaries (出示打卡码 · 输入核验编号); 暂停接待 is a quiet row at the end, not a third button.
         card("merchantGameNode.run.title", "merchantGameNode.run.sub", id: "gameNode.runCard") {
-            if station.canVerify {
+            if station.canVerify && c.permitsWrites {
                 Button { openSubmissionImport() } label: {
                     Group {
                         if station.pendingVerificationCount > 0 {
@@ -417,21 +419,21 @@ enum MerchantGameNodeCopy {
                 }
                 .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
             }
-            if station.playable || station.canVerify {
+            if station.playable || (station.canVerify && c.permitsWrites) {
                 HStack(spacing: CYSpacing.sm) {
                     if station.playable {
                         Button { Task { await c.showCheckin() } } label: { MerchantGameNodeCopy.text("merchantGameNode.run.checkin").frame(maxWidth: .infinity) }
                             .buttonStyle(CYPillButtonStyle(style: .secondary, compact: true))
                             .disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.checkin")
                     }
-                    if station.canVerify {
+                    if station.canVerify && c.permitsWrites {
                         Button { c.openVerify() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.manualVerify").frame(maxWidth: .infinity) }
                             .buttonStyle(CYPillButtonStyle(style: .secondary, compact: true))
                             .disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.manual")
                     }
                 }
             }
-            if station.canPause {
+            if station.canPause && c.permitsWrites {
                 Button(role: .destructive) { c.openPause() } label: {
                     Label { MerchantGameNodeCopy.text("merchantGameNode.run.pause") } icon: { Image(systemName: "pause.circle") }
                         .font(.subheadline.weight(.semibold))

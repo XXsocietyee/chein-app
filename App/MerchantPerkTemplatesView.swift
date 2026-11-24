@@ -205,7 +205,7 @@ import SwiftUI
     }
 
     static func yuan(_ value: Decimal) -> String {
-        "¥" + value.formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "en_US_POSIX")))
+        "¥" + MoneyDisplay.plain(value)  // owner decision #9: the one shared money formatter
     }
 
     private func openForm() {

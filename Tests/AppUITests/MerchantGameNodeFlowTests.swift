@@ -99,9 +99,8 @@ final class MerchantGameNodeFlowTests: XCTestCase {
     func testReadOnlyCompositionDisablesWrites() {
         launch("readOnly")
         XCTAssertTrue(app.staticTexts["gameNode.writesDisabled"].waitForExistence(timeout: 10))
-        let pause = app.buttons["gameNode.pause"]
-        reveal(pause)
-        XCTAssertFalse(pause.isEnabled)
+        // fix/r3-merchant-coop-b MC7-26-1: with writes closed the notice replaces the actions (hidden, not disabled).
+        XCTAssertFalse(app.buttons["gameNode.pause"].exists)
     }
     func testMultipleStationsPreselectRequestedNode() {
         launch("multi")
