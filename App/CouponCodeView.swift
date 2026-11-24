@@ -17,6 +17,7 @@ extension EnvironmentValues {
     @State var model: CouponCodeCoordinator
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dismiss) private var dismiss
     @State private var review = false
     @State private var viewPresentation = CouponCodeViewPresentation()
     private struct TaskKey: Hashable { let active: Bool; let presentationID: UUID? }
@@ -131,7 +132,10 @@ extension EnvironmentValues {
         case .paused: Label("couponCode.paused", systemImage: "pause.circle")
         case .notMine:
             // MP: 无权查看该券 — the coupon is not in this account's wallet; no retry.
-            ContentUnavailableView("couponCode.notMine", systemImage: "ticket")
+            // coupon-qr/index.wxml:28 `cy-empty … cta="返回" bind:cta="onClose"`.
+            CYStateLayout(kind: .empty, title: Text("couponCode.notMine"),
+                          primary: (title: "couponCode.notMine.back", action: { dismiss() }),
+                          primaryIdentifier: "couponCode.notMine.back")
                 .accessibilityIdentifier("couponCode.notMine")
         case .failed:
             // Source: 二维码暂时没能生成，请稍后重试 with one 重试 pill.

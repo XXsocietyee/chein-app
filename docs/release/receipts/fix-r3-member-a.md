@@ -37,7 +37,7 @@ New strings: `docs/port/strings/fix-r3-member-a.json` (`freeBundle.catalog.notOn
 | MKT-10-3 | Recorded as an accepted native-iOS deviation: the coupon detail stays a pushed page (system navigation, owner's native rule of 11-24) rather than a bottom sheet. |
 | MKT-10-5 | Gemini; only matters after R7-MEM-10-1. |
 | MKT-1-6/1-7, 2-7/2-8, 3-5, 4-7/4-8, 6-4/6-5, 7-4/7-8, 8-6, 9-7, 10-6/10-7 | Visual only, covered by `restyle/r1…r6` (skip rule). |
-| MP-asset consistency | `cursor/mp-assets` does not exist yet, so there are no `MPAsset` accessors or `docs/mp-assets/mapping.md`. The 城 mark on library cards (`PassMembershipViews` `mp.library.cityMark`) and the `PassKeyEmblem` should move to MP assets when that branch lands. |
+| MP-asset consistency | Done in Round 2 (see below). |
 
 ## Skipped because in flight
 - `restyle/*` (visual), `cursor/*`, `gap/g1-player`, `gap/g2-ops`, `port/*`. `cursor/cb1142` must not be merged (r7 audit warning).
@@ -49,3 +49,67 @@ New strings: `docs/port/strings/fix-r3-member-a.json` (`freeBundle.catalog.notOn
 ## Acceptance
 - Fixture routes: `docs/port/accept/f-member-a.txt`.
 - Run: pending. The coordinator compiles and sends back exact errors. Fixtures for the new missing-link states do not exist yet; they are reachable via `chein://mp/subpackageMember/market/gift/index` today, and via the other three paths once Cursor request 1 lands.
+
+## Round 2 (2026-11-24)
+
+Brief: `design/handoff-r2:docs/briefs/fix-r3-round2.md`, with `wave-x10.md` and `owner-decisions-1124.md`.
+
+- **Sync.** Merged `origin/ui/combined-r7` (Core K1–K10, W1 wiring, C7 MP assets). One conflict, `tools/check_typography_lint.py`, was resolved in favour of r7; the lint passes. r7 was merged again before the final push.
+- **No compiler in the cloud.** Every API used was grepped on r7 first: `MPAsset.Other.glassKey`, `MPAsset.BannerCover.routeCityCover`, `MPAsset.FeatureIcon.pin/dOrderIcon/dOrderIcon2`, `CYCachedAsyncImageRole.cover.aspectRatio`, `MoneyDisplay.yuan/plain/text/minimumFractionDigits/maximumFractionDigits`, `PlatformPassOverview.terms`, `PlatformPassTermFacts(period:renewal:refund:seat:coverage:)`, `CouponManagementCoordinator.publishListScope`, `CouponPublishListScope.player/.merchant`, `CYStateLayout(kind:title:primary:primaryIdentifier:)`, `InvoiceLaunchDetailView(model:applicationID:onSignIn:)`.
+
+### Fixed in Round 2
+
+| id | page | what changed | files |
+|---|---|---|---|
+| R7-MEM-10-1 (App half) | 10 coupon/coupon | The reviewed page link reads `scope`. `coupon/coupon?scope=MERCHANT` lists the shop's coupons and the bare link lists the player's own coupons (MP `coupon.js:101`). The merchant marketing entries keep `.merchant`. The scope is set on the coordinator before every `load()`, including pull to refresh | App/CouponManagementView.swift, App/SessionCouponManagementView.swift, App/MPReviewedPageScreen.swift |
+| FIN-11-1 (App half) | 11 invoice | `subpackageMember/invoice/index?id=` mounts `InvoiceLaunchDetailView`. The bare path stays the history list | App/MPReviewedPageScreen.swift |
+| MKT-4-3 (App half) | 4 membership | 购买须知 follows `platform-pass.js` `factRows`. 可玩主题 is the library count, else `terms.coverage`. 适用范围 shows `terms.seat`. 有效期 is `terms.period`, else the plan days. 续费 and 退款规则 use the server text when it was sent, else the fixed OR-024 lines | App/PassMembershipViews.swift, App/MPParityPassSession.swift, docs/port/strings/fix-r3-member-a.json (`mp.member.fact.seat`) |
+| MKT-9-5 (App half) | 9 coupon-qr | The `.notMine` state gets the MP 返回 action (`coupon-qr/index.wxml:28`), using Cursor's `couponCode.notMine.back` key | App/CouponCodeView.swift |
+| Owner decision 9 | 1, 2, 4, 5, 10, 11–15 | All money uses the shared `MoneyDisplay` rule (two decimals). Pass prices and plan prices used to drop `.00`: `MPParityBindings.yuan/yuanFixed/yuanFen` now go through `MoneyDisplay.yuan`. Server money text on pass orders and refunds (`¥12.5`) goes through `MoneyDisplay.text`. `invoiceAmount` reads `MoneyDisplay` fraction digits. The coupon settings amount uses `MoneyDisplay.plain` | App/MPParityPassSession.swift, App/PassMarketViews.swift, App/InvoiceLaunchPresentation.swift, App/CouponManagementView.swift |
+| Fixture | 4 membership | `t5-membership` shows two-decimal prices and server terms (适用范围, server refund text, period) | App/DesignFixtures/DesignFixtureRegistry.swift |
+
+### MP assets (mapping rows applied on pages 1–15)
+
+- [x] `MPAsset.Other.glassKey` (`subpackageMember/market/membership/index.wxml:27`): the membership card draws the MP `cy-frames` sprite. The sheet is 6 × 4 cells, 24 frames at 10 fps, looping after a 500 ms delay. With Reduce Motion it holds frame 0, as cy-frames `still` does for `loop`. New view: `PassGlassKeyFrames` (App/PassMembershipViews.swift).
+- [x] `MPAsset.BannerCover.routeCityCover` (`market/library/index.wxml:15`): a library card with no cover shows the MP default cover instead of the grey placeholder.
+- [x] `MPAsset.FeatureIcon.pin` (`market/library/index.wxml:22`): the city tag icon on library cards replaces SF `mappin`, scaled with Dynamic Type.
+- [x] `MPAsset.FeatureIcon.dOrderIcon` / `dOrderIcon2` (`invoice/index.wxml:40-41`): invoice history rows show the MP icons before 申请于 and before the issuer / N 笔订单 line, scaled with Dynamic Type.
+- [x] `MPAsset.FeatureIcon.subpackageMemberImagesDClose` (`invoice-titles/index.wxml:27`): kept as SF `xmark`, as the mapping says (system close glyph).
+- [x] `MPAsset.FeatureIcon.chevron` (`market/library/index.wxml:30`): kept as SF `chevron.right` (disclosure glyph).
+- Not an asset: the MP 城 mark on library cards is text (`<text>城</text>`), and the app already draws it as text. `cy-icon` glyphs (coupon, gift, check, chevron-right) are CSS icon-font glyphs with no shipped image. `cy-illus name="seal"` on the membership library row is drawn by code (`subpackageMember/components/cy-illus/art.js`) and has no catalog asset, so SF `seal.fill` stays.
+- Not on my pages: `MPAsset.Other.keyIntro*/keyIdle*` belong to `subpackagePass/reveal`. The reveal stage still uses `PassKeyEmblem` and should move to those frames in whichever half owns the reveal page. The `cy-empty` illustrations (`MPAsset.EmptyState.emptyStateBg/emptyStateFigure`) live in the shared `App/DesignSystem/CYStates.swift`, which is not a page file in this half.
+
+### Review findings (step 4)
+
+- `review/r7-rev-a`, `-b`, `-c`: there are no Claude-owned rows for pages 1–15. B-16 and B-21 are member pages 21+ (half b). B-13 and B-20 are Cursor's and closed in `cursor-core-member`. The F-C rows are Gemini's parked `App/MPGap` files.
+- `audit/parity-r7-member` P1: every Claude P1 row is on pages 16–30 (half b). Pages 1–15 have no open Claude P1. The P0/P1 rows still open there belong to Gemini (MKT-7-1, MKT-7-3, MKT-10-1) or the owner (MKT-3-1, MKT-4-1, MKT-4-6, MKT-9-2).
+
+### Owner decisions (step 5)
+
+- 9 (two decimals): applied, see above.
+- 3 / 6 / 12 (money stays TEST-only): no money write was added. Pass purchase, quote, order, claim and pass-order cancel / refund stay refused by `PlatformPassReadOnlyTransport`. MKT-5-3 is now ruled money, so it is TEST-only. Mounting it needs Gemini's parked sheet to compile, plus a TEST-only Core gate that defaults off. That is listed below for Cursor.
+- 7, 8, 10 (cast fixtures, GPS arrival lock, pilot gate for game kits): not on member pages 1–15.
+
+### Requests for Cursor (Round 2)
+
+1. Still open from Round 1: set `required: []` on `MiniProgramPageLink` reviewedPages for `market/pass`, `market/pass-order` and `invoice-detail`. `coupon/coupon` must also accept the optional `scope` key, or external `?scope=MERCHANT` links are refused.
+2. **R7-MEM-7-2:** the free-explore read has to surface `businessCode == "BUNDLE_LEDGER_OFF"` as its own error case, for example `.error(.ledgerOff)`. Today it is folded into `.error(.load)`, so the App cannot hide 刷新. The App change is small once that case exists.
+3. **Two decimals in Core:** `PlatformPassSubscriptionOrder.yuanFen` (Core/PlatformPass.swift:707) and `PlatformPassNumber.plain` still trim `.00` / `.x0`. The App re-formats that text through `MoneyDisplay.text` for display, but Core should use `MoneyDisplay` directly. `CouponInfoAmount.displayText` should do the same.
+4. **MKT-5-3:** add a TEST-only, default-off gate for pass-order cancel / refund-apply (owner decision 3), so the App can mount the sheet in TEST builds.
+
+### Not touched (Cursor wiring)
+
+- No `cursor/wire-*` branch on r7 touches the files changed here, and `cursor-core-member.md` asks the F-agent for exactly these App call sites (coupon scope, invoice `?id=`, membership terms, notMine). The ProfileOrders, TemplateAuthoring and TicketWallet items in that list are pages 16+ (half b).
+
+### Still left (with reasons)
+
+- R7-MEM-7-1 store 可用 / 暂不可用: waits for Cursor to decode `store.available` (Round 1 request 2).
+- R7-MEM-7-2: Cursor request 2 above.
+- MKT-3-1, MKT-4-1, MKT-4-6, MKT-9-2: owner rulings that are not in the 11-24 list.
+- MKT-5-3: Cursor request 4, plus Gemini's parked sheet.
+- MKT-7-1, MKT-7-3, MKT-10-1, MKT-10-5: Gemini (`gap/*`).
+
+### Acceptance
+
+- `docs/port/accept/f-member-a.txt`: no new routes; the existing ones now note what they cover. `t5-membership` covers the glass key and server terms, and `t5-library` covers the default cover and the pin, since both fixture cards have no cover. `e5-invoice-history` covers the order icons, and `member-popup-coupon-code` covers coupon-qr.
+- Run: pending. The coordinator compiles and sends back exact errors.

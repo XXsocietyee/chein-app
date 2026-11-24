@@ -7,7 +7,7 @@ t5-pass-detail
 t5-pass-detail-unavailable
 t5-pass-gift
 t5-pass-gift-expired
-# 4 城瘾30天通行证 / 6 游戏主题库
+# 4 城瘾30天通行证 (MP glass-key frames, server terms, two-decimal prices) / 6 游戏主题库 (MP default cover + pin)
 t5-membership
 t5-membership-off
 t5-library
@@ -21,7 +21,7 @@ coupons
 coupons-empty
 member-popup-coupon-code
 merchant-coupons
-# 11-15 发票
+# 11-15 发票 (history rows: MP d_orderIcon / d_orderIcon2)
 e5-invoice-history
 e5-invoice-empty
 e5-invoice-detail
