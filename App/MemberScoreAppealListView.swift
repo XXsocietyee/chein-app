@@ -269,7 +269,7 @@ struct MemberScoreChipChrome<Label: View>: View {
 
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
-            Image(systemName: symbol).font(.caption2.weight(.bold)).accessibilityHidden(true)
+            Image(systemName: symbol).font(.caption.weight(.bold)).accessibilityHidden(true)
             label().cyText(.caption)
         }
         .foregroundStyle(foreground)

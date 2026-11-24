@@ -82,7 +82,7 @@ import SwiftUI
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent).controlSize(.large)
+                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                 .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
                 .accessibilityIdentifier("member.card.tickets")
             }
@@ -161,7 +161,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                 if reader.isConfigured, !signedOut {
                     Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile") }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.bordered).buttonBorderShape(.capsule)
                         .frame(minHeight: CYSpacing.minTouchTarget)
                         .accessibilityIdentifier("member.card.retry")
                 }

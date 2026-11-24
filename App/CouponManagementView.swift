@@ -107,8 +107,8 @@ import SwiftUI
         .sheet(isPresented: $creating) {
             NavigationStack { CouponManagementEditor(model: model) }
                 .themeDomain(.topicEditor)
-                .presentationCornerRadius(CYRadius.sheet)
-                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .onChange(of: sessionKey) { _, _ in creating = false; model.synchronize() }
         .onChange(of: isSourceVisible) { _, visible in if !visible { creating = false; model.core.leave(); model.revision += 1 } }

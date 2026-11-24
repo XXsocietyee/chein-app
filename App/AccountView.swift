@@ -161,11 +161,13 @@ import SwiftUI
                 // Passport has one sign-out: Settings (settings.signOut). The legacy account page keeps its own.
                 if !showsPassportOverview {
                 Section {
-                    Button("auth.signOut", role: .destructive) {
+                    // Native spec §3.6: sign out is a neutral centred row (deleting the account is the destructive one).
+                    Button {
                         logoutConfirmation = session.signOutConfirmation(accountID: account.id)
                         confirmsLogout = logoutConfirmation != nil
+                    } label: {
+                        Text("auth.signOut").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
                     .accessibilityLabel(Text("auth.signOut"))
                     .accessibilityIdentifier("account.signOut")
                 }
@@ -232,7 +234,6 @@ import SwiftUI
             }
             .sheet(isPresented:$showsCooperation) { Group {
                 CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader,topicDestination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }).id(session.cooperationReader.scope)
-                    .presentationCornerRadius(CYRadius.sheet)
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)

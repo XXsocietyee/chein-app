@@ -34,11 +34,11 @@ struct ProfileOrdersView: View {
                     CYEmptyState(systemImage: "ticket", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
                     if let discoverRoutes {
                         Button("profile.orderParity.discover") { discoverRoutes() }
-                            .buttonStyle(.borderedProminent).controlSize(.large).frame(minHeight: 44)
+                            .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
                             .accessibilityIdentifier("profile.orders.discover")
                     } else if rootTabSwitch.isAvailable {
                         Button("profile.orderParity.discover") { rootTabSwitch(.home) }
-                            .buttonStyle(.borderedProminent).controlSize(.large).frame(minHeight: 44)
+                            .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
                             .accessibilityIdentifier("profile.orders.discover")
                     }
                 }

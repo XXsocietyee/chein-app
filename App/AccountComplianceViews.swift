@@ -296,7 +296,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     Task { await model.coordinator.precheckAndAgree(documentRead: documentWasRead,
                         explicitAgreement: explicitlyAgreed, expectedConsentVersion: displayedVersion, intent: intent) }
                 }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                     .disabled(document?.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
                         || !agreement || !model.state.localCancellationConsent.allowsNewConsent)
                     .accessibilityIdentifier("compliance.precheck")
@@ -308,7 +308,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard let intent = model.cancellationIntent() else { return }; let number = phone
                     Task { await model.coordinator.sendSMS(phone: number, explicitlyRequested: true, intent: intent) }
                 }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
                     .disabled(!model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
                 if model.state.smsSent { Text("compliance.smsSent") }
                 TextField("compliance.code", text: $code).textContentType(.oneTimeCode).keyboardType(.numberPad).accessibilityIdentifier("compliance.code")
@@ -316,7 +316,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard model.cancellationIntent() != nil else { return }
                     model.coordinator.prepareReview(code: code); code = ""
                 }
-                .buttonStyle(.borderedProminent).controlSize(.large)
+                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                 .disabled(!model.state.smsSent || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.review")
             }
         case .verificationUnavailable:
@@ -499,7 +499,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                         Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
                             .font(.system(.headline, design: .rounded, weight: .bold)).foregroundStyle(.white)
                             .frame(width: 36, height: 36)
-                            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                             .accessibilityHidden(true)
                         Text(row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
                             .font(.headline).accessibilityAddTraits(.isHeader)

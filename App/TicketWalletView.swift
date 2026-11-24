@@ -412,7 +412,7 @@ private struct TicketWalletRow: View {
                 Spacer(minLength: 0)
                 if !typeSize.isAccessibilitySize, ticket.action == .detail, !ticket.isWalletLocked {
                     Image(systemName: "qrcode").resizable().scaledToFit().frame(width: 34, height: 34).foregroundStyle(CYColor.textPrimary.opacity(0.85))
-                        .padding(CYSpacing.sm).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .padding(CYSpacing.sm).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityHidden(true)
                 }
             }

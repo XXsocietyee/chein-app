@@ -32,7 +32,7 @@ struct AccountDeregistrationImpactSection: View {
                 HStack(alignment: .top, spacing: Theme.Space.s3) {
                     Image(systemName: Self.symbol(item.key)).font(.system(.subheadline, weight: .semibold)).foregroundStyle(.white)
                         .frame(width: 30, height: 30)
-                        .background(CYColor.warningText.gradient, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(CYColor.warningText.gradient, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         if let title = titles[item.key] { Text(LocalizedStringKey(title), tableName: "AccountDeregistrationPresentation").cyText(.cardTitle) }

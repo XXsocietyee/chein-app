@@ -259,14 +259,14 @@ extension ProfileLocalCoverOwner {
                 Slider(value: $position.zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
                 // Mini-program pages/crop offers 还原 next to the crop action.
                 Button("profile.localCover.cropReset") { position = ProfileCoverCropPosition() }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
                 Button {
                     guard isCurrent() else { return }; confirm(draft.id, rect)
                 } label: {
                     if hasError { Text("profile.localCover.cropRetry") }
                     else { Text("reviewLocalSave", tableName: "ProfileLocalCoverCrop") }
                 }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                     .accessibilityIdentifier("profile.localCover.cropConfirm")
             }
             Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.localCover.cropCancel")

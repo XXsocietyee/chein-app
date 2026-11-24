@@ -73,7 +73,7 @@ enum WalletFundsStagePhase: Equatable {
                 Text("wallet.earnings.stages.failed", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.failed")
                 Button(action: retry) { Text("wallet.earnings.stages.retry", tableName: "WalletEarningsOverview") }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
                     .accessibilityIdentifier("wallet.earnings.stages.retry")
             case .unknown:
                 Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview")

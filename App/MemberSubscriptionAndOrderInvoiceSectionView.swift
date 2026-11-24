@@ -186,14 +186,14 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
                     }
                     .padding(8)
                     .background(CYColor.bgSurfaceSubtle)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 }
             }
             .accessibilityIdentifier("memberSubscriptionOrder.rowList")
         }
         .padding(12)
         .background(CYColor.bgSurfaceSubtle)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("memberSubscriptionOrder.section")
     }

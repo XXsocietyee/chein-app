@@ -115,7 +115,7 @@ struct SettingsView: View {
                         Text(verbatim: "English").tag(AppLanguage.english)
                         Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
                     }
-                    .pickerStyle(.menu)
+                    .pickerStyle(.navigationLink)
                 } footer: {
                     Text("settings.languageNotice")
                 }

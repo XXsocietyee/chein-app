@@ -283,7 +283,7 @@ enum WalletPayoutCapability {
                 NavigationLink { incomeDestination } label: {
                     HStack(spacing: CYSpacing.xxs) {
                         Text(verbatim: monthTitle + " " + t("全部", "All"))
-                        Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
+                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).accessibilityHidden(true)
                     }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }.buttonStyle(.plain).accessibilityIdentifier("wallet.month.all")
             }.textCase(nil)
