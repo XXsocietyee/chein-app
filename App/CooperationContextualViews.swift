@@ -135,20 +135,28 @@ import SwiftUI
     let kind: CoopFlowTargetKind
     let topicID: Int?
     let merchantMemberIDs: [Int]
+    /// MC7-31-2: MP `unknownTargets` — the 原请求 block shows only after a send whose outcome is unknown.
+    var showsRequests = false
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var requests = Load.loading
     @State private var requestRows: [CoopFlowJSON] = []
-    @State private var oneReceipt: CoopFlowJSON?
     @State private var stations = Load.idle
     @State private var stationRows: [CoopFlowJSON] = []
     private enum Load: Equatable { case idle, loading, empty, failed, ready }
+    private struct RequestKey: Hashable { let session: Bool; let shows: Bool }
     private var stationKey: String { "\(kind.rawValue):\(topicID ?? 0):\(merchantMemberIDs.sorted().map(String.init).joined(separator: ","))" }
     var body: some View {
         Group {
-            Section {
-                sectionTitle(locale.pick("原请求", "Original requests"))
-                requestBody
+            if showsRequests {
+                Section {
+                    sectionTitle(locale.pick("原请求", "Original requests"))
+                    Text(verbatim: locale.pick("以下邀请结果待确认，请勿重复发送。记录未出现也不能证明未发送；无法确认时请联系平台处理。",
+                                               "These invitations are not confirmed yet. Do not send them again. A missing record does not prove nothing was sent; contact the platform if you cannot confirm."))
+                        .cyText(.meta).foregroundStyle(CYColor.warningText).fixedSize(horizontal: false, vertical: true)
+                    requestBody
+                }
+                .accessibilityIdentifier("cooperation.invite.unknownOutcome")
             }
             if kind == .merchant, let topicID, topicID > 0, !merchantMemberIDs.isEmpty {
                 Section {
@@ -157,7 +165,7 @@ import SwiftUI
                 }
             }
         }
-        .task(id: reader.session) { await loadRequests() }
+        .task(id: RequestKey(session: reader.session != nil, shows: showsRequests)) { if showsRequests { await loadRequests() } }
         .task(id: stationKey) { await loadStations() }
     }
     private func sectionTitle(_ title: String) -> some View {
@@ -181,15 +189,9 @@ import SwiftUI
                     .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await loadRequests() } }
             case .ready:
+                // MP coop/invite/index.wxml:24: human copy per row; raw state / requestId stay hidden.
                 ForEach(Array(requestRows.enumerated()), id: \.offset) { _, row in
-                    VStack(alignment: .leading, spacing: rowGap) {
-                        valueLine(row["state"].text, style: .bodyMedium, color: CYColor.textPrimary)
-                        valueLine(row["requestId"].text, style: .meta, color: CYColor.textTertiary)
-                    }
-                }
-                if let oneReceipt {
-                    valueLine(oneReceipt["state"].text, style: .body, color: CYColor.textPrimary)
-                    valueLine(oneReceipt["inviteId"].text, style: .meta, color: CYColor.textTertiary)
+                    valueLine(stateLine(row["state"].text), style: .bodyMedium, color: CYColor.textPrimary)
                 }
             }
         }
@@ -212,6 +214,10 @@ import SwiftUI
             }
         }
     }
+    private func stateLine(_ state: String?) -> String {
+        state == "CREATED" ? locale.pick("邀请已创建", "Invitation created")
+                           : locale.pick("结果仍待确认，请勿重复发送", "Still unconfirmed. Do not send again.")
+    }
     private func valueLine(_ text: String?, style: CYTextStyle, color: Color) -> some View {
         Text(verbatim: text ?? "—")
             .cyText(style)
@@ -225,9 +231,6 @@ import SwiftUI
             let page = try await reader.read(.inviteRequests(before: nil, limit: 20))
             let rows = page["rows"].rows ?? []
             requestRows = rows
-            if let requestID = rows.compactMap({ $0["requestId"].text }).first(where: CoopFlowRead.validInviteRequestID) {
-                oneReceipt = try await reader.read(.inviteRequest(requestID: requestID))
-            } else { oneReceipt = nil }
             requests = rows.isEmpty ? .empty : .ready
         } catch { requests = .failed }
     }
@@ -273,6 +276,7 @@ import SwiftUI
     @State private var search = ""
     @State private var editing: [CoopFlowInvitationContext] = []
     @State private var showEditor = false
+    @State private var sendOutcomeUnknown = false
     @Environment(\.cooperationNearbyDestination) private var nearbyDestination
     @Environment(\.scenePhase) private var scenePhase
     init(reader: any CoopFlowReading, operationScope: String?) {
@@ -353,7 +357,8 @@ import SwiftUI
                         .accessibilityIdentifier("context.coop.target.\(candidate.id)")
                 }
             }
-            CoopInviteReceiptSections(reader: reader, kind: model.kind, topicID: model.topic?.id, merchantMemberIDs: model.candidates.filter { model.selected.contains($0.id) && $0.kind == .merchant }.map(\.recipient.id))
+            CoopInviteReceiptSections(reader: reader, kind: model.kind, topicID: model.topic?.id, merchantMemberIDs: model.candidates.filter { model.selected.contains($0.id) && $0.kind == .merchant }.map(\.recipient.id),
+                                      showsRequests: sendOutcomeUnknown)
             if !model.selected.isEmpty, model.isCurrent {
                 CYListRow("context.coop.selected", trailing: .value(model.selected.isEmpty ? "—" : String(model.selected.count)))
                 // Mini `.cta-bar`: one solid action for the whole screen.
@@ -381,6 +386,7 @@ import SwiftUI
             .onDisappear { model.disappear() }
             .sheet(isPresented: $showEditor) {
                 NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) }
+                    .environment(\.coopInviteOutcomeUnknown, { sendOutcomeUnknown = true })
                     .cyDomainSheet(detents: [.half, .full])
             }
     }

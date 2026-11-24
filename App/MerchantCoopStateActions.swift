@@ -126,3 +126,15 @@ struct MerchantCoopMPThumb: View {
         .accessibilityHidden(true)
     }
 }
+
+/// MC7-31-2: set by `pages/coop/invite` around its send editor. The send preview calls it when the outcome is
+/// unknown (`CoopFlowFailure.ambiguous`), so the page can show the 原请求 block (MP `unknownTargets`).
+private struct CoopInviteOutcomeUnknownKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> Void)? = nil
+}
+extension EnvironmentValues {
+    var coopInviteOutcomeUnknown: (@MainActor () -> Void)? {
+        get { self[CoopInviteOutcomeUnknownKey.self] }
+        set { self[CoopInviteOutcomeUnknownKey.self] = newValue }
+    }
+}
