@@ -236,5 +236,22 @@
         }
       }
     }
+  },
+  "fixr3.team.joining": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Joining…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "加入中…"
+        }
+      }
+    }
   }
 }

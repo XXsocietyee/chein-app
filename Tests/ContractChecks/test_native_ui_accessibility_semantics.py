@@ -67,7 +67,8 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
         view = source('App/SettingsLegalDocumentView.swift')
         # Restyle: design-system tokens (secondary 10.3:1, tertiary 7.4:1 light) replace the system semantic styles.
         self.assertIn('Text("settingsNative.legal.sourceNotice").cyText(.meta).foregroundStyle(CYColor.textSecondary)', view)
-        self.assertIn('}.cyText(.meta).foregroundStyle(CYColor.textTertiary)', view)
+        # B-AG-01 (fix-r3): the version + date footer is one ViewThatFits block with the same tertiary token.
+        self.assertIn('.cyText(.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)', view)
         self.assertNotIn('.foregroundStyle(.tertiary)', view)
         self.assertNotIn('.opacity(', view)
 

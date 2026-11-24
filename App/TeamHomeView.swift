@@ -232,7 +232,7 @@ import SwiftUI
                 await readOwner.run { await reload() }
             }.refreshable { await readOwner.run { await reload() } }
             .onDisappear { readOwner.deactivate(); model.leave() }
-            .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
+            .sheet(item: nonJoinReviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
             .sheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cySheet() }
             .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cySheet(detents: [.large]) }
         .cyDomainScreen(.player)
@@ -240,8 +240,15 @@ import SwiftUI
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {
         if !readOnly, action.isAllowed(detail: detail) {
             if case .join = action {
-                // Mini-program 加入队伍 is the page's one primary action.
-                Button { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)) }
+                // Mini-program 加入队伍 is the page's one primary action. C-J3 (MP join wxml:57-60): it joins
+                // directly and reads 加入中… while the request runs; no review sheet in between.
+                Button { joinDirectly(action) } label: {
+                    if model.running, case .join? = model.coordinator.review?.action {
+                        Text("fixr3.team.joining")
+                    } else {
+                        Text(LocalizedStringKey(labelKey ?? action.key))
+                    }
+                }
                     .buttonStyle(.cyPrimary).disabled(model.actionLocked)
                     .accessibilityIdentifier(action.key)
             } else {
@@ -257,6 +264,24 @@ import SwiftUI
                 }
             }
         }
+    }
+    /// C-J3: prepare and confirm in one tap. Without a submit authority the review stays and its sheet explains why.
+    private func joinDirectly(_ action: TeamAction) {
+        model.prepare(action)
+        guard model.coordinator.canSubmit, let review = model.coordinator.review else { return }
+        let permit = model.captureRun()
+        Task {
+            guard model.coordinator.review == review else { return }
+            _ = await model.run(permit: permit) { await model.coordinator.confirm(review) }
+        }
+    }
+    /// The join review is confirmed in place (C-J3); every other review keeps its sheet.
+    private var nonJoinReviewBinding: Binding<TeamReview?> {
+        Binding(get: {
+            guard let review = model.coordinator.review else { return nil }
+            if case .join = review.action, model.coordinator.canSubmit { return nil }
+            return review
+        }, set: { model.reviewBinding.wrappedValue = $0 })
     }
     private func destructiveRole(_ action: TeamAction) -> ButtonRole? {
         if case .disband = action { return .destructive }
