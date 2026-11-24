@@ -105,3 +105,11 @@ DONE-ROUND-4
 - `swiftc -parse` passed on all 26 G2 Swift files after final edits.
 - Merged `origin/ui/combined-r7` (`82388e4a5`) and replaced G2 `App/MPGap` placeholder SF Symbols/TODOs with `MPAsset` accessors (`MPAsset.AvatarDefault.dProfile`, `MPAsset.BannerCover.{treasureHunter,flavorTour,midlifeDay,oldMovie}`, `MPAsset.FeatureIcon.{introTicketMap,pin,iconShop,iconStarFilled,iconStarOutline}`).
 - `swiftc -parse` passed on all 26 G2 Swift files + `App/MPAssets/MPAsset.swift`.
+
+## 10. Round 6 (MP Copy & Flow Alignment)
+- Merged `origin/ui/combined-r7` (`aee32a61f`, Swift 6 Core concurrency fixes) cleanly into `gap/g2-ops`.
+- **Copy alignment:** compared all G2 MP `.wxml`/`.js` strings against `Resources/Localizable.xcstrings` and staged 20 exact `zh-Hans` overrides (with faithful `en` translations) in [gap-g2-copy.json](docs/port/strings/gap-g2-copy.json), documented in [copy-diff-g2.md](docs/mp-gap/copy-diff-g2.md).
+- **Flow alignment:** extracted 360 MP navigation edges across 81 G2 MP `.js` files into [flows-g2.md](docs/mp-gap/flows-g2.md), marking `OK`, `PARKING-MOUNT (MPGap)`, `DIFF`, and `MISSING-ROUTE (for Claude)`.
+- `swiftc -parse` passed on all 26 G2 Swift files + `App/MPAssets/MPAsset.swift`.
+
+DONE-ROUND-6
