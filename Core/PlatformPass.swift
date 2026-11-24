@@ -10,7 +10,7 @@ import FoundationNetworking
 /// `market/membership`, `market/library`, `market/passes`).
 /// Purchase, quote, and gift claim are compiled on this type and always refuse.
 /// Money stays off: this type does not build a payment body or call a pay route.
-public struct PlatformPass: Sendable {
+public struct PlatformPass: @unchecked Sendable {
     public static let miniProgramCommit = "1c80c5aea8f721ca8575e6108048495b100f5576"
     public static let moneyEnabled = false
 
