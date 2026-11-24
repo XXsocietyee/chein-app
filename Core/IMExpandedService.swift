@@ -305,15 +305,26 @@ public struct IMExpandedService {
               URLComponents(url: url, resolvingAgainstBaseURL: false)?.fragment == nil else { throw APIError.malformedResponse }
         return url
     }
-    /// Merchant inbox mark-read. Form field `conversation_id` only. Sends nothing unless the write
-    /// switch, the inbox flag, and an `api/im/read` path grant are all on.
+    /// Merchant inbox and conversation-list mark-read. The mini-program posts urlencoded
+    /// `conversation_id` only (no header, so request-client uses form-urlencoded). Sends nothing
+    /// unless the write switch, the inbox flag, and an `api/im/read` path grant are all on.
+    /// Chat `markRead` also sends `read_to`; that stays on the ordinary-read gate.
     public func markInboxConversationRead(conversationID: Int, token: String) async throws {
         guard canWriteInboxConversationRead else { throw APIError.notConfigured }
-        guard conversationID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        let request = try AuthRequestBuilder.makeFormRequest(
-            url: configuration.baseURL.appendingPathComponent("api/im/read"),
-            fields: ["conversation_id": String(conversationID)], token: token)
+        let request = try Self.merchantInboxMarkReadRequest(baseURL: configuration.baseURL, conversationID: conversationID, token: token)
         _ = try await response(request)
+    }
+    static func merchantInboxMarkReadRequest(baseURL: URL, conversationID: Int, token: String) throws -> URLRequest {
+        guard conversationID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/im/read"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpShouldHandleCookies = false
+        request.setValue("application/x-www-form-urlencoded;", forHTTPHeaderField: "Content-Type")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.httpBody = Data("conversation_id=\(conversationID)".utf8)
+        return request
     }
     public func performOrdinaryRead(_ intent: OrdinaryIMReadIntent, token: String) async throws -> OrdinaryIMReadReceipt {
         guard canWriteOrdinaryRead else { throw APIError.notConfigured }

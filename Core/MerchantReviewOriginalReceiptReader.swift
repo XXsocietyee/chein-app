@@ -13,6 +13,10 @@ public struct MerchantReviewReplyOriginal: Codable, Equatable {
     }
     public let version: Int
     public let action: Action
+    public static let receiptPath = "api/merchant/reviews/reply/receipt"
+    public static func receiptFields(reviewID: Int, action: Action, requestID: String) -> MerchantBusinessObject {
+        ["reviewId": .string(String(reviewID)), "action": .string(action.rawValue), "requestId": .string(requestID)]
+    }
     init?(mutation: MerchantBusinessMutation) {
         guard case .review(_, _, let kind, _) = mutation else { return nil }
         version = 1
@@ -95,10 +99,10 @@ public struct MerchantReviewOriginalResolution: Equatable {
             guard access.merchantID == intent.merchantID else { throw MerchantBusinessFailure.stale }
             // Same permission required by MerchantReviewReplyReceiptService, not BASIC_READ.
             try access.require(["merchant:marketing:write"])
-            var request = try service.makeRequest(.json("api/merchant/reviews/reply/receipt", [
-                "reviewId": .string(String(id)), "action": .string(original.action.rawValue),
-                "requestId": .string(intent.requestID)
-            ]), token: captured.token)
+            var request = try service.makeRequest(.json(
+                MerchantReviewReplyOriginal.receiptPath,
+                MerchantReviewReplyOriginal.receiptFields(reviewID: id, action: original.action, requestID: intent.requestID)
+            ), token: captured.token)
             request.cachePolicy = .reloadIgnoringLocalCacheData
             request.httpShouldHandleCookies = false; request.timeoutInterval = 20
             request.setValue("no-store", forHTTPHeaderField: "Cache-Control")

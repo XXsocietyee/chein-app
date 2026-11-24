@@ -78,7 +78,10 @@ public enum MerchantBusinessQuery: Equatable, Hashable {
         switch self {
         case .customers(let query): try query.validate(); return .json("api/merchant/crm/customers/list", query.fields)
         case .customer(let id): return .empty("api/merchant/crm/customers/\(id.rawValue)/detail")
-        case .aftercare(let bucket, _): return .query("api/merchant/aftercare/list", ["bucket": bucket.rawValue, "pageNum": String(page), "pageSize": "20"])
+        // Ledger helper always posts JSON.stringify(data || {}). The three buckets and the page
+        // stay on the query string, and the body is an empty object.
+        case .aftercare(let bucket, _):
+            return .queryJSON("api/merchant/aftercare/list", ["bucket": bucket.rawValue, "pageNum": String(page), "pageSize": "20"], [:])
         case .refund(let id): return .query("api/merchant/aftercare/detail", ["refundId": String(id.rawValue)])
         case .reviews: return try MerchantReviewManageRead(filter: "all", page: page).request()
         case .overview: return .json("api/merchant/finance/overview", [:])
@@ -105,5 +108,8 @@ public struct MerchantBusinessRequest: Equatable {
     public static func empty(_ path: String) -> Self { .init(path: path, query: [:], body: .none) }
     public static func json(_ path: String, _ fields: MerchantBusinessObject) -> Self { .init(path: path, query: [:], body: .json(fields)) }
     public static func query(_ path: String, _ fields: [String: String]) -> Self { .init(path: path, query: fields, body: .none) }
+    public static func queryJSON(_ path: String, _ query: [String: String], _ fields: MerchantBusinessObject) -> Self {
+        .init(path: path, query: query, body: .json(fields))
+    }
     public static func form(_ path: String, _ fields: [String: String]) -> Self { .init(path: path, query: [:], body: .form(fields)) }
 }

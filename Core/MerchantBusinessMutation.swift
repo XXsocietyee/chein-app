@@ -89,7 +89,8 @@ public enum MerchantBusinessMutation: Equatable {
             return .init(path: "api/merchant/aftercare/respond", query: ["refundId": String(id.rawValue)], body: .json(fields))
         case .review(let id, let expected, let action, let content):
             try version(expected)
-            var fields: MerchantBusinessObject = ["reviewId": .int(id.rawValue), "expectedVersion": .int(expected), "requestId": rid]
+            // pages/merchant/reviews/view-model.js decimalId is a decimal string, not a JSON number.
+            var fields: MerchantBusinessObject = ["reviewId": .string(String(id.rawValue)), "expectedVersion": .int(expected), "requestId": rid]
             if action != .delete { fields[action == .report ? "reason" : "content"] = .string(try text(content, min: action == .report ? 2 : 1, max: 500)) }
             let path: String
             switch action { case .reply: path = "reply"; case .update: path = "reply/update"; case .delete: path = "reply/delete"; case .report: path = "manage/report" }
