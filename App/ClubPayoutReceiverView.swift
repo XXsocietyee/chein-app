@@ -211,6 +211,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .navigationTitle(Text("clubSettlement.title", tableName: "PayoutReceiver"))
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable { await load() }
         .task { await load() }
         .cyDomainScreen(.player)
@@ -253,6 +254,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .navigationTitle(Text("clubSettlement.title", tableName: "PayoutReceiver"))
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable { await load() }
         .task { await load() }
         .cyDomainScreen(.player)

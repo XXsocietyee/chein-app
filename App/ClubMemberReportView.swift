@@ -43,8 +43,8 @@ import SwiftUI
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(CYSpacing.lg)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.top, CYSpacing.lg)
                     .padding(.bottom, CYSpacing.sm)

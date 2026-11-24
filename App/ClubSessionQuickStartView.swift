@@ -290,7 +290,7 @@ private struct ClubCloud14Banner: View {
                     }
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityHidden(true)
     }
 }

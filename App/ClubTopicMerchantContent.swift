@@ -37,8 +37,8 @@ import SwiftUI
                         VStack(alignment: .leading, spacing: 6) {
                             if let name = row.merchantName { Text(verbatim: name).cyText(.cardTitle) }
                             else { Text("club.topicMerchants.unnamedMerchant").cyText(.cardTitle) }
-                            if let station = row.stationName { Text(verbatim: station).font(.subheadline).foregroundStyle(.secondary) }
-                            if let state = row.state { Text(verbatim: state).font(.subheadline).foregroundStyle(.secondary) }
+                            if let station = row.stationName { Text(verbatim: station).cyText(.body).foregroundStyle(.secondary) }
+                            if let state = row.state { Text(verbatim: state).cyText(.body).foregroundStyle(.secondary) }
                         }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                         .accessibilityIdentifier("club.topicMerchants.node.\(row.id)")
