@@ -253,5 +253,39 @@
         }
       }
     }
+  },
+  "objects.flip": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Flip"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "翻面"
+        }
+      }
+    }
+  },
+  "objects.tapToTurnBack": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tap to turn back"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "轻点翻回正面"
+        }
+      }
+    }
   }
 }

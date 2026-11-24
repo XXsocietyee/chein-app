@@ -62,7 +62,7 @@ extension EnvironmentValues {
                 }
                 if model.loadedScope == scope, let collection = model.collection {
                     Section {
-                        LabeledContent("objects.total", value: collection.total.formatted())
+                        // OCARDS-6: the MP shows no total row; the count is implicit in the pile.
                         if collection.cards.isEmpty {
                             ObjectCardsEmptyTitle(isAllCategories: model.category == .all)
                                 .accessibilityIdentifier("objects.empty")
@@ -121,7 +121,7 @@ extension EnvironmentValues {
             else {
                 Section {
                     // Front: the artwork (drag still turns the frames). Back: the card's facts. Foil cards catch the light.
-                    CYFlipCard(flipped: $flipped, flipActionTitle: Text(verbatim: ChannelCopy.text("翻面", "Flip", locale: locale))) {
+                    CYFlipCard(flipped: $flipped, flipActionTitle: Text("objects.flip")) {
                         artwork
                     } back: {
                         facts
@@ -152,12 +152,8 @@ extension EnvironmentValues {
                         }
                     }
                     if !card.place.isEmpty { LabeledContent("objects.place", value: card.place) }
-                    LabeledContent("objects.style") { Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil") }
-                    if !card.generationStatus.isEmpty { LabeledContent("objects.status", value: card.generationStatus) }
+                    // OCARDS-7 (MP wxml:65-86): 名称 / 分类 / 地点 (+ 3D 生成中) only; style and source sit on the card's back.
                     if card.generating { Label("objects.generating", systemImage: "hourglass") }
-                    if let origin = ObjectCardMediaPolicy.origin(card.sourceURL) {
-                        LabeledContent("objects.source", value: origin)
-                    }
                 }
             }
         }.cyGroupedSurface().cyPageTitle("objects.item").privacySensitive()
@@ -194,11 +190,12 @@ extension EnvironmentValues {
                 CYFactRow(label: Text("objects.category"), value: card.category)
             }
             if !card.place.isEmpty { CYFactRow(label: Text("objects.place"), value: card.place) }
+            if let origin = ObjectCardMediaPolicy.origin(card.sourceURL) { CYFactRow(label: Text("objects.source"), value: origin) }
             if !card.caption.isEmpty {
                 Text(verbatim: card.caption).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
-            Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
+            Text("objects.tapToTurnBack")  // OCARDS-5: catalog key
                 .cyText(.caption).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity, minHeight: 240, alignment: .topLeading)
@@ -263,7 +260,7 @@ extension EnvironmentValues {
             if currentScope() != expectedScope { Text("objects.sessionChanged") }
             else if let image, loadedKey == key { Image(uiImage: image).resizable().scaledToFit() }
             else {
-                Image(systemName: "photo").font(.largeTitle)
+                Image(systemName: "photo").cyText(.display).accessibilityHidden(true)
                 if loading { ProgressView("objects.loading") }
                 else { Text(media == nil ? "objects.mediaDisabled" : failed ? "objects.mediaFailed" : "objects.noImage").cyText(.meta) }
             }
