@@ -89,12 +89,15 @@ import SwiftUI
             }
             .accessibilityIdentifier("compliance.open.\(ComplianceDestination.cancellation.rawValue)")
         } footer: { Text("settings.danger.footer") }
-        .sheet(item: $selected) { destination in
+        .sheet(item: $selected) { destination in Group {
             NavigationStack {
                 AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination, market: market, legalReader: legalReader)
             }
         }
-        .sheet(item: $npcChatData) { presentation in NPCChatDataView(coordinator: presentation.coordinator) }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $npcChatData) { presentation in Group { NPCChatDataView(coordinator: presentation.coordinator) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 enum ComplianceDestination: String, CaseIterable, Identifiable {
@@ -323,7 +326,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Label { Text("compliance.reviewWarning").fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
                     .font(.subheadline.weight(.semibold)).accessibilityIdentifier("compliance.reviewWarning")
                     .padding(CYSpacing.md)
-                    .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .listRowBackground(Color.clear).listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
                 Text("c08.display.42", tableName: "AccountDeregistrationPresentation").font(.footnote).foregroundStyle(CYColor.textSecondary)
                 if let impact = model.state.status?.impact, impact.confirmable {

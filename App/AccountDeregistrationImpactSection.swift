@@ -82,8 +82,8 @@ struct AccountDeregistrationImpactConfirmation: View {
                 .focused($focused)
                 .autocorrectionDisabled().textInputAutocapitalization(.never)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 56)
-                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(matches ? CYColor.dangerText : (focused ? CYColor.textPrimary.opacity(0.4) : .clear), lineWidth: 1.5))
+                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(matches ? CYColor.dangerText : (focused ? CYColor.textPrimary.opacity(0.4) : .clear), lineWidth: 1.5))
                 .accessibilityIdentifier("compliance.impactConfirmation")
             Button(role: .destructive) { focused = false; confirming = true } label: {
                 Text("compliance.submit", tableName: "AccountCompliance")

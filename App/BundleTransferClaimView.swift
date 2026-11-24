@@ -20,7 +20,7 @@ import SwiftUI
                     CYCoverArt(seed: "bundle-claim", symbol: "arrow.left.arrow.right", showsDebugLabel: false)
                         .frame(maxWidth: .infinity)
                         .frame(height: artHeight)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityHidden(true)
                 }
                 switch model.phase {

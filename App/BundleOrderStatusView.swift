@@ -226,9 +226,9 @@ struct Cloud03Cover: View {
         Color.clear
             .aspectRatio(1.6, contentMode: .fit)
             .overlay {
-                CYCoverArt(seed: seed, symbol: symbol, cornerRadius: CYRadius.lg)
+                CYCoverArt(seed: seed, symbol: symbol, cornerRadius: CYRadius.md)
             }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
             .accessibilityHidden(true)
     }
 }

@@ -25,7 +25,7 @@ import SwiftUI
                 content(voucher)
             }
         }
-        .navigationTitle(Text("bundle.voucher.title", tableName: table))
+        .navigationTitle(Text("bundle.voucher.title", tableName: table)).navigationBarTitleDisplayMode(.inline)
         .task { await model.appear() }
         .onDisappear { model.disappear() }
         .cyDomainScreen(.player)

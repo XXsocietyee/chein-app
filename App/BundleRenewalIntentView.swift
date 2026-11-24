@@ -37,7 +37,7 @@ import SwiftUI
                     CYCoverArt(seed: "renewal-intent", symbol: "arrow.triangle.2.circlepath", showsDebugLabel: false)
                         .frame(maxWidth: .infinity)
                         .frame(height: artHeight)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityHidden(true)
                 }
                 if !model.current {

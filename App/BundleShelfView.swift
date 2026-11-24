@@ -43,7 +43,7 @@ import SwiftUI
             .padding(.horizontal, CYSpacing.lg)
             .padding(.vertical, CYSpacing.md)
         }
-        .navigationTitle(Text("shelf.title", tableName: table))
+        .navigationTitle(Text("shelf.title", tableName: table)).navigationBarTitleDisplayMode(.inline)
         .task { if model.state == .idle { await model.refresh() } }
         .cyAnimation(value: model.items.map(\.topicId))
         .cyRefreshable { await model.refresh() }

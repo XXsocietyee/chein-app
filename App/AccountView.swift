@@ -77,7 +77,7 @@ import SwiftUI
                         CYListRow("objects.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") }
                     }.accessibilityIdentifier("account.objectCards")
                     if session.playerGapService != nil {
-                        NavigationLink { List { CityFavoriteNodesSection() }.navigationTitle(Text("playerGap.cityFavorites.title")).cyPushedChrome() } label: {
+                        NavigationLink { List { CityFavoriteNodesSection() }.navigationTitle(Text("playerGap.cityFavorites.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
                             CYListRow("playerGap.cityFavorites.title", trailing: .none) { CYRowIcon(systemImage: "mappin.and.ellipse") }
                         }.accessibilityIdentifier("account.cityFavorites")
                     }
@@ -135,7 +135,7 @@ import SwiftUI
                         CYListRow("door.inviter.title", trailing: .none) { CYRowIcon(systemImage: "person.badge.plus") }
                     }.accessibilityIdentifier("door.inviter.entry")
                     if session.playerGapService != nil {
-                        NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).cyPushedChrome() } label: {
+                        NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
                             CYListRow("playerGap.playerCode.title", trailing: .none) { CYRowIcon(systemImage: "qrcode") }
                         }.accessibilityIdentifier("account.playerCode")
                     }
@@ -214,7 +214,7 @@ import SwiftUI
             .onChange(of: session.profileFavoritesReader.scope) { _, scope in
                 savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)
             }
-            .sheet(isPresented:$showsSettings, onDismiss: settingsDismissHandler) {
+            .sheet(isPresented:$showsSettings, onDismiss: settingsDismissHandler) { Group {
                 let presentation = settingsGuideHandoff.presentation
                 let revision = session.sessionRevision
                 SettingsView(onOpenGuideDestination: onOpenGuideDestination.map { open in { destination in
@@ -227,9 +227,15 @@ import SwiftUI
                 } })
                 .cyPlayerSheetGlass()
             }
-            .sheet(isPresented:$showsCooperation) {
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented:$showsCooperation) { Group {
                 CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader,topicDestination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }).id(session.cooperationReader.scope)
                     .presentationCornerRadius(CYRadius.sheet)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
             }
             .sheet(isPresented:$showsTicketPass, onDismiss: { if opensWalletAfterPass { opensWalletAfterPass = false; showsTickets = true } }) {
                 TicketPassSheet(reader: session.ticketWalletReader, onClose: { showsTicketPass = false },

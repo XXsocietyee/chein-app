@@ -200,8 +200,11 @@ private struct OwnMediaAudioPreviewViewIdentity: Hashable {
     var body: some View {
         Color.clear.frame(width: 0, height: 0).sheet(item: Binding<Item?>(
             get: { model.binding(offered).wrappedValue.map { Item(id: $0) } }, set: { if $0 == nil { model.close(offered) } }),
-            onDismiss: { model.close(offered) }) { item in
+            onDismiss: { model.close(offered) }) { item in Group {
             OwnMediaAudioPreviewSheet(model: model, offered: item.id)
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
         }
     }
 }

@@ -100,9 +100,12 @@ import SwiftUI
                 confirm: { Task { await model.confirm(review.id) } }, close: model.dismiss)
                 .cyPlayerSheetGlass()
         }
-        .sheet(item: Binding(get: { coordinator.paymentReturn }, set: { if $0 == nil { model.closePayment() } })) { flow in
+        .sheet(item: Binding(get: { coordinator.paymentReturn }, set: { if $0 == nil { model.closePayment() } })) { flow in Group {
             PaymentProviderReturnSheet(flow: flow) { _ in model.closePayment() }
                 .cyPlayerSheetGlass()
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
         }
         .accessibilityIdentifier("orderLifecycle.detail")
     }

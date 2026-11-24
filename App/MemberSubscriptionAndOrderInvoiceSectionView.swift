@@ -177,7 +177,7 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle((row.isCompliant && !row.liveChargeEnabled) ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.policyDetail)
