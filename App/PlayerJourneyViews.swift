@@ -111,7 +111,6 @@ extension EnvironmentValues {
             case .freeExploreBundle(let registrationID):
                 // Same host as the `orderinfo?id=` deep link, so the order's bundle read provider is in the environment.
                 SessionOwnedOrderDetailView(session: session, id: registrationID)
-                    .cyPushedChrome(domain: .player)
             case .characterCard(let topicID, let activityID):
                 let scoped = (activityID ?? 0) > 0 ? activityID : nil
                 if let card = session.characterCardReadback(topicID: topicID, activityID: scoped,

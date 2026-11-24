@@ -266,7 +266,7 @@ import QuestifyCore
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text("orientScore.board.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Button { Task { await loadBoard() } } label: {
-                    Text(boardLoading ? "orientScore.board.loading" : "orientScore.board.open")
+                    Text(LocalizedStringKey(boardLoading ? "orientScore.board.loading" : "orientScore.board.open"))
                         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                 }
                 .buttonStyle(.cySecondary(fullWidth: true))
@@ -495,9 +495,13 @@ struct OrientScoreBoardSheetContent: Identifiable {
     /// elapsed is `N 毫秒`, or 用时待确认 when the server has none.
     static func content(_ board: OrientSessionLeaderboard, locale: Locale) -> OrientScoreBoardSheetContent {
         func item(_ row: OrientSessionLeaderboard.Row) -> OrientScoreLeaderboardItem {
-            let score = board.mode == .route
-                ? appLocalized(row.reachedEnding ? "orientScore.board.reached" : "orientScore.board.notReached", locale: locale)
-                : OrientScoreFormat.centi(row.scoreCenti)
+            let score: String
+            if board.mode == .route {
+                score = row.reachedEnding ? appLocalized("orientScore.board.reached", locale: locale)
+                    : appLocalized("orientScore.board.notReached", locale: locale)
+            } else {
+                score = OrientScoreFormat.centi(row.scoreCenti)
+            }
             let elapsed = row.elapsedMs.map { appLocalized("orientScore.board.elapsedMs \($0)", locale: locale) }
                 ?? appLocalized("orientScore.board.elapsedUnknown", locale: locale)
             return OrientScoreLeaderboardItem(id: row.rowKey, rank: row.rank, isMine: row.mine, scoreText: score, elapsedText: elapsed)

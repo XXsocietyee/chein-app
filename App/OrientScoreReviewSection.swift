@@ -113,7 +113,7 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
             pendingReview = nil
             model.review(kind: pending.kind, reason: pending.reason)
         }) { target in
-            OrientScoreAppealSheetView(kind: target.kind, entryID: target.entryID.map(String.init), isBusy: busy,
+            OrientScoreAppealSheetView(kind: target.kind, entryID: target.entryID.map { String($0) }, isBusy: busy,
                 onSubmit: { node, reason in
                     selection.entryID = target.kind == .appeal ? target.entryID : nil
                     selection.nodeID = target.kind == .appeal && target.entryID == nil ? node : nil
