@@ -79,6 +79,10 @@
 - `tools/check_typography_lint.py`: PASS.
 - `tools/check_appsession_ratchet.py`: PASS. `AppSession.swift` is untouched.
 - `tools/check_scaffold.py` fails on `origin/ui/combined-r7` as well (pre-existing); no new Swift files were added.
+- `contract_ratchet.py --check` against `origin/ui/combined-r7` (`82388e4a5`), which itself fails 199 (15 new vs the 184 baseline):
+  - This branch fails 201. The only added failure is `test_localization_key_catalog_contract`: the `fixr3.*` keys used by the views are still only in the string fragment, by the fragment rule, and the test passes once the coordinator merges `docs/port/strings/fix-r3-account-publish-b.json` into `Localizable.xcstrings`.
+  - A second new failure (`test_bk_backend_sync`, which pins the 收藏 condition literal) came from my C-S11 edit, which I reverted.
+- `check_a11y_lint.py`: 12 new findings. None are in files this branch changed in round 2; they come from the round-1 restyle merges (Square cloud, merchant and search views) shifting baseline keys. combined-r7 alone passes.
 - **Not compiled.** The coordinator should watch for:
   - `phaseAnimator` (iOS 17) in PassMembershipViews.
   - `FreeExplorationVisitConfigModel` (`@Observable`, `@available(macOS 14)`) created in an `AppSession` extension.
@@ -105,7 +109,6 @@
 | B-DR-03 (App) | deregister | The phone `TextField` is gone. 获取验证码 calls `sendBoundPhoneSMS`, which sends to the bound phone from `/api/user/info`, with Core's 60-second suppression. The send notice shows inline, using Core's 「验证码已发送至尾号 xxxx 的手机号」. `DeregistrationBoundPhone.missingMessage` shows inline under the button and is no longer duplicated in the top error row. | App/AccountComplianceViews.swift |
 | B-DR-04 (App) | deregister | The notice step calls `precheckAndAgree(…, recordConsent: false)`, so it only reads. Both apply buttons pass `recordNoticeConsent: true` and the displayed document version, so AGREE is recorded after SMS, as in the MP. | App/AccountComplianceViews.swift |
 | C-J2 (mount) | team join | After a `TICKET_REQUIRED` rejection on an activity team (`ownerType == 2`), the primary action becomes 去买这一场的票. It pushes `pages/activity/baoming/baoming?activityId=<ownerId>` through `MPReviewedPageScreen`, which opens the activity detail with the registration sheet. | App/TeamHomeView.swift |
-| C-S11 (App) | square detail | The 收藏 star uses `post.generation.showsBookmark`. | App/SquareDetailView.swift |
 | C-S4 (rest) | square detail | Each comment avatar has the MP 加号 follow button (`MPAsset.FeatureIcon.iconJia`, 44 pt target). It shows only when the follow state is known to be "not following" and the commenter is not the viewer. | App/SquareDetailView.swift |
 | C-S8 | square detail | An inline 关注 sits at the end of the post head. It shows when the viewer is known not to follow the author, the author is not the viewer, and the post has no play cover (the MP rule). `SquarePostContent.onFollow` defaults to nil, so other screens are unchanged. | App/SquareComponents.swift, App/SquareDetailView.swift |
 | C-D10 | team detail | 二维码 opens a 队伍二维码 sheet (medium/large detents). The sheet reads the code as it opens, and 重试 shows only after a failure. `TeamInviteQRSection` gained `loadsOnAppear` (default false), so the gap fixture is unchanged. | App/TeamHomeView.swift, App/PlayerGapViews.swift |
@@ -154,6 +157,7 @@ Of the r7 parity P1 rows still open, this round closed B-DR-03, B-DR-04 and the 
 | C-T2 (rest), C-T12-r7 | P1 | No adoption-pending kind and no support-matrix read on r7 (Cursor). |
 | C-F2 (rest), C-F4 (rest), C-T5 (rest), C-F16-r7 | P1/P2 | Each needs a coordinated XCUITest change. Tests/ belongs to Cursor (see round 1 for the identifiers). |
 | C-F8 | P1 | PhotosPicker for the story and node image fields is size M, and those fields are pinned by story-media contracts. Not reached. |
+| C-S11 (App) | P2 | Already correct: the star shows only for `communityV1`, which is exactly `showsBookmark`. `test_bk_backend_sync` pins the literal `post.generation == .communityV1`, so the call site keeps it. **Cursor:** if you want the shared rule there, update that regex and switch the call site together. |
 | C-S10 | P2 | On detail, a completion post already gets the C-S1 play card, because `sportName` becomes `referenceTitle`. The MP medal pill (`medal-gold/silver/bronze`) needs `medalGold`, `medalSilver` and `medalBronze` on `SquarePost`. **Cursor:** decode them. The App will then add the pill with `MPAsset.BadgeMedal.*`. |
 | Team member avatars | P2 | **Cursor:** decode `memberAvatar` on `TeamMember`. Until then the row shows `d_profile`. |
 | B-PV-02 (presence), B-PV-07-r7, B-PR-03, C-F14, C-A8 | — | Unchanged from round 1. These wait on Core signals or the router. |
