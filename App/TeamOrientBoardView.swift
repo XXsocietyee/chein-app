@@ -66,10 +66,10 @@ extension EnvironmentValues {
             .task(id: detail.team.id) {
                 await load()
             }
-            .sheet(isPresented: $showingReportSheet) {
+            .sheet(isPresented: $showingReportSheet) { Group {
                 // Source `team-report-sheet`: five fixed reasons, sent verbatim.
                 TeamReportReasonSheet(teamID: detail.team.id)
-            }
+            }.cyR1Sheet([.medium, .large]) }
         }
     }
 
@@ -116,7 +116,7 @@ extension EnvironmentValues {
                                     Text(verbatim: task.title)
                                         .cyText(.caption)
                                         .foregroundStyle(CYColor.textSecondary)
-                                        .lineLimit(1)
+                                        .lineLimit(2)
                                 }
                             }
                             Divider()

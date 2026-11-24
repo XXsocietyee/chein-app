@@ -144,7 +144,7 @@ extension EnvironmentValues {
                                     Spacer(minLength: CYSpacing.sm)
                                     if reasonCode == reason.id {
                                         Image(systemName: "checkmark")
-                                            .font(CYTypography.label)
+                                            .cyText(.label)
                                             .foregroundStyle(CYColor.brand)
                                             .accessibilityHidden(true)
                                     }

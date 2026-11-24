@@ -47,7 +47,7 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text("teamPool.hintLevel \(hint.level)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     Text(verbatim: hint.content)
-                        .font(hint.type == "LETTER" || hint.type == "DIGIT" ? CYTypography.pageTitle : CYTypography.body)
+                        .cyText(hint.type == "LETTER" || hint.type == "DIGIT" ? .pageTitle : .body)
                         .foregroundStyle(CYColor.textPrimary).textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("teamPool.hint")

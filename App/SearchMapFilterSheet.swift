@@ -123,7 +123,7 @@ import SwiftUI
                     ToolbarItem(placement: .confirmationAction) { Button("searchMap.apply") { commit() }.accessibilityIdentifier("searchMap.filter.apply") }
                 }
         }
-        .sheet(item: $datePicker) { picker in
+        .sheet(item: $datePicker) { picker in Group {
             SearchMapDatePickerSheet(initial: picker) { selection in
                 do {
                     dateDraft = try selection.confirming(in: dateDraft)
@@ -131,7 +131,7 @@ import SwiftUI
                     return true
                 } catch { return false }
             }
-        }
+        }.cyR1Sheet([.medium, .large]) }
     }
     private func openDatePicker(_ field: SearchMapDatePickerField) {
         datePicker = SearchMapDatePickerDraft(field: field, draft: dateDraft)

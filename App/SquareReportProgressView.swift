@@ -34,7 +34,7 @@ struct MemberReportProgressTimeView: View {
                         // Source report-mine row: 「对象 · 原因」 over 「编号 N · 时间」, stage and chevron on the right.
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             memberReportProgressText("report.stage.\(record.stageKey)")
-                                .cyText(.micro)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .padding(.horizontal, CYSpacing.sm)
                                 .frame(minHeight: 20)
@@ -98,7 +98,7 @@ struct MemberReportProgressTimeView: View {
         .cyPushedChrome(domain: .player)
         .navigationTitle(memberReportProgressText("report.history.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
-        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { LoginView(intent: .player).environmentObject(session) }
+        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { Group { LoginView(intent: .player).environmentObject(session) }.cyR1Sheet([.large]) }
         .accessibilityIdentifier("report.progress.history")
         .navigationDestination(item: $selection) { MemberReportProgressDetailView(selection: $0, session: session) }
         .onAppear { visible = true; start() }

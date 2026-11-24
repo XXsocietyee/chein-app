@@ -163,7 +163,7 @@ extension AppCompositionRoot {
     var body: some View {
         Group {
             if let credit {
-                Text(credit).cyText(.micro).foregroundStyle(palette.textTertiary).lineLimit(1)
+                Text(credit).cyText(.meta).foregroundStyle(palette.textTertiary).lineLimit(1)
                     .accessibilityLabel(Text(W8Text.t("图片署名：\(credit)", "Image credit: \(credit)")))
                     .accessibilityIdentifier("topicTemplate.nodeCredit")
             }

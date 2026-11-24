@@ -157,8 +157,8 @@ struct RegistrationSheetView: View {
             .modifier(RegistrationPlayerSheetHeader(onClose: { flow.leave(); dismiss() }))
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
-            .sheet(isPresented: $showingTicketSheet) { ticketSheetContent }
-            .sheet(isPresented: $showingParticipantSheet) { participantSheetContent }
+            .sheet(isPresented: $showingTicketSheet) { Group { ticketSheetContent }.cyR1Sheet([.medium, .large]) }
+            .sheet(isPresented: $showingParticipantSheet) { Group { participantSheetContent }.cyR1Sheet([.medium, .large]) }
             .modifier(RegistrationOrderAndLifecycleModifier(
                 flow: flow,
                 orderReader: orderReader,
@@ -296,18 +296,18 @@ struct RegistrationSheetView: View {
                         else { Text(verbatim: name).cyText(.cardTitle).lineLimit(2) }
                         if let dateText {
                             Label { Text(verbatim: dateText) } icon: { Image(systemName: "calendar") }
-                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         }
                         // Source: the session's 集合点 row appears only when the selected ticket supplies it.
                         if let meetingPoint = checkout.meetingPoint {
                             Label { Text("registrationParity.meetingPointValue \(meetingPoint)") } icon: { Image(systemName: "flag") }
-                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 .accessibilityIdentifier("registration.activity.meetingPoint")
                         }
                         Label {
                             if let venue = checkout.venue { Text(verbatim: venue) } else { Text(verbatim: "—") }
                         } icon: { Image(systemName: "mappin.and.ellipse") }
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("registration.activity.venue")
                     }
                     Spacer(minLength: 0)
@@ -493,7 +493,7 @@ struct RegistrationSheetView: View {
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
                     if let reason = blockReason(copy) {
                         Label { Text(verbatim: reason) } icon: { Image(systemName: "info.circle") }
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("registration.form.blockReason")
                     }
@@ -1055,38 +1055,38 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
                 }
                 flow.checkWaitlistDeadline()
             }
-            .sheet(item: $orderDestination) { visit in
+            .sheet(item: $orderDestination) { visit in Group {
                 if let orderReader {
                     RegistrationWaitlistOrderSheet(presentation: visit.presentation, reader: orderReader,
                         isCurrent: { RegistrationWaitlistOrderVisit.permits(visit, current: orderDestination,
                             destination: flow.waitlistOrderDestination, isActive: scenePhase == .active) })
                         .cyPlayerSheetGlass()
                 }
-            }
+            }.cyR1Sheet([.large]) }
             .onChange(of: flow.waitlistReadKey) { _, _ in orderDestination = nil }
             .onChange(of: flow.waitlistOrderDestination) { _, _ in orderDestination = nil }
-            .sheet(item: $resultOrderDestination) { presentation in
+            .sheet(item: $resultOrderDestination) { presentation in Group {
                 if let orderReader {
                     RegistrationResultOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { resultOrderDestination == presentation &&
                             flow.resultOrderDestination == presentation.destination && scenePhase == .active })
                         .cyPlayerSheetGlass()
                 }
-            }
-            .sheet(item: $recoveredOrderDestination) { presentation in
+            }.cyR1Sheet([.large]) }
+            .sheet(item: $recoveredOrderDestination) { presentation in Group {
                 if let orderReader {
                     RegistrationRecoveredOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { recoveredOrderDestination == presentation &&
                             flow.recoveredOrderDestination == presentation.destination && scenePhase == .active })
                         .cyPlayerSheetGlass()
                 }
-            }
+            }.cyR1Sheet([.large]) }
             .onChange(of: flow.recoveredOrderDestination) { _, _ in recoveredOrderDestination = nil }
             .onChange(of: flow.resultOrderDestination) { _, _ in resultOrderDestination = nil }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .background { orderDestination = nil; resultOrderDestination = nil; recoveredOrderDestination = nil; flow.retireResultOrderNavigation() }
             }
-            .sheet(isPresented: $showingAddParticipant) {
+            .sheet(isPresented: $showingAddParticipant) { Group {
                 if let participantReader, let participantCoordinator {
                     NavigationStack {
                         ParticipantFormView(reader: participantReader, coordinator: participantCoordinator,
@@ -1095,7 +1095,7 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
                     }
                     .cyPlayerSheetGlass()
                 }
-            }
+            }.cyR1Sheet([.medium, .large]) }
             .onChange(of: flow.identity) { _, _ in showingAddParticipant = false }
             .onChange(of: flow.participantsIdentity) { _, _ in
                 showingAddParticipant = false

@@ -58,7 +58,7 @@ import SwiftUI
         .onDisappear { generation = UUID(); review = nil; appeal = nil; pendingAppeal = nil; reason = "" }
         .sheet(item: $appeal, onDismiss: {
             if let action = pendingAppeal { pendingAppeal = nil; prepare(action) }
-        }) { record in
+        }) { record in Group {
             NavigationStack {
                 Form {
                     Text("square.gov.appealFacts")
@@ -69,11 +69,11 @@ import SwiftUI
                         appeal = nil
                     }.disabled(reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || reason.count > 1000)
                 }
-                .navigationTitle("square.gov.appeal")
+                .navigationTitle("square.gov.appeal").navigationBarTitleDisplayMode(.inline)
                 .toolbar { Button("square.gov.cancel") { appeal = nil; reason = "" } }
             }
-        }
-        .sheet(item: $review) { item in
+        }.cyR1Sheet([.medium, .large]) }
+        .sheet(item: $review) { item in Group {
             NavigationStack {
                 Form {
                     Text("square.gov.reviewWarning")
@@ -83,9 +83,9 @@ import SwiftUI
                         .disabled(loading || !context.coordinator.service.allows(item.action))
                         .accessibilityIdentifier("square.gov.confirm")
                     Button("square.gov.cancel") { review = nil }.disabled(loading)
-                }.navigationTitle("square.gov.review")
+                }.navigationTitle("square.gov.review").navigationBarTitleDisplayMode(.inline)
             }.interactiveDismissDisabled(loading)
-        }
+        }.cyR1Sheet([.medium, .large]) }
         .cyDomainScreen(.player)
     }
     @ViewBuilder private func preferenceSection(_ snapshot: SquareGovernanceSnapshot) -> some View {

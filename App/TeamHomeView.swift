@@ -232,9 +232,9 @@ import SwiftUI
                 await readOwner.run { await reload() }
             }.refreshable { await readOwner.run { await reload() } }
             .onDisappear { readOwner.deactivate(); model.leave() }
-            .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
-            .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }
-            .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }
+            .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0).cyR1Sheet([.medium, .large]) }
+            .sheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cyR1Sheet([.medium, .large]) }
+            .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cyR1Sheet([.large]) }
         .cyDomainScreen(.player)
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {
