@@ -36,3 +36,13 @@ topic-preview
 --uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN
 # C1 activity: two-decimal price chip / pinned summary; a missing isSignUp shows a disabled "—"
 e1-activity-detail
+# ---- Round 3 (2026-11-24 evening) ----
+# B1 topic (re-applied on combined-r7): publisher row + review chip, bar price ¥12.50, 路线 tab route map with numbered
+# pins (tap → Maps), 路线配置中 → 浏览其他主题; free-explore session rows open the session picker
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN
+# A2 template shelf: known topic names / play titles show the MP bundled covers (shelf/art.js, game-covers.js)
+d2-home
+# A7 topic-preview deep link: MP card deck (cover card + one card per play), 查看详情 pushes topic-detail
+topic-preview
+# A6/A8 template detail heads: bundled MP cover for a known title (detailCover / topicArt)
+template-detail
