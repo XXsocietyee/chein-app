@@ -48,6 +48,24 @@ enum MemberAreaPopupFixtures {
             return player(MemberNPCLogDeleteConfirmSheet {})
         case "member-popup-orient-score":
             return player(MemberOrientScoreConfirmSheet {})
+        // Round 3 (fix/r3-member-b): PLY-25-3 board, PLY-25-5 review sheets, PLY-29-4 appeal sheet phases.
+        case "member-popup-orient-board":
+            return player(OrientScoreLeaderboardSheetView(rows: [
+                OrientScoreLeaderboardItem(id: "1", rank: 1, isMine: false, scoreText: "128.50", elapsedText: "5400000 毫秒"),
+                OrientScoreLeaderboardItem(id: "2", rank: 2, isMine: true, scoreText: "96.00", elapsedText: "用时待确认")
+            ], myRow: OrientScoreLeaderboardItem(id: "2", rank: 2, isMine: true, scoreText: "96.00", elapsedText: "用时待确认"), onClose: {}))
+        case "member-popup-orient-appeal-row":
+            return player(OrientScoreAppealSheetView(kind: .appeal, entryID: "12", onSubmit: { _, _ in }, onClose: {}))
+        case "member-popup-orient-appeal-missing":
+            return player(OrientScoreAppealSheetView(kind: .appeal, onSubmit: { _, _ in }, onClose: {}))
+        case "member-popup-orient-dispute":
+            return player(OrientScoreAppealSheetView(kind: .dispute, onSubmit: { _, _ in }, onClose: {}))
+        case "member-popup-report-appeal-form":
+            return player(ReportAppealSheetView(phase: .form, reason: .constant(""), onToConfirm: {}, onBackToForm: {}, onSubmit: {}, onClose: {}))
+        case "member-popup-report-appeal-confirm":
+            return player(ReportAppealSheetView(phase: .confirm, reason: .constant("处理结果和现场情况不符，请复核。"), onToConfirm: {}, onBackToForm: {}, onSubmit: {}, onClose: {}))
+        case "member-popup-report-appeal-unknown":
+            return player(ReportAppealSheetView(phase: .unknown, reason: .constant("处理结果和现场情况不符，请复核。"), onToConfirm: {}, onBackToForm: {}, onSubmit: {}, onClose: {}))
         case "member-popup-profile-exit":
             return player(MemberProfileDiscardConfirmSheet(kind: .exitDiscard) {})
         case "member-popup-profile-reload":

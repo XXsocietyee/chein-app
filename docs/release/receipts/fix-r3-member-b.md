@@ -144,3 +144,61 @@ r7-rev-a covers play runtime only. In r7-rev-c, the F-C* rows on parked `App/MPG
 - `tools/check_typography_lint.py` passes.
 - Not run here: Xcode build, `swift test`, AppUnit, screenshots. All APIs used were grepped on r7: `MPAsset.*` accessors, `MoneyDisplay.text`, `cyText(.bodyCompact)`, `CYColor.bgSurfaceStrong`, `CYSpacing.md`. The coordinator should compile.
 - `origin/ui/combined-r7` was re-fetched before the final push and is still 82388e4a5, already merged.
+
+## Round 3 (2026-11-24 evening)
+
+- **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round3.md`.
+- **Sync:** merged `origin/ui/combined-r7` @ b0ac0108d. This branch was already an ancestor, so the merge was a fast-forward.
+
+### Round 3 · re-applied
+
+I checked each round-1 and round-2 commit hunk against the new base (`git diff <c>^ <c>` compared with `git diff 9d39dc1dc HEAD`). Only one file on the "restored to Cursor's side" list carried member-b work: `TicketWalletView`. `SettingsView` held only a restyle hunk, which isn't mine.
+
+| hunk | state on b0ac0108d | action |
+|---|---|---|
+| c9a2e1ddb `TicketWalletView`: `MPAsset.BannerCover.coverRoute` no-cover illustration (MP `wc__im--illus`) | **dropped.** Cursor's `coverIllustration` brought back the SF `ticket.fill` watermark. | Re-applied **inside Cursor's `coverIllustration`**, so it still shows only when `httpsCover` is nil. Cursor's `coverURL` / `AsyncImage` path is unchanged. |
+| c9a2e1ddb `TicketWalletView`: `MPAsset.FeatureIcon.iconGo` tinted badge (MP `wc__go`) | **dropped** | Re-applied as the same top-trailing overlay, placed after the cover `ZStack` and before Cursor's `TicketTopHeightKey` background. `tint` is split back out of `art`. |
+| 189a2b989 PLY-21-15 token tints, no QR glyph | present | none |
+| c9a2e1ddb / 9d39dc1dc: OrderCardComponents, OrderLifecycleView, PlayerJourneyViews (MP glyphs), ProfileOrdersView (MP icons, `ProfileOrderYuan`), TicketPassSheet, TicketWalletDetailView (B-16/B-21) | present. Cursor only added code on top (FIN-16-2 `orderHistory` paging, the `ParticipationCoverPlaceholder` restyle, `.cySheet` on login). | none |
+
+### Flow gaps (`docs/mp-gap/flows-g1.md` §3 member, edges marked `[GAP-CLAUDE]`, pages 16–30)
+
+`App/MPGap/**` is now compiled (`tools/generate_project.py`), so Gemini's parked views are mounted. They're wired to the r7 services, not to `Core/MPGap` services, which use wrong paths (r7-rev-c F-C04).
+
+| id / edge | what changed | files |
+|---|---|---|
+| PLY-23-6 (P1) · mycanyuinfo cover | `ParticipationDetailGapSections(coverURL:)` above the header. It uses `record.cover`, which is MP `picUrl` = `imgUrl \|\| imgArr`, and only https (`QuestifyCardArtwork.safeURL`). Nothing shows when the cover is absent. | App/PlayerJourneyViews.swift |
+| PLY-23-3 (P1) · mycanyuinfo → `free-explore?registrationId=` | 自由探索权益 sits under the info card when `record.isFreeExplore` matches MP `_bundleEntry` (ownerType 1, cmsTopic, purchaseKind 3 or productType 2). It's gated like MP `features.freeExploreBundle`: the session's `freeExploreBundleReadProvider` must be non-nil (new environment flag `participationBundleEntryEnabled`, default **off**). New route `.freeExploreBundle(registrationID:)` pushes `SessionOwnedOrderDetailView`, which carries the bundle provider. The flag is passed into the 我的参与 sheet explicitly. | App/PlayerJourneyViews.swift |
+| PLY-21-13 (P2) · signup pass pager | `TicketPassSheet` with more than one openable ticket pages them with `StackedPassHorizontalPager`. The page in view becomes the current ticket, and 开始游戏 follows it. A `n/N` line (`ticketPass.pager.position`) sits below. The overflow 切换票券 picker stays as the non-gesture/VoiceOver path. | App/TicketPassSheet.swift |
+| PLY-25-3 (P1) · orient-score leaderboard | New 本场榜单 card: 看本场榜单 / 榜单加载中 / 榜单没加载出来，再点一次试试. It reads `OrientSessionService.leaderboard` (c6 `…/session/{id}/leaderboard`) with the live session token (`OrientScoreBoardRead`, same construction as `CloudB3SessionBridge.orientLoader`). The result opens `OrientScoreLeaderboardSheetView`. ROUTE mode shows 已到结局/未到结局 and SCORE mode the two-decimal `OrientScoreFormat.centi`. Elapsed is `N 毫秒` or 用时待确认, as in MP `orient-score-view.js` `leaderboard`. The read is read-only. | App/OrientScoreView.swift |
+| PLY-25-5 (P1) · per-row appeal / 漏记任务 / dispute | The inline segmented form is replaced by MP's entries: 申诉这一条 (a menu of ledger rows, without rows whose appeal is pending), 申诉漏记任务, and 成绩争议. 成绩争议 shows only once the round has ended (status 1/2, which the writer also enforces). Each entry opens `OrientScoreAppealSheetView`, which has the 节点编号 field and the n/500 limit. On 提交 the sheet closes, and the existing `OrientScoreReviewModel` confirm sheet plus offline opt-in take over unchanged. The 漏记任务 node id now reaches the writer: `OrientScoreReviewContext.nodeID` (default `{ nil }`) feeds `writer.submit(…, nodeID:)`, which was already allowed by `ReviewedOrientScoreReviewLease`. | App/OrientScoreReviewSection.swift, App/OrientScoreReviewProduction.swift |
+| PLY-29-4 (P1) · report-detail appeal | `ReportAppealSection` now runs the appeal in `ReportAppealSheetView` (form → confirm → busy → ok / fail / unknown). It still sends through `CommunityTrustPlayerService.appeal` (`community-trust/reports/appeal`), with the same request-id reuse rule. In the unknown phase 重试 resends the same id. Swipe-to-dismiss is disabled while busy. | App/CommunityTrustPlayerViews.swift |
+
+Fixtures were added to `MemberAreaPopupFixtures` (DEBUG): `member-popup-orient-board`, `-orient-appeal-row`, `-orient-appeal-missing`, `-orient-dispute`, `-report-appeal-form`, `-report-appeal-confirm`, `-report-appeal-unknown`. They are listed in `docs/port/accept/f-member-b.txt`.
+
+Strings: `ticketPass.pager.position`, `orientScore.board.{open,loading,failed,reached,notReached,elapsedMs,elapsedUnknown}` and `orientScore.review.{appealEntry,appealMissing}` are in `docs/port/strings/fix-r3-member-b.json`, with en and zh-Hans.
+
+### MP assets (round 3)
+- The new mapping rows are the template-detail shelf tabs (`DiscoveryTemplate*`), the leaderboard memojis (`GrowthLeaderboardView`, the growth center) and the journey laurel (`PlayExperienceView`). **None of them is on member pages 16–30**, so there's nothing to apply here.
+- Every member-b row in `mapping.md` (`dOrderIcon`/`2`, `iconTicketEmpty`, `iconGo`, `iconPlay`, `coverRoute`, `dCyIcon`/`2`, `dCyinfo1`/`2`/`4`) is applied on this branch. The shared `CYEmptyState` and `CYAvatarView` rows are still with the DS owner (round 2).
+
+### Review / audit rows
+- r7-rev-a, -b and -c have not changed since round 2. The F-C* rows in rev-c sit on Gemini's views and services. The views mounted above are the r7-rev-c-fixed versions: the F-C01 `Section` initializers are already `header:` / `footer:`. The mounts don't use any `Core/MPGap` service (F-C04/F-C06).
+- **Left for Gemini, on the mounted views:**
+  - hard-coded Chinese `"本人"` / `"参赛玩家"` in `OrientScoreLeaderboardSheetView.rowView`;
+  - `OrientReviewSheetKind.title` and `ReportAppealSheetView.sheetTitle` return raw Chinese strings;
+  - `.buttonStyle(.borderedProminent)` instead of `.cyPrimary`.
+
+  The flows work; the copy is zh-only until those are keyed.
+
+### Still left (round 3)
+
+| id | why |
+|---|---|
+| FIN-17-4 (P1) · `OrderDetailTeamSeatsClubSections` | **Core request (Cursor).** `ProfileOrder` decodes no team, seat, club or merchant-consent fields, so `OrderDetailExtraActionsModel` cannot be filled from the order read. Mounting it empty would show nothing. |
+| FIN-17-8 (P2) | Same: no 亲子票 party text or 票夹已过期 flag on `ProfileOrder`. |
+| PLY-23-4 (P1) | There is still no native merchant-apply editor in edit mode (MP `merchantapply?mode=1`). It stays a known gap, as the audit allows. |
+| PLY-26-2, PLY-26-4, PLY-26-5 · page 26 我的节点玩法 | **MP deleted the page.** `subpackageMember/mytemplate/mytemplate` was removed from `app.json` in xcx 910de033 ("删孤儿页", owner defaults 1122). There is no MP source left to match. The app page stays as is; whether to retire it is the coordinator's or owner's call. The pinned tests (`test_owned_template_pagination.py`, `TemplateOwnShelfFlowTests`) would also have to go. |
+| PLY-21-6 (P1) | Still blocked by `test_ticket_wallet_team.py:16`, which was not retired on r7. |
+| PLY-21-4 (rest), FIN-16-7 (rest), R7-MEM-17-2 (rest) | The same Core requests as before: the game flag, the `ProfileOrder` cover and the settle fields. |
+| MP free-explore deep link (member-a's page 7) | `MPReviewedPageScreen.freeExplore` `?registrationId=` mounts a bare `ProfileOrderDetailView`, without `SessionOwnedOrderDetailView`'s bundle environment, so its 自由探索权益 entry can't read. It isn't changed here because page 7 is half a. The fix is a one-line swap to `SessionOwnedOrderDetailView(session:id:)`. |

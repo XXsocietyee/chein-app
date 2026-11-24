@@ -39,3 +39,18 @@ e4-complaint
 # 29 举报进度 appeal copy
 member-popup-report-appeal
 # Round 2: MP assets on 16/17/21/22/23, B-16/B-21 entitlement row and two-decimal money are covered by the fixtures above.
+# Round 3 (2026-11-24 evening)
+# 21 票夹: MP assets re-applied after the r7 merge (wc__go badge, cover-route illustration); pass pager when >1 openable ticket (PLY-21-13)
+ui-pass-card
+ui-pass-card-sheet
+# 25 本局计分: leaderboard sheet (PLY-25-3) and the three review sheets (PLY-25-5)
+member-popup-orient-board
+member-popup-orient-appeal-row
+member-popup-orient-appeal-missing
+member-popup-orient-dispute
+# 29 举报进度: appeal sheet phases (PLY-29-4) and the mounted section
+member-popup-report-appeal-form
+member-popup-report-appeal-confirm
+member-popup-report-appeal-unknown
+cur2-appeal
+cur2-appeal-unconfirmed
