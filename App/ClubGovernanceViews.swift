@@ -1561,7 +1561,9 @@ struct ClubGovernanceReadView: View {
                 } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
             } else if operation == .checkin {
                 let page = ClubCheckinDetailPage.bind(clientCapabilityPresent: access.isConfigured, loading: loading, failure: failure, value: value)
-                if page.showsContent { ClubCheckinDetailRows(value: checkinRowsValue(value, page)) }
+                // CLB-checkin-detail-03 (fix-r3-club-b): an error phase is one full-page state (drawn by the rail view), no rows.
+                let isErrorPhase: Bool = { if case .error(_)? = page.phase { return true }; return false }()
+                if page.showsContent, !isErrorPhase { ClubCheckinDetailRows(value: checkinRowsValue(value, page)) }
             } else {
                 ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)
                 if operation == .series {
@@ -1608,7 +1610,8 @@ struct ClubGovernanceReadView: View {
                     return nil
                 }()
                 if checkinPage.showsContent {
-                    ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]), stateKind: checkinKind)
+                    ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]), stateKind: checkinKind,
+                                        onReload: { Task { await load() } })
                 }
                 // CLB-checkin-detail-01: the entry follows server canRefund; dispatch stays behind the coordinator's TEST-only gate.
                 Section {

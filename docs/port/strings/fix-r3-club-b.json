@@ -2,6 +2,40 @@
   "sourceLanguage": "zh-Hans",
   "version": "1.0",
   "strings": {
+    "club.checkin.state.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This check-in record is not visible"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销记录不可见"
+          }
+        }
+      }
+    },
+    "club.checkin.state.error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load this check-in voucher"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销凭证加载失败"
+          }
+        }
+      }
+    },
     "club.gov.action.retryNotification": {
       "extractionState": "manual",
       "localizations": {
@@ -134,6 +168,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "颁给谁？"
+          }
+        }
+      }
+    },
+    "clubR3b.checkin.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
+    "clubR3b.checkin.reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载"
           }
         }
       }
