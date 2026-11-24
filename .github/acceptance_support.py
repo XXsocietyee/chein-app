@@ -9,12 +9,19 @@ that already starts with ``--``).
 
 Record mode is the branch ``ci/baseline-record``. It appends one known contract
 ratchet id and does not rewrite that baseline. Every other branch is check mode.
+
+One ``build-for-testing`` is published under a commit-and-run key. Lane2 runs
+AppUnit shards 0 then 1. W2 runs shards 2 then 3. Each lane clones that build
+into its own DerivedData directory. Simulators are chosen by name, then by
+device type. UDIDs are not hardcoded.
 """
 import argparse
 import json
+import os
 import plistlib
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -23,8 +30,15 @@ from pathlib import Path
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 XCTEST_FAILED = re.compile(r"Test Case '-\[([^\]]+)\]' failed")
 BUNDLE_FALLBACK = "invalid.example.questify.ios"
-PREFERRED_SIMULATORS = ("iPhone 18 Pro", "iPhone 17 Pro")
+# Lane2 is shards 0 and 1. W2 is shards 2 and 3. Name wins; device type is the
+# fallback so a renamed phone of the same model still lands on its lane.
+LANES = {
+    "lane2": {"names": ("Questify-iPhone17-Lane2",), "device_type": "iPhone-17"},
+    "w2": {"names": ("Questify-iPhone17-W2",), "device_type": "iPhone-17-Pro"},
+}
+LANE_SHARDS = {"lane2": (0, 1), "w2": (2, 3)}
 ACCEPT_UI_ROOT = Path("Tests/AppUITests/Accept")
+DERIVED_ROOT = Path("/private/tmp/chengyin-acceptance-derived")
 # The one contract-ratchet failure RECORD may add. Do not replace the file.
 KNOWN_CONTRACT_FAILURE = "test_workshop_paid_professional.PaidProfessionalContracts.test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging"
 
@@ -180,12 +194,17 @@ def gate(mode, baseline_path, failure_paths, status_paths, record_path, expected
         found = list(status_paths)
         if len(found) != expected_statuses:
             raise SystemExit(f"expected {expected_statuses} shard status files, found {len(found)}")
+        if len(failure_paths) != expected_statuses:
+            raise SystemExit(f"expected {expected_statuses} failure name files, found {len(failure_paths)}")
     for status_path in status_paths:
         if not status_path.is_file():
             raise SystemExit(f"missing status file {status_path}")
         state = status_path.read_text(errors="replace").splitlines()[0].strip()
         if state != "ran":
             raise SystemExit(f"tests did not run ({status_path}: {state})")
+    for path in failure_paths:
+        if not path.is_file():
+            raise SystemExit(f"missing failure names file {path}")
     observed = []
     for path in failure_paths:
         observed.extend(read_names(path))
@@ -220,35 +239,227 @@ def runtime_key(runtime):
     return tuple(int(part) for part in re.findall(r"\d+", runtime))
 
 
-def choose_simulator():
-    raw = subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"], text=True)
-    payload = json.loads(raw)
+def device_type_name(identifier):
+    return (identifier or "").rsplit(".", 1)[-1]
+
+
+def iphone_devices(payload):
     rows = []
     for runtime, devices in payload.get("devices", {}).items():
         for device in devices:
             if device.get("isAvailable") is False:
                 continue
             name = device.get("name") or ""
-            udid = device.get("udid")
-            if name.startswith("iPhone") and udid:
-                rows.append((runtime, name, udid))
+            udid = device.get("udid") or ""
+            device_type = device.get("deviceTypeIdentifier") or ""
+            if udid and (name.startswith("iPhone") or "iPhone" in device_type):
+                rows.append({
+                    "runtime": runtime,
+                    "name": name,
+                    "udid": udid,
+                    "device_type": device_type,
+                })
+    return rows
+
+
+def choose_simulator(payload, lane):
+    """Pick one phone for a lane. Exact name wins, then the lane's device type.
+
+    ``iPhone-17`` does not match ``iPhone-17-Pro``. A device is never returned
+    for both lanes. UDIDs come from simctl output, not from this file.
+    """
+    if lane not in LANES:
+        raise SystemExit(f"unknown lane {lane}")
+    spec = LANES[lane]
+    rows = iphone_devices(payload)
     if not rows:
         raise SystemExit("no available iPhone simulator")
-    for wanted in PREFERRED_SIMULATORS:
-        matches = [row for row in rows if row[1] == wanted]
-        if matches:
-            matches.sort(key=lambda row: runtime_key(row[0]))
-            return matches[-1]
-    rows.sort(key=lambda row: (runtime_key(row[0]), row[1]))
-    return rows[-1]
+    named = [row for row in rows if row["name"] in spec["names"]]
+    if named:
+        pool = named
+    else:
+        other_names = {name for key, other in LANES.items() if key != lane for name in other["names"]}
+        pool = [
+            row for row in rows
+            if device_type_name(row["device_type"]) == spec["device_type"] and row["name"] not in other_names
+        ]
+    if not pool:
+        raise SystemExit(f"no simulator for lane {lane} ({spec['device_type']})")
+    pool.sort(key=lambda row: (runtime_key(row["runtime"]), row["name"]))
+    return pool[-1]
 
 
-def write_destination(path):
-    runtime, name, udid = choose_simulator()
-    destination = f"platform=iOS Simulator,id={udid}"
+def write_destination(path, lane):
+    raw = subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"], text=True)
+    chosen = choose_simulator(json.loads(raw), lane)
+    destination = f"platform=iOS Simulator,id={chosen['udid']}"
     path.write_text(destination + "\n")
-    print(f"Simulator destination: {name} runtime={runtime} id={udid}")
+    print(
+        f"Simulator destination lane={lane}: {chosen['name']} "
+        f"type={device_type_name(chosen['device_type'])} runtime={chosen['runtime']} id={chosen['udid']}"
+    )
     print(destination)
+
+
+def derived_root():
+    override = os.environ.get("ACCEPTANCE_DERIVED_ROOT")
+    return Path(override) if override else DERIVED_ROOT
+
+
+def derived_key(sha, run_id):
+    if not re.fullmatch(r"[0-9a-f]{40}", sha or ""):
+        raise SystemExit("derived data must be keyed by the full commit sha")
+    if not re.fullmatch(r"[1-9][0-9]*", run_id or ""):
+        raise SystemExit("derived data run id must be numeric")
+    return f"{sha}-{run_id}"
+
+
+def _walk(value):
+    if isinstance(value, dict):
+        yield value
+        for child in value.values():
+            yield from _walk(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _walk(child)
+
+
+def _rewrite_root(value, aliases):
+    if isinstance(value, dict):
+        return {key: _rewrite_root(child, aliases) for key, child in value.items()}
+    if isinstance(value, list):
+        return [_rewrite_root(child, aliases) for child in value]
+    if isinstance(value, str):
+        for prefix in sorted(aliases, key=len, reverse=True):
+            if value == prefix:
+                return "__TESTROOT__"
+            needle = prefix + "/"
+            if needle in value:
+                value = value.replace(needle, "__TESTROOT__/")
+        return value
+    return value
+
+
+def xctestrun_file(derived):
+    products = Path(derived) / "Build" / "Products"
+    runs = sorted(path for path in products.glob("*.xctestrun") if path.is_file())
+    if len(runs) != 1:
+        raise SystemExit(f"expected one xctestrun in {products}, found {len(runs)}")
+    return runs[0]
+
+
+def normalize_products(products):
+    """Rewrite xctestrun paths so a cloned Products directory still runs.
+
+    ``__TESTROOT__`` is the directory that contains the xctestrun file.
+    """
+    original = Path(products)
+    products = original.resolve()
+    aliases = {str(original), str(original.absolute()), str(products)}
+    runs = sorted(products.glob("*.xctestrun"))
+    if not runs:
+        raise SystemExit(f"no xctestrun under {products}")
+    for path in runs:
+        with path.open("rb") as handle:
+            data = plistlib.load(handle)
+        rewritten = _rewrite_root(data, aliases)
+        for node in _walk(rewritten):
+            for key in ("TestBundlePath", "TestHostPath", "UITargetAppPath"):
+                value = node.get(key)
+                if isinstance(value, str) and value.startswith("/"):
+                    raise SystemExit(f"nonportable {key} in {path.name}")
+        with path.open("wb") as handle:
+            plistlib.dump(rewritten, handle)
+    return len(runs)
+
+
+def clone_tree(src, dest):
+    src, dest = Path(src), Path(dest)
+    if dest.exists():
+        raise SystemExit(f"refusing to clone onto existing {dest}")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "darwin":
+        cloned = subprocess.run(["cp", "-cR", str(src), str(dest)], text=True, capture_output=True)
+        if cloned.returncode == 0:
+            return
+        if dest.exists():
+            shutil.rmtree(dest)
+        copied = subprocess.run(["cp", "-R", str(src), str(dest)], text=True, capture_output=True)
+        if copied.returncode != 0:
+            raise SystemExit(copied.stderr.strip() or cloned.stderr.strip() or "cp failed")
+        return
+    shutil.copytree(src, dest, symlinks=True)
+
+
+def _same_or_nested(left, right):
+    left, right = left.resolve(), right.resolve()
+    return left == right or left in right.parents or right in left.parents
+
+
+def prune_derived(keep, max_age_seconds=6 * 3600):
+    root = derived_root()
+    if not root.is_dir():
+        return
+    now = time.time()
+    for child in root.iterdir():
+        if not child.is_dir() or child.name.startswith("."):
+            continue
+        try:
+            if keep is not None and child.resolve() == keep.resolve():
+                continue
+            if now - child.stat().st_mtime <= max_age_seconds:
+                continue
+        except OSError:
+            continue
+        shutil.rmtree(child, ignore_errors=True)
+
+
+def publish_derived(src, sha, run_id):
+    """Copy Products to the commit-and-run store. Callers test from a clone."""
+    src = Path(src).resolve()
+    products = src / "Build" / "Products"
+    app = products / "Debug-iphonesimulator" / "Questify.app"
+    if not app.is_dir():
+        raise SystemExit(f"debug build did not produce {app}")
+    normalize_products(products)
+    root = derived_root()
+    root.mkdir(parents=True, exist_ok=True)
+    final = root / derived_key(sha, run_id)
+    staging = root / f".staging-{final.name}-{os.getpid()}"
+    if staging.exists():
+        shutil.rmtree(staging)
+    clone_tree(products, staging / "Build" / "Products")
+    (staging / "acceptance-derived-key.txt").write_text(f"{sha} {run_id}\n")
+    if final.exists():
+        shutil.rmtree(final)
+    staging.rename(final)
+    prune_derived(final)
+    print(f"published derived data {final}")
+    return final
+
+
+def restore_derived(sha, run_id, dest):
+    """Clone the published build into ``dest``. ``dest`` must not be the store."""
+    src = derived_root() / derived_key(sha, run_id)
+    if not src.is_dir():
+        raise SystemExit(f"no derived data for {sha} run {run_id}")
+    marker = src / "acceptance-derived-key.txt"
+    expected = f"{sha} {run_id}"
+    if not marker.is_file() or marker.read_text(errors="replace").strip() != expected:
+        raise SystemExit(f"derived data key mismatch at {src}")
+    dest = Path(dest)
+    if _same_or_nested(src, dest):
+        raise SystemExit("refusing to point a job at the shared derived data directory")
+    if dest.exists() and any(dest.iterdir()):
+        raise SystemExit(f"refusing to restore into non-empty {dest}")
+    if dest.exists():
+        dest.rmdir()
+    clone_tree(src, dest)
+    app = dest / "Build" / "Products" / "Debug-iphonesimulator" / "Questify.app"
+    if not app.is_dir():
+        raise SystemExit(f"restored derived data has no {app}")
+    print(f"restored derived data to {dest}")
+    return dest
 
 
 def udid_from_destination(text):
@@ -288,17 +499,6 @@ def png_ok(path):
     return path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
 
 
-def stream_command(argv, log_path):
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    with log_path.open("w") as log:
-        proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace")
-        assert proc.stdout is not None
-        for line in proc.stdout:
-            sys.stdout.write(line)
-            log.write(line)
-        return proc.wait()
-
-
 def bundle_identifier(app):
     info = app / "Info.plist"
     if not info.is_file():
@@ -315,7 +515,7 @@ def screenshot_needed():
     return bool(routes_from_accept(accept))
 
 
-def capture_screenshots(destination_file, shots):
+def capture_screenshots(destination_file, shots, derived):
     accept = Path("docs/port/accept")
     if not accept.is_dir():
         print("docs/port/accept is missing; skipping screenshots")
@@ -331,22 +531,9 @@ def capture_screenshots(destination_file, shots):
     destination = destination_file.read_text(errors="replace").strip()
     udid = udid_from_destination(destination)
     shots.mkdir(parents=True, exist_ok=True)
-    derived = Path("DerivedData-screenshots")
-    build_log = shots / "debug-build.log"
-    xcresult = shots / "build.xcresult"
-    command = [
-        "xcodebuild", "-project", "Questify.xcodeproj", "-scheme", "Questify",
-        "-configuration", "Debug", "-sdk", "iphonesimulator", "-destination", destination,
-        "-derivedDataPath", str(derived), "-resultBundlePath", str(xcresult),
-        "CODE_SIGNING_ALLOWED=NO", "ARCHS=arm64", "ONLY_ACTIVE_ARCH=YES", "build",
-    ]
-    print("Building Questify Debug for screenshots")
-    if stream_command(command, build_log) != 0:
-        print("screenshot build failed")
-        return 1
-    app = derived / "Build/Products/Debug-iphonesimulator/Questify.app"
+    app = Path(derived) / "Build/Products/Debug-iphonesimulator/Questify.app"
     if not app.is_dir():
-        print(f"Debug build did not produce {app}")
+        print(f"reused debug build did not produce {app}")
         return 1
     bundle = bundle_identifier(app)
     subprocess.run(["xcrun", "simctl", "boot", udid], check=False, text=True)
@@ -436,6 +623,18 @@ def self_check():
             "QuestifyCoreTests.FooTests/testBar",
             "QuestifyCoreTests.FooTests/testBaz",
         ]
+        untouched = root / "should-not-write.txt"
+        try:
+            gate("record", baseline, [root / "no-names.txt"], [status], untouched, 0)
+            raise AssertionError("missing failure names must not record")
+        except SystemExit as error:
+            assert "missing failure names" in str(error)
+        assert not untouched.exists()
+        try:
+            gate("record", baseline, [failures], [status, status], record, 2)
+            raise AssertionError("a short name-file list must not record")
+        except SystemExit as error:
+            assert "failure name" in str(error)
         status.write_text("build-failed\n")
         try:
             gate("record", baseline, [failures], [status], record, 0)
@@ -481,6 +680,7 @@ def self_check():
         assert ui_smoke_needed(accept) is True
         args_path = root / "ui.args"
         assert write_ui_smoke_args(accept, args_path) == "-only-testing:QuestifyUITests/AcceptFlowTests"
+        check_lanes_and_derived(root)
     groups = []
     for shard in (0, 1, 2, 3):
         args = only_testing_args(shard).split()
@@ -498,36 +698,244 @@ def self_check():
     return 0
 
 
+def check_lanes_and_derived(root):
+    """Lane2 and W2 stay distinct, and two jobs never share DerivedData."""
+    assert LANE_SHARDS == {"lane2": (0, 1), "w2": (2, 3)}
+    payload = {
+        "devices": {
+            "com.apple.CoreSimulator.SimRuntime.iOS-27-0": [
+                {
+                    "name": "Questify-iPhone17-Lane2",
+                    "udid": "LANE-UDID",
+                    "isAvailable": True,
+                    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+                },
+                {
+                    "name": "Questify-iPhone17-W2",
+                    "udid": "W2-UDID",
+                    "isAvailable": True,
+                    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+                },
+                {
+                    "name": "iPad",
+                    "udid": "PAD",
+                    "isAvailable": True,
+                    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch",
+                },
+                {
+                    "name": "Offline",
+                    "udid": "OLD",
+                    "isAvailable": False,
+                    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+                },
+            ]
+        }
+    }
+    lane = choose_simulator(payload, "lane2")
+    other = choose_simulator(payload, "w2")
+    assert lane["name"] == "Questify-iPhone17-Lane2"
+    assert other["name"] == "Questify-iPhone17-W2"
+    assert lane["udid"] != other["udid"]
+    renamed = {
+        "devices": {
+            "com.apple.CoreSimulator.SimRuntime.iOS-27-2": [
+                {
+                    "name": "Phone A",
+                    "udid": "A",
+                    "isAvailable": True,
+                    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+                },
+                {
+                    "name": "Phone B",
+                    "udid": "B",
+                    "isAvailable": True,
+                    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+                },
+                {
+                    "name": "Phone C",
+                    "udid": "C",
+                    "isAvailable": True,
+                    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max",
+                },
+            ]
+        }
+    }
+    assert choose_simulator(renamed, "lane2")["udid"] == "A"
+    assert choose_simulator(renamed, "w2")["udid"] == "B"
+    only_pro = {
+        "devices": {
+            "rt": [
+                {
+                    "name": "Phone B",
+                    "udid": "B",
+                    "isAvailable": True,
+                    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+                }
+            ]
+        }
+    }
+    try:
+        choose_simulator(only_pro, "lane2")
+        raise AssertionError("iPhone 17 Pro must not satisfy Lane2")
+    except SystemExit as error:
+        assert "lane2" in str(error)
+    try:
+        choose_simulator(payload, "shared")
+        raise AssertionError("unknown lane must fail")
+    except SystemExit as error:
+        assert "unknown lane" in str(error)
+    previous = os.environ.get("ACCEPTANCE_DERIVED_ROOT")
+    os.environ["ACCEPTANCE_DERIVED_ROOT"] = str(root / "derived-store")
+    try:
+        sha = "516f1deae9961636c64d1af643423b7d69f0a266"
+        run_id = "45420309627"
+        src = root / "build"
+        products = src / "Build" / "Products"
+        app = products / "Debug-iphonesimulator" / "Questify.app"
+        app.mkdir(parents=True)
+        host = str(app.resolve())
+        run = products / "Questify.xctestrun"
+        run.write_bytes(plistlib.dumps({
+            "TestTargets": [{
+                "TestBundlePath": host + "/PlugIns/QuestifyAppUnitTests.xctest",
+                "TestHostPath": host,
+            }]
+        }))
+        published = publish_derived(src, sha, run_id)
+        lane_dest = root / "job-lane2"
+        w2_dest = root / "job-w2"
+        restore_derived(sha, run_id, lane_dest)
+        restore_derived(sha, run_id, w2_dest)
+        assert lane_dest.resolve() != w2_dest.resolve()
+        assert published.resolve() != lane_dest.resolve()
+        try:
+            restore_derived(sha, run_id, published)
+            raise AssertionError("a lane must not reuse the shared store")
+        except SystemExit as error:
+            assert "shared" in str(error)
+        restored = xctestrun_file(lane_dest)
+        assert restored == lane_dest / "Build" / "Products" / "Questify.xctestrun"
+        assert xctestrun_file(w2_dest) != restored
+        with restored.open("rb") as handle:
+            data = plistlib.load(handle)
+        assert data["TestTargets"][0]["TestHostPath"] == "__TESTROOT__/Debug-iphonesimulator/Questify.app"
+        assert data["TestTargets"][0]["TestBundlePath"].startswith("__TESTROOT__/")
+    finally:
+        if previous is None:
+            os.environ.pop("ACCEPTANCE_DERIVED_ROOT", None)
+        else:
+            os.environ["ACCEPTANCE_DERIVED_ROOT"] = previous
+
+
+def job_block(text, job_id):
+    marker = f"\n  {job_id}:\n"
+    start = text.find(marker)
+    if start < 0:
+        raise SystemExit(f"missing job {job_id}")
+    rest = text[start + len(marker):]
+    match = re.search(r"\n  [A-Za-z0-9-]+:\n", rest)
+    return rest[:match.start()] if match else rest
+
+
 def workflow_contract():
-    """Lock the Acceptance workflow to the self-hosted runner and branch record mode."""
+    """Lock lanes, one shared build, and record mode to the workflow file."""
     text = Path(".github/workflows/acceptance.yml").read_text()
+    support = Path(".github/acceptance_support.py").read_text()
     head, jobs = text.split("\njobs:\n", 1)
-    for forbidden in ("workflow_dispatch:", "pull_request:", "pull_request_target:", "macos-26", "macos-latest", "github.event.inputs"):
+    for forbidden in ("workflow_dispatch:", "pull_request:", "pull_request_target:", "macos-26", "macos-latest", "github.event.inputs", "queue:"):
         if forbidden in text:
             raise SystemExit(f"acceptance workflow contains {forbidden}")
-    if "acceptance-mac" in head:
-        raise SystemExit("concurrency group must stay on the self-hosted jobs")
+    selection = support.split("def workflow_contract", 1)[0]
+    for udid in ("2337B386-AC5F-4417-B8B8-012A8DB888BD", "B9EDBC65-4D27-40CB-9521-A41ED05EAE35"):
+        if udid in text or udid in selection:
+            raise SystemExit("simulator UDIDs must not be hardcoded")
+    if "acceptance-mac" in text:
+        raise SystemExit("acceptance-mac serializes every Mac job")
     if "contents: write" in head:
         raise SystemExit("contents: write must stay on the commit job")
-    if jobs.count("group: acceptance-mac") != 5:
-        raise SystemExit("acceptance-mac concurrency must be on the five self-hosted jobs")
-    if jobs.count("cancel-in-progress: false") != 5:
-        raise SystemExit("self-hosted concurrency must not cancel")
-    if jobs.count("queue: max") != 5:
-        raise SystemExit("self-hosted concurrency must queue pending jobs")
+    if "actions/cache" in text:
+        raise SystemExit("actions/cache DerivedData save holds the runner")
     runner = "runs-on: [self-hosted, macOS, ARM64, chengyin-app]"
-    if jobs.count(runner) != 5:
-        raise SystemExit("build, test, and screenshot jobs must use the self-hosted Mac")
-    if jobs.count("runs-on: ubuntu-latest") != 5:
+    if jobs.count(runner) != 6:
+        raise SystemExit("debug, core, two lanes, ui-smoke, and screenshots must use the self-hosted Mac")
+    if jobs.count("runs-on: ubuntu-latest") != 6:
         raise SystemExit("python and baseline jobs must use ubuntu-latest")
-    if "HEAD:refs/heads/ci/acceptance" not in jobs:
-        raise SystemExit("record must push baselines to ci/acceptance")
+    gates = job_block(text, "gates")
+    if "ubuntu-latest" not in gates or "tools/contract_ratchet.py" not in gates:
+        raise SystemExit("python gates must stay on ubuntu-latest")
     if "refs/heads/ci/baseline-record" not in head:
         raise SystemExit("record mode must key off refs/heads/ci/baseline-record")
     if jobs.count("contents: write") != 1:
         raise SystemExit("only the commit job may write contents")
-    if KNOWN_CONTRACT_FAILURE not in Path(".github/acceptance_support.py").read_text():
+    if "HEAD:refs/heads/ci/acceptance" not in jobs:
+        raise SystemExit("record must push baselines to ci/acceptance")
+    if KNOWN_CONTRACT_FAILURE not in support:
         raise SystemExit("known contract failure id drifted")
+    groups = (
+        "acceptance-debug-${{ github.ref }}",
+        "acceptance-core-${{ github.ref }}",
+        "acceptance-lane2-${{ github.ref }}",
+        "acceptance-w2-${{ github.ref }}",
+        "acceptance-ui-${{ github.ref }}",
+        "acceptance-shots-${{ github.ref }}",
+    )
+    for group in groups:
+        if jobs.count(f"group: {group}") != 1:
+            raise SystemExit(f"concurrency group {group} must appear once")
+    if jobs.count("cancel-in-progress: true") != len(groups):
+        raise SystemExit("each Mac job cancels only its own previous run")
+    lane2 = job_block(text, "appunit-lane-lane2")
+    w2 = job_block(text, "appunit-lane-w2")
+    for body, lane, other in ((lane2, "lane2", "w2"), (w2, "w2", "lane2")):
+        shards = " ".join(str(shard) for shard in LANE_SHARDS[lane])
+        if f"for shard in {shards}" not in body:
+            raise SystemExit(f"{lane} must run shards {shards} in order")
+        if f"derived-{lane}" not in body or f"derived-{other}" in body:
+            raise SystemExit(f"{lane} must use its own DerivedData directory")
+        if f"--lane {lane}" not in body:
+            raise SystemExit(f"{lane} must choose its own simulator")
+        if body.count("test-without-building") != 1 or "-xctestrun" not in body:
+            raise SystemExit(f"{lane} must reuse the debug build")
+        if "xcodebuild -project" in body:
+            raise SystemExit(f"{lane} must not compile")
+        if body.count("continue-on-error: true") != len(LANE_SHARDS[lane]):
+            raise SystemExit(f"{lane} xcresult upload must not fail the job")
+        if body.count("if-no-files-found: error") != len(LANE_SHARDS[lane]):
+            raise SystemExit(f"{lane} name artifacts stay required")
+        if "build-for-testing" in body or "actions/cache" in body:
+            raise SystemExit(f"{lane} must not compile or share a cache path")
+    if "group: acceptance-lane2-" in w2 or "group: acceptance-w2-" in lane2:
+        raise SystemExit("the two lanes must not share a concurrency group")
+    debug = job_block(text, "debug-build")
+    if debug.count("build-for-testing") != 1 or "publish-derived" not in debug:
+        raise SystemExit("one debug build must publish DerivedData")
+    if "test-without-building" in debug:
+        raise SystemExit("the debug job only builds")
+    if jobs.count("build-for-testing") != 1 or jobs.count("xcodebuild -project") != 1:
+        raise SystemExit("only the debug job may compile")
+    shots = job_block(text, "screenshots")
+    if "xcodebuild -project" in shots or "--derived" not in shots or "restore-derived" not in shots:
+        raise SystemExit("screenshots must reuse the published build")
+    ui = job_block(text, "ui-smoke")
+    if "test-without-building" not in ui or "-xctestrun" not in ui or "restore-derived" not in ui:
+        raise SystemExit("ui-smoke must reuse the published build")
+    if "xcodebuild -project" in ui:
+        raise SystemExit("ui-smoke must not compile")
+    if "ubuntu-latest" not in job_block(text, "ui-smoke-plan"):
+        raise SystemExit("the ui-smoke plan stays on ubuntu")
+    record = job_block(text, "record-baselines")
+    if "!cancelled()" not in record.split("steps:", 1)[0]:
+        raise SystemExit("record-baselines must include !cancelled()")
+    for check in (
+        "needs.gates.result == 'success'",
+        "needs.core-tests.result == 'success'",
+        "needs.appunit-baseline.result == 'success'",
+        "refs/heads/ci/baseline-record",
+    ):
+        if check not in record:
+            raise SystemExit(f"record-baselines must keep {check}")
+    if "> docs/release/baselines" in record or "truncate" in record:
+        raise SystemExit("record-baselines must not blank baseline files")
     if not ui_smoke_needed() and not ACCEPT_UI_ROOT.is_dir():
         print("acceptance: Tests/AppUITests/Accept is absent; ui-smoke will skip")
 
@@ -556,10 +964,25 @@ def main(argv):
     sub.add_parser("xcode")
 
     dest = sub.add_parser("destination")
+    dest.add_argument("--lane", required=True, choices=sorted(LANES))
     dest.add_argument("--out", type=Path, required=True)
+
+    publish = sub.add_parser("publish-derived")
+    publish.add_argument("--src", type=Path, required=True)
+    publish.add_argument("--sha", required=True)
+    publish.add_argument("--run-id", required=True)
+
+    restore = sub.add_parser("restore-derived")
+    restore.add_argument("--sha", required=True)
+    restore.add_argument("--run-id", required=True)
+    restore.add_argument("--dest", type=Path, required=True)
+
+    xctestrun = sub.add_parser("xctestrun")
+    xctestrun.add_argument("--derived", type=Path, required=True)
 
     shots = sub.add_parser("screenshots")
     shots.add_argument("--destination-file", type=Path, required=True)
+    shots.add_argument("--derived", type=Path, required=True)
     shots.add_argument("--out", type=Path, default=Path("acceptance-shots"))
 
     sub.add_parser("screenshot-needed")
@@ -586,10 +1009,19 @@ def main(argv):
         select_xcode()
         return 0
     if args.cmd == "destination":
-        write_destination(args.out)
+        write_destination(args.out, args.lane)
+        return 0
+    if args.cmd == "publish-derived":
+        publish_derived(args.src, args.sha, args.run_id)
+        return 0
+    if args.cmd == "restore-derived":
+        restore_derived(args.sha, args.run_id, args.dest)
+        return 0
+    if args.cmd == "xctestrun":
+        print(xctestrun_file(args.derived))
         return 0
     if args.cmd == "screenshots":
-        return capture_screenshots(args.destination_file, args.out)
+        return capture_screenshots(args.destination_file, args.out, args.derived)
     if args.cmd == "screenshot-needed":
         print("true" if screenshot_needed() else "false")
         return 0

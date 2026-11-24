@@ -49,6 +49,8 @@ jobs:
         run: python3 -B tools/check_scaffold.py
       - name: Typography lint
         run: python3 -B tools/check_typography_lint.py
+      - name: Accessibility lint
+        run: python3 -B tools/check_a11y_lint.py
       - name: Record the known contract-ratchet failure
         if: env.ACCEPTANCE_MODE == 'record'
         run: python3 -B .github/acceptance_support.py record-contract --baseline docs/release/contract-failing-baseline.txt
@@ -58,29 +60,28 @@ jobs:
   debug-build:
     runs-on: [self-hosted, macOS, ARM64, chengyin-app]
     concurrency:
-      group: acceptance-mac
-      cancel-in-progress: false
-      queue: max
-    timeout-minutes: 90
+      group: acceptance-debug-${{ github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - uses: actions/cache@v4
-        with:
-          path: DerivedData
-          key: acceptance-debug-${{ hashFiles('Questify.xcodeproj/project.pbxproj', 'Package.swift') }}
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Simulator destination
-        run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
+        run: python3 -B .github/acceptance_support.py destination --lane lane2 --out simulator-destination.txt
       - name: Debug simulator build
         run: |
+          set -euo pipefail
           set -o pipefail
           dest="$(tr -d '\n' < simulator-destination.txt)"
-          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination "$dest" -derivedDataPath DerivedData -resultBundlePath debug-build.xcresult CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build | tee debug-build.log
+          private="${RUNNER_TEMP}/derived-build"
+          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination "$dest" -derivedDataPath "$private" -resultBundlePath debug-build.xcresult CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build-for-testing | tee debug-build.log
+          python3 -B .github/acceptance_support.py publish-derived --src "$private" --sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
+        continue-on-error: true
         with:
           name: debug-build
           path: |
@@ -92,10 +93,9 @@ jobs:
     needs: baselines
     runs-on: [self-hosted, macOS, ARM64, chengyin-app]
     concurrency:
-      group: acceptance-mac
-      cancel-in-progress: false
-      queue: max
-    timeout-minutes: 180
+      group: acceptance-core-${{ github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -120,81 +120,166 @@ jobs:
         if: steps.collect.outcome == 'success'
         run: python3 -B .github/acceptance_support.py gate --mode "$ACCEPTANCE_MODE" --baseline docs/release/baselines/core.txt --failures core-failures.txt --status core-status.txt --record baseline-core.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: ${{ steps.gate.outcome == 'success' && env.ACCEPTANCE_MODE == 'record' }}
+        with:
+          name: baseline-core.txt
+          path: baseline-core.txt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
+        continue-on-error: true
         with:
           name: core-tests-log
           path: |
             core-tests.log
             core-failures.txt
           if-no-files-found: ignore
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: ${{ steps.gate.outcome == 'success' && env.ACCEPTANCE_MODE == 'record' }}
-        with:
-          name: baseline-core.txt
-          path: baseline-core.txt
-          if-no-files-found: error
 
-  appunit:
-    needs: baselines
+  appunit-lane-lane2:
+    name: AppUnit Lane2
+    needs: [baselines, debug-build]
     runs-on: [self-hosted, macOS, ARM64, chengyin-app]
     concurrency:
-      group: acceptance-mac
-      cancel-in-progress: false
-      queue: max
-    timeout-minutes: 180
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [0, 1, 2, 3]
+      group: acceptance-lane2-${{ github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - uses: actions/cache@v4
-        with:
-          path: DerivedData
-          key: acceptance-appunit-${{ matrix.shard }}-${{ hashFiles('Questify.xcodeproj/project.pbxproj') }}
       - name: Print Xcode version
         run: xcodebuild -version
+      - name: Restore DerivedData
+        run: python3 -B .github/acceptance_support.py restore-derived --sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --dest "$RUNNER_TEMP/derived-lane2"
       - name: Simulator destination
-        run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
-      - name: AppUnit shard
-        env:
-          SHARD: ${{ matrix.shard }}
+        run: python3 -B .github/acceptance_support.py destination --lane lane2 --out simulator-destination.txt
+      - name: AppUnit shards 0 and 1
         run: |
           set -euo pipefail
-          python3 -B .github/acceptance_support.py only-testing --shard "$SHARD" > only-testing.args
+          derived="${RUNNER_TEMP}/derived-lane2"
           dest="$(tr -d '\n' < simulator-destination.txt)"
-          set +e
-          xcodebuild -project Questify.xcodeproj -scheme QuestifyAppUnitTests -configuration Debug -sdk iphonesimulator -destination "$dest" -derivedDataPath DerivedData -resultBundlePath "appunit-${SHARD}.xcresult" CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES test $(cat only-testing.args) | tee "appunit-${SHARD}.log"
-          code="${PIPESTATUS[0]}"
-          set -e
-          echo "$code" > "appunit-${SHARD}-exit.txt"
-          exit 0
-      - name: Collect failing names
-        id: collect
-        if: always()
-        run: python3 -B .github/acceptance_support.py collect --log "appunit-${{ matrix.shard }}.log" --exit "appunit-${{ matrix.shard }}-exit.txt" --failures-out "appunit-${{ matrix.shard }}-failures.txt" --status-out "appunit-${{ matrix.shard }}-status.txt"
+          fail=0
+          run="$(python3 -B .github/acceptance_support.py xctestrun --derived "$derived")"
+          for shard in 0 1; do
+            python3 -B .github/acceptance_support.py only-testing --shard "$shard" > "only-testing-${shard}.args"
+            set +e
+            set -o pipefail
+            xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
+            code="${PIPESTATUS[0]}"
+            set -e
+            echo "$code" > "appunit-${shard}-exit.txt"
+            python3 -B .github/acceptance_support.py collect --log "appunit-${shard}.log" --exit "appunit-${shard}-exit.txt" --failures-out "appunit-${shard}-failures.txt" --status-out "appunit-${shard}-status.txt" || fail=1
+          done
+          exit "$fail"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: appunit-shard-${{ matrix.shard }}
+          name: appunit-failures-0
           path: |
-            appunit-${{ matrix.shard }}.log
-            appunit-${{ matrix.shard }}.xcresult
+            appunit-0-failures.txt
+            appunit-0-status.txt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: appunit-failures-1
+          path: |
+            appunit-1-failures.txt
+            appunit-1-status.txt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        continue-on-error: true
+        with:
+          name: appunit-shard-0
+          path: |
+            appunit-0.log
+            appunit-0.xcresult
           if-no-files-found: ignore
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
+        continue-on-error: true
         with:
-          name: appunit-failures-${{ matrix.shard }}
+          name: appunit-shard-1
           path: |
-            appunit-${{ matrix.shard }}-failures.txt
-            appunit-${{ matrix.shard }}-status.txt
+            appunit-1.log
+            appunit-1.xcresult
+          if-no-files-found: ignore
+
+  appunit-lane-w2:
+    name: AppUnit W2
+    needs: [baselines, debug-build]
+    runs-on: [self-hosted, macOS, ARM64, chengyin-app]
+    concurrency:
+      group: acceptance-w2-${{ github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Print Xcode version
+        run: xcodebuild -version
+      - name: Restore DerivedData
+        run: python3 -B .github/acceptance_support.py restore-derived --sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --dest "$RUNNER_TEMP/derived-w2"
+      - name: Simulator destination
+        run: python3 -B .github/acceptance_support.py destination --lane w2 --out simulator-destination.txt
+      - name: AppUnit shards 2 and 3
+        run: |
+          set -euo pipefail
+          derived="${RUNNER_TEMP}/derived-w2"
+          dest="$(tr -d '\n' < simulator-destination.txt)"
+          fail=0
+          run="$(python3 -B .github/acceptance_support.py xctestrun --derived "$derived")"
+          for shard in 2 3; do
+            python3 -B .github/acceptance_support.py only-testing --shard "$shard" > "only-testing-${shard}.args"
+            set +e
+            set -o pipefail
+            xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
+            code="${PIPESTATUS[0]}"
+            set -e
+            echo "$code" > "appunit-${shard}-exit.txt"
+            python3 -B .github/acceptance_support.py collect --log "appunit-${shard}.log" --exit "appunit-${shard}-exit.txt" --failures-out "appunit-${shard}-failures.txt" --status-out "appunit-${shard}-status.txt" || fail=1
+          done
+          exit "$fail"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: appunit-failures-2
+          path: |
+            appunit-2-failures.txt
+            appunit-2-status.txt
           if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: appunit-failures-3
+          path: |
+            appunit-3-failures.txt
+            appunit-3-status.txt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        continue-on-error: true
+        with:
+          name: appunit-shard-2
+          path: |
+            appunit-2.log
+            appunit-2.xcresult
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        continue-on-error: true
+        with:
+          name: appunit-shard-3
+          path: |
+            appunit-3.log
+            appunit-3.xcresult
+          if-no-files-found: ignore
 
   appunit-baseline:
-    needs: appunit
-    if: ${{ always() && !cancelled() && needs.appunit.result != 'skipped' }}
+    needs: [appunit-lane-lane2, appunit-lane-w2]
+    if: ${{ always() && !cancelled() && needs.appunit-lane-lane2.result != 'skipped' && needs.appunit-lane-w2.result != 'skipped' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -214,8 +299,8 @@ jobs:
           args=()
           statuses=(appunit-shards/appunit-*-status.txt)
           failures=(appunit-shards/appunit-*-failures.txt)
-          if [ ${#statuses[@]} -eq 0 ]; then
-            echo "no AppUnit shard status files were downloaded"
+          if [ ${#statuses[@]} -eq 0 ] || [ ${#failures[@]} -eq 0 ]; then
+            echo "AppUnit shard name files were not downloaded"
             exit 1
           fi
           for path in "${statuses[@]}"; do args+=(--status "$path"); done
@@ -245,25 +330,43 @@ jobs:
           echo "needed=${needed}" >> "$GITHUB_OUTPUT"
           echo "screenshot needed: ${needed}"
 
+  ui-smoke-plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      needed: ${{ steps.plan.outputs.needed }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Look for Accept XCUITests
+        id: plan
+        run: |
+          set -euo pipefail
+          needed="$(python3 -B .github/acceptance_support.py ui-smoke-needed)"
+          echo "needed=${needed}" >> "$GITHUB_OUTPUT"
+          echo "ui-smoke needed: ${needed}"
+
   screenshots:
-    needs: screenshot-plan
-    if: needs.screenshot-plan.outputs.needed == 'true'
+    needs: [screenshot-plan, debug-build, appunit-lane-w2]
+    if: ${{ always() && !cancelled() && needs.screenshot-plan.outputs.needed == 'true' && needs.debug-build.result == 'success' }}
     runs-on: [self-hosted, macOS, ARM64, chengyin-app]
     concurrency:
-      group: acceptance-mac
-      cancel-in-progress: false
-      queue: max
-    timeout-minutes: 90
+      group: acceptance-shots-${{ github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
       - name: Print Xcode version
         run: xcodebuild -version
+      - name: Restore DerivedData
+        run: python3 -B .github/acceptance_support.py restore-derived --sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --dest "$RUNNER_TEMP/derived-shots"
       - name: Simulator destination
-        run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
+        run: python3 -B .github/acceptance_support.py destination --lane w2 --out simulator-destination.txt
       - name: Launch DEBUG fixtures and screenshot
-        run: python3 -B .github/acceptance_support.py screenshots --destination-file simulator-destination.txt --out acceptance-shots
+        run: python3 -B .github/acceptance_support.py screenshots --destination-file simulator-destination.txt --derived "$RUNNER_TEMP/derived-shots" --out acceptance-shots
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -272,43 +375,37 @@ jobs:
           if-no-files-found: ignore
 
   ui-smoke:
+    needs: [ui-smoke-plan, debug-build, appunit-lane-lane2]
+    if: ${{ always() && !cancelled() && needs.ui-smoke-plan.outputs.needed == 'true' && needs.debug-build.result == 'success' }}
     runs-on: [self-hosted, macOS, ARM64, chengyin-app]
     concurrency:
-      group: acceptance-mac
-      cancel-in-progress: false
-      queue: max
-    timeout-minutes: 90
+      group: acceptance-ui-${{ github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
       - name: Print Xcode version
         run: xcodebuild -version
+      - name: Restore DerivedData
+        run: python3 -B .github/acceptance_support.py restore-derived --sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --dest "$RUNNER_TEMP/derived-ui"
       - name: Select Accept XCUITests
-        id: select
-        run: |
-          set -euo pipefail
-          needed="$(python3 -B .github/acceptance_support.py ui-smoke-needed)"
-          echo "needed=${needed}" >> "$GITHUB_OUTPUT"
-          if [ "$needed" != "true" ]; then
-            echo "Tests/AppUITests/Accept is absent or has no XCTestCase; skipping UI smoke"
-            exit 0
-          fi
-          python3 -B .github/acceptance_support.py ui-smoke-args --out ui-smoke-only-testing.args
+        run: python3 -B .github/acceptance_support.py ui-smoke-args --out ui-smoke-only-testing.args
       - name: Simulator destination
-        if: steps.select.outputs.needed == 'true'
-        run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
+        run: python3 -B .github/acceptance_support.py destination --lane lane2 --out simulator-destination.txt
       - name: Run Accept XCUITests
-        if: steps.select.outputs.needed == 'true'
         run: |
           set -euo pipefail
           set -o pipefail
           dest="$(tr -d '\n' < simulator-destination.txt)"
+          run="$(python3 -B .github/acceptance_support.py xctestrun --derived "$RUNNER_TEMP/derived-ui")"
           read -r -a only <<< "$(tr -d '\n' < ui-smoke-only-testing.args)"
           test "${#only[@]}" -gt 0
-          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination "$dest" -derivedDataPath DerivedData -resultBundlePath ui-smoke.xcresult CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES test -skip-testing:QuestifyAppUnitTests "${only[@]}" | tee ui-smoke.log
+          xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath ui-smoke.xcresult -parallel-testing-enabled NO -skip-testing:QuestifyAppUnitTests "${only[@]}" | tee ui-smoke.log
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
+        continue-on-error: true
         with:
           name: ui-smoke
           path: |
@@ -318,7 +415,7 @@ jobs:
 
   record-baselines:
     needs: [gates, core-tests, appunit-baseline]
-    if: ${{ github.ref == 'refs/heads/ci/baseline-record' && needs.gates.result == 'success' && needs.core-tests.result == 'success' && needs.appunit-baseline.result == 'success' }}
+    if: ${{ !cancelled() && github.ref == 'refs/heads/ci/baseline-record' && needs.gates.result == 'success' && needs.core-tests.result == 'success' && needs.appunit-baseline.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
