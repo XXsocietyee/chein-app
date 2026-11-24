@@ -321,7 +321,7 @@ struct MapPublicStoryNodeDetailView: View {
 
 private extension Text {
     func sectionHeading() -> some View {
-        font(CYTypography.sectionTitle)
+        cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)

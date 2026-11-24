@@ -66,9 +66,9 @@ struct DiscoveryTemplateDetailParitySections: View {
             } header: { DiscoverySectionHeader("discovery.templateDetail.reviews") }.discoveryCardRow()
         }
         DiscoveryTemplateNoticeSection()
-        .sheet(item: $preview) { state in
+        .sheet(item: $preview) { state in Group {
             TemplateNodePreviewSheet(state: state) { preview = nil }
-        }
+        }.cyR1Sheet([.medium, .large]) }
     }
 
     /// Use count and duration already render in the base metadata/presentation.

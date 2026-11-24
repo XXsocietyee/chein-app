@@ -10,3 +10,12 @@ extension AppSession {
     var discoveryPresentationIdentity: String { "\(sessionRevision):\(contentDetailRevision)" }
     var discoveryPresentationChanges: AnyPublisher<Void, Never> { objectWillChange.eraseToAnyPublisher() }
 }
+
+import SwiftUI
+
+extension View {
+    /// Native sheet chrome for R1 player-front sheets: system detents plus the visible drag indicator.
+    func cyR1Sheet(_ detents: Set<PresentationDetent> = [.large]) -> some View {
+        presentationDetents(detents).presentationDragIndicator(.visible)
+    }
+}

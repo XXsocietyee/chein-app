@@ -613,7 +613,7 @@ private struct PublicTemplateSilhouette: View {
             }
             #if DEBUG
             Text(verbatim: "ROUTE SHAPE · DEBUG")
-                .cyText(.micro).foregroundStyle(palette.textTertiary)
+                .cyText(.meta).foregroundStyle(palette.textTertiary)
                 .padding(CYSpacing.sm)
             #endif
         }

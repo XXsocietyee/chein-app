@@ -40,7 +40,7 @@ private struct DiscoveryCoverUnavailable: View {
     var body: some View {
         VStack(spacing: CYSpacing.xxs) {
             Image(systemName: "photo")
-                .font(CYTypography.label)
+                .cyText(.label)
                 .accessibilityHidden(true)
             Text("discovery.coverUnavailable")
                 .cyText(.caption)

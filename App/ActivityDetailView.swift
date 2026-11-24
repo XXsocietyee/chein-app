@@ -473,7 +473,7 @@ struct ActivityDetailView: View {
                     Text("activity.reviewPointsNote")
                         .accessibilityIdentifier("activity.detail.readOnly")
                 } icon: { Image(systemName:"star").accessibilityHidden(true) }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal:false,vertical:true)
             }

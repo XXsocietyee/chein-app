@@ -92,9 +92,9 @@ struct MapCoreEntryHubView: View {
         .cyGroupedSurface()
         .cyHeroScreen()
         .themeDomain(.player)
-        .sheet(isPresented: $showsSharingExplainer) {
+        .sheet(isPresented: $showsSharingExplainer) { Group {
             NavigationStack { LocationShareExplainerView() }
-        }
+        }.cyR1Sheet([.medium, .large]) }
     }
 
     private func entryLabel(_ entry: MapCoreEntry) -> some View {
@@ -130,7 +130,7 @@ struct MapCoreEntryHubView: View {
                 .fixedSize(horizontal: false, vertical: true)
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
                 Image(systemName: open ? "checkmark.circle" : "clock")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityHidden(true)
                 MapCoreEntryText.availability(entry.availability)
@@ -170,7 +170,7 @@ struct MapCoreEntryHubView: View {
 
 private extension Text {
     func sectionHeading() -> some View {
-        font(CYTypography.sectionTitle)
+        cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)

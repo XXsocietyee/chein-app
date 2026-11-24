@@ -248,7 +248,7 @@ private struct HomeHeroAvatar: View {
     }
     private var fallback: some View {
         CYColor.bgRaised
-            .overlay { Image(systemName: "person.fill").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textSecondary) }
+            .overlay { Image(systemName: "person.fill").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary) }
     }
 }
 
@@ -267,7 +267,7 @@ struct PlayContinuationBannerView: View {
             if let messageKey = readAvailability.messageKey, readAvailability != .unauthenticated {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: readAvailability == .failed ? "exclamationmark.triangle" : "info.circle")
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.textSecondary)
                     Text(LocalizedStringKey(messageKey))
                         .cyText(.caption)
@@ -310,7 +310,7 @@ struct PlayContinuationBannerView: View {
                             }
                             Spacer(minLength: 0)
                             Image(systemName: "play.circle.fill")
-                                .font(CYTypography.dataXL)
+                                .cyText(.dataXL)
                                 .foregroundStyle(.white)
                                 .shadow(color: .black.opacity(0.4), radius: 6, y: 2)
                                 .accessibilityHidden(true)
@@ -1526,7 +1526,7 @@ struct PublishTabFloatingSheetView: View {
                                         .foregroundStyle(CYColor.textTertiary)
                                     if let reason = item.disabledReason, !item.isEnabled {
                                         Text(verbatim: copy.tr(reason))
-                                            .cyText(.micro)
+                                            .cyText(.meta)
                                             .foregroundStyle(CYColor.warningText)
                                             .accessibilityIdentifier("publishTab.sheet.disabledReason.\(item.id)")
                                     }
@@ -1550,7 +1550,7 @@ struct PublishTabFloatingSheetView: View {
                 .padding(.vertical, CYSpacing.lg)
             }
             .cyDomainPageBackground()
-            .navigationTitle(Text(verbatim: copy.tr(presentation.sheetTitle)))
+            .navigationTitle(Text(verbatim: copy.tr(presentation.sheetTitle))).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if let onClose {
                     ToolbarItem(placement: .cancellationAction) {

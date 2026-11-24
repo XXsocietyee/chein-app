@@ -64,7 +64,7 @@ struct PublicCatalogView: View {
             .padding(.vertical, CYSpacing.lg)
         }
         .background { CYExploreGround() }
-        .navigationTitle(cities.isEmpty || title.isEmpty ? Text("publicCatalog.title") : Text(verbatim: title))
+        .navigationTitle(cities.isEmpty || title.isEmpty ? Text("publicCatalog.title") : Text(verbatim: title)).navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if !cities.isEmpty {
                 ToolbarItem(placement: .topBarTrailing) {

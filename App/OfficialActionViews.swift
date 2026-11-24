@@ -143,9 +143,9 @@ import SwiftUI
                 Text("officialAction.editGap").foregroundStyle(.secondary)
             }
         }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
-            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
+            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
-            }
+            }.cyR1Sheet([.medium, .large]) }
     }
 }
 
@@ -187,9 +187,9 @@ import SwiftUI
                 .disabled((try? draft.payload()) == nil)
                 .accessibilityIdentifier("officialAction.reviewBroadcast").e1ActionRow()
         }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
-            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
+            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
-            }
+            }.cyR1Sheet([.medium, .large]) }
     }
     private func roleBinding(_ role: OfficialAudience, title: Bool) -> Binding<String> {
         Binding(get: { let copy = draft.copies[role] ?? OfficialCopy(); return title ? copy.title : copy.sub },
@@ -346,9 +346,9 @@ struct OfficialParticipationPresentation {
             guard let presentationID else { return }
             let callback = presentation.finishDismiss(id: presentationID)
             callback?()
-        }) {
+        }) { Group {
             if let entry = presentation.entry { OfficialActionSheet(coordinator: coordinator, command: entry.command) }
-        }
+        }.cyR1Sheet([.large]) }
     }
 }
 @MainActor struct OfficialMerchantInviteEditor: View {
@@ -372,8 +372,8 @@ struct OfficialParticipationPresentation {
             CYPillButton("officialAction.review") { reviewed = .inviteMerchants(selected.sorted()) }
                 .disabled(selected.isEmpty).e1ActionRow()
         }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
-            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
+            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
-            }
+            }.cyR1Sheet([.medium, .large]) }
     }
 }

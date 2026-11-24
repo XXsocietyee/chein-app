@@ -30,7 +30,7 @@ import SwiftUI
             }
             Label(LocalizedStringKey(featured.kind == .activity ? "merchant.publicHome.featured.activity" : "merchant.publicHome.featured.coupon"),
                   systemImage: featured.kind == .activity ? "calendar" : "ticket")
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textSecondary)
             if let name = featured.name {
                 Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)

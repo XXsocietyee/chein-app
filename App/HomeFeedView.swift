@@ -415,7 +415,7 @@ import UIKit
     private func retry(_ message: Text, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Label { message } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
             Button("homeFeed.retry", action: action)
                 .buttonStyle(.cySecondary)
@@ -539,7 +539,7 @@ struct HomeFeedCard: View {
     }
     private func statusRow<Value: View>(_ label: LocalizedStringKey, tabular: Bool = false, @ViewBuilder value: () -> Value) -> some View {
         let valueLabel = value()
-            .font(tabular ? CYTypography.bodyCompact.monospacedDigit() : CYTypography.bodyCompact)
+            .cyText(.bodyCompact, monospacedDigit: tabular)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
         let name = Text(label)

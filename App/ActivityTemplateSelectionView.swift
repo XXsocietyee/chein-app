@@ -188,7 +188,7 @@ extension ActivityTemplateSelectionOwner {
     }
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: owner.creationBinding(original), onDismiss: { owner.creationDismissed(original) }) { offered in
+            .sheet(item: owner.creationBinding(original), onDismiss: { owner.creationDismissed(original) }) { offered in Group {
                 NavigationStack {
                     if owner.currentCreation(offered) {
                         contentOwner.view.toolbar { ToolbarItem(placement: .cancellationAction) {
@@ -197,7 +197,7 @@ extension ActivityTemplateSelectionOwner {
                         } }
                     }
                 }
-            }
+            }.cyR1Sheet([.large]) }
     }
 }
 

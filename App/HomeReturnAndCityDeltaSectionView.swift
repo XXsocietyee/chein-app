@@ -115,7 +115,7 @@ import SwiftUI
         }
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+        .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("homeReturn.section.failureBox")
     }
@@ -311,7 +311,7 @@ import SwiftUI
             }
             .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+            .background(.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("cityDelta.section.quoteBox")
         }
@@ -352,7 +352,7 @@ import SwiftUI
         }
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
+        .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cityDelta.section.cursorBox")
     }
