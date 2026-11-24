@@ -674,7 +674,6 @@ struct ActivityDetailView: View {
                 CYPillButton(LocalizedStringKey(primaryAction.titleKey)) {}
                     .disabled(true)
                     .accessibilityIdentifier("activity.primaryAction.unavailable")
-                    .accessibilityLabel(Text("activity.cta.unavailable.a11y"))
             } else {
                 // A registered or cancelled activity never reopens the registration sheet.
                 let action = primaryAction

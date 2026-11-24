@@ -183,7 +183,7 @@ struct ActivityTicketCard: View {
         Text(verbatim:ticket.name).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal:false,vertical:true)
     }
     private var price: some View {
-        Text(verbatim: ticket.price == 0 ? copy.t("免费", "Free") : (ticket.price.flatMap { $0 >= 0 ? MoneyDisplay.yuan($0) : nil } ?? "—"))
+        Text(verbatim: ticket.price == 0 ? copy.t("免费", "Free") : (E1Money.yuan(ticket.price, locale: locale) ?? "—"))
             .cyText(.dataXL, weight: .semibold).monospacedDigit().foregroundStyle(palette.textPrimary)
             .accessibilityIdentifier("activity.ticket.price.\(ticket.id)")
     }

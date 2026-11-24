@@ -1,23 +1,6 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "activity.cta.unavailable.a11y": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign-up status unavailable"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "报名状态暂不可用"
-          }
-        }
-      }
-    },
     "discovery.adopt.signIn": {
       "extractionState": "manual",
       "localizations": {

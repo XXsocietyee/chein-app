@@ -3477,10 +3477,7 @@ final class AppSession: ObservableObject {
         return coordinator
     }
     var activityHostCancelAccess: (any ActivityHostCancelAccess)? {
-        // Owner decision 6 (11-24): host cancellation with refunds counts as money → TEST/DEBUG only, off on the
-        // production host and in Release (`ReviewedAreaSwitch.moneyPayments`).
-        guard let api = regionalConfiguration?.apiConfiguration,
-              ReviewedAreaSwitch.moneyPayments(apiHost: api.baseURL.host) else { return nil }
+        guard let api = regionalConfiguration?.apiConfiguration, ReviewedAreaSwitch.moneyPayments(apiHost: api.baseURL.host) else { return nil } // owner #6: refunds TEST-only
         return ActivityHostCancelHTTPAccess(
             configuration: api,
             transport: runtimeHTTPTransport,
