@@ -17,6 +17,8 @@ import SwiftUI
     var openResource: (PublishedResource) -> Void
     var makeProfessional: ((ProjectEditProduct) -> AnyView)? = nil
     var makeTemplateAuthoring: (() -> AnyView)? = nil
+    /// R7-PC-D1-1: the session's 我的项目 (`SessionCreatorProjectsView`); nil keeps the offline list for fixtures.
+    var makeProjects: (() -> AnyView)? = nil
     /// Same rule as the publish menu: activity publishing is for club leaders.
     private var showsActivity: Bool { account == nil || account?.role == "club" }
     private var simplePageRead: ((PublishingRead) async throws -> ProjectEditJSON)? {
@@ -72,7 +74,8 @@ import SwiftUI
                             CYListRow("publishModes.activity", card: true) { CYRowIcon(systemImage: "calendar.badge.plus") }
                         }.buttonStyle(.plain)
                     }
-                    NavigationLink { PublishingProjectsView(service: service, account: account, openResource: openResource) } label: {
+                    // R7-PC-D1-1: one 我的项目 screen (MP subpackageA/pages/myproject), same as the deep link and ⋯ menu.
+                    NavigationLink { if let makeProjects { makeProjects() } else { PublishingProjectsView(service: service, account: account, openResource: openResource) } } label: {
                         CYListRow("publishModes.projects", card: true) { CYRowIcon(systemImage: "square.stack") }
                     }.buttonStyle(.plain)
                     NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {

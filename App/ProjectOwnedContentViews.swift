@@ -140,6 +140,7 @@ import SwiftUI
     /// Personal account entry leaves this nil. The merchant entry passes `MERCHANT`.
     var entryScope: String? = nil
     @State private var canManageProjects = false
+    @State private var showsReceivedApplies = false
     var body: some View {
         ProjectOwnedContentBrowser(reader: session.creatorContentReader, revision: session.sessionRevision,
             makeEditor: { session.projectEditor(target: $0) }, detail: { destination in
@@ -160,6 +161,13 @@ import SwiftUI
             entryScope: entryScope, canManageProjects: canManageProjects)
             .environment(\.myProjectTemplateShelf, MyProjectTemplateShelfHost { session.myProjectTemplateShelf() })
             .environment(\.myProjectPublishEntry, session.myProjectPublishEntry())
+            .environment(\.myProjectReceivedApplies, { showsReceivedApplies = true })
+            .navigationDestination(isPresented: $showsReceivedApplies) {
+                CooperationBrowserView(reader: session.cooperationReader, peerReader: session.cooperationFlowReader,
+                                       operationScope: entryScope, initialDirection: .received,
+                                       topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
+                                       embedsNavigationStack: false)
+            }
             .id(session.creatorContentReader.scope)
             .task(id: "\(session.creatorContentReader.scope.uuidString)|\(entryScope ?? "")") { await loadManage() }
     }

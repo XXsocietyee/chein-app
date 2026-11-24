@@ -1,4 +1,38 @@
 {
+  "myProject.address.open %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open %@ in Maps"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在地图中打开 %@"
+        }
+      }
+    }
+  },
+  "myProject.signInRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to see your projects"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看我的项目"
+        }
+      }
+    }
+  },
   "official.bucket.upcoming": {
     "extractionState": "manual",
     "localizations": {
