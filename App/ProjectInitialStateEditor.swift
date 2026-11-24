@@ -65,7 +65,7 @@ import SwiftUI
                 .disabled(!controller.available).accessibilityIdentifier("projectInitialState.open")
             ProjectInitialAttributesEntry(model: model, chapterID: controller.chapterID)
         }
-        .sheet(item: controller.binding(original)) { original in ProjectInitialStateSheet(controller: controller, original: original) }
+        .sheet(item: controller.binding(original)) { original in Group { ProjectInitialStateSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
     }
@@ -116,7 +116,7 @@ import SwiftUI
                     }.accessibilityIdentifier("projectInitialState.confirm")
                 }
             }
-            .navigationTitle(Text("projectInitialState.title", tableName: "ProjectInitialState"))
+            .navigationTitle(Text("projectInitialState.title", tableName: "ProjectInitialState")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
             .scrollDismissesKeyboard(.interactively)
         }

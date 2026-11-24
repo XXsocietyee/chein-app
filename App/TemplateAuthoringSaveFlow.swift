@@ -90,7 +90,10 @@ import SwiftUI
         }
         .onPreferenceChange(TemplateAuthoringSavedResultPreferenceKey.self) { controller.accept($0) }
         .sheet(item: controller.presentationBinding()) { value in
-            TemplateAuthoringSavedResultPanel(result: value.signal.result, close: controller.closeAction(value))
+            Group {
+                TemplateAuthoringSavedResultPanel(result: value.signal.result, close: controller.closeAction(value))
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onAppear { controller.activate() }
         .onDisappear { controller.retire() }

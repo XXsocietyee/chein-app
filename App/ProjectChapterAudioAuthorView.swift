@@ -57,7 +57,7 @@ import SwiftUI
                 if flow.state == .unauthorized { Text("projectStoryAudio.unauthorized") }
                 if flow.state == .uploading { CYSkeleton() }
             }
-            .navigationTitle(Text("projectChapterAudio.title", tableName: "ProjectChapterAudio"))
+            .navigationTitle(Text("projectChapterAudio.title", tableName: "ProjectChapterAudio")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("projectStoryAudio.close") { model.close(); close() }
             } }

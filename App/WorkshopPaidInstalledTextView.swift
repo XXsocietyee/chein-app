@@ -26,9 +26,12 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
         if presentation.unavailable { paidText("notConfigured").font(.footnote).fixedSize(horizontal: false, vertical: true) }
         Color.clear.frame(height: 0)
             .sheet(item: presented) { captured in
-                WorkshopPaidInstalledTextView(controller: captured.controller, appearance: captured.appearance) {
-                    presentation.dismiss(captured)
-                }.id(captured.id)
+                Group {
+                    WorkshopPaidInstalledTextView(controller: captured.controller, appearance: captured.appearance) {
+                        presentation.dismiss(captured)
+                    }.id(captured.id)
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
     }
 }
@@ -98,7 +101,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                 }
             }
             .privacySensitive()
-            .navigationTitle(String(localized: LocalizedStringResource("workshopPaidInstalledText.title", table: "WorkshopPaidInstalledText", locale: locale)))
+            .navigationTitle(String(localized: LocalizedStringResource("workshopPaidInstalledText.title", table: "WorkshopPaidInstalledText", locale: locale))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { controller.close(displayed); ownedTask?.cancel(); onClose() } label: { paidText("close") }
                     .accessibilityIdentifier("workshopPaidInstalledText.close")

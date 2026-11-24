@@ -109,7 +109,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(LocalizedStringKey("cooperation.settlement.perspective." + detail.perspective.rawValue)).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(LocalizedStringKey("cooperation.settlement.perspective." + detail.perspective.rawValue)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         Text(verbatim: title(detail)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     }
                     Spacer(minLength: CYSpacing.sm)
@@ -124,14 +124,14 @@ import SwiftUI
         }
         Section("cooperation.settlement.breakdown") {
             ForEach(Array(detail.lines.enumerated()), id: \.offset) { _, line in
-                LabeledContent { Text(verbatim: valueText(line.value)).monospacedDigit().font(line.strong ? CYTypography.bodyMedium : CYTypography.label).foregroundStyle(CYColor.textPrimary) } label: {
+                LabeledContent { Text(verbatim: valueText(line.value)).monospacedDigit().cyText(line.strong ? .bodyMedium : .label).foregroundStyle(CYColor.textPrimary) } label: {
                     Text(LocalizedStringKey("cooperation.settlement.line." + line.key)).cyText(.label).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityIdentifier("cooperation.settlement.line.\(line.key)")
             }
         }
         Section("cooperation.settlement.progress") {
             ForEach(Array(detail.timeline.enumerated()), id: \.offset) { _, step in
-                LabeledContent { Text(verbatim: valueText(step.value)).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary) } label: {
+                LabeledContent { Text(verbatim: valueText(step.value)).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) } label: {
                     // Mini `.sd__timeline`: dot + label (600) with the time beneath on the trailing side.
                     HStack(spacing: CYSpacing.sm) {
                         Circle()

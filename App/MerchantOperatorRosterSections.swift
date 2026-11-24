@@ -33,7 +33,7 @@ import SwiftUI
                     LabeledContent("merchant.operatorRoster.loadedMembers", value: String(roster.activeMembers.count))
                         .monospacedDigit()
                         .accessibilityIdentifier("merchant.operatorRoster.memberCount")
-                    Text("merchant.operatorRoster.loadedScope").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("merchant.operatorRoster.loadedScope").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     if roster.activeMembers.isEmpty {
                         Text("merchant.operatorRoster.membersEmpty").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("merchant.operatorRoster.membersEmpty")
@@ -52,7 +52,7 @@ import SwiftUI
                 }
                 if roster.hasHistory {
                     Section("merchant.operatorRoster.history") {
-                        Text("merchant.operatorRoster.historyScope").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                        Text("merchant.operatorRoster.historyScope").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         if !roster.previousMembers.isEmpty {
                             DisclosureGroup("merchant.operatorRoster.previousMembers") {
                                 ForEach(roster.previousMembers) { row in rowContent(row) }

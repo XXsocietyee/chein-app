@@ -87,7 +87,7 @@ import UIKit
         } footer: {
             if let description = account.stateDescription {
                 Text(verbatim: description)
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }
         }

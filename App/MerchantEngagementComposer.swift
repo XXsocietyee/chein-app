@@ -62,7 +62,7 @@ struct MerchantEngagementEditorContext: Identifiable {
                     do { onPrepare(try command()) } catch { invalid = true }
                 }.accessibilityIdentifier("merchant.engagement.editor.review")
             }
-            .navigationTitle("merchant.engagement.localActions")
+            .navigationTitle("merchant.engagement.localActions").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } } }
             .onAppear { segmentID = segments.first?.id ?? 0; couponID = coupons.first?.id ?? 0 }
             .onDisappear { inviteToken = "" }

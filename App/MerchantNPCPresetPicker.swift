@@ -84,7 +84,7 @@ struct MerchantNPCPresetArtwork: View {
             if case .character(let value) = document.coordinator.draft {
                 if let avatar = MerchantNPCPresetAvatar.matching(code: value.avatar) {
                     MerchantNPCPresetArtwork(avatar: avatar)
-                        .frame(width: 192, height: 192).clipShape(RoundedRectangle(cornerRadius: 20))
+                        .frame(width: 192, height: 192).clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
                         .frame(maxWidth: .infinity)
                     Text(LocalizedStringKey(avatar.titleKey))
                         .accessibilityIdentifier("merchantPreset.current." + avatar.id)
@@ -140,7 +140,10 @@ struct MerchantNPCPresetArtwork: View {
             if let original = presentation.picker {
                 Color.clear.frame(width: 0, height: 0)
                     .sheet(item: presentation.binding(original), onDismiss: { presentation.close(original.id) }) { picker in
-                        MerchantNPCPresetPicker(model: picker) { presentation.close(original.id) }
+                        Group {
+                            MerchantNPCPresetPicker(model: picker) { presentation.close(original.id) }
+                        }
+                        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
                     }.id(original.id)
             }
         }
@@ -172,7 +175,7 @@ struct MerchantNPCPresetArtwork: View {
                             Button { model.select(avatar.id) } label: {
                                 VStack(spacing: 8) {
                                     MerchantNPCPresetArtwork(avatar: avatar).frame(height: 144)
-                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                                     HStack {
                                         Text(LocalizedStringKey(avatar.titleKey)).fixedSize(horizontal: false, vertical: true)
                                         if model.selectedID == avatar.id { Image(systemName: "checkmark.circle.fill") }

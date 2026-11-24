@@ -104,7 +104,7 @@ extension EnvironmentValues {
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.live %lld", home.coupons.couponCount)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.counts %lld %lld", home.coupons.received, home.coupons.verified)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     if let rate = home.verifiedAfterReceivePercent {
-                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.rate %lld", rate)).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.rate %lld", rate)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("merchantOps.marketing.coupon.rate")
                     }
                 }
@@ -158,7 +158,7 @@ extension EnvironmentValues {
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary)
                 .cyWrapText(alignment: .center)
-            Text(LocalizedStringKey(key)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
+            Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)

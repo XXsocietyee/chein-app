@@ -51,7 +51,7 @@ struct MerchantOperationsEditor: View {
         .scrollDismissesKeyboard(.immediately)
         .disabled(coordinator.isBusy)
         .accessibilityIdentifier("merchant.operations.editor")
-        .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }
+        .sheet(item: $assist) { presentation in Group { MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .modifier(MerchantTemplateCategoryPresentation(document: model, picker: $categoryPicker))
         .modifier(MerchantBrandImagesPresentation(document: model))
         .modifier(MerchantStoreFieldStablePresentation(document: model, presentation: storeFieldPresentation))
@@ -472,7 +472,7 @@ struct MerchantOperationsConfirmationView: View {
                     if let preset = avatar.preset {
                         Section("merchant.operations.avatar") {
                             MerchantNPCPresetArtwork(avatar: preset).frame(width: 192, height: 192)
-                                .clipShape(RoundedRectangle(cornerRadius: 20)).frame(maxWidth: .infinity)
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous)).frame(maxWidth: .infinity)
                             Text(LocalizedStringKey(preset.titleKey)).accessibilityIdentifier("merchantPreset.review." + preset.id)
                         }
                     } else {

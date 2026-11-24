@@ -30,7 +30,7 @@ import SwiftUI
                 ForEach(Array(model.ruleSteps.rows.enumerated()), id: \.element.id) { index, row in
                     HStack(alignment: .top, spacing: CYSpacing.sm) {
                         Text(verbatim: String(format: "%02d", index + 1))
-                            .cyText(.micro, monospacedDigit: true)
+                            .cyText(.meta, monospacedDigit: true)
                             .foregroundStyle(palette.actionPrimaryFg)
                             .frame(width: 24, height: 24)
                             .background(Circle().fill(palette.actionPrimaryBg))
