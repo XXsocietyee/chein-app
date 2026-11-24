@@ -606,7 +606,16 @@ struct ClubGovernanceReadView: View {
     private var bodyNavigation: some View {
         List {
             // X1 / CLB-governance-13 (parity r2): the page-type title is the inline bar title, not a hero in the content.
-            if loading {
+            if loading, operation == .nodeAnswer {
+                // CLB-topic-story-03 (MP topic-story wxml:115-142): the answer sheet says 正在取答案….
+                HStack(spacing: CYSpacing.sm) {
+                    ProgressView()
+                    Text("club.story.answer.loading").cyText(.body).foregroundStyle(CYColor.textSecondary)
+                }
+                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("club.gov.loading")
+            } else if loading {
                 CYSkeleton()
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("club.loading"))
@@ -633,6 +642,17 @@ struct ClubGovernanceReadView: View {
                              actionIdentifier: "club.host.signIn.action", actionStyle: .primary,
                              action: rootTabSwitch.isAvailable ? { dismissPage(); rootTabSwitch(.mine) } : nil)
                     .listRowBackground(Color.clear)
+            } else if operation == .nodeAnswer, let failure, failure != .forbidden, failure != .signedOut {
+                // CLB-topic-story-03: 答案没取到 + 重试, with the server reason when it sent one.
+                CYEmptyState(systemImage: "exclamationmark.triangle", "club.story.answer.failed",
+                             messageIdentifier: "club.story.answer.failed",
+                             actionTitle: loading ? nil : "action.retry", actionIdentifier: "club.gov.refresh",
+                             actionStyle: .secondary, kind: .failure,
+                             action: loading ? nil : { Task { await load() } })
+                    .listRowBackground(Color.clear)
+                if let message = failure.message {
+                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("club.story.answer.reason")
+                }
             } else if let failure, let copy = ClubOpsFailureCopy(operation: operation, failure: failure) {
                 ClubOpsFailureSection(copy: copy, reason: failureReason(failure)) { Task { await load() } }
             } else if let failure, let copy = ClubOpsPageFailureCopy(operation: operation, failure: failure) {
@@ -1529,7 +1549,19 @@ struct ClubGovernanceReadView: View {
                         let issued = groupCodePage.hidden ? nil : groupCodePage.sessions?.first(where: { $0.id == id })
                         NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator, groupCodePage: groupCodePage,
                                                                  activityLabel: row["name"].string.map { ClubGroupCodePort.sessionLabel(id: id, name: $0, startDate: row["startDate"].string, startTime: row["startTime"].string) }) } label: {
-                            if let name = row["name"].string { Text(verbatim: ClubGroupCodePort.sessionLabel(id: id, name: name, startDate: row["startDate"].string, startTime: row["startTime"].string) + (issued.map { " · " + $0.headcount.displayText } ?? "")) } else { Text("club.gov.eventID \(id)") }
+                            // CLB-topic-detail-15 (MP wxml:134-152): when over who, the headcount as a trailing chip.
+                            let when = ClubGroupCodePort.formatStart(date: row["startDate"].string, time: row["startTime"].string)
+                            let who = row["name"].string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                            HStack(alignment: .center, spacing: CYSpacing.sm) {
+                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                    if !when.isEmpty { Text(verbatim: when).cyText(.bodyMedium).monospacedDigit() }
+                                    if !who.isEmpty { Text(verbatim: who).cyText(when.isEmpty ? .bodyMedium : .meta).foregroundStyle(when.isEmpty ? CYColor.textPrimary : CYColor.textSecondary) }
+                                    if when.isEmpty && who.isEmpty { Text("club.gov.eventID \(id)") }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                if let issued { CYStatusChip(verbatim: issued.headcount.displayText, tone: .neutral) }
+                            }
+                            .accessibilityElement(children: .combine)
                         }
                         // Mini-program club/group-code: pick the session, then issue. One tap here; the reviewed
                         // command still checks check-in permission and the provider gate before any request.
