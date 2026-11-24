@@ -59,13 +59,22 @@ struct ClubR1OptionCard: View {
 /// Selectable capsule chip: 36 visual, 44 target. Selected = filled ink, unselected = surface.
 struct ClubR1Chip: View {
     let title: Text
+    var icon: Image? = nil
     let isSelected: Bool
     let action: () -> Void
     @Environment(\.cyPalette) private var palette
+    @ScaledMetric(relativeTo: .body) private var iconSide: CGFloat = 16
 
     var body: some View {
         Button(action: action) {
-            title
+            HStack(spacing: CYSpacing.xs) {
+                // Round 2 MP asset: the MP chip shows the tag-library icon before the label (create wxml:82).
+                if let icon {
+                    icon.resizable().renderingMode(.template).scaledToFit()
+                        .frame(width: iconSide, height: iconSide).accessibilityHidden(true)
+                }
+                title
+            }
                 .cyText(.bodyMedium)
                 .foregroundStyle(isSelected ? palette.actionPrimaryFg : palette.textPrimary)
                 .padding(.horizontal, CYSpacing.lg)

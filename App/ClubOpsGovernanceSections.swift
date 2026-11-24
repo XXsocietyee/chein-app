@@ -116,7 +116,11 @@ struct ClubOpsGovernanceMembersSection: View {
             // One row per member: name, then its actions side by side (ban, and transfer for the owner).
             ForEach(roster.members) { member in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    ClubOpsGovernanceCopy.member(member.nickname, id: member.id).cyText(.cardTitle)
+                    HStack(spacing: CYSpacing.sm) {
+                        // Round 2 MP asset: governance wxml:149 `item.avatar || d_profile.png` (the read has no avatar yet).
+                        ClubMPAvatar(url: nil, name: member.nickname ?? "", size: .sm)
+                        ClubOpsGovernanceCopy.member(member.nickname, id: member.id).cyText(.cardTitle)
+                    }
                     HStack(spacing: CYSpacing.sm) {
                         // CLB-governance-18: VoiceOver names the member on 封禁 / 转让.
                         ban(member).foregroundStyle(CYColor.dangerText)
@@ -271,7 +275,9 @@ struct ClubOpsRoleSection: View {
             }.accessibilityIdentifier("clubOpsGov.roles.owner")
             ForEach(roster.assignments) { row in
                 VStack(alignment: .leading, spacing: 6) {
-                    HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .center) {
+                        // Round 2 MP asset: roles wxml:87 `item.avatar || d_profile.png` (the read has no avatar yet).
+                        ClubMPAvatar(url: nil, name: row.memberName ?? "", size: .sm)
                         ClubOpsGovernanceCopy.member(row.memberName, id: row.targetMemberID).cyText(.cardTitle)
                         Spacer()
                         ClubOpsTag(label: row.roleName.map { Text(verbatim: $0) } ?? ClubOpsGovernanceCopy.text("clubOpsGov.roles.roleFallback"))

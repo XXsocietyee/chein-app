@@ -51,3 +51,38 @@ extension EnvironmentValues {
         set { self[ClubDissolveAcknowledgedKey.self] = newValue }
     }
 }
+
+/// MP `utils/tag-library.js` club 活动倾向 set: every preset direction carries its line icon
+/// (`/pages/club/images/tags/*.svg`, template-rendered, so it takes the label colour). Free text has no icon.
+enum ClubDirectionIcon {
+    static func image(for direction: String) -> Image? {
+        switch direction {
+        case "轻社交": return MPAsset.FeatureIcon.coffee
+        case "深度社交": return MPAsset.FeatureIcon.voice
+        case "RPG体验": return MPAsset.FeatureIcon.gameHandle
+        case "城市定向": return MPAsset.FeatureIcon.footprints
+        case "解谜路线": return MPAsset.FeatureIcon.dices
+        case "沉浸式剧情": return MPAsset.FeatureIcon.drama
+        case "运动路线": return MPAsset.FeatureIcon.sport
+        case "艺术体验": return MPAsset.FeatureIcon.platte
+        case "美食体验": return MPAsset.FeatureIcon.noodles
+        case "主题聚会": return MPAsset.FeatureIcon.music
+        default: return nil
+        }
+    }
+}
+
+/// Toggle/row label with the direction's MP icon (decorative; the text is the label).
+struct ClubDirectionLabel: View {
+    let value: String
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 18
+    var body: some View {
+        Label {
+            Text(LocalizedStringKey("club.ops.value." + value))
+        } icon: {
+            if let icon = ClubDirectionIcon.image(for: value) {
+                icon.resizable().renderingMode(.template).scaledToFit().frame(width: side, height: side).accessibilityHidden(true)
+            }
+        }
+    }
+}

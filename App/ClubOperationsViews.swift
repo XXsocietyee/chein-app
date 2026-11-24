@@ -1135,7 +1135,7 @@ private struct ClubOperationsProfileForm: View {
             ClubR1WrapLayout(spacing: CYSpacing.md) {
                 ForEach(Array(ClubOperationsCatalog.directions.enumerated()), id: \.element) { index, value in
                     let selected = draft.activityPrefs.contains(value)
-                    ClubR1Chip(title: Text(LocalizedStringKey("club.ops.value." + value)), isSelected: selected) {
+                    ClubR1Chip(title: Text(LocalizedStringKey("club.ops.value." + value)), icon: ClubDirectionIcon.image(for: value), isSelected: selected) {
                         if selected {
                             draft.activityPrefs.removeAll { $0 == value }
                             createDirectionNote = nil
@@ -1323,7 +1323,7 @@ private struct ClubOperationsProfileForm: View {
             Toggle(isOn: Binding(get: { draft.activityPrefs.contains(value) }, set: { enabled in
                 if enabled { if draft.activityPrefs.count < 3 { draft.activityPrefs.append(value) } }
                 else { draft.activityPrefs.removeAll { $0 == value } }
-            })) { Text(LocalizedStringKey("club.ops.value." + value)) }
+            })) { ClubDirectionLabel(value: value) }
             .disabled(!draft.activityPrefs.contains(value) && draft.activityPrefs.count >= 3)
         }
         if draft.activityPrefs.contains(where: { !ClubOperationsCatalog.directions.contains($0) }) {
