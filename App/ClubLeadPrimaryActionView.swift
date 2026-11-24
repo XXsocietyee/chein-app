@@ -53,10 +53,25 @@ import SwiftUI
     }
 }
 
+extension ClubLeadPrimaryAction {
+    /// Existing destinations only. Stages without one of these cases stay label and hint.
+    init?(ownerStage: ClubOwnerStage) {
+        switch ownerStage {
+        case .publish: self = .publish
+        case .invite: self = .merchants
+        case .pending: self = .sentInvitations
+        case .accepted: self = .topics
+        case .executionAccepted: self = .events
+        default: return nil
+        }
+    }
+}
+
 /// Kept mounted while the parent clears its snapshot for the fresh read.
 @MainActor struct ClubLeadPrimaryActionSection: View {
     let context: ClubLeadProgressContext
     let snapshot: ClubLeadProgressSnapshot?
+    var ownerStage: ClubOwnerStageResolution? = nil
     let destinations: ClubLeadPrimaryDestinations
     let isCurrent: () -> Bool
     let refresh: () async -> ClubLeadProgressSnapshot?
@@ -64,19 +79,48 @@ import SwiftUI
     @StateObject private var controller = ClubLeadPrimaryActionController()
     @Environment(\.scenePhase) private var scenePhase
     private var current: Bool { scenePhase == .active && isCurrent() && destinations.isCurrent(context) }
+    /// The existing button stays only when the owner stage uses that same destination.
+    private var leadActionAligned: Bool {
+        guard let ownerStage else { return true }
+        let mapped = ClubLeadPrimaryAction(ownerStage: ownerStage.stage)
+        let lead = snapshot.flatMap { ClubLeadPrimaryAction(stage: $0.stage) }
+        return mapped != nil && mapped == lead
+    }
     var body: some View {
         Section {
-            if let snapshot, let action = ClubLeadPrimaryAction(stage: snapshot.stage) {
-                Button(LocalizedStringKey(action.titleKey)) {
+            if let ownerStage, !leadActionAligned {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text(verbatim: ownerStage.label)
+                        .cyText(.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                    if !ownerStage.hint.isEmpty {
+                        Text(verbatim: ownerStage.hint)
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                    }
+                }
+                .accessibilityIdentifier("club.leadPrimary.stage")
+            }
+            if let snapshot, let action = ClubLeadPrimaryAction(stage: snapshot.stage), leadActionAligned {
+                Button {
                     guard let permit = controller.permit(in: context) else { return }
                     let displayed = snapshot.stage
                     Task { await controller.prepare(permit, displayed: displayed, context: context,
                         isCurrent: { current }, refresh: refresh) }
+                } label: {
+                    if let ownerStage { Text(verbatim: ownerStage.label) }
+                    else { Text(LocalizedStringKey(action.titleKey)) }
                 }
                 .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
                 .disabled(controller.preparing || controller.route != nil || !current || destinations.destination == nil)
                 .accessibilityIdentifier("club.leadPrimary.open")
                 .cyHaptic(.impactMedium, trigger: controller.route?.id) { _, opened in opened != nil }
+                if let hint = ownerStage?.hint, !hint.isEmpty {
+                    Text(verbatim: hint)
+                        .cyText(.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("club.leadPrimary.hint")
+                }
             }
             if controller.preparing { ProgressView("club.leadPrimary.checking").frame(minHeight: CYSpacing.minTouchTarget) }
             if let notice = controller.notice {

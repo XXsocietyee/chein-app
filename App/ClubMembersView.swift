@@ -317,7 +317,7 @@ struct ClubMemberInviteRow: View {
         ShareLink(item: String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)) {
             HStack(spacing: CYSpacing.md) {
                 Image(systemName: "person.badge.plus")
-                    .font(.body.weight(.semibold))
+                    .cyText(.bodyMedium)  // CLB-detail-41
                     .foregroundStyle(palette.textPrimary)
                     .frame(width: 40, height: 40)
                     .background(Circle().fill(palette.bgElevated))

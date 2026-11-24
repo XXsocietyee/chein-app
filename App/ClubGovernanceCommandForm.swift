@@ -72,6 +72,7 @@ import SwiftUI
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.clubProfileDraftFlow) private var profileDraftFlow
     @QuestifyReduceMotion private var reduceMotion
     @State private var audienceVisible = false
     @State private var scheduleSession: ClubSeriesScheduleSession?
@@ -90,7 +91,8 @@ import SwiftUI
     /// which replaces the plain confirm, so the organiser is asked once, with the consequences in front of them.
     @State private var consequenceReview: ClubGovernanceReview?
     @State private var consequenceAccepted: ClubGovernanceReview.ID?
-    @State private var applyStep = 0
+    /// CLB-apply-02 (MP apply wxml:36-43): the intro already showed on the host-status page, so the form opens at step 1.
+    @State private var applyStep = 1
     @State private var applyBlocked = false
     private var generation: UInt64 { presentation.generation }
     private var presentationContext: ClubGovernanceFormLifecycle.Context {
@@ -207,7 +209,7 @@ import SwiftUI
                                 .accessibilityIdentifier("club.schedule.formConversion")
                         }
                         if let issue = ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) {
-                            ClubSeriesScheduleIssueLabel(issue: issue)
+                            ClubSeriesScheduleIssueLabel(issue: issue, weeklyHorizon: ClubSeriesScheduleDraft(form: draft, now: Date()).weeklyHorizonMessage(now: Date()))
                         }
                     } else { Text("club.schedule.choose") }
                 }
@@ -257,7 +259,7 @@ import SwiftUI
             if busy { ProgressView() }
             if let review {
                 Section {
-                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true, localizesEnums: true)
+                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "durationDays" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true, localizesEnums: true)
                     if route.operation == .createSeries, review.command.fields["defaultLeadMemberId"] == .null {
                         LabeledContent("club.gov.field.defaultLeadMemberId") { Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent") }
                             .accessibilityIdentifier("clubOpsEvent.review.ownerDefault")
@@ -269,8 +271,18 @@ import SwiftUI
                     }
                     if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["inApp", "wechatSubscription"], localizesEnums: true) }
                     if route.operation == .sendNotification { ClubOpsNotifyPreviewSummary(value: review.snapshot.value) }
-                    Button(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction") {
+                    // CLB-notify-01 (fix-r3-club-b), MC-26: the send primary names the action and the head count.
+                    Button {
                         if route.operation == .cancelOccurrence { cancelConfirmReview = review } else { Task { await confirm(review) } }
+                    } label: {
+                        if route.operation == .sendNotification, !access.allowsOfflineWrites,
+                           let count = ClubNotifyPage.previewRecipient(review.snapshot.value).literal {
+                            Text("clubR3b.notify.sendTo \(count)")
+                        } else if route.operation == .sendNotification, !access.allowsOfflineWrites {
+                            Text("clubR3b.notify.send")
+                        } else {
+                            Text(LocalizedStringKey(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction"))
+                        }
                     }
                         .buttonStyle(.questifyPrimary)
                         .frame(maxWidth: .infinity)
@@ -284,6 +296,17 @@ import SwiftUI
                 }
             } else if receipt == nil {
                 if route.operation == .hostApply && applyStep < 4 { applyAdvanceButton }
+                if route.operation == .hostApply && applyStep > 1 {
+                    Button {
+                        guard !busy, !locked else { return }
+                        applyBlocked = false
+                        setApplyStep(applyStep - 1)
+                    } label: { Text(verbatim: locale.pick("上一步", "Back")).frame(maxWidth: .infinity) }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
+                    .listRowBackground(Color.clear)
+                    .disabled(busy || locked)
+                    .accessibilityIdentifier("club.player.apply.back")
+                }
                 if route.operation == .hostApply && applyStep == 4 {
                     // CLB-apply-03 (parity r2), MC-10: the last step submits directly as 提交申请; the fact-row review
                     // stays only as the fallback when the submit could not finish.
@@ -299,8 +322,20 @@ import SwiftUI
                     .disabled(busy || locked || identity == nil || !hostMaterialsReady || !ClubHostApplyPort.canReview(text: draft.text))
                     .accessibilityIdentifier("club.gov.prepare")
                 }
-                if route.operation != .hostApply {
-                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
+                if route.operation == .saveCustomer || route.operation == .issueGroupCode {
+                    // CLB-customer-detail-04 / CLB-group-code-02 (fix-r3-club-b): MP 保存 and 出示团码 act on one tap;
+                    // the reviewed command still runs (prepare, then confirm), with no separate 下一步 → 确认 step.
+                    Button(LocalizedStringKey(route.operation == .saveCustomer ? "clubR3b.customer.save" : "clubR3b.groupCode.issue")) {
+                        Task { await submitDirectly() }
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .disabled(busy || locked || identity == nil || !groupCodeCanIssue)
+                    .accessibilityIdentifier("club.gov.prepare")
+                } else if route.operation != .hostApply {
+                // CLB-notify-01 (fix-r3-club-b): MP 预览受众 before the send, not a generic 下一步.
+                Button(LocalizedStringKey(route.operation == .sendNotification ? "clubR3b.notify.preview" : "club.gov.review")) { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
                 }
             }
             if route.operation == .createSeries {
@@ -310,7 +345,8 @@ import SwiftUI
             if let groupCode {
                 Section {
                     ClubGroupCodePresentation(value: groupCode,
-                        current: identity == access.identity && scenePhase == .active)
+                        current: identity == access.identity && scenePhase == .active,
+                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } })
                 }
             }
             if let receipt {
@@ -382,17 +418,11 @@ import SwiftUI
             }
         }
         .toolbar { ToolbarItem(placement: .cancellationAction) {
+            // CLB-apply-09: 关闭 stays in the bar on every step; 上一步 sits in the bottom actions.
             Button {
-                if route.operation == .hostApply, applyStep > 0, !busy, !locked {
-                    applyBlocked = false
-                    setApplyStep(applyStep - 1)
-                } else if dirty || busy || locked { showDiscard = true } else { dismiss() }
+                if dirty || busy || locked { showDiscard = true } else { dismiss() }
             } label: {
-                if route.operation == .hostApply, applyStep > 0 {
-                    Image(systemName: "chevron.backward").accessibilityLabel(Text(verbatim: locale.pick("上一步", "Back")))
-                } else {
-                    Text("club.gov.close")
-                }
+                Text("club.gov.close")
             }
         } }
         .interactiveDismissDisabled(dirty || busy || locked)
@@ -415,6 +445,14 @@ import SwiftUI
         }.cySheet(detents: [.large])
         }
         .onChange(of: access.authorizationGeneration) { _, _ in scheduleSession = nil }
+        // CLB-governance-12 (MP governance js:584-605): after the transfer is acknowledged, leave the form after 1.5 s
+        // so the governance page re-reads under the new owner.
+        .task(id: route.operation == .transferOwner && receipt != nil) {
+            guard route.operation == .transferOwner, receipt != nil else { return }
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            guard !Task.isCancelled, receipt != nil else { return }
+            dismiss()
+        }
         .onChange(of: identity) { _, _ in scheduleSession = nil; retirePresentation(); review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }
         .task(id: rolePickerContext) {
             guard route.operation == .assignRole, let permit = rolePicker.activate(rolePickerContext) else { return }
@@ -444,6 +482,11 @@ import SwiftUI
                 groupCode = nil
                 if route.operation == .issueGroupCode { receipt = nil }
             }
+        }
+        // CLB-group-code-02 (fix-r3-club-b): MP issues the code as the page opens (index.js:93-135).
+        .task {
+            guard route.operation == .issueGroupCode, groupCodeCanIssue, review == nil, receipt == nil, groupCode == nil, failure == nil else { return }
+            await submitDirectly()
         }
         .onDisappear { groupCode = nil; if route.operation == .issueGroupCode { receipt = nil }; audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; retirePresentation(); coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
     }
@@ -575,6 +618,25 @@ import SwiftUI
     }
     private func textBinding(_ key: String) -> Binding<String> { Binding(get: { draft.text[key] ?? "" }, set: { draft.text[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func flagBinding(_ key: String) -> Binding<Bool> { Binding(get: { draft.flags[key] ?? false }, set: { draft.flags[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
+    /// Issuing a group code sends `{activityId}`. A topic-only link never reaches this submit.
+    private var groupCodeCanIssue: Bool {
+        route.operation != .issueGroupCode || (route.scope.activityID ?? 0) > 0
+    }
+    /// One-tap submit for commands whose MP page has no review step (customer 保存, group code 出示).
+    private func submitDirectly() async {
+        guard groupCodeCanIssue else { return }
+        await prepare()
+        if let pending = review { await confirm(pending) }
+    }
+    /// CLB-group-code-03 (fix-r3-club-b): an expired code is re-issued in place with a fresh request id,
+    /// so the original (expired) receipt is never replayed.
+    private func reissueGroupCode() async {
+        guard route.operation == .issueGroupCode, !busy, !locked else { return }
+        groupCode = nil; receipt = nil; failure = nil; review = nil
+        coordinator.cancelReview()
+        draft = .init(operation: route.operation, scope: route.scope)
+        await submitDirectly()
+    }
     private func prepare() async {
         guard !Task.isCancelled, draft.operation == route.operation, draft.scope == route.scope,
               roleAssignmentReady && seriesScheduleReady && seriesLeadReady && hostMaterialsReady && notificationAudienceReady,
@@ -630,6 +692,7 @@ import SwiftUI
             let value = try await coordinator.confirm(review)
             guard presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation, expected == identity, expected == access.identity else { return }
             receipt = value; self.review = nil; locked = true
+            if route.operation == .dissolve { profileDraftFlow?.clearAfterConfirmedDissolve() }
             if returnsToRoster { attendanceReturn?.acknowledged(review, value) }
             caseSubmissionReturn?.acknowledged(review)
             if returnsToRoles { roleManagementReturn?.acknowledged(review, value) }

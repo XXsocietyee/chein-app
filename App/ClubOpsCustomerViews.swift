@@ -5,16 +5,27 @@ struct ClubOpsFailureSection: View {
     /// X3 (parity r2): the one reason line under the page title when the page copy has no detail of its own.
     var reason: Text? = nil
     let retry: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    LocalizedStringKey(copy.titleKey),
-                    tableName: "ClubOpsCustomer",
-                    messageIdentifier: "clubOps.failure.title",
-                    kind: .failure
-                )
+                if let literal = copy.literalTitle {
+                    Text(verbatim: literal)
+                        .cyText(.cardTitle)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("clubOps.failure.title")
+                } else {
+                    CYEmptyState(
+                        systemImage: "exclamationmark.triangle",
+                        LocalizedStringKey(copy.titleKey),
+                        tableName: "ClubOpsCustomer",
+                        messageIdentifier: "clubOps.failure.title",
+                        kind: .failure
+                    )
+                }
                 if let detail = copy.detailKey {
                     Text(LocalizedStringKey(detail), tableName: "ClubOpsCustomer")
                         .cyText(.body)
@@ -32,7 +43,10 @@ struct ClubOpsFailureSection: View {
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("club.gov.error")
                 }
-                if let key = copy.retryKey {
+                if let back = copy.backTitle {
+                    CYPillButton(verbatim: locale.pick(back, "Back"), style: .secondary, action: { dismiss() })
+                        .accessibilityIdentifier("clubOps.failure.back")
+                } else if let key = copy.retryKey {
                     CYPillButton(LocalizedStringKey(key), style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsCustomer", action: retry)
                         .accessibilityIdentifier("clubOps.failure.retry")
                 }
@@ -127,9 +141,10 @@ struct ClubOpsFailureSection: View {
                 .accessibilityIdentifier("clubOps.customers.loadMoreRetry")
             }
         } header: {
+            // CLB-customers-06 (fix-r3-club-b): MP .cus-count is a label-size meta line.
             Text("clubOps.customers.count \(list.total) \(list.monthNew)", tableName: "ClubOpsCustomer")
-                .cyText(.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
+                .cyText(.meta)
+                .foregroundStyle(CYColor.textSecondary)
                 .monospacedDigit()
                 .textCase(nil)
                 .fixedSize(horizontal: false, vertical: true)
@@ -218,32 +233,37 @@ struct ClubOpsCustomerRowView: View {
     let editButton: AnyView?
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 56
+    @ViewBuilder private var avatarView: some View {
+        // CLB-customer-detail-02 (parity r2): the customer's own avatar; the generated art is only the fallback.
+        if let url = detail.avatar.flatMap(URL.init(string:)), url.scheme?.lowercased() == "https" {
+            CYAvatarView(url: url, name: detail.displayName ?? "—", size: .lg)
+                .accessibilityHidden(true)
+        } else {
+            CYCoverArt(seed: detail.displayName ?? "—", symbol: "person", showsDebugLabel: false, showsGlyph: false)
+                .frame(width: avatarSide, height: avatarSide)
+                .clipShape(Circle())
+                .accessibilityHidden(true)
+        }
+    }
     var body: some View {
         Section {
             let stack = typeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
                 : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
             stack {
-                // CLB-customer-detail-02 (parity r2): the customer's own avatar; the generated art is only the fallback.
-                if let url = detail.avatar.flatMap(URL.init(string:)), url.scheme?.lowercased() == "https" {
-                    CYAvatarView(url: url, name: detail.displayName ?? "—", size: .lg)
-                        .accessibilityHidden(true)
-                } else {
-                    CYCoverArt(seed: detail.displayName ?? "—", symbol: "person", showsDebugLabel: false, showsGlyph: false)
-                        .frame(width: avatarSide, height: avatarSide)
-                        .clipShape(Circle())
-                        .accessibilityHidden(true)
-                }
+                if typeSize.isAccessibilitySize { avatarView }
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    // CLB-customer-detail-03 (fix-r3-club-b): MP — the customer's name is the page title (29 bold),
+                    // the avatar sits at the top right; the bar keeps the short page-type title.
                     if let name = detail.displayName {
                         Text(verbatim: name)
-                            .cyText(.sectionTitle)
+                            .cyText(.pageTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.gov.fact.displayName")
                     } else {
                         Text("clubOps.customers.noName", tableName: "ClubOpsCustomer")
-                            .cyText(.sectionTitle)
+                            .cyText(.pageTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -253,11 +273,14 @@ struct ClubOpsCustomerRowView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader)
+                if !typeSize.isAccessibilitySize { avatarView }
             }
             LabeledContent {
                 if let text = paidText {
+                    // CLB-customer-detail-08: MP 累计实付 is data-xl.
                     Text(verbatim: text)
-                        .cyText(.numericBody)
+                        .cyText(.dataXL)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -361,8 +384,9 @@ struct ClubOpsCustomerMetricTile: View {
     let label: LocalizedStringKey
     var body: some View {
         VStack(spacing: CYSpacing.xs) {
+            // CLB-customer-detail-08: MP stat numerals are sheet-title size.
             Text(verbatim: value.displayText)
-                .cyText(.dataXL)
+                .cyText(.sheetTitle)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -390,12 +414,12 @@ struct ClubOpsCustomerRecordRow: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let day {
                     Text(day, format: .number)
-                        .cyText(.numericBody)
+                        .cyText(.sectionTitle)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                 } else {
                     Text(verbatim: "—")
-                        .cyText(.numericBody)
+                        .cyText(.sectionTitle)
                         .foregroundStyle(CYColor.textTertiary)
                 }
                 if let month = record.month {
@@ -464,21 +488,20 @@ struct ClubOpsTagFlow: View {
     let tags: [String]
     var removable: ((Int) -> Void)? = nil
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: CYSpacing.sm) {
-                ForEach(Array(tags.enumerated()), id: \.offset) { index, tag in
-                    if let removable {
-                        Button { removable(index) } label: {
-                            CYStatusChip(verbatim: tag.isEmpty ? "—" : tag, tone: .neutral, systemImage: "xmark")
-                        }
-                        .buttonStyle(.plain)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .accessibilityLabel(Text("clubOps.customer.removeTag \(tag)", tableName: "ClubOpsCustomer"))
-                        .accessibilityIdentifier("clubOps.customer.removeTag.\(index)")
-                    } else {
-                        CYStatusChip(verbatim: tag.isEmpty ? "—" : tag, tone: .neutral)
-                            .accessibilityLabel(Text(verbatim: tag.isEmpty ? "—" : tag))
+        // CLB-customer-detail-09 (fix-r3-club-b): tags wrap onto new lines like the MP .cd-tags; none are hidden off-edge.
+        ClubR1WrapLayout(spacing: CYSpacing.sm) {
+            ForEach(Array(tags.enumerated()), id: \.offset) { index, tag in
+                if let removable {
+                    Button { removable(index) } label: {
+                        CYStatusChip(verbatim: tag.isEmpty ? "—" : tag, tone: .neutral, systemImage: "xmark")
                     }
+                    .buttonStyle(.plain)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityLabel(Text("clubOps.customer.removeTag \(tag)", tableName: "ClubOpsCustomer"))
+                    .accessibilityIdentifier("clubOps.customer.removeTag.\(index)")
+                } else {
+                    CYStatusChip(verbatim: tag.isEmpty ? "—" : tag, tone: .neutral)
+                        .accessibilityLabel(Text(verbatim: tag.isEmpty ? "—" : tag))
                 }
             }
         }

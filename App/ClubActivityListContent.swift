@@ -5,18 +5,27 @@ import SwiftUI
     let canOpen: Bool
     let open: (ClubActivityRow) -> Void
     var report: ((ClubActivityRow) -> AnyView)? = nil
+    /// CLB-detail-19: inside the club page's 活动 tab the list has no 当前活动 header, no time-zone helper line and no
+    /// ended activities (MP P-14: 已结束的不在这里出).
+    var embedded = false
     init(overview: ClubActivityOverview, canOpen: Bool, open: @escaping (ClubActivityRow) -> Void,
          report: ((ClubActivityRow) -> AnyView)? = nil) {
         self.init(rows: overview.rows, canOpen: canOpen, open: open, report: report)
     }
     /// Display rows do not imply a governance snapshot or any mutation authority.
     init(rows: [ClubActivityRow], canOpen: Bool, open: @escaping (ClubActivityRow) -> Void,
-         report: ((ClubActivityRow) -> AnyView)? = nil) {
-        self.rows = rows; self.canOpen = canOpen; self.open = open; self.report = report
+         report: ((ClubActivityRow) -> AnyView)? = nil, embedded: Bool = false) {
+        self.rows = rows; self.canOpen = canOpen; self.open = open; self.report = report; self.embedded = embedded
     }
     private var currentRows: [ClubActivityRow] { rows.filter { $0.status != .ended } }
     private var endedRows: [ClubActivityRow] { rows.filter { $0.status == .ended } }
     var body: some View {
+        if embedded {
+            Section {
+                if currentRows.isEmpty { Text("club.calendar.noEvents").accessibilityIdentifier("club.calendar.empty") }
+                ForEach(currentRows) { row in item(row) }
+            }
+        } else {
         Section("club.activityList.current") {
             Text("club.activityList.timeZone").cyText(.meta).foregroundStyle(.secondary)
             if rows.isEmpty { Text("club.calendar.noEvents").accessibilityIdentifier("club.calendar.empty") }
@@ -25,6 +34,7 @@ import SwiftUI
         }
         if !endedRows.isEmpty {
             Section("club.activityList.ended") { ForEach(endedRows) { row in item(row) } }
+        }
         }
     }
     @ViewBuilder private func item(_ row: ClubActivityRow) -> some View {

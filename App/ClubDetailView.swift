@@ -12,6 +12,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     var publicRoster: ClubPublicRosterReader? = nil
     /// Deep-link intent (`tab=manage`); honored only after the detail read confirms access.
     var requestedTab: ClubDetailTab? = nil
+    /// CLB-detail-31: MP `postId` deep link; lands on 帖文 and scrolls the feed to that post.
+    var focusPostID: Int? = nil
     @State private var selectedTab: ClubDetailTab? = nil
     @State private var manageGrant: ClubDetailManageGrant? = nil
     @State private var actionDetail: ClubRecord? = nil
@@ -24,6 +26,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var reportingClub = false
     /// r4 workbench (`170:1744`): 待审批 / 去审批 push 入会申请 from the 管理 tab's head.
     @State private var showsApprovals = false
+    /// Owner-stage Now card. Nil keeps the approvals headline.
+    @State private var ownerStage: ClubOwnerStageResolution?
     @State private var heroScrolledAway = false
     @State private var loadedClubName: String?
     @State private var openedTopicID: Int?
@@ -31,6 +35,43 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     /// verify-r1 1.3: no 俱乐部详情 over the hero; the club's name appears inline once the hero has scrolled away.
+    /// CLB-detail-27 (MP detail wxml:1-2, js:784-787): a merchant account sees the club on the merchant light page.
+    private var viewerDomain: ThemeDomain {
+        (reader as? AppSession)?.account?.effectiveRole == "merchant" ? .merchant : .player
+    }
+    /// Facts the lead-progress reads already fetch. Admins resolve immediately. A failed read leaves the approvals card.
+    private func loadOwnerStage(club: ClubRecord, manage: Bool) async {
+        guard manage, club.canGovern, !Task.isCancelled else { ownerStage = nil; return }
+        if !club.isOwner {
+            ownerStage = ClubOwnerStageMachine.resolve(.init(isOwner: false, canGovern: true, clubID: club.id, topicState: "ready"))
+            return
+        }
+        guard let session = reader as? AppSession, let governance = management?.governance else { ownerStage = nil; return }
+        let context = ClubLeadProgressContext(club: club, clubReader: reader, reader: session.cooperationFlowReader,
+                                              access: governance.access, projects: session.creatorContentReader)
+        guard context.canRead else { ownerStage = nil; return }
+        let current = { !Task.isCancelled }
+        do {
+            let fresh = try await reader.clubDetail(id: club.id, isCurrent: current)
+            guard current(), fresh.id == club.id, fresh.isOwner else { return }
+            let topics = try await governance.access.read(.topics, scope: .init(clubID: club.id), options: [:]) {
+                guard current() else { throw CancellationError() }
+            }
+            guard current() else { return }
+            let invitations = try await session.cooperationFlowReader.read(.invitations, isCurrent: current)
+            guard current() else { return }
+            let page = try await session.creatorContentReader.projects(query: .init(type: "all", state: "all", ownerType: "club"))
+            guard current() else { return }
+            ownerStage = ClubOwnerStageNow.resolve(club: fresh, topics: topics, invitations: invitations, projects: page)
+        } catch {
+            guard current() else { return }
+            ownerStage = nil
+        }
+    }
+    /// CLB-detail-20 / CLB-r7-A-01: MP `club.isOwner || canManageActivities` (access/me `club:activity:manage`).
+    private func canManageActivities(_ club: ClubRecord) -> Bool {
+        club.isOwner || manageGrant?.permissions.contains("club:activity:manage") == true
+    }
     private var navigationTitleText: String {
         guard let loadedClubName else { return appLocalized("club.detail", locale: locale) }
         return heroScrolledAway ? loadedClubName : ""
@@ -52,7 +93,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             let club = actionIdentity == reader.clubIdentity && actionDetail?.id == id ? (actionDetail ?? loadedClub) : loadedClub
             let facts = detailFacts(club)
             let tabs = ClubDetailTabPolicy(club: club, grant: manageGrant)
-            let tab = tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))
+            let tab = tabs.resolve(selectedTab ?? tabs.initialTab(requested: focusPostID != nil ? .posts : requestedTab))
             List {
                 // skill-r2 hand-off `204:24899` / `204:24850` (Club/Header, MC-22): cover banner, logo beside the name,
                 // one meta line 「类型 · N 名成员 · 公开加入」, the host line, and the viewer's status as a tag.
@@ -74,6 +115,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // management rows below keep their order (项目 · 合作与期次 · 管理).
                 if tab == .manage, club.canGovern {
                     ClubWorkbenchSection(summary: ClubWorkbenchSummary(club: club),
+                                         ownerStage: ownerStage,
                                          onApprovals: management == nil ? nil : { showsApprovals = true },
                                          onEvents: { selectedTab = tabs.select(.events, from: tab) })
                 }
@@ -131,7 +173,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 if tab == .posts, let community {
                     Section {
-                        ClubCommunityEntry(clubID: id, identity: reader.clubIdentity, context: community)
+                        ClubCommunityEntry(clubID: id, identity: reader.clubIdentity, context: community, focusPostID: focusPostID)
                             .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
                             .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
                             .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
@@ -140,8 +182,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // CLB-detail-02: 活动 lists the club's current activities inline for every viewer (MP detail
                 // wxml:163-216, /api/club/topics). Public topics use their own viewer grant, never access/me.
                 if tab == .events, let session = reader as? AppSession {
-                    if club.isOwner {
-                        // MP 「发布 +」 / 发布主题 for the owner (wxml:204-213).
+                    if canManageActivities(club) {
+                        // MP 「发布 +」 / 发布主题 for the owner or `club:activity:manage` (wxml:204-213, CLB-detail-20).
                         Section {
                             NavigationLink { SessionClubProjectLaunchView(session: session, club: club) } label: {
                                 CYListRow("club.detail.events.publish", trailing: .none) { CYRowIcon(systemImage: "plus") }
@@ -165,6 +207,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 ClubStatsOverviewView(clubID: id, identity: reader.clubIdentity, governance: governance)
                             } label: { Label("club.statsOverview.title", systemImage: "chart.bar") }
                                 .accessibilityIdentifier("club.statsOverview.open")
+                        }
+                        // CLB-r7-A-05 (MP quick action 结算, wxml:384-388, js:1066): owner only, on 管理.
+                        if club.isOwner, tab == .manage {
+                            NavigationLink {
+                                ClubGovernanceReadView(operation: .settlement, scope: .init(clubID: id), identity: reader.clubIdentity,
+                                                       access: governance.access, coordinator: governance.coordinator)
+                            } label: { Label("club.detail.manage.settlement", systemImage: "yensign.circle") }
+                                .accessibilityIdentifier("club.detail.manage.settlement")
                         }
                         ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates, terminalSessions: governance.terminalSessions, ownerFunds: governance.ownerFunds, titleKey: tab == .manage ? "club.gov.workspace" : "club.gov.myRecords")
                     }
@@ -194,22 +244,15 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
                 if tab == .overview {
-                    if let host = badgeHost(id) { ClubBadgeManagementNavigationEntry(host: host).id(host.id) }
-                    // Mini-program overview: introduction, then the 主理人 / 俱乐部类型 / 所在城市 facts.
-                    Section("club.introduction") {
+                    // CLB-detail-21 (MP wxml:219-250): the introduction opens 概览 with no 俱乐部介绍 header (global rule:
+                    // no sub-title under a title), then the 俱乐部勋章 row. The MP no longer shows 活动偏好 / 关键词 / 风格.
+                    Section {
                         if let description = club.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(verbatim: description).textSelection(.enabled)
+                                .accessibilityIdentifier("club.detail.introduction")
                         } else { Text("club.noIntroduction").foregroundStyle(.secondary) }
                     }
-                    // 主理人 / 俱乐部类型 / 所在城市 now sit in the header (Club/Header host line, `204:24899`).
-                    // verify-r1 2.7: an all-empty facts group drew as a stray hairline at the top of the next card.
-                    if !club.activityPrefs.isEmpty || club.keywords?.isEmpty == false || club.style?.isEmpty == false {
-                        Section {
-                            ClubOptionalRow(title: "club.preferences", value: club.activityPrefs.isEmpty ? nil : club.activityPrefs.joined(separator: ", "))
-                            ClubOptionalRow(title: "club.keywords", value: club.keywords)
-                            ClubOptionalRow(title: "club.style", value: club.style)
-                        }
-                    }
+                    if let host = badgeHost(id) { ClubBadgeManagementNavigationEntry(host: host).id(host.id) }
                     Section {
                         if club.canSeeMembers {
                             Button { showsMembers = true } label: {
@@ -267,7 +310,28 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                     profile: nil, viewerRevision: managementRevision, leaderboard: true)
                             } label: { Label("club.detail.leaderboard.open", systemImage: "trophy") }
                         } else {
-                            Text("club.detail.leaderboard.locked").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.locked")
+                            // CLB-detail-22 (MP js:343-350): 需审核 clubs say 通过审核后可看贡献榜.
+                            Text(club.needsApproval ? "club.detail.leaderboard.lockedReview" : "club.detail.leaderboard.locked")
+                                .foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.locked")
+                        }
+                    }
+                    // CLB-r7-A-02 (MP wxml:288, D13): say so when the server could not confirm the viewer's role.
+                    if club.viewerIdentityUnavailable {
+                        Section {
+                            Text("club.detail.identityUnavailable").cyText(.meta).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("club.detail.identityUnavailable")
+                        }
+                    }
+                    // CLB-r7-A-03 (MP wxml:349-358, P-19): 治理与安全 · 封禁申诉 on 概览 for the owner and administrators only;
+                    // it opens the club's governance cases, as MP `governance?mode=appeal` does.
+                    if club.isOwner || club.viewerIsAdmin, let governance = management?.governance {
+                        Section("club.detail.safety.title") {
+                            NavigationLink {
+                                ClubGovernanceReadView(operation: .cases, scope: .init(clubID: id), identity: reader.clubIdentity,
+                                                       access: governance.access, coordinator: governance.coordinator)
+                            } label: { Label("club.detail.safety.appeal", systemImage: "checkmark.shield") }
+                                .accessibilityIdentifier("club.detail.safety.appeal")
                         }
                     }
                     // HANDOFF-R1 MC-20: 退出俱乐部 and 举报俱乐部 close 概览 as quiet red rows; 退出 still confirms.
@@ -287,7 +351,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .cyDomainPageBackground()
             .cyTracksHeroScroll($heroScrolledAway)
             .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
-            .cyHeroChrome(heroScrolledAway: heroScrolledAway, domain: .player)
+            .task(id: "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)") {
+                await loadOwnerStage(club: club, manage: tab == .manage)
+            }
+            // CLB-detail-32 (owner native-iOS rule 11-24): the system bar and system back stay visible; the club's
+            // name appears inline once the hero has scrolled away.
+            .cyPushedChrome(domain: viewerDomain)
             .navigationDestination(isPresented: $showsApprovals) {
                 if let management {
                     ClubManagementView(clubID: id, identity: reader.clubIdentity, access: management.access, coordinator: management.coordinator,
@@ -296,10 +365,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
             .toolbar {
                 // MC-22: share sits in the bar beside the system back (a glass circle on iOS 26+ bars).
-                ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubName: club.name) }
+                ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubID: club.id) }
             }
             .navigationDestination(item: $openedTopicID) { topicID in
-                if let session = reader as? AppSession { SessionTopicDetailView(id: topicID, session: session) }
+                // CLB-r7-A-01 (MP goTopic js:2957-2966): governors and activity managers open the club topic-detail;
+                // everyone else opens the ordinary topic page.
+                if (club.canGovern || canManageActivities(club)), let governance = management?.governance {
+                    ClubGovernanceReadView(operation: .topicOverview, scope: .init(clubID: id, topicID: topicID),
+                                           identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
+                        .environment(\.clubEnrollmentProfile, governance.enrollmentProfile)
+                } else if let session = reader as? AppSession { SessionTopicDetailView(id: topicID, session: session) }
             }
             .navigationDestination(isPresented: $reportingClub) {
                 if let governance = management?.governance {
@@ -335,9 +410,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
             }
         }.navigationTitle(navigationTitleText).navigationBarTitleDisplayMode(.inline)
-            .cyPushedChrome(domain: .player)
+            .cyPushedChrome(domain: viewerDomain)
             .cyDomainPageBackground()
-            .tint(CYDomainPalette(.player).brand)
+            .tint(CYDomainPalette(viewerDomain).brand)
             .id(id)
             .onAppear {
                 guard managementNeedsRefresh else { return }
@@ -421,7 +496,7 @@ private struct ClubDetailHeader: View {
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.cyPalette) private var palette
-    @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 148
+    @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 160  // CLB-detail-37: MP cover-wrap 160
 
     private static func known(_ value: String?) -> String? {
         let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -447,24 +522,12 @@ private struct ClubDetailHeader: View {
                 .frame(height: typeSize.isAccessibilitySize ? 96 : bannerHeight)
                 .frame(maxWidth: .infinity)
                 .clipped()
-                // type-and-chrome §3: the hero's glass back and share ride the image and scroll away with it;
-                // the system bar (back, inline name, share) returns once the hero has scrolled off.
-                .overlay(alignment: .top) {
-                    HStack {
-                        CYHeroBackButton().accessibilityIdentifier("heroBack.club")
-                        Spacer()
-                        ClubHeaderShareButton(clubName: club.name)
-                            .foregroundStyle(Color.white)
-                            .background(Circle().fill(.ultraThinMaterial).frame(width: 32, height: 32))
-                    }
-                    .padding(.horizontal, CYSpacing.sm)
-                    .padding(.top, CYSpacing.xs)
-                }
+                // CLB-detail-32: back and share live in the system navigation bar, not on the cover.
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     if !typeSize.isAccessibilitySize {
                         ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: QuestifyCardArtwork.safeURL(club.logo) == nil)
-                            .frame(width: 52, height: 52)
+                            .frame(width: 56, height: 56)  // CLB-detail-37: MP logo 112 rpx
                             .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                             .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(CYNight.glassEdgeTop, lineWidth: 1))
                             .accessibilityIdentifier("club.detail.logo")

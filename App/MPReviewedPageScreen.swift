@@ -227,7 +227,8 @@ import SwiftUI
         case "pages/club/detail/index":
             // MP detail onLoad: `tab` = manage | overview; `owner` without an id resolves my own club.
             if let id = reviewedID(query) {
-                clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil })
+                clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil },
+                           postID: positiveID(query["postId"]))
             } else if query["owner"] != nil { ownedClubs } else { unavailable }
         case "pages/club/workbench/index":
             // CLB-workbench-01/02: the workbench is the club page's 管理 tab; no id → my own club.
@@ -257,6 +258,8 @@ import SwiftUI
         case "pages/club/group-code/index":
             if let activity = queryID(query, "activityId") {
                 clubGovernance { g in ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: .init(topicID: queryID(query, "topicId"), activityID: activity)), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+            } else if let topic = queryID(query, "topicId") {
+                clubRead(.topicOverview, .init(clubID: queryID(query, "clubId"), topicID: topic), needsClub: false)
             } else { unavailable }
         case "pages/club/join-requests/index":
             if let id = clubQueryID(query) {
@@ -274,9 +277,21 @@ import SwiftUI
             // MP governance onLoad (ClubGovernanceEntryRoute): manage → the governance workspace; report / appeal → 我的平台工单.
             switch ClubGovernanceEntryRoute.resolve(query) {
             case .success(let route):
-                if case .manage = route.mode {
-                    clubGovernance { g in ClubGovernanceWorkspaceView(clubID: route.clubID, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
-                } else { clubRead(.cases, .init(clubID: route.clubID), needsClub: true) }
+                // CLB-governance-11 (MP governance js:197-228): report opens the report form seeded with its target and
+                // label; manage opens 成员治理 (the ban list and member actions); appeal opens the cases.
+                switch route.mode {
+                case .manage:
+                    clubRead(.bans, .init(clubID: route.clubID), needsClub: true)
+                case .report(let type, let targetID, let label):
+                    clubGovernance { g in
+                        ClubGovernanceCommandForm(route: .init(operation: .report, scope: .init(clubID: route.clubID),
+                                                               seed: ["targetType": .string(type.rawValue), "targetId": .integer(targetID),
+                                                                      "targetName": .string(label)]),
+                                                  identity: session.clubIdentity, access: g.access, coordinator: g.coordinator)
+                    }
+                case .appeal:
+                    clubRead(.cases, .init(clubID: route.clubID), needsClub: true)
+                }
             case .failure: unavailable
             }
         case "pages/club/roles/index":
@@ -539,10 +554,10 @@ import SwiftUI
 
     @Environment(\.clubBadgeHostFactory) private var badgeHost
 
-    private func clubDetail(_ id: Int, tab: ClubDetailTab?) -> some View {
+    private func clubDetail(_ id: Int, tab: ClubDetailTab?, postID: Int? = nil) -> some View {
         ClubDetailView(id: id, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
                        management: session.clubManagementContext, community: session.clubCommunityContext,
-                       publicRoster: session.clubPublicRosterReader, requestedTab: tab)
+                       publicRoster: session.clubPublicRosterReader, requestedTab: tab, focusPostID: postID)
     }
 
     private var ownedClubs: some View {
