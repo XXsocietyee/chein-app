@@ -29,6 +29,8 @@ struct JourneyNodeRow: Identifiable, Equatable {
     let mode: Mode?
     /// Nil when the node is not scored ("not scored"), never 0.
     let score: Int?
+    /// JREPORT-2: the player's own station photo (Core `PostGameRunReport.Node.photoURL`, https only).
+    var photoURL: URL? = nil
 }
 
 struct JourneyReport: Equatable {
@@ -52,6 +54,9 @@ struct JourneyReport: Equatable {
     var nodes: [JourneyNodeRow]
     var finished: Bool
     var inProgress: Bool
+    /// JSETTLE-4: Core `PostGameRunReport.startModeText` (`RUN_START_MODE_LABEL`: 桌面完成 / 替代站开局). Nil for a
+    /// normal start; the settle 开局 cell shows only when it is set.
+    var startModeText: String? = nil
 }
 
 struct JourneyMoment: Identifiable, Equatable {
@@ -419,6 +424,8 @@ struct JourneyReportView: View {
     @State private var rankShown = false
     @State private var memoryShown = false
     @State private var feedbackShown = false
+    /// JREPORT-2 (MP report `previewNodePhoto`): the node photo the swipe preview opens on.
+    @State private var photoShown: JourneyNodePhotoSelection?
 
     private var title: LocalizedStringKey {
         if case .ready(let report) = phase, report.legacy { return "mp.report.legacyTitle" }
@@ -480,6 +487,11 @@ struct JourneyReportView: View {
                                      onRecheck: onRecheckFeedback, onReset: onResetFeedback, onClose: { feedbackShown = false })
             }
         }.cySheet(detents: [.large]) }
+        .fullScreenCover(item: $photoShown) { selection in
+            if case .ready(let report) = phase {
+                JourneyNodePhotoPager(nodes: report.nodes.filter { $0.photoURL != nil }, selected: selection.nodeID)
+            }
+        }
         .cyDomainScreen(.player)
     }
 
@@ -550,7 +562,8 @@ struct JourneyReportView: View {
                     MPRows(items: report.nodes) { node in
                         MPRow(title: node.name.map { Text(verbatim: $0) } ?? Text("mp.report.node"),
                               sub: node.mode.map { $0 == .skipped ? Text("mp.report.node.skipped") : Text("mp.report.node.revealed") },
-                              value: node.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.node.notScored"))
+                              value: node.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.node.notScored"),
+                              leading: node.photoURL.map { url in AnyView(nodeThumb(node, url: url)) })
                     }
                 }
             }
@@ -600,6 +613,50 @@ struct JourneyReportView: View {
 }
 
 /// P8 memory as one timeline: the day is written once per change, one dot per stop, photo under its stop.
+struct JourneyNodePhotoSelection: Identifiable, Equatable {
+    let nodeID: String
+    var id: String { nodeID }
+}
+
+/// JREPORT-2: `wx.previewImage` over every node photo of this run, opened on the tapped one. Native: a paged
+/// full-screen viewer with the system close item; swipe moves between photos.
+struct JourneyNodePhotoPager: View {
+    let nodes: [JourneyNodeRow]
+    @State private var selected: String
+    @Environment(\.dismiss) private var dismiss
+
+    init(nodes: [JourneyNodeRow], selected: String) {
+        self.nodes = nodes
+        _selected = State(initialValue: selected)
+    }
+
+    var body: some View {
+        NavigationStack {
+            TabView(selection: $selected) {
+                ForEach(nodes) { node in
+                    if let url = node.photoURL {
+                        AsyncImage(url: url) { $0.resizable().scaledToFit() } placeholder: { ProgressView() }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .accessibilityLabel(Text("mp.report.node.photo \(node.name ?? "")"))
+                            .tag(node.id)
+                    }
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: nodes.count > 1 ? .automatic : .never))
+            .background(Color.black.ignoresSafeArea())
+            .navigationTitle(Text(verbatim: nodes.first(where: { $0.id == selected })?.name ?? ""))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly)
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+    }
+}
+
 struct JourneyMemoryTimeline: View {
     let phase: JourneyMemoryPhase
     let onRetry: () -> Void
@@ -835,6 +892,27 @@ struct JourneySettleView: View {
         }
     }
 
+    /// JREPORT-2 (MP report wxml:53-54): a 44 pt thumb of the player's own photo; tap opens the swipe preview.
+    private func nodeThumb(_ node: JourneyNodeRow, url: URL) -> some View {
+        Button { photoShown = JourneyNodePhotoSelection(nodeID: node.id) } label: {
+            AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYNight.ink2 }
+                .frame(width: 44, height: 44)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("mp.report.node.photo \(node.name ?? "")"))
+        .accessibilityIdentifier("journeyReport.nodePhoto")
+    }
+
+    /// Core hands the MP label (`RUN_START_MODE_LABEL`); the two known labels read from the catalog, anything else as sent.
+    static func startModeLabel(_ text: String) -> Text {
+        switch text {
+        case "桌面完成": Text("mp.settle.startMode.desk")
+        case "替代站开局": Text("mp.settle.startMode.alt")
+        default: Text(verbatim: text)
+        }
+    }
+
     // 1 overview (204:15096): the seal, result, topic, rank, then score / stops. The score counts up once the text is
     // in; nothing redraws. Beats follow the moment table (seal from 0, text +950 ms, chips 0 / 50 / 90).
     private func overview(_ report: JourneyReport) -> some View {
@@ -883,6 +961,15 @@ struct JourneySettleView: View {
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("journeySettle.assisted")
+                }
+                // JSETTLE-4 (MP settle wxml:29): 开局 only for a desk / alternate-stop start.
+                if let mode = report.startModeText {
+                    VStack(spacing: CYSpacing.xxs) {
+                        Self.startModeLabel(mode).cyText(.cardTitle)
+                        Text("mp.settle.startMode").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("journeySettle.startMode")
                 }
             }
             .settleRise(overviewOn, 3, skipped: skipped, reduceMotion: reduceMotion)

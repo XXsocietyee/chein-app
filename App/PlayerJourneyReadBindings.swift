@@ -144,9 +144,10 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private let source: JourneyLoopSource
     private let token: () -> String?
     private var inviteURL: URL?
-    /// JSEAT-r7-1 (MP seats L09-058): the invitation behind `inviteURL`. Once its seat is no longer INVITED (claimed,
-    /// expired or withdrawn) the token is dropped, so the next 邀请 issues a fresh one and a dead link is never re-shared.
-    private var inviteInvitationID: String?
+    /// JSEAT-r7-1 (MP seats L09-058, Core `JourneyHeldSeatInviteRule`): the invite answer's `invitationId` + `token`.
+    /// After each seats read the hold is replaced by `afterRead`; once that seat is no longer INVITED (claimed, expired,
+    /// withdrawn or gone) the link is dropped, so the next 邀请 issues a fresh token and a dead link is never re-shared.
+    private var heldInvite: JourneyHeldSeatInvite?
     private var lastSeats: JourneyEnvelope?
     private var facts: PlayerJourneyProjection.SeatsFacts?
     /// JSEAT-5 extras: topic head, play-mode tiles and the buyer's own name / avatar. A failed read hides only its block.
@@ -187,14 +188,31 @@ struct PlayerJourneySignInSheet: ViewModifier {
 
     private func reload() async {
         guard let session = token(), AuthRequestBuilder.isValidToken(session) else {
-            // JSEAT-6: signed out is a sign-in state, not 无权限 (403 stays `.denied`).
+            // JSEAT-6 (Core `JourneySeatsSessionGate`): no valid session is the sign-in state, not 无权限.
             phase = .auth
             return
         }
         do {
             let seats = try await source.seats(registrationID: registrationID, token: session)
+            switch JourneySeatsSessionGate.phase(hasValidSession: true, envelope: seats) {
+            case .ready:
+                break
+            case .auth:
+                phase = .auth
+                return
+            case .denied:
+                // 403 only.
+                phase = .denied(seats.message)
+                return
+            case .failed:
+                // A 401 answer is the sign-in state too; every other non-OK read is 加载失败 + 重新加载.
+                phase = (seats.code == "401" || seats.httpStatus == 401) ? .auth : .failed
+                return
+            }
             lastSeats = seats
             facts = PlayerJourneyProjection.seatsFacts(seats)
+            heldInvite = JourneyHeldSeatInviteRule.afterRead(hold: heldInvite, seats: PlayerJourneyProjection.heldSeatRows(seats))
+            if heldInvite == nil { inviteURL = nil }
             render(actionError: nil)
             if case .ready = phase, !extrasRead, let facts = self.facts {
                 extrasRead = true
@@ -233,11 +251,6 @@ struct PlayerJourneySignInSheet: ViewModifier {
         content.headName = head?.name
         content.headCoverURL = head?.coverURL
         content.tiles = tiles
-        if let pending = inviteInvitationID,
-           content.invited.first(where: { $0.invitationID == pending })?.kind != .invited {
-            inviteURL = nil
-            inviteInvitationID = nil
-        }
         content.inviteShareURL = inviteURL
         content.actionError = actionError
         phase = .ready(content)
@@ -269,9 +282,11 @@ struct PlayerJourneySignInSheet: ViewModifier {
         guard var content = phase.content else { return }
         if let envelope, envelope.ok, !envelope.unconfirmed {
             if invite {
-                inviteURL = facts.flatMap { PlayerJourneyProjection.seatInviteURL(envelope, facts: $0) }
-                inviteInvitationID = inviteURL == nil ? nil : PlayerJourneyProjection.seatInvitationID(envelope)
+                heldInvite = JourneyHeldSeatInviteRule.hold(invitationID: PlayerJourneyProjection.seatInvitationID(envelope),
+                                                            token: PlayerJourneyProjection.seatInviteToken(envelope))
+                inviteURL = heldInvite == nil ? nil : facts.flatMap { PlayerJourneyProjection.seatInviteURL(envelope, facts: $0) }
                 guard inviteURL != nil else {
+                    heldInvite = nil
                     content.inviteShareURL = nil
                     content.actionError = appLocalized("mp.seats.invite.linkFailed", locale: .current)
                     phase = .ready(content)
@@ -284,7 +299,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
             load()
             return
         }
-        if invite { inviteURL = nil; inviteInvitationID = nil }
+        if invite { inviteURL = nil; heldInvite = nil }
         content.inviteShareURL = inviteURL
         // JSEAT-7: an unknown answer (sent, result not read back) says so instead of a network error.
         if let envelope, envelope.unconfirmed {
@@ -558,7 +573,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
         }
         do {
             let envelope = try await source.report(activityID: scope.activityID, topicID: scope.topicID, runID: scope.runID, token: session)
-            switch PlayerJourneyProjection.report(envelope, scope: scope) {
+            switch PlayerJourneyProjection.report(envelope, scope: scope, surface: .settle) {
             case .loading: phase = .failed(gone: false)
             case .missing: phase = .missing
             case .auth: phase = .auth
@@ -823,10 +838,24 @@ enum PlayerJourneyProjection {
         return PublicContentShareLink.journeyLanding(intake)
     }
 
-    /// JSEAT-r7-1: the invite answer's `invitationId` (nil when the answer has none; then the token is kept as before).
+    /// JSEAT-r7-1: the invite answer's `invitationId`. Core `JourneyHeldSeatInviteRule.hold` needs it and the token.
     static func seatInvitationID(_ envelope: JourneyEnvelope) -> String? {
         guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return nil }
         return idText(object["invitationId"])
+    }
+
+    static func seatInviteToken(_ envelope: JourneyEnvelope) -> String? {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return nil }
+        return string(object["token"])
+    }
+
+    /// JSEAT-r7-1: each seat row's `invitationId` + upper-case `state`, for `JourneyHeldSeatInviteRule.afterRead`.
+    static func heldSeatRows(_ envelope: JourneyEnvelope) -> [JourneyHeldSeatInviteRule.Seat] {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return [] }
+        return (object["seats"] as? [Any] ?? []).compactMap { item in
+            guard let row = item as? [String: Any], let id = idText(row["invitationId"]), let state = string(row["state"]) else { return nil }
+            return JourneyHeldSeatInviteRule.Seat(invitationID: id, state: state)
+        }
     }
 
     /// `/api/topic/info-to-user`: name and the first cover image. A relative cover path is not drawn (no host to resolve it).
@@ -904,13 +933,20 @@ enum PlayerJourneyProjection {
 
     /// U08-01: real `PlayerRunReportVO` fields through `PostGameRunReport` (mini-program `reportView`).
     /// An explicit run that comes back as another run is not shown as this one.
-    static func report(_ envelope: JourneyEnvelope, scope: JourneyRunScope) -> JourneyReportPhase {
-        if envelope.code == "401" || envelope.httpStatus == 401 { return .auth }
-        if envelope.code == "403" || envelope.httpStatus == 403 { return .denied(envelope.message) }
-        if envelope.code == "404" || envelope.httpStatus == 404 { return .gone }
-        if envelope.unconfirmed || envelope.netFail { return .failed }
-        guard envelope.ok, let fact = PostGameRunReport.decode(envelope.dataJSON) else { return .missing }
-        if let asked = scope.runID, let answered = fact.runID, asked != answered { return .gone }
+    /// JREPORT-5 (Core `JourneyReportRead`): 401 → sign in; report `RUN_NOT_FOUND` / `RUN_SCOPE_MISMATCH` → gone,
+    /// 403 → denied; settle `RUN_NOT_FOUND` only → gone. Every other non-OK (a bare 404 too) is 暂未加载 + 重新加载,
+    /// never 链接已失效. An explicit run that comes back as another run is gone on both surfaces.
+    static func report(_ envelope: JourneyEnvelope, scope: JourneyRunScope,
+                       surface: JourneyReportRead.Surface = .report) -> JourneyReportPhase {
+        switch JourneyReportRead.reject(envelope, surface: surface) {
+        case .auth?: return .auth
+        case .gone?: return .gone
+        case .denied(let message)?: return .denied(message)
+        case .failed?: return .failed
+        case nil: break
+        }
+        guard let fact = PostGameRunReport.decode(envelope.dataJSON) else { return .failed }
+        if JourneyReportRead.runDisagrees(asked: scope.runID, answered: fact.runID) { return .gone }
         let value = JourneyReport(legacy: fact.legacyScope,
                                   result: fact.completion.flatMap { JourneyResult(rawValue: $0.rawValue) },
                                   dateLabel: fact.dateText, nodesText: fact.nodesText, elapsedText: fact.elapsedText,
@@ -921,9 +957,10 @@ enum PlayerJourneyProjection {
                                   nodes: fact.nodes.map { node in
                                       JourneyNodeRow(id: node.id, name: node.name,
                                                      mode: node.mode.map { mode -> JourneyNodeRow.Mode in mode == .skipped ? .skipped : .revealed },
-                                                     score: node.score)
+                                                     score: node.score, photoURL: url(node.photoURL))
                                   },
-                                  finished: fact.finished, inProgress: fact.inProgress)
+                                  finished: fact.finished, inProgress: fact.inProgress,
+                                  startModeText: fact.startModeText)
         return .ready(value)
     }
 
