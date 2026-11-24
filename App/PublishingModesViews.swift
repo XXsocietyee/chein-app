@@ -243,7 +243,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             .themeDomain(.topicEditor)
         }
         .cyToast(verbatimMessage: $toastMessage)
-        .cyDomainScreen(.merchant)
+        // C-A7: one creator domain for the whole activity form and its sheets.
+        .cyDomainScreen(.topicEditor)
         .background {
             if let original = timeRange.presentation {
                 ActivityPublishingTimeRangePresenter(owner: timeRange, original: original) { selected in
