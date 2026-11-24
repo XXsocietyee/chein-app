@@ -60,8 +60,15 @@ public struct MerchantGapAIInsightExtraSection: View {
         Group {
             Section {
                 HStack(spacing: CYSpacing.md) {
-                    // TODO: MPAsset("d_profile") fallback once cursor/mp-assets lands
-                    CYAvatarView(url: storeLogoURL, name: storeName, size: .lg)
+                    if let storeLogoURL {
+                        CYAvatarView(url: storeLogoURL, name: storeName, size: .lg)
+                    } else {
+                        MPAsset.AvatarDefault.dProfile
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 56, height: 56)
+                            .clipShape(Circle())
+                    }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: storeName.isEmpty ? "我的门店" : storeName)
                             .cyText(.cardTitle)
@@ -130,7 +137,13 @@ public struct MerchantGapDecorInactiveEmptyView: View {
 
     public var body: some View {
         ContentUnavailableView {
-            Label(title, systemImage: "storefront")
+            VStack(spacing: CYSpacing.sm) {
+                MPAsset.FeatureIcon.iconShop
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 36)
+                Text(verbatim: title).cyText(.cardTitle)
+            }
         } actions: {
             Button(MerchantRemainingGapCopy.goOnboardingCTA, action: onGoOnboarding)
                 .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false))
@@ -163,8 +176,13 @@ public struct MerchantGapCityNodePosterAndMapViews: View {
             }
             if !addressTitle.isEmpty {
                 Button(action: openMap) {
-                    Label(addressTitle, systemImage: "map")
-                        .cyText(.body)
+                    HStack(spacing: CYSpacing.xs) {
+                        MPAsset.FeatureIcon.pin
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                        Text(verbatim: addressTitle).cyText(.body)
+                    }
                 }
             }
         }

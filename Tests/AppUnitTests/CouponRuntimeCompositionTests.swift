@@ -152,11 +152,11 @@ import XCTest
         }
         _ = try await clone.send(request("api/merchant/access/me"))
         _ = try await clone.send(request("api/merchant/marketing-home"))
-        let valid = try request("api/coupon/mypublishlist", fields: ["scope":"MERCHANT", "keyword":"gift"])
+        let valid = try request("api/coupon/mypublishlist", fields: ["is_select":"0", "scope":"MERCHANT", "keyword":"gift"])
         _ = try await clone.send(valid)
         let count = wire.requests.count
         var invalid = [URLRequest]()
-        for fields in [[String: String](), ["scope":"CLUB"], ["scope":"MERCHANT","ownerId":"7"], ["scope":"MERCHANT","keyword":""]] { invalid.append(try request("api/coupon/mypublishlist", fields: fields)) }
+        for fields in [[String: String](), ["scope":"CLUB"], ["scope":"MERCHANT","ownerId":"7"], ["scope":"MERCHANT","keyword":""], ["scope":"MERCHANT","keyword":"gift"]] { invalid.append(try request("api/coupon/mypublishlist", fields: fields)) }
         for path in ["api/coupon/publish", "api/coupon/stop", "api/coupon/claim", "api/coupon/delete", "api/coupon/qr-token", "api/merchant/dashboard", "api/merchant/subscription"] { invalid.append(try request(path)) }
         for suffix in ["?scope=MERCHANT", "#fragment"] { var bad = valid; bad.url = URL(string: valid.url!.absoluteString + suffix); invalid.append(bad) }
         var bad = valid; bad.httpMethod = "GET"; invalid.append(bad)
@@ -194,7 +194,7 @@ import XCTest
                 var identity = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: 7, role: "merchant", token: "synthetic-7", viewerRevision: 2)
                 outer.current = { identity }
                 let clone = outer.replacingUnderlying(wire)
-                let request = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/coupon/mypublishlist"), fields: ["scope":"MERCHANT"], token: "synthetic-7")
+                let request = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/coupon/mypublishlist"), fields: ["is_select":"0", "scope":"MERCHANT"], token: "synthetic-7")
                 wire.pauseList = true; let paused = expectation(description: "read suspended"); wire.onPaused = { paused.fulfill() }
                 let task = Task { try await clone.send(request) }; await fulfillment(of: [paused], timeout: 2)
                 let lease = try XCTUnwrap(grants.readLease)

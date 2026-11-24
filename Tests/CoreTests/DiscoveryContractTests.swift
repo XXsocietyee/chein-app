@@ -58,6 +58,8 @@ final class DiscoveryContractTests: XCTestCase {
         XCTAssertFalse(content.contains("categoryId"))
         XCTAssertFalse(content.contains("category_id"))
         XCTAssertFalse(content.contains("keyword"))
+        XCTAssertTrue(content.contains("name=\"pageNum\"\r\n\r\n1\r\n"))
+        XCTAssertTrue(content.contains("name=\"pageSize\"\r\n\r\n50\r\n"))
     }
     func testPlayListUsesSnakeCasePackTypeAndKeepsSearchValue() async throws {
         let transport = DiscoveryFixtureTransport(#"{"code":200,"data":{"rows":[{"id":3,"title":" Search "}]}}"#)
@@ -66,6 +68,8 @@ final class DiscoveryContractTests: XCTestCase {
         XCTAssertEqual(transport.requests.first?.url?.path, "/prod-api/api/template/list")
         let content = try body(transport)
         XCTAssertTrue(content.contains("name=\"pack_type\"\r\n\r\n1\r\n"))
+        XCTAssertTrue(content.contains("name=\"pageNum\"\r\n\r\n1\r\n"))
+        XCTAssertTrue(content.contains("name=\"pageSize\"\r\n\r\n50\r\n"))
         XCTAssertTrue(content.contains("一段 & two"))
     }
     func testHomeAndTopicShelfUseEmptyJSONNotMultipartAndNoPaging() async throws {

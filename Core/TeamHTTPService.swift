@@ -95,7 +95,16 @@ import FoundationNetworking
 public enum TeamCommandTerminal: Equatable {
     case applied(Int)
     case rejected(Int)
+    case cancelled(Int)
     case unknown
+}
+
+/// pages/team/detail recovery card shown while the saved command state is UNKNOWN.
+public enum TeamCommandRecoveryCopy {
+    public static let query = "查询原请求"
+    public static let retry = "按原输入重试"
+    public static let abort = "终止尚未执行的请求"
+    public static let abortNote = "终止只针对未执行的原请求；已经提交的业务不会撤销。"
 }
 
 @MainActor public final class TeamCommandWriter {
@@ -142,6 +151,51 @@ public enum TeamCommandTerminal: Equatable {
             return .rejected(status)
         }
         return .unknown
+    }
+
+    /// `POST /api/team/command/query` with only the saved `{requestId}`. Does not mint an id.
+    public func query(key: String) async -> TeamCommandTerminal {
+        await settle(key: key, path: "api/team/command/query", fields: [:], requestIDOnly: true)
+    }
+
+    /// `POST /api/team/command/cancel` with the saved command plus `requestId`. Does not mint an id.
+    public func cancel(key: String, fields: [String: String]) async -> TeamCommandTerminal {
+        await settle(key: key, path: "api/team/command/cancel", fields: fields, requestIDOnly: false)
+    }
+
+    /// Clears the saved id only when `data.state` is APPLIED, REJECTED, or CANCELLED.
+    private func settle(key: String, path: String, fields: [String: String], requestIDOnly: Bool) async -> TeamCommandTerminal {
+        guard let requestID = savedRequestIDs[key], !key.isEmpty else { return .unknown }
+        var body: [String: String] = requestIDOnly ? [:] : fields
+        body["requestId"] = requestID
+        guard let encoded = try? JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]) else { return .unknown }
+        var request = URLRequest(url: configuration.baseURL.appendingPathComponent(path))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.httpBody = encoded
+        let data: Data
+        let status: Int
+        do { (data, status) = try await transport.send(request) } catch { return .unknown }
+        guard (200..<300).contains(status),
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return .unknown }
+        let code = (root["code"] as? Int) ?? Int(root["code"] as? String ?? "")
+        guard code == 200, let payload = root["data"] as? [String: Any], let state = payload["state"] as? String else { return .unknown }
+        switch state {
+        case "APPLIED":
+            savedRequestIDs[key] = nil
+            return .applied(status)
+        case "REJECTED":
+            savedRequestIDs[key] = nil
+            return .rejected(status)
+        case "CANCELLED":
+            savedRequestIDs[key] = nil
+            return .cancelled(status)
+        default:
+            return .unknown
+        }
     }
 
     private static func hexIdentifier() -> String {

@@ -55,6 +55,9 @@ import Foundation
     public private(set) var checkinCountdown = 0 { didSet { onChange?() } }
     public private(set) var checkinError: MerchantGameNodeMessage?
     public var readyDraft = MerchantGameNodeReadyDraft() { didSet { onChange?() } }
+    public var readyFieldIssues: [MerchantGameNodeReadyField] {
+        readyDraft.fieldIssues(routePlay: projection?.playMode == .route)
+    }
     public var declineDraft = MerchantGameNodeDeclineDraft() { didSet { onChange?() } }
     public var pauseDraft = MerchantGameNodePauseDraft() { didSet { onChange?() } }
     public var verifyDraft = MerchantGameNodeVerifyDraft() { didSet { onChange?() } }

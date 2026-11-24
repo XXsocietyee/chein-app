@@ -121,8 +121,10 @@ public struct ClubGapStoryMapAddressRow: View {
     public var body: some View {
         Button(action: openInMaps) {
             HStack {
-                Image(systemName: "mappin.and.ellipse")
-                    .foregroundStyle(CYColor.brand)
+                MPAsset.FeatureIcon.pin
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: stop.address)
                         .cyText(.body)

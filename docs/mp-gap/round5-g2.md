@@ -16,7 +16,7 @@
 | `F-C20` | P1 | Updated `ClubGapFEReferenceSettlementSection` to settle `[Int]` (`onMarkSettled: (_ ids: [Int], _ voucherNo: String?) -> Void`), payer-only `标记已结清`, and confirm `.alert` with optional `转账凭证号` `TextField`; `allowsMoneyWrite` remains `false` by default | `App/MPGap/Club/ClubGapReferenceSettlementView.swift`, `docs/mp-gap/mounts-g2-ops.md` |
 | `F-C22` | P2 | Switched `sources` `ForEach` to `Array(sources.enumerated()), id: \.offset` to prevent duplicate IDs | `App/MPGap/MerchantCoop/MerchantGapAIInsightViews.swift` |
 | `F-C23` | P1 | Added `MPGapServerRefusal(code:message:)` so server `msg` is preserved on non-200 business codes | `Core/MPGap/MPGapHTTP.swift` |
-| `F-C25` | P1 | Added `// TODO: MPAsset(...)` markers for `d_profile` and `grow-*` assets pending `cursor/mp-assets` landing on `ui/combined-r7` | `App/MPGap/MerchantCoop/MerchantGapAIInsightViews.swift`, `App/MPGap/MerchantCoop/MerchantGapRound4Views.swift` |
+| `F-C25` | P1 | Replaced placeholder SF Symbols and TODOs with `MPAsset` (`MPAsset.AvatarDefault.dProfile`, `MPAsset.BannerCover.{treasureHunter,flavorTour,midlifeDay,oldMovie}`, `MPAsset.FeatureIcon.{introTicketMap,pin,iconShop,iconStarFilled,iconStarOutline}`) after merging `82388e4a5` | `App/MPGap/Club/{ClubGapRemainingViews,ClubGapRound4Views}.swift`, `App/MPGap/MerchantCoop/{MerchantGapAIInsightViews,MerchantGapRound4Views}.swift`, `App/MPGap/AccountPublish/AccountPublishGapViews.swift` |
 
 ## 2. `audit/parity-r7-*` Remaining Gemini Queue
 - All G2 `owner=Gemini` rows from `audit/parity-r7-{club,merchant-coop,account-publish}` were translated in Round 4 and verified in Round 5.

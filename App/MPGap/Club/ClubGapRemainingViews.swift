@@ -33,7 +33,11 @@ public struct ClubGapPlayRecordPickerRow: View {
             showPicker = true
         } label: {
             HStack {
-                Label(ClubPostRefCopy.pickerTitle, systemImage: "map")
+                MPAsset.FeatureIcon.introTicketMap
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
+                Text(verbatim: ClubPostRefCopy.pickerTitle)
                     .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                 Spacer()

@@ -108,7 +108,7 @@ import XCTest
         let access = ClubGovernanceFixtureAccess()
         let coordinator = ClubGovernanceCoordinator(access: access)
         for target in [701, 999] {
-            let command = try ClubGovernanceCommand(operation: .ban, scope: ClubGovernanceFixtures.scope, values: ["targetMemberId": .integer(target), "reason": .string("Fixture"), "expiresAt": .string("2026-10-08 09:00:00"), "requestId": .string("fixed")])
+            let command = try ClubGovernanceCommand(operation: .ban, scope: ClubGovernanceFixtures.scope, values: ["targetMemberId": .integer(target), "reason": .string("Fixture"), "durationDays": .integer(30), "requestId": .string("fixed")])
             do { _ = try await coordinator.prepare(command); XCTFail() } catch { XCTAssertEqual(error as? ClubGovernanceFailure, .forbidden) }
         }
         XCTAssertTrue(access.sent.isEmpty)

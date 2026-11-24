@@ -7,6 +7,7 @@ import FoundationNetworking
 public struct DiscoveryService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration
         self.transport = transport
@@ -41,18 +42,64 @@ public struct DiscoveryService {
             catch { throw APIError.malformedResponse }
         }
     }
+    /// Shelf page size. The server caps a page at 50; the shelf keeps requesting until a short page or `total`.
+    public static let playTemplatePageSize = 50
+    /// Safety stop so a corrupt `total` cannot page forever. The mini-program has no cap.
+    public static let playTemplatePageCap = 20
     public func playTemplates(keyword: String? = nil, packType: DiscoveryPackType? = nil,
                               token: String? = nil) async throws -> [DiscoveryPlayTemplate] {
         // Intentionally no category filter: Flutter documents categoryId/category_id mismatch.
-        var fields: [String: String] = [:]
+        var fields: [String: String] = ["pageNum": "1", "pageSize": String(Self.playTemplatePageSize)]
         if let keyword, !keyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { fields["keyword"] = keyword }
         if let packType { fields["pack_type"] = String(packType.rawValue) }
-        let data = try await post("api/template/list", fields: fields, token: token)
-        return try await PlayerFeedJSON.perform { () -> [DiscoveryPlayTemplate] in
-            do { return try JSONDecoder().decode(DiscoveryRowsEnvelope<DiscoveryPlayTemplate>.self, from: data).rows }
-            catch let error as APIError { throw error }
-            catch { throw APIError.malformedResponse }
+        var collected: [DiscoveryPlayTemplate] = []
+        var seen = Set<Int>()
+        var page = 1
+        var announcedTotal: Int?
+        while page <= Self.playTemplatePageCap {
+            fields["pageNum"] = String(page)
+            let data: Data
+            do { data = try await post("api/template/list", fields: fields, token: token) }
+            catch {
+                if page == 1 { throw error }
+                break
+            }
+            let parsed: (rows: [DiscoveryPlayTemplate], total: Int?)
+            do { parsed = try Self.playTemplatePage(data) }
+            catch {
+                if page == 1 { throw error }
+                break
+            }
+            if page == 1 { announcedTotal = parsed.total }
+            let fresh = parsed.rows.filter { seen.insert($0.id).inserted }
+            collected.append(contentsOf: fresh)
+            if let announcedTotal, collected.count >= announcedTotal { break }
+            if parsed.rows.count < Self.playTemplatePageSize || fresh.isEmpty { break }
+            page += 1
         }
+        return collected
+    }
+    private static func playTemplatePage(_ data: Data) throws -> (rows: [DiscoveryPlayTemplate], total: Int?) {
+        let rows = try JSONDecoder().decode(DiscoveryRowsEnvelope<DiscoveryPlayTemplate>.self, from: data).rows
+        guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw APIError.malformedResponse }
+        let payload = root["data"]
+        let rawTotal: Any?
+        if let page = payload as? [String: Any], page.keys.contains("total") { rawTotal = page["total"] }
+        else if root.keys.contains("total"), payload as? [Any] != nil || payload == nil { rawTotal = root["total"] }
+        else { rawTotal = nil }
+        guard let rawTotal else { return (rows, nil) }
+        if rawTotal is NSNull { return (rows, nil) }
+        guard let total = Self.wholeNumber(rawTotal), total >= 0 else { throw APIError.malformedResponse }
+        return (rows, total)
+    }
+    private static func wholeNumber(_ raw: Any) -> Int? {
+        if let value = raw as? Int { return value }
+        if let value = raw as? NSNumber {
+            let number = value.doubleValue
+            guard number.rounded() == number, number >= 0, number <= Double(Int.max) else { return nil }
+            return value.intValue
+        }
+        return nil
     }
     public func topicTemplates(token: String? = nil) async throws -> [DiscoveryTopicTemplate] {
         let data = try await post("api/template/topic-template/list", fields: nil, token: token)
@@ -87,13 +134,19 @@ public struct DiscoveryService {
     }
     private func post(_ path: String, fields: [String: String]?, token: String?,
                       templateDetail: Bool = false, templateMetadata: Bool = false) async throws -> Data {
-        var request = try AuthRequestBuilder.makeFormRequest(
-            url: configuration.baseURL.appendingPathComponent(path), fields: fields ?? [:], token: token)
-        if fields == nil {
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = Data("{}".utf8)
+        let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields ?? [:], token: token,
+                                         tag: "\(fields == nil)")
+        let response = try await reads.join(key) {
+            var request = try AuthRequestBuilder.makeFormRequest(
+                url: self.configuration.baseURL.appendingPathComponent(path), fields: fields ?? [:], token: token)
+            if fields == nil {
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.httpBody = Data("{}".utf8)
+            }
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
         }
-        let (data, status) = try await transport.send(request)
+        let (data, status) = (response.data, response.status)
         // Check gateway status and envelope code before payload decoding, including detail refusals.
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }

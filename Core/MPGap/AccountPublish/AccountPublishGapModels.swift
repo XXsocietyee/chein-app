@@ -147,6 +147,7 @@ public struct AccountPublishGapClient {
         )
     }
 
+    /// `POST /api/team/handle` JSON `{ teamId, memberId, approved }`, matching `NearbyTeamService.handle`.
     public func handleTeamApplication(teamID: Int, memberID: Int, approved: Bool, token: String) async throws {
         guard teamID > 0, memberID > 0 else { throw APIError.invalidRequest }
         try await MPGapHTTP.postAction(
