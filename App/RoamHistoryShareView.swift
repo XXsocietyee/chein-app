@@ -43,7 +43,9 @@ import UIKit
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                CYHeroHeader("roam.share.title", subtitle: "roam.share.privacy")
+                // RSESS-5: a sheet takes the system inline title; the privacy line stays as body copy.
+                Text("roam.share.privacy").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 CYShareComposer(content: cardContent, style: $style, caption: $caption,
                                 captionPlaceholder: appLocalized("roam.share.caption.placeholder", locale: locale),
                                 accessibilityPrefix: "roam.share.composer") {
@@ -58,6 +60,7 @@ import UIKit
         }
             .background(CYColor.bgPage.ignoresSafeArea())
             .scrollDismissesKeyboard(.interactively)
+            .cyPageTitle("roam.share.title")
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { presentation.retire(); invalidateImage(); dismiss() }.accessibilityIdentifier("roam.share.done") } }
             .background(RoamShareNativeLifetime(presentation: presentation).frame(width: 0, height: 0))
             .onAppear { presentation.appear() }

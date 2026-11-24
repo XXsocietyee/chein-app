@@ -26,7 +26,9 @@ import SwiftUI
             entryReader: entry, entryTeams: { _ in Self.teams },
             myTeamsDestination: { AnyView(Text(verbatim: "mine").accessibilityIdentifier("roam.home.fixture.mine")) },
             nearbyTeamDestination: { id in AnyView(Text(verbatim: "team \(id.rawValue)").accessibilityIdentifier("roam.home.fixture.team")) },
-            toolsReader: tools)
+            toolsReader: tools,
+            // ROAM-3: `--uitesting-roam-home-sheet` shows the page as the City root's 漫游护照与工具 sheet.
+            presentedAsSheet: ProcessInfo.processInfo.arguments.contains("--uitesting-roam-home-sheet"))
     }
 }
 #endif

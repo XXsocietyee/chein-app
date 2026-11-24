@@ -43,12 +43,16 @@ import SwiftUI
     let retryJoinedTeams: (() -> Void)?
     let discoverySources: NearbyMapDiscoverySources?
     let navigate: (NearbyTeamDestination) -> Void
+    /// RTEAMS-3: MP my-teams nav action 加入码 (`team/join?entry=code`); nil hides it.
+    let joinCodeDestination: (() -> AnyView)?
     /// `initialRadius`/`focusTeamID`/`initialTab` mirror the xcx `?radius=&teamId=` and my-teams entry options.
     init(coordinator: NearbyTeamCoordinator, context: NearbyQueryContext? = nil, joinedTeams: [OwnedTeam] = [],
          initialTab: Int = 0, initialRadius: Int? = nil, focusTeamID: NearbyTeamID? = nil, onSignIn: (() -> Void)? = nil,
          joinedTeamsStatus: NearbyOwnedTeamsStatus = .loaded, retryJoinedTeams: (() -> Void)? = nil,
          discoverySources: NearbyMapDiscoverySources? = nil,
+         joinCodeDestination: (() -> AnyView)? = nil,
          navigate: @escaping (NearbyTeamDestination) -> Void = { _ in }) {
+        self.joinCodeDestination = joinCodeDestination
         _model = StateObject(wrappedValue: NearbyTeamScreenModel(coordinator)); initialContext = context; self.joinedTeams = joinedTeams; self.navigate = navigate
         self.onSignIn = onSignIn; self.joinedTeamsStatus = joinedTeamsStatus; self.retryJoinedTeams = retryJoinedTeams
         self.discoverySources = discoverySources
@@ -123,6 +127,12 @@ import SwiftUI
             .toolbar {
                 // Native restyle (native-ios-r1 §3.1): refresh is pull-to-refresh only (`.refreshable` above calls the same refresh()).
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
+                if tab == 1, let joinCodeDestination {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink { joinCodeDestination() } label: { Label("gap.team.joinCode", systemImage: "number") }
+                            .accessibilityIdentifier("nearby.mine.joinCode")
+                    }
+                }
             }
             .sheet(item: model.review) { review in
                 NearbyTeamReviewView(model: model, snapshot: review)

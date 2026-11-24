@@ -45,14 +45,16 @@ enum PlayHUDGeometry {
         return old + delta
     }
 
-    /// `180 m` under a kilometre (rounded to 10 m), `1.2 km` above. Metric in both languages, as in the frame.
-    static func distanceText(_ meters: Double) -> String {
+    /// `180 m` under a kilometre (rounded to 10 m), `1.2 km` above. PLAY-4: Chinese uses the MP units
+    /// (utils/geo.js `distanceText`: 米 / 公里), so the HUD reads 「180 米」「1.2 公里」.
+    static func distanceText(_ meters: Double, chinese: Bool = false) -> String {
         guard meters.isFinite, meters >= 0 else { return "—" }
+        let metre = chinese ? " 米" : " m", kilometre = chinese ? " 公里" : " km"
         if meters < 1000 {
             let rounded = max(10, Int((meters / 10).rounded()) * 10)
-            return rounded >= 1000 ? "1.0 km" : "\(rounded) m"
+            return rounded >= 1000 ? "1.0" + kilometre : "\(rounded)" + metre
         }
-        return String(format: "%.1f km", meters / 1000)
+        return String(format: "%.1f", meters / 1000) + kilometre
     }
 
     static func normalized(_ degrees: Double) -> Double {
@@ -258,7 +260,7 @@ struct PlayHUDBar<Team: View>: View {
 /// (`SessionBackgroundLocationTracker`), read every two seconds; nothing new is requested.
 @MainActor enum PlayHUDReading {
     static func nextStop(node: PlayNode, snapshot: PlaySnapshot, elapsedSeconds: Int, heading: Double?,
-                         fix: CLLocation?) -> PlayHUDNextStop {
+                         fix: CLLocation?, chinese: Bool = false) -> PlayHUDNextStop {
         var distance: Double?
         var bearing: Double?
         if let lat = node.latitude, let lng = node.longitude, lat.isFinite, lng.isFinite, let here = gcj02(fix) {
@@ -270,7 +272,7 @@ struct PlayHUDBar<Team: View>: View {
         let name = node.name?.trimmingCharacters(in: .whitespacesAndNewlines)
         return PlayHUDNextStop(
             name: (name?.isEmpty == false ? name : nil) ?? "—",
-            distanceText: distance.map(PlayHUDGeometry.distanceText),
+            distanceText: distance.map { PlayHUDGeometry.distanceText($0, chinese: chinese) },
             arrowDegrees: zip2(bearing, heading).map { pair in PlayHUDGeometry.steppedRotation(bearing: pair.0, heading: pair.1) },
             // PLAY-5: the run header already shows the dataXL clock; one timer on screen.
             elapsedText: nil,
@@ -304,12 +306,14 @@ struct PlayHUDBar<Team: View>: View {
     @ViewBuilder var team: () -> Team
     @State private var heading = PlayHUDHeadingSource()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 2)) { _ in
             let stop = PlayHUDReading.nextStop(node: node, snapshot: snapshot, elapsedSeconds: elapsedSeconds,
                                                heading: heading.heading,
-                                               fix: SessionBackgroundLocationTracker.shared.freshFix(maxAge: 10))
+                                               fix: SessionBackgroundLocationTracker.shared.freshFix(maxAge: 10),
+                                               chinese: locale.language.languageCode?.identifier == "zh")
             VStack(spacing: CYSpacing.md) {
                 Button(action: onOpenStop) { PlayHUDNextStopCard(stop: stop) }
                     .buttonStyle(.cyPressable)

@@ -10,6 +10,8 @@ import UIKit
     var album: RoamStampAlbumContinuation? = nil
     /// 投一张换一张: exchange the created stamp (idempotent on the server). nil hides the step.
     var exchange: (@MainActor (Int) async throws -> RoamStampExchangeReceipt)? = nil
+    /// SCAM-2: the MP stamp-camera page has no caption field; only the citystamp route (sticker / sign) writes one.
+    var showsCaption = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
@@ -59,7 +61,7 @@ import UIKit
                 }
                 Toggle("media.stamp.consent", isOn: $purposeAccepted).tint(.green).disabled(isBusy || showingCamera)
             } footer: { Text("media.stamp.purpose") }
-            captionSection
+            if showsCaption { captionSection }
             if let coordinator {
                 Section {
                     if let bytes = coordinator.selection?.jpeg, let image = UIImage(data: bytes) {

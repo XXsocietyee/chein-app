@@ -215,7 +215,9 @@ import SwiftUI
             }
             .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session).cyPushedChrome() }
             // A1-06: 邮票 opens the stamp album and 勋章 the badge wall, as the MP 收集册 piles do.
-            .navigationDestination(isPresented:$showsPassportStamps) { RoamStampAlbumView(reader: session.roamExperienceReader).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsPassportStamps) { RoamStampAlbumView(reader: session.roamExperienceReader,
+                // SALBUM-r7-1: the camera item / empty CTA open the session camera, not the disabled bare one.
+                stampDestination: { [session] in AnyView(SessionRoamStampCameraView().environmentObject(session)) }).cyPushedChrome() }
             .navigationDestination(isPresented:$showsPassportBadges) { ObjectBadgeWallView(reader: session.profileReader, media: session.makeObjectCardImageLoader()).cyPushedChrome() }
             .background {
                 ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in

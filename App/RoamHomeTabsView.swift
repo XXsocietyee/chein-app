@@ -54,7 +54,7 @@ struct RoamHomeTabPicker: View {
                 VStack(alignment: .leading) {
                     Image(systemName: spec.symbol).font(.title3.weight(.semibold)).accessibilityHidden(true)
                     Spacer(minLength: 8)
-                    Text(verbatim: "NO.0\(number)").font(.system(.caption, design: .monospaced).weight(.semibold))
+                    Text(verbatim: "NO.0\(number)").cyText(.caption, weight: .semibold).monospaced()
                 }
                 .foregroundStyle(.black.opacity(0.78))
                 .padding(12).frame(width: 84, alignment: .leading)
@@ -138,7 +138,7 @@ struct RoamHomeTabPicker: View {
             } else if model.visibleTeamState(reader: reader) == .failed {
                 VStack(alignment: .leading, spacing: 6) {
                     Label { Text("roam.nearbyEvents.teamsFailed", tableName: "RoamNearbyEvents") } icon: { Image(systemName: "exclamationmark.triangle") }
-                        .font(.caption).foregroundStyle(.secondary)
+                        .cyText(.meta).foregroundStyle(.secondary)
                     Button("action.retry", action: refresh).frame(minHeight: 44)
 
                         .accessibilityIdentifier("roam.home.peek.teamsRetry")

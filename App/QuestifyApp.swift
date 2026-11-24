@@ -330,7 +330,7 @@ struct SessionRootView: View {
                             return AnyView(TopicIssueView(issue: .unavailable))
                         }
                         return AnyView(SessionTopicDetailView(id: id, session: session))
-                    }, locationSettings: RoamSystemLocationSettingsProvider())
+                    }, locationSettings: RoamSystemLocationSettingsProvider(), presentedAsSheet: true)
                         .environment(\.roamPOIActions, session.makeRoamPOIActions())
                         .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
@@ -368,6 +368,7 @@ struct SessionRootView: View {
                     clubTab
                     mineTab
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
+                .environment(\.growthSessionProfile, session.account.map { GrowthSessionProfile(name: $0.nickname, avatar: $0.avatar) })
                 .sessionOfflineBanner(reachability: reachability, session: session)
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
