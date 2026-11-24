@@ -105,7 +105,6 @@ final class MPGapG1Round2Tests: XCTestCase {
         _ = await service.fetchTemplateShelfPage(pageNum: 1, keyword: "城")
         _ = await service.searchUnified(keyword: "城")
         _ = await service.fetchMerchantCategories()
-        _ = await service.fetchMyTemplateDetail(id: 7, operationScope: "MERCHANT")
         _ = await service.fetchMerchantPrefillInfo()
         _ = await service.fetchMerchantRegistrations()
         _ = await service.fetchMerchantChapterApplications()
@@ -118,14 +117,13 @@ final class MPGapG1Round2Tests: XCTestCase {
             "/api/template/list",
             "/api/search/unified",
             "/api/category/list",
-            "/api/template/my/info",
             "/api/merchant/info",
             "/api/registration/merchant/list",
             "/api/merchant/chapter-application/mine",
             "/api/activity/cancel_preview",
             "/api/coop/finance",
             "/api/im/read",
-            "/api/report/create"
+            "/api/im/report"
         ])
     }
 
@@ -190,16 +188,14 @@ final class MPGapG1Round2Tests: XCTestCase {
         let transport = MPGapR2MockTransport()
         let service = PlayRoamRound2Service(baseURL: URL(string: "https://example.com")!, token: { "tok-1234" }, transport: transport)
 
-        _ = await service.fetchCityStrip()
         _ = await service.fetchTeamApplications(teamID: 4)
         _ = await service.fetchLeaderboard(JourneyLeaderboardScopeQuery(scope: "team", scopeID: "4"))
         _ = await service.fetchStampAlbum(pageNum: 1)
 
         XCTAssertEqual(transport.requests.compactMap { $0.url?.path }, [
-            "/api/roam/city-strip",
             "/api/team/applications",
             "/api/rank/list",
-            "/api/roam/stamp/album"
+            "/api/roam/stamp/list"
         ])
         XCTAssertFalse(PlayRoamRound2Service.paths.contains("api/roam/history/list"))
     }
@@ -244,21 +240,21 @@ final class MPGapG1Round2Tests: XCTestCase {
         let service = MemberRound2Service(baseURL: URL(string: "https://example.com")!, token: { "tok-1234" }, transport: transport)
 
         _ = await service.fetchOrdersPage(pageNum: 1)
-        _ = await service.fetchPointsPage(pageNum: 2)
+        _ = await service.fetchPointsList()
         _ = await service.fetchWithdrawalsPage(pageNum: 1)
-        _ = await service.followClub(clubID: 10)
+        _ = await service.followClubOwner(memberID: 10)
         _ = await service.joinClub(clubID: 10)
         _ = await service.fetchMyTemplates(scope: .merchant)
         _ = await service.fetchOrientScoring(sessionID: 99)
 
         XCTAssertEqual(transport.requests.compactMap { $0.url?.path }, [
-            "/api/registration/my",
+            "/api/registration/my-joined",
             "/api/points/list",
             "/api/withdrawal/list",
-            "/api/club/follow",
+            "/api/user/follow/action",
             "/api/club/join",
-            "/api/template/my/list",
-            "/api/orient/scoring"
+            "/api/template/my-list",
+            "/api/orient/scoring/session/99"
         ])
     }
 }

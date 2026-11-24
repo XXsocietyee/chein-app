@@ -49,10 +49,14 @@ public struct OrderDetailTeamSeatsClubSections: View {
             if model.hasTeamSection || model.hasSeatsEntry {
                 Section("orderDetail.teamAndSeats") {
                     if model.hasTeamSection {
-                        Button(model.teamName ?? "叫上队友", action: onOpenTeam)
+                        if let teamName = model.teamName, !teamName.isEmpty {
+                            Button(teamName, action: onOpenTeam)
+                        } else {
+                            Button("orderDetail.inviteTeammates", action: onOpenTeam)
+                        }
                     }
                     if model.hasSeatsEntry {
-                        Button("同行席位", action: onOpenSeats)
+                        Button("orderDetail.seatsEntry", action: onOpenSeats)
                     }
                 }
             }
@@ -62,10 +66,11 @@ public struct OrderDetailTeamSeatsClubSections: View {
                     Button {
                         onFollowOrJoinClub()
                     } label: {
-                        LabeledContent(
-                            clubName,
-                            value: model.isClubMember ? "已加入" : "关注 / 加入俱乐部"
-                        )
+                        LabeledContent {
+                            Text(model.isClubMember ? "orderDetail.club.joined" : "orderDetail.club.followOrJoin")
+                        } label: {
+                            Text(clubName)
+                        }
                     }
                 }
             }
@@ -117,13 +122,13 @@ public struct ParticipationDetailGapSections: View {
 
             if isFreeExplore {
                 Section {
-                    Button("自由探索权益", action: onOpenFreeExploreBundle)
+                    Button("participation.freeExploreBundle", action: onOpenFreeExploreBundle)
                 }
             }
 
             if canEditMerchantApply {
                 Section {
-                    Button("去修改", action: onEditMerchantApply)
+                    Button("participation.editMerchantApply", action: onEditMerchantApply)
                 }
             }
 

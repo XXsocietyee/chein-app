@@ -48,7 +48,7 @@ public struct ReportAppealSheetView: View {
                                 .cyText(.meta)
                             Spacer()
                             Text("\(reason.count)/\(ReportAppealValidator.maxReasonLength)")
-                                .cyText(.micro, monospacedDigit: true)
+                                .cyText(.meta, monospacedDigit: true)
                         }
                     }
                     Section {
@@ -200,7 +200,7 @@ public struct PlatformPassOrderCancelRefundSheetView: View {
                         HStack {
                             Spacer()
                             Text("\(reason.count)/\(maxLength)")
-                                .cyText(.micro, monospacedDigit: true)
+                                .cyText(.meta, monospacedDigit: true)
                         }
                     }
                 }
