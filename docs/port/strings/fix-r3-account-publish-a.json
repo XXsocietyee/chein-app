@@ -1,0 +1,36 @@
+{
+  "member.card.pointsHelp": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "How to earn points"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "如何获取积分"
+        }
+      }
+    }
+  },
+  "profile.edit.avatarControl": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Edit profile"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "编辑个人资料"
+        }
+      }
+    }
+  }
+}

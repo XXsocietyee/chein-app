@@ -20,6 +20,9 @@ import SwiftUI
     @State private var showsTickets=false
     @State private var showsTicketPass=false
     @State private var showsPassportWallet=false
+    @State private var showsPointsLedger=false
+    @State private var showsPointsHelp=false
+    @State private var showsEditProfile=false
     @State private var showsPassportMessages=false
     @State private var showsPassportStamps=false
     @State private var showsPassportBadges=false
@@ -34,8 +37,12 @@ import SwiftUI
         NavigationStack {
             Form {
                 MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTicketPass = true },
-                                          // 积分 opens 钱包, where 积分明细 lives (the Passport root's one wallet entry).
-                                          onOpenPoints: showsPassportOverview ? { showsPassportWallet = true } : nil,
+                                          // A1-07: 积分 opens 积分明细 directly (MP goPointsHistory); 如何获取积分 opens 积分任务.
+                                          onOpenPoints: showsPassportOverview ? { showsPointsLedger = true } : nil,
+                                          onOpenPointsHelp: showsPassportOverview ? { showsPointsHelp = true } : nil,
+                                          // A1-04: the avatar opens 个人资料 (MP onAvatarTap); A1-09: 账户余额 opens the wallet.
+                                          onEditProfile: { showsEditProfile = true },
+                                          onOpenBalance: { showsPassportWallet = true },
                                           refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
                 if showsPassportOverview {
                     PassportOverviewSection(reader: session.roamExperienceReader, growth: session.growthCenterReader, refreshToken: memberRefreshToken, onOpenTickets: { showsTicketPass = true },
@@ -195,6 +202,17 @@ import SwiftUI
                 }
             }
             .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsPointsLedger) { WalletLedgerView(reader: session.walletHistoryReader, kind: .assetPoints).id(session.walletCommerceScope).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsEditProfile) { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders).cyPushedChrome() }
+            .sheet(isPresented:$showsPointsHelp) {
+                NavigationStack {
+                    WalletPointsTasksView(reader: session.walletHistoryReader).id(session.walletCommerceScope)
+                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("common.close") { showsPointsHelp = false }.accessibilityIdentifier("member.pointsHelp.close") } }
+                }
+                .themeDomain(.player)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
             .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session).cyPushedChrome() }
             // A1-06: 邮票 opens the stamp album and 勋章 the badge wall, as the MP 收集册 piles do.
             .navigationDestination(isPresented:$showsPassportStamps) { RoamStampAlbumView(reader: session.roamExperienceReader).cyPushedChrome() }
