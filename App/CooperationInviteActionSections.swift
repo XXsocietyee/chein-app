@@ -16,7 +16,17 @@ import SwiftUI
             case .legacy: Text("cooperation.detail.footer.legacy").foregroundStyle(.secondary)
             case .decide:
                 // Mini bottom bar: 接受合作 is the single solid action, 拒绝 the quiet one.
-                handle(.accept, label: "cooperation.detail.accept", emphasis: true)
+                if let stationID = invite.supplyStationId {
+                    // MC7-30-6: a station topic confirms the frozen station, then sends `supplyStationId` with the accept.
+                    NavigationLink {
+                        CoopSupplyStationAcceptView(inviteID: invite.id, stationID: stationID, stationName: invite.supplyStationName)
+                    } label: {
+                        Text("cooperation.detail.accept").cyText(.bodyMedium).foregroundStyle(CYColor.infoText)
+                    }
+                    .accessibilityIdentifier("cooperation.detail.handle.\(CoopFlowHandle.accept.rawValue)")
+                } else {
+                    handle(.accept, label: "cooperation.detail.accept", emphasis: true)
+                }
                 handle(.reject, label: "cooperation.detail.reject")
                 Text("cooperation.detail.reply.hint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             case .withdraw:

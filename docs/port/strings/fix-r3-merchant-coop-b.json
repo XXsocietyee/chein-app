@@ -611,6 +611,108 @@
       }
     }
   },
+  "merchantCoop.station.confirmTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm the redemption station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "确认核销据点"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.fallback %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Station #%lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "据点 #%lld"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.label": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemption station"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销据点"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.note.accepted": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Accepted. The station can no longer change."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已接受，据点不能再换"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.note.beforeAccept": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm before accepting. The station cannot change after you accept."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "接受前请确认，接受后据点不能再换"
+        }
+      }
+    }
+  },
+  "merchantCoop.station.reasonPlaceholder": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reply note (optional)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回复说明（选填）"
+        }
+      }
+    }
+  },
   "merchantCoop.team.denied": {
     "extractionState": "manual",
     "localizations": {
