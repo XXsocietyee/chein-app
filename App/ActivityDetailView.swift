@@ -285,7 +285,7 @@ struct ActivityDetailView: View {
         let summary = detail.summary
         let price: String? = summary.minimumAmount == Decimal.zero
             ? appLocalized("share.card.free", locale: locale)
-            : E1Money.yuan(summary.minimumAmount, locale: locale)
+            : summary.minimumAmount.flatMap { $0 >= 0 ? MoneyDisplay.yuan($0) : nil }  // owner decision 9: ¥12.50
         let place = ActivityPresentation.nonempty(summary.addressName) ?? ActivityPresentation.nonempty(summary.address)
         // Spots left is the sum over tickets that report an inventory; no ticket reporting one stays unknown (em dash).
         let inventories = detail.tickets.compactMap(\.remainingInventory)
@@ -613,12 +613,13 @@ struct ActivityDetailView: View {
         return false
     }
     private var primaryActionEnabled: Bool {
-        (primaryAction == .signUp && !signUpBlocked) || (primaryAction != .signUp && primaryAction != .cancelled && reader is AppSession)
+        (primaryAction == .signUp && !signUpBlocked)
+            || (primaryAction != .signUp && primaryAction != .cancelled && primaryAction != .unavailable && reader is AppSession)
     }
     private func performPrimaryAction() {
         if primaryAction == .signUp { guard !signUpBlocked else { return }; tileOpenedSheet = true; showsRegistration = true }
         else if primaryAction == .continueExploring, playReaderForActivity != nil { showsPlay = true }
-        else if primaryAction != .cancelled, reader is AppSession { tileOpenedSheet = true; showsTicketWallet = true }
+        else if primaryAction != .cancelled, primaryAction != .unavailable, reader is AppSession { tileOpenedSheet = true; showsTicketWallet = true }
     }
     /// "From ¥58 · 24 going"; an unknown price or count is an em dash, never 0.
     /// Known parts only: price and attendee count joined by a dot. Nil (line hidden) when neither is known.
@@ -626,7 +627,8 @@ struct ActivityDetailView: View {
         let amount = detail.summary.minimumAmount
         var parts: [Text] = []
         if let amount, amount == 0 { parts.append(Text(verbatim: CoreLoopCopy(locale: locale).t("免费", "Free"))) }
-        else if let yuan = E1Money.yuan(amount, locale: locale) { parts.append(Text("activity.pinned.price \(yuan)")) }
+        else if let amount, amount > 0 { let yuan = MoneyDisplay.yuan(amount)  // owner decision 9: ¥12.50
+            parts.append(Text("activity.pinned.price \(yuan)")) }
         if let count = ActivityDetailHeaderFacts(detail: detail).registrationCount { parts.append(Text("activity.pinned.going \(count)")) }
         guard var line = parts.first else { return nil }
         for part in parts.dropFirst() { line = line + Text(verbatim: " · ") + part }
@@ -667,6 +669,12 @@ struct ActivityDetailView: View {
                     .cyHeroSource(ActivityFooterHeroDestination.id, in: footerHero, cornerRadius: CYRadius.pill)
                     .accessibilityIdentifier("activity.openRegistration")
                     .accessibilityLabel(Text(LocalizedStringKey(primaryAction.titleKey)))
+            } else if primaryAction == .unavailable {
+                // R7-PC-C1-3: a missing / unknown `isSignUp` is a disabled "—", never the wallet button (MP js:77).
+                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) {}
+                    .disabled(true)
+                    .accessibilityIdentifier("activity.primaryAction.unavailable")
+                    .accessibilityLabel(Text("activity.cta.unavailable.a11y"))
             } else {
                 // A registered or cancelled activity never reopens the registration sheet.
                 let action = primaryAction

@@ -14,6 +14,11 @@ struct TopicDetailView: View {
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     var ticketWalletDestination: ((Int) -> AnyView)? = nil
+    /// R7-PC-B1-15: a club session card link (`via=session`) makes the bar open the session picker before self-play.
+    var prefersSessionPicker: Bool = false
+    /// R7-PC-B1-19: the topic editor (`pages/publish/fabu/index?id=` + `scope`) for a free-explore owner in pricing.
+    var ownerEditorDestination: ((Int, String?) -> AnyView)? = nil
+    @State private var showsOwnerEditor = false
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
@@ -500,7 +505,7 @@ struct TopicDetailView: View {
                     Text(TopicXcxFacts.showsInStorePerks(value) ? "topicXcx.paywall.detail" : "topicXcx.paywall.detailNoPerks").cyText(.bodyCompact)
                     // PC-B-1-15: the price of what unlocks (MP paywall price row); unknown price → row hidden.
                     if value.selfPlay == 1, let price = value.selfPlayPrice {
-                        Text(price, format: .currency(code: "CNY").precision(.fractionLength(0...2)))
+                        Text(verbatim: MoneyDisplay.yuan(price))  // owner decision 9: ¥12.50
                             .cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
                             .accessibilityIdentifier("topic.paywall.price")
                     }
@@ -548,7 +553,13 @@ struct TopicDetailView: View {
                               openSelfPlay: { barSheetOrigin = .selfPlay; showingSelfPlay = true },
                               openPricing: pricingDestination == nil ? nil : { barSheetOrigin = .pricing; showsPricing = true },
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
-                              heroNamespace: barHero)
+                              heroNamespace: barHero, preferSession: prefersSessionPicker,
+                              openEditor: ownerEditorDestination == nil ? nil : { showsOwnerEditor = true })
+        }
+        .navigationDestination(isPresented: $showsOwnerEditor) {
+            if let ownerEditorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
+                ownerEditorDestination(value.id, scope)
+            }
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)

@@ -92,8 +92,13 @@ struct HomeHeroHeaderSectionView: View {
                             .accessibilityIdentifier("homeIndex.hero.greeting")
                         (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
                             if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
-                                Label(isMerchantViewer ? "account.role.merchant" : "homeFeed.player",
-                                      systemImage: isMerchantViewer ? "storefront.fill" : "checkmark.seal.fill")
+                                // MP asset (pages/index/index.wxml:46): the player badge is `index-figma/icon-member.png`.
+                                Label {
+                                    Text(LocalizedStringKey(isMerchantViewer ? "account.role.merchant" : "homeFeed.player"))
+                                } icon: {
+                                    if isMerchantViewer { Image(systemName: "storefront.fill") }
+                                    else { MPAsset.FeatureIcon.iconMember.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true) }
+                                }
                                     .foregroundStyle(CYColor.brand)
                             }
                             if hasCity {
@@ -152,7 +157,8 @@ struct HomeHeroHeaderSectionView: View {
                         Button {
                             onSelectBanner?(banner)
                         } label: {
-                            Label(banner.title(locale: locale), systemImage: "arrow.up.right")
+                            // MP assets (utils/index/home-action-banner.js:21-35): each action banner's poster.
+                            Label { Text(verbatim: banner.title(locale: locale)) } icon: { HomeActionBannerPoster(id: banner.id) }
                         }
                         .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
                     }
@@ -246,9 +252,22 @@ private struct HomeHeroAvatar: View {
         .overlay { Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
         .accessibilityHidden(true)
     }
+    /// MP asset (pages/index/index.wxml:38): a missing avatar is `/images/d_profile.png`.
     private var fallback: some View {
-        CYColor.bgRaised
-            .overlay { Image(systemName: "person.fill").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary) }
+        MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+    }
+}
+
+/// Poster for a home action banner (`home-action-banner.js` `poster`). Other banners keep the arrow glyph.
+private struct HomeActionBannerPoster: View {
+    let id: String
+    var body: some View {
+        switch id {
+        case "activity_list": MPAsset.BannerCover.homeBannerFriends.resizable().scaledToFill()
+        case "club_apply": MPAsset.BannerCover.homeBannerClub.resizable().scaledToFill()
+        case "merchant_apply": MPAsset.BannerCover.homeBannerMerchant.resizable().scaledToFill()
+        default: Image(systemName: "arrow.up.right")
+        }
     }
 }
 

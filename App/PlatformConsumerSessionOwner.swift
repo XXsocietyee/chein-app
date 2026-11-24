@@ -34,6 +34,8 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
     let id: Int
     @ObservedObject var session: AppSession
     var topicReaderOverride: (any TopicReading)? = nil
+    /// R7-PC-B1-15: `pages/topic/index/index?via=session`.
+    var prefersSessionPicker: Bool = false
     var body: some View {
         Group {
             if session.account == nil {
@@ -53,6 +55,11 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) },
                     ticketWalletDestination: { topicID in
                         AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
+                    }, prefersSessionPicker: prefersSessionPicker,
+                    ownerEditorDestination: { topicID, scope in
+                        var query = ["id": String(topicID)]
+                        if let scope { query["scope"] = scope }
+                        return AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: query).environmentObject(session))
                     })
                     .id(session.contentDetailRevision)
                     .environment(\.pricingChapterProjectDestination, { topicID in

@@ -305,7 +305,19 @@ import SwiftUI
         case "pages/club/roles/index":
             clubRead(.roles, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
         case "pages/topic/index/index":
-            if let id = reviewedID(query) { SessionTopicDetailView(id: id, session: session) } else { unavailable }
+            // R7-PC-B1-15: `via=session` (club session card) opens the session picker before self-play.
+            if let id = reviewedID(query) {
+                SessionTopicDetailView(id: id, session: session, prefersSessionPicker: query["via"] == "session")
+            } else { unavailable }
+        case "pages/topic/catalog/index":
+            // R7-PC-B6-1 (Core `MiniProgramPageLink.catalogDestination`): a canonical id is the topic; anything else is 首页.
+            if let id = reviewedID(query) {
+                SessionTopicDetailView(id: id, session: session)
+            } else if rootTabSwitch.isAvailable {
+                MPTabHandoff { session.dismissNativeEntry(); rootTabSwitch(.home) }
+            } else {
+                SessionHomeFeedView().environmentObject(session)
+            }
         case "pages/templatedetail/templatedetail":
             // R7-PC-A6-1: MP `scope=my` is the viewer's own template (member read), never the public `api/template/info`.
             if query["scope"] == "my", let id = positiveID(query["id"]).flatMap(MemberPlayTemplateID.init(rawValue:)) {
