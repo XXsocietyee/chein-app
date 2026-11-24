@@ -86,7 +86,8 @@ import QuestifyCore
     }
 
     private var confirmationText: String {
-        if case .awaitingConfirmation(let mutation) = model.state { return mutation.confirmationMessage ?? "" }
+        // R7-PC-D1-2: activity cancel shows the paid-player sentence `beginActivityCancel` built from cancel_preview.
+        if case .awaitingConfirmation(let mutation) = model.state { return model.confirmationText ?? mutation.confirmationMessage ?? "" }
         return ""
     }
 }
