@@ -551,11 +551,14 @@ extension PassDetailBinding {
             .mpParityRouteDestination($route)
     }
 
-    /// Group / school product 去报名: the activity page, where signup picks the ticket (`pages/activity/baoming`
-    /// has no native screen of its own). The ticket id is not carried; signup asks for it.
+    /// Group / school product 去报名: MP `baoming?activityId&ticketId`. The native baoming route lands on the activity
+    /// with the registration sheet open and the pass ticket preselected (MKT-2-1). A malformed ticket id is dropped,
+    /// so signup still opens and asks for the ticket.
     private func openActivitySignup(_ activityID: String, _ ticketID: String?) {
         guard let id = Int(activityID), id > 0, String(id) == activityID else { return }
-        route = .screen(page: "pages/activity/detail/index", query: ["id": activityID])
+        var query = ["activityId": activityID]
+        if let ticketID, let t = Int(ticketID), t > 0, String(t) == ticketID { query["ticketId"] = ticketID }
+        route = .screen(page: "pages/activity/baoming/baoming", query: query)
     }
 }
 

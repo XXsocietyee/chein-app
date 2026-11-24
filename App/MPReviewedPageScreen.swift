@@ -101,7 +101,8 @@ import SwiftUI
         case "pages/activity/baoming/baoming":
             // PC-C-2 routing: MP baoming is the registration step of one activity; land on its detail with the sheet open.
             if let id = reviewedID(query, key: "activityId") {
-                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true)
+                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true,
+                                   preselectedTicketID: reviewedID(query, key: "ticketId"))
             } else { unavailable }
         case "pages/activity/official-organizer/index":
             if let id = reviewedID(query), let access = session.officialActionCoordinator?.organizer {
@@ -396,7 +397,10 @@ import SwiftUI
         case "subpackageMember/invoice-detail/index":
             if let id = reviewedID(query) {
                 invoice { InvoiceLaunchDetailView(model: $0, applicationID: Int64(id), onSignIn: signIn) }
-            } else { unavailable }
+            } else {
+                // R7-MEM-12-1: MP `cy-empty kind="missing-param"` + 返回, not the generic unavailable placeholder.
+                MemberMissingLinkState(identifier: "invoiceDetail.missing")
+            }
         case "subpackageMember/invoice-apply/index":
             invoice { InvoiceLaunchApplyView(model: $0, onSignIn: signIn) }
         case "subpackageMember/invoice-titles/index":

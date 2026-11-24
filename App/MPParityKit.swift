@@ -160,6 +160,8 @@ enum MPParityRoute: Hashable, Identifiable {
         case "subpackageMember/market/passes/index":
             self = .passes(tab: query["tab"].flatMap(PassMarketTab.init(rawValue:)) ?? .shop)
         case "subpackageMember/market/pass/index":
+            // R7-MEM-2-1: no id opens the page's missing state (商品不存在或已下架 + 返回), as MP load() does.
+            if query["id"]?.isEmpty ?? true { self = .pass(productID: ""); return }
             guard let id = safeIdentifier("id") else { return nil }
             self = .pass(productID: id)
         case "subpackageMember/market/gift/index":
@@ -172,6 +174,8 @@ enum MPParityRoute: Hashable, Identifiable {
         case "subpackageMember/market/library/index":
             self = .library(kind: query["kind"].flatMap(PassLibraryKind.init(rawValue:)) ?? .all)
         case "subpackageMember/market/pass-order/index":
+            // R7-MEM-5-1: no orderNo opens the missing-param state + 返回 (MP PG-041), not a read with an empty number.
+            if query["orderNo"]?.isEmpty ?? true { self = .passOrder(orderNo: ""); return }
             guard let orderNo = nonEmpty("orderNo"), PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { return nil }
             self = .passOrder(orderNo: orderNo)
         case "subpackagePass/reveal/index":
@@ -241,6 +245,10 @@ enum MPParityRoute: Hashable, Identifiable {
             if let make = bindings.videoBounty { VideoBountyHost(binding: make(), campaignKey: campaignKey, topicID: topicID) } else { unavailable }
         case .passes(let tab):
             if let make = bindings.passMarket { PassMarketHost(binding: make(), initialTab: tab) } else { unavailable }
+        case .pass(let id) where id.isEmpty:
+            MemberMissingLinkState(title: "g6.product.reason.PRODUCT_NOT_FOUND", identifier: "passDetail.missing")
+        case .passOrder(let orderNo) where orderNo.isEmpty:
+            MemberMissingLinkState(identifier: "passOrder.missing")
         case .pass(let id):
             if let make = bindings.passDetail { PassDetailHost(binding: make(id)) } else { unavailable }
         case .gift(let token):
