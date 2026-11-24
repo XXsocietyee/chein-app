@@ -99,13 +99,15 @@ public struct OrientScoreAppealSheetView: View {
                     }
                 }
 
-                Section("orientScore.appeal.reasonTitle") {
+                Section {
                     TextEditor(text: $reason)
                         .frame(minHeight: 120)
                         .onChange(of: reason) { _, newValue in
                             let clamped = OrientAppealValidator.clampReason(newValue)
                             if clamped != newValue { reason = clamped }
                         }
+                } header: {
+                    Text("orientScore.appeal.reasonTitle")
                 } footer: {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         HStack {
