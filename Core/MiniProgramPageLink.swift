@@ -66,7 +66,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/club/checkin-detail/index"] = Rule(allowed: ["clubId", "registrationId"], required: ["clubId", "registrationId"], ids: ["clubId", "registrationId"])
         pages["pages/club/enroll/index"] = Rule(allowed: ["clubId", "clubName", "topicId"], required: ["clubId"], ids: ["clubId", "topicId"])
         pages["pages/club/event-ops/index"] = Rule(allowed: ["clubId", "id", "activityId", "topicId", "recurrence"], required: [], ids: ["clubId", "id", "activityId", "topicId"])
-        pages["pages/club/group-code/index"] = Rule(allowed: ["activityId", "activityName", "topicId", "topicName"], required: ["activityId"], ids: ["activityId", "topicId"])
+        pages["pages/club/group-code/index"] = Rule(allowed: ["activityId", "activityName", "topicId", "topicName"], required: [], ids: ["activityId", "topicId"])
         pages["pages/club/join-requests/index"] = Rule(allowed: ["clubId"], required: ["clubId"], ids: ["clubId"])
         pages["pages/club/notify/index"] = Rule(allowed: ["clubId", "id", "activityId", "silent"], required: [], ids: ["clubId", "id", "activityId"])
         pages["pages/club/topic-detail/index"] = Rule(allowed: ["topicId", "clubId", "activityId", "id"], required: [], ids: ["topicId", "clubId", "activityId", "id"])
@@ -117,6 +117,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/team/detail/index"] = Rule(allowed: ["teamId"], required: [], ids: ["teamId"])
         // Only the manual-code form; `?code=` invitations keep the team-invitation parser (NativeNavigationCompletion).
         pages["pages/team/join/index"] = Rule(allowed: ["entry"], required: ["entry"], ids: [])
+        // F14c retired catalog: optional id opens the topic, a bare path opens home. `via=session` is the club-session entry.
+        pages["pages/topic/catalog/index"] = optionalID
+        pages["pages/topic/index/index"] = Rule(allowed: ["id", "via"], required: ["id"], ids: ["id"])
         return pages
     }()
 
@@ -181,7 +184,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/shezhi/marketing/index",
         "pages/mylike/mylike",
         "pages/crop/index",
-        "subpackageMember/invoice/index",
         "subpackageMember/invoice-apply/index",
         "subpackageMember/invoice-titles/index",
         "subpackageMember/invoice-title-edit/index",
@@ -251,6 +253,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
     private static let optionalIDPages: [String] = [
         "pages/activity/official-detail/index",
         "subpackageA/pages/infomationdetail/infomationdetail",
+        // invoice/index.js invoiceOnLoad: `?id=` opens the detail; a bare path is the history.
+        "subpackageMember/invoice/index",
     ]
 
     /// Keys whose MP values are a closed set: anything else would open a state the MP page never shows.
@@ -270,6 +274,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/coop/invite/index": ["type": ["0", "1"]],
         "pages/coop/invite-detail/index": ["box": ["received", "sent"]],
         "pages/coop/settlement-detail/index": ["personal": ["1"]],
+        "pages/topic/index/index": ["via": ["session"]],
     ]
 
     public init?(path: String, query: [String: String]) {
@@ -283,6 +288,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
             if rule.ids.contains(key), Self.positiveID(value) == nil { return nil }
         }
         if page == "subpackageJourney/pages/landing/index", !["r", "g", "s"].contains(present["k"] ?? "") { return nil }
+        // MP group-code accepts activityId or topicId. A name alone is not enough.
+        if page == "pages/club/group-code/index", present["activityId"] == nil, present["topicId"] == nil { return nil }
         if page == "pages/coop/list/index", let tab = present["tab"], tab != "sent", tab != "received" { return nil }
         if page == "pages/merchant/ledger/index", MerchantFinanceRoute.normalize(present) == nil { return nil }
         if page == "pages/merchant/profile/index", MerchantPublicHomeLink.target(present) == nil { return nil }
@@ -330,4 +337,21 @@ public struct MiniProgramPageLink: Equatable, Sendable {
               let value = Int(text), value > 0, String(value) == text else { return nil }
         return value
     }
+
+    /// Club session card (`via=session`): the primary bar opens the session picker before self-play.
+    public var opensSessionPickerFirst: Bool {
+        page == "pages/topic/index/index" && query["via"] == "session"
+    }
+
+    /// `pages/topic/catalog/index`: a canonical id is the topic; anything else is home.
+    public var catalogDestination: TopicCatalogDestination? {
+        guard page == "pages/topic/catalog/index" else { return nil }
+        if let raw = query["id"], let id = Self.positiveID(raw) { return .topic(id) }
+        return .home
+    }
+}
+
+public enum TopicCatalogDestination: Equatable, Sendable {
+    case topic(Int)
+    case home
 }

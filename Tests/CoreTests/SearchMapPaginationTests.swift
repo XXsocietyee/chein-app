@@ -43,21 +43,21 @@ final class SearchMapPaginationTests: XCTestCase {
         let visible = try [row(1)]
         XCTAssertTrue(try SearchMapActivityPage(rows: visible, pageNumber: 1, rawCount: 50, serverTotal: 51).hasMore)
         XCTAssertFalse(try SearchMapActivityPage(rows: visible, pageNumber: 1, rawCount: 50, serverTotal: 50).hasMore)
-        XCTAssertFalse(try SearchMapActivityPage(rows: visible, pageNumber: 2, rawCount: 1, serverTotal: 51).hasMore)
+        XCTAssertTrue(try SearchMapActivityPage(rows: visible, pageNumber: 2, rawCount: 1, serverTotal: 51).hasMore)
         XCTAssertTrue(try SearchMapActivityPage(rows: [], pageNumber: 1, rawCount: 20, serverTotal: 100).hasMore)
         XCTAssertFalse(try SearchMapActivityPage(rows: [], pageNumber: 4, rawCount: 0, serverTotal: 1000).hasMore)
     }
     func testMissingTotalUsesRawFullPageNotFilteredOrDeduplicatedRows() throws {
         XCTAssertTrue(try SearchMapActivityPage(rows: [], pageNumber: 1, rawCount: 50).hasMore)
         XCTAssertTrue(try SearchMapActivityPage(rows: [row(1)], pageNumber: 2, rawCount: 50).hasMore)
-        XCTAssertFalse(try SearchMapActivityPage(rows: [], pageNumber: 2, rawCount: 49).hasMore)
+        XCTAssertFalse(try SearchMapActivityPage(rows: [], pageNumber: 2, rawCount: SearchMapActivityPage.pageSize - 1).hasMore)
     }
     func testPageBoundsAndMalformedMetadataAreRejectedWithoutOverflow() throws {
         XCTAssertThrowsError(try SearchMapActivityPage(rows: [], pageNumber: 0, rawCount: 0))
         XCTAssertThrowsError(try SearchMapActivityPage(rows: [], pageNumber: Int.max, rawCount: 50))
         XCTAssertThrowsError(try SearchMapActivityPage(rows: [], pageNumber: 1, rawCount: 0, serverTotal: -1))
         XCTAssertThrowsError(try SearchMapActivityPage(rows: [row(1)], pageNumber: 1, rawCount: 0))
-        XCTAssertFalse(try SearchMapActivityPage(rows: [], pageNumber: Int.max / 50, rawCount: 50).hasMore)
+        XCTAssertFalse(try SearchMapActivityPage(rows: [], pageNumber: Int.max / SearchMapActivityPage.pageSize, rawCount: SearchMapActivityPage.pageSize).hasMore)
     }
     func testSingleFlightFailureRetriesSamePageAndRetainsRows() throws {
         let scope = UUID(); let rows = try [row(1)]
@@ -141,13 +141,13 @@ final class SearchMapPaginationTests: XCTestCase {
         let transport = MapPaginationTransport(#"{"code":200,"data":{"rows":[{"id":1,"name":"Synthetic"}],"total":51}}"#)
         let page = try await service(transport).cityActivityPage(query, page: 2, token: "synthetic")
         XCTAssertEqual(page.pageNumber, 2); XCTAssertEqual(page.rawCount, 1); XCTAssertEqual(page.serverTotal, 51)
-        XCTAssertFalse(page.hasMore)
+        XCTAssertTrue(page.hasMore)
         let requests = await transport.requests; XCTAssertEqual(requests.count, 1)
         let request = try XCTUnwrap(requests.first)
         XCTAssertEqual(request.url?.path, "/api/activity/list"); XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic")
         let body = String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self)
-        for (key, value) in ["pageNum":"2", "pageSize":"50", "is_my":"0", "sort_type":"2", "longitude":"2.0", "latitude":"1.0", "keyword":"A+B", "category_id":"7"] {
+        for (key, value) in ["pageNum":"2", "pageSize":"10", "is_my":"0", "sort_type":"2", "longitude":"2.0", "latitude":"1.0", "keyword":"A+B", "category_id":"7"] {
             XCTAssertTrue(body.contains("name=\"\(key)\"\r\n\r\n\(value)"), key)
         }
         for key in ["tag", "cityRole", "categoryId", "startDate", "endDate", "minPrice", "maxPrice"] {

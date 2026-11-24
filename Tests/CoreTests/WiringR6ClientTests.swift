@@ -148,7 +148,7 @@ private final class WiringR6Transport: HTTPTransport {
         XCTAssertEqual(homeBody?["memberId"] as? Int, 41)
         XCTAssertEqual(homeBody?.count, 1)
 
-        transport.payload = #"{"code":200,"data":{"mode":"public","pageNum":1,"pageSize":20,"total":0,"hasMore":false,"averageRating":null,"eligibility":{"canCreate":false,"reasonCode":"LOGIN_REQUIRED","registrationId":null},"items":[]}}"#
+        transport.payload = #"{"code":200,"data":{"mode":"public","pageNum":1,"pageSize":20,"total":0,"hasMore":false,"averageRating":null,"eligibility":{"canCreate":false,"reasonCode":"LOGIN_REQUIRED","registrationId":null,"requestedRegistrationId":19},"items":[]}}"#
         _ = try await client.publicReviews(merchantRowId: 73, registrationId: 19, pageNum: 1, token: "synthetic-review-token")
         let list = transport.requests[1]
         XCTAssertEqual(list.httpMethod, "POST")
@@ -158,7 +158,7 @@ private final class WiringR6Transport: HTTPTransport {
         XCTAssertEqual(query, ["merchantRowId": "73", "registrationId": "19", "pageNum": "1", "pageSize": "20"])
 
         transport.payload = #"{"code":200,"data":{"reviewId":9,"status":"PENDING_REVIEW","version":0,"replayed":false,"auditTaskId":2}}"#
-        let command = try MerchantPublicReviewCreate(merchantRowId: 73, registrationId: 19, rating: 5, content: "Fixture note", imageUrls: [], requestId: "req-1")
+        let command = try MerchantPublicReviewCreate(merchantRowId: 73, registrationId: 19, rating: 5, content: "Fixture note", requestId: "req-1")
         let receipt = try await client.createReview(command, token: "synthetic-review-token")
         XCTAssertEqual(receipt.reviewId, 9)
         let create = transport.requests[2]
@@ -168,6 +168,44 @@ private final class WiringR6Transport: HTTPTransport {
         XCTAssertEqual(body?["imageUrls"] as? [String], [])
         XCTAssertEqual(body?["requestId"] as? String, "req-1")
         XCTAssertFalse(transport.requests.contains { $0.url?.path.contains("free-explore/bundle/review") == true })
+    }
+
+    func testPublicHomeRequiresTheRequestedMemberAndReviewsRequireThisOrder() async throws {
+        let transport = WiringR6Transport()
+        transport.payload = #"{"code":200,"data":{"id":73,"memberId":99}}"#
+        let client = try client(enabled: true, transport: transport)
+        do { _ = try await client.publicHome(memberId: 41); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantPublicReviewHookFailure, .malformed) }
+        transport.payload = #"{"code":200,"data":{"id":73}}"#
+        do { _ = try await client.publicHome(memberId: 41); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantPublicReviewHookFailure, .malformed) }
+        transport.payload = #"{"code":200,"data":{"mode":"public","pageNum":1,"pageSize":20,"total":0,"hasMore":false,"eligibility":{"canCreate":false,"reasonCode":"LOGIN_REQUIRED","registrationId":null,"requestedRegistrationId":18},"items":[]}}"#
+        do { _ = try await client.publicReviews(merchantRowId: 73, registrationId: 19, pageNum: 1, token: "synthetic-review-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantPublicReviewHookFailure, .malformed) }
+    }
+
+    func testCreateReviewRefusalIsRejectedAndAlwaysSendsAnEmptyImageList() async throws {
+        let transport = WiringR6Transport()
+        let client = try client(enabled: true, transport: transport)
+        let command = try MerchantPublicReviewCreate(merchantRowId: 73, registrationId: 19, rating: 5, content: "Fixture note", requestId: "req-1")
+        transport.status = 403
+        transport.payload = #"{"code":403,"msg":"无权评价"}"#
+        do { _ = try await client.createReview(command, token: "synthetic-review-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantPublicReviewHookFailure, .rejected(403, "无权评价")) }
+        transport.status = 409
+        transport.payload = #"{"code":409,"msg":"你已评价过该订单"}"#
+        do { _ = try await client.createReview(command, token: "synthetic-review-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantPublicReviewHookFailure, .rejected(409, "你已评价过该订单")) }
+        transport.status = 409
+        transport.payload = #"{"code":409,"msg":"请稍后"}"#
+        do { _ = try await client.createReview(command, token: "synthetic-review-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantPublicReviewHookFailure, .malformed) }
+        transport.status = 500
+        transport.payload = #"{"code":500,"msg":"down"}"#
+        do { _ = try await client.createReview(command, token: "synthetic-review-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantPublicReviewHookFailure, .unavailable) }
+        let body = try JSONSerialization.jsonObject(with: XCTUnwrap(transport.requests.last?.httpBody)) as? [String: Any]
+        XCTAssertEqual(body?["imageUrls"] as? [String], [])
     }
 }
 
@@ -184,7 +222,7 @@ private final class WiringR6Transport: HTTPTransport {
             _ = try await h.service.originalApplication(requestId: "original")
         }
         h.wire.responses = [try InvoiceLaunchTestSupport.failure("INVOICE_NOT_FOUND")]
-        await InvoiceLaunchTestSupport.expect(.outcomeUnknown) {
+        await InvoiceLaunchTestSupport.expect(.notFound) {
             _ = try await h.service.titleReceipt(requestId: "original")
         }
     }
@@ -213,16 +251,35 @@ final class WiringR6TopicClubShareLinkTests: XCTestCase {
         XCTAssertEqual(chein, link)
     }
 
+    func testParserKeepsClubFactsWhenTheCodeIsAbsent() {
+        let bare = TopicClubShareLink(topicID: 8, sourceClubId: 42, clubCode: nil)
+        XCTAssertEqual(TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42"), bare)
+        XCTAssertEqual(TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42&clubCode="), bare)
+        let extra = TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST&extra=1")
+        XCTAssertEqual(extra, TopicClubShareLink(topicID: 8, sourceClubId: 42, clubCode: "EAST"))
+    }
+
     func testParserRejectsIncompleteOrNonCanonicalLinks() {
+        XCTAssertEqual(
+            TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42"),
+            TopicClubShareLink(topicID: 8, sourceClubId: 42, clubCode: nil)
+        )
+        XCTAssertEqual(
+            TopicClubShareLinkParser.parse("pages/topic/index/index?topicId=8&sourceClubId=42&sourceChannelCode=EAST&extra=1")?.clubCode,
+            "EAST"
+        )
+        XCTAssertEqual(
+            TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42&clubCode=")?.clubCode,
+            nil
+        )
         for raw in [
             "pages/topic/index/index?id=8",
-            "pages/topic/index/index?id=8&sourceClubId=42",
             "pages/topic/index/index?id=08&sourceClubId=42&clubCode=EAST",
             "pages/topic/index/index?id=8&sourceClubId=0&clubCode=EAST",
-            "pages/topic/index/index?id=8&sourceClubId=42&clubCode=",
-            "pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST&extra=1",
+            "pages/topic/index/index?id=8&clubCode=EAST",
             "pages/topic/detail/index?id=8&sourceClubId=42&clubCode=EAST",
-            "http://www.chengyinhub.com/pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST"
+            "http://www.chengyinhub.com/pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST",
+            "pages/topic/index/index?id=8&sourceClubId=42&clubCode=\(String(repeating: "A", count: 65))"
         ] {
             XCTAssertNil(TopicClubShareLinkParser.parse(raw), raw)
         }

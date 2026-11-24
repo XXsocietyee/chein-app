@@ -140,6 +140,45 @@ final class CYCachedAsyncImageTests: XCTestCase {
         XCTAssertEqual(CYCachedAsyncImageRole.shelf.fixedWidth, 280)
     }
 
+    func testTotalByteBudgetEvictsTheLeastRecentlyUsedImage() throws {
+        let bytes = try png()
+        let store = CYCachedAsyncImageStore(capacity: 8, totalByteBudget: bytes.count * 2)
+        let third = "https://cdn.example.invalid/third.jpg"
+        XCTAssertTrue(store.insert(bytes, for: cover))
+        XCTAssertTrue(store.insert(bytes, for: shelf))
+        store.touch(cover)
+        XCTAssertTrue(store.insert(bytes, for: third))
+        XCTAssertEqual(store.count, 2)
+        XCTAssertNil(store.peek(shelf))
+        XCTAssertEqual(store.peek(cover), bytes)
+        XCTAssertEqual(store.peek(third), bytes)
+    }
+
+    func testAnImageLargerThanTheByteBudgetIsRefused() throws {
+        let bytes = try png()
+        let store = CYCachedAsyncImageStore(capacity: 4, totalByteBudget: bytes.count - 1)
+        XCTAssertFalse(store.insert(bytes, for: cover))
+        XCTAssertEqual(store.count, 0)
+    }
+
+    func testOverlappingResolvesShareOneLoad() async throws {
+        let bytes = try png()
+        let loader = HeldImageLoader(result: bytes)
+        let store = CYCachedAsyncImageStore(capacity: 4)
+        let first = Task { await CYCachedAsyncImageModel.resolve(source: cover, store: store, loader: loader) }
+        await loader.waitUntilStarted()
+        XCTAssertTrue(store.isCoalescing(cover))
+        let second = Task { await CYCachedAsyncImageModel.resolve(source: cover, store: store, loader: loader) }
+        let deadline = Date().addingTimeInterval(0.5)
+        while Date() < deadline { await Task.yield() }
+        XCTAssertEqual(loader.callCount, 1)
+        loader.release()
+        let phases = await [first.value, second.value]
+        XCTAssertEqual(phases, [.ready(bytes), .ready(bytes)])
+        XCTAssertEqual(loader.callCount, 1)
+        XCTAssertEqual(store.count, 1)
+    }
+
     func testStateIdentifiersStayOnPlaceholderFailureAndImage() {
         XCTAssertEqual(CYCachedAsyncImage.placeholderAccessibilityID, "cy.cachedImage.placeholder")
         XCTAssertEqual(CYCachedAsyncImage.failureAccessibilityID, "cy.cachedImage.failure")
@@ -169,5 +208,72 @@ private final class LocalImageLoader: CYCachedAsyncImageLoading {
     func loadImage(for key: String) async throws -> Data {
         calls.append(key)
         return try result.get()
+    }
+}
+
+/// Holds the first load until the test releases it, so a second resolve can join.
+private final class HeldImageLoader: CYCachedAsyncImageLoading, @unchecked Sendable {
+    private let lock = NSLock()
+    private var calls = 0
+    private var started = false
+    private var opened = false
+    private var entered: CheckedContinuation<Void, Never>?
+    private var gate: CheckedContinuation<Void, Never>?
+    private let result: Data
+
+    init(result: Data) { self.result = result }
+
+    var callCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return calls
+    }
+
+    func loadImage(for key: String) async throws -> Data {
+        let isFirst: Bool
+        let waiter: CheckedContinuation<Void, Never>?
+        lock.lock()
+        calls += 1
+        isFirst = calls == 1
+        started = true
+        waiter = entered
+        entered = nil
+        lock.unlock()
+        waiter?.resume()
+        if isFirst {
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                lock.lock()
+                if opened {
+                    lock.unlock()
+                    continuation.resume()
+                    return
+                }
+                gate = continuation
+                lock.unlock()
+            }
+        }
+        return result
+    }
+
+    func waitUntilStarted() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            lock.lock()
+            if started {
+                lock.unlock()
+                continuation.resume()
+                return
+            }
+            entered = continuation
+            lock.unlock()
+        }
+    }
+
+    func release() {
+        lock.lock()
+        opened = true
+        let gate = self.gate
+        self.gate = nil
+        lock.unlock()
+        gate?.resume()
     }
 }

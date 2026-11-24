@@ -1,6 +1,11 @@
 import Foundation
 
 public enum SquareContentGeneration: String, Hashable { case unknown, legacySquare, communityV1 }
+
+extension SquareContentGeneration {
+    /// `pages/square/detail` shows 收藏 on the community post. Legacy and unknown have no bookmark write.
+    public var showsBookmark: Bool { self == .communityV1 }
+}
 public struct SquareContentRoute: Hashable {
     public let id: Int
     public let generation: SquareContentGeneration

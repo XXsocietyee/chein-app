@@ -261,6 +261,51 @@ public struct PlatformPassHolding: Equatable, Sendable {
     }
 }
 
+/// `utils/platform-pass.js` `passTerms`: a string list, or the older object shape.
+/// First matching line wins. `有效期：` is stored without that prefix.
+public struct PlatformPassTermFacts: Equatable, Sendable {
+    public var period: String?
+    public var renewal: String?
+    public var refund: String?
+    public var seat: String?
+    public var coverage: String?
+    public static let empty = PlatformPassTermFacts()
+    public init(period: String? = nil, renewal: String? = nil, refund: String? = nil, seat: String? = nil, coverage: String? = nil) {
+        self.period = period; self.renewal = renewal; self.refund = refund; self.seat = seat; self.coverage = coverage
+    }
+
+    static func parse(_ value: Any?) -> PlatformPassTermFacts {
+        if let lines = PlatformPassJSON.rows(value) {
+            var facts = PlatformPassTermFacts()
+            for line in lines {
+                guard let raw = line as? String else { continue }
+                let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+                if text.isEmpty { continue }
+                let key: WritableKeyPath<PlatformPassTermFacts, String?>
+                var stored = text
+                if text.range(of: #"^有效期[：:]"#, options: .regularExpression) != nil {
+                    key = \.period
+                    stored = text.replacingOccurrences(of: #"^有效期[：:]\s*"#, with: "", options: .regularExpression)
+                } else if text.contains("续费") { key = \.renewal }
+                else if text.contains("退款") { key = \.refund }
+                else if text.contains("本人") || text.contains("同行") { key = \.seat }
+                else { key = \.coverage }
+                if facts[keyPath: key] == nil { facts[keyPath: key] = stored }
+            }
+            return facts
+        }
+        if let object = PlatformPassJSON.dictionary(value) {
+            return PlatformPassTermFacts(
+                period: PlatformPassJSON.text(object["period"]),
+                renewal: PlatformPassJSON.text(object["renewal"]),
+                refund: PlatformPassJSON.text(object["refund"]),
+                seat: PlatformPassJSON.text(object["seat"]),
+                coverage: PlatformPassJSON.text(object["coverage"]))
+        }
+        return .empty
+    }
+}
+
 public struct PlatformPassOverview: Equatable, Sendable {
     public let enabled: Bool
     public let merchantBlocked: Bool
@@ -269,6 +314,8 @@ public struct PlatformPassOverview: Equatable, Sendable {
     public let holding: PlatformPassHolding
     public let jsapiAvailable: Bool
     public let xpayAvailable: Bool
+    /// Server `overview.terms`, normalized the way `passTerms` does.
+    public let terms: PlatformPassTermFacts
 
     public static let merchantBlocked = PlatformPassOverview(
         enabled: false, merchantBlocked: true, libraryCount: nil, plans: [],
@@ -276,7 +323,8 @@ public struct PlatformPassOverview: Equatable, Sendable {
         jsapiAvailable: false, xpayAvailable: false)
 
     public init(enabled: Bool, merchantBlocked: Bool, libraryCount: Int?, plans: [PlatformPassPlan],
-                holding: PlatformPassHolding, jsapiAvailable: Bool, xpayAvailable: Bool) {
+                holding: PlatformPassHolding, jsapiAvailable: Bool, xpayAvailable: Bool,
+                terms: PlatformPassTermFacts = .empty) {
         self.enabled = enabled
         self.merchantBlocked = merchantBlocked
         self.libraryCount = libraryCount
@@ -284,6 +332,7 @@ public struct PlatformPassOverview: Equatable, Sendable {
         self.holding = holding
         self.jsapiAvailable = jsapiAvailable
         self.xpayAvailable = xpayAvailable
+        self.terms = terms
     }
 
     static func decode(_ data: Any) throws -> PlatformPassOverview {
@@ -309,7 +358,8 @@ public struct PlatformPassOverview: Equatable, Sendable {
                                          teammateBenefit: PlatformPassJSON.flag(holding["teammateBenefit"]),
                                          expiring: PlatformPassJSON.text(holding["badge"]) == "EXPIRING"),
             jsapiAvailable: PlatformPassJSON.flag(PlatformPassJSON.dictionary(channels["jsapi"])?["available"]),
-            xpayAvailable: PlatformPassJSON.flag(PlatformPassJSON.dictionary(channels["xpay"])?["available"]))
+            xpayAvailable: PlatformPassJSON.flag(PlatformPassJSON.dictionary(channels["xpay"])?["available"]),
+            terms: PlatformPassTermFacts.parse(object["terms"]))
     }
 }
 

@@ -64,10 +64,19 @@ final class ClubCommunityReadRuntimeTests: XCTestCase {
                 shouldFailNext = false
                 throw URLError(.timedOut)
             }
-            if path.hasSuffix("api/club/post/list") || path.hasSuffix("api/club/post/feed") {
-                let pageNum = body["pageNum"] as? Int ?? 1
-                let count = pageNum == 1 ? 20 : 2
-                let items = (1...count).map { self.makePostJSON(id: (pageNum - 1) * 20 + $0) }.joined(separator: ",")
+            if path.hasSuffix("api/club/post/list") {
+                let ids: [Int]
+                let before = (body["beforeId"] as? NSNumber)?.intValue
+                if let before, before > 0 {
+                    ids = [before - 2, before - 1].filter { $0 > 0 }
+                } else {
+                    ids = Array(100...119)
+                }
+                let items = ids.map { self.makePostJSON(id: $0) }.joined(separator: ",")
+                return (Data(#"{"code":200,"data":{"rows":[\#(items)],"total":22,"clubCount":1}}"#.utf8), 200)
+            }
+            if path.hasSuffix("api/club/post/feed") {
+                let items = (1...20).map { self.makePostJSON(id: $0) }.joined(separator: ",")
                 return (Data(#"{"code":200,"data":{"rows":[\#(items)],"total":22,"clubCount":1}}"#.utf8), 200)
             }
             if path.hasSuffix("api/club/post/comment/list") {
@@ -107,31 +116,36 @@ final class ClubCommunityReadRuntimeTests: XCTestCase {
         XCTAssertEqual(runtime.activeClubID, 3)
 
         let page2 = await runtime.nextPostsPage()
-        XCTAssertEqual(page2?.posts.count, 2)
+        XCTAssertEqual(page2?.posts.count, 22)
         XCTAssertEqual(runtime.postsPage, 2)
+        XCTAssertEqual(requests.last?.1["beforeId"] as? Int, 100)
 
         let backToPage1 = await runtime.previousPostsPage()
         XCTAssertEqual(backToPage1?.posts.count, 20)
         XCTAssertEqual(runtime.postsPage, 1)
 
-        // 2. Cross-club feed pagination
+        // 2. Cross-club feed has no continuation producer.
         let feed1 = await runtime.loadFeed(page: 1)
         XCTAssertEqual(feed1?.posts.count, 20)
         XCTAssertNil(runtime.activeClubID)
+        let feedRequests = requests.count
         let feed2 = await runtime.nextPostsPage()
-        XCTAssertEqual(feed2?.posts.count, 2)
-        XCTAssertEqual(runtime.postsPage, 2)
+        XCTAssertEqual(feed2?.posts.count, 20)
+        XCTAssertEqual(runtime.postsPage, 1)
+        XCTAssertEqual(requests.count, feedRequests)
 
-        // 3. Comments pagination (page 1 -> page 2 -> page 1)
+        // 3. Comments are one complete response. A later page is not requested.
         let comments1 = await runtime.loadComments(postID: 44, page: 1)
         XCTAssertEqual(comments1?.comments.count, 50)
         XCTAssertEqual(runtime.commentsPage, 1)
+        let commentRequests = requests.count
         let comments2 = await runtime.nextCommentsPage()
-        XCTAssertEqual(comments2?.comments.count, 3)
-        XCTAssertEqual(runtime.commentsPage, 2)
+        XCTAssertEqual(comments2?.comments.count, 50)
+        XCTAssertEqual(runtime.commentsPage, 1)
         let commentsBack = await runtime.previousCommentsPage()
         XCTAssertEqual(commentsBack?.comments.count, 50)
         XCTAssertEqual(runtime.commentsPage, 1)
+        XCTAssertEqual(requests.count, commentRequests)
 
         // 4. History & return refresh
         let history = await runtime.loadHistory(postID: 44)
@@ -150,7 +164,7 @@ final class ClubCommunityReadRuntimeTests: XCTestCase {
         XCTAssertEqual(recovered?.posts.count, 20)
         XCTAssertNil(runtime.errorKey)
         XCTAssertNil(runtime.lastFailedOperation)
-        XCTAssertEqual(requests.count, 12)
+        XCTAssertEqual(requests.count, 9)
     }
 
     func testMissingOrRevokedApprovalFailsClosedWithZeroRequestsAndWritesRemainOff() async throws {
@@ -328,9 +342,11 @@ final class ClubCommunityReadRuntimeTests: XCTestCase {
 
         // 3. Paginate comments on detail and refresh comments
         let page2 = await runtime.loadComments(postID: 101, page: 2)
-        XCTAssertEqual(page2?.comments.first?.content, "Comment p2")
+        XCTAssertNil(page2)
+        XCTAssertNil(runtime.commentsSnapshot)
         _ = await runtime.loadComments(postID: 101, page: 1)
-        XCTAssertEqual(detailCommentPages, [1, 2, 1])
+        XCTAssertEqual(runtime.commentsSnapshot?.comments.first?.content, "Comment p1")
+        XCTAssertEqual(detailCommentPages, [1, 1])
 
         // 4. Return from detail clears detail snapshots and refreshes the active list
         listVersion = 2

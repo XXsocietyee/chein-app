@@ -2,7 +2,8 @@ import Foundation
 
 /// Source page metadata is independent of client date/price filtering and ID deduplication.
 public struct SearchMapActivityPage: Equatable {
-    public static let pageSize = 50
+    /// pages/searchmap/index.js `pageSize: 10` for `api/activity/list`.
+    public static let pageSize = 10
     public let rows: [ActivitySummary]
     public let pageNumber: Int
     public let rawCount: Int

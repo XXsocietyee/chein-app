@@ -110,6 +110,21 @@ final class TemplateAuthoringTests: XCTestCase {
     func testDeleteDoesNotUseTopicOrActivityID() throws {
         XCTAssertEqual(TemplateAuthoringContract.remove(id: try XCTUnwrap(.init(rawValue: 7))).body, .form(["template_id": "7"]))
     }
+    func testMerchantShelfScopeIsSentAndPlayerOmitsIt() throws {
+        let id = try XCTUnwrap(AuthoringPlayTemplateID(rawValue: 42))
+        XCTAssertEqual(TemplateAuthoringContract.listMine(scope: "MERCHANT").body, .form([
+            "is_quote": "", "keyword": "", "category_id": "", "pageNum": "1", "pageSize": "100", "scope": "MERCHANT"
+        ]))
+        XCTAssertEqual(TemplateAuthoringContract.listMine().body, .form([
+            "is_quote": "", "keyword": "", "category_id": "", "pageNum": "1", "pageSize": "100"
+        ]))
+        XCTAssertEqual(TemplateAuthoringContract.remove(id: id, scope: "MERCHANT").body, .form(["template_id": "42", "scope": "MERCHANT"]))
+        XCTAssertEqual(TemplateAuthoringContract.marketSubmit(id: id, scope: "MERCHANT").body, .form(["scope": "MERCHANT"]))
+        XCTAssertEqual(TemplateAuthoringContract.marketStatus(id: id, target: 2, scope: "MERCHANT")?.body, .form([
+            "template_id": "42", "status": "2", "scope": "MERCHANT"
+        ]))
+        XCTAssertEqual(TemplateAuthoringContract.marketSubmit(id: id).body, .form([:]))
+    }
     func testModuleTogglesOmitDisabledFields() throws {
         var d = TemplateAuthoringDraft(title: "x"); d.finishEnabled = false; d.rewardEnabled = false; d.storyEnabled = false; d.voiceEnabled = false
         d.questionAnswer = "secret"; d.feedbackText = "reward"; d.storyText = "story"; d.audioUrl = "asset"

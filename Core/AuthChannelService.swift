@@ -33,11 +33,16 @@ public protocol AuthChannelServing {
     func loginWithApple(identityToken: String) async throws -> LoginResult
     func currentAccount(token: String) async throws -> Account
     func currentAccount(token: String, loginFallbackRole: String?) async throws -> Account
+    /// Deregister posts the phone returned by `/api/user/info`, including a masked number.
+    func sendBoundDeregistrationCode(phone: String) async throws
 }
 
 public extension AuthChannelServing {
     func currentAccount(token: String, loginFallbackRole: String?) async throws -> Account {
         try await currentAccount(token: token)
+    }
+    func sendBoundDeregistrationCode(phone: String) async throws {
+        try await sendSMSCode(phone: phone)
     }
 }
 
@@ -78,6 +83,11 @@ public struct AuthChannelService: AuthChannelServing {
     }
     public func sendSMSCode(phone: String) async throws {
         _ = try await execute(.smsSend, fields: ["phone": AuthChannelInput.phone(phone)])
+    }
+    public func sendBoundDeregistrationCode(phone: String) async throws {
+        let trimmed = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw AuthChannelError.invalidPhone }
+        _ = try await execute(.smsSend, fields: ["phone": trimmed])
     }
     public func loginWithPhone(phone: String, code: String) async throws -> LoginResult {
         try await login(.phone, fields: ["phone": AuthChannelInput.phone(phone), "code": AuthChannelInput.code(code)])

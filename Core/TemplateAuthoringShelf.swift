@@ -16,18 +16,19 @@ public struct TemplateOwnShelfReview: Equatable, Identifiable {
     let baseline: DiscoveryPlayTemplate
     let generation: Int
     init(row: DiscoveryPlayTemplate, action: TemplateOwnShelfAction, session: TemplateAuthoringSession, generation: Int,
-         marketStatusTarget: Int? = nil) throws {
+         marketStatusTarget: Int? = nil, scope: String? = nil) throws {
         guard let identity = AuthoringPlayTemplateID(rawValue: row.id) else { throw TemplateAuthoringError.invalidContract }
         id = UUID(); templateID = identity; title = row.title; self.action = action
         desiredPublishStatus = action == .libraryStatus ? (row.publishStatus == 1 ? 0 : 1) : nil
         self.marketStatusTarget = action == .marketStatus ? marketStatusTarget : nil
+        let operationScope = scope == "MERCHANT" ? "MERCHANT" : nil
         switch action {
-        case .remove: request = TemplateAuthoringContract.remove(id: identity)
-        case .libraryStatus: request = TemplateAuthoringContract.libraryStatus(id: identity, current: row.publishStatus)
-        case .marketSubmit: request = TemplateAuthoringContract.marketSubmit(id: identity)
+        case .remove: request = TemplateAuthoringContract.remove(id: identity, scope: operationScope)
+        case .libraryStatus: request = TemplateAuthoringContract.libraryStatus(id: identity, current: row.publishStatus, scope: operationScope)
+        case .marketSubmit: request = TemplateAuthoringContract.marketSubmit(id: identity, scope: operationScope)
         case .marketStatus:
             guard let target = marketStatusTarget,
-                  let built = TemplateAuthoringContract.marketStatus(id: identity, target: target) else { throw TemplateAuthoringError.invalidContract }
+                  let built = TemplateAuthoringContract.marketStatus(id: identity, target: target, scope: operationScope) else { throw TemplateAuthoringError.invalidContract }
             request = built
         }
         self.session = session; baseline = row; self.generation = generation
@@ -156,12 +157,12 @@ public struct TemplateOwnShelfPage {
     public let total: Int?
     public let rowStates: [Int: TemplateOwnShelfStateProjection]
     public let cardFacts: [Int: TemplateOwnShelfCardFacts]
-    public static func request(page: Int, keyword: String) throws -> TemplateAuthoringRequest {
+    public static func request(page: Int, keyword: String, scope: String? = nil) throws -> TemplateAuthoringRequest {
         guard (1...maximumPages).contains(page) else { throw TemplateAuthoringError.invalidContract }
-        return .init(path: "/api/template/my-list", body: .form([
+        return .init(path: "/api/template/my-list", body: .form(TemplateAuthoringContract.shelfFields([
             "is_quote": "", "keyword": keyword, "category_id": "",
             "pageNum": String(page), "pageSize": String(pageSize)
-        ]), mutates: false)
+        ], scope: scope)), mutates: false)
     }
     public static func decode(_ data: Data, httpStatus: Int) throws -> Self {
         try TemplateAuthoringContract.requireSuccess(data, httpStatus: httpStatus)
@@ -205,6 +206,8 @@ public struct TemplateOwnShelfPage {
     public private(set) var rows: [DiscoveryPlayTemplate] = []
     public private(set) var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]
     public private(set) var cardFacts: [Int: TemplateOwnShelfCardFacts] = [:]
+    /// MP `mytemplate` `operationScope`. Only `MERCHANT` is written onto the page request.
+    public var operationScope: String?
     public private(set) var keyword = ""
     public private(set) var page = 0
     public private(set) var hasMore = false
@@ -247,7 +250,8 @@ public struct TemplateOwnShelfPage {
         let stamp = generation; busy = true; messageKey = nil
         defer { if generation == stamp { busy = false } }
         do {
-            let result = try await adapter.listMinePage(page: requested, keyword: keyword)
+            let shelfScope = operationScope == "MERCHANT" ? "MERCHANT" : nil
+            let result = try await adapter.listMinePage(page: requested, keyword: keyword, scope: shelfScope)
             guard generation == stamp else { return }
             guard self.owner == owner, currentSession() == owner, adapter.canRead, !Task.isCancelled else { leave(); return }
             // Offset pagination is not a snapshot. Refuse overlapping pages rather than

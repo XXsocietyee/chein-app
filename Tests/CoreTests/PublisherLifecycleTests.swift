@@ -72,6 +72,29 @@ private actor LifecycleFakeHTTP: HTTPTransport {
         XCTAssertEqual(first["subType"], .string("guided")); XCTAssertEqual(first["teamSize"], .number(3))
         XCTAssertNil(last["subType"]); XCTAssertEqual(last["guidedPrice"], .number(13)); XCTAssertNil(last["selfPrice"])
     }
+    func testPricingPreviewKeepsScopeAndConfirmUsesTheCheapestTicket() async throws {
+        let transport = LifecycleFakeHTTP([floor, floor, "{\"code\":200,\"msg\":\"accepted\"}"])
+        let client = try setup(transport); let owner = coordinator(client)
+        let tickets = [
+            try PublisherTicketPrice(ticketID: 11, price: Decimal(string: "12.50")!),
+            try PublisherTicketPrice(ticketID: 12, price: Decimal(string: "9")!),
+        ]
+        let input = try PublisherPricingInput(topicID: 4, subtype: .guided, leadCost: 2, teamSize: 3, scope: "MERCHANT", ticketPrices: tickets)
+        let review = try await owner.prepare(.pricing(input, 13))
+        _ = await owner.confirm(review, consequentialApproval: true)
+        let requests = await transport.requests
+        XCTAssertEqual(requests.first?.url?.path, "/test/api/topic/pricing/preview")
+        XCTAssertEqual(requests.last?.url?.path, "/test/api/topic/pricing/confirm")
+        let preview = try JSONDecoder().decode([String: ProjectEditJSON].self, from: XCTUnwrap(requests.first?.httpBody))
+        let confirm = try JSONDecoder().decode([String: ProjectEditJSON].self, from: XCTUnwrap(requests.last?.httpBody))
+        XCTAssertEqual(preview["scope"], .string("MERCHANT"))
+        XCTAssertNil(preview["ticketPrices"])
+        XCTAssertEqual(confirm["scope"], .string("MERCHANT"))
+        XCTAssertNil(confirm["subType"])
+        XCTAssertEqual(confirm["guidedPrice"]?.integer, 9)
+        XCTAssertEqual(confirm["ticketPrices"]?.array?.count, 2)
+        XCTAssertThrowsError(try PublisherPricingInput(topicID: 4, subtype: .selfPlay, scope: "CLUB"))
+    }
     func testCancellationUsesActualPaidPlayersAndServerMessage() async throws {
         let server = "已核销票需人工跟进"
         let transport = LifecycleFakeHTTP([paid, paid, "{\"code\":200,\"msg\":\"\(server)\"}"])

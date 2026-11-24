@@ -71,16 +71,25 @@ public enum CouponManagementReadRoute {
               let body = request.httpBody, body.count <= 16_384,
               let text = String(data: body, encoding: .utf8) else { return nil }
         let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
-        // Parse only enough to reconstruct and byte-compare the two allowed canonical shapes.
-        let prefix = "--\(boundary)\r\nContent-Disposition: form-data; name=\"keyword\"\r\n\r\n"
-        var keyword: String?
-        if text.hasPrefix(prefix), let end = text.range(of: "\r\n--\(boundary)", range: text.index(text.startIndex, offsetBy: prefix.count)..<text.endIndex) {
-            keyword = String(text[text.index(text.startIndex, offsetBy: prefix.count)..<end.lowerBound])
-            guard keyword?.isEmpty == false else { return nil }
+        let keyword: String?
+        if text.contains("name=\"keyword\"") {
+            guard let value = Self.formField(text, name: "keyword", boundary: boundary), !value.isEmpty else { return nil }
+            keyword = value
+        } else { keyword = nil }
+        let matched = [CouponPublishListScope.merchant, .player].contains { scope in
+            guard let wire = try? CouponManagementContract.published(keyword: keyword, scope: scope).encodedBody(boundary: boundary) else { return false }
+            return wire.contentType == type && wire.data == body
         }
-        guard let wire = try? CouponManagementContract.published(keyword: keyword).encodedBody(boundary: boundary),
-              wire.contentType == type, wire.data == body else { return nil }
+        guard matched else { return nil }
         self = .published
+    }
+
+    private static func formField(_ text: String, name: String, boundary: String) -> String? {
+        let marker = "name=\"\(name)\"\r\n\r\n"
+        guard let start = text.range(of: marker) else { return nil }
+        let rest = text[start.upperBound...]
+        guard let end = rest.range(of: "\r\n--\(boundary)") else { return nil }
+        return String(rest[..<end.lowerBound])
     }
 }
 public struct CouponManagementWire: Codable, Equatable {

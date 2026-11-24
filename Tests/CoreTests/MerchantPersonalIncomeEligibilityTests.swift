@@ -11,7 +11,15 @@ final class MerchantPersonalIncomeEligibilityTests:XCTestCase {
     }
     func testCoopDetailAllowed()throws{let s=try snapshot();XCTAssertTrue(MerchantPersonalIncomeEligibility.matches(row:s.document.rows[0],snapshot:s))}
     func testFinanceRequired()throws{let s=try snapshot(finance:false);XCTAssertFalse(MerchantPersonalIncomeEligibility.matches(row:s.document.rows[0],snapshot:s))}
-    func testOtherRouteDenied()throws{for route in ["PUBLIC_TRANSFER","","coop_order"]{let s=try snapshot(route:route);XCTAssertFalse(MerchantPersonalIncomeEligibility.matches(row:s.document.rows[0],snapshot:s))}}
+    func testOtherRouteDenied() throws {
+        for route in ["PUBLIC_TRANSFER", "coop_order"] {
+            let s = try snapshot(route: route)
+            XCTAssertFalse(MerchantPersonalIncomeEligibility.matches(row: s.document.rows[0], snapshot: s))
+        }
+        XCTAssertThrowsError(try snapshot(route: "")) { error in
+            XCTAssertEqual(error as? MerchantBusinessFailure, .malformed)
+        }
+    }
     func testListDoesNotExposeDetailHandoff()throws{let s=try snapshot(list:true);XCTAssertFalse(MerchantPersonalIncomeEligibility.matches(row:s.document.rows[0],snapshot:s))}
     func testOverviewFinancePermissionAllowsOnlyLedgerOrigin() throws {
         let access = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object)

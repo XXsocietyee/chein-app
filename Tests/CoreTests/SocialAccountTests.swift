@@ -53,7 +53,10 @@ private final class SocialReadTransport: HTTPTransport {
         let api = try service(t)
         let rows = try await api.informationList(); XCTAssertEqual(rows.count, 2)
         _ = try await api.information(id: 91)
-        XCTAssertEqual(t.requests[0].httpMethod, "POST"); XCTAssertNil(t.requests[0].httpBody)
+        XCTAssertEqual(t.requests[0].httpMethod, "POST")
+        XCTAssertTrue(body(t.requests[0]).contains("name=\"pageNum\"\r\n\r\n1\r\n"))
+        XCTAssertTrue(body(t.requests[0]).contains("name=\"pageSize\"\r\n\r\n10\r\n"))
+        XCTAssertNil(t.requests[0].value(forHTTPHeaderField: "Authorization"))
         XCTAssertEqual(t.requests[1].url?.path, "/fixture/api/common/infomation_detail")
         XCTAssertTrue(body(t.requests[1]).contains("name=\"id\"\r\n\r\n91"))
     }

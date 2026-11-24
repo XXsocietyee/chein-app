@@ -76,6 +76,12 @@ public enum MyProjectMutationOutcome: Equatable {
 
 @MainActor public protocol MyProjectMutating {
     func perform(_ request: MyProjectMutationRequest) async -> MyProjectMutationOutcome
+    /// POST `api/activity/cancel_preview` `{id, scope}`. Nil means the confirm must not open.
+    func previewActivityCancel(id: Int, scope: String) async -> Int?
+}
+
+public extension MyProjectMutating {
+    func previewActivityCancel(id: Int, scope: String) async -> Int? { nil }
 }
 
 public struct GatedMyProjectMutator: MyProjectMutating {
@@ -158,6 +164,31 @@ public struct MyProjectHTTPMutator: MyProjectMutating {
             return .failed(message: W8Text.t("网络异常，请重试", "Network error. Please retry."))
         }
     }
+
+    /// Form body, matching myproject `paidPlayersOrToast`. A non-200 or a non-integer count returns nil.
+    public func previewActivityCancel(id: Int, scope: String) async -> Int? {
+        guard id > 0, let config = await configuration(), let rawToken = await tokenProvider() else { return nil }
+        let token = rawToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !token.isEmpty else { return nil }
+        let request: URLRequest
+        do {
+            request = try AuthRequestBuilder.makeFormRequest(
+                url: config.baseURL.appendingPathComponent("api/activity/cancel_preview"),
+                fields: ["id": String(id), "scope": scope],
+                token: token
+            )
+        } catch { return nil }
+        do {
+            let (data, httpStatus) = try await transport.send(request)
+            guard (200...299).contains(httpStatus),
+                  let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  (root["code"] as? Int) == 200,
+                  let payload = root["data"] as? [String: Any] else { return nil }
+            if let count = payload["paidPlayers"] as? Int, count >= 0 { return count }
+            if let count = payload["paidPlayers"] as? String, let value = Int(count), value >= 0 { return value }
+            return nil
+        } catch { return nil }
+    }
 }
 
 public enum MyProjectMutationState: Equatable {
@@ -171,6 +202,8 @@ public enum MyProjectMutationState: Equatable {
 
 @MainActor public final class MyProjectMutationModel: ObservableObject {
     @Published public private(set) var state: MyProjectMutationState = .idle
+    /// Refund count copy from `cancel_preview`. The generic `confirmationMessage` stays for other actions.
+    @Published public private(set) var confirmationText: String?
     /// Bumps after every server-confirmed mutation; the host re-reads the list when it changes.
     @Published public private(set) var reloadToken = 0
     private let writer: MyProjectMutating
@@ -184,11 +217,30 @@ public enum MyProjectMutationState: Equatable {
     /// Starts an action: destructive ones wait for `confirm()`, plain toggles are sent now.
     public func begin(_ mutation: MyProjectMutation) async {
         if case .working = state { return }
+        confirmationText = nil
         if mutation.needsConfirmation {
             state = .awaitingConfirmation(mutation)
         } else {
             await send(mutation)
         }
+    }
+
+    /// myproject cancel: preview paid players first. A missing count does not open confirm and does not cancel.
+    public func beginActivityCancel(id: Int, title: String) async {
+        if case .working = state { return }
+        let mutation = MyProjectMutation.cancelActivity(id: id)
+        guard let count = await writer.previewActivityCancel(id: id, scope: scope), count >= 0 else {
+            confirmationText = nil
+            state = .failed(mutation, W8Text.t("暂时算不出退款人数，请稍后重试", "The refund count isn't available yet. Try again."))
+            return
+        }
+        let name = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let label = name.isEmpty ? "这场活动" : name
+        confirmationText = W8Text.t(
+            "确定取消「\(label)」吗？将给 \(count) 位已付款玩家全额退款。此操作不可撤销。",
+            "Cancel “\(label)”? \(count) paid players will be refunded in full. This can't be undone."
+        )
+        state = .awaitingConfirmation(mutation)
     }
 
     public func confirm() async {
@@ -198,6 +250,7 @@ public enum MyProjectMutationState: Equatable {
 
     public func dismiss() {
         if case .working = state { return }
+        confirmationText = nil
         state = .idle
     }
 

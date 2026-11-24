@@ -7,17 +7,30 @@ import UIKit
 /// a caller hands it bytes, and an unknown reference is not stored.
 final class CYCachedAsyncImageStore: @unchecked Sendable {
     static let maximumByteCount = 8 * 1024 * 1024
+    /// Resident bytes across every entry. One full-size image still fits; a shelf cannot keep 32 of them.
+    static let maximumTotalBytes = 8 * 1024 * 1024
     /// Shared cache for cover and shelf tiles. Tests use a private store.
     static let coversAndShelves = CYCachedAsyncImageStore(capacity: 32)
 
     private let capacity: Int
+    private let totalByteBudget: Int
     private let lock = NSLock()
+    private let flights = InFlightReadCoalescer<Data>()
     private var entries: [String: Data] = [:]
     private var order: [String] = []
+    private var totalBytes = 0
 
-    init(capacity: Int = 32) {
+    init(capacity: Int = 32, totalByteBudget: Int = maximumTotalBytes) {
         self.capacity = max(1, capacity)
+        self.totalByteBudget = max(1, totalByteBudget)
     }
+
+    /// One load for this key while an earlier load of it is still running.
+    func coalesce(_ key: String, _ body: @escaping () async throws -> Data) async throws -> Data {
+        try await flights.join(key, body)
+    }
+
+    func isCoalescing(_ key: String) -> Bool { flights.isInFlight(key) }
 
     var count: Int {
         lock.lock()
@@ -43,15 +56,19 @@ final class CYCachedAsyncImageStore: @unchecked Sendable {
     /// Keeps one decoded image. Empty, oversized, and undecodable bytes are refused.
     @discardableResult
     func insert(_ data: Data, for key: String) -> Bool {
-        guard !key.isEmpty, data.count > 0, data.count <= Self.maximumByteCount,
+        guard !key.isEmpty, data.count > 0, data.count <= Self.maximumByteCount, data.count <= totalByteBudget,
               UIImage(data: data) != nil else { return false }
         lock.lock()
         defer { lock.unlock() }
-        if let index = order.firstIndex(of: key) { order.remove(at: index) }
+        if let index = order.firstIndex(of: key) {
+            order.remove(at: index)
+            if let old = entries.removeValue(forKey: key) { totalBytes -= old.count }
+        }
         entries[key] = data
         order.append(key)
-        while order.count > capacity {
-            entries.removeValue(forKey: order.removeFirst())
+        totalBytes += data.count
+        while order.count > 1 && (order.count > capacity || totalBytes > totalByteBudget) {
+            if let old = entries.removeValue(forKey: order.removeFirst()) { totalBytes -= old.count }
         }
         return true
     }
@@ -132,7 +149,7 @@ enum CYCachedAsyncImageModel {
         }
         guard let loader else { return .placeholder }
         do {
-            let bytes = try await loader.loadImage(for: key)
+            let bytes = try await store.coalesce(key) { try await loader.loadImage(for: key) }
             if Task.isCancelled {
                 return store.peek(key).map(CYCachedAsyncImagePhase.ready) ?? .placeholder
             }

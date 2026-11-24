@@ -162,10 +162,12 @@ public enum TopicXcxFacts {
     /// Bottom bar states (source `is_join`, `lifecycle` 1/2/7, `selfPlay`).
     /// PC-B-1-3: `closed` = sale deadline passed (MP `topicSaleClosed`, x-fix2 P-1): the bar states 已截止 and offers no buy.
     public enum Action: Equatable { case ticketWallet, locked(Int), closed, selfPlay(price: Decimal?), signUp }
-    public static func action(_ topic: TopicDetail, now: Date = Date()) -> Action {
+    public static func action(_ topic: TopicDetail, now: Date = Date(), preferSession: Bool = false) -> Action {
         if topic.isSignUp { return .ticketWallet }
         if let lifecycle = topic.lifecycle, [1, 2, 7].contains(lifecycle) { return .locked(lifecycle) }
         if !topic.merchantClosed, saleClosed(topic, now: now) { return .closed }
+        // via=session and a non-empty activityList: the bar opens the session picker (signup) before self-play.
+        if preferSession, topic.activities?.isEmpty == false { return .signUp }
         return topic.selfPlay == 1 ? .selfPlay(price: topic.selfPlayPrice) : .signUp
     }
     /// MP `topicSaleClosed`: deadline = `saleEndAt`, else `endDate`; unknown deadline → still open.
@@ -173,8 +175,19 @@ public enum TopicXcxFacts {
         guard let deadline = IMInboxTime.parse(topic.saleEndAt) ?? IMInboxTime.parse(topic.endDate) else { return false }
         return now >= deadline
     }
-    /// Owner of a topic in pricing (lifecycle 2) is sent to the final-price page instead of a toast.
-    public static func opensPricing(_ topic: TopicDetail) -> Bool { topic.isOwner && topic.lifecycle == 2 }
+    /// Owner of a lifecycle-2 topic leaves the buy toast. Free explore (productType 2) opens the topic editor;
+    /// every other product opens pricing. Merchant publishers carry `scope=MERCHANT`.
+    public enum OwnerSaleRoute: Equatable { case pricing(scope: String?), editor(scope: String?) }
+    public static func ownerSaleRoute(_ topic: TopicDetail) -> OwnerSaleRoute? {
+        guard topic.isOwner, topic.lifecycle == 2 else { return nil }
+        let scope: String? = topic.contentPublisherType?.uppercased() == "MERCHANT" ? "MERCHANT" : nil
+        return topic.productType == 2 ? .editor(scope: scope) : .pricing(scope: scope)
+    }
+    /// True only when the owner sale route is the pricing page. Free-explore owners are `.editor`, not this.
+    public static func opensPricing(_ topic: TopicDetail) -> Bool {
+        if case .pricing = ownerSaleRoute(topic) { return true }
+        return false
+    }
 
     private static let selfOrdinalExpression: NSRegularExpression? = try? NSRegularExpression(
         pattern: #"^(?:第\s*[0-9一二三四五六七八九十百零两]+\s*章|结局|终章|序章|尾声)"#)

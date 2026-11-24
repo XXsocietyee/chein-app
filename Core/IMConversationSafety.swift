@@ -72,6 +72,13 @@ public struct IMSafetyMenu: Equatable {
         if conversation?.kind == .system { items = [.hide]; return }
         items = [.report, blockedByMe == true ? .unblock : .block, .hide]
     }
+
+    /// Chat `doReportPeer`. Kept off `Item` so existing menu switches stay exhaustive.
+    /// True for every non-system conversation. The F-agent inserts the row.
+    public static func offersPeerReport(conversation: MessagingConversation?) -> Bool {
+        guard let conversation else { return false }
+        return conversation.kind != .system
+    }
 }
 
 /// Composer gate text, in source priority order (chat `loadMessages`).
@@ -305,4 +312,97 @@ public enum IMSafetyState: Equatable {
         }
     }
     private func set(_ next: IMSafetyState) { state = next; onChange?() }
+}
+
+/// Shared report sheet (`subpackageMember/components/cy/report-sheet`). Writes stay off until a grant is set.
+public enum CommunityMemberReportTarget: String, Equatable, CaseIterable, Sendable {
+    case member = "MEMBER", merchant = "MERCHANT", club = "CLUB", activity = "ACTIVITY"
+}
+
+public struct CommunityMemberReportDraft: Equatable, Sendable {
+    public static let descriptionMax = 2000
+    public let targetType: CommunityMemberReportTarget
+    public let targetID: Int
+    public let reasonCode: String
+    public let policyVersion: String
+    public let description: String
+    public let requestID: String
+
+    public init(targetType: CommunityMemberReportTarget, targetID: Int, reasonCode: String, policyVersion: String, description: String, requestID: String) throws {
+        let reason = reasonCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        let policy = policyVersion.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        let request = requestID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard targetID > 0, !reason.isEmpty, !policy.isEmpty,
+              (1...Self.descriptionMax).contains(text.count),
+              (8...96).contains(request.count) else { throw APIError.invalidRequest }
+        self.targetType = targetType
+        self.targetID = targetID
+        self.reasonCode = reason
+        self.policyVersion = policy
+        self.description = text
+        self.requestID = request
+    }
+
+    /// `makeRequestId`: `rpt-<type>-<id>-<time36>-<rand>`, sliced to 96.
+    public static func requestID(targetType: CommunityMemberReportTarget, targetID: Int, nowMillis: Int, random: String) -> String {
+        let time = String(nowMillis, radix: 36)
+        let rand = String(random.prefix(8))
+        let raw = "rpt-\(targetType.rawValue.lowercased())-\(targetID)-\(time)-\(rand.isEmpty ? "0" : rand)"
+        return String(raw.prefix(96))
+    }
+
+    var json: [String: Any] {
+        ["targetType": targetType.rawValue, "targetId": targetID, "reasonCode": reasonCode,
+         "policyVersion": policyVersion, "description": description, "requestId": requestID]
+    }
+}
+
+public struct CommunityMemberReportClient {
+    public static let taxonomyPath = "api/community-trust/reports/taxonomy"
+    public static let submitPath = "api/community-trust/reports/submit"
+    public let writesEnabled: Bool
+    private let configuration: APIConfiguration
+    private let transport: any HTTPTransport
+
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, writesEnabled: Bool = false) {
+        self.configuration = configuration
+        self.transport = transport
+        self.writesEnabled = writesEnabled
+    }
+
+    public func taxonomyRequest(token: String?) throws -> URLRequest {
+        var request = URLRequest(url: configuration.baseURL.appendingPathComponent(Self.taxonomyPath))
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpShouldHandleCookies = false
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let token, AuthRequestBuilder.isValidToken(token) {
+            request.setValue(token, forHTTPHeaderField: "Authorization")
+        }
+        return request
+    }
+
+    public func submitRequest(_ draft: CommunityMemberReportDraft, token: String) throws -> URLRequest {
+        guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        var request = URLRequest(url: configuration.baseURL.appendingPathComponent(Self.submitPath))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpShouldHandleCookies = false
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: draft.json, options: [.sortedKeys])
+        return request
+    }
+
+    public func submit(_ draft: CommunityMemberReportDraft, token: String) async throws {
+        guard writesEnabled else { throw APIError.notConfigured }
+        let request = try submitRequest(draft, token: token)
+        let (data, status) = try await transport.send(request)
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status),
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              (root["code"] as? Int) == 200 else { throw APIError.malformedResponse }
+    }
 }

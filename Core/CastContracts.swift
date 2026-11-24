@@ -285,8 +285,7 @@ public enum CastStoryVariables {
     }
 }
 
-/// Cast fields a nodes/route payload carries. P2 applies this when it decodes
-/// `PlayExperienceDocument`; this package does not edit that type.
+/// Cast fields a nodes/route payload carries. `PlayExperienceDocument.castPayload` keeps these.
 public struct CastRuntimeFacts: Equatable, Sendable {
     public let config: CastConfig?
     public let profile: CastPlayerProfile?
@@ -295,6 +294,14 @@ public struct CastRuntimeFacts: Equatable, Sendable {
         config = CastConfig(raw: raw["castConfig"])
         profile = CastPlayerProfile.find(in: raw)
         trust = CastTrust.find(in: raw)
+    }
+    /// The nodes fields `adopt` and the ending section read. Other route fields stay on the play snapshot.
+    public static func payload(from raw: PlayWireValue) -> PlayWireValue {
+        var fields: [String: PlayWireValue] = [:]
+        for key in ["castConfig", "playerProfile", "trust", "routeState", "state", "endingFor", "endingCount"] where raw[key] != .null {
+            fields[key] = raw[key]
+        }
+        return fields.isEmpty ? .null : .object(fields)
     }
 }
 

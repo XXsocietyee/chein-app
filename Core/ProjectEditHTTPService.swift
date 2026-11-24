@@ -49,6 +49,17 @@ public struct ProjectEditCredentials: Equatable {
         self.approval = approval; self.store = store; self.currentCredentials = currentCredentials
         self.selfUseEditorAuthority = selfUseEditorAuthority; self.selfUseAuthorityCheck = selfUseAuthorityCheck
     }
+    /// Same host and token as this editor. Nil while the visit-config read gate is off.
+    public func visitConfigModel(topicID: Int) -> FreeExplorationVisitConfigModel? {
+        guard topicID > 0, PlayRuntimePortRouteGate.freeExploreVisitConfigRead else { return nil }
+        let credentials = currentCredentials
+        let service = FreeExplorationVisitConfigService(
+            configuration: configuration, transport: transport,
+            authorWrites: PlayRuntimePortRouteGate.freeExploreVisitConfigWrite,
+            readsEnabled: PlayRuntimePortRouteGate.freeExploreVisitConfigRead,
+            token: { credentials()?.token })
+        return FreeExplorationVisitConfigModel(topicID: topicID, service: service)
+    }
     private func check(_ credentials: ProjectEditCredentials) throws {
         try Task.checkCancellation()
         guard currentCredentials() == credentials else { throw ProjectEditError.changedSession }

@@ -83,6 +83,15 @@ final class MiniProgramPageLinkTests: XCTestCase {
         XCTAssertNil(MiniProgramPageLink(path: "pages/topic/pricing/index", query: ["topicId": "05"]))
     }
 
+    func testInvoiceHistoryAcceptsAnOptionalApplicationId() {
+        let bare = MiniProgramPageLink(path: "subpackageMember/invoice/index", query: [:])
+        XCTAssertEqual(bare?.page, "subpackageMember/invoice/index")
+        XCTAssertEqual(bare?.query, [:])
+        XCTAssertEqual(MiniProgramPageLink(path: "/subpackageMember/invoice/index", query: ["id": "15"])?.query, ["id": "15"])
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/invoice/index", query: ["id": "0"]))
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/invoice/index", query: ["other": "1"]))
+    }
+
     func testTableCoversEveryReviewedPage() {
         XCTAssertEqual(Set(table.map(\.1)), Set(MiniProgramPageLink.reviewedPages.keys))
     }
@@ -218,6 +227,15 @@ final class MiniProgramPageLinkTests: XCTestCase {
         for (page, query) in accepted {
             XCTAssertEqual(MiniProgramPageLink(path: page, query: query)?.query, query, page)
         }
+    }
+
+    func testCatalogOptionalIDAndSessionVia() {
+        let session = MiniProgramPageLink(path: "pages/topic/index/index", query: ["id": "7", "via": "session"])
+        XCTAssertEqual(session?.opensSessionPickerFirst, true)
+        XCTAssertNil(MiniProgramPageLink(path: "pages/topic/index/index", query: ["id": "7", "via": "other"]))
+        XCTAssertEqual(MiniProgramPageLink(path: "pages/topic/catalog/index", query: ["id": "9"])?.catalogDestination, .topic(9))
+        XCTAssertEqual(MiniProgramPageLink(path: "pages/topic/catalog/index", query: [:])?.catalogDestination, .home)
+        XCTAssertNil(MiniProgramPageLink(path: "pages/topic/catalog/index", query: ["id": "09"]))
     }
 
     func testEmptyValuesAreAbsent() {

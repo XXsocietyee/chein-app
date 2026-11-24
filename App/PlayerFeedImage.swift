@@ -15,22 +15,21 @@ enum PlayerFeedImages {
             return UIImage(data: cached)
         }
         guard let origin = ObjectCardMediaPolicy.origin(url.absoluteString) else { return nil }
-        let loader = ObjectCardBoundedImageLoader(policy: .init(approvedOrigins: [origin]))
-        let bytes: Data
+        let thumb: Data
         do {
-            bytes = try await loader.image(url: url.absoluteString)
+            thumb = try await store.coalesce(key) {
+                let loader = ObjectCardBoundedImageLoader(policy: .init(approvedOrigins: [origin]))
+                let bytes = try await loader.image(url: url.absoluteString)
+                guard let thumb = try await PlayerFeedJSON.perform({ thumbnailJPEG(bytes, maxPixel: maxPixel) }) else {
+                    throw CYCachedAsyncImageFailure.unavailable
+                }
+                return thumb
+            }
         } catch {
             return nil
         }
-        if Task.isCancelled { return nil }
-        let thumb: Data?
-        do {
-            thumb = try await PlayerFeedJSON.perform { thumbnailJPEG(bytes, maxPixel: maxPixel) }
-        } catch {
-            return nil
-        }
-        if Task.isCancelled { return nil }
-        guard let thumb, store.insert(thumb, for: key) else { return nil }
+        if Task.isCancelled { return store.peek(key).flatMap { UIImage(data: $0) } }
+        guard store.insert(thumb, for: key) else { return nil }
         return UIImage(data: thumb)
     }
 }

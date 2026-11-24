@@ -125,10 +125,11 @@ public struct ActivityDetail: Decodable, Equatable {
         guard selectable.isEmpty else { return nil }
         return tickets.isEmpty ? .noTicketsOpen : .noneSelectable
     }
-    /// Mirrors the source detail CTA (scene-play-activity-detail actionFor). A missing flag keeps
-    /// the existing registration entry, whose sheet and server still own eligibility checks.
+    /// Mirrors scene-play-activity-detail `actionFor`: only exact 0/1 are a signup state.
+    /// Anything else (missing, or a non 0/1 that `signUpFlag` already dropped) is a disabled "—".
     public func primaryAction(now: Date) -> ActivityPrimaryAction {
         if isCancelled { return .cancelled }
+        guard let signUpFlag else { return .unavailable }
         guard signUpFlag == 1 else { return .signUp }
         if let start = ActivityPrimaryAction.chinaDate(summary.startDate), now < start { return .viewRegistration }
         if let end = ActivityPrimaryAction.chinaDate(summary.endDate, dayOnly: true),
@@ -143,7 +144,7 @@ public enum ActivitySignUpBlock: Equatable {
 }
 
 public enum ActivityPrimaryAction: Equatable {
-    case signUp, viewRegistration, continueExploring, viewTrace, cancelled
+    case signUp, viewRegistration, continueExploring, viewTrace, cancelled, unavailable
     public var titleKey: String {
         switch self {
         case .signUp: return "activity.cta.signUp"
@@ -151,8 +152,11 @@ public enum ActivityPrimaryAction: Equatable {
         case .continueExploring: return "activity.cta.continue"
         case .viewTrace: return "activity.cta.trace"
         case .cancelled: return "activity.cta.cancelled"
+        case .unavailable: return "activity.cta.unavailable"
         }
     }
+    /// The "—" state is not a button. Sign-up stays subject to `signUpBlock`.
+    public var isPlaceholder: Bool { self == .unavailable }
     /// Source activity dates are Beijing wall-clock text ("yyyy-MM-dd[ HH:mm[:ss]]").
     static func chinaDate(_ raw: String?, dayOnly: Bool = false) -> Date? {
         guard var value = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }

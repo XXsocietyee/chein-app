@@ -89,33 +89,37 @@ final class ClubOpsGovernancePresentationTests: XCTestCase {
         let report = try ClubGovernanceCommand(operation: .report, scope: scope, values: ["targetType": .string("CLUB"), "targetId": .integer(81), "reason": .string("Facts"), "requestId": .string("report-1")])
         XCTAssertThrowsError(try report.validateReview(banned, accountID: 701))
     }
-    func testBanDraftSendsBoundedEpochFromDayChoice() throws {
+    func testBanDraftSendsDurationDaysFromDayChoice() throws {
         let now = Date(timeIntervalSince1970: 1_790_000_000)
         var draft = ClubGovernanceFormDraft(operation: .ban, scope: scope, seed: ["targetMemberId": .integer(704), "targetNickname": .string("Rider")])
         XCTAssertEqual(draft.text["banDays"], "30"); XCTAssertEqual(draft.choices("banDays"), ["7", "30", "90"])
         XCTAssertNil(draft.anchors["targetNickname"])
         draft.text["reason"] = "Harassment"
         let command = try draft.command(now: now)
-        XCTAssertEqual(command.fields["expiresAtEpochMs"], .integer(1_790_000_000_000 + 30 * 86_400_000))
-        XCTAssertNil(command.fields["expiresAt"]); XCTAssertNil(command.fields["banDays"]); XCTAssertNil(command.fields["targetNickname"])
-        draft.text["banDays"] = "90"; XCTAssertEqual(try draft.command(now: now).fields["expiresAtEpochMs"], .integer(1_790_000_000_000 + 90 * 86_400_000))
+        XCTAssertEqual(command.fields["durationDays"], .integer(30))
+        XCTAssertNil(command.fields["expiresAt"]); XCTAssertNil(command.fields["expiresAtEpochMs"])
+        XCTAssertNil(command.fields["banDays"]); XCTAssertNil(command.fields["targetNickname"])
+        draft.text["banDays"] = "90"; XCTAssertEqual(try draft.command(now: now).fields["durationDays"], .integer(90))
+        draft.text["banDays"] = "7"; XCTAssertEqual(try draft.command(now: now).fields["durationDays"], .integer(7))
         draft.text["banDays"] = "91"; XCTAssertThrowsError(try draft.command(now: now))
         draft.text["banDays"] = "30"; draft.text["reason"] = " "; XCTAssertThrowsError(try draft.command(now: now))
     }
-    func testBanCommandRejectsPastBeyondNinetyDaysAndMixedExpiry() throws {
-        let now = Date(timeIntervalSince1970: 1_790_000_000), ms = 1_790_000_000_000
+    func testBanCommandRejectsEpochAndUnknownDayCounts() throws {
+        let now = Date(timeIntervalSince1970: 1_790_000_000)
         func ban(_ extra: [String: ClubGovernanceValue]) throws -> ClubGovernanceCommand {
             var values: [String: ClubGovernanceValue] = ["targetMemberId": .integer(704), "reason": .string("R"), "requestId": .string("ban-1")]
             values.merge(extra) { _, new in new }
             return try .init(operation: .ban, scope: scope, values: values, now: now)
         }
-        XCTAssertNoThrow(try ban(["expiresAtEpochMs": .integer(ms + 7 * 86_400_000)]))
-        XCTAssertThrowsError(try ban(["expiresAtEpochMs": .integer(ms)]))
-        XCTAssertThrowsError(try ban(["expiresAtEpochMs": .integer(ms + 90 * 86_400_000 + 1)]))
-        XCTAssertThrowsError(try ban(["expiresAtEpochMs": .string(String(ms + 86_400_000))]))
+        XCTAssertNoThrow(try ban(["durationDays": .integer(7)]))
+        XCTAssertNoThrow(try ban(["durationDays": .integer(30)]))
+        XCTAssertNoThrow(try ban(["durationDays": .integer(90)]))
+        XCTAssertThrowsError(try ban(["durationDays": .integer(91)]))
+        XCTAssertThrowsError(try ban(["durationDays": .string("30")]))
         XCTAssertThrowsError(try ban([:]))
-        XCTAssertThrowsError(try ban(["expiresAtEpochMs": .integer(ms + 86_400_000), "expiresAt": .string("2026-10-08 09:00:00")]))
-        XCTAssertNoThrow(try ban(["expiresAt": .string("2026-10-08 09:00:00")]))
+        XCTAssertThrowsError(try ban(["expiresAtEpochMs": .integer(1_790_000_000_000)]))
+        XCTAssertThrowsError(try ban(["expiresAt": .string("2026-10-08 09:00:00")]))
+        XCTAssertThrowsError(try ban(["durationDays": .integer(30), "expiresAt": .string("2026-10-08 09:00:00")]))
     }
     func testUnbanNoteOptionalAndRevokeNoteFixed() throws {
         var unban = ClubGovernanceFormDraft(operation: .unban, scope: scope, seed: ["banId": .integer(1), "version": .integer(2)])
