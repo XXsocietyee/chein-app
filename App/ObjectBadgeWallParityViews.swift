@@ -385,7 +385,9 @@ enum ObjectBadgeShowroomMode: Equatable {
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                         // B3D-4: MP stage hint; under Reduce Motion it says the spin is off.
-                        Text(reduceMotion ? "objects.badge3d.hint.reduced" : "objects.badge3d.hint.drag")
+                        // B3D-1: a pin badge reads the pin hint (Core `ObjectBadgeTurntable.hintKey`).
+                        Text(reduceMotion ? "objects.badge3d.hint.reduced"
+                             : (parameters.style == "pin" ? "objects.badge3d.hint.pin" : "objects.badge3d.hint.drag"))
                             .cyText(.meta)
                             .foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("objects.badge3d.hint")
