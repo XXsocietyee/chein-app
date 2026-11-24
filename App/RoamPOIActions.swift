@@ -222,7 +222,7 @@ struct RoamPOIActionRows: View {
                 Label("roam.poi.location.unavailable", systemImage: "location.slash").cyText(.body)
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .rejected(let message):
-                Label { Text(verbatim: message) } icon: { Image(systemName: "exclamationmark.triangle") }.font(.subheadline)
+                Label { Text(verbatim: message) } icon: { Image(systemName: "exclamationmark.triangle") }.cyText(.bodyCompact)
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .signIn:
                 Label("roam.poi.signIn", systemImage: "person.crop.circle.badge.exclamationmark").cyText(.body)
