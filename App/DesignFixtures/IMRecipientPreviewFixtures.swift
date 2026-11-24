@@ -53,7 +53,7 @@ private struct IMRecipientPreviewFixtureScreen: View {
                     .listRowBackground(CYColor.bgElevated)
                     .frame(minHeight: CurA11y.hit, alignment: .leading)
             }
-            .navigationTitle(Text("im.preview.section", tableName: "IMRecipientPreview"))
+            .navigationTitle(Text("im.preview.section", tableName: "IMRecipientPreview")).navigationBarTitleDisplayMode(.inline)
             .accessibilityLabel(Text("im.preview.section", tableName: "IMRecipientPreview"))
             .accessibilityHint(Text("curA11y.imPreview.hint", tableName: "CurA11y"))
             .accessibilityAddTraits(.isHeader)

@@ -68,7 +68,7 @@ import SwiftUI
                             .disabled(owner?.canSubmit != true || captured == nil || busy)
                             .accessibilityIdentifier("context.review.submit")
                     }
-                }.navigationTitle("context.review.preview")
+                }.navigationTitle("context.review.preview").navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { review = nil; captured = nil }.disabled(busy) } }
             }.interactiveDismissDisabled(busy)
             .cyPlayerSheetGlass()

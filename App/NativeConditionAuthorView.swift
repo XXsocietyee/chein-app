@@ -296,10 +296,13 @@ import SwiftUI
         .cyGroupedSurface()
         .cyHeroScreen()
         .toolbar { EditButton().disabled(!model.canEdit) }
-        .sheet(isPresented: $showFields) {
+        .sheet(isPresented: $showFields) { Group {
             if let value = model.value(path), let revision = model.document?.revision {
                 NavigationStack { NativeConditionAuthorFieldForm(model: model, path: path, original: value, capturedRevision: revision, effect: effect) }
             }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .confirmationDialog("nativeCondition.changeOperation", isPresented: Binding(get: { pendingOperation != nil }, set: { if !$0 { pendingOperation = nil } })) {
             Button("nativeCondition.replaceOperation", role: .destructive) {

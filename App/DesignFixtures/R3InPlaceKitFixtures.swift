@@ -42,7 +42,7 @@ struct R3InPlaceKitFixture: View {
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.bottom, 120)
             }
-            .navigationTitle(Text(verbatim: "In-place kit · FIXTURE"))
+            .navigationTitle(Text(verbatim: "In-place kit · FIXTURE")).navigationBarTitleDisplayMode(.inline)
             .cyResultToast($toast, dwell: 600)
         }
         .cyDomainScreen(domain)

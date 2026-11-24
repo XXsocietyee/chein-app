@@ -183,11 +183,14 @@ import SwiftUI
             .onDisappear { ownedReadVisible = false; ownedReadVisit = UUID(); discovery.cancel(); coordinator.leave() }
             .sheet(item: $discoverySelection, onDismiss: {
                 if ownedReadVisible { reloadDiscovery(force: true) }
-            }) { selection in
+            }) { selection in Group {
                 if scenePhase == .active, let sources = discoverySources,
                    selection.scope == currentDiscoveryScope(selection.item), discovery.mayRemainOpen(selection) {
                     sources.destination(selection.item)
                 } else { RoamStatusView(issue: .unauthorized) }
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
     }
     private var discoveryInput: NearbyMapDiscoveryInput { .init(sources: discoverySources, query: submittedContext) }

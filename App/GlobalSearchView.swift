@@ -153,7 +153,7 @@ import SwiftUI
         .globalSearchInPage(inPageHost) { hostedFieldRow($0) }
         .cySkeletonTiming(isLoading: loading, visible: $skeletonShown)
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
-        .appNavigationTitle("searchMap.title")
+        .appNavigationTitle("searchMap.title").navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .navigationDestination(item: $mapRoute) { route in
             let _ = recordRoute(route)
