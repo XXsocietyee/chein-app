@@ -34,7 +34,7 @@ public struct ContextualReviewStarAndPhotoComposerView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: "reviewComposer.title", style: .player, onClose: onClose)
+            CYSheetHeader(title: Text("reviewComposer.title"), style: .player, onClose: onClose)
             Form {
                 Section("reviewComposer.rating") {
                     HStack(spacing: CYSpacing.sm) {
@@ -147,7 +147,7 @@ public struct ActivityCancelledStateView: View {
             Text("activity.cancelled.subtitle")
         } actions: {
             if canViewOwnOrders {
-                Button("activity.cancelled.viewOrders", action: onViewOwnOrders)
+                Button("activity.cancelled.viewOrders", action: onViewOrders)
                     .buttonStyle(.borderedProminent)
             }
             Button("common.back", action: onBack)
@@ -173,8 +173,8 @@ public struct SocialArticleRichBlocksView: View {
                         .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                 case .image(_, let urlStr):
-                    if let url = URL(string: urlStr) {
-                        CYCachedAsyncImage(url: url, role: .cover)
+                    if !urlStr.isEmpty {
+                        CYCachedAsyncImage(urlStr, role: .cover)
                             .frame(maxWidth: .infinity, minHeight: 180)
                             .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     }

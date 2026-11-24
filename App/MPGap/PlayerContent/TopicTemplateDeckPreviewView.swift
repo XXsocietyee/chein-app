@@ -114,7 +114,7 @@ public struct TopicTemplateDeckPreviewView: View {
     private func frontFace(_ card: TopicTemplatePreviewCard) -> some View {
         ZStack(alignment: .bottomLeading) {
             if let coverURL = preview.coverURL, let url = URL(string: coverURL) {
-                CYCachedAsyncImage(url: url, role: .cover)
+                CYCachedAsyncImage(url.absoluteString, role: .cover)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
             } else {

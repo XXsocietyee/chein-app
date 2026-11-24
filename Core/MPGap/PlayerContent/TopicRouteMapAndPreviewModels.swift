@@ -77,7 +77,7 @@ public struct TopicTemplatePreviewData: Equatable, Sendable {
         let totalDur = formatSeconds(totalTime)
         let finishMedalName = data["finishMedalName"].text
 
-        let games = data["games"].arrayValue ?? []
+        let games = data["games"].array ?? []
         let gameCards: [TopicTemplatePreviewCard] = games.enumerated().map { idx, g in
             let title = g["title"].text ?? ""
             let mins = g["duration"].tolerantInteger ?? 0
@@ -101,7 +101,7 @@ public struct TopicTemplatePreviewData: Equatable, Sendable {
         )
         let cards = [coverCard] + gameCards
 
-        let chapters = data["chapters"].arrayValue ?? []
+        let chapters = data["chapters"].array ?? []
         var checks: [String] = []
         if productType == 1 {
             let nodeCount = chapters.reduce(0) { $0 + ($1["nodeCount"].tolerantInteger ?? 0) }
