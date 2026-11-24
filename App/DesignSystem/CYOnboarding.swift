@@ -564,7 +564,7 @@ struct StampSeal: View {
                 .frame(width: seal, height: seal)
                 .shadow(color: CYNight.lantern.opacity(inked ? 0.45 : 0), radius: 18)
             Circle().strokeBorder(CYNight.ink0.opacity(0.7), lineWidth: 3).frame(width: size * 0.52, height: size * 0.52)
-            Image(systemName: "checkmark").font(.system(.title, design: .rounded).weight(.heavy)).foregroundStyle(CYNight.ink0)
+            Image(systemName: "checkmark").accessibilityHidden(true).font(.system(.title, design: .rounded).weight(.heavy)).foregroundStyle(CYNight.ink0)
             Circle().strokeBorder(CYNight.lantern.opacity(0.7 * Double(1 - ring)), lineWidth: 2)
                 .frame(width: seal, height: seal)
                 .scaleEffect(1 + 1.4 * ring)
@@ -587,7 +587,7 @@ struct StampSeal: View {
         }
         .overlay(alignment: .topTrailing) {
             HStack(spacing: 4) {
-                Image(systemName: "book.closed").font(.caption2.weight(.semibold))
+                Image(systemName: "book.closed").accessibilityHidden(true).font(.caption2.weight(.semibold))
                 Text(verbatim: "\(count)").font(.system(.caption, design: .rounded).weight(.bold).monospacedDigit()).contentTransition(.numericText())
             }
             .foregroundStyle(.white)

@@ -279,7 +279,7 @@ public struct ClubChannelMessagingView: View {
     private func moderationBannerView(_ banner: ChannelModerationFeedbackBanner) -> some View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: banner.isError ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
-                .foregroundStyle(banner.isError ? palette.danger : palette.success)
+                .accessibilityHidden(true).foregroundStyle(banner.isError ? palette.danger : palette.success)
             Text(banner.message)
                 .cyText(.caption)
                 .foregroundStyle(palette.textPrimary)
@@ -376,7 +376,7 @@ public struct ClubChannelMessagingView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Image(systemName: channel.symbolName)
-                            .cyText(.label)
+                            .accessibilityHidden(true).cyText(.label)
                             .foregroundStyle(palette.textSecondary)
                         Text(channel.name)
                             .cyText(.cardTitle)
@@ -667,7 +667,7 @@ public struct ClubChannelMessagingView: View {
             if let replyTarget = activeReplyTarget {
                 HStack(spacing: 6) {
                     Image(systemName: "arrowshape.turn.up.left.fill")
-                        .font(.caption)
+                        .accessibilityHidden(true).font(.caption)
                         .foregroundStyle(palette.info)
                     Text(copy("回复 \(replyTarget.senderName ?? "成员 #\(replyTarget.senderID ?? 0)")：\(replyTarget.content ?? "")", "Replying to \(replyTarget.senderName ?? "Member #\(replyTarget.senderID ?? 0)"): \(replyTarget.content ?? "")"))
                         .cyText(.meta)
@@ -693,7 +693,7 @@ public struct ClubChannelMessagingView: View {
             if !moderationCoordinator.hasAcceptedRules {
                 HStack(spacing: 6) {
                     Image(systemName: "lock.shield")
-                        .foregroundStyle(palette.warning)
+                        .accessibilityHidden(true).foregroundStyle(palette.warning)
                     Text(copy("请先在上方阅读并同意《俱乐部频道公约》后再发言。", "Please accept the Channel Rules & EULA above before sending messages."))
                         .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
@@ -704,7 +704,7 @@ public struct ClubChannelMessagingView: View {
             } else if selectedChannel?.isReadOnlyAnnouncement == true && !safetyPolicy.canModerateMessages {
                 HStack(spacing: 6) {
                     Image(systemName: "megaphone")
-                        .foregroundStyle(palette.textSecondary)
+                        .accessibilityHidden(true).foregroundStyle(palette.textSecondary)
                     Text(copy("当前为公告频道，仅主理人与管理员可发布通知", "This is an announcement channel. Only club owners and admins can post notices."))
                         .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
@@ -930,7 +930,7 @@ private struct ChannelBurstGroupCard: View {
                             if let reply = item.replyReference {
                                 HStack(spacing: 4) {
                                     Image(systemName: "arrowshape.turn.up.left")
-                                        .font(.caption)
+                                        .accessibilityHidden(true).font(.caption)
                                         .foregroundStyle(palette.textSecondary)
                                     Text("\(reply.replyAuthorName): \(reply.replyPreviewText)")
                                         .cyText(.meta)
@@ -956,7 +956,7 @@ private struct ChannelBurstGroupCard: View {
                             ForEach(Array(item.attachments.enumerated()), id: \.offset) { _, attachment in
                                 HStack(spacing: 6) {
                                     Image(systemName: attachment.kind == .image ? "photo" : "link")
-                                        .font(.caption)
+                                        .accessibilityHidden(true).font(.caption)
                                         .foregroundStyle(palette.textSecondary)
                                     Text(attachment.title)
                                         .cyText(.label)
@@ -987,7 +987,7 @@ private struct ChannelBurstGroupCard: View {
                                             .foregroundStyle(palette.textSecondary)
                                     case ChannelOutboundSendPhase.failed.rawValue:
                                         Image(systemName: "exclamationmark.circle.fill")
-                                            .foregroundStyle(palette.danger)
+                                            .accessibilityHidden(true).foregroundStyle(palette.danger)
                                             .font(.caption)
                                         Text(copy("发送失败", "Failed to send"))
                                             .cyText(.caption)
@@ -1078,7 +1078,7 @@ public struct ClubChannelMemberRosterSheet: View {
                 if let banner = coordinator.feedbackBanner {
                     HStack(spacing: CYSpacing.sm) {
                         Image(systemName: banner.isError ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
-                            .foregroundStyle(banner.isError ? palette.danger : palette.success)
+                            .accessibilityHidden(true).foregroundStyle(banner.isError ? palette.danger : palette.success)
                         Text(banner.message)
                             .cyText(.caption)
                             .foregroundStyle(palette.textPrimary)

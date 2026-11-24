@@ -114,11 +114,11 @@ struct ClubR1AccessoryView: View {
                 .accessibilityHidden(true)
         case .check:
             Image(systemName: "checkmark.circle.fill")
-                .cyText(.cardTitle)
+                .accessibilityHidden(true).cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
         case .unchecked:
             Image(systemName: "circle")
-                .cyText(.cardTitle)
+                .accessibilityHidden(true).cyText(.cardTitle)
                 .foregroundStyle(palette.textTertiary)
         case .tag(let text):
             CYStatusChip(verbatim: text)

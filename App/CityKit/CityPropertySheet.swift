@@ -440,7 +440,7 @@ struct CityPropertyDrawer: View {
 
     private func grabber(compact: CGFloat, full: CGFloat) -> some View {
         Capsule().fill(palette.textTertiary.opacity(0.6)).frame(width: 36, height: 5)
-            .frame(maxWidth: .infinity, minHeight: 24)
+            .frame(minWidth: CYSpacing.minTouchTarget, maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 2)
                 .updating($drag) { value, state, _ in state = value.translation.height }

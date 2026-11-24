@@ -123,7 +123,7 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
                     .safeAreaInset(edge: .top) {
                         Text(verbatim: "Synthetic fixture · debug only").cyText(.caption).foregroundStyle(.secondary).padding(.vertical, 2)
                     }
-                    .toolbar { ToolbarItem(placement: .primaryAction) { Menu { Button("Withdrawal parity") { showParity = true }; Button("Sign out") { state.scope = nil } } label: { Image(systemName: "ellipsis.circle") } } }
+                    .toolbar { ToolbarItem(placement: .primaryAction) { Menu { Button("Withdrawal parity") { showParity = true }; Button("Sign out") { state.scope = nil } } label: { Image(systemName: "ellipsis.circle").accessibilityLabel(Text(verbatim: "More")).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget) } } }
                 .navigationDestination(isPresented: $showParity) { WithdrawalParityFixtureHost() }
             }.id(state.scope)
         } else { listBody }

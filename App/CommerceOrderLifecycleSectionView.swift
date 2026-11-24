@@ -28,7 +28,7 @@ import SwiftUI
             if requiresQuoteConfirmation {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "exclamationmark.bubble.fill")
-                        .foregroundStyle(.orange)
+                        .accessibilityHidden(true).foregroundStyle(.orange)
                     Text(verbatim: "报价版本或总价已变更，需消费者显式确认后方可继续")
                         .cyText(.bodyMedium)
                 }
@@ -47,7 +47,7 @@ import SwiftUI
             if orderSnapshot.requiresServerRefundQuery {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "lock.trianglebadge.exclamationmark.fill")
-                        .foregroundStyle(.red)
+                        .accessibilityHidden(true).foregroundStyle(.red)
                     Text(verbatim: "存在 UNKNOWN 状态退款单：已锁定客户端重试，仅允许服务端回查")
                         .cyText(.bodyCompact)
                 }

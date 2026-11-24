@@ -67,7 +67,7 @@ struct TemplateAuthoringSavedResultPreferenceKey: PreferenceKey {
     let close: () -> Void
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "checkmark.circle.fill").font(.largeTitle).foregroundStyle(CYColor.successText)
+            Image(systemName: "checkmark.circle.fill").accessibilityHidden(true).font(.largeTitle).foregroundStyle(CYColor.successText)
             Text("templateSavedResult.title", tableName: "CreatorSavedResult").cyText(.sheetTitle)
             Text(verbatim: result.title).cyText(.cardTitle)
             Text("templateSavedResult.detail", tableName: "CreatorSavedResult").multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)

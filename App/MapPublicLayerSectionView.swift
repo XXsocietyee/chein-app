@@ -118,7 +118,7 @@ import SwiftUI
     private func layerStatusRow(_ page: MapPublicLayerPage) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: Self.statusSymbol(for: page))
-                .foregroundStyle(Self.statusColor(for: page.status))
+                .accessibilityHidden(true).foregroundStyle(Self.statusColor(for: page.status))
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(LocalizedStringKey(Self.layerTitleKey(for: page.source)))

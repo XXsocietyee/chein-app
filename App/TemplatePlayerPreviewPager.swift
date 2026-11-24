@@ -59,7 +59,7 @@ struct TemplatePlayerPreviewPager: View {
                         Capsule()
                             .fill(item.rawValue <= step.rawValue ? palette.selection : palette.borderSubtle)
                             .frame(height: 4)
-                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget / 2)
+                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)

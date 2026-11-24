@@ -156,6 +156,7 @@ import UIKit
                             NavigationStack {
                                 if let image = model.items.first(where: { $0.id == id }).flatMap({ UIImage(data: $0.image.jpeg) }) {
                                     Image(uiImage: image).resizable().scaledToFit().padding().privacySensitive()
+                                        .accessibilityLabel(Text("club.materials.title", tableName: "ClubHostApplicationMaterials"))
                                         .navigationTitle(Text("club.materials.title", tableName: "ClubHostApplicationMaterials")).navigationBarTitleDisplayMode(.inline)
                                         .toolbar { ToolbarItem(placement: .cancellationAction) {
                                             Button { model.close(item) } label: { Text("club.materials.close", tableName: "ClubHostApplicationMaterials") }

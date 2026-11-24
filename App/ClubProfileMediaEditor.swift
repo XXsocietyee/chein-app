@@ -60,6 +60,7 @@ import UIKit
             } else {
                 if let preview = flow.preview, let image = UIImage(data: preview.jpeg) {
                     Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240)
+                        .accessibilityLabel(Text("media.destination.image"))
                     Text(String(localized: LocalizedStringResource("media.uploadHint", table: "ClubProfileMedia", locale: locale)))
                     Button(String(localized: LocalizedStringResource("media.upload", table: "ClubProfileMedia", locale: locale))) { flow.upload(consume: apply) }.disabled(!canSelect)
                 } else if let asset = flow.pendingAsset, let scope = flow.scope, let service = flow.service {

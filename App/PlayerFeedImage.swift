@@ -73,7 +73,7 @@ struct PlayerFeedRemoteImage<Placeholder: View, Failure: View>: View {
             case .failed:
                 failure()
             case .ready(let image):
-                Image(uiImage: image).resizable().scaledToFill()
+                Image(uiImage: image).resizable().scaledToFill().accessibilityLabel(Text("media.destination.image"))
             }
         }
         .task(id: url) {

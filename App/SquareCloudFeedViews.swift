@@ -166,7 +166,7 @@ struct SquareCloudStravaBlock: View {
 
     private var clearedBanner: some View {
         HStack(spacing: CYSpacing.sm) {
-            Image(systemName: "trophy.fill").foregroundStyle(.orange)
+            Image(systemName: "trophy.fill").accessibilityHidden(true).foregroundStyle(.orange)
             Text(verbatim: copy("已通关", "Cleared")).cyText(.bodyMedium).foregroundStyle(.orange)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -572,7 +572,7 @@ struct SquareCloudCompletedActivityPicker: View {
                     .cyText(.meta).foregroundStyle(.secondary)
             }
             Spacer(minLength: CYSpacing.sm)
-            Image(systemName: "checkmark").foregroundStyle(CYColor.successText)
+            Image(systemName: "checkmark").accessibilityHidden(true).foregroundStyle(CYColor.successText)
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
     }

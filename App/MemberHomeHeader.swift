@@ -432,7 +432,7 @@ struct MemberBenefitRow: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: benefit.unlocked ? "checkmark.circle.fill" : "lock.fill")
-                .foregroundStyle(benefit.unlocked ? CYColor.textPrimary : CYColor.textTertiary)
+                .accessibilityHidden(true).foregroundStyle(benefit.unlocked ? CYColor.textPrimary : CYColor.textTertiary)
             label.cyText(.body).foregroundStyle(benefit.unlocked ? CYColor.textPrimary : CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)

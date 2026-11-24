@@ -190,6 +190,8 @@ public struct ClubGapApplyCertImagesSection: View {
                     } label: {
                         Image(systemName: "trash")
                     }
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityLabel(Text(verbatim: "删除凭证图片 \(index + 1)"))
                 }
             }
             if draft.remainingCapacity > 0 {

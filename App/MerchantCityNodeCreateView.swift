@@ -245,7 +245,7 @@ import SwiftUI
                 Spacer()
                 if picked != nil {
                     HStack(spacing: 4) {
-                        if confirmed { Image(systemName: "checkmark") }
+                        if confirmed { Image(systemName: "checkmark").accessibilityHidden(true) }
                         MerchantCityNodeCopy.text(confirmed ? "merchantCityNode.create.addressConfirmed" : "merchantCityNode.create.addressPending")
                     }.cyText(.meta, weight: .semibold).foregroundStyle(confirmed ? CYColor.successText : CYColor.warningText).accessibilityIdentifier("cityNodeCreate.address.state")
                 }

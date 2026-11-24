@@ -12,7 +12,7 @@ struct IATabsFixture: View {
             ForEach(RootTab.playerTabs, id: \.self) { tab in
                 NavigationStack {
                     VStack(spacing: CYSpacing.md) {
-                        Image(systemName: tab.playerSystemImage).font(.largeTitle)
+                        Image(systemName: tab.playerSystemImage).accessibilityHidden(true).font(.largeTitle)
                         Text(LocalizedStringKey(tab.playerTitleKey)).cyText(.pageTitle)
                         Text(verbatim: "Synthetic fixture").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }

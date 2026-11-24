@@ -143,7 +143,7 @@ public struct MerchantGapAIInsightDashboardSection: View {
         }
     }
 
-    private func growTipCover(for key: MerchantAIInsightGrowTip.Key) -> Image {
+    private func growTipCover(for key: MerchantAIInsightGrowTip.Key) -> (Image) {
         switch key {
         case .coop: return MPAsset.BannerCover.treasureHunter
         case .citynode: return MPAsset.BannerCover.flavorTour

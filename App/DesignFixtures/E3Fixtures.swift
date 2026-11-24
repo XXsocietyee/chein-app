@@ -192,7 +192,7 @@ struct E3ClubCalendarFixture: View {
                         E3AvatarStack(seeds: ["x", "y", "z"], extra: 9, size: 22)
                     }
                     Spacer(minLength: 0)
-                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary)
+                    Image(systemName: "chevron.right").accessibilityHidden(true).font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary)
                 }.e3Card(padding: CYSpacing.md)
             }
         }
@@ -265,11 +265,11 @@ struct E3RichChatFixture: View {
     }
     private func composer(_ t: @escaping (String, String) -> String) -> some View {
         HStack(alignment: .bottom, spacing: 8) {
-            Image(systemName: "plus").font(.title3.weight(.medium)).frame(width: 44, height: 44).foregroundStyle(CYColor.textSecondary)
+            Image(systemName: "plus").accessibilityLabel(Text(verbatim: t("添加", "Add"))).font(.title3.weight(.medium)).frame(width: 44, height: 44).foregroundStyle(CYColor.textSecondary)
             HStack(spacing: 4) {
                 TextField(t("发消息…", "Message"), text: $draft).padding(.leading, 16).frame(minHeight: 44)
                 let live = !draft.isEmpty
-                Image(systemName: "arrow.up").font(.subheadline.weight(.bold)).foregroundStyle(live ? Color.white : Color.secondary)
+                Image(systemName: "arrow.up").accessibilityLabel(Text(verbatim: t("发送", "Send"))).font(.subheadline.weight(.bold)).foregroundStyle(live ? Color.white : Color.secondary)
                     .frame(width: 32, height: 32).background(live ? CYChat.sent : Color.secondary.opacity(0.25), in: Circle()).padding(.trailing, 6)
             }
             .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
@@ -379,7 +379,7 @@ struct E3PeopleFixture: View {
                       (t("周小满", "Zhou Xiaoman"), t("2 位共同好友", "2 mutual friends")), (t("Ava Reyes", "Ava Reyes"), t("互相关注", "Follows you back")), (t("许知远", "Xu Zhiyuan"), t("附近的玩家", "Player nearby"))]
         E3Page(title: t("关注", "Followers")) {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary)
+                Image(systemName: "magnifyingglass").accessibilityHidden(true).foregroundStyle(CYColor.textTertiary)
                 Text(verbatim: t("搜索昵称", "Search by name")).foregroundStyle(CYColor.textPlaceholder)
                 Spacer()
             }.cyText(.body).padding(.horizontal, CYSpacing.md).frame(minHeight: 44).background(CYColor.bgElevated, in: Capsule())

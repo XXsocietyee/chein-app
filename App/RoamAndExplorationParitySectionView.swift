@@ -210,7 +210,7 @@ public struct RoamAndExplorationParitySectionView: View {
     private var headerRow: some View {
         HStack(spacing: 8) {
             Image(systemName: "map.fill")
-                .foregroundStyle(.teal)
+                .accessibilityHidden(true).foregroundStyle(.teal)
             Text(verbatim: "Roam & Exploration Parity Audit")
                 .cyText(.cardTitle)
                 .accessibilityIdentifier("roamExplorationAudit.header")

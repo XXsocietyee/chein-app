@@ -91,7 +91,7 @@ struct CYStarBloom<S: Shape>: View {
             ForEach(0..<7, id: \.self) { i in
                 let a = Double(i) / 7 * 2 * .pi + phase * 1.6 + spin
                 Image(systemName: "sparkle")
-                    .font(.system(size: 10 + Double(i % 3) * 4))
+                    .accessibilityHidden(true).font(.system(size: 10 + Double(i % 3) * 4))
                     .foregroundStyle(i % 2 == 0 ? tint : CYNight.lanternHot)
                     .offset(x: cos(a) * size * 0.84, y: sin(a) * size * 0.67)
                     .opacity(appear * 0.9)
