@@ -557,10 +557,9 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             .frame(width: 36, height: 36)
             .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
             .accessibilityHidden(true)
-        if row.merchantLogo.isEmpty {
-            initial
-        } else {
-            AsyncImage(url: URL(string: row.merchantLogo)) { phase in
+        // Only a safe (https) logo URL is fetched; "" or anything else keeps the initial tile.
+        if let logo = QuestifyCardArtwork.safeURL(row.merchantLogo) {
+            AsyncImage(url: logo) { phase in
                 switch phase {
                 case .success(let image):
                     image.resizable().scaledToFill()
@@ -571,6 +570,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             .frame(width: 36, height: 36)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
             .accessibilityHidden(true)
+        } else {
+            initial
         }
     }
     private var marketing: some View {

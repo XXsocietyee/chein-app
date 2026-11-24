@@ -57,7 +57,7 @@ struct SettingsView: View {
             } else if showsSignedOut {
                 // B-SZ-04: the MP signed-out row starts sign-in.
                 Button { showsSignIn = true } label: {
-                    Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { Image(systemName: "person.crop.circle") }
+                    Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconQaPerson) }
                 }
                 .accessibilityIdentifier("settingsNative.profileSignedOut")
             }
@@ -73,13 +73,16 @@ struct SettingsView: View {
                             Label {
                                 Text(verbatim: SettingsAccountProfileClient.deniedCopy)
                             } icon: {
-                                Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+                                AccountPublishMPGlyph(MPAsset.FeatureIcon.iconQaPerson).accessibilityHidden(true)
                             }
                             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: SettingsAccountProfileClient.deniedRetry)
                                 .cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         }
                     }
+                    // B-SZ-09: a second tap while the read is in flight is dropped; 44 pt row.
+                    .disabled(accountProfileLoading)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .padding(.horizontal, CYSpacing.lg)
                     .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
                 } else {
@@ -172,7 +175,7 @@ struct SettingsView: View {
                             makeArticleReader: { session.makeProfileGuideArticleReader($0) },
                             onOpenDestination: onOpenGuideDestination, templateReader: session)
                             .id(session.socialAccountReader.identity)
-                    } label: { Label("social.guide.title", systemImage: "questionmark.circle") }
+                    } label: { Label { Text("social.guide.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcCompass) } }
                         .accessibilityIdentifier("settings.playGuide")
                 }
                 .environment(\.settingsTileTint, SettingsTint.teal)
@@ -428,7 +431,7 @@ private struct SettingsSearchResults: View {
         if bindings.journeyPromo != nil, !bindings.isMerchant {
             Section {
                 NavigationLink { MPParityDestination(route: .journeyPromo) } label: {
-                    Label("mp.account.promo", systemImage: "person.2.wave.2")
+                    Label { Text("mp.account.promo") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcGift) }
                 }
                 .accessibilityIdentifier("settings.invitePromo")
             }

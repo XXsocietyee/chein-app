@@ -19,7 +19,7 @@ import SwiftUI
             Section {
                 Button {
                     openClubHost(isClubLeader: profile.isClubLeader)
-                } label: { Label("settings.becomeClubHost", systemImage: "flag") }
+                } label: { Label { Text("settings.becomeClubHost") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconFlagBlue) } }
                     .disabled(loadingClubs)
                     .accessibilityIdentifier("settings.becomeClubHost")
                 NavigationLink {
