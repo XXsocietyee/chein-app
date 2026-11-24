@@ -75,13 +75,13 @@ public struct ClubCommunitySession: Equatable {
     }
 }
 public enum ClubCommunityRead: Equatable {
-    case posts(clubID: Int, beforeID: Int?, limit: Int), feed(limit: Int)
+    case posts(clubID: Int, beforeID: Int?, limit: Int), feed(limit: Int, beforeID: Int?)
     /// Compatibility is first-page only. A page number is not a backend cursor.
     public static func posts(clubID: Int, page: Int) -> Self {
         .posts(clubID: clubID, beforeID: nil, limit: page == 1 ? 20 : 0)
     }
-    /// The original joined/cooperating aggregate has no continuation producer.
-    public static func feed(page: Int) -> Self { .feed(limit: page == 1 ? 20 : 0) }
+    /// Page 1 is the first discover page. A later page number is not a cursor; pass `beforeID`.
+    public static func feed(page: Int) -> Self { .feed(limit: page == 1 ? 20 : 0, beforeID: nil) }
     case comments(postID: Int, page: Int), history(postID: Int)
     var suffix: String { switch self { case .posts: return "list"; case .feed: return "feed"; case .comments: return "comment/list"; case .history: return "history" } }
     var fields: [String: Any] {
@@ -90,7 +90,10 @@ public enum ClubCommunityRead: Equatable {
             var fields: [String: Any] = ["clubId": id, "limit": limit]
             if let beforeID { fields["beforeId"] = beforeID }
             return fields
-        case let .feed(limit): return ["limit": limit]
+        case let .feed(limit, beforeID):
+            var fields: [String: Any] = ["limit": limit, "scope": "all"]
+            if let beforeID { fields["beforeId"] = beforeID }
+            return fields
         case let .comments(id, _): return ["postId": id]
         case let .history(id): return ["id": id]
         }
@@ -101,9 +104,16 @@ public struct ClubCommunitySnapshot {
     public let clubCount: Int?
     public let postPage: ClubCommunityPostPage?
     public let feedItems: [ClubCommunityFeedItem]
-    public init(posts: [ClubCommunityPost], comments: [ClubCommunityComment], history: [ClubCommunityRevision], clubCount: Int?, postPage: ClubCommunityPostPage? = nil, feedItems: [ClubCommunityFeedItem]? = nil) {
+    /// Server `hasMore` for `POST /api/club/post/feed`. Club post pages leave this false.
+    public let feedHasMore: Bool
+    /// `beforeId` sent for this feed page. Nil is the first page.
+    public let feedRequestedBeforeID: Int?
+    /// Last row id to send as the next `beforeId`.
+    public let feedNextBeforeID: Int?
+    public init(posts: [ClubCommunityPost], comments: [ClubCommunityComment], history: [ClubCommunityRevision], clubCount: Int?, postPage: ClubCommunityPostPage? = nil, feedItems: [ClubCommunityFeedItem]? = nil, feedHasMore: Bool = false, feedRequestedBeforeID: Int? = nil, feedNextBeforeID: Int? = nil) {
         self.posts = posts; self.comments = comments; self.history = history; self.clubCount = clubCount
         self.postPage = postPage; self.feedItems = feedItems ?? posts.map { .original($0) }
+        self.feedHasMore = feedHasMore; self.feedRequestedBeforeID = feedRequestedBeforeID; self.feedNextBeforeID = feedNextBeforeID
     }
 }
 public enum ClubCommunityOperation: Equatable {

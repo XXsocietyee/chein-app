@@ -68,7 +68,7 @@ final class ClubCommunityReadRuntimeTests: XCTestCase {
                 let pageNum = body["pageNum"] as? Int ?? 1
                 let count = pageNum == 1 ? 20 : 2
                 let items = (1...count).map { self.makePostJSON(id: (pageNum - 1) * 20 + $0) }.joined(separator: ",")
-                return (Data(#"{"code":200,"data":{"rows":[\#(items)],"total":22,"clubCount":1}}"#.utf8), 200)
+                return (Data(#"{"code":200,"data":{"rows":[\#(items)],"total":22,"clubCount":1,"hasMore":true}}"#.utf8), 200)
             }
             if path.hasSuffix("api/club/post/comment/list") {
                 let pageNum = body["pageNum"] as? Int ?? 1

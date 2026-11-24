@@ -24,8 +24,8 @@ public enum ClubCommunityReadRoute: Equatable, Sendable {
     public static func posts(clubID: Int, page: Int) -> Self {
         .posts(clubID: clubID, beforeID: nil, limit: page == 1 ? 20 : 0)
     }
-    case feed(limit: Int)
-    public static func feed(page: Int) -> Self { .feed(limit: page == 1 ? 20 : 0) }
+    case feed(limit: Int, beforeID: Int?)
+    public static func feed(page: Int) -> Self { .feed(limit: page == 1 ? 20 : 0, beforeID: nil) }
     case comments(postID: Int, page: Int)
     case history(postID: Int)
 
@@ -33,8 +33,8 @@ public enum ClubCommunityReadRoute: Equatable, Sendable {
         switch self {
         case let .posts(clubID, beforeID, limit):
             return .posts(clubID: clubID, beforeID: beforeID, limit: limit)
-        case let .feed(limit):
-            return .feed(limit: limit)
+        case let .feed(limit, beforeID):
+            return .feed(limit: limit, beforeID: beforeID)
         case let .comments(postID, page):
             return .comments(postID: postID, page: page)
         case let .history(postID):
@@ -88,9 +88,18 @@ public enum ClubCommunityReadRoute: Equatable, Sendable {
             canonicalFields = canonical
             parsed = .posts(clubID: clubID, beforeID: beforeID, limit: limit)
         } else if url.absoluteString == baseURL.appendingPathComponent(Self.feedPath).absoluteString {
-            guard fields.count == 1, let limit = fields["limit"] as? Int, (1...50).contains(limit) else { return nil }
-            canonicalFields = ["limit": limit]
-            parsed = .feed(limit: limit)
+            guard let limit = fields["limit"] as? Int, (1...50).contains(limit),
+                  fields["scope"] as? String == "all" else { return nil }
+            let beforeID: Int?
+            if fields["beforeId"] != nil {
+                guard let cursor = fields["beforeId"] as? Int, cursor > 0 else { return nil }
+                beforeID = cursor
+            } else { beforeID = nil }
+            guard fields.count == (beforeID == nil ? 2 : 3) else { return nil }
+            var canonical: [String: Any] = ["limit": limit, "scope": "all"]
+            if let beforeID { canonical["beforeId"] = beforeID }
+            canonicalFields = canonical
+            parsed = .feed(limit: limit, beforeID: beforeID)
         } else if url.absoluteString == baseURL.appendingPathComponent(Self.commentsPath).absoluteString {
             guard fields.count == 1, let postID = fields["postId"] as? Int, postID > 0 else { return nil }
             canonicalFields = ["postId": postID]
@@ -282,6 +291,8 @@ public final class ClubCommunityReadRuntime {
     public private(set) var activeFingerprint: ScopeFingerprint?
     private var generation: UInt64 = 0
     private var postCursor = ClubCommunityReadCursor()
+    private var feedCursor = ClubCommunityFeedCursor()
+    public var canLoadMoreFeed: Bool { feedCursor.hasMore }
 
     public init(
         makeService: @escaping () -> ClubCommunityService,
@@ -323,6 +334,7 @@ public final class ClubCommunityReadRuntime {
     public func invalidate() {
         generation &+= 1
         postCursor.reset()
+        feedCursor.reset()
         postsSnapshot = nil
         commentsSnapshot = nil
         historySnapshot = nil
@@ -354,6 +366,7 @@ public final class ClubCommunityReadRuntime {
 
         if activeFingerprint != nil && activeFingerprint != fingerprint {
             postCursor.reset()
+            feedCursor.reset()
             postsSnapshot = nil
             commentsSnapshot = nil
             historySnapshot = nil
@@ -399,9 +412,10 @@ public final class ClubCommunityReadRuntime {
                 if let currentSelected = selectedPost {
                     selectedPost = result.posts.first(where: { $0.id == currentSelected.id })
                 }
-            case .feed:
+            case let .feed(_, beforeID):
+                result = try feedCursor.accept(result, identity: session.identity)
                 activeClubID = nil
-                postsPage = 1
+                postsPage = beforeID == nil ? 1 : postsPage + 1
                 postsSnapshot = result
                 if let currentSelected = selectedPost {
                     selectedPost = result.posts.first(where: { $0.id == currentSelected.id })
@@ -454,8 +468,8 @@ public final class ClubCommunityReadRuntime {
             guard postCursor.hasMore, let beforeID = postCursor.beforeID else { return postsSnapshot }
             return await load(.posts(clubID: clubID, beforeID: beforeID, limit: 20))
         }
-        // No continuation exists for the original aggregate scope.
-        return postsSnapshot
+        guard feedCursor.hasMore, let beforeID = feedCursor.beforeID else { return postsSnapshot }
+        return await load(.feed(limit: 20, beforeID: beforeID))
     }
 
     @discardableResult
@@ -465,7 +479,7 @@ public final class ClubCommunityReadRuntime {
         if let clubID = activeClubID {
             return await load(.posts(clubID: clubID, beforeID: nil, limit: 20))
         }
-        return await load(.feed(limit: 20))
+        return await load(.feed(limit: 20, beforeID: nil))
     }
 
     @discardableResult
