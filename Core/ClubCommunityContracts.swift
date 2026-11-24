@@ -126,8 +126,11 @@ public struct ClubCommunityEvidence: Equatable {
     public let identity: ClubReadIdentity, clubID: Int, joined: Bool, owner: Bool, administrator: Bool
     public let post: ClubCommunityPost?, comment: ClubCommunityComment?
     public let observedAt: Date
-    public init(identity: ClubReadIdentity, clubID: Int, joined: Bool, owner: Bool, administrator: Bool, post: ClubCommunityPost? = nil, comment: ClubCommunityComment? = nil, observedAt: Date = Date()) {
+    /// Nil means the detail read did not say. `false` is MP `memberPostAllowed == 0`.
+    public let memberPostAllowed: Bool?
+    public init(identity: ClubReadIdentity, clubID: Int, joined: Bool, owner: Bool, administrator: Bool, post: ClubCommunityPost? = nil, comment: ClubCommunityComment? = nil, observedAt: Date = Date(), memberPostAllowed: Bool? = nil) {
         self.identity = identity; self.clubID = clubID; self.joined = joined; self.owner = owner; self.administrator = administrator; self.post = post; self.comment = comment; self.observedAt = observedAt
+        self.memberPostAllowed = memberPostAllowed
     }
     public func allows(_ operation: ClubCommunityOperation) -> Bool {
         guard let viewer = identity.accountID, viewer > 0, clubID > 0 else { return false }
@@ -136,7 +139,10 @@ public struct ClubCommunityEvidence: Equatable {
         let mine = post?.authorMemberID == viewer
         let manager = owner || administrator || post?.viewerCanManage == true
         switch operation {
-        case let .create(_, _, notice): return notice ? (owner || administrator) : (joined || owner)
+        case let .create(_, _, notice):
+            if notice { return owner || administrator }
+            if owner || administrator { return true }
+            return joined && memberPostAllowed != false
         case .update: return post != nil && (post?.type == 2 ? manager : mine)
         case .pin: return post?.type == 2 && manager
         case .delete: return post != nil && (mine || manager)
