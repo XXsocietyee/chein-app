@@ -9,6 +9,7 @@ public struct HomeFeedService {
     private let transport: any HTTPTransport
     private let discovery: DiscoveryService
     private let topics: TopicService
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
         discovery = DiscoveryService(configuration: configuration, transport: transport)
@@ -47,8 +48,13 @@ public struct HomeFeedService {
         }
     }
     private func activities(fields: [String: String], token: String?) async throws -> [ActivitySummary] {
-        let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/activity/list"), fields: fields, token: token)
-        let (data, status) = try await transport.send(request)
+        let key = InFlightReadKey.fields(method: "POST", path: "api/activity/list", fields: fields, token: token)
+        let response = try await reads.join(key) {
+            let request = try AuthRequestBuilder.makeFormRequest(url: self.configuration.baseURL.appendingPathComponent("api/activity/list"), fields: fields, token: token)
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        let (data, status) = (response.data, response.status)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         do { return try await PlayerFeedJSON.perform { try JSONDecoder().decode(ActivityListResponse.self, from: data) }.rows }

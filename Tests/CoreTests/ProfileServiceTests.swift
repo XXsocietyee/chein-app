@@ -22,6 +22,27 @@ final class ProfileServiceTests: XCTestCase {
         XCTAssertFalse(body.contains("memberId"))
         XCTAssertEqual(transport.requests.count, 1)
     }
+    func testOrderHistoryPagesTheRegistrationListWithStatusZero() async throws {
+        let transport = ProfileTestTransport([.json(#"{"code":200,"data":{"rows":[{"id":1,"memberId":9},{"id":2,"memberId":9}],"total":25}}"#)])
+        let page = try await service(transport).orderHistory(token: "fixture-token", pageNum: 1, expectedAccountID: 9)
+        XCTAssertEqual(page.rows.map(\.id), [1, 2])
+        XCTAssertEqual(page.total, 25)
+        XCTAssertEqual(page.pageSize, ProfileService.registrationListPageSize)
+        XCTAssertFalse(page.hasMore)
+        let fullRows = (1...10).map { #"{"id":\#($0),"memberId":9}"# }.joined(separator: ",")
+        let full = try await service(ProfileTestTransport([.json(#"{"code":200,"data":{"rows":[\#(fullRows)],"total":25}}"#)])).orderHistory(token: "fixture-token", pageNum: 1, expectedAccountID: 9)
+        XCTAssertTrue(full.hasMore)
+        let request = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(request.url?.path, "/fixture/api/registration/list")
+        XCTAssertEqual(request.httpMethod, "POST")
+        let body = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8)!
+        XCTAssertTrue(body.contains("name=\"owner_type\"\r\n\r\n3\r\n"))
+        XCTAssertTrue(body.contains("name=\"pageNum\"\r\n\r\n1\r\n"))
+        XCTAssertTrue(body.contains("name=\"pageSize\"\r\n\r\n10\r\n"))
+        XCTAssertTrue(body.contains("name=\"status\"\r\n\r\n0\r\n"))
+        let last = try await service(ProfileTestTransport([.json(#"{"code":200,"data":{"rows":[{"id":3}],"total":1}}"#)])).orderHistory(token: "fixture-token", pageNum: 1, pageSize: 10)
+        XCTAssertFalse(last.hasMore)
+    }
     func testOrdersAlsoAcceptDataRowsEnvelope() async throws {
         let transport = ProfileTestTransport([.json(#"{"code":200,"data":{"rows":[{"id":7}]}}"#)])
         let rows = try await service(transport).orders(token: "fixture-token")

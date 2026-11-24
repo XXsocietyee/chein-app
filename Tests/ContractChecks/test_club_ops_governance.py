@@ -119,15 +119,16 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
         self.assertIn('(snapshot.permissions == nil && snapshot.value["activeBan"].object != nil)', self.cases)
         self.assertIn('public var canAppeal: Bool { if case .ban = appeal { return true }; return false }', self.core)
 
-    def test_ban_expiry_is_a_bounded_epoch_from_7_30_90_days(self):
-        self.assertIn('optionalKeys = ["expiresAt", "expiresAtEpochMs"]', self.commands)
-        self.assertIn('public static let maximumClubBanMilliseconds = 90 * 86_400_000', self.commands)
-        self.assertIn('guard epoch > nowMs, epoch - nowMs <= Self.maximumClubBanMilliseconds else { throw ClubGovernanceFailure.invalidRequest }', self.commands)
-        self.assertIn('default: throw ClubGovernanceFailure.invalidRequest', self.commands)
+    def test_ban_body_sends_duration_days_7_30_90(self):
+        self.assertIn('requiredKeys = ["targetMemberId", "reason", "requestId", "durationDays"]', self.commands)
+        self.assertIn('guard let days = result["durationDays"]?.int, ClubGovernanceFormDraft.banDayChoices.contains(days)', self.commands)
+        self.assertNotIn('expiresAtEpochMs', self.commands)
+        self.assertNotIn('maximumClubBanMilliseconds', self.commands)
         self.assertIn('public static let banDayChoices = [7, 30, 90]', self.draft)
         self.assertIn('public static let defaultBanDays = 30', self.draft)
         self.assertIn('Self.banDayChoices.contains(days)', self.draft)
-        self.assertIn('days * 86_400_000', self.draft)
+        self.assertIn('values["durationDays"] = .integer(days)', self.draft)
+        self.assertNotIn('expiresAtEpochMs', self.draft)
         self.assertNotIn('expiresAt', text('Core/ClubGovernanceProduction.swift'))
 
     def test_unban_note_optional_and_revoke_note_fixed(self):

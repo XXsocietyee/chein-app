@@ -28,7 +28,7 @@ public struct MerchantGapWorkbenchProjectCardsSection: View {
                             }
                             HStack(spacing: CYSpacing.md) {
                                 Text(verbatim: "近期场次 \(card.upcomingRunsCount)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                Text(verbatim: "待核销 \(card.pendingVerifyCount)").cyText(.meta).foregroundStyle(CYColor.accent)
+                                Text(verbatim: "待核销 \(card.pendingVerifyCount)").cyText(.meta).foregroundStyle(CYColor.brand)
                             }
                         }
                     }
@@ -100,7 +100,7 @@ public struct MerchantGapOnboardingIntroView: View {
                         showClaimSheet = true
                     }
                     .cyText(.meta)
-                    .foregroundStyle(CYColor.accent)
+                    .foregroundStyle(CYColor.brand)
                 }
                 .padding(.vertical, CYSpacing.sm)
             }

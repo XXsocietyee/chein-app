@@ -45,7 +45,7 @@ import FoundationNetworking
     func testGrantBindsFieldTargetRoleAndNotificationAudience() throws {
         let scope = ClubGovernanceScope(clubID: 81)
         func ban(_ member: Int) throws -> ClubGovernanceCommand {
-            try .init(operation: .ban, scope: scope, values: ["targetMemberId": .integer(member), "reason": .string("Reviewed reason"), "expiresAt": .string("2026-10-10"), "requestId": .string("test-request")])
+            try .init(operation: .ban, scope: scope, values: ["targetMemberId": .integer(member), "reason": .string("Reviewed reason"), "durationDays": .integer(30), "requestId": .string("test-request")])
         }
         let c = try context(), first = try ban(704), grant = try self.approval(first)
         XCTAssertTrue(grant.permits(first, context: c)); XCTAssertFalse(grant.permits(try ban(705), context: c))
@@ -142,7 +142,7 @@ import FoundationNetworking
         defer { try? FileManager.default.removeItem(at: dir) }
         wire.banFlow = true
         func command(_ member: Int) throws -> ClubGovernanceCommand {
-            try .init(operation: .ban, scope: .init(clubID: 81), values: ["targetMemberId": .integer(member), "reason": .string("Reviewed reason"), "expiresAt": .string("2026-10-10"), "requestId": .string("test-\(member)")])
+            try .init(operation: .ban, scope: .init(clubID: 81), values: ["targetMemberId": .integer(member), "reason": .string("Reviewed reason"), "durationDays": .integer(30), "requestId": .string("test-\(member)")])
         }
         let first = try command(704), second = try command(705)
         let access = try self.access(wire, first, additionalCommands: [second], current: { c })
@@ -216,7 +216,7 @@ import FoundationNetworking
             case "/api/club/access/me":
                 accessCount += 1
                 if accessCount == 3 { onThirdAccess?() }
-                payload = "{\"active\":true,\"club\":{\"id\":81},\"roleCodes\":[\"CLUB_MEMBER\"],\"permissions\":\(allowed ? (chapterFlow ? "[\"club:content:manage\"]" : (banFlow ? "[\"club:member:manage\"]" : "[\"club:member:list:read\",\"club:member:manage\"]")) : "[]"),\"canManageRoles\":false}"
+                payload = "{\"active\":true,\"club\":{\"id\":81},\"roleCodes\":\(banFlow ? "[\"CLUB_OWNER\"]" : "[\"CLUB_MEMBER\"]"),\"permissions\":\(allowed ? (chapterFlow ? "[\"club:content:manage\"]" : (banFlow ? "[\"club:member:manage\"]" : "[\"club:member:list:read\",\"club:member:manage\"]")) : "[]"),\"canManageRoles\":false}"
             case "/api/club/members": payload = #"[{"memberId":704,"isOwner":false},{"memberId":705,"isOwner":false}]"#
             case "/api/club/governance/ban": payload = "null"
             case "/api/club/topic-setting/detail": payload = #"{"canManage":true,"coopOpen":false,"pinned":false,"memberOnly":true,"chapters":[{"chapterId":151,"name":"Chapter","recruiting":false,"merchantCount":0,"finishTime":""}]}"#

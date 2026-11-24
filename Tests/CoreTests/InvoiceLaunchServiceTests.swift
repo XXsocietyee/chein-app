@@ -213,8 +213,8 @@ import FoundationNetworking
     func testOriginalNotFoundIsUnknownNotRollback() async throws {
         let h = try S.Harness(); h.originalReceipts = true
         h.wire.responses = [try S.failure("INVOICE_NOT_FOUND"), try S.failure("INVOICE_NOT_FOUND")]
-        await S.expect(.outcomeUnknown) { _ = try await h.service.originalApplication(requestId: "original") }
-        await S.expect(.outcomeUnknown) { _ = try await h.service.titleReceipt(requestId: "original") }
+        await S.expect(.notFound) { _ = try await h.service.originalApplication(requestId: "original") }
+        await S.expect(.notFound) { _ = try await h.service.titleReceipt(requestId: "original") }
     }
     func testOriginalReadGrantRevokedDuringResponseCannotBeAccepted() async throws {
         let h = try S.Harness(); h.originalReceipts = true

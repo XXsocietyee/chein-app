@@ -127,6 +127,10 @@ extension EnvironmentValues {
             }
             retryButton("couponCode.fetchAgain", identifier: "couponCode.fetchAgain", presentation: presentation, appearance: appearance)
         case .paused: Label("couponCode.paused", systemImage: "pause.circle")
+        case .notMine:
+            // MP: 无权查看该券 — the coupon is not in this account's wallet; no retry.
+            ContentUnavailableView("couponCode.notMine", systemImage: "ticket")
+                .accessibilityIdentifier("couponCode.notMine")
         case .failed:
             // Source: 二维码暂时没能生成，请稍后重试 with one 重试 pill.
             CYEmptyState(systemImage: "exclamationmark.triangle", "u9cde.coupon.failed",

@@ -7,6 +7,7 @@ import FoundationNetworking
 public struct ClubService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -62,12 +63,18 @@ public struct ClubService {
         return try decode(ClubValueEnvelope<[ClubMember]>.self, data).data
     }
     private func post(_ path: String, json: [String: Any], token: String?) async throws -> Data {
-        var request = try AuthRequestBuilder.makeFormRequest(
-            url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: json, options: [.sortedKeys])
+        let body = try JSONSerialization.data(withJSONObject: json, options: [.sortedKeys])
+        let key = InFlightReadKey.bytes(method: "POST", path: path, body: body, token: token)
         try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
+        let response = try await reads.join(key) {
+            var request = try AuthRequestBuilder.makeFormRequest(
+                url: self.configuration.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        let (data, status) = (response.data, response.status)
         let message = (try? JSONDecoder().decode(ClubServerMessage.self, from: data))?.msg
         if status == 401 { throw ClubReadFailure.unauthorized(message: message) }
         if status == 403 { throw ClubReadFailure.forbidden(message: message) }

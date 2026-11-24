@@ -35,7 +35,27 @@ final class PostGameReportTests: XCTestCase {
         XCTAssertEqual(report.rankScore, 4)
         XCTAssertEqual(report.nodes.map(\.mode), [.skipped, nil])
         XCTAssertEqual(report.nodes.map(\.score), [0, nil], "a skipped node really scored 0; an unscored node is nil")
+        XCTAssertEqual(report.assistedCount, 1, "SKIPPED counts; an unscored node does not")
+        XCTAssertTrue(report.showsAssistedCount)
+        XCTAssertNil(report.startModeText, "a normal start has no label")
         XCTAssertEqual(report.backpackItems, 2)
+    }
+
+    func testAssistedCountStartModeAndNodePhoto() throws {
+        let desk = try XCTUnwrap(PostGameRunReport.decode(data(#"""
+        {"runState":"COMPLETED","scopeKind":"RUN","runId":3,"runStartMode":"DESK","completionKind":"LEGITIMATE_COMPLETION",
+         "nodes":[{"nodeId":1,"completionMode":"REVEALED","photoUrl":"https://fixture.example/a.jpg"},{"nodeId":2,"completionMode":"SKIPPED","photoUrl":""}]}
+        """#)))
+        XCTAssertEqual(desk.assistedCount, 2)
+        XCTAssertEqual(desk.startModeText, "桌面完成")
+        XCTAssertTrue(desk.showsStartMode)
+        XCTAssertEqual(desk.nodes.map(\.photoURL), ["https://fixture.example/a.jpg", nil])
+        let alt = try XCTUnwrap(PostGameRunReport.decode(data(#"{"runState":"ENDED","scopeKind":"RUN","runStartMode":"ALT","nodes":[]}"#)))
+        XCTAssertEqual(alt.startModeText, "替代站开局")
+        XCTAssertEqual(alt.assistedCount, 0)
+        XCTAssertFalse(alt.showsAssistedCount)
+        let other = try XCTUnwrap(PostGameRunReport.decode(data(#"{"runState":"ENDED","scopeKind":"RUN","runStartMode":"MAYBE"}"#)))
+        XCTAssertNil(other.startModeText)
     }
 
     func testNotScoredUnqualifiedAndLegacyStayEmpty() throws {

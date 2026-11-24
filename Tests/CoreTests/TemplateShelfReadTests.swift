@@ -37,6 +37,8 @@ import FoundationNetworking
             XCTAssertNotNil(try XCTUnwrap(request.httpBody).range(of: Data(("name=\"id\"\r\n\r\n\(value)\r\n").utf8)))
         }
         XCTAssertNil(TemplateShelfReadRoute(request: try TemplateAuthoringWireRequestBuilder.make(TemplateAuthoringContract.listMine(), configuration: config, token: "synthetic"), baseURL: base))
+        let merchant = try TemplateAuthoringWireRequestBuilder.make(TemplateOwnShelfPage.request(page: 1, keyword: "", scope: "MERCHANT"), configuration: config, token: "synthetic", boundary: "Shelf-boundary")
+        XCTAssertEqual(TemplateShelfReadRoute(request: merchant, baseURL: base), .page(1, keyword: ""))
     }
     func testRejectsAllAlternateFormsBeforeDispatch() throws {
         var invalid: [URLRequest] = []

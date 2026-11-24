@@ -137,7 +137,15 @@ final class MiniCropSessionTests: XCTestCase {
         XCTAssertTrue(ready.merchantLight)
         XCTAssertTrue(ready.canConfirm)
         XCTAssertTrue(ready.canReset)
-        XCTAssertTrue(ready.canUseOriginal)
+        XCTAssertFalse(ready.canUseOriginal)
+        let exportFailed = CropPageModel.facts(hasOpener: true, paths: ["local"], width: 200, height: 100,
+                                               index: 0, source: "ready", exportFailed: true)
+        XCTAssertEqual(exportFailed.phase, .ready)
+        XCTAssertTrue(exportFailed.canUseOriginal)
+        let busySource = CropPageModel.facts(hasOpener: true, paths: ["a"], width: 0, height: 10,
+                                             index: 0, source: "ready", busy: true)
+        XCTAssertEqual(busySource.phase, .error)
+        XCTAssertFalse(busySource.canUseOriginal)
         XCTAssertFalse(ready.uploadEnabled)
         XCTAssertEqual(ready.confirmKey, CropPageModel.Copy.confirm)
         XCTAssertEqual(ready.copyKey, CropPageModel.Copy.title)
