@@ -184,7 +184,7 @@ public final class ReadRetryHTTPTransport: HTTPMetadataTransport, @unchecked Sen
             let nanos = UInt64(max(0, seconds) * 1_000_000_000)
             try await Task.sleep(nanoseconds: nanos)
         },
-        now: @escaping @Sendable () -> Date = Date.init
+        now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.underlying = underlying
         self.policy = policy

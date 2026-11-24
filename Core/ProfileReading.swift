@@ -50,6 +50,10 @@ public final class ProfileSessionReader: ProfileReading {
     public func profileOrders() async throws -> [ProfileOrder] {
         try await read { service, token in try await service.orders(token: token) }
     }
+    /// Paged history (`pageNum` / `pageSize` / `owner_type` / `status`). `profileOrders()` stays the unpaged list.
+    public func profileOrderHistory(pageNum: Int) async throws -> ProfileOrderPage {
+        try await read { service, token in try await service.orderHistory(token: token, pageNum: pageNum) }
+    }
     public func profileOrder(id: Int) async throws -> ProfileOrder {
         try await read { service, token in try await service.order(id: id, token: token) }
     }

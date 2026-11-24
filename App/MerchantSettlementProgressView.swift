@@ -76,11 +76,11 @@ import UIKit
                                 .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                             Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue))
-                                .cyText(.caption)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                             if let time = step.timestamp {
                                 MerchantSettlementTimestampText(raw: time)
-                                    .cyText(.caption)
+                                    .cyText(.meta)
                                     .monospacedDigit()
                                     .foregroundStyle(CYColor.textSecondary)
                             }
@@ -100,7 +100,7 @@ import UIKit
                 if copyModel.busy { ProgressView("merchant.settlementProgress.checking").cyText(.meta) }
             }
             if let key = copyModel.messageKey {
-                Text(LocalizedStringKey(key)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("merchant.settlementProgress.copyStatus")
             }
         }

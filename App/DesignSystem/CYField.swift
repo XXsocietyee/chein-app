@@ -248,7 +248,7 @@ public struct CYField: View {
 
             if tokens.showsSuccessIcon {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(.callout, weight: .semibold))
                     .foregroundStyle(palette.success)
                     .accessibilityHidden(true)
             }

@@ -41,6 +41,17 @@ public struct ClubMemberWelcome: Identifiable, Equatable {
         if role == "merchant" { return "welcome.events.merchant" }
         return club.prioritySignupEnabled == true ? "welcome.events.priority" : "welcome.events.normal"
     }
+    /// MC-063: server text wins; otherwise 「成员价 ¥」 plus the shared two-decimal yuan. Hidden at 0 or below.
+    public var memberPricePerk: String? {
+        guard let price = club.memberDiscountPrice, price > 0, price.isFinite else { return nil }
+        if let text = club.memberDiscountPriceText, !text.isEmpty { return "成员价 " + text }
+        return "成员价 ¥" + Self.decimalText(price)
+    }
+    private static func decimalText(_ value: Double) -> String {
+        guard value.isFinite else { return MoneyDisplay.plain(0) }
+        let cents = Int((abs(value) * 100).rounded())
+        return MoneyDisplay.plain(Decimal(cents) / Decimal(100))
+    }
 
 }
 /// Fresh joined detail drives both direct-join readback and first re-entry after approval.

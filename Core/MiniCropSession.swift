@@ -225,7 +225,8 @@ public enum CropPageModel {
                                   failed: failed)
         let knownBatch = progressText(index: index, count: count)
         let canConfirm = phase == .ready && !busy && acceptsMore
-        let canUseOriginal = !busy && (count ?? 0) > 0 && (phase == .error || (phase == .ready && acceptsMore))
+        // pages/publish/crop: 使用原图 only when the source failed to open, or a ready frame failed to export.
+        let canUseOriginal = !busy && (count ?? 0) > 0 && (phase == .error || (exportFailed && phase == .ready))
         return CropPageFacts(
             phase: phase,
             countText: countText(count),

@@ -1,0 +1,574 @@
+{
+  "topicPreview.title": {
+    "zh-Hans": "主题模板预览",
+    "en": "Topic Template Preview"
+  },
+  "topicPreview.viewDetail": {
+    "zh-Hans": "查看详情",
+    "en": "View Details"
+  },
+  "topicPreview.useTemplate": {
+    "zh-Hans": "用这个模板",
+    "en": "Use Template"
+  },
+  "topicPreview.tapToFlip": {
+    "zh-Hans": "点按翻面",
+    "en": "Tap to flip"
+  },
+  "topicPreview.cardBackEmpty": {
+    "zh-Hans": "点击查看详情了解玩法步骤",
+    "en": "View details for gameplay steps"
+  },
+  "topicRoute.progress.title": {
+    "zh-Hans": "站点进度",
+    "en": "Stop Progress"
+  },
+  "topicRoute.teams.title": {
+    "zh-Hans": "附近队伍",
+    "en": "Nearby Teams"
+  },
+  "topicRoute.teams.viewAll": {
+    "zh-Hans": "查看本场全部队伍",
+    "en": "View All Teams"
+  },
+  "topicRoute.merchants.title": {
+    "zh-Hans": "参与商家",
+    "en": "Participating Merchants"
+  },
+  "registration.merchantClosed.banner": {
+    "zh-Hans": "商家暂停营业，暂不可预约",
+    "en": "Merchant is temporarily closed"
+  },
+  "registration.childAge.title": {
+    "zh-Hans": "儿童年龄",
+    "en": "Child Age"
+  },
+  "registration.childAge.placeholder": {
+    "zh-Hans": "请选择",
+    "en": "Select"
+  },
+  "registration.benefits.title": {
+    "zh-Hans": "会员与权益",
+    "en": "Benefits"
+  },
+  "registration.clubPriority.label": {
+    "zh-Hans": "俱乐部会员权益",
+    "en": "Club Member Priority"
+  },
+  "registration.pass.label": {
+    "zh-Hans": "通行证",
+    "en": "Platform Pass"
+  },
+  "registration.delivery.title": {
+    "zh-Hans": "包含内容",
+    "en": "Included"
+  },
+  "registration.hostResv.title": {
+    "zh-Hans": "主持预约",
+    "en": "Host Reservation"
+  },
+  "registration.hostResv.status": {
+    "zh-Hans": "状态",
+    "en": "Status"
+  },
+  "registration.hostResv.deadline": {
+    "zh-Hans": "付款截止",
+    "en": "Payment Deadline"
+  },
+  "registration.hostResv.request": {
+    "zh-Hans": "请求主持",
+    "en": "Request Host"
+  },
+  "registration.hostResv.cancel": {
+    "zh-Hans": "撤销申请",
+    "en": "Cancel Request"
+  },
+  "official.leaderboard.title": {
+    "zh-Hans": "赛事榜单",
+    "en": "Event Leaderboard"
+  },
+  "topicPricing.perTicket.title": {
+    "zh-Hans": "分票种定价",
+    "en": "Per-Ticket Pricing"
+  },
+  "topicPricing.extra.title": {
+    "zh-Hans": "售卖与结算状态",
+    "en": "Sale & Settlement Status"
+  },
+  "topicPricing.saleStatus": {
+    "zh-Hans": "售卖状态",
+    "en": "Sale Status"
+  },
+  "topicPricing.settlementPending": {
+    "zh-Hans": "待结算",
+    "en": "Pending Settlement"
+  },
+  "topicPricing.feeRate": {
+    "zh-Hans": "平台服务费率",
+    "en": "Platform Fee Rate"
+  },
+  "merchantHost.workbench.title": {
+    "zh-Hans": "主办方操作",
+    "en": "Host Actions"
+  },
+  "merchantHost.gated": {
+    "zh-Hans": "暂未开放",
+    "en": "Unavailable"
+  },
+  "merchantHost.workbench.gatedFooter": {
+    "zh-Hans": "当前版本暂未开放商家承接写入，请前往小程序完成操作。",
+    "en": "Host merchant writes are gated in this build."
+  },
+  "playTools.title": {
+    "zh-Hans": "游玩工具",
+    "en": "Play Tools"
+  },
+  "playTools.lead.section": {
+    "zh-Hans": "队长工具",
+    "en": "Leader Tools"
+  },
+  "playTools.lead.scanMemberTicket": {
+    "zh-Hans": "扫成员票核销",
+    "en": "Scan Member Ticket"
+  },
+  "playTools.lead.showGroupCode": {
+    "zh-Hans": "展示整团码",
+    "en": "Show Group Code"
+  },
+  "playTools.lead.unlockNext": {
+    "zh-Hans": "解锁下一章节",
+    "en": "Unlock Next Chapter"
+  },
+  "playTools.lead.releaseStation": {
+    "zh-Hans": "放行这一站",
+    "en": "Release Station"
+  },
+  "playTools.lead.settle": {
+    "zh-Hans": "整团结算",
+    "en": "Settle Team"
+  },
+  "playTools.content.section": {
+    "zh-Hans": "本局信息",
+    "en": "Session Info"
+  },
+  "playTools.cast": {
+    "zh-Hans": "人物表",
+    "en": "Cast"
+  },
+  "playTools.evidence": {
+    "zh-Hans": "证据卡",
+    "en": "Evidence Cards"
+  },
+  "playTools.rewards": {
+    "zh-Hans": "各站奖励",
+    "en": "Station Rewards"
+  },
+  "playTools.entryCode": {
+    "zh-Hans": "入场码",
+    "en": "Entry Code"
+  },
+  "playTools.thoughts.section": {
+    "zh-Hans": "伏笔",
+    "en": "Foreshadowing"
+  },
+  "playTools.stats.section": {
+    "zh-Hans": "本局读数",
+    "en": "Run Stats"
+  },
+  "playTools.stats.chapters": {
+    "zh-Hans": "章节数",
+    "en": "Chapters"
+  },
+  "playTools.stats.completed": {
+    "zh-Hans": "已完成",
+    "en": "Completed"
+  },
+  "playTools.stats.remainingGames": {
+    "zh-Hans": "还有游戏数",
+    "en": "Remaining Games"
+  },
+  "playTools.preferences.section": {
+    "zh-Hans": "游玩设置",
+    "en": "Preferences"
+  },
+  "playTools.pref.bgm": {
+    "zh-Hans": "背景音乐",
+    "en": "Background Music"
+  },
+  "playTools.pref.narration": {
+    "zh-Hans": "旁白自动播放",
+    "en": "Narration Autoplay"
+  },
+  "playTools.pref.reduceMotion": {
+    "zh-Hans": "减少动态效果",
+    "en": "Reduce Motion"
+  },
+  "roamTools.title": {
+    "zh-Hans": "更多工具",
+    "en": "More Tools"
+  },
+  "roamTools.runners.section": {
+    "zh-Hans": "附近正在走的人",
+    "en": "Nearby Walkers"
+  },
+  "roamTools.runners.greet": {
+    "zh-Hans": "打个招呼",
+    "en": "Say Hi"
+  },
+  "roamTools.runners.greeted": {
+    "zh-Hans": "已打招呼",
+    "en": "Greeted"
+  },
+  "roamTools.map.section": {
+    "zh-Hans": "地图与显示",
+    "en": "Map & Display"
+  },
+  "roamTools.fog": {
+    "zh-Hans": "迷雾",
+    "en": "Fog"
+  },
+  "roamTools.mapStyle": {
+    "zh-Hans": "地图样式",
+    "en": "Map Style"
+  },
+  "roamTools.reduceMotion": {
+    "zh-Hans": "减少动态效果",
+    "en": "Reduce Motion"
+  },
+  "roamTools.presenceSharing": {
+    "zh-Hans": "附近的人位置分享",
+    "en": "Share Location Nearby"
+  },
+  "roamTools.permissions.section": {
+    "zh-Hans": "系统权限",
+    "en": "Permissions"
+  },
+  "roamTools.locationSettings": {
+    "zh-Hans": "位置权限设置",
+    "en": "Location Settings"
+  },
+  "roamTools.clearCache": {
+    "zh-Hans": "清空本机缓存",
+    "en": "Clear Local Cache"
+  },
+  "roamTools.clearCache.confirmTitle": {
+    "zh-Hans": "确认清空本机缓存",
+    "en": "Clear local cache?"
+  },
+  "roamTools.clearCache.confirmAction": {
+    "zh-Hans": "清空",
+    "en": "Clear"
+  },
+  "roamTools.clearCache.confirmMessage": {
+    "zh-Hans": "这会清除本机暂存的漫游草稿与缓存记录，不会影响已上传的记录。",
+    "en": "This clears locally cached roam drafts without affecting uploaded history."
+  },
+  "citystamp.depart": {
+    "zh-Hans": "出发",
+    "en": "Depart"
+  },
+  "citystamp.serial": {
+    "zh-Hans": "签号",
+    "en": "No."
+  },
+  "citystamp.sender": {
+    "zh-Hans": "留签人",
+    "en": "From"
+  },
+  "citystamp.sentAt": {
+    "zh-Hans": "留于",
+    "en": "At"
+  },
+  "citystamp.messageTitle": {
+    "zh-Hans": "留给你的一句",
+    "en": "A Note for You"
+  },
+  "citystamp.tapToReveal": {
+    "zh-Hans": "点按揭开",
+    "en": "Tap to Reveal"
+  },
+  "citystamp.scratchToReveal": {
+    "zh-Hans": "刮开涂层查看留言",
+    "en": "Scratch to reveal note"
+  },
+  "citystamp.saveToAlbum": {
+    "zh-Hans": "保存到相册",
+    "en": "Save to Photos"
+  },
+  "citystamp.acceptAndGo": {
+    "zh-Hans": "收下，出发",
+    "en": "Accept & Go"
+  },
+  "citystamp.exchangeGated": {
+    "zh-Hans": "当前版本暂未开放印章交换上传。",
+    "en": "Stamp exchange upload is gated in this build."
+  },
+  "objects.category": {
+    "zh-Hans": "分类",
+    "en": "Category"
+  },
+  "objects.rename.placeholder": {
+    "zh-Hans": "输入藏品名称",
+    "en": "Enter card name"
+  },
+  "common.save": {
+    "zh-Hans": "保存",
+    "en": "Save"
+  },
+  "common.cancel": {
+    "zh-Hans": "取消",
+    "en": "Cancel"
+  },
+  "common.submit": {
+    "zh-Hans": "提交",
+    "en": "Submit"
+  },
+  "common.done": {
+    "zh-Hans": "知道了",
+    "en": "Done"
+  },
+  "bundle.receipt.title": {
+    "zh-Hans": "自由探索权益",
+    "en": "Free-Explore Bundle"
+  },
+  "bundle.receipt.orderNo": {
+    "zh-Hans": "订单号",
+    "en": "Order No."
+  },
+  "bundle.receipt.payment": {
+    "zh-Hans": "支付状态",
+    "en": "Payment"
+  },
+  "bundle.receipt.registration": {
+    "zh-Hans": "报名状态",
+    "en": "Registration"
+  },
+  "bundle.units.title": {
+    "zh-Hans": "套票权益",
+    "en": "Bundle Units"
+  },
+  "bundle.unit.reserve": {
+    "zh-Hans": "预约",
+    "en": "Reserve"
+  },
+  "bundle.unit.swap": {
+    "zh-Hans": "更换商家",
+    "en": "Change Merchant"
+  },
+  "bundle.exitCases.title": {
+    "zh-Hans": "售后记录",
+    "en": "After-Sales Records"
+  },
+  "orientScore.board.title": {
+    "zh-Hans": "本场榜单",
+    "en": "Leaderboard"
+  },
+  "orientScore.board.empty": {
+    "zh-Hans": "本场暂无成绩",
+    "en": "No scores yet"
+  },
+  "orientScore.board.mineSection": {
+    "zh-Hans": "本人名次",
+    "en": "My Rank"
+  },
+  "orientScore.board.allSection": {
+    "zh-Hans": "全部成绩",
+    "en": "All Ranks"
+  },
+  "orientScore.appeal.singleEntry": {
+    "zh-Hans": "申诉这一条计分",
+    "en": "Appeal This Score Entry"
+  },
+  "orientScore.appeal.missingNodeTitle": {
+    "zh-Hans": "漏记任务的节点编号",
+    "en": "Missing Task Node ID"
+  },
+  "orientScore.appeal.missingNodePlaceholder": {
+    "zh-Hans": "请输入数字节点编号",
+    "en": "Enter numeric node ID"
+  },
+  "orientScore.appeal.reasonTitle": {
+    "zh-Hans": "理由",
+    "en": "Reason"
+  },
+  "orientScore.syncTasks": {
+    "zh-Hans": "同步已通过任务",
+    "en": "Sync Passed Tasks"
+  },
+  "orientScore.settleRun": {
+    "zh-Hans": "结算本局",
+    "en": "Settle Run"
+  },
+  "orientScore.settlementGated": {
+    "zh-Hans": "同步与结算功能当前版本暂未开放。",
+    "en": "Sync and settle are gated in this build."
+  },
+  "reportAppeal.reasonLabel": {
+    "zh-Hans": "申诉理由",
+    "en": "Appeal Reason"
+  },
+  "reportAppeal.reasonPlaceholder": {
+    "zh-Hans": "说明你对处理结论的异议和相关事实",
+    "en": "Explain your objection and supporting facts"
+  },
+  "reportAppeal.next": {
+    "zh-Hans": "下一步",
+    "en": "Next"
+  },
+  "reportAppeal.confirmNotice": {
+    "zh-Hans": "提交后举报会进入「申诉中」，申诉说明提交后不能修改。",
+    "en": "Once submitted, the appeal cannot be edited."
+  },
+  "reportAppeal.confirmSubmit": {
+    "zh-Hans": "确认提交",
+    "en": "Confirm Submit"
+  },
+  "reportAppeal.backToEdit": {
+    "zh-Hans": "返回修改",
+    "en": "Back to Edit"
+  },
+  "reportAppeal.submitting": {
+    "zh-Hans": "正在提交申诉…",
+    "en": "Submitting appeal…"
+  },
+  "reportAppeal.okDetail": {
+    "zh-Hans": "平台会重新调查，结果会更新在举报进度里。",
+    "en": "The platform will re-investigate and update your report status."
+  },
+  "reportAppeal.unknownNotice": {
+    "zh-Hans": "网络异常，暂时没读到申诉记录。再试一次不会重复提交。",
+    "en": "Network error; retrying will not create a duplicate appeal."
+  },
+  "reportAppeal.retry": {
+    "zh-Hans": "再试一次",
+    "en": "Retry"
+  },
+  "reportAppeal.checkLater": {
+    "zh-Hans": "稍后再看",
+    "en": "Check Later"
+  },
+  "couponSummary.claimed": {
+    "zh-Hans": "累计领取",
+    "en": "Total Claimed"
+  },
+  "couponSummary.redeemed": {
+    "zh-Hans": "累计核销",
+    "en": "Total Redeemed"
+  },
+  "passOrder.refund.reasonTitle": {
+    "zh-Hans": "退款原因",
+    "en": "Refund Reason"
+  },
+  "passOrder.actionGated": {
+    "zh-Hans": "通行证订单取消与退款当前版本暂未开放。",
+    "en": "Platform-pass order cancellation and refund are gated."
+  },
+  "merchantApply.location.title": {
+    "zh-Hans": "承接地点",
+    "en": "Location"
+  },
+  "merchantApply.location.field": {
+    "zh-Hans": "承接地点",
+    "en": "Address"
+  },
+  "merchantApply.location.addressDetail": {
+    "zh-Hans": "详细地址",
+    "en": "Address Detail"
+  },
+  "merchantApply.rule.title": {
+    "zh-Hans": "承接说明",
+    "en": "Hosting Instructions"
+  },
+  "merchantApply.rule.placeholder": {
+    "zh-Hans": "填写可用空间、接待安全条件、拍摄许可、现场可配置物料",
+    "en": "Space, safety, filming, and on-site setup"
+  },
+  "merchantApply.pic.title": {
+    "zh-Hans": "承接图片",
+    "en": "Site Photos"
+  },
+  "topicReveal.marketingConsent": {
+    "zh-Hans": "接收该商家的活动与优惠通知",
+    "en": "Receive merchant updates and offers"
+  },
+  "topicShare.qrCode": {
+    "zh-Hans": "分享二维码",
+    "en": "Share QR Code"
+  },
+  "finishOffer.passBadge": {
+    "zh-Hans": "通行证优惠",
+    "en": "Pass Offer"
+  },
+  "finishOffer.productBadge": {
+    "zh-Hans": "完局推荐",
+    "en": "Recommended"
+  },
+  "finishOffer.gatedNote": {
+    "zh-Hans": "当前版本暂未开放购买",
+    "en": "Purchase unavailable in this build"
+  },
+  "objects.pile.gather": {
+    "zh-Hans": "收拢或散开藏品堆",
+    "en": "Gather or spread cards"
+  },
+  "orderDetail.inviteTeammates": {
+    "zh-Hans": "叫上队友",
+    "en": "Invite Teammates"
+  },
+  "orderDetail.seatsEntry": {
+    "zh-Hans": "同行席位",
+    "en": "Seats"
+  },
+  "orderDetail.club.joined": {
+    "zh-Hans": "已加入",
+    "en": "Joined"
+  },
+  "orderDetail.club.followOrJoin": {
+    "zh-Hans": "关注 / 加入俱乐部",
+    "en": "Follow / Join Club"
+  },
+  "participation.freeExploreBundle": {
+    "zh-Hans": "自由探索权益",
+    "en": "Free-Explore Bundle"
+  },
+  "participation.editMerchantApply": {
+    "zh-Hans": "去修改",
+    "en": "Edit Application"
+  },
+  "bundle.catalog.empty": {
+    "zh-Hans": "暂无参与商家",
+    "en": "No participating merchants"
+  },
+  "bundle.catalog.merchants": {
+    "zh-Hans": "参与商家",
+    "en": "Participating Merchants"
+  },
+  "bundle.catalog.openTopic": {
+    "zh-Hans": "查看主题详情",
+    "en": "View Topic"
+  },
+  "couponManagement.forbidden.title": {
+    "zh-Hans": "当前身份不能查看优惠券",
+    "en": "Coupons unavailable for current role"
+  },
+  "couponManagement.forbidden.applyMerchant": {
+    "zh-Hans": "申请入驻",
+    "en": "Apply as Merchant"
+  },
+  "roamHistory.title": {
+    "zh-Hans": "漫游记录",
+    "en": "Roam History"
+  },
+  "orientScore.syncTasks.confirmTitle": {
+    "zh-Hans": "确认同步本场任务？",
+    "en": "Sync tasks for this session?"
+  },
+  "orientScore.settleRun.confirmTitle": {
+    "zh-Hans": "确认结束并结算本场？",
+    "en": "Settle and end this run?"
+  },
+  "common.cancel": {
+    "zh-Hans": "取消",
+    "en": "Cancel"
+  }
+}

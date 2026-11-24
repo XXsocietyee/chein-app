@@ -29,6 +29,17 @@ struct JourneyNodeRow: Identifiable, Equatable {
     let mode: Mode?
     /// Nil when the node is not scored ("not scored"), never 0.
     let score: Int?
+    /// Player photo (`PostGameRunReport.Node.photoURL`). Empty stays nil. The viewer mounts only for https.
+    var photoURL: String? = nil
+}
+
+struct JourneyNodePhoto: Identifiable, Equatable {
+    let url: URL
+    var id: String { url.absoluteString }
+    static func url(_ raw: String?) -> URL? {
+        guard let raw, let url = URL(string: raw), url.scheme == "https" else { return nil }
+        return url
+    }
 }
 
 struct JourneyReport: Equatable {
@@ -52,6 +63,12 @@ struct JourneyReport: Equatable {
     var nodes: [JourneyNodeRow]
     var finished: Bool
     var inProgress: Bool
+    /// Nodes finished SKIPPED or REVEALED. The settle cell shows only when this is above 0.
+    var assistedCount: Int = 0
+    /// 桌面完成 / 替代站开局. Nil hides the start-mode cell.
+    var startModeText: String? = nil
+    var showsAssistedCount: Bool { assistedCount > 0 }
+    var showsStartMode: Bool { startModeText != nil }
 }
 
 struct JourneyMoment: Identifiable, Equatable {
@@ -85,7 +102,25 @@ enum JourneyMemoryPhase: Equatable {
 struct JourneyRankScope: Identifiable, Hashable {
     enum Kind: String { case team, quest, teams, city, country, world, club }
     let kind: Kind
+    /// `JourneyRankBoardContract.Tab.scopeID`. Empty for world and for the team-to-team board.
+    var scopeID: String = ""
     var id: String { kind.rawValue }
+
+    init(kind: Kind, scopeID: String = "") {
+        self.kind = kind
+        self.scopeID = scopeID
+    }
+
+    init(_ tab: JourneyRankBoardContract.Tab) {
+        switch tab.kind {
+        case .quest: self.init(kind: .quest, scopeID: tab.scopeID)
+        case .city: self.init(kind: .city, scopeID: tab.scopeID)
+        case .country: self.init(kind: .country, scopeID: tab.scopeID)
+        case .world: self.init(kind: .world, scopeID: tab.scopeID)
+        case .club: self.init(kind: .club, scopeID: tab.scopeID)
+        case .team: self.init(kind: .team, scopeID: tab.scopeID)
+        }
+    }
     var label: LocalizedStringKey {
         switch kind {
         case .team: "mp.rank.scope.team"
@@ -233,9 +268,9 @@ struct JourneyRankBoardView: View {
                 }
                 .navigationTitle(Text("mp.rank.moreTitle"))
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { moreShown = false } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button { moreShown = false } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly) } }
             }
-            .presentationDetents([.medium])
+            .cySheet(detents: [.medium])
         }
         .cyDomainScreen(.player)
     }
@@ -419,6 +454,8 @@ struct JourneyReportView: View {
     @State private var rankShown = false
     @State private var memoryShown = false
     @State private var feedbackShown = false
+    /// JREPORT-2: the station photo opened from a node row. https only.
+    @State private var nodePhoto: JourneyNodePhoto?
 
     private var title: LocalizedStringKey {
         if case .ready(let report) = phase, report.legacy { return "mp.report.legacyTitle" }
@@ -458,10 +495,9 @@ struct JourneyReportView: View {
                     .background(CYNight.ink0)
                     .navigationTitle(Text("mp.rank.title"))
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { rankShown = false } } }
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button { rankShown = false } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly) } }
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
+            .cySheet()
             .onAppear(perform: onLoadRank)
         }
         .sheet(isPresented: $memoryShown) {
@@ -470,17 +506,33 @@ struct JourneyReportView: View {
                     .background(CYNight.ink0)
                     .navigationTitle(Text("mp.report.memory"))
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { memoryShown = false } } }
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button { memoryShown = false } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly) } }
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
+            .cySheet()
             .onAppear(perform: onLoadMemory)
         }
-        .sheet(isPresented: $feedbackShown) {
+        .sheet(isPresented: $feedbackShown) { Group {
             if case .ready(let report) = phase {
                 JourneyFeedbackSheet(nodes: report.nodes, state: feedback, onSubmit: onSubmitFeedback,
                                      onRecheck: onRecheckFeedback, onReset: onResetFeedback, onClose: { feedbackShown = false })
             }
+        }.cySheet(detents: [.large]) }
+        .sheet(item: $nodePhoto) { photo in
+            NavigationStack {
+                AsyncImage(url: photo.url) { phase in
+                    switch phase {
+                    case .success(let image): image.resizable().scaledToFit()
+                    case .failure: CYEmptyState(systemImage: "photo", "mp.report.photos.empty")
+                    default: ProgressView()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(CYNight.ink0)
+                .navigationTitle(Text("mp.report.photos.title"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button { nodePhoto = nil } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly) } }
+            }
+            .cySheet()
         }
         .cyDomainScreen(.player)
     }
@@ -490,7 +542,7 @@ struct JourneyReportView: View {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 VStack(spacing: CYSpacing.sm) {
                     let eyebrow = [report.dateLabel, topicName].compactMap { $0 }.joined(separator: " · ")
-                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary) }
+                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
                     if let result = report.result {
                         Text(result.label).cyText(.label)
                             .foregroundStyle(result.win ? CYNight.ink0 : CYColor.textPrimary)
@@ -550,9 +602,17 @@ struct JourneyReportView: View {
                 if !report.nodes.isEmpty {
                     MPSectionHeader(title: "mp.report.nodes")
                     MPRows(items: report.nodes) { node in
-                        MPRow(title: node.name.map { Text(verbatim: $0) } ?? Text("mp.report.node"),
-                              sub: node.mode.map { $0 == .skipped ? Text("mp.report.node.skipped") : Text("mp.report.node.revealed") },
-                              value: node.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.node.notScored"))
+                        let row = MPRow(title: node.name.map { Text(verbatim: $0) } ?? Text("mp.report.node"),
+                                        sub: node.mode.map { $0 == .skipped ? Text("mp.report.node.skipped") : Text("mp.report.node.revealed") },
+                                        value: node.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.node.notScored"),
+                                        chevron: JourneyNodePhoto.url(node.photoURL) != nil)
+                        if let photo = JourneyNodePhoto.url(node.photoURL) {
+                            Button { nodePhoto = JourneyNodePhoto(url: photo) } label: { row }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("journeyReport.node.photo." + node.id)
+                        } else {
+                            row
+                        }
                     }
                 }
             }
@@ -848,10 +908,10 @@ struct JourneySettleView: View {
                 .frame(height: 160)
                 .accessibilityHidden(true)
             if let result = report.result {
-                Text(result.label).cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot)
+                Text(result.label).cyText(.label).foregroundStyle(CYNight.lanternHot)
                     .settleRise(overviewOn, 0, skipped: skipped, reduceMotion: reduceMotion)
             }
-            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.display).multilineTextAlignment(.center)
+            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.pageTitle).multilineTextAlignment(.center)
                 .settleRise(overviewOn, 1, skipped: skipped, reduceMotion: reduceMotion)
             if let rank = report.rank, report.rankBasisCount != nil {
                 Text("mp.settle.rank \(rank)").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
@@ -875,6 +935,20 @@ struct JourneySettleView: View {
                     Text("mp.settle.nodes").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityElement(children: .combine)
+                // JSETTLE-4: assisted cell only when `showsAssistedCount`; start mode only when `showsStartMode`.
+                // The words are the report's own labels (桌面完成 / 替代站开局).
+                if report.showsAssistedCount {
+                    VStack(spacing: CYSpacing.xxs) {
+                        Text(verbatim: String(report.assistedCount)).cyText(.data2XL).monospacedDigit()
+                        Text("mp.settle.assisted").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("journeySettle.assisted")
+                }
+                if report.showsStartMode, let start = report.startModeText {
+                    Text(verbatim: start).cyText(.body).multilineTextAlignment(.center)
+                        .accessibilityIdentifier("journeySettle.startMode")
+                }
             }
             .settleRise(overviewOn, 3, skipped: skipped, reduceMotion: reduceMotion)
             Spacer()
@@ -917,7 +991,7 @@ struct JourneySettleView: View {
                             stars = value; localError = nil
                         } label: {
                             Image(systemName: value <= stars ? "star.fill" : "star")
-                                .font(CYTypography.dataXL)
+                                .cyText(.dataXL)
                                 .foregroundStyle(value <= stars ? CYNight.lantern : CYColor.textTertiary)
                                 .scaleEffect(value <= stars && !reduceMotion ? 1.08 : 1)
                                 .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.5).delay(Double(value) * 0.04), value: stars)
@@ -1106,7 +1180,7 @@ struct JourneyShareCard: View {
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "rosette").font(CYTypography.display).foregroundStyle(CYNight.lanternHot)
                     .background { Circle().fill(CYNight.glow(radius: 40)).frame(width: 140, height: 140) }
-                if report.result?.win == true { Text("mp.report.result.legit").cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot) }
+                if report.result?.win == true { Text("mp.report.result.legit").cyText(.label).foregroundStyle(CYNight.lanternHot) }
                 (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.sectionTitle).multilineTextAlignment(.center)
                 HStack(spacing: CYSpacing.xs) {
                     Text("mp.settle.share.nodes \(MPText.orDash(report.nodesText))")

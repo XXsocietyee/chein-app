@@ -10,6 +10,9 @@ import QuestifyCore
     var rpgSheet: CharacterRpgSheet? = nil
     var definitionSource: String? = nil
     var attributeLevels: [String: [CharacterAttributeLevel]] = [:]
+    /// PLY-24-6: MP character/index.wxml:61 ends the ready card with a secondary 刷新角色卡. It uses the host's
+    /// `.refreshable` action, so a host without pull-to-refresh shows no button.
+    @Environment(\.refresh) private var refreshAction
 
     @Environment(\.locale) private var locale
     @State private var showingDice = false
@@ -44,6 +47,12 @@ import QuestifyCore
                     CYSectionHeader("characterCard.rpgStatus")
                     CYCard { rpgContent(rpg) }
                 }
+
+                if let refreshAction {
+                    Button { Task { await refreshAction() } } label: { Text("characterCard.refresh") }
+                        .buttonStyle(.cySecondary(fullWidth: true))
+                        .accessibilityIdentifier("characterCard.refresh.ready")
+                }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.lg)
@@ -59,8 +68,6 @@ import QuestifyCore
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("characterSheet.diceRoller")
                 .accessibilityLabel(Text("characterCard.dice"))
-                .accessibilityValue(Text(verbatim: card.statusText.isEmpty ? "—" : card.statusText))
-                .accessibilityHint(Text("characterCard.dice"))
             }
         }
         .sheet(isPresented: $showingDice) { DiceRollerSheet() }
@@ -72,8 +79,9 @@ import QuestifyCore
         CYCard(variant: .elevated) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .firstTextBaseline) {
+                    // PLY-24-5: a pushed page's header card uses the card title style, not the sheet title.
                     Text(card.heading)
-                        .cyText(.sheetTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Spacer(minLength: CYSpacing.sm)
@@ -309,7 +317,7 @@ import QuestifyCore
                 HStack(spacing: CYSpacing.xs) {
                     ForEach(0..<attribute.max, id: \.self) { index in
                         Image(systemName: index < attribute.value ? "star.fill" : "star")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(index < attribute.value ? CYColor.warningText : CYColor.textPlaceholder)
                     }
                 }

@@ -140,7 +140,7 @@ public struct BackendSyncAndContractGateSectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -175,7 +175,7 @@ public struct BackendSyncAndContractGateSectionView: View {
                             .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                             .foregroundStyle(pillar.isPassing ? CYColor.successText : CYColor.dangerText)
                             .accessibilityIdentifier("backendContractGate.pillarStatus.\(pillar.id)")
                     }
@@ -185,14 +185,14 @@ public struct BackendSyncAndContractGateSectionView: View {
                         .foregroundStyle(.primary)
 
                     Text(verbatim: pillar.evidenceSummary)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("backendContractGate.pillarEvidence.\(pillar.id)")
                 }
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                         .fill(Color.primary.opacity(0.04))
                 )
                 .accessibilityElement(children: .combine)

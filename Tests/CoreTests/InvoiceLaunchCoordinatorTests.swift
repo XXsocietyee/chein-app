@@ -263,11 +263,12 @@ import XCTest
         await S.expect(.outcomeUnknown) { _ = try await h.coordinator().apply(h.command()) }
         let original = try XCTUnwrap(h.store.load())
         var wrong = S.application(orders: [99]); wrong["requestId"] = "synthetic-original-request"
-        for response in [try S.success(wrong), try S.failure("INVOICE_NOT_FOUND")] {
-            h.wire.responses = [response]
-            await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
-            XCTAssertEqual(try h.store.load(), original)
-        }
+        h.wire.responses = [try S.success(wrong)]
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        XCTAssertEqual(try h.store.load(), original)
+        h.wire.responses = [try S.failure("INVOICE_NOT_FOUND")]
+        await S.expect(.notFound) { _ = try await h.coordinator().recover() }
+        XCTAssertEqual(try h.store.load(), original)
         let count = h.wire.requests.count
         await S.expect(.pendingConflict) { _ = try await h.coordinator().apply(h.command()) }
         XCTAssertEqual(h.wire.requests.count, count)
@@ -306,7 +307,7 @@ import XCTest
         await S.expect(.outcomeUnknown) { _ = try await h.coordinator().saveTitle(draft) }
         let original = try XCTUnwrap(h.store.load())
         h.wire.responses = [try S.failure("INVOICE_NOT_FOUND")]
-        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        await S.expect(.notFound) { _ = try await h.coordinator().recover() }
         XCTAssertEqual(try h.store.load(), original)
         h.originalReceipts = false
         await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }

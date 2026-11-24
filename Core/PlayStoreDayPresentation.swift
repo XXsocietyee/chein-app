@@ -32,6 +32,8 @@ public struct PlayStoreDayNode: Equatable, Identifiable {
     public let question: String?
     /// Server option keys (A-D) in key order; nil means free-text answer.
     public let options: [PlayStoreDayOption]?
+    /// `node.perk` on pages/play/merchant. Nil when the object is missing or every field is empty.
+    public let perk: PlayStoreDayPerk?
 
     public init?(row: PlayWireValue) {
         guard let object = row.object else { return nil }
@@ -66,6 +68,17 @@ public struct PlayStoreDayNode: Equatable, Identifiable {
             let rows = object.keys.sorted().compactMap { key in object[key]?.text.map { PlayStoreDayOption(key: key, text: $0) } }
             options = rows.isEmpty ? nil : rows
         } else { options = nil }
+        perk = Self.perk(raw["perk"])
+    }
+    private static func perk(_ value: PlayWireValue?) -> PlayStoreDayPerk? {
+        guard let object = value?.object else { return nil }
+        func text(_ key: String) -> String? {
+            guard let value = object[key]?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
+            return value
+        }
+        let perk = PlayStoreDayPerk(name: text("name"), redeemRule: text("redeemRule"), redeemBlockedText: text("redeemBlockedText"))
+        guard perk.name != nil || perk.redeemRule != nil || perk.redeemBlockedText != nil else { return nil }
+        return perk
     }
     private static func coordinate(_ value: PlayWireValue?) -> Double? {
         guard let value else { return nil }
@@ -94,6 +107,16 @@ public struct PlayStoreDayNode: Equatable, Identifiable {
         return latitude != 0 && longitude != 0 && abs(latitude) <= 90 && abs(longitude) <= 180
     }
     public var isPreferenceGame: Bool { validationMethod == 6 }
+    /// Dead primary line. The card itself still needs `perk.name`. Hidden once the node is done.
+    public var redeemBlockedNotice: String? {
+        guard !done else { return nil }
+        return perk?.redeemBlockedText
+    }
+}
+public struct PlayStoreDayPerk: Equatable {
+    public let name: String?
+    public let redeemRule: String?
+    public let redeemBlockedText: String?
 }
 public struct PlayStoreDayOption: Equatable, Identifiable {
     public let key: String

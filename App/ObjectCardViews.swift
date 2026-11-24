@@ -40,7 +40,12 @@ extension EnvironmentValues {
                                 .accessibilityIdentifier("objects.category.\(category.localizationKey)")
                         }
                     } label: {
-                        Label(LocalizedStringKey(model.category.localizationKey), systemImage: "line.3.horizontal.decrease.circle")
+                        // MP object-cards wxml:15: the filter shows the category's own icon (`cat/*.png`, MP assets).
+                        Label {
+                            Text(LocalizedStringKey(model.category.localizationKey))
+                        } icon: {
+                            model.category.mpIcon.resizable().scaledToFit().frame(width: 24, height: 24).accessibilityHidden(true)
+                        }
                             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                             .contentShape(Rectangle())
                     }
@@ -57,7 +62,7 @@ extension EnvironmentValues {
                 }
                 if model.loadedScope == scope, let collection = model.collection {
                     Section {
-                        LabeledContent("objects.total", value: collection.total.formatted())
+                        // OCARDS-6: the MP shows no total row; the count is implicit in the pile.
                         if collection.cards.isEmpty {
                             ObjectCardsEmptyTitle(isAllCategories: model.category == .all)
                                 .accessibilityIdentifier("objects.empty")
@@ -116,7 +121,7 @@ extension EnvironmentValues {
             else {
                 Section {
                     // Front: the artwork (drag still turns the frames). Back: the card's facts. Foil cards catch the light.
-                    CYFlipCard(flipped: $flipped, flipActionTitle: Text(verbatim: ChannelCopy.text("翻面", "Flip", locale: locale))) {
+                    CYFlipCard(flipped: $flipped, flipActionTitle: Text("objects.flip")) {
                         artwork
                     } back: {
                         facts
@@ -147,12 +152,8 @@ extension EnvironmentValues {
                         }
                     }
                     if !card.place.isEmpty { LabeledContent("objects.place", value: card.place) }
-                    LabeledContent("objects.style") { Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil") }
-                    if !card.generationStatus.isEmpty { LabeledContent("objects.status", value: card.generationStatus) }
+                    // OCARDS-7 (MP wxml:65-86): 名称 / 分类 / 地点 (+ 3D 生成中) only; style and source sit on the card's back.
                     if card.generating { Label("objects.generating", systemImage: "hourglass") }
-                    if let origin = ObjectCardMediaPolicy.origin(card.sourceURL) {
-                        LabeledContent("objects.source", value: origin)
-                    }
                 }
             }
         }.cyGroupedSurface().cyPageTitle("objects.item").privacySensitive()
@@ -179,7 +180,7 @@ extension EnvironmentValues {
     private var facts: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 Image(systemName: isFoil ? "sparkles" : "rectangle.portrait").foregroundStyle(isFoil ? CYAlbumMotion.gold : CYColor.textTertiary).accessibilityHidden(true)
             }
@@ -189,11 +190,12 @@ extension EnvironmentValues {
                 CYFactRow(label: Text("objects.category"), value: card.category)
             }
             if !card.place.isEmpty { CYFactRow(label: Text("objects.place"), value: card.place) }
+            if let origin = ObjectCardMediaPolicy.origin(card.sourceURL) { CYFactRow(label: Text("objects.source"), value: origin) }
             if !card.caption.isEmpty {
                 Text(verbatim: card.caption).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
-            Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
+            Text("objects.tapToTurnBack")  // OCARDS-5: catalog key
                 .cyText(.caption).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity, minHeight: 240, alignment: .topLeading)
@@ -229,7 +231,7 @@ extension EnvironmentValues {
             else if isFoil { CYStatusChip("objects.foil", tone: .info, systemImage: "sparkles") }
             else { CYStatusChip("objects.plain") }
             if !card.place.isEmpty {
-                Text(verbatim: card.place).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                Text(verbatim: card.place).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -258,7 +260,7 @@ extension EnvironmentValues {
             if currentScope() != expectedScope { Text("objects.sessionChanged") }
             else if let image, loadedKey == key { Image(uiImage: image).resizable().scaledToFit() }
             else {
-                Image(systemName: "photo").font(.largeTitle)
+                Image(systemName: "photo").cyText(.display).accessibilityHidden(true)
                 if loading { ProgressView("objects.loading") }
                 else { Text(media == nil ? "objects.mediaDisabled" : failed ? "objects.mediaFailed" : "objects.noImage").cyText(.meta) }
             }
@@ -310,3 +312,21 @@ extension AppSession {
     }
 }
 
+
+
+/// MP object-cards `CAT_ICON` (index.js:18-22): one Fluent 3D icon per category, shipped as MP assets.
+extension ObjectCardCategory {
+    var mpIcon: Image {
+        switch self {
+        case .all: MPAsset.FeatureIcon.all
+        case .electronics: MPAsset.FeatureIcon.electronics
+        case .clothing: MPAsset.FeatureIcon.clothing
+        case .bags: MPAsset.FeatureIcon.bags
+        case .food: MPAsset.FeatureIcon.subpackageP3ImagesCatFood
+        case .books: MPAsset.FeatureIcon.books
+        case .toys: MPAsset.FeatureIcon.toys
+        case .household: MPAsset.FeatureIcon.daily
+        case .other: MPAsset.FeatureIcon.subpackageP3ImagesCatOther
+        }
+    }
+}

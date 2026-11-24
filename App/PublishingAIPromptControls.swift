@@ -57,7 +57,7 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                 } icon: {
                     Image(systemName:"sparkles")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .accessibilityHidden(true)
                 }
                 .foregroundStyle(palette.textPrimary)

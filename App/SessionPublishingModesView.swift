@@ -28,6 +28,7 @@ import SwiftUI
                             openResource: { resource = $0 },
                             makeProfessional: { professionalEditor($0) },
                             makeTemplateAuthoring: { templateAuthoring() },
+                               makeProjects: { AnyView(SessionCreatorProjectsView(session: session)) },
                                openTemplates: openTemplates)
         } else {
             PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.g6PublishingAIDraftFactory,

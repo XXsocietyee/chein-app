@@ -24,6 +24,8 @@ enum MerchantGameNodeCopy {
 @MainActor struct MerchantGameNodeView: View {
     @StateObject private var model: MerchantGameNodeViewModel
     @Environment(\.scenePhase) private var scenePhase
+    /// MC7-26-4: MP `readyErrors` appear after 确认准备完成 is tapped and clear as each field is fixed.
+    @State private var readyAttempted = false
     @State private var showsServiceTime = false
     @StateObject private var submissionImport = MerchantGameNodeImportController()
     init(service: any MerchantGameNodeServing, activityID: Int?, nodeID: Int? = nil, focusPause: Bool = false) {
@@ -142,7 +144,7 @@ enum MerchantGameNodeCopy {
             }.padding()
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.title"))
+        .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.title")).navigationBarTitleDisplayMode(.inline)
         .task { await c.start() }
         .refreshable { if c.writeState == .idle { await c.load() } }
     }
@@ -185,19 +187,21 @@ enum MerchantGameNodeCopy {
             }
         }
         .padding().frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
+        .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .accessibilityElement(children: .contain).accessibilityIdentifier("gameNode.unknown")
     }
     private func stateView(icon: String, title: String, message: MerchantGameNodeMessage, retry: Bool) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon).font(.largeTitle).foregroundStyle(.secondary)
-            MerchantGameNodeCopy.text(title).cyText(.cardTitle)
-            MerchantGameNodeCopy.text(message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+        ContentUnavailableView {
+            Label { MerchantGameNodeCopy.text(title) } icon: { Image(systemName: icon) }
+        } description: {
+            MerchantGameNodeCopy.text(message)
+        } actions: {
             if retry {
                 Button { Task { await c.load() } } label: { MerchantGameNodeCopy.text("merchantGameNode.retry") }
-                    .buttonStyle(.bordered).accessibilityIdentifier("gameNode.retry")
+                    .buttonStyle(.bordered).frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("gameNode.retry")
             }
-        }.frame(maxWidth: .infinity, minHeight: 280).padding()
+        }
+        .frame(maxWidth: .infinity, minHeight: 280)
     }
     @ViewBuilder private var toastView: some View {
         if let toast = c.toast {
@@ -226,12 +230,17 @@ enum MerchantGameNodeCopy {
             MerchantGameNodeCopy.text("merchantGameNode.writesDisabledNotice").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .accessibilityIdentifier("gameNode.writesDisabled")
         }
-        runbook(station)
+        // MC7-26-3: a playable station shows 本站运行 (出示打卡码 / 核验) before the runbook (game-node/index.wxml:56-65).
+        if station.playable { runCard(station) }
+        // MC7-26-5: ROUTE stations without a player task have no runbook card (index.wxml:67-69).
+        if station.playerTask != nil || c.projection?.playMode != .route { runbook(station) }
         Group {
-            if station.canAccept || station.canDecline { invitation(station) }
-            if station.canReady { readyCard(station) }
+            // MC7-26-1 (until the endpoint review approves the chapter-node commands): with writes closed the one
+            // notice above stands in for the invite / ready / pause / resume / verify actions; no disabled buttons.
+            if c.permitsWrites, station.canAccept || station.canDecline { invitation(station) }
+            if c.permitsWrites, station.canReady { readyCard(station) }
             if station.status == "PAUSED" { pauseInfo(station) }
-            if station.canPause || station.canVerify || station.playable { runCard(station) }
+            if c.permitsWrites, !station.playable && (station.canPause || station.canVerify) { runCard(station) }
         }
         receiptsCard
         recapCard(station)
@@ -283,7 +292,7 @@ enum MerchantGameNodeCopy {
         .accessibilityElement(children: .contain).accessibilityIdentifier("gameNode.hero")
     }
     private func fact(_ value: Text, _ label: String) -> some View {
-        VStack(spacing: CYSpacing.xxs) { value.cyText(.numericBody).monospacedDigit(); MerchantGameNodeCopy.text(label).cyText(.micro).foregroundStyle(CYColor.textSecondary) }
+        VStack(spacing: CYSpacing.xxs) { value.cyText(.numericBody).monospacedDigit(); MerchantGameNodeCopy.text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             .frame(maxWidth: .infinity)
     }
     private func runbook(_ station: MerchantGameNodeStation) -> some View {
@@ -313,7 +322,7 @@ enum MerchantGameNodeCopy {
                 }
                 if station.canAccept {
                     Button { c.prepareAccept() } label: { MerchantGameNodeCopy.text("merchantGameNode.invite.accept").frame(maxWidth: .infinity) }
-                        .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.accept")
+                        .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.accept")
                 }
             }
         }
@@ -326,16 +335,19 @@ enum MerchantGameNodeCopy {
                 }.buttonStyle(.plain).disabled(c.writeState != .idle)
                     .accessibilityAddTraits(item.checked ? .isSelected : []).accessibilityIdentifier("gameNode.check." + item.code)
             }
+            readyIssue(.checklist)
             labeled("merchantGameNode.ready.capacity", required: true) {
                 TextField(MerchantGameNodeCopy.string("merchantGameNode.ready.capacityPlaceholder"), text: Binding(
                     get: { c.readyDraft.capacity },
                     set: { c.readyDraft.capacity = String($0.filter(\.isASCII).filter(\.isNumber).prefix(4)) }))
                     .keyboardType(.numberPad).textFieldStyle(.roundedBorder).accessibilityIdentifier("gameNode.ready.capacity")
+                readyIssue(.capacity)
             }
             labeled("merchantGameNode.ready.date", required: true) {
                 MerchantGameNodeCivilDateField(value: Binding(get: { c.readyDraft.serviceDate }, set: { c.readyDraft.serviceDate = $0 }),
                                                placeholder: "merchantGameNode.ready.datePlaceholder", mode: .date)
                     .accessibilityIdentifier("gameNode.ready.date")
+                readyIssue(.date)
             }
             labeled("merchantGameNode.ready.window", required: true) {
                 Button { showsServiceTime = true } label: {
@@ -343,15 +355,28 @@ enum MerchantGameNodeCopy {
                         Text(verbatim: MerchantGameNodeCopy.format("merchantGameNode.ready.windowValue", c.readyDraft.serviceStartTime, c.readyDraft.serviceEndTime))
                     } else { MerchantGameNodeCopy.text("merchantGameNode.ready.windowPlaceholder") }
                 }.disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.ready.window")
+                readyIssue(.timeWindow)
             }
             labeled("merchantGameNode.ready.note", required: false) {
                 TextField(MerchantGameNodeCopy.string("merchantGameNode.ready.notePlaceholder"), text: Binding(
                     get: { c.readyDraft.note }, set: { c.readyDraft.note = String($0.prefix(200)) }))
                     .textFieldStyle(.roundedBorder).accessibilityIdentifier("gameNode.ready.note")
             }
+            ForEach(c.readyFieldIssues, id: \.key) { issue in
+                MerchantGameNodeCopy.text(issue.key).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("gameNode.ready.issue." + issue.kind.rawValue)
+            }
             Button { Task { await c.submitReady() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.ready.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
+            }.buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
+        }
+    }
+    /// One inline field error under its field (MP `cy-inline-error kind="field"`), from `readyFieldIssues`.
+    @ViewBuilder private func readyIssue(_ kind: MerchantGameNodeReadyField.Kind) -> some View {
+        if readyAttempted, c.readyFieldIssues.contains(where: { $0.kind == kind }) {
+            Label { Text(LocalizedStringKey("merchantCoop.gameNode.readyIssue." + kind.rawValue)) } icon: { Image(systemName: "exclamationmark.circle") }
+                .cyText(.meta).foregroundStyle(CYColor.dangerText)
+                .accessibilityIdentifier("gameNode.ready.issue." + kind.rawValue)
         }
     }
     private func labeled<Content: View>(_ key: String, required: Bool, @ViewBuilder content: () -> Content) -> some View {
@@ -367,9 +392,9 @@ enum MerchantGameNodeCopy {
             info("merchantGameNode.pauseInfo.fallback", station.fallbackPlanCode.isEmpty ? "" : station.fallbackPlanCode + (station.fallbackPlanVersion.map { " v\($0)" } ?? ""),
                  fallback: "merchantGameNode.pauseInfo.fallbackMissing")
             MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.refund").cyText(.bodyCompact).foregroundStyle(.secondary)
-            if station.canResume {
+            if station.canResume && c.permitsWrites {
                 Button { c.prepareResume() } label: { MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.resume").frame(maxWidth: .infinity) }
-                    .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.resume")
+                    .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.resume")
             }
         }
     }
@@ -384,7 +409,7 @@ enum MerchantGameNodeCopy {
         // verify-r1 3.6 / Figma 233:9703 (MR-30): one primary, 核验 N 位玩家 (scan); the two other ways in as a pair of
         // secondaries (出示打卡码 · 输入核验编号); 暂停接待 is a quiet row at the end, not a third button.
         card("merchantGameNode.run.title", "merchantGameNode.run.sub", id: "gameNode.runCard") {
-            if station.canVerify {
+            if station.canVerify && c.permitsWrites {
                 Button { openSubmissionImport() } label: {
                     Group {
                         if station.pendingVerificationCount > 0 {
@@ -396,23 +421,23 @@ enum MerchantGameNodeCopy {
                     .monospacedDigit()
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
+                .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
             }
-            if station.playable || station.canVerify {
+            if station.playable || (station.canVerify && c.permitsWrites) {
                 HStack(spacing: CYSpacing.sm) {
                     if station.playable {
                         Button { Task { await c.showCheckin() } } label: { MerchantGameNodeCopy.text("merchantGameNode.run.checkin").frame(maxWidth: .infinity) }
                             .buttonStyle(CYPillButtonStyle(style: .secondary, compact: true))
                             .disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.checkin")
                     }
-                    if station.canVerify {
+                    if station.canVerify && c.permitsWrites {
                         Button { c.openVerify() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.manualVerify").frame(maxWidth: .infinity) }
                             .buttonStyle(CYPillButtonStyle(style: .secondary, compact: true))
                             .disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.manual")
                     }
                 }
             }
-            if station.canPause {
+            if station.canPause && c.permitsWrites {
                 Button(role: .destructive) { c.openPause() } label: {
                     Label { MerchantGameNodeCopy.text("merchantGameNode.run.pause") } icon: { Image(systemName: "pause.circle") }
                         .font(.subheadline.weight(.semibold))
@@ -540,7 +565,7 @@ struct MerchantGameNodeCivilDateField: View {
             MerchantGameNodeChoices(reasons: MerchantGameNodeReason.decline, selected: c.declineDraft.reason?.code) { c.declineDraft.reason = $0 }
             Button(role: .destructive) { Task { await c.submitDecline() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.decline.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.decline.submit")
+            }.buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.decline.submit")
         }
     }
 }
@@ -575,7 +600,7 @@ struct MerchantGameNodeCivilDateField: View {
             }
             Button(role: .destructive) { Task { await c.submitPause() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.pause.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.questifyPrimary).disabled(!c.pauseDraft.canSubmit || c.writeState != .idle).accessibilityIdentifier("gameNode.pause.submit")
+            }.buttonStyle(.borderedProminent).disabled(!c.pauseDraft.canSubmit || c.writeState != .idle).accessibilityIdentifier("gameNode.pause.submit")
         }
     }
 }
@@ -599,7 +624,7 @@ struct MerchantGameNodeCivilDateField: View {
             }
             Button { Task { await c.submitVerify() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.verify.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.verify.submit")
+            }.buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.verify.submit")
         }
     }
 }
@@ -630,7 +655,7 @@ struct MerchantGameNodeCivilDateField: View {
                 }
                 if let issue = session.issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
             }
-            .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.run.scanVerify"))
+            .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.run.scanVerify")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(action: cancel) { MerchantGameNodeCopy.text("merchantGameNode.cancel") }
             } }

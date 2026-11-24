@@ -214,7 +214,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -239,7 +239,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
     private var statusBannerView: some View {
         HStack(spacing: 8) {
             Text(verbatim: snapshot.hasBlockedMilestone ? "LAUNCH_PATH_BLOCKED" : (snapshot.isLaunchPathReady ? "LAUNCH_PATH_VERIFIED" : "LAUNCH_PATH_NOT_VERIFIED"))
-                .font(.caption2.monospaced().weight(.bold))
+                .font(.caption.monospaced().weight(.bold))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(
@@ -266,20 +266,20 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
                 .accessibilityIdentifier("sevenDayLaunchPlan.opsHeader")
 
             Text(verbatim: "• \(snapshot.localXcconfigCheckText)")
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .accessibilityIdentifier("sevenDayLaunchPlan.opsLocalXcconfig")
 
             Text(verbatim: "• \(snapshot.userInfoRoleContractText)")
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .accessibilityIdentifier("sevenDayLaunchPlan.opsUserInfoRole")
 
             Text(verbatim: "• \(snapshot.testFlightArchiveCheckText)")
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .accessibilityIdentifier("sevenDayLaunchPlan.opsTestFlightArchive")
         }
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(Color.primary.opacity(0.04))
         )
         .accessibilityElement(children: .contain)

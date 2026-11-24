@@ -103,13 +103,13 @@ public struct RunAuthorityHostSectionView: View {
                 .accessibilityIdentifier("runAuthorityHost.pendingIdempotency")
 
             Text(verbatim: nodeSummaryText)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("runAuthorityHost.nodeSummary")
         }
         .padding(12)
         .background(CYColor.textSecondary.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("runAuthorityHost.section")
     }

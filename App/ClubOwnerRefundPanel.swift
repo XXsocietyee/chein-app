@@ -162,7 +162,7 @@ extension EnvironmentValues {
     private func refundConsequenceRow(_ systemImage: String, _ key: String.LocalizationValue) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: systemImage)
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(CYColor.dangerText)
                 .frame(width: 22)
                 .accessibilityHidden(true)

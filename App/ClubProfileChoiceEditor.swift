@@ -57,8 +57,8 @@ import SwiftUI
         }.disabled(!available).accessibilityIdentifier("club.profileChoice.open." + kind.rawValue)
     }
     @ViewBuilder private func choiceLabel(_ value: String, catalog: [String]) -> some View {
-        if catalog.contains(value) { Text(LocalizedStringKey("club.ops.value." + value)).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
-        else { Text(verbatim: value).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
+        if catalog.contains(value) { Text(LocalizedStringKey("club.ops.value." + value)).cyText(.body).fixedSize(horizontal: false, vertical: true) }
+        else { Text(verbatim: value).cyText(.body).fixedSize(horizontal: false, vertical: true) }
     }
 }
 
@@ -117,10 +117,10 @@ import SwiftUI
             } else {
                 Text("club.ops.directionsHint").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                 ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
-                    Toggle(LocalizedStringKey("club.ops.value." + value), isOn: Binding(get: { draft.directions.contains(value) }, set: { enabled in
+                    Toggle(isOn: Binding(get: { draft.directions.contains(value) }, set: { enabled in
                         guard isCurrent(), enabled != draft.directions.contains(value) else { return }
                         _ = draft.toggleDirection(value); failed = false
-                    })).disabled(!draft.directions.contains(value) && draft.directions.count >= 3)
+                    })) { ClubDirectionLabel(value: value) }.disabled(!draft.directions.contains(value) && draft.directions.count >= 3)
                 }
                 ForEach(draft.directions.filter { !ClubOperationsCatalog.directions.contains($0) }, id: \.self) { Text(verbatim: $0).fixedSize(horizontal: false, vertical: true) }
             }

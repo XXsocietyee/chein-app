@@ -1418,12 +1418,15 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
             guard let entry, entry.current()?.preview == true, !model.awardsLoaded else { return }
             await model.loadStoreAwards(entry: entry)
         }
-        .sheet(isPresented: $scanning) {
+        .sheet(isPresented: $scanning) { Group {
             NativeQRScanner { value in
                 scanning = false
                 guard let entry else { return }
                 Task { await model.resolveCode(value, entry: entry) }
             }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
     }
 }
@@ -1476,7 +1479,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
                 }
             }
         }
-        .navigationTitle("rewards.pledge.freeze")
+        .navigationTitle("rewards.pledge.freeze").navigationBarTitleDisplayMode(.inline)
         .task {
             scoped = await entry.access() != nil
             guard scoped, entry.current()?.freeze == true else { return }

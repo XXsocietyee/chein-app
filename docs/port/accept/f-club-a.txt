@@ -1,0 +1,28 @@
+# F club-a (fix/r3-club-a): fixture routes for the first half of the club audit page list (zh-Hans unless noted)
+# pages/club/detail: system bar + back, overview (intro, badges, 治理与安全), events publish gate, manage 结算
+--uitesting-club-fixture owner
+--uitesting-club-fixture owner --uitesting-club-top-tabs
+--uitesting-club-fixture member
+--uitesting-club-fixture visitor
+--uitesting-club-fixture merchantLocality
+--club-community-fixture
+# pages/club/topic-detail and topic-story: hero, single 查看答案 sheet
+--uitesting-club-governance --club-story-scenario ready
+--uitesting-club-governance --club-story-scenario invalid
+# pages/club/governance, roles, enroll (workspace sheet opens large)
+--uitesting-club-governance
+# pages/club/create, edit, apply (wizard opens at step 1; 关闭 in bar, 上一步 at bottom)
+--uitesting-club-operations owner
+--uitesting-club-operations ordinary --uitesting-club-operations-host-apply
+--uitesting-club-operations limit --uitesting-club-operations-host-apply
+# Round 2 (2026-11-24)
+# MP assets: detail cover/logo defaults, 活动 card route_free_cover, members/roles/governance d_profile, enroll route_city_cover
+--uitesting-club-fixture owner
+--uitesting-club-fixture member --uitesting-club-top-tabs
+# governance: ban review shows 「N 天」, confirm titled 确认封禁 <name>; revoke confirm with three consequences; 暂无成员
+--uitesting-club-governance
+# create limit → 管理我的俱乐部; apply step 1 labels with * and MP placeholders; 组织经验 option cards
+--uitesting-club-operations limit --uitesting-club-operations-host-apply
+--uitesting-club-operations ordinary --uitesting-club-operations-host-apply
+# create 活动倾向 chips and edit toggles carry the MP tag icons
+--uitesting-club-operations owner

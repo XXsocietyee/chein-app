@@ -92,24 +92,46 @@ public enum PlayClientCapabilities {
     /// the player branch-choice sheet does not exist natively (the mini-program does not render it either).
     public static let storyBlocks = ["node", "text", "image", "audio", "dream", "mood", "reveal", "odd", "voice",
                                      "thought", "divider", "gallery", "cap"]
-    /// `PlayNodeTask.resolve`: validationMethod 0–7. 8/9/10 (estimate / pricePair / hiddenObject
-    /// as completion methods) are not declared until the native node screen resolves them.
+    /// `PlayNodeTask.resolve`: validationMethod 0–7.
     static let answers = ["answer.arrive", "answer.text", "answer.photo", "answer.choice", "answer.scan",
                           "answer.gps", "answer.preference", "answer.sensor"]
     /// `PlayCompletionEvidence.sensor` accepts exactly these sensor types.
     static let sensors = ["sensor.still", "sensor.steps", "sensor.audio_clip"]
+    /// Kits this build finishes as node answers: estimate, price pair, hidden object.
+    static let kitAnswers = ["answer.estimate", "answer.pricePair", "answer.hiddenObject"]
+    /// Letter-pool input on the Questo hangman and on TYPE questions. Role cards stay with P1.
+    static let features = ["hangman.pool", "qa.letterPool"]
     static let base = ["chapter.blocks", "station.list", "media.image", "media.audio", "media.photo",
                        "location.gps", "route.branch", "theme.runtime"]
-    /// Advanced sections rendered by `PlayKitScreenKind` plus the hangman kit in `PlayAdvancedView`.
+    /// Advanced sections rendered by `PlayKitScreenKind` plus the Questo hangman in `PlayAdvancedView`.
+    /// The list is not `PlayKitScreenKind` alone: hangman is not a second screen kind.
     static var gameSections: [String] {
         (PlayKitScreenKind.allCases.map(\.rawValue) + ["hangman"]).map { "game." + $0.lowercased() }
     }
     public static var keys: [String] {
-        Array(Set(base + storyBlocks.map { "chapter.blocks." + $0 } + answers + sensors + gameSections)).sorted()
+        Array(Set(base + storyBlocks.map { "chapter.blocks." + $0 } + answers + kitAnswers + sensors + features + gameSections)).sorted()
+    }
+    /// `key@version` rows for `supportedCapabilities`.
+    public static var tokens: [String] { keys.map { "\($0)@\(version)" } }
+    public static func declaration(_ keys: [String]) -> String {
+        keys.sorted().map { "\($0)@\(version)" }.joined(separator: ",")
+    }
+    /// Fields merged into `api/play/advanced/start`. The mini-program `declaration()` sends
+    /// `supportedCapabilities` as one comma-joined `key@version` string (`declaration(_:)`).
+    /// This build sends the same field name as an array and `clientPlatform` `ios-native`.
+    public static func startFields(clientVersion: String? = bundleVersion) -> [String: PlayWireValue] {
+        var fields: [String: PlayWireValue] = [
+            "clientPlatform": .string(platform),
+            "supportedCapabilities": .array(tokens.map { .string($0) }),
+        ]
+        if let clientVersion, clientVersion.range(of: #"^[0-9A-Za-z._-]{1,32}$"#, options: .regularExpression) != nil {
+            fields["clientVersion"] = .string(clientVersion)
+        }
+        return fields
     }
     /// Query fields for `GET /api/play/nodes` (`clientPlatform`, `clientVersion`, `capabilities`).
     public static func nodesQuery(clientVersion: String?) -> [String: String] {
-        var fields = ["clientPlatform": platform, "capabilities": keys.map { "\($0)@\(version)" }.joined(separator: ",")]
+        var fields = ["clientPlatform": platform, "capabilities": tokens.joined(separator: ",")]
         if let clientVersion, clientVersion.range(of: #"^[0-9A-Za-z._-]{1,32}$"#, options: .regularExpression) != nil {
             fields["clientVersion"] = clientVersion
         }

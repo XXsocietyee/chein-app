@@ -76,7 +76,7 @@ import SwiftUI
         ScrollViewReader { scroll in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if reader.isOfflineExample { Text("searchMap.offline").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+                if reader.isOfflineExample { Text("searchMap.offline").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
                 if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline).accessibilityAddTraits(.isHeader) }
                 if mode == .city {
                     TextField("searchMap.cityPlaceholder", text: $filter.keyword)
@@ -152,6 +152,7 @@ import SwiftUI
         }
         }
         .appNavigationTitle(key: mode == .city ? "searchMap.mapTitle" : "searchMap.nearby")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showsAllResults) {
             let renderedContext = pinSelectionContext
             SearchMapAllResultsSheet(rows: visibleCityResults == nil ? [] : pagination.rows, loading: loading,
@@ -207,11 +208,11 @@ import SwiftUI
         .onChange(of: publicLayerNavigation) { _, next in
             if next == nil { reader.publicLayerCoordinator?.returnFromDetail() }
         }
-        .sheet(isPresented: $showsArea) {
+        .sheet(isPresented: $showsArea) { Group {
             RoamAreaPicker { selected in
                 reader.selectManualArea(selected); area = selected; mapEnabled = false; mapCameraIdentityArea = nil; invalidate(); reader.publicLayerCoordinator?.purgeAllState()
             }
-        }
+        }.cySheet() }
         .sheet(isPresented: $showsFilters) {
             SearchMapFilterSheet(filter: filter, categories: categories, categoryFailed: categoryFailed,
                                  tag: tag, cityRole: cityRole, sortType: sortType,
@@ -229,7 +230,7 @@ import SwiftUI
             guard reader.isConfigured, mode == .city, categories.isEmpty else { return }
             let ticket = categoryGate.begin(scope: reader.scope)
             do {
-                let values = try await reader.categories()
+                let values = try await reader.merchantCategories()
                 guard categoryGate.accepts(ticket, scope: reader.scope) else { return }; categories = values; categoryFailed = false
             } catch {
                 guard categoryGate.accepts(ticket, scope: reader.scope) else { return }; categoryFailed = true
@@ -313,7 +314,7 @@ import SwiftUI
     private func selectedPlaceSummary(_ id: String, area: RoamSearchArea) -> some View {
         let renderedContext = pinSelectionContext
         return VStack(alignment: .leading, spacing: 10) {
-            Text("searchMap.selectedPlace").accessibilityIdentifier("searchMap.selectedSummary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityFocused($selectionFocused)
+            Text("searchMap.selectedPlace").accessibilityIdentifier("searchMap.selectedSummary").cyText(.caption).foregroundStyle(CYColor.textSecondary).accessibilityFocused($selectionFocused)
             pinDetail(id, area: area)
             Button("searchMap.clearSelection") {
                 guard selectedPin == id, renderedContext.accepts(id, current: pinSelectionContext, isConfigured: reader.isConfigured) else { return }
@@ -508,7 +509,7 @@ import SwiftUI
                     if let address = node.address { Text(verbatim: address).font(.subheadline) }
                     if node.coordinate == nil { Label("searchMap.noCoordinates", systemImage: "mappin.slash").font(.caption) }
                 }.padding().frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-                    .background(.secondary.opacity(0.07), in: RoundedRectangle(cornerRadius: 18))
+                    .background(.secondary.opacity(0.07), in: RoundedRectangle(cornerRadius: 20))
             }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.nearby.node.\(node.id)")
             if node.coordinate != nil { selectPlace("nearby-\(node.id)", title: node.addressName) }
         }

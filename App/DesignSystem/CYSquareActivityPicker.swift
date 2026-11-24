@@ -74,7 +74,7 @@ struct CYSquareActivityPicker: View {
                 } else { ZStack { CYColor.bgRaised; Image(systemName: "map").foregroundStyle(CYColor.textTertiary) } }
             }
             .frame(width: 56, height: 56)
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: activity.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)

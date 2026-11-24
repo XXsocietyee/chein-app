@@ -149,10 +149,13 @@ struct MerchantStationSubmissionContext: Equatable {
             }
         }
         .sheet(item: model.presentationBinding()) { session in
-            MerchantStationSubmissionImportSheet(session: session, cancel: { model.cancel(id: session.id) }) {
-                guard session.apply() else { return }
-                model.cancel(id: session.id)
+            Group {
+                MerchantStationSubmissionImportSheet(session: session, cancel: { model.cancel(id: session.id) }) {
+                    guard session.apply() else { return }
+                    model.cancel(id: session.id)
+                }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onAppear { if scenePhase == .active { model.activate() } }
         .onChange(of: scenePhase) { _, value in if value == .active { model.activate() } else { model.deactivate() } }

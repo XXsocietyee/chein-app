@@ -1,0 +1,39 @@
+# fix/r3-player-content-b (wave ×10, Claude F-agent, player-content half b: C2–C7, D1–D9).
+# One fixture route per line; # comments are ignored. Only existing DEBUG routes are listed.
+
+# C2 baoming — registration sheet (ticket section, sold-out waitlist; r2: cover-route default on the ticket card)
+e1-registration
+e1-registration-soldout
+# C3 activity list (official events browser: status chips, 即将上线, one-line empty; r2: cover-route on coverless cards)
+e1-official
+e1-official-empty
+--uitesting-module officialEvents --uitesting-official-destination browser
+# C4 official detail (pinned CTA bar, rewards hidden when empty, 活动详情 title; r2: 城瘾官方 logo mark)
+--uitesting-module officialEvents --uitesting-official-destination detail
+# C5 official inbox (plain title, actions inside the card)
+--uitesting-module officialEvents --uitesting-official-destination inbox
+# C6 official mine (owner status chips, inline broadcast 复盘)
+--uitesting-module officialEvents --uitesting-official-destination published
+--uitesting-module officialEvents --uitesting-official-destination stats
+# D1 my projects (address → Maps, signed-out copy + 登录; r2: route_free_cover default, cancel names paid players)
+e4-self-projects
+e5-creator-projects
+e5c-projects-empty
+publish-projects
+# D2 / D3 play guide + article (square → 发布 tab, skeleton/failed states, article title in the bar, removed state)
+e5-guide
+e5-guide-empty
+e5-info-detail
+e5-info-link
+--uitesting-module socialAccount --uitesting-social-destination guide --uitesting-social-scenario content
+# D4 income detail (收益/分佣 tabs, one filter row, r2: no 主办分润 tab) · D5 earnings home (r2: ¥x.xx) · D6 analysis chart (r2: 200-row pages)
+e4-wallet-income
+e4-wallet-analysis
+e4-wallet-assets
+# D8 IM list (avatars, day headers; r2: d_profile default) · D9 chat (avatars; r2: d_profile default, cover-route on route cards)
+e3-inbox
+e3-inbox-empty
+e3-inbox-error
+e3-chat
+e3-chat-rich
+d2-inbox

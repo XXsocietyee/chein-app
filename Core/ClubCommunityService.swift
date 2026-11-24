@@ -31,12 +31,18 @@ public struct ClubCommunityService {
         return request
     }
     public func read(_ operation: ClubCommunityRead, session: ClubCommunitySession, check: () throws -> Void) async throws -> ClubCommunitySnapshot {
-        guard operation.fields.values.allSatisfy({ (($0 as? Int) ?? 0) > 0 }) else { throw ClubCommunityFailure.invalid }
+        guard operation.fields.values.allSatisfy({ value in
+            if let number = value as? Int { return number > 0 }
+            if let text = value as? String { return text == "all" }
+            return false
+        }) else { throw ClubCommunityFailure.invalid }
         if case .feed = operation, !session.identity.isSignedIn { throw ClubCommunityFailure.forbidden }
         if case let .posts(clubID, beforeID, limit) = operation {
             guard clubID > 0, (1...50).contains(limit), beforeID.map({ $0 > 0 }) ?? true else { throw ClubCommunityFailure.invalid }
         }
-        if case let .feed(limit) = operation, !(1...50).contains(limit) { throw ClubCommunityFailure.invalid }
+        if case let .feed(limit, beforeID) = operation {
+            guard (1...50).contains(limit), beforeID.map({ $0 > 0 }) ?? true else { throw ClubCommunityFailure.invalid }
+        }
         // c6 returns the full visible list; page > 1 cannot identify a continuation.
         if case let .comments(_, page) = operation, page != 1 { throw ClubCommunityFailure.invalid }
         let request = try request(suffix: operation.suffix, fields: operation.fields, session: session)
@@ -46,12 +52,12 @@ public struct ClubCommunityService {
         case let .posts(clubID, beforeID, limit):
             let page = try ClubCommunityPostPage(clubID: clubID, beforeID: beforeID, limit: limit, rows: CCWire.rows(value))
             return try page.snapshot()
-        case .feed:
-            guard let object = value as? [String: Any], let count = object["clubCount"] as? Int else { throw ClubCommunityFailure.invalid }
-            guard count >= 0 else { throw ClubCommunityFailure.invalid }
+        case let .feed(_, beforeID):
+            guard let object = value as? [String: Any], let count = object["clubCount"] as? Int, count >= 0,
+                  let hasMore = object["hasMore"] as? Bool else { throw ClubCommunityFailure.invalid }
             let items = try CCWire.rows(object).map { try ClubCommunityFeedItem(row: $0, clubID: nil) }
             guard Set(items.map(\.id)).count == items.count else { throw ClubCommunityFailure.invalid }
-            return try ClubCommunityPostPage.snapshot(items: items, page: nil, clubCount: count)
+            return try ClubCommunityPostPage.snapshot(items: items, page: nil, clubCount: count, feedHasMore: hasMore, feedRequestedBeforeID: beforeID, feedNextBeforeID: items.last?.pagingID)
         case let .comments(postID, _):
             let comments = try CCWire.rows(value).map(ClubCommunityComment.init)
             guard comments.allSatisfy({ $0.postID == nil || $0.postID == postID }) else { throw ClubCommunityFailure.stale }
@@ -66,14 +72,14 @@ public struct ClubCommunityService {
         guard code == 200 else { throw ClubCommunityFailure.rejected(code) }
         return object["data"] ?? NSNull()
     }
-    func submit(_ review: ClubCommunityReview, session: ClubCommunitySession, check: () throws -> Void) async throws {
+    func submit(_ review: ClubCommunityReview, session: ClubCommunitySession, check: @MainActor () throws -> Void) async throws {
         guard allowsInjectedWrites else { throw ClubCommunityFailure.unavailable }
         guard session.identity == review.evidence.identity else { throw ClubCommunityFailure.stale }
         let request = try request(suffix: review.operation.suffix, fields: review.fields(), session: session)
-        try Task.checkCancellation(); try check()
+        try Task.checkCancellation(); try await check()
         let data: Data, status: Int
         do { (data, status) = try await transport.send(request) } catch { throw ClubCommunityFailure.unknown }
-        do { try Task.checkCancellation(); try check() } catch { throw ClubCommunityFailure.unknown }
+        do { try Task.checkCancellation(); try await check() } catch { throw ClubCommunityFailure.unknown }
         do { _ = try Self.decode(data, status: status) }
         catch let error as ClubCommunityFailure {
             if case .rejected = error { throw error }; throw ClubCommunityFailure.unknown

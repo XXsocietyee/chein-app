@@ -141,11 +141,11 @@ import QuestifyCore
                             .foregroundStyle(row.unsupported ? .secondary : .primary)
                         Spacer()
                         Image(systemName: row.open ? "chevron.up" : "chevron.down")
-                            .font(.caption2)
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(10)
-                    .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                    .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .padding(.leading, CGFloat(row.depth * 16))
@@ -188,7 +188,7 @@ import QuestifyCore
                 }
             }
             .padding(10)
-            .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
 
             if row.open, let editor = row.editor {
                 rowInlineEditor(path: row.path, editor: editor)
@@ -293,7 +293,7 @@ import QuestifyCore
             .buttonStyle(.borderless)
         }
         .padding(10)
-        .background(CYColor.textSecondary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+        .background(CYColor.textSecondary.opacity(0.05), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
     }
 
     @ViewBuilder
@@ -327,11 +327,11 @@ import QuestifyCore
                                 Spacer()
                                 if lRow.hasNames {
                                     Image(systemName: lRow.open ? "chevron.up" : "chevron.down")
-                                        .font(.caption2)
+                                        .font(.caption)
                                 }
                             }
                             .padding(8)
-                            .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                            .background(CYColor.textSecondary.opacity(0.08), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                         }
                         .buttonStyle(.plain)
                     }
@@ -452,7 +452,7 @@ enum StoryAnswerFeedback: Equatable {
             .padding(.vertical, CYSpacing.sm)
             .frame(minHeight: CYSpacing.minTouchTarget)
             .background(selected ? CYColor.brandSoft : CYColor.bgSurfaceSubtle,
-                        in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                        in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -478,7 +478,7 @@ enum StoryAnswerFeedback: Equatable {
                             .cyText(.meta)
                             .foregroundStyle(CYColor.textTertiary)
                         Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textTertiary)
                             .accessibilityHidden(true)
                     }
@@ -564,7 +564,7 @@ enum StoryAnswerFeedback: Equatable {
             .cyText(.body)
             .padding(.horizontal, CYSpacing.md)
             .frame(minHeight: CYSpacing.minTouchTarget)
-            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         }
 
         if let feedback = answerFeedback[node.nodeId] {

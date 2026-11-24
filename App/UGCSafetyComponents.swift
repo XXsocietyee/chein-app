@@ -307,8 +307,10 @@ struct UGCReportSheet: View {
                         tableName: "UGCSafety"
                     ) {
                         Image(systemName: "shield.lefthalf.filled")
-                            .font(CYTypography.pageTitle)
+                            .accessibilityHidden(true)
+                            .cyText(.pageTitle)
                             .foregroundStyle(CYColor.brand)
+                            .accessibilityHidden(true)
                     }
 
                     if let subject = presentation.subjectTitle, !subject.isEmpty {
@@ -334,7 +336,7 @@ struct UGCReportSheet: View {
                                 .foregroundStyle(CYColor.textPrimary)
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .font(CYTypography.caption)
+                                .cyText(.caption)
                                 .foregroundStyle(CYColor.textTertiary)
                         }
                         .padding(CYSpacing.md)
@@ -655,7 +657,7 @@ struct UGCSafetyMenuButton: View {
         } label: {
             if compactLabel {
                 Image(systemName: "shield")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .frame(minWidth: CYSpacing.xl, minHeight: CYSpacing.xl)
             } else {

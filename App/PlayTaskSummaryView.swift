@@ -67,9 +67,9 @@ struct PlayTaskSummaryView: View {
         .foregroundStyle(palette.textPrimary)
         .tint(palette.actionPrimaryBg)
         .accessibilityElement(children: .contain)
-        .sheet(item: $branchHistorySelection) { selection in
+        .sheet(item: $branchHistorySelection) { selection in Group {
             PlayBranchHistoryView(history: selection.presentation(snapshot: snapshot))
-        }
+        }.cySheet(detents: [.large]) }
         .onChange(of: PlayBranchHistorySelection(snapshot: snapshot)) { _, current in
             if current != branchHistorySelection { branchHistorySelection = nil }
         }

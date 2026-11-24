@@ -96,7 +96,40 @@ import QuestifyCore
     private var currentBrowseReader: (any RoamExperienceReading)? {
         browseReader(for: browse.target?.context.kind ?? .history)
     }
+    /// ROAM-4 (hand-off PL-20, MP B1 实时漫游地图): the map is the screen. Full-bleed fog map, the HUD as a glass card
+    /// at the top, and the session status / nearby / trace list in the shared three-detent panel over the map.
     private var sessionContent: some View {
+        CYMapScaffold(detent: .medium, map: { liveMapGround }, controls: { hud }, floating: { EmptyView() },
+                      panel: { sessionList })
+        // Mini-program pbar: one main round control (start / pause / continue) with 结束 beside it.
+        .safeAreaInset(edge: .bottom) { actionBar }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                InGameChannelToolbarButton(
+                    scope: .roam(district: fogMap?.area.label ?? "nearby"),
+                    titleKey: "ingame.channel.roam",
+                    accessibilityID: "ingame.channel.roamLive.entry",
+                    reloadTrigger: fogMap?.area.label ?? ""
+                )
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showRules = true } label: { Label("roam.live.rules", systemImage: "info.circle") }
+                    .accessibilityIdentifier("roam.live.rules")
+            }
+        }
+        .cyPageTitle("roam.experience.live")
+    }
+    /// Map ground (static fog backdrop when the live reveal is off).
+    @ViewBuilder private var liveMapGround: some View {
+        if PersonalFogFeature.liveRevealEnabled, let fogMap {
+            RoamFogMapView(area: fogMap.area, items: fogMap.items, fillsHeight: true, fog: fogMap.presentation,
+                           reveal: fogMap.reveal, onBaked: fogMap.onBaked, onSelect: { _ in })
+                .ignoresSafeArea()
+        } else {
+            ZStack { CYMapPlaceholder(fog: false); fogEdge.ignoresSafeArea() }
+        }
+    }
+    private var sessionList: some View {
         List {
             if offlineExample { RoamExperienceNotice(offline: true) }
             if model.syncStatus.isOffline {
@@ -114,10 +147,7 @@ import QuestifyCore
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
             }
-            // Mini-program pcard: goal line, then 用时 / 地盘 / 距离 (公里).
-            Section { hud }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+            // Mini-program pcard (goal line, then 用时 / 地盘 / 距离): the HUD now sits over the map (ROAM-4).
             if owner.phase == .unavailable {
                 Section {
                     Label("roam.live.notApproved", systemImage: "lock.shield")
@@ -170,7 +200,7 @@ import QuestifyCore
                             }.accessibilityIdentifier("roam.live.locationDenied")
                         }
                         if owner.presenceAvailable {
-                            Toggle("roam.live.presenceConsent", isOn: $presenceAccepted)
+                            Toggle("roam.live.presenceConsent", isOn: $presenceAccepted).tint(.green)
                         }
                     } footer: {
                         // Disclosure of what nearby players see; kept because it is a consent.
@@ -237,34 +267,7 @@ import QuestifyCore
         }
         // Identify the list only; the inset actions keep their own accessible identities.
         .accessibilityIdentifier("roam.live.session")
-        // Map ground behind the HUD (static fog backdrop; this screen has no map of its own).
         .scrollContentBackground(.hidden)
-        .background {
-            if PersonalFogFeature.liveRevealEnabled, let fogMap {
-                RoamFogMapView(area: fogMap.area, items: fogMap.items, fillsHeight: true, fog: fogMap.presentation,
-                               reveal: fogMap.reveal, onBaked: fogMap.onBaked, onSelect: { _ in })
-                    .ignoresSafeArea()
-            } else {
-                ZStack { CYMapPlaceholder(fog: false); fogEdge.ignoresSafeArea() }
-            }
-        }
-        // Mini-program pbar: one main round control (start / pause / continue) with 结束 beside it.
-        .safeAreaInset(edge: .bottom) { actionBar }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                InGameChannelToolbarButton(
-                    scope: .roam(district: fogMap?.area.label ?? "nearby"),
-                    titleKey: "ingame.channel.roam",
-                    accessibilityID: "ingame.channel.roamLive.entry",
-                    reloadTrigger: fogMap?.area.label ?? ""
-                )
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { showRules = true } label: { Label("roam.live.rules", systemImage: "info.circle") }
-                    .accessibilityIdentifier("roam.live.rules")
-            }
-        }
-        .cyPageTitle("roam.experience.live")
     }
     /// First GO only: one inline card instead of a toggle the player must find first. Agreeing records the consent and
     /// starts the roam through the same path as the Go button (location priming still comes first when undecided).
@@ -385,13 +388,13 @@ import QuestifyCore
                     await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
                 }
             }
-        }) {
+        }) { Group {
             CYPermissionPrimerScreen(kind: .location, onPrimary: {
                 CYPermissionSystemPrompt.notePrimed(.location)
                 locationPrimingAllowed = true
                 showingLocationPriming = false
             }, onSecondary: { showingLocationPriming = false })
-        }
+        }.cySheet(detents: [.large]) }
         .overlay {
             if confirmFinish {
                 PlayAreaRoamFinishModal(onConfirm: {
@@ -401,9 +404,9 @@ import QuestifyCore
             }
         }
         .sheet(isPresented: $showRules) {
-            NavigationStack { RoamLiveRulesView() }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            NavigationStack { RoamLiveRulesView() }.cySheet()
         }
-        .sheet(item: $checkin) { target in RoamCheckinSheet(target: target) }
+        .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
         .background {
             RoamPausedBrowseLifetimeAnchor(presentation: browse).frame(width: 0, height: 0)
         }
@@ -461,7 +464,6 @@ import QuestifyCore
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
             .strokeBorder(active ? CYColor.borderStrong : CYColor.borderSubtle, lineWidth: 1))
-        .padding(.horizontal)
     }
     private var hudDistance: String {
         guard let meters = owner.record?.distanceMeters, meters.isFinite, meters >= 0 else { return "—" }
@@ -700,10 +702,13 @@ import QuestifyCore
             Section("roam.live.ruleFinishTitle") { Text("roam.live.ruleFinish") }
             Section("roam.live.rulePrivacyTitle") { Text("roam.live.presencePrivacy"); Text("roam.live.leaveHint") }
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            CYSheetHeader(title: Text("roam.live.rules"), style: .player, onClose: { dismiss() })
+        .navigationTitle(Text("roam.live.rules")).navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button { dismiss() } label: { Label("action.close", systemImage: "xmark") }
+                    .labelStyle(.iconOnly)
+            }
         }
-        .toolbar(.hidden, for: .navigationBar)
     }
 }
 
@@ -769,7 +774,7 @@ struct RoamLiveStatTile: View {
 
 struct RoamLiveElapsedCopy {
     let locale: Locale
-    private var chinese: Bool { locale.languageCode == "zh" }
+    private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     var title: String { chinese ? "本次前台用时" : "Foreground time" }
     var unknown: String { "—" }
     var hint: String {
@@ -915,7 +920,7 @@ struct RoamFinishedStorySection: View {
     @Environment(\.locale) private var locale
     var body: some View {
         Section {
-            Text(verbatim: presentation.text).font(.body.italic())
+            Text(verbatim: presentation.text).cyText(.body).italic()
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roam.live.finishedStory.text")
         } header: { Text("roam.live.story.title") }
@@ -1042,7 +1047,7 @@ struct RoamPausedBrowseContext: Equatable {
     let historyReader: RoamPausedLocalHistoryReader?
     let albumScope: RoamStampAlbumReadOnlyScope?
 }
-@MainActor final class RoamPausedBrowsePresentation: ObservableObject {
+@MainActor final class RoamPausedBrowsePresentation: @preconcurrency ObservableObject {
     let objectWillChange = ObservableObjectPublisher()
     private(set) var target: RoamPausedBrowseTarget?
     private(set) var entryID = UUID()
@@ -1178,7 +1183,7 @@ struct RoamPausedBrowseCopy {
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: presentation.binding(for: target, owner: owner, reader: reader),
-                   onDismiss: { presentation.close(id: target.id) }) { offered in
+                   onDismiss: { presentation.close(id: target.id) }) { offered in Group {
                 NavigationStack {
                     if presentation.matches(offered, owner: owner, reader: reader) {
                         Group {
@@ -1197,7 +1202,7 @@ struct RoamPausedBrowseCopy {
                         } }
                     }
                 }
-            }
+            }.cySheet(detents: [.large]) }
     }
 }
 /// Native attachment distinguishes a covering sheet from the source leaving its hierarchy.
@@ -1268,11 +1273,13 @@ struct RoamCheckinTarget: Identifiable {
                     RoamCheckinStampRows(place: target.place)
                 }
             }
-            .safeAreaInset(edge: .top, spacing: 0) {
-                CYSheetHeader(title: target.place.map { Text(verbatim: $0) } ?? Text("roamSub.w208.stamp.defaultPlace"),
-                              style: .player, onClose: { dismiss() })
+            .navigationTitle(target.place.map { Text(verbatim: $0) } ?? Text("roamSub.w208.stamp.defaultPlace")).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { Label("action.close", systemImage: "xmark") }
+                        .labelStyle(.iconOnly)
+                }
             }
-            .toolbar(.hidden, for: .navigationBar)
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)

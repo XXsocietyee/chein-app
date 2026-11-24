@@ -2,6 +2,10 @@ import XCTest
 @testable import QuestifyCore
 
 final class ClubActivityReportSelectionTests: XCTestCase {
+    /// V-23 (owner 2026-11-22, port P5): no player screen shows the topic activity report entry.
+    func testOwnerDecision1122KeepsTopicActivityReportEntryOffPlayerScreens() {
+        XCTAssertFalse(ClubActivityReportExposure.playerEntryVisible)
+    }
     private func club(joined: Bool = true, id: Int = 81) throws -> ClubRecord {
         try JSONDecoder().decode(ClubRecord.self, from: JSONSerialization.data(withJSONObject: ["id": id, "isJoined": joined]))
     }

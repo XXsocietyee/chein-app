@@ -1,0 +1,3 @@
+--design-fixture t5-free-explore
+--design-fixture t5-free-explore-error
+--uitesting-module playExperience

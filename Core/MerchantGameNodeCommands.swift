@@ -68,6 +68,26 @@ public struct MerchantGameNodeReadyDraft: Equatable {
     }
     public var serviceStartAt: String { [serviceDate, serviceStartTime].filter { !$0.isEmpty }.joined(separator: " ") }
     public var serviceEndAt: String { [serviceDate, serviceEndTime].filter { !$0.isEmpty }.joined(separator: " ") }
+    /// Per-field problems `ready()` rejects together. Route play may have an empty checklist.
+    public func fieldIssues(routePlay: Bool) -> [MerchantGameNodeReadyField] {
+        var issues: [MerchantGameNodeReadyField] = []
+        if MerchantGameNodeWire.positiveID(.string(capacity)) <= 0 { issues.append(.init(.capacity)) }
+        let start = MerchantGameNodeWire.text(.string(serviceStartAt), 32)
+        let end = MerchantGameNodeWire.text(.string(serviceEndAt), 32)
+        if !MerchantGameNodeWire.validDateTime(start) || !MerchantGameNodeWire.validDateTime(end) {
+            issues.append(.init(.date))
+        } else if MerchantGameNodeWire.timeKey(start) >= MerchantGameNodeWire.timeKey(end) {
+            issues.append(.init(.timeWindow))
+        }
+        if (!routePlay && checklist.isEmpty) || checklist.contains(where: { !$0.checked }) { issues.append(.init(.checklist)) }
+        return issues
+    }
+}
+public struct MerchantGameNodeReadyField: Equatable {
+    public enum Kind: String, Equatable { case capacity, date, timeWindow, checklist }
+    public let kind: Kind
+    public var key: String { "merchantGameNode.ready." + kind.rawValue }
+    public init(_ kind: Kind) { self.kind = kind }
 }
 public struct MerchantGameNodeDeclineDraft: Equatable {
     public var reason: MerchantGameNodeReason?

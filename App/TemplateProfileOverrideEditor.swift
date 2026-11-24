@@ -130,7 +130,7 @@ import Combine
             } else {
                 Section { Text("templateProfileOverride.unavailable"); Button("templateProfileOverride.reload") { controller.reload() }.disabled(!controller.canReload) }
             }
-        }.navigationTitle("templateProfileOverride.title").privacySensitive()
+        }.navigationTitle("templateProfileOverride.title").navigationBarTitleDisplayMode(.inline).privacySensitive()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("templateAuthor.close", action: controller.closeAction { dismiss() }).accessibilityIdentifier("templateProfileOverride.close")
             } }

@@ -121,10 +121,17 @@ struct E1TicketCard: View {
                      : c.t("完成支付后，这张票就可以出示了。", "Once paid, this pass is ready to present."))
                     .cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             case .verified:
-                Image(systemName: "checkmark.seal.fill").resizable().scaledToFit()
-                    .frame(width: glyph * 0.7, height: glyph * 0.7)
-                    .foregroundStyle(CYColor.successText)
-                    .symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion).accessibilityHidden(true)
+                Group {
+                    let seal = Image(systemName: "checkmark.seal.fill").resizable().scaledToFit()
+                        .frame(width: glyph * 0.7, height: glyph * 0.7)
+                        .foregroundStyle(CYColor.successText)
+                    if #available(iOS 18.0, *) {
+                        seal.symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion)
+                    } else {
+                        seal
+                    }
+                }
+                .accessibilityHidden(true)
                 Text(verbatim: c.t("已核验入场", "Checked in")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             case .cancelled, .expired, .unknown:
                 Image(systemName: ticket.status == .unknown ? "questionmark.circle" : "ticket").resizable().scaledToFit()
@@ -134,7 +141,7 @@ struct E1TicketCard: View {
                     .cyText(.cardTitle).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             }
             if let number = ticket.registrationNumber, !number.isEmpty {
-                Text(verbatim: number).font(CYTypography.caption.monospaced()).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: number).cyText(.caption).monospaced().foregroundStyle(CYColor.textTertiary)
                     .textSelection(.enabled)
             }
             if let fulfillmentNotice {

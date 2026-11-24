@@ -263,6 +263,72 @@ struct CYMapStreetGrid: View {
     }
 }
 
+/// Place-pin artwork from the mini-program. Unselected category pins are the small dots; selected pins are the teardrops.
+enum CYMapMarkerKind: Equatable {
+    case landmark, merchant, park, shop, street, unknown, cluster
+    case search, searchLocation, route, publish, roam
+}
+
+enum CYMapMarkerArt {
+    static func image(kind: CYMapMarkerKind, selected: Bool) -> Image {
+        switch kind {
+        case .landmark: return selected ? MPAsset.MapMarker.pinLandmark : MPAsset.MapMarker.dotLandmark
+        case .merchant: return selected ? MPAsset.MapMarker.pinMerchant : MPAsset.MapMarker.dotMerchant
+        case .park: return selected ? MPAsset.MapMarker.pinPark : MPAsset.MapMarker.dotPark
+        case .shop: return selected ? MPAsset.MapMarker.pinShop : MPAsset.MapMarker.dotShop
+        case .street: return selected ? MPAsset.MapMarker.pinStreet : MPAsset.MapMarker.dotStreet
+        case .unknown: return selected ? MPAsset.MapMarker.pinUnknown : MPAsset.MapMarker.dotUnknown
+        case .cluster: return MPAsset.MapMarker.dotCluster
+        case .search: return selected ? MPAsset.MapMarker.dSmapicon : MPAsset.MapMarker.iconMap6
+        case .searchLocation: return MPAsset.MapMarker.dLocation2
+        case .route: return MPAsset.MapMarker.iconMap4
+        case .publish: return MPAsset.MapMarker.mapPin
+        case .roam: return selected ? MPAsset.MapMarker.roamPushpin : MPAsset.MapMarker.dotUnknown
+        }
+    }
+
+    static func kind(symbol: String) -> CYMapMarkerKind {
+        switch symbol {
+        case "circle.grid.2x2", "circle.grid.2x2.fill": return .cluster
+        case "mappin": return .search
+        case "location", "location.fill", "location.circle", "location.circle.fill": return .searchLocation
+        case "mappin.circle", "mappin.circle.fill": return .publish
+        case "mappin.and.ellipse": return .roam
+        case "flag", "flag.fill", "binoculars", "binoculars.fill", "star", "star.fill": return .landmark
+        case "cart", "cart.fill", "cup.and.saucer", "cup.and.saucer.fill", "storefront", "storefront.fill": return .merchant
+        case "music.note", "leaf", "leaf.fill", "tree", "tree.fill": return .park
+        case "book", "book.fill", "bag", "bag.fill": return .shop
+        case "road.lanes", "point.topleft.down.to.point.bottomright.curvepath": return .street
+        default: return .unknown
+        }
+    }
+}
+
+/// Shared map pin. Draws the mini-program marker for the symbol; selection swaps dot → pin where the set has both.
+struct CYMapMarker: View {
+    var symbol: String = "mappin"
+    var kind: CYMapMarkerKind?
+    var selected = false
+
+    var body: some View {
+        let resolved = kind ?? CYMapMarkerArt.kind(symbol: symbol)
+        let side: CGFloat = {
+            switch resolved {
+            case .cluster: return 36
+            case .searchLocation, .route: return 28
+            case .publish, .roam: return selected ? 40 : 22
+            case .search: return selected ? 32 : 20
+            default: return selected ? 36 : 18
+            }
+        }()
+        CYMapMarkerArt.image(kind: resolved, selected: selected)
+            .resizable()
+            .scaledToFit()
+            .frame(width: side, height: side)
+            .accessibilityHidden(true)
+    }
+}
+
 /// Pin used by placeholder maps: white label callout like the mini-program search map.
 struct CYMapCallout: View {
     let text: String
@@ -274,8 +340,8 @@ struct CYMapCallout: View {
                 .foregroundStyle(.black)
                 .lineLimit(2)
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).strokeBorder(Color.black.opacity(selected ? 0.9 : 0), lineWidth: 2))
+                .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(Color.black.opacity(selected ? 0.9 : 0), lineWidth: 2))
             Image(systemName: "arrowtriangle.down.fill").font(.system(size: 9)).foregroundStyle(.white).offset(y: -1)
         }
     }

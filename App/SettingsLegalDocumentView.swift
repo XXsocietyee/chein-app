@@ -65,21 +65,17 @@ import SwiftUI
     @ViewBuilder private func readyBody(_ document: SettingsLegalDocument, page: SettingsLegalAgreementPage.Facts) -> some View {
         // The mini-program page opens straight on the title; the Chinese-only note is for other UI languages.
         if locale.language.languageCode != .chinese {
-            Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("settingsNative.legal.sourceNotice").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("settingsNative.legal.sourceNotice")
         }
-        // B-AG-01: the inline bar carries the document title; no second page-type title in the content (MP DS §3.1).
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text("settingsNative.legal.version")
-            Text(verbatim: page.versionText).accessibilityIdentifier(SettingsLegalAgreementPage.versionAccessibilityIdentifier)
-                .fixedSize(horizontal: false, vertical: true)
-        }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+        // B-AG-01: the inline bar carries the document title; version and date live in one footer (MP agreement wxml:23).
         if !document.intro.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Text(verbatim: document.intro).cyText(.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled)
+            Text(verbatim: document.intro).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
         }
         ForEach(Array(document.sections.enumerated()), id: \.offset) { index, section in
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(verbatim: section.heading).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                // B-AG-03: MP heading is the card-title step, not the section title.
+                Text(verbatim: section.heading).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                 ForEach(Array(SettingsLegalLine.lines(in: section.body).enumerated()), id: \.offset) { _, line in
@@ -87,19 +83,42 @@ import SwiftUI
                         if let marker = line.marker { Text(verbatim: marker).fixedSize(horizontal: false, vertical: true) }
                         Text(verbatim: line.text).frame(maxWidth: .infinity, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
-                    }.cyText(.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled).accessibilityElement(children: .combine)
+                    }.cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled).accessibilityElement(children: .combine)
                 }
             }
             .accessibilityIdentifier(SettingsLegalAgreementPage.sectionAccessibilityIdentifier(index: index))
         }
-        // Source footer: 生效日期：{{doc.updatedAt}}.
-        HStack {
+        // Source footer (B-AG-01): 「版本 x · 生效日期：y」 on one line, wrapping to two at large text sizes.
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                legalVersion(page)
+                Text(verbatim: "·").accessibilityHidden(true)
+                legalEffectiveDate(page)
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                legalVersion(page)
+                legalEffectiveDate(page)
+            }
+        }
+        .cyText(.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
+        Text("settingsNative.legal.noAcceptance").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            .accessibilityIdentifier("settingsNative.legal.noAcceptance")
+    }
+
+    private func legalVersion(_ page: SettingsLegalAgreementPage.Facts) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xxs) {
+            Text("settingsNative.legal.version")
+            Text(verbatim: page.versionText).accessibilityIdentifier(SettingsLegalAgreementPage.versionAccessibilityIdentifier)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func legalEffectiveDate(_ page: SettingsLegalAgreementPage.Facts) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xxs) {
             Text("settingsNative.legal.effectiveDate")
             Text(verbatim: page.effectiveDateText)
-        }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("settingsNative.legal.effectiveDate")
-        Text("settingsNative.legal.noAcceptance").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-            .accessibilityIdentifier("settingsNative.legal.noAcceptance")
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("settingsNative.legal.effectiveDate")
     }
 }

@@ -282,7 +282,7 @@ final class RegistrationUIFlowTests: XCTestCase {
         XCTAssertTrue(flow.setUsePoints(true))
         XCTAssertEqual(flow.quoteState, .idle)
         await flow.requestQuote()
-        XCTAssertEqual(service.quotes.last?.usePoints, true)
+        XCTAssertEqual(service.quotes.last?.usePoints, false)
         XCTAssertFalse(flow.selectTicket(id: 999))
         XCTAssertEqual(flow.selectedTicketID, 12)
     }

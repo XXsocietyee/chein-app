@@ -70,6 +70,10 @@ extension PlayKitScreen {
     }
     @ViewBuilder private var matchRows: some View {
         Text("playkit.match.instructions").cyText(.bodyCompact)
+        let lines = PlayGameMatchLine.lines(left: left.map(\.id), right: right.map(\.id), placement: placement)
+        if !lines.isEmpty {
+            PlayGameMatchDiagram(lines: lines, left: left.map(\.label), right: right.map(\.label))
+        }
         ForEach(left) { item in
             Picker(selection: Binding(get: { placement[item.id] ?? "" }, set: { value in
                 guard enabled, value != (placement[item.id] ?? "") else { return }

@@ -9,7 +9,7 @@ import PhotosUI
 
 /// OS access remains opt-in. Construction, sheet hosting and supported inspection
 /// do not request permissions, start a sensor, or open a camera.
-@MainActor @Observable final class PlayNativeDeviceProvider: NSObject, PlayKitFramedPhotoProviding, PlayKitPhotoLibraryProviding, PlayDevicePermissionStateProviding, CLLocationManagerDelegate {
+@MainActor @Observable final class PlayNativeDeviceProvider: NSObject, PlayKitFramedPhotoProviding, PlayKitPhotoLibraryProviding, PlayDevicePermissionStateProviding, @preconcurrency CLLocationManagerDelegate {
     let supported: Set<PlayDeviceKind>
     var showingCamera = false
     var showingLibraryPicker = false

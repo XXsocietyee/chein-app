@@ -102,7 +102,7 @@ struct PassCheckoutPass: Identifiable, Equatable {
         Group {
             if let cover, cover.covered, !bindings.isMerchant {
                 Label { Text("mp.pass.checkout.covered") } icon: { Image(systemName: "key.fill").foregroundStyle(CYNight.lantern) }
-                    .font(CYTypography.bodyMedium)
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("contextSelfPlay.passCovered")
             }
             single

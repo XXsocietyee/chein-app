@@ -86,12 +86,20 @@ private final class ComplianceHTTPFake: HTTPTransport {
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: fake.requests[0].httpBody!) as? [String: Any])
         XCTAssertEqual(body["merchantOwnerMemberId"] as? Int, 7); XCTAssertEqual(body["channel"] as? String, "IN_APP")
     }
+    func testMarketingConsentDecodesMerchantLogoAndDefaultsBlank() throws {
+        let withLogo = try JSONDecoder().decode(ComplianceMarketingConsent.self, from: Data(#"{"merchantRowId":1,"merchantOwnerMemberId":2,"merchantName":"店","merchantLogo":" https://img.example/a.png ","inAppOptedIn":true,"couponOptedIn":false}"#.utf8))
+        XCTAssertEqual(withLogo.merchantLogo, "https://img.example/a.png")
+        XCTAssertEqual(withLogo.merchantName, "店")
+        let missing = try JSONDecoder().decode(ComplianceMarketingConsent.self, from: Data(#"{"merchantRowId":41,"merchantOwnerMemberId":7,"inAppOptedIn":false,"couponOptedIn":false}"#.utf8))
+        XCTAssertEqual(missing.merchantLogo, "")
+    }
 }
 
 @MainActor private final class ComplianceAuthFake: AuthChannelServing {
     var smsCalls = 0
+    var lastPhone: String?
     var failSMS = false
-    func sendSMSCode(phone: String) async throws { smsCalls += 1; if failSMS { throw ComplianceFailure.rejected("SMS failed") } }
+    func sendSMSCode(phone: String) async throws { smsCalls += 1; lastPhone = phone; if failSMS { throw ComplianceFailure.rejected("SMS failed") } }
     func loginWithPhone(phone: String, code: String) async throws -> LoginResult { throw ComplianceFailure.unavailable }
     func loginWithApple(identityToken: String) async throws -> LoginResult { throw ComplianceFailure.unavailable }
     func currentAccount(token: String) async throws -> Account { throw ComplianceFailure.unavailable }
@@ -124,6 +132,62 @@ extension AccountComplianceTests {
         auth.failSMS = false; await coordinator.sendSMS(phone: "13800000000", explicitlyRequested: true)
         coordinator.prepareReview(code: "123456"); await coordinator.apply(explicitlyConfirmed: true)
         XCTAssertEqual(invalidated, original); XCTAssertEqual(coordinator.state.step, .freshLogin)
+    }
+    func testNoticePrecheckDoesNotRecordConsentAndBoundPhoneSMSUsesMemberInfo() async throws {
+        let context = ComplianceTestContext()
+        let fake = ComplianceHTTPFake([
+            #"{"code":200,"data":{"status":"NORMAL"}}"#,
+            #"{"code":200,"data":{"status":"ELIGIBLE","verificationMethod":"SMS"}}"#,
+            #"{"code":200,"data":{"phone":"13800138000","role":"player"}}"#
+        ])
+        let (service, _, _) = try build(fake, context: context)
+        let auth = ComplianceAuthFake()
+        let coordinator = AccountComplianceCoordinator(service: service, auth: auth, effects: ComplianceEffectsFake(), current: { context.session }, invalidateSession: { _ in XCTFail() })
+        await coordinator.load()
+        await coordinator.precheckAndAgree(documentRead: true, explicitAgreement: true, recordConsent: false)
+        XCTAssertEqual(coordinator.state.step, .verify)
+        XCTAssertEqual(fake.requests.count, 2)
+        let sent = Date(timeIntervalSince1970: 1_800_000_000)
+        await coordinator.sendBoundPhoneSMS(explicitlyRequested: true, now: sent)
+        XCTAssertEqual(auth.smsCalls, 1)
+        XCTAssertEqual(auth.lastPhone, "13800138000")
+        XCTAssertEqual(coordinator.state.smsNotice, "验证码已发送至尾号 8000 的手机号")
+        XCTAssertTrue(coordinator.state.smsSent)
+        let info = try XCTUnwrap(fake.requests.last)
+        XCTAssertEqual(info.httpMethod, "POST")
+        XCTAssertTrue(info.url?.path.hasSuffix("api/user/info") == true)
+        let form = String(data: try XCTUnwrap(info.httpBody), encoding: .utf8)
+        XCTAssertTrue(form?.contains("name=\"member_id\"\r\n\r\n7") == true)
+        await coordinator.sendBoundPhoneSMS(explicitlyRequested: true, now: sent.addingTimeInterval(30))
+        XCTAssertEqual(auth.smsCalls, 1)
+        XCTAssertEqual(fake.requests.count, 3)
+    }
+    func testBoundPhoneMissingDoesNotSendSMS() async throws {
+        let context = ComplianceTestContext()
+        let fake = ComplianceHTTPFake([
+            #"{"code":200,"data":{"status":"NORMAL"}}"#,
+            #"{"code":200,"data":{"status":"ELIGIBLE","verificationMethod":"SMS"}}"#,
+            #"{"code":200,"data":{"phone":"  ","role":"player"}}"#
+        ])
+        let (service, _, _) = try build(fake, context: context)
+        let auth = ComplianceAuthFake()
+        let coordinator = AccountComplianceCoordinator(service: service, auth: auth, effects: ComplianceEffectsFake(), current: { context.session }, invalidateSession: { _ in })
+        await coordinator.load()
+        await coordinator.precheckAndAgree(documentRead: true, explicitAgreement: true, recordConsent: false)
+        await coordinator.sendBoundPhoneSMS(explicitlyRequested: true)
+        XCTAssertEqual(auth.smsCalls, 0)
+        XCTAssertEqual(coordinator.state.error, DeregistrationBoundPhone.missingMessage)
+        XCTAssertFalse(coordinator.state.smsSent)
+    }
+    func testDeregistrationSMSPostsTheServerPhone() async throws {
+        let transport = ComplianceHTTPFake([#"{"code":200}"#])
+        let auth = AuthChannelService(configuration: try APIConfiguration(baseURL: URL(string: "https://fixture.example")!), transport: transport)
+        try await auth.sendBoundDeregistrationCode(phone: "138****0000")
+        let request = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertTrue(request.url?.path.hasSuffix("api/sms/send") == true)
+        let body = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8)
+        XCTAssertTrue(body?.contains("name=\"phone\"\r\n\r\n138****0000") == true)
     }
     func testRoamPartialFailureResumesWithoutSecondWrite() async throws {
         let context = ComplianceTestContext(); let fake = ComplianceHTTPFake([#"{"code":200}"#, #"{"code":200}"#, #"{"code":200,"data":{"docType":"privacy_policy","scene":"roam_location","eventType":"REVOKE"}}"#]); let (service, _, _) = try build(fake, context: context)

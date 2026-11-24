@@ -180,6 +180,7 @@ public enum InvoiceLaunchRecovery: Equatable {
             switch error as? InvoiceLaunchIssue {
             case .storageUnavailable: throw InvoiceLaunchIssue.storageUnavailable
             case .pendingConflict: throw InvoiceLaunchIssue.pendingConflict
+            case .notFound: throw InvoiceLaunchIssue.notFound
             default: throw InvoiceLaunchIssue.outcomeUnknown
             }
         }

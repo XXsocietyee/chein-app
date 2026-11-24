@@ -66,7 +66,7 @@ public struct ClubGovernanceFormDraft {
         default: break
         }
     }
-    /// Mini-program parity: club bans are 7/30/90 days from submission, revocation sends a fixed audit note.
+    /// Mini-program parity: a club ban sends `durationDays` 7/30/90. The server clock owns the expiry.
     public static let banDayChoices = [7, 30, 90]
     public static let defaultBanDays = 30
     public static let revokeRoleReason = "主理人在角色管理页撤销"
@@ -121,7 +121,7 @@ public struct ClubGovernanceFormDraft {
         }
         if operation == .ban, values["banDays"] != nil {
             guard let raw = values.removeValue(forKey: "banDays")?.string, let days = Int(raw), Self.banDayChoices.contains(days) else { throw ClubGovernanceFailure.invalidRequest }
-            values["expiresAtEpochMs"] = .integer(Int((now.timeIntervalSince1970 * 1000).rounded(.down)) + days * 86_400_000)
+            values["durationDays"] = .integer(days)
         }
         if [.saveCustomer, .createSeries, .cancelOccurrence, .correctAttendance, .ban, .unban, .transferOwner, .report, .appeal, .assignRole, .revokeRole, .sendNotification].contains(operation) { values["requestId"] = .string(requestID) }
         return try ClubGovernanceCommand(operation: operation, scope: scope, values: values, now: now)

@@ -230,7 +230,20 @@ struct RoamAnniversaryReadIntent {
                 .accessibilityIdentifier("roam.tools.anniversary.error")
             }
             if state.isLoading {
-                Section { ProgressView("roam.tools.anniversary.loading") }
+                // TANNIV-5: two card-shaped skeletons (MP wxml:13), layout-stable; VoiceOver hears the loading copy once.
+                ForEach(0..<2, id: \.self) { index in
+                    Section {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            CYSkeletonBlock(height: 18).frame(maxWidth: 120)
+                            CYSkeletonBlock(height: 14)
+                            CYSkeletonBlock(height: 14).frame(maxWidth: 200)
+                        }
+                        .padding(.vertical, CYSpacing.xs)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("roam.tools.anniversary.loading"))
+                        .accessibilityHidden(index > 0)
+                    }
+                }
             }
             ForEach(unavailableError == nil ? state.rows : []) { item in
                 Section {
@@ -635,7 +648,11 @@ struct RoamAnniversaryReadIntent {
             // TRECAP-1: the bar already says 月度回顾; no cover header repeating it.
             Section {
                 HStack {
-                    Button { lifetime.run(reader) { await $0.shiftMonth(by: -1) } } label: { Image(systemName: "chevron.left") }
+                    // TRECAP-4: MP 88rpx round month buttons → a 44 pt circle hit target.
+                    Button { lifetime.run(reader) { await $0.shiftMonth(by: -1) } } label: {
+                        Image(systemName: "chevron.left").frame(width: 44, height: 44)
+                            .background(Circle().fill(CYColor.bgRaised)).contentShape(Circle())
+                    }
                         .buttonStyle(.borderless).disabled(!model.canGoPrevious)
                         .accessibilityLabel(Text("roam.tools.recap.previous"))
                         .accessibilityIdentifier("roam.tools.recap.previous")
@@ -643,7 +660,11 @@ struct RoamAnniversaryReadIntent {
                     Text(monthDate, format: .dateTime.year().month(.wide)).cyText(.cardTitle)
                         .accessibilityIdentifier("roam.tools.recap.month")
                     Spacer()
-                    Button { lifetime.run(reader) { await $0.shiftMonth(by: 1) } } label: { Image(systemName: "chevron.right") }
+                    // TRECAP-4: MP 88rpx round month buttons → a 44 pt circle hit target.
+                    Button { lifetime.run(reader) { await $0.shiftMonth(by: 1) } } label: {
+                        Image(systemName: "chevron.right").frame(width: 44, height: 44)
+                            .background(Circle().fill(CYColor.bgRaised)).contentShape(Circle())
+                    }
                         .buttonStyle(.borderless).disabled(!model.canGoNext)
                         .accessibilityLabel(Text("roam.tools.recap.next"))
                         .accessibilityIdentifier("roam.tools.recap.next")
@@ -703,9 +724,9 @@ struct RoamAnniversaryReadIntent {
         .disabled(!lifetime.canPresent(reader))
         .privacySensitive()
         .background(LifetimeAttachment(lifetime: lifetime).frame(width: 0, height: 0))
-        .sheet(item: detailBinding(model.presentation)) { presentation in
+        .sheet(item: detailBinding(model.presentation)) { presentation in Group {
             RoamMonthlyRecapDetailView(model: model, presentation: presentation, routeDestination: routeDestination)
-        }
+        }.cySheet(detents: [.large]) }
         .onAppear { lifetime.appear(reader, foreground: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { lifetime.resume(reader, foreground: true) }
@@ -782,13 +803,19 @@ private struct RoamRecapWeekChart: View {
                             .opacity(week.isMax || picked == week.index ? 1 : 0)
                         RoundedRectangle(cornerRadius: 4)
                             .fill(week.isMax ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary.opacity(0.4)))
-                            .frame(width: 14, height: max(4, CGFloat(week.count) / CGFloat(top) * 110))
+                            // TRECAP-6: MP 62rpx bars.
+                            .frame(width: 28, height: max(4, CGFloat(week.count) / CGFloat(top) * 110))
                         Text("roam.tools.recap.week \(week.index)").cyText(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity)
                 }.buttonStyle(.plain)
                     .accessibilityLabel(Text("roam.tools.recap.weekCount \(week.index) \(week.count)"))
             }
-        }.frame(minHeight: chartHeight).accessibilityIdentifier("roam.tools.recap.weeks")
+        }.frame(minHeight: chartHeight)
+        // TRECAP-6: one summary of every week first (MP `aria-label`), then each week stays its own button.
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(verbatim: weeks.map { appLocalized("roam.tools.recap.weekCount \($0.index) \($0.count)", locale: .current) }
+            .joined(separator: "，")))
+        .accessibilityIdentifier("roam.tools.recap.weeks")
     }
 }
 
@@ -807,8 +834,9 @@ struct RoamRecapShareCard: View {
         VStack(spacing: CYSpacing.md) {
             card
             ShareLink(item: renderedImage(), preview: SharePreview(Text("roam.tools.recap"), image: renderedImage())) {
-                Label { Text(verbatim: ChannelCopy.text("分享这张卡片", "Share this card", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
-                    .font(CYTypography.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 48)
+                // TRECAP-5: catalog key, not inline copy.
+                Label { Text("roam.tools.recap.shareCard") } icon: { Image(systemName: "square.and.arrow.up") }
+                    .cyText(.body, weight: .semibold).frame(maxWidth: .infinity, minHeight: 48)
             }
             .buttonStyle(.cySecondary)
             .accessibilityIdentifier("roam.tools.recap.share")

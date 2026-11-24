@@ -96,7 +96,7 @@ import UIKit
     func start()
     func stop()
 }
-@MainActor final class PersonalLocationShareCoreLocationDriver: NSObject, PersonalLocationShareLocationDriver, CLLocationManagerDelegate {
+@MainActor final class PersonalLocationShareCoreLocationDriver: NSObject, PersonalLocationShareLocationDriver, @preconcurrency CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     var onLocation: ((CLLocation) -> Void)?
     var onAuthorization: (() -> Void)?
@@ -324,7 +324,7 @@ extension EnvironmentValues {
                 Text("personalLocationShare.unavailable.description", tableName: "PersonalLocationShare")
             }
         }
-        .navigationTitle(Text("personalLocationShare.title.management", tableName: "PersonalLocationShare"))
+        .navigationTitle(Text("personalLocationShare.title.management", tableName: "PersonalLocationShare")).navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("personalLocationShare.unavailable")
     }
 }

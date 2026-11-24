@@ -11,8 +11,11 @@ struct WalletIncomeAnalysisSlice {
 
 /// The first-party income endpoint is a table; the separate asset balance array is not used here.
 struct WalletIncomeAnalysisAccumulator {
-    static let pageSize = 20
+    /// R7-PC-D6-1 (MP analysis/index.js:41-77): pages of 200 until the oldest row leaves the six-month window.
+    static let pageSize = WalletAnalysisPagingPolicy.mpPageSize
     static let pageBudget = 10
+    /// First instant of the oldest month the chart shows; nil keeps the total-or-budget stop only.
+    var cutoff: Date? = nil
     private(set) var rows: [WalletLedgerRow] = []
     private(set) var pagesRead = 0
     private var observedTotal: Int?
@@ -39,8 +42,28 @@ struct WalletIncomeAnalysisAccumulator {
         observedTotal = total
         rows.append(contentsOf: page.rows); pagesRead += 1
         if rows.count >= total { return .end }
+        // Newest first: once a page reaches back past the window, older pages cannot change the chart.
+        if let cutoff, !WalletAnalysisPagingPolicy.shouldContinue(pageItemCount: page.rows.count,
+                                                                  oldestItemDate: Self.date(page.rows.last?.createTime),
+                                                                  cutoffDate: cutoff) { return .end }
         if pagesRead == Self.pageBudget { return .budget }
         return nil
+    }
+    static func date(_ raw: String?) -> Date? {
+        switch BeijingServerTime(raw) {
+        case .instant(let date): return date
+        case .calendarDay(let day):
+            let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX")
+            f.calendar = Calendar(identifier: .gregorian); f.timeZone = BeijingServerTime.beijing; f.dateFormat = "yyyy-MM-dd"
+            return f.date(from: day)
+        case .unknown: return nil
+        }
+    }
+    /// Start of the month five months before `now`'s month (Beijing), matching the six chart months.
+    static func sixMonthCutoff(now: Date) -> Date? {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = BeijingServerTime.beijing
+        guard let monthStart = cal.date(from: cal.dateComponents([.year, .month], from: now)) else { return nil }
+        return cal.date(byAdding: .month, value: -5, to: monthStart)
     }
     func slice(_ stop: WalletIncomeAnalysisSlice.Stop) -> WalletIncomeAnalysisSlice {
         .init(rows: rows, pagesRead: pagesRead, stop: stop)
@@ -115,6 +138,7 @@ struct WalletIncomeAnalysisReadIdentity: Equatable {
 
     private func collect(_ reader: WalletCommerceReader, scope: WalletCommerceScope, stamp: UUID) async {
         var accumulator = WalletIncomeAnalysisAccumulator()
+        accumulator.cutoff = WalletIncomeAnalysisAccumulator.sixMonthCutoff(now: Date())
         defer { if generation == stamp { loading = false } }
         do {
             for pageNumber in 1...WalletIncomeAnalysisAccumulator.pageBudget {

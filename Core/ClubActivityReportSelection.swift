@@ -1,5 +1,11 @@
 import Foundation
 
+/// Owner decision 2026-11-22 (recheck V-23): reports are not allowed for topic activities yet,
+/// so no player screen shows the entry. The selection, flow and backend calls stay in place, dormant.
+public enum ClubActivityReportExposure {
+    public static let playerEntryVisible = false
+}
+
 /// P045 reports a concrete activity, never the topic ID or an inferred session.
 public struct ClubActivityReportSource: Hashable, Identifiable {
     public let id = UUID()

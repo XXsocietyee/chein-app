@@ -103,11 +103,14 @@ extension EnvironmentValues {
         // does not intercept or weaken ProjectEditView.onDisappear/model.leave().
         .sheet(item: Binding<NativeAuthorProjectVisit?>(get: {
             guard scenePhase == .active, let visit, visit.isCurrent else { return nil }; return visit
-        }, set: { next in if next == nil, let original { close(original) } })) { original in
+        }, set: { next in if next == nil, let original { close(original) } })) { original in Group {
             NavigationStack {
                 NativeConditionAuthorProjectDestination(model: model, dependencies: dependencies, factory: factory,
                     visit: original, close: { close(original) })
             }.interactiveDismissDisabled()
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .onChange(of: scenePhase) { _, phase in if phase != .active, let original = visit { close(original) } }
         .onChange(of: visit?.isCurrent) { _, current in if current == false, let original = visit { close(original) } }

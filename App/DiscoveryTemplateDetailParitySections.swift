@@ -24,7 +24,7 @@ struct DiscoveryTemplateDetailParitySections: View {
                     ForEach(stats, id: \.kind) { stat in
                         VStack(spacing: 2) {
                             statValue(stat).cyText(.numericBody).foregroundStyle(palette.textPrimary)
-                            Text(statLabel(stat.kind)).cyText(.caption).foregroundStyle(palette.textTertiary)
+                            Text(statLabel(stat.kind)).cyText(.caption).foregroundStyle(palette.textSecondary)
                         }
                         .frame(maxWidth: .infinity)
                         .accessibilityElement(children: .combine)
@@ -47,10 +47,10 @@ struct DiscoveryTemplateDetailParitySections: View {
                     }
                     .accessibilityIdentifier("discovery.templateDetail.previewNode")
                 }
-            } header: { DiscoverySectionHeader("discovery.templateDetail.howVerified") }.discoveryCardRow()
+            } header: { DiscoverySectionHeader("discovery.templateDetail.howVerified", art: MPAsset.FeatureIcon.magnifier) }.discoveryCardRow()
         }
-        chipSection("discovery.templateDetail.scenes", chips: presentation.sceneChips, id: "discovery.templateDetail.scenes")
-        chipSection("discovery.templateDetail.materials", chips: presentation.materialChips, id: "discovery.templateDetail.materials")
+        chipSection("discovery.templateDetail.scenes", chips: presentation.sceneChips, id: "discovery.templateDetail.scenes", art: MPAsset.FeatureIcon.city)
+        chipSection("discovery.templateDetail.materials", chips: presentation.materialChips, id: "discovery.templateDetail.materials", art: MPAsset.FeatureIcon.flashlight)
         if let rating = presentation.rating {
             Section {
                 HStack {
@@ -63,12 +63,12 @@ struct DiscoveryTemplateDetailParitySections: View {
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("discovery.templateDetail.reviews")
-            } header: { DiscoverySectionHeader("discovery.templateDetail.reviews") }.discoveryCardRow()
+            } header: { DiscoverySectionHeader("discovery.templateDetail.reviews", art: MPAsset.FeatureIcon.star) }.discoveryCardRow()
         }
         DiscoveryTemplateNoticeSection()
-        .sheet(item: $preview) { state in
+        .sheet(item: $preview) { state in Group {
             TemplateNodePreviewSheet(state: state) { preview = nil }
-        }
+        }.cySheet() }
     }
 
     /// Use count and duration already render in the base metadata/presentation.
@@ -103,13 +103,13 @@ struct DiscoveryTemplateDetailParitySections: View {
             .padding(.horizontal, 6).padding(.vertical, 2)
             .background(.tint.opacity(0.15), in: Capsule())
     }
-    @ViewBuilder private func chipSection(_ title: LocalizedStringKey, chips: [String], id: String) -> some View {
+    @ViewBuilder private func chipSection(_ title: LocalizedStringKey, chips: [String], id: String, art: Image? = nil) -> some View {
         if !chips.isEmpty {
             Section {
                 Text(verbatim: chips.joined(separator: " · "))
                     .cyText(.body).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier(id)
-            } header: { DiscoverySectionHeader(title) }.discoveryCardRow()
+            } header: { DiscoverySectionHeader(title, art: art) }.discoveryCardRow()
         }
     }
     @ViewBuilder private func statValue(_ stat: DiscoveryPlayTemplateDetailPresentation.Stat) -> some View {
@@ -138,7 +138,7 @@ struct DiscoveryTemplateNoticeSection: View {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text("discovery.templateDetail.notice.title").cyText(.label)
-                Text("discovery.templateDetail.notice.body").cyText(.meta).foregroundStyle(palette.textTertiary)
+                Text("discovery.templateDetail.notice.body.mp").cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("discovery.templateDetail.notice")

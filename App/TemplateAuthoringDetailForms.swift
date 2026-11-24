@@ -222,7 +222,7 @@ import SwiftUI
                 .deleteDisabled(editor.beats.count <= 1)
             Section { Button("templateAuthor.addBeat", systemImage: "plus") { editor.add() }.accessibilityIdentifier("templateAuthor.addBeat") }
         }.disabled(!editor.canEdit)
-            .navigationTitle("templateAuthor.storyTimeline")
+            .navigationTitle("templateAuthor.storyTimeline").navigationBarTitleDisplayMode(.inline)
             .toolbar { EditButton().disabled(!editor.canEdit) }
             .onAppear { editor.load(); media.reload() }
             .onDisappear { editor.retire() }
@@ -246,7 +246,7 @@ import SwiftUI
                     } label: {
                         HStack {
                             Text(LocalizedStringKey(game.labelKey)); Spacer()
-                            if model.draft.advanced.enabled(game.section) { Image(systemName: "checkmark.circle.fill") }
+                            if model.draft.advanced.enabled(game.section) { TemplateToolAddedMark() }
                         }
                     }.accessibilityIdentifier("templateAuthor.game." + game.rawValue)
                 }
@@ -265,7 +265,7 @@ import SwiftUI
             Section("creator.modules") {
                 ForEach(TemplateCreatorFamily.allCases) { family in
                     NavigationLink { TemplateCreatorConfigurationView(model: model, family: family) } label: {
-                        HStack { Text(LocalizedStringKey(family.labelKey)); Spacer(); if model.draft.advanced.enabled(family.rawValue) { Image(systemName: "checkmark.circle.fill") } }
+                        HStack { Text(LocalizedStringKey(family.labelKey)); Spacer(); if model.draft.advanced.enabled(family.rawValue) { TemplateToolAddedMark() } }
                     }
                 }
             }
@@ -278,10 +278,19 @@ import SwiftUI
                 }.accessibilityIdentifier("templateTimerOutcome.open")
             }
             if !model.draft.advanced.issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).cyText(.meta).foregroundStyle(CYColor.dangerText) } } }
-        }.disabled(!model.canEdit).navigationTitle("templateAuthor.advanced")
+        }.disabled(!model.canEdit).navigationTitle("templateAuthor.advanced").navigationBarTitleDisplayMode(.inline)
     }
     private func field(_ section: String, _ key: String) -> some View {
         TemplateAuthoringField(key, text: .init(get: { model.draft.advanced.text(section, key) }, set: { model.draft.advanced.set(section, key, .string($0)) }))
     }
 
+}
+
+/// MP publish/temp tool picker (wxml:1699): an added tool carries `icon_tag_check`.
+struct TemplateToolAddedMark: View {
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat = 18
+    var body: some View {
+        MPAsset.FeatureIcon.iconTagCheck.resizable().scaledToFit().frame(width: size, height: size)
+            .accessibilityLabel(Text("publishModes.selected"))
+    }
 }

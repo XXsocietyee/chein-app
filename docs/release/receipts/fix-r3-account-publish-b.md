@@ -1,0 +1,189 @@
+# Receipt: fix/r3-account-publish-b (wave ×10, Claude F-agent, account-publish half b)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/wave-x10.md`.
+- **Base:** `origin/ui/combined-r7` (7fdfad1f1).
+- **Restyle branches merged first:** `restyle/r4-me-account`, `restyle/r3-merchant-creator`, `restyle/r6-system-rest` and `restyle/r1-player-front`. The r1 merge had one conflict in `Tests/ContractChecks/test_global_chrome_domain_contract.py`, resolved by keeping both rule blocks.
+- **Scope:** pages 12–22 of the round-1 audit (`audit/parity-account-publish`): privacy, agreement, deregister, pass reveal, fabu, temp, activity, template-intro, square detail, team detail and team join.
+- **Gap source:** the r7 fix queue `audit/parity-r7-account-publish:docs/audit/parity-r7/account-publish.md`, Claude-owned items. The `review/r7-rev-{a,b,c}` reviews have no findings on these files.
+- **Layer:** App only. No Core types were changed.
+- **Strings:**
+  - New keys are in `docs/port/strings/fix-r3-account-publish-b.json`. They use the `fixr3.*` prefix and the default table.
+  - The `config.gameplay.category.*` keys were added directly to `Resources/ConfigR4.xcstrings`, because that is a feature table, not Localizable.
+- **Acceptance routes:** `docs/port/accept/f-account-publish-b.txt`.
+
+## Fixed
+
+| ID | Page | What changed | Files |
+|---|---|---|---|
+| B-PV-02 | privacy | 首页城市自动定位 is now one system `Toggle`. It starts from the latest `home_city_location` consent row (no row reads as off). Turning it on confirms first, then records AGREE; turning it off records REVOKE. 撤回授权 is now a plain disclosure row, not a pill. | App/SettingsPrivacyLocationView.swift |
+| B-PV-05 | privacy | `.secondary` → `CYColor.textSecondary` on the privacy page. The holds row uses `.cyText(.bodyCompact)`. | App/SettingsPrivacyLocationView.swift, App/SessionLocationHoldsSection.swift |
+| B-PV-06 | privacy (roam sheet) | A partial withdrawal (server revoked, local cleanup pending) or a failed one shows an inline row 撤回尚未完成，请重试 with 重试. The revoke logic moved into `performRoamRevoke()`; its behaviour is unchanged. | App/AccountComplianceViews.swift |
+| B-AG-01 | agreement | The top version block is gone. There is one footer 「版本 x · 生效日期 y」, which wraps to two lines at large text sizes. The version identifier is kept for UI tests. | App/SettingsLegalDocumentView.swift; contract test_native_ui_accessibility_semantics updated |
+| B-AG-03 | agreement | Section heading uses `.cyText(.cardTitle)`; the extra `lineSpacing` is dropped. | App/SettingsLegalDocumentView.swift |
+| B-DR-02 | deregister | A BLOCKED card with the neutral title 暂时无法注销, 「请先处理以下事项：」, one row per blocker and 「我已处理，重新检查」 in place of 刷新状态. Blockers are no longer listed twice. | App/AccountComplianceViews.swift |
+| B-DR-05 | deregister | `.headline`/`.subheadline`/`.footnote` → `.cyText(.cardTitle/.body/.bodyMedium/.meta)`. | App/AccountComplianceViews.swift |
+| B-DR-06 (partial) | deregister | `.freshLogin` is now an empty state 登录后查看账号注销条件, with the existing explanation as detail. | App/AccountComplianceViews.swift |
+| B-DR-07 | deregister | The Settings search results for 注销账号 and 漫游定位 open the same sheet as the Settings rows, through `AccountComplianceSheetStack`. | App/SettingsView.swift, App/AccountComplianceViews.swift |
+| B-DR-08 | deregister | Step circles use the accent fill (`actionPrimaryBg`) with `textOnAccent` digits and checks. | App/AccountComplianceViews.swift |
+| B-DR-09-r7 | deregister | MP copy: 我已阅读并理解注销后果, 获取验证码 / 重新发送, 短信验证码 and 确认申请注销. 正在核验注销条件 shows under the skeleton, and 注销条件核验失败 titles a failed read. | App/AccountComplianceViews.swift, strings fragment |
+| B-PR-02 | pass reveal | The MP gold wash (#2A1E08→#8A6414→#D4A72C→#F2CF63) rises over the lower 62 %. After the reveal the key breathes slowly (PhaseAnimator); with Reduce Motion it stays still. | App/PassMembershipViews.swift, App/DesignSystem/CYNight.swift (passGold0–3) |
+| B-PR-04 | pass reveal | Eyebrow tracking 3.5, white at 72 %. Title and line are white on the wash. The CTA is the MP inverse 50 pt white pill. | App/PassMembershipViews.swift |
+| B-PR-05 | pass reveal | The stage tap/drag skip and the press dim are removed; only the toolbar 跳过 skips. | App/PassMembershipViews.swift |
+| B-PR-06-r7 | pass reveal | `.toolbarBackground(.hidden, for: .navigationBar)`. | App/PassMembershipViews.swift |
+| **C-F6 (P0)** | fabu | The built 到访方式 editor (`FreeExplorationVisitConfigView`) is mounted in `ProjectEditView` for saved free-explore topics. It is composed through an app-root environment factory (`session.freeExplorationVisitConfigModel`). Reads need `PlayRuntimePortRouteGate.freeExploreVisitConfigRead`; writes need the write gate and the editor's approved author authority (`canSubmit && !canSimulate`). **Both gates stay default off**, so the row is hidden until they are turned on. | App/FreeExplorationVisitConfigView.swift, App/ProjectEditView.swift, App/QuestifyApp.swift |
+| C-F12 (rest) | fabu | All 14 raw `.font(.…)` in the detail forms are now `.cyText` tokens. | App/ProjectEditDetailForms.swift |
+| C-F15-r7 | fabu | 这份主题加载失败 with one full-width 重新加载 (the `projectEdit.reload` identifier is kept). | App/ProjectEditFlowParity.swift |
+| C-F18-r7 | fabu | 下一步 uses `CYPillButtonStyle(.primary)`, matching the bar. | App/ProjectEditView.swift; test_project_edit_review_availability BUTTON pin updated |
+| C-T5 (partial) | temp | 保存草稿 moved into the bottom bar as a secondary action, keeping its identifier. | App/TemplateAuthoringView.swift |
+| C-T8 | temp | Gameplay picker categories follow the MP: 问答 (text, choice, photo) / 互动 (manual, preference) / 挑战 (scan, gps, sensor). | App/TemplateGameplayPickerSheet.swift, Resources/ConfigR4.xcstrings |
+| C-T10 | temp | `.font(.caption)` → `.cyText(.caption)`. | App/TemplateAuthoringView.swift |
+| C-T11 (partial) | temp | The raw "Request: uuid" line shows in DEBUG builds only. | App/TemplateAuthoringView.swift |
+| C-A7 | activity | The activity form uses the single `.topicEditor` domain, which was `.merchant` before; its sheets already used it. | App/PublishingModesViews.swift (outside the hash-pinned slices) |
+| C-I5 (partial) | template-intro | Literal spacings are replaced by CYSpacing tokens. | App/TemplateAuthoringIntroExperience.swift |
+| C-S9 | square detail | Reaching the end of the comments loads the next page (MP onReachBottom). The button stays for VoiceOver. | App/SquareDetailView.swift; Tests/AppUITests/SquareFlowTests.swift |
+| C-D9 | team detail | 重新加载 shows only after a failed read or when no detail is loaded; pull-to-refresh is unchanged. | App/TeamHomeView.swift |
+| C-J3 | team join | 加入队伍 now joins directly and reads 加入中… while the request runs. The join review sheet is suppressed when a submit authority exists; without one, the review sheet still explains why. Other team actions keep their review sheets. | App/TeamHomeView.swift; Tests/AppUITests/TeamFlowTests.swift (2 tests drop the confirm tap; names kept because planning contracts reference them) |
+
+## Left open (with reasons)
+
+| ID | Sev | Reason / next owner |
+|---|---|---|
+| B-PV-02 (presence) | P1 | There is no read of the current nearby-presence state, so an "off-only Toggle" would claim a state we don't know. The button is kept. **Cursor:** add a presence-visibility read. |
+| B-PV-07-r7 | P2 | The launch gate runs signed out, where `pendingRecords(accountID:)` has no account. **Cursor:** add a "record owed" signal that is visible before sign-in. |
+| B-DR-03 / B-DR-04 | P1 | Owned by Cursor (Core). |
+| B-DR-06 (rest) | P1 | 登录 CTA: the compliance sheet has no sign-in hook. There is also no DENIED step in `ComplianceStep`. **Cursor:** add a `.denied` step; the App will then show 当前身份不能查看注销条件 + 刷新. |
+| B-PR-03 | P2 | Replacing the reveal in the path needs the parity router to support replace-top; `mpParityRouteDestination` only pushes. |
+| C-F2 (rest) | P1 | The starter sheet has no place-picker target (`ProjectNodePlacePickerHost` takes chapter/node or a pending target only). The 3 XCUITests type coordinates and need a fixture place reader. Recommend one change that covers the host, the fixture and the tests. |
+| C-F4 (rest) | P1 | Moving 存到本机 into ⋯ breaks about 20 XCUITests that tap `projectEdit.saveLocal` in the bar. This needs a coordinated test update in the acceptance loop. |
+| C-F8 | P1 | PhotosPicker for the story/node image URL fields is size M, and the fields are pinned by story-media contracts. Not attempted in this window. |
+| C-F14 | P2 | 「还有 N 项未填」 needs the MP `ticketMissing` rule in Core (EditorTicketSummary has no required-field count). **Cursor.** |
+| C-F16-r7 | P2 | A vertical-axis TextField changes the XCUI element type that `ProjectEditFlowTests` queries (`textFields["projectEdit.name"]`). |
+| C-T2 (rest), C-T12-r7 | P1 | These need Core signals: an adoption-pending error kind, and a support-matrix read with loading and error states. **Cursor.** |
+| C-T5 (rest) | P1 | 保存到此设备 was not moved into ⋯ because 6 XCUITests tap `templateAuthor.saveLocal` in the form. |
+| C-T6 (rest), C-T13-r7, C-I8-r7 | P1 | `from=fabu|citynode` and `scope=MERCHANT` need `templateAuthoringEditor(scope:origin:)` in AppSession/Core. In the app, the fabu-bound flow saves a draft and then 返回 binds it. **Cursor/Core.** |
+| C-T9 | P2 | `TemplateAuthoringField` already passes `limit` (30) to the editor field; nothing to change found. |
+| C-A8 | P2 | Core validation (`ActivityPublishingWizard` ticketStart/ticketEnd) requires per-ticket times, so dropping the fields would block publishing. **Cursor:** default the ticket window to the activity span. |
+| C-A9-r7, C-I9-r7, C-S4, C-S8, C-S10, C-D10, C-J5, C-J6 | P2 | Polish; not reached. C-D10 already loads on demand. |
+| Gemini / owner items | — | C-F1, C-F5, C-F7, C-D2, C-D11, C-J2, C-T3, C-A4 (Gemini, parked MPGap) and B-PV-04, C-F17 (owner) were not touched. |
+
+## Skipped because in-flight branches cover them
+
+- `restyle/*`: visual only, and merged into this branch first (r1, r3, r4, r6).
+- `gap/g2-ops`: compile fixes for the parked `App/MPGap/AccountPublish` views (C-A4, C-D2, C-J2, C-F5); not touched here.
+- `cursor/*` and `port/*`: none touch these screens beyond what r7 already has. `cursor/mp-assets` does not exist yet, so no MPAsset swaps were made. The pass reveal key emblem is still `PassKeyEmblem`, which uses no SF Symbol for brand art.
+
+## Checks run in the cloud
+
+- `tools/contract_ratchet.py --check` on the merged base, before my edits: 195 failing, 11 new against the 184 baseline. All 11 come from the restyle merges.
+- After my edits, the 2 new failures I introduced were fixed: `test_native_ui_accessibility_semantics` (legal footer pin) and `test_settings_native` (one NavigationStack). Final run on `aae081a4a`: **195 failing, baseline 184, new 11**. This is the same set as the merged base, so this branch adds 0 new failures.
+- `tools/check_typography_lint.py`: PASS.
+- `tools/check_appsession_ratchet.py`: PASS. `AppSession.swift` is untouched.
+- `tools/check_scaffold.py` fails on `origin/ui/combined-r7` as well (pre-existing); no new Swift files were added.
+- `contract_ratchet.py --check` against `origin/ui/combined-r7` (`82388e4a5`), which itself fails 199 (15 new vs the 184 baseline):
+  - This branch fails 201. The only added failure is `test_localization_key_catalog_contract`: the `fixr3.*` keys used by the views are still only in the string fragment, by the fragment rule, and the test passes once the coordinator merges `docs/port/strings/fix-r3-account-publish-b.json` into `Localizable.xcstrings`.
+  - A second new failure (`test_bk_backend_sync`, which pins the 收藏 condition literal) came from my C-S11 edit, which I reverted.
+- `check_a11y_lint.py`: 12 new findings. None are in files this branch changed in round 2; they come from the round-1 restyle merges (Square cloud, merchant and search views) shifting baseline keys. combined-r7 alone passes.
+- **Not compiled.** The coordinator should watch for:
+  - `phaseAnimator` (iOS 17) in PassMembershipViews.
+  - `FreeExplorationVisitConfigModel` (`@Observable`, `@available(macOS 14)`) created in an `AppSession` extension.
+  - `Toggle(isOn: Binding(get:set:))` in SettingsPrivacyLocationView.
+  - `if a && b && c, d || e` in TeamHomeView.
+
+---
+
+## Round 2 (2026-11-24)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round2.md`, plus `wave-x10.md` and `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` at `82388e4a5` (Cursor Core K1–K10, W1 wiring, C7 MP assets). I merged it again before the final push; nothing had changed.
+  - Conflict in `tools/check_typography_lint.py`: took combined-r7's version.
+  - Conflict in `App/FreeExplorationVisitConfigView.swift`: took combined-r7's version.
+- **C-F6 (round 1 P0), decided by the newer Core API:** combined-r7 now mounts 到访方式 in `ProjectEditView` through `ProjectEditCoordinator.visitConfigModel(topicID:)` (W1, `cursor-r7-wiring.md`).
+  - My round-1 mount was a duplicate, so I removed it: `FreeExplorationVisitConfigEntrySection`, the environment factory and the `QuestifyApp` `.environment` line.
+  - Both gates still default off.
+- **Cursor call sites:** no `cursor/wire-account-publish` branch exists. I used only the Core APIs listed under "F-agent App changes" in `cursor-core-account-publish.md`, and none of the call sites W1 wired.
+
+### Fixed in round 2
+
+| ID | Page | What changed | Files |
+|---|---|---|---|
+| B-DR-03 (App) | deregister | The phone `TextField` is gone. 获取验证码 calls `sendBoundPhoneSMS`, which sends to the bound phone from `/api/user/info`, with Core's 60-second suppression. The send notice shows inline, using Core's 「验证码已发送至尾号 xxxx 的手机号」. `DeregistrationBoundPhone.missingMessage` shows inline under the button and is no longer duplicated in the top error row. | App/AccountComplianceViews.swift |
+| B-DR-04 (App) | deregister | The notice step calls `precheckAndAgree(…, recordConsent: false)`, so it only reads. Both apply buttons pass `recordNoticeConsent: true` and the displayed document version, so AGREE is recorded after SMS, as in the MP. | App/AccountComplianceViews.swift |
+| C-J2 (mount) | team join | After a `TICKET_REQUIRED` rejection on an activity team (`ownerType == 2`), the primary action becomes 去买这一场的票. It pushes `pages/activity/baoming/baoming?activityId=<ownerId>` through `MPReviewedPageScreen`, which opens the activity detail with the registration sheet. | App/TeamHomeView.swift |
+| C-S4 (rest) | square detail | Each comment avatar has the MP 加号 follow button (`MPAsset.FeatureIcon.iconJia`, 44 pt target). It shows only when the follow state is known to be "not following" and the commenter is not the viewer. | App/SquareDetailView.swift |
+| C-S8 | square detail | An inline 关注 sits at the end of the post head. It shows when the viewer is known not to follow the author, the author is not the viewer, and the post has no play cover (the MP rule). `SquarePostContent.onFollow` defaults to nil, so other screens are unchanged. | App/SquareComponents.swift, App/SquareDetailView.swift |
+| C-D10 | team detail | 二维码 opens a 队伍二维码 sheet (medium/large detents). The sheet reads the code as it opens, and 重试 shows only after a failure. `TeamInviteQRSection` gained `loadsOnAppear` (default false), so the gap fixture is unchanged. | App/TeamHomeView.swift, App/PlayerGapViews.swift |
+| C-J5 | team join | The invitation actions sit in a bottom `CYFooterBar` (`safeAreaInset`), as in the MP `.tj-bar`. These actions are 查看队伍, 加入队伍 or 重新加入, the retry notice, 去买这一场的票, and the closed state. Identifiers are unchanged. | App/TeamHomeView.swift |
+| C-J6 | team join | A seat row shows joined seats filled and open seats dashed, as in the MP `team-seats.js`. Open seats come from `seats.available`, else from `max − joined`; each side is capped at 12. The seats pop in 70 ms apart, and Reduce Motion shows them at once. VoiceOver reads one combined label. | App/TeamSeatFactsViews.swift, App/TeamHomeView.swift |
+
+### MP assets applied (`docs/mp-assets/mapping.md`)
+
+- [x] `MPAsset.Other.keyIntro0…13` / `keyIdle0…11` (pass reveal). `PassKeyFrames` plays the MP sprite sheets: 3 columns of 585×780 frames, an 83-frame intro once at 18 fps, then a 72-frame idle loop at 12 fps. A repeat visit or a skip lands on the idle loop, and Reduce Motion shows idle frame 0. This replaces the drawn shards and `PassKeyEmblem` on the reveal (it also closes the "bundled MP frame sheets" half of B-PR-02).
+- [x] `MPAsset.FeatureIcon.dMbico1` / `dMbico2` (publish/activity template rows): 人数 and 「N分钟」, read from the row's raw `players` / `duration`, and drawn only when present.
+- [x] `MPAsset.FeatureIcon.iconTagCheck` (publish/temp): marks an added tool or module in the template editor. It replaces `checkmark.circle.fill`.
+- [x] `MPAsset.FeatureIcon.iconJia` (square/detail comment follow).
+- [x] `MPAsset.AvatarDefault.dProfile`:
+  - Square post and comment avatar fallback (`SquareAuthorAvatar`, shared with the square list).
+  - Team member rows: Core decodes no `memberAvatar` yet, so every row shows the MP default.
+- [ ] `MPAsset.FeatureIcon.subpackageMemberImagesIconStar` (publish/activity wxml:245): commented out in the MP, so not applied.
+- [ ] `MPAsset.FeatureIcon.iconDate3` (publish/activity date row): the app uses the system `DatePicker`, which has no icon slot. This is the native iOS rule.
+- [ ] `MPAsset.MapMarker.mapPin` (fabu route map): the MP now draws round numbered pins (`play-marker-draw`) and uses `map-pin.png` only as a fallback. The app's numbered circle matches the live MP look.
+- [ ] `MPAsset.BannerCover.sampleWindow` / `pagesPublishImagesMer1` (node-game preview samples): the app has no preview-sample surface yet.
+- [ ] `MPAsset.Other.glassKey` (membership card key): this is the membership page, which is half a.
+- [ ] `MPAsset.BadgeMedal.medalGold/Silver/Bronze` (completion share card): see C-S10 below.
+- Kept as SF Symbols, as system-control glyphs: share (`iconShare`), disclosure chevron (`iconRight`), ellipsis, close.
+
+### Owner decisions (`owner-decisions-1124.md`)
+
+- **#9 two-decimal money:** my pages show no money. The fabu and activity ticket prices are 积分, and membership prices are half a. Nothing changed.
+- **#3, #6, #12 money stays TEST-only:** no money writes on these pages, and no new gate.
+- **#8 GPS arrival lock, #10 pilot gate for game kits, #7 cast on fixtures:** none of these surfaces is on my pages. The fabu cast block (C-F5) is Gemini's parked MPGap view.
+
+### Review findings
+
+`review/r7-rev-a`, `-b` and `-c` have no Claude-owned row on these pages:
+- REV-A rows are play-runtime rows for Cursor.
+- REV-B Claude rows are P3/P5 (topic detail, IM, ticket wallet).
+- REV-C rows are Gemini's or the integrator's.
+
+Of the r7 parity P1 rows still open, this round closed B-DR-03, B-DR-04 and the C-J2 mount, which depended on Core.
+
+### Still open after round 2 (with reasons)
+
+| ID | Sev | Reason / next owner |
+|---|---|---|
+| C-D12-r7 | P1 | `TeamCommandWriter` (query, retry, cancel) has **no caller**. `TeamCoordinator` submits through `TeamHTTPService`, so the writer's `savedRequestIDs` is always empty, and 查询原请求 / 终止 would always return `.unknown`. I did not add buttons that cannot work. **Cursor:** route the team command submit through `TeamCommandWriter` from `TeamCoordinator`, and expose `query()`, `retry()` and `cancel(fields:)` on the coordinator (or on `TeamScreenModel`). The App will then add the three buttons and `TeamCommandRecoveryCopy.abortNote` next to 核对上次操作结果. |
+| B-DR-06 (rest) | P1 | Still no `.denied` in `ComplianceStep`, and the compliance sheet has no sign-in hook (Cursor). |
+| C-T6 (rest), C-T13-r7, C-I8-r7 | P1 | `AppSession.templateAuthoringEditor` still takes only `adopting:`; there is no `scope:` / `origin:` (the AppSession ratchet applies). Cursor/Core. |
+| C-T2 (rest), C-T12-r7 | P1 | No adoption-pending kind and no support-matrix read on r7 (Cursor). |
+| C-F2 (rest), C-F4 (rest), C-T5 (rest), C-F16-r7 | P1/P2 | Each needs a coordinated XCUITest change. Tests/ belongs to Cursor (see round 1 for the identifiers). |
+| C-F8 | P1 | PhotosPicker for the story and node image fields is size M, and those fields are pinned by story-media contracts. Not reached. |
+| C-S11 (App) | P2 | Already correct: the star shows only for `communityV1`, which is exactly `showsBookmark`. `test_bk_backend_sync` pins the literal `post.generation == .communityV1`, so the call site keeps it. **Cursor:** if you want the shared rule there, update that regex and switch the call site together. |
+| C-S10 | P2 | On detail, a completion post already gets the C-S1 play card, because `sportName` becomes `referenceTitle`. The MP medal pill (`medal-gold/silver/bronze`) needs `medalGold`, `medalSilver` and `medalBronze` on `SquarePost`. **Cursor:** decode them. The App will then add the pill with `MPAsset.BadgeMedal.*`. |
+| Team member avatars | P2 | **Cursor:** decode `memberAvatar` on `TeamMember`. Until then the row shows `d_profile`. |
+| B-PV-02 (presence), B-PV-07-r7, B-PR-03, C-F14, C-A8 | — | Unchanged from round 1. These wait on Core signals or the router. |
+| C-A9-r7, C-I9-r7 | P2 | Polish; not reached. |
+
+### Acceptance and strings
+
+- `docs/port/accept/f-account-publish-b.txt` gained these routes:
+  - `fr3-pass-reveal-paid` and `fr3-pass-reveal-first`: new DEBUG fixtures in `PublishDesignFixtures`.
+  - `publish-template-select`: its rows now carry `players` and `duration`.
+  - `g-team-qr` and `g-team-qr-refused`.
+- New strings in `docs/port/strings/fix-r3-account-publish-b.json` (en and zh-Hans):
+  - `fixr3.team.buyTicket`
+  - `fixr3.activity.templateMinutes %lld`
+  - `fixr3.square.follow`
+  - `fixr3.team.qr`, `fixr3.team.qr.a11y` and `fixr3.team.qr.title`
+  - `fixr3.team.seats.a11y %lld %lld`
+
+### Checks run in the cloud (round 2)
+
+- `check_typography_lint.py`: PASS.
+- `check_appsession_ratchet.py`: PASS. `AppSession.swift` is untouched.
+- Contract tests: the `test_team*`, `test_square*`, `test_pkg19_login_deletion_chain` and `test_auth_entry_parity` suites are all OK.
+- **Not compiled.** The coordinator should check:
+  - `Layout` (`FlowSeats`, iOS 16) in TeamSeatFactsViews.
+  - `TimelineView(.animation(minimumInterval:paused:))` in `PassKeyFrames`.
+  - `if case .error? = view` in `TeamInviteQRSection.failed`.
+  - The `@ViewBuilder` `invitationActions` if/else-if chain in TeamHomeView.
+  - `MPReviewedPageScreen` pushed from `TeamDetailView`: it needs the `AppSession` environment object, which the app root provides.

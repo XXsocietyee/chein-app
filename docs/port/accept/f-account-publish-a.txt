@@ -1,0 +1,38 @@
+# fix/r3-account-publish-a: fixture routes for acceptance screenshots (one per line; zh-Hans).
+# Same route-name format as r4-me-account.txt; the two launch-argument lines follow r2.txt.
+# 1 pages/member/index/index: 我的 root (avatar pen badge, 积分 + 如何获取积分, tappable 账户余额)
+d2-me
+e4-member
+# 2 pages/userinfo/userinfo: 个人主页 (in-place 关注, 探索作品 preview)
+e3-social
+--uitesting-module socialAccount --uitesting-social-destination profile --uitesting-social-scenario content
+# 3 pages/gerenziliao/gerenziliao: 个人资料 (saving / saved / 重试保存)
+e4-profile-edit
+e4-profile-edit-error
+# 4 pages/mylike/mylike: 我的收藏 (topic share, 据点 states)
+e4-favorites
+# 5-6 pages/address + pages/addressinfo: 参与人信息 list (purpose footer) and form
+e4-participants
+e1-participants
+# 7 pages/crop/index: 裁剪 (inline title, waiting state)
+e5-crop
+# 8 pages/talent/list/index: 俱乐部 帖文 tab (no author-delete block)
+--uitesting-club-fixture owner --uitesting-club-top-tabs
+# 9 pages/shezhi/shezhi: Settings (邀请与收益 row when the promo binding is injected)
+e4-settings
+# 10 pages/shezhi/about/index: 关于 (name 城瘾, copy in the contact row, no bottom pill)
+e4-about
+# 11 pages/shezhi/marketing/index: 营销消息 (no intro/scope/detail lines)
+e4-marketing
+t12-marketing
+t12-marketing-empty
+# Round 2 (2026-11-24): MP assets and Core-unblocked rows. Same routes; what to look at:
+# - d2-me / e4-member: icon_pen badge, icon_set toolbar glyph, group2-5 level badge, d_profile default avatar, object-3d 藏品 row
+# - e3-social: d_profile default avatar on the public head
+# - e4-profile-edit: 路线偏好 chips under the count
+# - e4-favorites: post cards with images, 取消收藏 behind ···; 据点 rows without a cover show mylike mer1.jpg
+# - e4-settings: shezhi MP row icons (qa_person, flag_blue, icon_shop, lc_compass, icon_heart, lc_gift, lc_lock-keyhole,
+#   lc_message-square-text, lc_ticket, lc_shield-alert, lc_megaphone, icon_privacy, icon_agreement, lc_scroll-text,
+#   lc_user-round-x, lc_info, icon_logout)
+# - e4-about: cy_logo_mark.png logo, icon_agreement on both legal rows, icon_headset on 联系我们
+# - --uitesting-club-fixture owner --uitesting-club-top-tabs: 帖文 feed (fixture hasMore:false ⇒ no load-more row)

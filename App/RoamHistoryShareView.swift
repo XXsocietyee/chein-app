@@ -43,7 +43,9 @@ import UIKit
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                CYHeroHeader("roam.share.title", subtitle: "roam.share.privacy")
+                // RSESS-5: a sheet takes the system inline title; the privacy line stays as body copy.
+                Text("roam.share.privacy").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 CYShareComposer(content: cardContent, style: $style, caption: $caption,
                                 captionPlaceholder: appLocalized("roam.share.caption.placeholder", locale: locale),
                                 accessibilityPrefix: "roam.share.composer") {
@@ -58,6 +60,7 @@ import UIKit
         }
             .background(CYColor.bgPage.ignoresSafeArea())
             .scrollDismissesKeyboard(.interactively)
+            .cyPageTitle("roam.share.title")
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { presentation.retire(); invalidateImage(); dismiss() }.accessibilityIdentifier("roam.share.done") } }
             .background(RoamShareNativeLifetime(presentation: presentation).frame(width: 0, height: 0))
             .onAppear { presentation.appear() }
@@ -123,7 +126,8 @@ import UIKit
             artSeed: "walk-\(record.ts)",
             artSymbol: "figure.walk",
             caption: caption,
-            brand: appLocalized("roamSub.w208.share.brand", locale: locale))
+            brand: appLocalized("roamSub.w208.share.brand", locale: locale),
+            mpRouteArt: true)
     }
 
     // MARK: Controls
@@ -131,13 +135,13 @@ import UIKit
     @ViewBuilder private var privacyControls: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             if record.meaningfulZone != nil {
-                Toggle("roam.share.includePlace", isOn: $includePlace)
+                Toggle("roam.share.includePlace", isOn: $includePlace).tint(.green)
                     .accessibilityIdentifier("roam.share.includePlace")
                 Text("roam.share.includePlaceHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if !record.track.isEmpty {
-                Toggle("roam.share.includeRoute", isOn: $includeRoute)
+                Toggle("roam.share.includeRoute", isOn: $includeRoute).tint(.green)
                     .accessibilityIdentifier("roam.share.includeRoute")
             }
             RoamShareChannelPicker(mode: Binding(get: { channelPolicy.mode }, set: { mode in

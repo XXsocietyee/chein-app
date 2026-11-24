@@ -7,27 +7,44 @@ struct TopicReviewsContent: View {
     var body: some View {
         Group {
             VStack(alignment: .leading, spacing: 12) {
+                // C13 (MP `det6`): a known zero is said once, by the empty line below; no 「0」 total.
+                let showsTotal = reviews.commentCount != 0
                 if !reviews.hasConfirmedNoReviews {
                     LabeledContent("topic.reviews.average") {
                         if let average = reviews.averageRating {
-                            (Text(average, format: .number.precision(.fractionLength(0...1))) + Text(verbatim: " / 5"))
-                                .accessibilityIdentifier("topic.reviews.average")
+                            // REV-B B-07 (MP index.wxml:289-293): the average, then round(average) filled MP stars.
+                            HStack(spacing: 4) {
+                                (Text(average, format: .number.precision(.fractionLength(0...1))) + Text(verbatim: " / 5"))
+                                    .monospacedDigit()
+                                    .accessibilityIdentifier("topic.reviews.average")
+                                HStack(spacing: 2) {
+                                    ForEach(0..<max(0, min(5, Int(average.rounded()))), id: \.self) { _ in
+                                        MPAsset.FeatureIcon.iconStarFilled.resizable().scaledToFit().frame(width: 12, height: 12)
+                                    }
+                                }
+                                .accessibilityHidden(true)
+                            }
                         } else {
                             Text("topic.reviews.ratingUnknown")
                                 .accessibilityIdentifier("topic.reviews.averageUnknown")
                         }
                     }
                 }
-                Divider()
-                LabeledContent("topic.reviews.total") {
-                    if let count = reviews.commentCount {
-                        Text(count, format: .number)
-                            .accessibilityIdentifier("topic.reviews.count")
-                    } else {
-                        Text("topic.reviews.countUnknown")
-                            .accessibilityIdentifier("topic.reviews.countUnknown")
+                if !reviews.hasConfirmedNoReviews && showsTotal { Divider() }
+                if showsTotal {
+                    LabeledContent("topic.reviews.total") {
+                        if let count = reviews.commentCount {
+                            // REV-B B-07: MP 「基于N条评论」.
+                            Text("topic.reviews.basedOn \(count)")
+                                .monospacedDigit()
+                                .accessibilityIdentifier("topic.reviews.count")
+                        } else {
+                            Text("topic.reviews.countUnknown")
+                                .accessibilityIdentifier("topic.reviews.countUnknown")
+                        }
                     }
                 }
+                // C13: no 「评价预览 · 最多显示 5 条」 small print under the list.
                 if reviews.preview.isEmpty {
                     if reviews.hasConfirmedNoReviews {
                         Text("topic.reviews.empty")
@@ -36,10 +53,6 @@ struct TopicReviewsContent: View {
                         Text("topic.reviews.previewUnavailable")
                             .accessibilityIdentifier("topic.reviews.previewUnavailable")
                     }
-                } else {
-                    Text("topic.reviews.previewHint")
-                        .cyText(.bodyCompact)
-                        .foregroundStyle(.secondary)
                 }
             }
             .cyText(.body)

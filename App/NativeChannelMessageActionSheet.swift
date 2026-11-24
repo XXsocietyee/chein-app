@@ -57,7 +57,7 @@ import SwiftUI
             NavigationStack {
                 Form {
                     Section {
-                        TextEditor(text: $coordinator.draft).font(Theme.Font.body).frame(minHeight: 120).accessibilityIdentifier("ncm47.edit.draft")
+                        TextEditor(text: $coordinator.draft).cyText(.body).frame(minHeight: 120).accessibilityIdentifier("ncm47.edit.draft")
                             .disabled(!canConfirmEditRecall || !canEdit)
                         if coordinator.draft.unicodeScalars.count > 2000 {
                             Text("d7.channelMessage.tooLong").cyText(.bodyCompact).foregroundStyle(Theme.Color.danger(in: domain))
@@ -69,7 +69,7 @@ import SwiftUI
                             .disabled(!canConfirmEditRecall || !canEdit || coordinator.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || coordinator.draft.unicodeScalars.count > 2000)
                     }
                     NativeChannelMessageRecoveryView(coordinator: coordinator)
-                }.nativeChannelScreen().navigationTitle(Text("message.edit", tableName: "NativeChannelMessage"))
+                }.nativeChannelScreen().navigationTitle(Text("message.edit", tableName: "NativeChannelMessage")).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { closeEditRecall() } } }
             }.privacySensitive().onDisappear { editRecallGeneration += 1 }
             .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
@@ -90,7 +90,7 @@ import SwiftUI
                             .disabled(!canConfirmEditRecall || !canRecall || !validRecallReason)
                     }
                     NativeChannelMessageRecoveryView(coordinator: coordinator)
-                }.nativeChannelScreen().navigationTitle(Text("message.recall", tableName: "NativeChannelMessage"))
+                }.nativeChannelScreen().navigationTitle(Text("message.recall", tableName: "NativeChannelMessage")).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { closeEditRecall() } } }
             }.privacySensitive().onDisappear { editRecallGeneration += 1; reason = "" }
             .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)

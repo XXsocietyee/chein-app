@@ -38,7 +38,7 @@ struct ObjectBadgeWallParityHeader: View {
                     Text(verbatim: "\(counts.unlocked) / \(counts.total)")
                         .cyText(.dataXL).monospacedDigit().foregroundStyle(Theme.Color.textSecondary(in: domain))
                     Text("badgeWall.state.unknownDetail")
-                        .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                        .cyText(.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .ignore)
@@ -47,7 +47,7 @@ struct ObjectBadgeWallParityHeader: View {
             }
             if let focus = ObjectBadgeWallFocus.resolve(code: focusBadgeCode, wall: wall) {
                 Label { focusText(focus) } icon: { Image(systemName: "scope").accessibilityHidden(true) }
-                    .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    .cyText(.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("objects.badge.focus")
             }
@@ -341,18 +341,19 @@ enum ObjectBadgeShowroomMode: Equatable {
                 )
             } else if mode == .threeD, let scene {
                 VStack(spacing: CYSpacing.lg) {
+                    // B3D-6 (MP wxss:50-56): a full-bleed dark stage, not a rounded card on the page.
                     ObjectBadgeShowroomSCNView(scene: scene, reduceMotion: reduceMotion)
-                        .frame(maxWidth: .infinity, minHeight: 320, maxHeight: 420)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+                        .frame(maxWidth: .infinity, minHeight: 320, maxHeight: .infinity)
                         .accessibilityLabel(Text(verbatim: parameters.name))
                         .accessibilityIdentifier("objects.badge.turntable")
                     VStack(spacing: CYSpacing.xs) {
+                        // B3D-5: MP name 34rpx bold, sub 23rpx.
                         Text(verbatim: parameters.name)
-                            .cyText(.cardTitle)
+                            .cyText(.cardTitle, weight: .bold)
                             .foregroundStyle(CYColor.textPrimary)
                         if !parameters.subtitle.isEmpty {
                             Text(verbatim: parameters.subtitle)
-                                .cyText(.meta)
+                                .cyText(.caption)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                         // B3D-4: MP stage hint; under Reduce Motion it says the spin is off.
@@ -361,9 +362,9 @@ enum ObjectBadgeShowroomMode: Equatable {
                             .foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("objects.badge3d.hint")
                     }
-                    Spacer(minLength: 0)
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .padding(.bottom, CYSpacing.lg)
                 }
-                .padding(CYSpacing.pageHorizontal)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .cyDomainPageBackground()
                 .themeDomain(.player)

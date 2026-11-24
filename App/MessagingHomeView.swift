@@ -10,16 +10,18 @@ struct MessagingHomeView: View {
     var expanded: IMExpandedNavigationContext? = nil
     var squareDestination: ((@escaping () -> Void) -> AnyView)? = nil
     var predictionEntry: (() -> AnyView)? = nil
+    /// R7-PC-D8-3 (MP im/list/index.wxml:1,30-33): the merchant account reads its inbox in merchant chrome.
+    var merchantChrome = false
     private let identity: MessagingReadIdentity?
     @Environment(\.imCoopInviteStrip) private var coopInviteStrip
-    init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil,squareDestination:((@escaping () -> Void) -> AnyView)?=nil,predictionEntry:(() -> AnyView)?=nil) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;self.squareDestination=squareDestination;self.predictionEntry=predictionEntry;identity=reader.identity }
+    init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil,squareDestination:((@escaping () -> Void) -> AnyView)?=nil,predictionEntry:(() -> AnyView)?=nil,merchantChrome:Bool=false) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;self.squareDestination=squareDestination;self.predictionEntry=predictionEntry;self.merchantChrome=merchantChrome;identity=reader.identity }
     var body: some View {
         VStack(spacing: 0) {
             if let predictionEntry { predictionEntry().padding(.horizontal) }
             if let coopInviteStrip { coopInviteStrip().padding(.horizontal) }
             MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
         }.cyPageTitle("messaging.title") // PC-D-8-2
-        .themeDomain(.player)
+        .themeDomain(merchantChrome ? .merchant : .player)
         .cyHideTabBar()
     }
 }
@@ -194,7 +196,8 @@ private struct MessagingConversationListView: View {
             if let y = calendar.date(byAdding: .day, value: -1, to: now), calendar.isDate(date, inSameDayAs: y) { return 1 }
             return 2
         }
-        let titles = [locale.pick("今天", "Today"), locale.pick("昨天", "Yesterday"), locale.pick("更早", "Earlier")]
+        // R7-PC-D8-4: catalog keys, not inline literals.
+        let titles = ["messaging.day.today", "messaging.day.yesterday", "messaging.day.earlier"].map { appLocalized(String.LocalizationValue($0), locale: locale) }
         return (0...2).compactMap { b in
             let group = rows.filter { bucket($0) == b }
             return group.isEmpty ? nil : DaySection(id: b, title: titles[b], rows: group)
@@ -318,6 +321,8 @@ private struct MessagingConversationListView: View {
         }
     }
     private func searchName(_ conversation: MessagingConversation) -> String {
+        // OR-023: the system conversation is always 城瘾小助手, never the counterparty nickname.
+        if IMConversationTitlePolicy.usesAssistantTitle(conversation) { return appLocalized("messaging.system", locale: locale) }
         if let name = conversation.counterparty?.nickname, !name.isEmpty { return name }
         switch conversation.kind {
         case .system: return appLocalized("messaging.system",locale:locale)

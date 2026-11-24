@@ -22,6 +22,7 @@ public struct MessagingReadFailure: Error, Equatable {
 public struct MessagingService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -47,11 +48,16 @@ public struct MessagingService {
     }
     private func execute<Value: Decodable>(path: String, fields: [String: String], token: String) async throws -> Value {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields, token: token)
         try Task.checkCancellation()
-        let request = try AuthRequestBuilder.makeFormRequest(
-            url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
-        let (data, status) = try await transport.send(request)
+        let response = try await reads.join(key) {
+            let request = try AuthRequestBuilder.makeFormRequest(
+                url: self.configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
         try Task.checkCancellation()
+        let (data, status) = (response.data, response.status)
         if !(200..<300).contains(status) {
             let failure = try? JSONDecoder().decode(FailureEnvelope.self, from: data)
             throw MessagingReadFailure(httpStatus: status, code: failure?.code,

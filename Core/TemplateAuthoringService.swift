@@ -24,14 +24,14 @@ public enum TemplateAuthoringOutcome: Equatable {
         #endif
     }
     public var canSubmit: Bool { canSimulate || transport?.authority == .injectedHTTP }
-    public func listMine() async throws -> [DiscoveryPlayTemplate] {
+    public func listMine(scope: String? = nil) async throws -> [DiscoveryPlayTemplate] {
         guard canSubmit, let transport else { throw TemplateAuthoringError.unavailable }
-        let (data, status) = try await transport.send(TemplateAuthoringContract.listMine())
+        let (data, status) = try await transport.send(TemplateAuthoringContract.listMine(scope: scope))
         return try TemplateAuthoringContract.decodeList(data, httpStatus: status)
     }
     /// Read-only continuation, separate from the conservative write/readback snapshot.
-    public func listMinePage(page: Int, keyword: String) async throws -> TemplateOwnShelfPage {
-        let request = try TemplateOwnShelfPage.request(page: page, keyword: keyword)
+    public func listMinePage(page: Int, keyword: String, scope: String? = nil) async throws -> TemplateOwnShelfPage {
+        let request = try TemplateOwnShelfPage.request(page: page, keyword: keyword, scope: scope)
         let result: (Data, Int)
         if let shelfReadTransport { result = try await shelfReadTransport.page(request) }
         else {

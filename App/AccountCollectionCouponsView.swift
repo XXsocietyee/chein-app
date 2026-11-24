@@ -2,6 +2,11 @@ import SwiftUI
 
 @MainActor struct AccountCollectionCouponsView: View {
     let reader: any AccountCollectionReading
+    /// R7-MEM-9-1: a `coupon-qr?couponHistoryId=` link. Once the owner's list is read, an unused coupon with this
+    /// history id opens its code; anything else stays on the list (the code page re-checks the owner anyway).
+    var focusHistoryID: Int? = nil
+    @State private var focusedCode: OwnedCouponCodeDestination?
+    @State private var focusHandled = false
     @StateObject private var model = OwnedCouponReadScreenModel()
     @State private var viewPresentation = OwnedCouponReadViewPresentation()
     @Environment(\.scenePhase) private var scenePhase
@@ -14,6 +19,14 @@ import SwiftUI
     private var request: OwnedCouponReadRequest { .list(ownerScope: key.scope, keyword: submittedQuery.isEmpty ? nil : submittedQuery) }
     private func activePermit(foreground: Bool) -> OwnedCouponReadLifetime? {
         viewPresentation.permit ?? viewPresentation.begin(model: model, request: request, foreground: foreground)
+    }
+
+    /// The linked coupon, once the accepted list holds it unused for this owner (read once per screen).
+    private var focusMatch: OwnedCouponDetailSelection? {
+        guard let focusHistoryID, !focusHandled, makeCode != nil, model.loadedRequest == request,
+              let coupon = model.rows(for: request)?.first(where: { $0.id == focusHistoryID }),
+              coupon.status == .unused else { return nil }
+        return OwnedCouponDetailSelection(historyID: coupon.id, ownerScope: request.ownerScope)
     }
 
     var body: some View {
@@ -89,7 +102,6 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
         .cyPageTitle("accountCollection.coupons.title")
         .cyHideTabBar()
@@ -132,6 +144,16 @@ import SwiftUI
             model.setForeground(phase == .active, request: offeredRequest, reader: reader, presentation: permit)
             if phase == .active, let permit, permit.isActive,
                model.presentation === permit { needsReturnRefresh = false }
+        }
+        .onChange(of: focusMatch, initial: true) { _, match in
+            guard let match else { return }
+            focusHandled = true
+            focusedCode = OwnedCouponCodeDestination(selection: match)
+        }
+        .navigationDestination(isPresented: Binding(get: { focusedCode != nil }, set: { if !$0 { focusedCode = nil } })) {
+            if let destination = focusedCode, let makeCode {
+                OwnedCouponCodeDestinationView(destination: destination, reader: reader, factory: makeCode).id(destination.id)
+            }
         }
         .onDisappear {
             appearance.end(model: model)
@@ -180,7 +202,7 @@ struct AccountCollectionCouponRow: View {
             // Room for the 导航 capsule the list overlays on the card (MKT-8-4).
             if coupon.hasShopNavigation { Color.clear.frame(height: 44).accessibilityHidden(true) }
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
     }
 }
 

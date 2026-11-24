@@ -17,6 +17,7 @@ extension EnvironmentValues {
     @State var model: CouponCodeCoordinator
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dismiss) private var dismiss
     @State private var review = false
     @State private var viewPresentation = CouponCodeViewPresentation()
     private struct TaskKey: Hashable { let active: Bool; let presentationID: UUID? }
@@ -34,7 +35,7 @@ extension EnvironmentValues {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
-                        .cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                         .accessibilityElement(children: .combine)
                     }
                     // Source parity: validity is shown on the expired result only.
@@ -52,6 +53,8 @@ extension EnvironmentValues {
         }.cyPageTitle("couponCode.title")
             .cyDomainPageBackground()
             .privacySensitive().accessibilityIdentifier("couponCode.view")
+            // MKT-9-4: MP coupon-qr vibrates once when the merchant scan lands (index.js:413-418).
+            .cyHaptic(.success, trigger: model.phase == .used, where: { old, new in !old && new })
             .sheet(isPresented: $review) {
                 MemberCouponShowConfirmSheet {
                     review = false
@@ -94,7 +97,7 @@ extension EnvironmentValues {
             Button("couponCode.show") {
                 guard !appearance.isClosed, let presentation, model.presentation === presentation else { return }
                 review = true
-            }.buttonStyle(.questifyPrimary).accessibilityIdentifier("couponCode.review")
+            }.buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).accessibilityIdentifier("couponCode.review")
         case .ready:
             if model.canDisplay {
                 if let token = model.displayToken { CouponLocalQRImage(token: token) }
@@ -127,6 +130,13 @@ extension EnvironmentValues {
             }
             retryButton("couponCode.fetchAgain", identifier: "couponCode.fetchAgain", presentation: presentation, appearance: appearance)
         case .paused: Label("couponCode.paused", systemImage: "pause.circle")
+        case .notMine:
+            // MP: 无权查看该券 — the coupon is not in this account's wallet; no retry.
+            // coupon-qr/index.wxml:28 `cy-empty … cta="返回" bind:cta="onClose"`.
+            CYStateLayout(kind: .empty, title: Text("couponCode.notMine"),
+                          primary: (title: "couponCode.notMine.back", action: { dismiss() }),
+                          primaryIdentifier: "couponCode.notMine.back")
+                .accessibilityIdentifier("couponCode.notMine")
         case .failed:
             // Source: 二维码暂时没能生成，请稍后重试 with one 重试 pill.
             CYEmptyState(systemImage: "exclamationmark.triangle", "u9cde.coupon.failed",
@@ -142,13 +152,13 @@ extension EnvironmentValues {
             // Source used state: a large success disc, 已核销, then the redemption time.
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "checkmark.circle")
-                    .font(.title.weight(.semibold))
+                    .cyText(.pageTitle, weight: .semibold)
                     .foregroundStyle(CYColor.successText)
                     .frame(width: 64, height: 64)
                     .background(Circle().fill(CYColor.successSoft))
                     .accessibilityHidden(true)
                 Text("u9cde.coupon.used").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                if let time = model.useTime { Text(verbatim: time).cyText(.meta).monospacedDigit().foregroundStyle(.secondary) }
+                if let time = model.useTime { Text(verbatim: time).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
             }
             .padding(.top, CYSpacing.xxl)
             .accessibilityElement(children: .combine)

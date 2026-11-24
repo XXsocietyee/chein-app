@@ -15,9 +15,11 @@ final class MerchantBusinessContractsTests: XCTestCase {
     }
     func testNegativeCustomerPageRejected() { var query = MerchantCustomerQuery(); query.page = 0; XCTAssertThrowsError(try query.validate()) }
     func testUnknownCustomerSegmentRejected() { var query = MerchantCustomerQuery(); query.segment = "everyone"; XCTAssertThrowsError(try query.validate()) }
-    func testAftercareUsesQueryParametersNotBody() throws {
+    func testAftercareUsesQueryParametersAndEmptyJSONBody() throws {
         let request = try MerchantBusinessQuery.aftercare(.processing, page: 2).request()
-        XCTAssertEqual(request.query, ["bucket":"PROCESSING", "pageNum":"2", "pageSize":"20"]); XCTAssertEqual(request.body, .none)
+        XCTAssertEqual(request.path, "api/merchant/aftercare/list")
+        XCTAssertEqual(request.query, ["bucket":"PROCESSING", "pageNum":"2", "pageSize":"20"])
+        XCTAssertEqual(request.body, .json([:]))
     }
     func testCustomerDetailRejectsWrongMemberID() throws {
         XCTAssertThrowsError(try MerchantBusinessDocument(query: .customer(.init(61002)), payload: MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.customer)))
@@ -181,7 +183,7 @@ final class MerchantBusinessContractsTests: XCTestCase {
         XCTAssertTrue(filters.rows(in: reviews.sections[0], query: reviews.query).isEmpty)
         XCTAssertTrue(filters.rows(in: refunds.sections[0], query: refunds.query).isEmpty)
         XCTAssertEqual(reviews, reviewBefore); XCTAssertEqual(refunds, refundBefore)
-        XCTAssertEqual(try reviews.query.request().query, ["pageNum": "1", "pageSize": "20"])
+        XCTAssertEqual(try reviews.query.request().query, ["filter": "all", "pageNum": "1", "pageSize": "20"])
         XCTAssertEqual(try refunds.query.request().query, ["bucket": "PENDING", "pageNum": "1", "pageSize": "20"])
         let detail = try document(.refund(.init(62001)))
         XCTAssertEqual(filters.rows(in: detail.sections[0], query: detail.query), detail.sections[0].rows)

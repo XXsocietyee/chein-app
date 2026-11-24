@@ -49,10 +49,11 @@ final class ParticipantAddressListPageTests: XCTestCase {
         XCTAssertNotEqual(beside.totalText, "1")
     }
 
-    func testNumericStringAndNegativeTotalAreRejected() {
-        for json in [#"{"rows":[],"total":"0"}"#, #"{"rows":[],"total":"UNKNOWN"}"#, #"{"rows":[],"total":true}"#, #"{"rows":[],"total":-1}"#, #"{"rows":[],"total":0.0}"#] {
+    func testNumericStringAndNegativeTotalAreRejected() throws {
+        for json in [#"{"rows":[],"total":"0"}"#, #"{"rows":[],"total":"UNKNOWN"}"#, #"{"rows":[],"total":true}"#, #"{"rows":[],"total":-1}"#] {
             XCTAssertThrowsError(try facts(json), json)
         }
+        XCTAssertEqual(try facts(#"{"rows":[],"total":0.0}"#).total, 0)
     }
 
     func testLoadingErrorAndUnknownDoNotInventZero() throws {

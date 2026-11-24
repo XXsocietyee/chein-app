@@ -52,6 +52,8 @@ struct PassMembershipContent: Equatable {
     var expiring = false
     var daysLeft: Int? = nil
     var daysTotal: Int? = nil
+    /// Server `overview.terms` (OR-024). Server text wins over the fixed renewal / refund lines.
+    var terms: PlatformPassTermFacts = .empty
 }
 
 enum PassMembershipPhase: Equatable {
@@ -118,7 +120,7 @@ struct PassMembershipView: View {
                             MPRow(title: Text("mp.member.library"),
                                   sub: content.themeCount.map { Text("mp.member.library.count \($0)") },
                                   chevron: true,
-                                  leading: AnyView(Image(systemName: "seal.fill").font(CYTypography.cardTitle).foregroundStyle(CYNight.lantern).frame(width: 32)))
+                                  leading: AnyView(Image(systemName: "seal.fill").cyText(.cardTitle).foregroundStyle(CYNight.lantern).frame(width: 32)))
                         }
                     }
                     .buttonStyle(.cyPressable)
@@ -151,15 +153,25 @@ struct PassMembershipView: View {
     }
 
     /// `platform-pass.js` `factRows`: 购买前须知 from server facts; a missing fact is left out, never invented.
-    /// 续费 / 退款规则 are the fixed OR-024 lines (不自动续费 / 退款为整单).
+    /// 可玩主题 = library count, else `terms.coverage`; 适用范围 = `terms.seat`; 有效期 = `terms.period`, else plan days.
+    /// 续费 / 退款规则 use the server text when `overview.terms` sent it, else the fixed OR-024 lines (`termRows`).
     private func termFacts(_ content: PassMembershipContent) -> some View {
         var rows: [(Text, Text)] = []
+        let terms = content.terms
+        func server(_ value: String?) -> String? {
+            guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+            return text
+        }
         if let count = content.themeCount { rows.append((Text("mp.member.fact.themes"), Text("mp.member.fact.themes.value \(count)"))) }
-        if let code = content.selectedPlan, let days = content.validDays[code] {
+        else if let coverage = server(terms.coverage) { rows.append((Text("mp.member.fact.themes"), Text(verbatim: coverage))) }
+        if let seat = server(terms.seat) { rows.append((Text("mp.member.fact.seat"), Text(verbatim: seat))) }
+        if let period = server(terms.period) {
+            rows.append((Text("mp.member.fact.period"), Text(verbatim: period)))
+        } else if let code = content.selectedPlan, let days = content.validDays[code] {
             rows.append((Text("mp.member.fact.period"), Text("mp.member.plan.days \(days)")))
         }
-        rows.append((Text("mp.member.fact.renewal"), Text("mp.member.fact.renewal.value")))
-        rows.append((Text("mp.member.fact.refund"), Text("mp.member.fact.refund.value")))
+        rows.append((Text("mp.member.fact.renewal"), server(terms.renewal).map { Text(verbatim: $0) } ?? Text("mp.member.fact.renewal.value")))
+        rows.append((Text("mp.member.fact.refund"), server(terms.refund).map { Text(verbatim: $0) } ?? Text("mp.member.fact.refund.value")))
         return VStack(alignment: .leading, spacing: CYSpacing.sm) {
             MPSectionHeader(title: "mp.member.fact.title")
             MPCard {
@@ -199,7 +211,8 @@ struct PassMembershipView: View {
                     }
                 }
                 Spacer()
-                PassKeyEmblem(size: 92, lit: content.active)
+                // MP membership/index.wxml:27 `cy-frames` glass key (184 rpx = 92 pt).
+                PassGlassKeyFrames(size: 92)
             }
             // 剩余 N 天 / 共 M 天 (membership/index.wxml:30-33); hidden when either number is unknown.
             if let left = content.daysLeft, let total = content.daysTotal, total > 0 {
@@ -259,6 +272,41 @@ struct PassMembershipView: View {
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             .background(CYColor.bgElevated, in: Capsule())
             .accessibilityIdentifier("membership.renew")
+    }
+}
+
+/// MP `cy-frames` with `subpackageMember/images/frames/glass-key` (`MPAsset.Other.glassKey`): 24 frames on a
+/// 6 × 4 sheet, 10 fps, loop, 500 ms start delay. Reduced motion holds frame 0 (cy-frames `still` for `loop`).
+struct PassGlassKeyFrames: View {
+    var size: CGFloat = 92
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var start = Date().addingTimeInterval(0.5)
+    private static let columns = 6
+    private static let rows = 4
+    private static let count = 24
+    private static let fps = 10.0
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1 / Self.fps, paused: reduceMotion)) { context in
+            cell(reduceMotion ? 0 : Self.frame(at: context.date.timeIntervalSince(start)))
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+
+    static func frame(at elapsed: TimeInterval) -> Int {
+        guard elapsed > 0 else { return 0 }
+        return Int(elapsed * fps) % count
+    }
+
+    private func cell(_ frame: Int) -> some View {
+        MPAsset.Other.glassKey
+            .resizable()
+            .interpolation(.high)
+            .frame(width: size * CGFloat(Self.columns), height: size * CGFloat(Self.rows))
+            .offset(x: -size * CGFloat(frame % Self.columns), y: -size * CGFloat(frame / Self.columns))
+            .frame(width: size, height: size, alignment: .topLeading)
+            .clipped()
     }
 }
 
@@ -412,6 +460,7 @@ struct PassLibraryView: View {
 /// Club-style photo card: cover, bottom ink gradient, top row (city mark + "¥0 with pass" + city), title, one data line, tags.
 struct PassLibraryCardView: View {
     let card: PassLibraryCard
+    @ScaledMetric(relativeTo: .caption) private var pinSize: CGFloat = 12
 
     private var kindText: Text? {
         switch card.kind {
@@ -423,7 +472,7 @@ struct PassLibraryCardView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            CYCachedAsyncImage(card.coverURL, role: .cover)
+            cover
                 .overlay(LinearGradient(colors: [.clear, CYNight.ink0.opacity(0.92)], startPoint: .center, endPoint: .bottom))
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: card.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
@@ -438,7 +487,7 @@ struct PassLibraryCardView: View {
                     if let kindText { tag(kindText) }
                     if let city = card.city { tag(Text(verbatim: city)) }
                     Spacer(minLength: 0)
-                    Image(systemName: "chevron.right").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                         .accessibilityHidden(true)
                 }
                 .padding(.top, CYSpacing.xxs)
@@ -450,7 +499,7 @@ struct PassLibraryCardView: View {
                 // photo-card__logo: the 城 mark.
                 Text("mp.library.cityMark").cyText(.caption, weight: .bold).foregroundStyle(CYColor.textPrimary)
                     .frame(width: 28, height: 28)
-                    .cyNightGlass(in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                    .cyNightGlass(in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .accessibilityHidden(true)
                 if card.freeWithPass {
                     Text("mp.library.free").cyText(.caption).foregroundStyle(CYNight.ink0)
@@ -459,8 +508,9 @@ struct PassLibraryCardView: View {
                 }
                 Spacer()
                 if let city = card.city {
-                    Label { Text(verbatim: city) } icon: { Image(systemName: "mappin") }
-                        .font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+                    // MP `/images/cards/pin.svg`.
+                    Label { Text(verbatim: city) } icon: { MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: pinSize, height: pinSize) }
+                        .cyText(.caption).foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .cyNightGlass(in: Capsule())
                 }
@@ -470,6 +520,19 @@ struct PassLibraryCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("mp.library.open \(card.title)"))
+    }
+
+    /// MP library/index.wxml:15 `item.cover || '/images/route_city_cover.png'`.
+    @ViewBuilder private var cover: some View {
+        if let url = card.coverURL, !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            CYCachedAsyncImage(url, role: .cover)
+        } else {
+            Color.clear
+                .aspectRatio(CYCachedAsyncImageRole.cover.aspectRatio, contentMode: .fit)
+                .overlay { MPAsset.BannerCover.routeCityCover.resizable().scaledToFill() }
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .accessibilityHidden(true)
+        }
     }
 
     private func tag(_ text: Text) -> some View {
@@ -490,6 +553,82 @@ struct PassRevealPaidFacts: Hashable {
 /// Key reveal (l-icons ps-key): shards fly in and fuse into the key, a warm gradient rises, then eyebrow / title / line /
 /// button follow. The full version plays the first time per account and after a paid order; later visits land on the
 /// idle state. Reduce Motion: the end state at once. "Skip" appears shortly after the start, only in the full version.
+/// MP `cy-frames` for the pass key (subpackagePass/reveal/frames.js): 3-column sprite sheets of 585×780 px frames.
+/// Intro: 14 sheets, 83 frames, 18 fps, played once. Idle: 12 sheets, 72 frames, 12 fps, looped.
+struct PassKeyFrames: View {
+    let introStart: Date?
+    let idleStart: Date
+    let still: Bool
+
+    static let frameAspect: CGFloat = 585.0 / 780.0
+    static let columns = 3, rows = 2, perSheet = 6
+    static let introCount = 83, introFPS = 18.0
+    static let idleCount = 72, idleFPS = 12.0
+    static var introDuration: TimeInterval { Double(introCount) / introFPS }
+    static let introSheets: [Image] = [
+        MPAsset.Other.keyIntro0,
+        MPAsset.Other.keyIntro1,
+        MPAsset.Other.keyIntro2,
+        MPAsset.Other.keyIntro3,
+        MPAsset.Other.keyIntro4,
+        MPAsset.Other.keyIntro5,
+        MPAsset.Other.keyIntro6,
+        MPAsset.Other.keyIntro7,
+        MPAsset.Other.keyIntro8,
+        MPAsset.Other.keyIntro9,
+        MPAsset.Other.keyIntro10,
+        MPAsset.Other.keyIntro11,
+        MPAsset.Other.keyIntro12,
+        MPAsset.Other.keyIntro13
+    ]
+    static let idleSheets: [Image] = [
+        MPAsset.Other.keyIdle0,
+        MPAsset.Other.keyIdle1,
+        MPAsset.Other.keyIdle2,
+        MPAsset.Other.keyIdle3,
+        MPAsset.Other.keyIdle4,
+        MPAsset.Other.keyIdle5,
+        MPAsset.Other.keyIdle6,
+        MPAsset.Other.keyIdle7,
+        MPAsset.Other.keyIdle8,
+        MPAsset.Other.keyIdle9,
+        MPAsset.Other.keyIdle10,
+        MPAsset.Other.keyIdle11
+    ]
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / Self.introFPS, paused: still)) { context in
+            let (sheets, index) = frame(at: context.date)
+            GeometryReader { proxy in
+                let w = proxy.size.width, h = proxy.size.height
+                let sheet = min(index / Self.perSheet, sheets.count - 1)
+                let cell = index % Self.perSheet
+                sheets[sheet]
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: w * CGFloat(Self.columns), height: h * CGFloat(Self.rows))
+                    .offset(x: -w * CGFloat(cell % Self.columns), y: -h * CGFloat(cell / Self.columns))
+                    .frame(width: w, height: h, alignment: .topLeading)
+                    .clipped()
+            }
+            .aspectRatio(Self.frameAspect, contentMode: .fit)
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func frame(at date: Date) -> ([Image], Int) {
+        if still { return (Self.idleSheets, 0) }
+        if let introStart {
+            let elapsed = max(0, date.timeIntervalSince(introStart))
+            if elapsed < Self.introDuration { return (Self.introSheets, min(Int(elapsed * Self.introFPS), Self.introCount - 1)) }
+            let idle = elapsed - Self.introDuration
+            return (Self.idleSheets, Int(idle * Self.idleFPS) % Self.idleCount)
+        }
+        let idle = max(0, date.timeIntervalSince(idleStart))
+        return (Self.idleSheets, Int(idle * Self.idleFPS) % Self.idleCount)
+    }
+}
+
 @MainActor struct PassRevealView: View {
     let paid: PassRevealPaidFacts?
     let accountKey: String?
@@ -502,7 +641,8 @@ struct PassRevealPaidFacts: Hashable {
     @State private var route: MPParityRoute?
     @State private var timeline: Task<Void, Never>?
     @State private var skipVisible = false
-    @GestureState private var pressingSkip = false
+    @State private var introStart: Date?
+    @State private var idleStart = Date()
 
     /// 1 shards in, 2 key fused, 4 gradient, 5 eyebrow, 6 title, 7 line, 8 button. "Skip" shows at 600 ms.
     private static let schedule: [(step: Int, ms: UInt64)] = [(1, 60), (2, 900), (4, 1500), (5, 1800), (6, 1950), (7, 2150), (8, 2450)]
@@ -525,6 +665,8 @@ struct PassRevealPaidFacts: Hashable {
                 }
             }
         }
+        // B-PR-06-r7: the MP stage runs behind a transparent nav bar.
+        .toolbarBackground(.hidden, for: .navigationBar)
         .mpParityRouteDestination($route)
         .onAppear(perform: start)
         .onDisappear { timeline?.cancel() }
@@ -533,33 +675,26 @@ struct PassRevealPaidFacts: Hashable {
     private var stage: some View {
         VStack(spacing: CYSpacing.lg) {
             Spacer()
-            ZStack {
-                Circle().fill(CYNight.glow(radius: 110)).frame(width: 360, height: 360).opacity(step >= 2 ? 1 : 0)
-                ForEach(0..<8, id: \.self) { index in
-                    let angle = Double(index) / 8 * 2 * .pi
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .fill(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom))
-                        .frame(width: 14, height: 26)
-                        .rotationEffect(.radians(angle))
-                        .offset(x: step >= 2 ? 0 : cos(angle) * 160, y: step >= 2 ? 0 : sin(angle) * 220)
-                        .opacity(step >= 1 && step < 2 ? 0.9 : 0)
-                        .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.75).delay(Double(index) * 0.03), value: step)
-                }
-                PassKeyEmblem(size: 180, lit: true)
-                    .scaleEffect(step >= 2 ? 1 : 0.4)
-                    .opacity(step >= 2 ? 1 : 0)
-                    .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.62), value: step >= 2)
-            }
-            .frame(height: 320)
-            .contentShape(Rectangle())
-            .onTapGesture { if full, step < 8 { finish() } }
-            .accessibilityHidden(true)
+            // MP assets (subpackagePass/reveal/frames.js): the key is the MP's baked frame sheets, not a drawn emblem.
+            // Full reveal plays the 83-frame intro once at 18 fps, then the 72-frame idle loop at 12 fps; a repeat
+            // visit, a skip or Reduce Motion lands on the idle loop (still frame 0 under Reduce Motion).
+            PassKeyFrames(introStart: introStart, idleStart: idleStart, still: reduceMotion)
+                .frame(maxHeight: 420)
             Spacer()
             VStack(spacing: CYSpacing.md) {
-                eyebrow.cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot).revealIn(step >= 5, reduceMotion: reduceMotion)
-                title.cyText(.display).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
-                if let line { line.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
-                CYPillButton(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary", action: go)
+                // B-PR-04: MP eyebrow is spaced caps (≈0.32 em) in white 72%, text sits on the gold wash with a soft shadow.
+                eyebrow.cyText(.label).tracking(3.5).foregroundStyle(Color.white.opacity(0.72)).revealIn(step >= 5, reduceMotion: reduceMotion)
+                title.cyText(.display).foregroundStyle(Color.white).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
+                if let line { line.cyText(.body).foregroundStyle(Color.white.opacity(0.78)).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
+                Button(action: go) {
+                    Text(LocalizedStringKey(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary"))
+                        .cyText(.bodyMedium, weight: .semibold)
+                        .foregroundStyle(CYNight.ink0)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .background(Color.white, in: Capsule())
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
                     // B-PR-01: no destination bound → the CTA says so by being disabled, never a silent no-op.
                     .disabled(paid == nil ? bindings.membership == nil : bindings.passLibrary == nil)
                     .accessibilityIdentifier("passReveal.start")
@@ -570,22 +705,28 @@ struct PassRevealPaidFacts: Hashable {
         .padding(.horizontal, CYSpacing.xxl)
         .padding(.bottom, CYSpacing.xxl)
         .accessibilityElement(children: .contain)
+        .shadow(color: CYNight.passGold0.opacity(0.45), radius: 8, y: 1)
         }
-        .opacity(pressingSkip && full && step < 8 && !reduceMotion ? 0.8 : 1)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .updating($pressingSkip) { _, state, _ in
-                    if full, step < 8, !reduceMotion { state = true }
-                }
-        )
-        .simultaneousGesture(TapGesture().onEnded { if full, step < 8 { finish() } })
+        // B-PR-05: only the toolbar 跳过 skips; the stage has no tap/drag skip and no press dim.
         .background(alignment: .bottom) {
-            LinearGradient(colors: [.clear, CYNight.ember.opacity(0.28), CYNight.lantern.opacity(0.18)], startPoint: .top, endPoint: .bottom)
-                .frame(height: 420)
-                .opacity(step >= 4 ? 1 : 0)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.6), value: step >= 4)
-                .ignoresSafeArea()
-                .accessibilityHidden(true)
+            // B-PR-02: MP gold wash over the lower 62 % of the stage.
+            GeometryReader { proxy in
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                    LinearGradient(stops: [
+                        .init(color: .clear, location: 0),
+                        .init(color: CYNight.passGold0, location: 0.30),
+                        .init(color: CYNight.passGold1, location: 0.55),
+                        .init(color: CYNight.passGold2, location: 0.80),
+                        .init(color: CYNight.passGold3, location: 1),
+                    ], startPoint: .top, endPoint: .bottom)
+                    .frame(height: proxy.size.height * 0.62)
+                    .offset(y: step >= 4 ? 0 : proxy.size.height * 0.62)
+                }
+            }
+            .animation(reduceMotion ? nil : .timingCurve(0.2, 0.7, 0.2, 1, duration: 1.1), value: step >= 4)
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
         }
     }
 
@@ -607,6 +748,7 @@ struct PassRevealPaidFacts: Hashable {
         full = !reduceMotion && (paid != nil || firstTime)
         seenAccount = key
         guard full else { finish(); return }
+        introStart = Date()
         timeline = Task { @MainActor in
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: Self.skipAt * 1_000_000)
@@ -624,6 +766,7 @@ struct PassRevealPaidFacts: Hashable {
 
     private func finish() {
         timeline?.cancel()
+        if introStart != nil { introStart = nil; idleStart = Date() }
         withAnimation(CYMotion.resolve(.easeOut(duration: 0.3), reduceMotion: reduceMotion)) { step = 8 }
     }
 

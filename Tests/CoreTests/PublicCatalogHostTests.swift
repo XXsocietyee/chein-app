@@ -43,21 +43,24 @@ final class PublicCatalogHostTests: XCTestCase {
         XCTAssertNil(NativeEntryLinkPolicy().parse(URL(string: "https://example.test/catalog/info?id=9")!))
 
         let parser = UniversalLinkParser(verifiedHTTPSOrigins: ["https://example.test"])
-        guard case .publicCatalog(let list) = parser.parse(URL(string: "https://example.test/catalog?city_code=SHA")!) else {
-            return XCTFail("expected list")
+        guard case .miniProgramPage(let home) = parser.parse(URL(string: "https://example.test/catalog?city_code=SHA")!) else {
+            return XCTFail("expected home")
         }
-        XCTAssertEqual(list.catalogPath, .list)
-        XCTAssertEqual(list.fields["city_code"], "SHA")
-        guard case .publicCatalog(let filters) = parser.parse(URL(string: "https://example.test/catalog/filters")!) else {
-            return XCTFail("expected filters")
+        XCTAssertEqual(home.page, "pages/index/index")
+        XCTAssertTrue(home.query.isEmpty)
+        guard case .miniProgramPage(let filters) = parser.parse(URL(string: "https://example.test/catalog/filters")!) else {
+            return XCTFail("expected home")
         }
-        XCTAssertEqual(filters.screen, .filters)
-        XCTAssertEqual(filters.catalogPath, .filters)
-        guard case .publicCatalog(let info) = parser.parse(URL(string: "https://example.test/catalog/info?id=9&locale=zh-CN")!) else {
-            return XCTFail("expected info")
+        XCTAssertEqual(filters.page, "pages/index/index")
+        guard case .content(let topic) = parser.parse(URL(string: "https://example.test/catalog?id=9")!) else {
+            return XCTFail("expected topic")
         }
-        XCTAssertEqual(info.catalogPath, .info)
-        XCTAssertEqual(info.fields, ["id": "9", "locale": "zh-CN"])
+        XCTAssertEqual(topic.kind, .topic)
+        XCTAssertEqual(topic.id, 9)
+        guard case .miniProgramPage(let info) = parser.parse(URL(string: "https://example.test/catalog/info?id=9&locale=zh-CN")!) else {
+            return XCTFail("expected home")
+        }
+        XCTAssertEqual(info.page, "pages/index/index")
 
         for raw in [
             "https://example.test/catalog/map",

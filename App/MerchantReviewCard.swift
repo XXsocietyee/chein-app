@@ -8,18 +8,22 @@ struct MerchantReviewCard: View {
         VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
             HStack(spacing: CYSpacing.sm) {
                 if let rating = presentation.rating {
-                    Text(verbatim: "★ \(rating)/5")
-                        .cyText(.meta, weight: .bold)
-                        .monospacedDigit()
-                        .foregroundStyle(CYColor.warningText)
+                    // MP asset (reviews/index.wxml:160-163): small filled stars up to the rating, muted for the rest.
+                    HStack(spacing: 2) {
+                        ForEach(1...5, id: \.self) { star in
+                            MerchantMPIcon(image: star <= rating ? MPAsset.FeatureIcon.iconStarSmall : MPAsset.FeatureIcon.iconStarMuted, size: 12)
+                        }
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("merchant.reviewSummary.stars \(rating)"))
                 }
                 if presentation.verifiedRedemption {
                     Label {
                         Text("merchant.review.verifiedRedemption", tableName: "MerchantReviewAndCustomerDetail")
                     } icon: {
-                        Image(systemName: "checkmark.seal")
+                        MerchantMPIcon(image: MPAsset.FeatureIcon.iconCheckGreen, size: 14)
                     }
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.successText)
                 }
                 if presentation.photoCount > 0 {
@@ -31,7 +35,7 @@ struct MerchantReviewCard: View {
                     } icon: {
                         Image(systemName: "photo")
                     }
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .monospacedDigit()
                     .foregroundStyle(CYColor.textSecondary)
                 }
@@ -50,7 +54,7 @@ struct MerchantReviewCard: View {
                     LocalizedStringKey(presentation.replyTitleKey),
                     tableName: "MerchantReviewAndCustomerDetail"
                 )
-                .cyText(.caption)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("merchant.business.review.replyState")
             }

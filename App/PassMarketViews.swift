@@ -247,7 +247,7 @@ struct PassMarketView: View {
             Spacer()
             if pointsDestination != nil {
                 HStack(spacing: CYSpacing.xs) { Text("mp.pass.pointsHistory"); Image(systemName: "chevron.right") }
-                    .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.label).foregroundStyle(CYColor.textSecondary)
             }
         }
         .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
@@ -300,7 +300,7 @@ struct PassMarketView: View {
 
     private func memberCard(_ side: PassMemberEntrySide) -> some View {
         HStack(spacing: CYSpacing.md) {
-            Image(systemName: "key.fill").font(CYTypography.cardTitle).foregroundStyle(CYNight.lanternHot)
+            Image(systemName: "key.fill").cyText(.cardTitle).foregroundStyle(CYNight.lanternHot)
                 .frame(width: 44, height: 44)
                 .background { Circle().fill(CYNight.glow(radius: 22)) }
                 .accessibilityHidden(true)
@@ -339,7 +339,7 @@ struct PassMarketView: View {
             let line = MPRow(title: Text(verbatim: row.name),
                              sub: Text(verbatim: [row.sub, row.refundText.isEmpty ? row.stateText : row.refundText]
                                 .filter { !$0.isEmpty }.joined(separator: " · ")),
-                             value: Text(verbatim: row.amount.isEmpty ? MPText.unknown : row.amount),
+                             value: Text(verbatim: row.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(row.amount)),
                              chevron: onOpenPassOrder != nil)
             Group {
                 if let onOpenPassOrder {
@@ -551,11 +551,14 @@ extension PassDetailBinding {
             .mpParityRouteDestination($route)
     }
 
-    /// Group / school product 去报名: the activity page, where signup picks the ticket (`pages/activity/baoming`
-    /// has no native screen of its own). The ticket id is not carried; signup asks for it.
+    /// Group / school product 去报名: MP `baoming?activityId&ticketId`. The native baoming route lands on the activity
+    /// with the registration sheet open and the pass ticket preselected (MKT-2-1). A malformed ticket id is dropped,
+    /// so signup still opens and asks for the ticket.
     private func openActivitySignup(_ activityID: String, _ ticketID: String?) {
         guard let id = Int(activityID), id > 0, String(id) == activityID else { return }
-        route = .screen(page: "pages/activity/detail/index", query: ["id": activityID])
+        var query = ["activityId": activityID]
+        if let ticketID, let t = Int(ticketID), t > 0, String(t) == ticketID { query["ticketId"] = ticketID }
+        route = .screen(page: "pages/activity/baoming/baoming", query: query)
     }
 }
 
@@ -767,7 +770,7 @@ struct PassGiftReadySheet: View {
 
     var body: some View {
         VStack(spacing: CYSpacing.lg) {
-            Image(systemName: "gift.fill").font(CYTypography.display).foregroundStyle(CYNight.lanternHot)
+            Image(systemName: "gift.fill").cyText(.display).foregroundStyle(CYNight.lanternHot)
                 .padding(CYSpacing.lg).background { Circle().fill(CYNight.glow(radius: 40)) }
                 .accessibilityHidden(true)
             Text("mp.pass.giftReady.title").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
@@ -814,7 +817,7 @@ struct PassTicketHero: View {
                         .animation(reduceMotion ? CYMotion.reduced : .spring(response: 0.55, dampingFraction: 0.72).delay(Double(index) * 0.04), value: assembled)
                 }
                 VStack(spacing: CYSpacing.xs) {
-                    Image(systemName: "key.fill").font(CYTypography.sectionTitle)
+                    Image(systemName: "key.fill").cyText(.sectionTitle)
                     Text(verbatim: face).cyText(.cardTitle).lineLimit(2).multilineTextAlignment(.center)
                 }
                 .foregroundStyle(CYNight.ink0)
@@ -894,7 +897,7 @@ struct PassGiftClaimView: View {
                 Circle().fill(failedReason == nil ? CYNight.glow(radius: 60) : RadialGradient(colors: [CYColor.bgElevated], center: .center, startRadius: 0, endRadius: 1))
                     .frame(width: 120, height: 120)
                 Image(systemName: claimed ? "checkmark" : "gift.fill")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(failedReason == nil ? (claimed ? CYNight.verify : CYNight.lanternHot) : CYColor.textTertiary)
                     .contentTransition(.symbolEffect(.replace))
             }
@@ -977,7 +980,7 @@ struct PassOrderDetailView: View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             MPCard {
                 MPRow(title: Text(verbatim: order.name), sub: order.sub.isEmpty ? nil : Text(verbatim: order.sub),
-                      value: Text(verbatim: order.amount.isEmpty ? MPText.unknown : order.amount), strong: true)
+                      value: Text(verbatim: order.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(order.amount)), strong: true)
                 MPDivider()
                 MPRow(title: Text("mp.passOrder.state"), value: Text(verbatim: order.stateText))
                 if !order.refundText.isEmpty {
@@ -987,7 +990,7 @@ struct PassOrderDetailView: View {
                 switch order.refundDetail {
                 case .refunded(let amount, let time):
                     MPDivider()
-                    MPRow(title: Text("mp.passOrder.refundAmount"), value: Text(verbatim: amount))
+                    MPRow(title: Text("mp.passOrder.refundAmount"), value: Text(verbatim: MPParityBindings.moneyText(amount)))
                     if !time.isEmpty {
                         MPDivider()
                         MPRow(title: Text("mp.passOrder.refundTime"), value: Text(verbatim: time))

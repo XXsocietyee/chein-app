@@ -57,7 +57,7 @@ public enum PlayKitActionCatalog {
         "coinFlip": ["FLIP_COIN"], "diceRoll": ["ROLL_DICE"], "predict": ["SUBMIT_PREDICT"],
         "reaction": ["START_CHALLENGE", "SUBMIT_REACTION"], "ballShake": ["START_CHALLENGE", "SUBMIT_BALL_SHAKE"],
         "quietHold": ["START_CHALLENGE", "SUBMIT_QUIET_HOLD"], "random": ["DRAW"], "scan": ["SUBMIT_SCAN"],
-        "profile": ["SUBMIT_PROFILE"], "photoCheck": ["SUBMIT_PHOTO_CHECK"], "note": ["SUBMIT_NOTE"],
+        "profile": ["SUBMIT_PROFILE"], "photoCheck": ["SUBMIT_PHOTO_CHECK", PlayKitInputContract.recordAction], "note": ["SUBMIT_NOTE"],
         "typeIn": ["START_CHALLENGE", "SUBMIT_TYPE_IN"], "timeWindow": [], "musicCorner": [], "walk": [], "gameTimer": [], "stickerBook": [], "bingo": [],
         // UG-01 and the album completion are play actions. Album carries image URLs, not a price or payment.
         "hangman": ["SUBMIT_HANGMAN"], "album": ["SUBMIT_ALBUM"],
@@ -152,7 +152,9 @@ public struct PlayAdvancedPending: Codable, Equatable {
 extension PlayExperienceService {
     public func startAdvanced(activityID: Int, topicID: Int, nodeID: Int, token: String) async throws -> PlayAdvancedState {
         guard activityID >= 0, topicID > 0, nodeID > 0 else { throw APIError.invalidRequest }
-        let state = try PlayAdvancedState(await request("api/play/advanced/start", json: ["activityId": .int(activityID), "topicId": .int(topicID), "nodeId": .int(nodeID)], capability: .advanced, token: token))
+        var body: [String: PlayWireValue] = ["activityId": .int(activityID), "topicId": .int(topicID), "nodeId": .int(nodeID)]
+        body.merge(PlayClientCapabilities.startFields()) { current, _ in current }
+        let state = try PlayAdvancedState(await request("api/play/advanced/start", json: body, capability: .advanced, token: token))
         guard state.activityID == activityID, state.topicID == topicID, state.nodeID == nodeID else { throw PlayExperienceError.malformed }
         return state
     }

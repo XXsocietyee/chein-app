@@ -60,7 +60,8 @@ import SwiftUI
                     UGCBlockedFilterContainer(memberID: post.memberID, authorName: post.nickname) {
                         Section {
                             SquarePostContent(post: post, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil,
-                                              avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) }).accessibilityIdentifier("square.detailPost")
+                                              avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) },
+                                              onFollow: inlineFollow(post)).accessibilityIdentifier("square.detailPost")
                             if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
                             if post.isTopicTemplate || post.referenceTitle != nil {
                                 // C-S1: MP feed-play-card on the detail page (看看模板 / 试玩).
@@ -110,7 +111,9 @@ import SwiftUI
                                 .accessibilityIdentifier("square.noComments")
                         }
                         if !commentsLoading && comments.hasMore && commentIssue == nil {
+                            // C-S9 (MP onReachBottom): reaching the end loads the next page; the button stays for VoiceOver.
                             CYPillButton("square.moreComments", style: .secondary) { Task { await loadComments(operation: generation, captured: key) } }.accessibilityIdentifier("square.moreComments")
+                                .onAppear { Task { await loadComments(operation: generation, captured: key) } }
                         }
                     }.cyMiniCardRow()
                 }
@@ -157,9 +160,9 @@ import SwiftUI
         }
         .onChange(of: key) { _, _ in relatedTopic = nil }
         .onChange(of: relatedTopicContext?.reader.scope) { _, _ in relatedTopic = nil }
-        .sheet(item: $editor, onDismiss: { applyFollowReceipt() }) { item in
+        .sheet(item: $editor, onDismiss: { applyFollowReceipt() }) { item in Group {
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
-        }
+        }.cySheet(detents: [.large]) }
         .sheet(item: $shareRoute) { route in CYSquareShareSheet(payload: route.payload, url: route.url) }
         .navigationDestination(isPresented: $showsAuthorProfile) {
             if let accountReader, let post, post.memberID > 0 {
@@ -188,16 +191,16 @@ import SwiftUI
         }
         .sheet(item: $reportTarget) { item in
             NavigationStack { SquareReportView(target: item.target, context: reportContext) }
-                .presentationDetents([.large])
+                .cySheet(detents: [.large])
         }
-        .sheet(isPresented: $showsWorkspaceEdit) {
+        .sheet(isPresented: $showsWorkspaceEdit) { Group {
             if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace, initialPostID: id, initialLane: contentGeneration == .communityV1 ? .communityV1 : .legacy) }.id(workspace.session) }
-        }
-        .sheet(item: deletionBinding) { item in
+        }.cySheet(detents: [.large]) }
+        .sheet(item: deletionBinding) { item in Group {
             if let deletion {
                 SquareDeletionConfirmView(target: item.target, excerpt: SquareDeletionConfirmView.excerpt(post?.contents), coordinator: deletion)
             }
-        }
+        }.cySheet() }
         .onChange(of: deletion?.phase) { _, phase in
             // A confirmed comment deletion refreshes the thread; a deleted post leaves no stale body on screen.
             if case .done(let target)? = phase { if case .post = target { post = nil; comments = SquareCommentPagination() } else { Task { await reload() } } }
@@ -243,7 +246,14 @@ import SwiftUI
     private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
         HStack(spacing: 28) {
             Button { editor = .init(purpose: .like, target: .post(post.id), text: "") } label: {
-                Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)).contentTransition(reduceMotion ? .opacity : .numericText()) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart").symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isLiked == 1) }
+                Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)).contentTransition(reduceMotion ? .opacity : .numericText()) } icon: {
+                    let heart = Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart")
+                    if #available(iOS 18.0, *) {
+                        heart.symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isLiked == 1)
+                    } else {
+                        heart
+                    }
+                }
             }
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: post.isLiked)
             .tint(post.isLiked == 1 ? .red : .primary)
@@ -260,7 +270,14 @@ import SwiftUI
                     .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
             }
             if post.generation == .communityV1 {
-                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: ""); editor?.enabled = post.isBookmarked != 1 } label: { Image(systemName: post.isBookmarked == 1 ? "star.fill" : "star").symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isBookmarked == 1) }
+                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: ""); editor?.enabled = post.isBookmarked != 1 } label: {
+                    let star = Image(systemName: post.isBookmarked == 1 ? "star.fill" : "star")
+                    if #available(iOS 18.0, *) {
+                        star.symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isBookmarked == 1)
+                    } else {
+                        star
+                    }
+                }
                     .tint(post.isBookmarked == 1 ? CYColor.warningText : .primary).accessibilityAddTraits(post.isBookmarked == 1 ? .isSelected : []) // C-S2: saved state shows
                     .accessibilityLabel(Text(LocalizedStringKey(post.isBookmarked == 1 ? "square.bookmark.remove" : "square.bookmark.add"))).accessibilityHint(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
             }
@@ -297,6 +314,14 @@ import SwiftUI
         }
         if accountReader != nil { items.append(.init(id: "profile", title: "avatarMenu.profile", tableName: "SocialParity")) }
         return items
+    }
+    /// C-S8 (MP square/detail wxml:44): inline 关注 when the viewer is known not to follow the author, the author is
+    /// not the viewer, and the post has no play cover (the MP hides it then).
+    private func inlineFollow(_ post: SquarePost) -> (() -> Void)? {
+        guard let actions, let viewer = actions.identity.accountID, post.memberID > 0, post.memberID != viewer,
+              !SquarePostCardFacts(post).hasPlayCover,
+              followState?.isFollowing(memberID: post.memberID) == false else { return nil }
+        return { openReviewed(.init(purpose: .toggleFollow, target: .member(post.memberID), text: "")) }
     }
     private func applyFollowReceipt() {
         guard let memberID = followWriteMember else { return }
@@ -351,10 +376,26 @@ import SwiftUI
                 .padding(.leading, comment.parentID == nil ? 0 : 12)
         } else { liveCommentRow(comment) }
     }
+    /// MP square/detail wxml:133-135: the 加号 `icon_jia` on a commenter's avatar follows them. Shown only when the
+    /// follow state is known to be "not following" and the commenter is not the viewer (same rule as the post avatar menu).
+    @ViewBuilder private func commentFollowBadge(_ comment: SquareComment) -> some View {
+        if let actions, let viewer = actions.identity.accountID, comment.memberID > 0, comment.memberID != viewer,
+           followState?.isFollowing(memberID: comment.memberID) == false {
+            Button { openReviewed(.init(purpose: .toggleFollow, target: .member(comment.memberID), text: "")) } label: {
+                MPAsset.FeatureIcon.iconJia.resizable().scaledToFit().frame(width: 14, height: 14)
+            }
+            .buttonStyle(.plain)
+            .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget).contentShape(Rectangle())
+            .offset(x: 16, y: 16)
+            .accessibilityLabel(Text("avatarMenu.follow", tableName: "SocialParity"))
+            .accessibilityIdentifier("square.comment.follow.\(comment.id)")
+        }
+    }
     /// Mini-program comment row: avatar, name and time; the text; then like count, reply and the overflow actions.
     private func liveCommentRow(_ comment: SquareComment) -> some View {
         HStack(alignment: .top, spacing: 10) {
             SquareAuthorAvatar(source: comment.avatar, size: 32)
+                .overlay(alignment: .bottomTrailing) { commentFollowBadge(comment) }
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline) {
                     if let accountReader, comment.memberID > 0 {
@@ -532,7 +573,7 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
                     CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await reload() } }
                 case .ready:
                     if let highlightedPostID, !ids.contains(highlightedPostID) {
-                        Text(verbatim: locale.pick("这篇已经不在你的列表里", "This post is no longer in your list")).cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: locale.pick("这篇已经不在你的列表里", "This post is no longer in your list")).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                     ForEach(ids, id: \.self) { id in
                         authorRow(id)

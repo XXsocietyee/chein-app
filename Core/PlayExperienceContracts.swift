@@ -2,7 +2,7 @@ import Foundation
 
 /// JSON scalar fidelity for source-backed payloads. Never log these values: answers and
 /// evidence can be private. Numeric strings are tolerated only by explicit accessors.
-public indirect enum PlayWireValue: Codable, Equatable {
+public indirect enum PlayWireValue: Codable, Equatable, Sendable {
     case object([String: PlayWireValue]), array([PlayWireValue]), string(String), integer(Int64), number(Double), bool(Bool), null
     public init(from decoder: Decoder) throws {
         let c = try decoder.singleValueContainer()
@@ -105,6 +105,8 @@ public struct PlayExperienceDocument: Decodable, Equatable {
     public let compatibility: PlayContentCompatibility?
     /// Content identity (frozen run snapshot version, else published config version). Nil is unknown, never 0.
     public let contentVersion: String?
+    /// Cast fields from this nodes read. `.null` when the route has no cast.
+    public let castPayload: PlayWireValue
     public init(from decoder: Decoder) throws {
         base = try PlayNodesResult(from: decoder)
         let raw = try PlayWireValue(from: decoder)
@@ -128,6 +130,7 @@ public struct PlayExperienceDocument: Decodable, Equatable {
         if let frozen = raw["contentSnapshotVersion"].tolerantInteger, frozen > 0 { contentVersion = "s\(frozen)" }
         else if let published = raw["publishedConfigVersion"].tolerantInteger, published > 0 { contentVersion = "p\(published)" }
         else { contentVersion = nil }
+        castPayload = CastRuntimeFacts.payload(from: raw)
     }
 }
 public struct PlayNodeExtras: Equatable {
@@ -149,6 +152,8 @@ public struct PlayNodeExtras: Equatable {
     public let medalImage: String?
     public let couponID: Int?
     public let dispatchedTask: PlayRandomDispatchedTask?
+    /// `photoCheck.mode`. `"RECORD"` is the skippable photo record; anything else is an ordinary photo.
+    public let photoCheckMode: String?
     init(raw: PlayWireValue) {
         merchantID = raw["merchantId"].tolerantInteger
         hint1 = raw["hint1"].text; hint2 = raw["hint2"].text; hintCost = raw["hintCost"].tolerantInteger
@@ -159,6 +164,65 @@ public struct PlayNodeExtras: Equatable {
         sensorConfig = raw["sensorConfig"]; uploadedImage = raw["imgUrl"].text; storyImage = raw["storyImg"].text; audioURL = raw["audioUrl"].text
         medalName = raw["medalName"].text; medalImage = raw["medalImg"].text; couponID = raw["couponId"].tolerantInteger
         dispatchedTask = PlayRandomDispatchedTask(wire: raw["dispatchedTask"])
+        photoCheckMode = raw["photoCheck"]["mode"].text
+    }
+}
+
+/// Photo-record body for a station whose `photoCheck.mode` is `RECORD`.
+/// The kit submit that posts this body belongs to P4 (`PlayKitInputContract`); this only decides what is legal.
+public enum PlayPhotoRecordError: Error, Equatable {
+    case submitPhotoCheckOnRecord
+    case textConfirmedOnOrdinary
+    case imageURL
+    case missing
+}
+
+public enum PlayPhotoRecordSubmission: Equatable {
+    case image(String)
+    case textConfirmed
+    /// `submitPhotoCheck` is the ordinary photo-check write. RECORD rejects it.
+    /// `textConfirmed` is legal only on RECORD. An image must be https and at most 512 characters.
+    public static func validate(mode: String?, imageURL: String?, textConfirmed: Bool, submitPhotoCheck: Bool) -> Result<PlayPhotoRecordSubmission, PlayPhotoRecordError> {
+        if mode == "RECORD" {
+            if submitPhotoCheck { return .failure(.submitPhotoCheckOnRecord) }
+            if textConfirmed {
+                guard imageURL == nil else { return .failure(.missing) }
+                return .success(.textConfirmed)
+            }
+            guard let imageURL, imageURL.count <= 512, let url = URL(string: imageURL), url.scheme == "https" else { return .failure(.imageURL) }
+            return .success(.image(imageURL))
+        }
+        if textConfirmed { return .failure(.textConfirmedOnOrdinary) }
+        return .failure(.missing)
+    }
+}
+
+public struct PlayEvidenceCard: Equatable, Identifiable {
+    public let id: Int
+    public let title: String?
+    public let text: String
+}
+
+public struct PlayRunPhoto: Equatable, Identifiable {
+    public let id: Int
+    public let title: String?
+    public let url: String
+}
+
+/// Finished unlocked nodes' `feedbackText`, and finished stations' `picUrl`.
+public enum PlayRunKeepsakes {
+    public static func evidence(in snapshot: PlaySnapshot) -> [PlayEvidenceCard] {
+        snapshot.visibleNodes.compactMap { node in
+            guard node.done == true, !snapshot.isStoryLocked(node) else { return nil }
+            guard let text = node.feedbackText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+            return PlayEvidenceCard(id: node.id, title: node.name, text: String(text.prefix(4_000)))
+        }
+    }
+    public static func photos(in snapshot: PlaySnapshot) -> [PlayRunPhoto] {
+        snapshot.visibleNodes.compactMap { node in
+            guard node.done == true, let url = node.photoURL?.trimmingCharacters(in: .whitespacesAndNewlines), !url.isEmpty else { return nil }
+            return PlayRunPhoto(id: node.id, title: node.name, url: url)
+        }
     }
 }
 public enum PlayNodeTask: String, CaseIterable {
@@ -274,7 +338,7 @@ public struct PlayLeadProgress: Equatable {
         guard isLeader, leaderMemberID == accountID else { return false }
         if action == .start { return !exists }
         guard exists else { return false }
-        return action != .unlockChapter || allArrived
+        return action != .unlockChapter || ChapterArrivalLock.opens(arrivedAtStop: meArrived && allArrived, chapterLocked: false)
     }
 }
 public enum PlayLeadAction: String, CaseIterable {

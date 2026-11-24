@@ -6,7 +6,7 @@ import UIKit
 /// it never asks for permission and never runs in the background: it starts only when When-In-Use (or
 /// Always) is already granted and the app is active, and stops when either changes. Points are GCJ-02,
 /// the datum `wx.startLocationUpdate` reports and the backend stores.
-@MainActor final class TeamTrailForegroundRecorder: NSObject, CLLocationManagerDelegate {
+@MainActor final class TeamTrailForegroundRecorder: NSObject, @preconcurrency CLLocationManagerDelegate {
     private(set) var trail = TeamWalkedTrail()
     private var manager: CLLocationManager?
 

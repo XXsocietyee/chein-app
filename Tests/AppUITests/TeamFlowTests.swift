@@ -94,15 +94,15 @@ final class TeamFlowTests: XCTestCase {
     }
     func testInvitationJoinReviewAndSimulation() {
         launch("invitation", destination: "invitation")
+        // C-J3: 加入队伍 joins directly (no review sheet), as in the MP.
         let join = app.buttons["team.join"]; reveal(join); join.tap()
-        reveal(app.buttons["team.review.confirm"]); app.buttons["team.review.confirm"].tap()
         assertSimulationCompleted()
         XCTAssertFalse(app.buttons["Purchase"].exists)
     }
     func testPostJoinOpensReadOnlyDetailBackAndReopens() {
         launch("invitation", destination: "invitation")
+        // C-J3: 加入队伍 joins directly (no review sheet), as in the MP.
         let join = app.buttons["team.join"]; reveal(join); join.tap()
-        reveal(app.buttons["team.review.confirm"]); app.buttons["team.review.confirm"].tap()
         assertSimulationCompleted()
         let open = app.buttons["team.postJoin.openDetail"]; reveal(open); open.tap()
         XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))

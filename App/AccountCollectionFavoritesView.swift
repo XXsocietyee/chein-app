@@ -37,7 +37,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         var items: [CYTabItem<Tab>] = []
         if postsAllowed { items.append(.init(id: .posts, title: appLocalized("social.posts", locale: locale))) }
         items.append(.init(id: .topics, title: appLocalized("searchMap.kind.topic", locale: locale)))
-        if showsCityNodesTab { items.append(.init(id: .cityNodes, title: appLocalized("roam.layer.places", locale: locale))) }
+        if showsCityNodesTab { items.append(.init(id: .cityNodes, title: appLocalized("accountCollection.favorites.nodesTab", locale: locale))) }
         return items
     }
     var body: some View {
@@ -122,7 +122,27 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                         .cyStaggeredAppear(index: index, gate: stagger)
                         .accessibilityIdentifier("accountCollection.favorite.\(topic.id)")
                         .overlay(alignment: .topTrailing) {
-                            if let unlike, unlike.isAvailable { TopicUnlikeButton(topicID: topic.id, controller: unlike).padding(8) }
+                            HStack(spacing: CYSpacing.sm) {
+                                // A4-04: MP mylike topic card 分享 (wxml:50-55) → the public topic link.
+                                if let url = PublicContentShareLink.topic(id: topic.id) {
+                                    ShareLink(item: url, subject: Text(verbatim: topic.name)) {
+                                        Image(systemName: "square.and.arrow.up").font(.title3).padding(10)
+                                            .background(.thinMaterial, in: Circle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityLabel(Text("accountCollection.favorite.share"))
+                                    .accessibilityIdentifier("accountCollection.favorite.share.\(topic.id)")
+                                }
+                                if let unlike, unlike.isAvailable { TopicUnlikeButton(topicID: topic.id, controller: unlike) }
+                            }
+                            .padding(8)
+                        }
+                        // A4-06: MP onReachBottom — the last card loads the next page; 加载更多 stays as the fallback.
+                        .onAppear {
+                            let rows = model.state.visibleRows(scope: key.scope)
+                            guard topic.id == rows.last?.id, model.state.pagination.hasMore, !model.state.isLoadingMore,
+                                  model.state.moreIssue == nil else { return }
+                            Task { await loadMore() }
                         }
                         .questifyCardListRow()
                 }
@@ -143,20 +163,14 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         .cyGroupedSurface()
         .cySkeletonTiming(isLoading: isLoadingNow && reader.isAuthenticated && reader.isConfigured, visible: $skeletonShown)
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
-        // mylike.js onPullDownRefresh parity: same guarded refresh as the toolbar button.
+        // mylike.js onPullDownRefresh parity. Native restyle r1 (spec §3.1): pull to refresh is the one refresh.
         .refreshable { await refresh() }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button { Task { await refresh() } } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
-                    .disabled(model.state.isLoading || !reader.isAuthenticated || !reader.isConfigured)
-                    .accessibilityIdentifier("accountCollection.favorites.refresh")
-            }
-        }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
         .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
         .sheet(isPresented: $showRecommendNote) {
             MemberFavoritesRecommendNoteSheet { showRecommendNote = false }
                 .themeDomain(.player)
+                .cySheet()
         }
     }
     private func refresh() async {
@@ -281,21 +295,32 @@ private struct AccountCollectionFavoriteCard: View {
                               model.state.loadedScope == reader.scope, post.generation == .legacySquare else { return }
                         onOpenPost?(.init(id: post.id, generation: post.generation))
                     } label: {
-                        SquarePostContent(post: post, compact: true, showImages: false)
+                        // A4-05 (mylike.wxml:25-27): the standard post card, images included.
+                        SquarePostContent(post: post, compact: true, showImages: true)
                             .padding(CYSpacing.lg)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(CYColor.borderSubtle))
+                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle))
                     }
                     .buttonStyle(QuestifyCardButtonStyle())
                     .disabled(onOpenPost == nil)
                     .accessibilityIdentifier("accountCollection.post.\(post.id)")
-                    .questifyCardListRow()
-                    if let favoriteRemoval {
-                        ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
-                            isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope && model.state.loadedScope == renderedScope },
-                            onRemoved: { await refresh() })
+                    // A4-06: the last post loads the next page (MP onReachBottom); 加载更多 stays as the fallback.
+                    .onAppear {
+                        guard post.id == model.state.visibleRows(scope: key.scope).last?.id, model.state.pagination.hasMore,
+                              !model.state.isLoadingMore, model.state.moreIssue == nil else { return }
+                        Task { await loadMore() }
                     }
+                    // A4-05: 取消收藏 sits behind the card's ··· menu (same reviewed removal flow and sheet).
+                    .overlay(alignment: .topTrailing) {
+                        if let favoriteRemoval {
+                            ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
+                                isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope && model.state.loadedScope == renderedScope },
+                                onRemoved: { await refresh() }, presentsAsMenu: true)
+                                .padding(.trailing, CYSpacing.xs)
+                        }
+                    }
+                    .questifyCardListRow()
                     NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 }
                 if let issue = model.state.moreIssue {
@@ -316,13 +341,6 @@ private struct AccountCollectionFavoriteCard: View {
         .cySkeletonTiming(isLoading: isLoadingNow && reader.isAuthenticated && reader.isConfigured, visible: $skeletonShown)
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         .refreshable { await refresh() }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button { Task { await refresh() } } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
-                    .disabled(model.state.isLoading || !reader.isAuthenticated || !reader.isConfigured)
-                    .accessibilityIdentifier("accountCollection.posts.refresh")
-            }
-        }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
     }
     private func refresh() async {

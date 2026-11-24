@@ -152,27 +152,30 @@ import SwiftUI
     func body(content: Content) -> some View {
         let original = controller.confirmation
         content.sheet(item: controller.binding(original)) { value in
-            NavigationStack {
-                Form {
-                    if controller.isCurrent(value) {
-                        Text("projectPendingNodeRemoval.warning", tableName: "ProjectPendingNodeRemoval")
-                        ForEach(value.receipt.before.chapters.flatMap(\.nodes).filter { value.receipt.nodeIDs.contains($0.id) }) { node in
-                            Text(verbatim: node.name)
-                        }
-                        if value.capture.scope.session == nil {
-                            Text("projectPendingNodeRemoval.guest", tableName: "ProjectPendingNodeRemoval")
-                        }
-                        Button(role: .destructive) { controller.confirm(value) } label: {
-                            Text("projectPendingNodeRemoval.confirm", tableName: "ProjectPendingNodeRemoval")
-                        }.accessibilityIdentifier("projectPendingNodeRemoval.confirm")
-                    } else { Text("projectStarter.stale") }
+            Group {
+                NavigationStack {
+                    Form {
+                        if controller.isCurrent(value) {
+                            Text("projectPendingNodeRemoval.warning", tableName: "ProjectPendingNodeRemoval")
+                            ForEach(value.receipt.before.chapters.flatMap(\.nodes).filter { value.receipt.nodeIDs.contains($0.id) }) { node in
+                                Text(verbatim: node.name)
+                            }
+                            if value.capture.scope.session == nil {
+                                Text("projectPendingNodeRemoval.guest", tableName: "ProjectPendingNodeRemoval")
+                            }
+                            Button(role: .destructive) { controller.confirm(value) } label: {
+                                Text("projectPendingNodeRemoval.confirm", tableName: "ProjectPendingNodeRemoval")
+                            }.accessibilityIdentifier("projectPendingNodeRemoval.confirm")
+                        } else { Text("projectStarter.stale") }
+                    }
+                    .navigationTitle(Text("projectPendingNodeRemoval.title", tableName: "ProjectPendingNodeRemoval")).navigationBarTitleDisplayMode(.inline)
+                    .toolbar { ToolbarItem(placement: .cancellationAction) {
+                        Button("action.cancel") { controller.close(value) }
+                            .accessibilityIdentifier("projectPendingNodeRemoval.cancel")
+                    } }
                 }
-                .navigationTitle(Text("projectPendingNodeRemoval.title", tableName: "ProjectPendingNodeRemoval"))
-                .toolbar { ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { controller.close(value) }
-                        .accessibilityIdentifier("projectPendingNodeRemoval.cancel")
-                } }
             }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
 }

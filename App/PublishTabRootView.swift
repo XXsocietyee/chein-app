@@ -50,7 +50,8 @@ import SwiftUI
                     authoringCompletion: session.templateAuthoringCompletionContext,
                     publishDestination: {
                         AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch))
-                    }
+                    },
+                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }
                 )
                 .id(session.templateAuthoringViewIdentity)
                 .cyPushedChrome(domain: .topicEditor)

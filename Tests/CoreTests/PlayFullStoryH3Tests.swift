@@ -28,7 +28,10 @@ final class PlayFullStoryH3Tests: XCTestCase {
         XCTAssertEqual(query["clientPlatform"], "ios-native"); XCTAssertEqual(query["clientVersion"], "1.2.3")
         let tokens = Set((query["capabilities"] ?? "").split(separator: ",").map(String.init))
         XCTAssertTrue(tokens.contains("chapter.blocks.gallery@1")); XCTAssertTrue(tokens.contains("game.coinflip@1"))
-        XCTAssertFalse(tokens.contains("chapter.blocks.branch@1")); XCTAssertFalse(tokens.contains("answer.estimate@1"))
+        XCTAssertFalse(tokens.contains("chapter.blocks.branch@1"))
+        XCTAssertTrue(tokens.contains("answer.estimate@1"))
+        XCTAssertTrue(tokens.contains("hangman.pool@1"))
+        XCTAssertTrue(tokens.contains("qa.letterPool@1"))
         XCTAssertEqual(UGCompatibility.evaluate(required: [.init(key: "chapter.blocks", minVersion: 1)], supportedCapabilities: query["capabilities"] ?? "").supported, true)
         XCTAssertNil(PlayClientCapabilities.nodesQuery(clientVersion: "bad version!")["clientVersion"])
     }

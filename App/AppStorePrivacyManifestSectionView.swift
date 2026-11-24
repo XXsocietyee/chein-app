@@ -155,7 +155,7 @@ public struct AppStorePrivacyManifestSectionView: View {
                 .accessibilityIdentifier("privacyManifestAudit.locationDecouplingBanner")
 
             Text(verbatim: requiredReasonSummaryText)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("privacyManifestAudit.requiredReasonSummary")
 
@@ -167,7 +167,7 @@ public struct AppStorePrivacyManifestSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: check.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(check.isCompliant ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: check.declarationSummary)
@@ -176,14 +176,14 @@ public struct AppStorePrivacyManifestSectionView: View {
                     }
                     .padding(8)
                     .background(CYColor.textSecondary.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 }
             }
             .accessibilityIdentifier("privacyManifestAudit.checkList")
         }
         .padding(12)
         .background(CYColor.textSecondary.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("privacyManifestAudit.section")
     }

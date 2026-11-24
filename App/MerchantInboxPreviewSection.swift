@@ -12,6 +12,8 @@ struct MerchantInboxSources {
     let inboxDestination: @MainActor () -> AnyView
     /// A received invite → invite detail (source `pages/coop/invite-detail?box=received`).
     let inviteDestination: @MainActor (Int) -> AnyView
+    /// Conversation mark-read. Nil, or a writer whose inbox flag is off, sends nothing.
+    var markConversationRead: (@MainActor (Int) async -> Void)? = nil
 }
 
 private struct MerchantInboxSourcesKey: EnvironmentKey {
@@ -29,8 +31,8 @@ extension EnvironmentValues {
 /// cooperation invites and business events merged newest first, three rows. Swipe or × marks one read, 清空
 /// (asks once) marks all read, every item read collapses to 都看完了. Before the first load settles the section
 /// keeps one row of height and draws nothing, so it never claims 还没有消息 early.
-/// Read marks are local per account, like the source for invites and events. The server read of a conversation
-/// (`api/im/read`) stays with the inbox, whose write is gated.
+/// Read marks stay local per account. A conversation also calls inbox mark-read; that writer sends nothing
+/// while `inboxConversationReadEnabled` stays off.
 @MainActor
 struct MerchantInboxPreviewSection: View {
     let sources: MerchantInboxSources?
@@ -165,7 +167,7 @@ struct MerchantInboxPreviewSection: View {
                 .frame(width: 28, height: 28)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                title(item).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                title(item).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
                 if let sub = subtitle(item) {
                     sub.cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(1)
                 }
@@ -285,6 +287,12 @@ struct MerchantInboxPreviewSection: View {
         readMarks = MerchantInboxPreview.trimmedReadMarks(readMarks)
         lastItems = items(limit: MerchantInboxPreview.previewLimit)
         Self.saveMarks(readMarks, storeKey)
+        let conversationIDs = rows.compactMap { item -> Int? in
+            if case .conversation(let id, _) = item.kind, id > 0 { return id }
+            return nil
+        }
+        guard let mark = sources?.markConversationRead, !conversationIDs.isEmpty else { return }
+        Task { for id in conversationIDs { await mark(id) } }
     }
 
     private static func loadMarks(_ key: String) -> [String: Double] {

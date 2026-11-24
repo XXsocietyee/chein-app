@@ -26,7 +26,7 @@ private final class ClubCommunityFixtureTransport: ClubCommunityOfflineTransport
         case "/api/club/post/list":
             payload = #"{"rows":[{"id":20,"clubId":10,"authorMemberId":5,"content":"Fixture club post","version":2,"isPinned":0,"nickname":"Fixture author"},{"id":21,"clubId":10,"authorMemberId":6,"content":"Another member post","version":1,"isPinned":0}]}"#
         case "/api/club/post/feed":
-            payload = #"{"rows":[{"id":20,"clubId":10,"authorMemberId":5,"content":"Fixture club post","version":2,"isPinned":0}],"clubCount":1}"#
+            payload = #"{"rows":[{"id":20,"clubId":10,"authorMemberId":5,"content":"Fixture club post","version":2,"isPinned":0}],"clubCount":1,"hasMore":false}"#
         case "/api/club/post/comment/list":
             payload = #"[{"id":30,"postId":20,"memberId":6,"nickname":"Fixture member","content":"Fixture comment"}]"#
         case "/api/club/post/history":

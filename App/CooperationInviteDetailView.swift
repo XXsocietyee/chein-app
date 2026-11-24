@@ -9,6 +9,7 @@ import UIKit
     var body: some View {
         CooperationInviteDetailContent(key: key, reader: reader, peerReader: peerReader)
             .id(CopyHost(reader: ObjectIdentifier(reader), key: key))
+            .environment(\.cooperationMissingInvite, true)
     }
 }
 
@@ -64,7 +65,10 @@ import UIKit
                 if let name = row.topicName {
                     // Hero: generated cover under the topic name so the invite reads as a card, not a form row.
                     ZStack(alignment: .bottomLeading) {
-                        CYIMCoverArt(seed: name, systemImage: "handshake.fill", symbolSize: 44)
+                        // MC7-32-2: the invite's real cover (generated art only as the fallback), dimmed once closed.
+                        CoopCloudCoverBanner(url: TemplateBrowserPort.coverURL(row.coverURL), seed: coopCoverSeed(name, fallback: "invite-\(row.id)"))
+                            .opacity((row.status ?? 0) >= 2 ? 0.6 : 1)
+                            .accessibilityHidden(true)
                         LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .top, endPoint: .bottom)
                         Text(verbatim: name).cyText(.sheetTitle).foregroundStyle(.white)
                             .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
@@ -123,6 +127,18 @@ import UIKit
                 if case .text(let slotCount) = slotPage.slotCount, case .text(let slotCapacity) = slotPage.slotCapacity, let kind = detail.slotLine?.kind {
                     CooperationField(key: kind == .gamePending ? "cooperation.slot.game" : "cooperation.slot.topic", value: "\(slotCount) / \(slotCapacity)")
                 }
+                // MC7-32-3: MP invite-detail/index.wxml:85 核销据点 (supplyStationView): name, else 据点 #id, plus the lock note.
+                if let stationID = row.supplyStationId {
+                    LabeledContent {
+                        VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
+                            if let name = row.supplyStationName { Text(verbatim: name) }
+                            else { Text("merchantCoop.station.fallback \(stationID)") }
+                            Text(LocalizedStringKey(row.status == 1 ? "merchantCoop.station.note.accepted" : "merchantCoop.station.note.beforeAccept"))
+                                .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        }
+                    } label: { Text("merchantCoop.station.label") }
+                        .accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.detail.supplyStation")
+                }
                 LabeledContent { CooperationInviteDepositText(deposit: view.deposit) } label: { Text("cooperation.detail.section.deposit") }
                     .accessibilityIdentifier("cooperation.detail.deposit")
                 if row.termsFrozen { Label("cooperation.termsFrozen", systemImage: "lock") }
@@ -135,7 +151,7 @@ import UIKit
                         HStack(spacing: CYSpacing.xs) {
                             Text(LocalizedStringKey(view.messageIsOurs ? "cooperation.detail.us" : "cooperation.detail.them"))
                             CooperationTimeField(key: "cooperation.created", value: row.createTime)
-                        }.cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        }.cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                         .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgRaised))
                         .accessibilityIdentifier("cooperation.detail.message")
@@ -143,7 +159,7 @@ import UIKit
                 if let reason = row.handleReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: reason).cyText(.meta).foregroundStyle(CYColor.textPrimary)
-                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                         .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgSurfaceStrong))
                         .accessibilityIdentifier("cooperation.detail.handleReason")

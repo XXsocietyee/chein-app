@@ -158,7 +158,7 @@ import SwiftUI
                     }
                 } else { text("unsupported") }
             }
-            .navigationTitle(text("title"))
+            .navigationTitle(text("title")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } }
                 ToolbarItem(placement: .confirmationAction) {

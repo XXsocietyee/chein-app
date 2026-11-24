@@ -42,11 +42,29 @@ import SwiftUI
     @State private var refreshTask: Task<Void, Never>?
     @State private var marketingPush: MerchantMarketingPush?
     @Environment(\.merchantMarketingLinks) private var marketingLinks
+    @Environment(\.merchantPredictionWorkbenchEntry) private var predictionEntry
     private var loadKey: String { selected.rawValue + ":" + model.scopeIdentity + ":" + (recommendationOrigin?.readerScope.uuidString ?? "none") + ":" + String(recommendationOrigin?.merchantID ?? 0) }
     init(model: MerchantMarketingCoordinator, initialSurface: MerchantMarketingCoordinator.Surface = .dashboard, recommendationOrigin: MerchantInsightOrigin? = nil, onSuggestion: @escaping (MerchantInsightDestination) -> Void = { _ in }) {
         self.model = model; self.onSuggestion = onSuggestion; self.recommendationOrigin = recommendationOrigin; _selected = State(initialValue: initialSurface)
     }
+    /// MC7-10-1 / MC7-11-6: signed out replaces the page (no picker) with 登录后查看营销 / 请先登录 + 登录.
+    private var needsSignIn: Bool { model.failure == .signIn && !model.busy }
+    /// MC7-11-5 (ai-insight/index.wxml:5): 店铺参谋 shows only for marketing readers.
+    private var surfaces: [MerchantMarketingCoordinator.Surface] {
+        MerchantMarketingCoordinator.Surface.allCases.filter { item in
+            if item == .insight { return model.homeAccess?.canReadMarketing != false }
+            // MC7-18-4: one prediction inbox (pages/merchant/predict) owns selection and settlement; the 营销 copy
+            // of it is dropped wherever the inbox entry is available.
+            if item == .predictions { return predictionEntry == nil }
+            return true
+        }
+    }
     var body: some View {
+        Group {
+        if needsSignIn {
+            MerchantSignInState(title: selected == .insight ? "merchant.gate.insight.signIn" : "merchant.gate.marketing.signIn",
+                                identifier: "merchantMarketing.signIn")
+        } else {
         List {
             // Figma 182:8065 · Merchant/Root Header: 营销 as the large leading title; refresh is a trailing glass circle.
             MerchantRootHeader(OpsR3Text.text("r3merchant.root.marketing")) {
@@ -60,7 +78,7 @@ import SwiftUI
             .merchantRootHeaderRow()
             Section {
                 Picker("merchantMarketing.section", selection: $selected) {
-                    ForEach(MerchantMarketingCoordinator.Surface.allCases) { item in Text(LocalizedStringKey(item.titleKey)).tag(item) }
+                    ForEach(surfaces) { item in Text(LocalizedStringKey(item.titleKey)).tag(item) }
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
@@ -93,7 +111,13 @@ import SwiftUI
             if let insight = model.insight { insightSections(insight) }
             if let subscriptions = model.subscriptions { entitlementSections(subscriptions) }
             if let rounds = model.rounds { predictionSections(rounds) }
+            if selected == .dashboard, let predictionEntry {
+                Section { predictionEntry() }
+            }
         }
+        }
+        }
+        .onChange(of: model.homeAccess?.canReadMarketing) { _, canRead in if canRead == false, selected == .insight { selected = .dashboard } }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
         .merchantRootHidesBarTitle()
@@ -122,7 +146,34 @@ import SwiftUI
               recommendationOrigin == origin, model.insight != nil else { return }
         loadedRecommendationOrigin = origin
     }
-    private func failure(_ error: MerchantMarketingFailure) -> some View {
+    /// Nothing of the selected surface is on screen: the MP replaces the page body with one state.
+    private var surfaceIsEmpty: Bool {
+        switch selected {
+        case .dashboard: return model.home == nil
+        case .insight: return model.insight == nil
+        case .subscriptions: return model.subscriptions == nil
+        case .predictions: return model.rounds == nil
+        }
+    }
+    @ViewBuilder private func failure(_ error: MerchantMarketingFailure) -> some View {
+        if surfaceIsEmpty, !model.busy, error != .signIn, !(error == .denied && selected == .dashboard) {
+            // MC7-10-3 / MC7-11-6: 商家营销加载失败 / 当前身份不能查看店铺数据 / 店铺数据加载失败 + the server reason + 重新加载.
+            Section {
+                if error == .denied {
+                    MerchantDeniedState(title: "merchant.gate.insight.denied", identifier: "merchantMarketing.denied")
+                } else {
+                    MerchantLoadFailedState(title: selected == .insight ? "merchant.gate.insight.loadFailed" : "merchant.gate.marketing.loadFailed",
+                                            message: error.serverMessage, identifier: "merchantMarketing.loadFailed") {
+                        refreshTask?.cancel(); refreshTask = Task { await loadSurface() }
+                    }
+                }
+            }
+            .listRowBackground(Color.clear)
+        } else {
+            legacyFailure(error)
+        }
+    }
+    private func legacyFailure(_ error: MerchantMarketingFailure) -> some View {
         Section {
             if error == .denied && selected == .dashboard {
                 // Source marketing/index.wxml denied inline error; the owner always has marketing read.
@@ -157,7 +208,8 @@ import SwiftUI
         MerchantInsightAttributionSummary(summary: .init(insight.facts),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
                 && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight, facts: insight.facts,
-            onCoopCenter: cooperationCenterAction(insight: insight))
+            onCoopCenter: cooperationCenterAction(insight: insight),
+            onReload: { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } })
         Section("merchantMarketing.facts") {
             CYListRow("merchantMarketing.window", trailing: .value(MerchantInsightAttribution(insight.facts).window ?? "—"))
             CYListRow("merchantMarketing.sample", trailing: .value(value(insight.facts["sampleMembers"].integer)))
@@ -171,15 +223,24 @@ import SwiftUI
             CYListRow("merchantMarketing.members", trailing: .value(value(insight.facts["crowd"]["members"].integer)))
             CYListRow("merchantMarketing.offers", trailing: .value(value(insight.facts["supply"]["activeOffers"].integer)))
             CYListRow("merchantMarketing.quotaRate", trailing: .value(percent(insight.facts["supply"]["quotaUsedRate"].decimal)))
-            ForEach(Array((insight.facts["checkin"]["hourBuckets"].array ?? []).enumerated()), id: \.offset) { _, bucket in
-                // Source 到店时段: one row per hour slot with its check-in count.
-                CYListRow(verbatim: bucket["hour"].integer.map { String(format: "%02d:00", $0) } ?? "—", trailing: .value(value(bucket["count"].integer)))
+            if let slots = MerchantInsightSlots.build(insight.facts) {
+                if !slots.peakText.isEmpty {
+                    Text(verbatim: slots.peakText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                ForEach(Array(slots.bars.enumerated()), id: \.offset) { _, bar in
+                    CYListRow(verbatim: bar.slot.isEmpty ? "—" : bar.slot, trailing: .value("\(bar.count) · \(bar.pct)"))
+                }
             }
             CYListRow("merchantMarketing.maleRate", trailing: .value(percent(insight.facts["crowd"]["sexRatio"]["male"].decimal)))
             CYListRow("merchantMarketing.femaleRate", trailing: .value(percent(insight.facts["crowd"]["sexRatio"]["female"].decimal)))
             ForEach(Array((insight.facts["crowd"]["interestTop"].array ?? []).enumerated()), id: \.offset) { _, interest in
                 if let text = interest.text { CYListRow("merchantMarketing.interest", trailing: .value(text)) }
             }
+        }
+        // MC7-11-3 (ai-insight/index.js:611 `_buildSlots`): 到店时段 reads facts.checkin.slotBuckets (早/午/晚/夜) via Core
+        // MerchantInsightSlots — four bars, 共 N 次打卡 and the peak line. No buckets or a zero total hides the section.
+        if let slots = MerchantInsightSlots.build(insight.facts) {
+            MerchantInsightSlotsSection(slots: slots)
         }
         MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
@@ -194,9 +255,10 @@ import SwiftUI
         Section("merchantMarketing.recommendedPartners") {
             recommendationRows(insight.recommendedPartners, kind: .partner, insight: insight)
         }
-        Section("merchantMarketing.suggestions") {
-            Text("merchantMarketing.suggestionNotice").font(.footnote)
-            if let ai = insight.ai {
+        // MC7-11-10 (owner 2026-10-23): without an interpretation the whole 经营解读 section is hidden.
+        if let ai = insight.ai {
+            Section {
+                Text("merchantMarketing.suggestionNotice").font(.footnote)
                 Text(ai["summary"].text ?? "—")
                 if !model.busy, model.service.scope != nil, loadedRecommendationOrigin != nil,
                    loadedRecommendationOrigin == recommendationOrigin, model.insight == insight {
@@ -219,18 +281,28 @@ import SwiftUI
                 ForEach(Array((ai["audiences"].array ?? []).enumerated()), id: \.offset) { _, audience in
                     VStack(alignment: .leading) { Text(audience["label"].text ?? "—"); if let reason = audience["reason"].text { Text(reason) } }
                 }
-            } else { CYEmptyState(systemImage: "text.bubble", "merchantMarketing.aiUnavailable") }
-            if let error = insight.aiError, !error.isEmpty { Text(error) }
-            if let date = insight.generatedAt { LabeledContent("merchantMarketing.generatedAt", value: date) }
-            ForEach(Array(insight.suggestions.enumerated()), id: \.offset) { index, suggestion in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(suggestion.title).font(.headline)
-                    if let reason = suggestion.reason { Text(reason) }
-                    if let slot = suggestion.timeSlot { Text(slot) }
-                    if let audience = suggestion.audience { Text(audience) }
-                    if let destination = suggestion.destination {
-                        CYPillButton("merchantMarketing.openSuggestion", style: index == 0 ? .primary : .secondary) { onSuggestion(destination) }
-                            .accessibilityHint(suggestion.title)
+                if let error = insight.aiError, !error.isEmpty { Text(error) }
+            } header: {
+                Text("merchantMarketing.suggestions")
+            } footer: {
+                // MC7-11-9 (ai-insight/index.wxml:239): the source line replaces the 生成时间 row.
+                if let date = insight.generatedAt {
+                    Text("merchant.insight.aiSource \(date)").accessibilityIdentifier("merchant.insight.aiSource")
+                }
+            }
+        }
+        if !insight.suggestions.isEmpty {
+            Section {
+                ForEach(Array(insight.suggestions.enumerated()), id: \.offset) { index, suggestion in
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(suggestion.title).font(.headline)
+                        if let reason = suggestion.reason { Text(reason) }
+                        if let slot = suggestion.timeSlot { Text(slot) }
+                        if let audience = suggestion.audience { Text(audience) }
+                        if let destination = suggestion.destination {
+                            CYPillButton("merchantMarketing.openSuggestion", style: index == 0 ? .primary : .secondary) { onSuggestion(destination) }
+                                .accessibilityHint(suggestion.title)
+                        }
                     }
                 }
             }
@@ -362,7 +434,10 @@ private struct MerchantPredictionReviewView: View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: model.predictionReviewPresentation(for: accepted),
                    onDismiss: { model.cancelReview(id: accepted.id) }) { review in
-                MerchantPredictionReviewView(model: model, accepted: review)
+                Group {
+                    MerchantPredictionReviewView(model: model, accepted: review)
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
     }
 }

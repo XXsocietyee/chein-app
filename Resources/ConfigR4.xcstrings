@@ -17,6 +17,38 @@
         }
       }
     },
+    "config.gameplay.category.challenge": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挑战"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenges"
+          }
+        }
+      }
+    },
+    "config.gameplay.category.interact": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "互动"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interactive"
+          }
+        }
+      }
+    },
     "config.gameplay.category.onSite": {
       "localizations": {
         "zh-Hans": {
@@ -54,13 +86,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "答题"
+            "value": "问答"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quiz"
+            "value": "Q&A"
           }
         }
       }

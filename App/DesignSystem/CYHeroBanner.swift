@@ -57,15 +57,16 @@ struct CYHeroBanner: View {
     }
 
     private func card(_ item: CYHeroBannerItem, index: Int) -> some View {
-        slide(item, index: index)
+        let reduced = reduceMotion
+        return slide(item, index: index)
             .containerRelativeFrame(.horizontal) { width, _ in items.count > 1 ? width * Self.cardFraction : width }
             .frame(maxHeight: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .shadow(color: .black.opacity(0.35), radius: 10, x: 0, y: 6)
             .scrollTransition(axis: .horizontal) { content, phase in
                 content
-                    .scaleEffect(reduceMotion ? 1 : 1 - abs(phase.value) * 0.07)
-                    .opacity(reduceMotion ? 1 : 1 - abs(phase.value) * 0.3)
+                    .scaleEffect(reduced ? 1 : 1 - abs(phase.value) * 0.07)
+                    .opacity(reduced ? 1 : 1 - abs(phase.value) * 0.3)
             }
     }
 
@@ -82,6 +83,7 @@ struct CYHeroBanner: View {
 
     /// Cover (or brand gradient) drawn 18% oversized and shifted against the scroll so it parallaxes inside the card.
     @ViewBuilder private func cover(_ item: CYHeroBannerItem, index: Int) -> some View {
+        let reduced = reduceMotion
         Group {
             if let url = item.imageURL, url.scheme?.lowercased() == "https" {
                 AsyncImage(url: url) { phase in
@@ -93,7 +95,7 @@ struct CYHeroBanner: View {
         }
         .scaleEffect(reduceMotion ? 1 : 1.18)
         .scrollTransition(axis: .horizontal) { content, phase in
-            content.offset(x: reduceMotion ? 0 : phase.value * -44)
+            content.offset(x: reduced ? 0 : phase.value * -44)
         }
     }
 

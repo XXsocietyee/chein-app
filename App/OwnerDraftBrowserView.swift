@@ -19,7 +19,7 @@ struct OwnerDraftDestination: View {
                 CYEmptyState(systemImage: "icloud.slash", "ownerDraft.notConfigured.title", detail: "ownerDraft.notConfigured.detail")
                     .accessibilityIdentifier("ownerDraft.notConfigured")
             }
-        }.appNavigationTitle("ownerDraft.title")
+        }.appNavigationTitle("ownerDraft.title").navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -32,8 +32,8 @@ struct OwnerDraftGuestView: View {
                 Text("ownerDraft.signIn.detail").fixedSize(horizontal: false, vertical: true)
                 CYPillButton("ownerDraft.signIn") { showsLogin = true }.listRowBackground(Color.clear).accessibilityIdentifier("ownerDraft.signIn")
             }
-        }.appNavigationTitle("ownerDraft.title")
-            .sheet(isPresented: $showsLogin) { LoginView(intent: .player) }
+        }.appNavigationTitle("ownerDraft.title").navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showsLogin) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 
@@ -69,7 +69,7 @@ struct OwnerDraftBrowserView: View {
                 }
             }
         }
-        .appNavigationTitle("ownerDraft.title")
+        .appNavigationTitle("ownerDraft.title").navigationBarTitleDisplayMode(.inline)
         .refreshable { await browser.load() }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -125,7 +125,7 @@ private struct OwnerDraftDetailView: View {
                 }
             }
         }
-        .appNavigationTitle("ownerDraft.detail")
+        .appNavigationTitle("ownerDraft.detail").navigationBarTitleDisplayMode(.inline)
         .task(id: id) { await browser.restore(id: id) }
         .onDisappear { browser.closeDetail() }
         .refreshable { await browser.restore(id: id) }

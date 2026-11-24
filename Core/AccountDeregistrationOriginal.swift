@@ -54,9 +54,9 @@ public struct AccountDeregistrationOriginalReceipt: Decodable, Equatable {
     }
 }
 @MainActor public final class AccountDeregistrationOriginalClient {
-    public static let base = "api/user/deregister/"
-    public static let readPaths: Set<String> = [base + "status", base + "result"]
-    public static let writePaths: Set<String> = [base + "precheck", base + "apply", "api/compliance/consents", "api/compliance/consents/latest"]
+    public nonisolated static let base = "api/user/deregister/"
+    public nonisolated static let readPaths: Set<String> = [base + "status", base + "result"]
+    public nonisolated static let writePaths: Set<String> = [base + "precheck", base + "apply", "api/compliance/consents", "api/compliance/consents/latest"]
     public let context: RuntimeDependencyContext, approval: AccountDeregistrationOriginalApproval
     private let transport: any HTTPTransport
     private let current: () -> RuntimeDependencyContext?, stillApproved: () -> Bool, unauthorized: () -> Void

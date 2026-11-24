@@ -26,9 +26,11 @@ enum CYPassCardPick {
 
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.ticketWalletPlayProvider) private var playProvider
     @State private var phase: CYPhase<TicketWalletSnapshot, Error> = .idle
     @State private var selectedID: Int?
     @State private var detailID: Int?
+    @State private var playDetailID: Int?
     @State private var loadToken = 0
     /// Bumped when the pass flips to verified: the edge glow sweeps the display corners (choreography D).
     @State private var glowTick = 0
@@ -51,10 +53,15 @@ enum CYPassCardPick {
                 .navigationDestination(item: $detailID) { id in
                     TicketWalletDetailView(id: id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
                 }
+                .navigationDestination(item: $playDetailID) { id in
+                    // PLY-21-3: the detail re-reads the ticket, then starts play; a list row never proves the status.
+                    TicketWalletDetailView(id: id, reader: reader, lifecycleCoordinator: lifecycleCoordinator,
+                                           makeTeamCoordinator: makeTeamCoordinator, autoStartsPlay: true)
+                }
         }
         .task(id: TaskKey(scope: reader.scope, token: loadToken, active: scenePhase == .active)) { await load() }
         .cyEdgeGlow(trigger: glowTick)
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .accessibilityIdentifier("ticketPass.sheet")
     }
     private struct TaskKey: Equatable { let scope: UUID; let token: Int; let active: Bool }
@@ -75,6 +82,17 @@ enum CYPassCardPick {
                 ScrollView {
                     VStack(spacing: CYSpacing.lg) {
                         TicketPassCard(ticket: ticket, onVerified: { glowTick += 1 })
+                        // PLY-21-3 / PLY-21-4: MP signup wxml:103-106 puts 开始游戏 (查看记录 once cleared) under the pass.
+                        if playProvider != nil, ticket.status == .ready, ticket.action == .detail, !ticket.isWalletLocked,
+                           TicketWalletPlayEntry.entry(ticket: ticket, requestedID: ticket.id) != nil {
+                            Button { playDetailID = ticket.id } label: {
+                                if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() } }
+                                else { Label { Text("playerJourney.start") } icon: { TicketWalletPlayGlyph() } }
+                            }
+                            .buttonStyle(.cyPrimary(fullWidth: true))
+                            .frame(maxWidth: 360)
+                            .accessibilityIdentifier("ticketPass.play")
+                        }
                         if let partial = snapshot.partialFailure {
                             Text(verbatim: c.t("部分票券没能读取，下拉或在菜单里刷新", "Some tickets did not load. Refresh from the menu."))
                                 .cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -195,7 +213,7 @@ enum CYPassCardPick {
     private var state: CYPassState { CYPassState(ticket.status) }
     private let tearBand: CGFloat = 22
     private var shape: CYTicketPassShape {
-        CYTicketPassShape(notchY: topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: CYRadius.xl, notch: 11, perforation: 3, perforationGap: 7)
+        CYTicketPassShape(notchY: topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: CYRadius.hero, notch: 11, perforation: 3, perforationGap: 7)
     }
 
     var body: some View {
@@ -231,7 +249,7 @@ enum CYPassCardPick {
         .cyFoilSheen(trigger: sheen)
         .clipShape(shape, style: FillStyle(eoFill: true))
         .cyPassFoilEdge(shape, active: ticket.status == .ready)
-        .shadow(color: .black.opacity(0.40), radius: 16, y: 9)
+        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
         .opacity(state.isRetired ? 0.74 : 1)
         .cyBrightnessBoost(ticket.status == .ready)
         .background(GeometryReader { g in Color.clear.onAppear { cardSize = g.size }.onChange(of: g.size) { _, new in cardSize = new } })
@@ -337,7 +355,7 @@ enum CYPassCardPick {
         let side = Self.qrSide
         return VStack(spacing: CYSpacing.sm) {
             if ticket.status == .ready, let n = ticket.registrationNumber, !n.isEmpty {
-                Text(verbatim: n).font(CYTypography.sectionTitle.monospaced()).foregroundStyle(.black)
+                Text(verbatim: n).cyText(.sectionTitle).monospaced().foregroundStyle(.black)
                     .minimumScaleFactor(0.5).lineLimit(2).multilineTextAlignment(.center).textSelection(.enabled)
                     .accessibilityLabel(Text(verbatim: c.t("票号", "Ticket number"))).accessibilityValue(Text(verbatim: n))
                     .accessibilityIdentifier("ticketPass.number")
@@ -349,7 +367,7 @@ enum CYPassCardPick {
         .padding(CYSpacing.md)
         .frame(width: side, height: side)
         .padding(CYSpacing.lg)
-        .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityIdentifier("ticketPass.whiteTile")
     }
 
@@ -370,3 +388,13 @@ private struct TicketPassTopHeightKey: PreferenceKey {
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
+
+/// MP signup wxml:105 `wl-start__play`: the shipped `icon_play.svg` in front of 开始游戏 / 查看记录.
+/// The imageset is a template, so it takes the button's foreground colour.
+struct TicketWalletPlayGlyph: View {
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 14
+    var body: some View {
+        MPAsset.FeatureIcon.iconPlay.renderingMode(.template).resizable().scaledToFit()
+            .frame(width: side, height: side).accessibilityHidden(true)
+    }
+}

@@ -16,8 +16,8 @@ import SwiftUI
     init(host: OwnedTemplateConfigurationHost, id: MemberPlayTemplateID) { _host = State(initialValue: host); self.id = id }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateOwnerConfig.title", subtitle: "templateOwnerConfig.readOnly") }.e1HeroRow()
-            Section { Text("templateOwnerConfig.scope").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+            Section { Text("templateOwnerConfig.readOnly").foregroundStyle(.secondary) }
+            Section {} footer: { Text("templateOwnerConfig.scope") } // native restyle r1: explanatory copy in a footer
             if host.loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("memberTemplate.loading")).listRowBackground(Color.clear) }
             if let snapshot = host.snapshot, snapshot.id == id {
                 Section {
@@ -96,7 +96,7 @@ import SwiftUI
                 }
             }
             Section { CYPillButton("action.reload", style: .secondary, systemImage: "arrow.clockwise") { Task { await host.load(id: id) } }.disabled(host.loading).accessibilityIdentifier("templateOwnerConfig.reload").e1ActionRow() }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+        }.formStyle(.grouped).cyGroupedSurface().navigationTitle(Text("templateOwnerConfig.title")).navigationBarTitleDisplayMode(.inline)
             .privacySensitive().accessibilityIdentifier("templateOwnerConfig.form")
             .task(id: id) { showingStory = false; if host.snapshot?.id != id { await host.load(id: id) } }
             .navigationDestination(isPresented: $showingStory) { OwnedTemplateStoryConfigurationView(host: host, expectedID: id) }
@@ -110,7 +110,7 @@ import SwiftUI
     let expectedID: MemberPlayTemplateID
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateAuthor.storyTimeline", subtitle: "templateOwnerConfig.readOnly") }.e1HeroRow()
+            Section { Text("templateOwnerConfig.readOnly").foregroundStyle(.secondary) }
             if let snapshot = host.snapshot, snapshot.id == expectedID {
                 ForEach(snapshot.story) { beat in
                     Section {
@@ -123,7 +123,7 @@ import SwiftUI
                 }
                 if snapshot.story.isEmpty { Text("templateOwnerConfig.noStory") }
             } else { Text("templateAuthor.unavailable") }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+        }.formStyle(.grouped).cyGroupedSurface().navigationTitle(Text("templateAuthor.storyTimeline")).navigationBarTitleDisplayMode(.inline)
             .privacySensitive().accessibilityIdentifier("templateOwnerConfig.storyForm")
             .onChange(of: session.templateShelfViewIdentity) { _, _ in host.clear() }
             .onDisappear { if !host.available { host.clear() } }

@@ -17,12 +17,12 @@ struct IMStaticLocationCardView: View {
             details
         }
         .frame(maxWidth: 280)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .strokeBorder(palette.borderSubtle, lineWidth: 1)
         }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .privacySensitive()
         .onDisappear { showMap = false }
     }
@@ -63,7 +63,7 @@ struct IMStaticLocationCardView: View {
     }
 
     private var details: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: placeTitle)
                 .cyText(.bodyMedium)
                 .foregroundStyle(palette.textPrimary)

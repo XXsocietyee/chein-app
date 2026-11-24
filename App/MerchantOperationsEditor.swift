@@ -23,6 +23,9 @@ struct MerchantOperationsEditor: View {
     @State private var showsUnpublishedDraft = false
     @State private var heldKnowledgeReview: MerchantNPCKnowledgeReviewReentry?
     @State private var didRecoverHeldKnowledgeReview = false
+    /// MC7-22-2: 承接设置已保存 toast, then back to 品牌中心 (MP coop-setting auto-back).
+    @State private var savedToast: LocalizedStringKey?
+    @Environment(\.dismiss) private var dismiss
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
     private var isExample: Bool { coordinator.reader.isOfflineExample }
     var body: some View {
@@ -51,7 +54,7 @@ struct MerchantOperationsEditor: View {
         .scrollDismissesKeyboard(.immediately)
         .disabled(coordinator.isBusy)
         .accessibilityIdentifier("merchant.operations.editor")
-        .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }
+        .sheet(item: $assist) { presentation in Group { MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .modifier(MerchantTemplateCategoryPresentation(document: model, picker: $categoryPicker))
         .modifier(MerchantBrandImagesPresentation(document: model))
         .modifier(MerchantStoreFieldStablePresentation(document: model, presentation: storeFieldPresentation))
@@ -60,6 +63,17 @@ struct MerchantOperationsEditor: View {
         .modifier(MerchantCoopFieldStablePresentation(document: model, route: $coopFieldRoute))
         .onAppear { Task { await recoverHeldKnowledgeReview() } }
         .onDisappear { didRecoverHeldKnowledgeReview = false }
+        .onChange(of: coordinator.issue) { _, issue in
+            guard coordinator.destination == .cooperation, issue == .key("merchant.operations.acknowledged"),
+                  !coordinator.isDirty, !coordinator.isLocked else { return }
+            savedToast = "merchantCoop.coopSetting.saved"
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(900))
+                guard !Task.isCancelled, coordinator.destination == .cooperation, !coordinator.isDirty else { return }
+                dismiss()
+            }
+        }
+        .cyToast(message: $savedToast, tone: .success)
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {
@@ -472,7 +486,7 @@ struct MerchantOperationsConfirmationView: View {
                     if let preset = avatar.preset {
                         Section("merchant.operations.avatar") {
                             MerchantNPCPresetArtwork(avatar: preset).frame(width: 192, height: 192)
-                                .clipShape(RoundedRectangle(cornerRadius: 20)).frame(maxWidth: .infinity)
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous)).frame(maxWidth: .infinity)
                             Text(LocalizedStringKey(preset.titleKey)).accessibilityIdentifier("merchantPreset.review." + preset.id)
                         }
                     } else {

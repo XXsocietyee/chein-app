@@ -213,7 +213,7 @@ public struct ShopNPCReply: Equatable {
     }
 }
 /// Public NPC read of one published release. Private order, customer and cost keys are withheld.
-public struct ShopNPCPublicRead: Equatable {
+public struct ShopNPCPublicRead: Equatable, Sendable {
     public static let withheldKeys: Set<String> = ["order", "orders", "customer", "customers", "cost", "costs"]
     public let releaseID: String
     public let facts: [String: String]

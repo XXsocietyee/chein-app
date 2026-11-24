@@ -5,6 +5,7 @@ struct TopicDetailView: View {
     @Environment(\.cyPalette) private var palette
     let id: Int
     let reader: any TopicReading
+    var preferSession = false
     var activityDestination: ((Int) -> AnyView)? = nil
     var publicMerchant: PublicMerchantHomeContext? = nil
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
@@ -14,6 +15,11 @@ struct TopicDetailView: View {
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     var ticketWalletDestination: ((Int) -> AnyView)? = nil
+    /// R7-PC-B1-15: a club session card link (`via=session`) makes the bar open the session picker before self-play.
+    var prefersSessionPicker: Bool = false
+    /// R7-PC-B1-19: the topic editor (`pages/publish/fabu/index?id=` + `scope`) for a free-explore owner in pricing.
+    var ownerEditorDestination: ((Int, String?) -> AnyView)? = nil
+    @State private var showsOwnerEditor = false
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
@@ -27,9 +33,11 @@ struct TopicDetailView: View {
     @State private var generation = 0
     @State private var loads = SignedInContentDetailLoadOwner()
     @Environment(\.topicPricingDestination) private var pricingDestination
+    @Environment(\.topicEditorDestination) private var editorDestination
     @Environment(\.locale) private var locale
     @Environment(\.popupCloseActions) private var popupCloseActions
     @State private var showsPricing = false
+    @State private var showsEditor = false
     @State private var showingGraduateBetaConfirm = false
     @State private var showingClubTransferPicker = false
     @State private var transferClubs: [ClubRecord] = []
@@ -332,30 +340,25 @@ struct TopicDetailView: View {
                 }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
             }.id(TopicXcxTab.details.anchor)
-            if value.templateCount != 0 { TopicXcxTemplatesSection(templates: TopicXcxFacts.nodeTemplates(value)) }
-            // 主题介绍 + 活动内容 (mini-program `det3` second block): long introduction, then what the activity includes.
-            let includes = TopicXcxFacts.includes(value)
-            if value.introduction != nil || !includes.isEmpty {
+            if let cast = value.castConfig, !cast.cast.isEmpty {
+                Section("topic.cast") { TopicCastRow(config: cast) }
+            }
+            // 节点介绍 (MP `det4`, owner 2026-11-19): one card per chapter, endings excluded (port plan r1 C9).
+            TopicChapterCardsSection(cards: TopicChapterCards.cards(chapters: value.chapters, routeCover: value.imageURL))
+            // 活动内容 (MP `det3`, 2026-11-21): the story only. Practical lines from the same text, prices, what is
+            // included, pause/resume and finishing rewards move to 出发前 below (port plan r1 C13).
+            let story = TopicDepartNotes.split(value.introduction).story
+            if !story.isEmpty {
                 Section {
-                    if let introduction = value.introduction {
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text("topicXcx.section.contents").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                            Text(verbatim: introduction).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
-                        }
-                    } else if !includes.isEmpty {
-                        Text("topicXcx.section.contents").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                        TopicXcxIncludes(rows: includes)
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Text("topicXcx.section.contents").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                        Text(verbatim: story).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                            .accessibilityIdentifier("topic.story")
                     }
                 }
             }
-            if value.startDate != nil || value.endDate != nil || value.merchantCount != nil || value.totalTimeSeconds != nil {
-                Section {
-                    if let start = value.startDate { LabeledContent("topic.start", value: start) }
-                    if let end = value.endDate { LabeledContent("topic.end", value: end) }
-                    if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
-                    if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) } }
-                }
-            }
+            TopicDepartSection(items: TopicDepartNotes.items(for: value))
+            // R7-PC-B1-14 (r1 PC-B-1-10): MP has one stat bar; the duplicate start / end / merchants / duration rows are gone.
             if let records = reader as? any TopicThemeRecordsReading {
                 // Source 我的游玩记录 row; always shown, the sheet handles empty/sign-in states.
                 Section {
@@ -389,7 +392,7 @@ struct TopicDetailView: View {
                         }
                     }.accessibilityElement(children: .combine)
                 }
-                if !value.tickets.isEmpty { Text("topic.source.sessionNote").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                if !value.tickets.isEmpty { Text("topic.source.sessionNote.mp").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }.id("topicXcx.anchor.sessions")
             }
             if let activities = value.activities {
@@ -414,7 +417,8 @@ struct TopicDetailView: View {
             // PC-B-1-1: MP index.wxml:126,138 shows these rows only when `info.isOwner == 1` (graduate also needs Beta).
             let ownerGraduates = value.isOwner && value.betaFlag == 1 && popupCloseActions.graduateBetaTopic != nil
             let ownerTransfers = value.isOwner && popupCloseActions.loadTransferClubs != nil && popupCloseActions.transferTopicToClub != nil
-            if ownerGraduates || ownerTransfers || popupCloseActions.saveUserPhoneAndName != nil {
+            // R7-PC-B1-3 (r1 PC-B-1-1): MP asks for name / phone inside the checkout layer only, never as a standing row.
+            if ownerGraduates || ownerTransfers {
                 Section(PlayCloseCopy.text("主题运维与快捷资料", "Topic Actions & Profile", locale)) {
                     if ownerGraduates {
                         Button {
@@ -432,20 +436,16 @@ struct TopicDetailView: View {
                         }
                         .accessibilityIdentifier("topic.transferClub.open")
                     }
-                    if popupCloseActions.saveUserPhoneAndName != nil {
-                        Button {
-                            showingContactPromptModal = true
-                        } label: {
-                            Text(verbatim: PlayCloseCopy.text("补充姓名和手机号", "Add name & phone", locale))
-                        }
-                        .accessibilityIdentifier("topic.contactPrompt.open")
-                    }
                 }
             }
             let lineup = TopicXcxFacts.lineup(value)
-            if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
+            if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup, publicMerchant: publicMerchant) } }
             // 开局前准备 (`GET api/play/setup`): hidden when neither prep items nor a play window are set.
-            PlayTopicPrepSection(topicID: id)
+            // R7-PC-B1-20: MP shows 开局前准备 only to a viewer who has joined (`is_join == 1 && prep.show`).
+            if value.isSignUp {
+                // 开始游玩 hands over to the ticket wallet, where the joined pass starts play (server checks run there).
+                PlayTopicPrepSection(topicID: id, onStart: ticketWalletDestination != nil ? { showingTickets = true } : nil)
+            }
             G6TopicCharactersSection(chapters: value.chapters)
             Section("topic.availability") {
                 // Source x-fix2 P-1 (hengyin c878fbb7d): a topic past its sale end only says 已截止, with no sign-up or unlock entry.
@@ -455,7 +455,7 @@ struct TopicDetailView: View {
                 } else {
                     Text(LocalizedStringKey("topic.availability." + String(value.availability.rawValue)))
                 }
-                if value.merchantClosed { Label("topic.closedNotice", systemImage: "storefront") }
+                // R7-PC-B1-14: 商家暂停营业 is said once, in the bar.
                 if value.selfPlay == 1 {
                     TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice")
                     if value.canOfferPurchase && !saleClosed(value) {
@@ -464,13 +464,11 @@ struct TopicDetailView: View {
                     }
                 }
             }
+            // C13: the empty state is said once (TopicReviewsContent), with no 0 total and no small print under the
+            // reviews (MP `det6`: 还没有评价 card, else rating + 基于 N 条评论 + list).
             Section("topic.comments") {
-                if (value.commentCount ?? value.comments.count) == 0 {
-                    Text("topicXcx.reviews.emptyTitle").cyText(.cardTitle).accessibilityIdentifier("topic.reviews.emptyPrompt")
-                }
                 CYPillButton("context.review.title", style: .secondary) { showsReview = true }.accessibilityIdentifier("topic.openReview")
                 TopicReviewsContent(reviews: value.reviews)
-                Text("activity.reviewPointsNote").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
             .environment(\.ugcSafetySubjectID, value.id)
             Section {
@@ -484,10 +482,19 @@ struct TopicDetailView: View {
                     } label: {
                         VStack(alignment: .leading) {
                             Text(verbatim: chapter.title)
-                            if let minutes = chapter.totalTimeMinutes {
-                                LabeledContent("topic.durationMinutes", value: String(minutes)).cyText(.meta)
+                            // REV-B B-08: MP `metaTime` = formatTimeToChinese(totalTime) (X小时Y分钟) from seconds; else the
+                            // games' minutes (C9), else hidden. Then 节点 and 玩法 counts.
+                            if let seconds = chapter.totalTimeSeconds, seconds > 0 {
+                                LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) }.cyText(.meta)
+                            } else if let minutes = TopicChapterCards.minutes(chapter) {
+                                LabeledContent("topic.durationMinutes") { Text(minutes, format: .number).monospacedDigit() }.cyText(.meta)
                             }
-                            LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).cyText(.meta)
+                            if !chapter.nodes.isEmpty {
+                                LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).cyText(.meta)
+                            }
+                            if let plays = chapter.templateCount, plays > 0 {
+                                LabeledContent("discovery.templateDetail.stat.games", value: String(plays)).cyText(.meta)
+                            }
                         }
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }
@@ -501,7 +508,7 @@ struct TopicDetailView: View {
                     Text(TopicXcxFacts.showsInStorePerks(value) ? "topicXcx.paywall.detail" : "topicXcx.paywall.detailNoPerks").cyText(.bodyCompact)
                     // PC-B-1-15: the price of what unlocks (MP paywall price row); unknown price → row hidden.
                     if value.selfPlay == 1, let price = value.selfPlayPrice {
-                        Text(price, format: .currency(code: "CNY").precision(.fractionLength(0...2)))
+                        Text(verbatim: MoneyDisplay.yuan(price))  // owner decision 9: ¥12.50
                             .cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
                             .accessibilityIdentifier("topic.paywall.price")
                     }
@@ -548,14 +555,28 @@ struct TopicDetailView: View {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { barSheetOrigin = .selfPlay; showingSelfPlay = true },
                               openPricing: pricingDestination == nil ? nil : { barSheetOrigin = .pricing; showsPricing = true },
+                              openEditor: editorDestination == nil ? nil : { showsEditor = true },
+                              preferSession: preferSession,
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
                               heroNamespace: barHero)
+        }
+        .navigationDestination(isPresented: $showsOwnerEditor) {
+            if let ownerEditorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
+                ownerEditorDestination(value.id, scope)
+            }
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
                 .modifier(TopicBarHeroDestination(sheet: .sessions, origin: .sessions, namespace: barHero)) // only the bar opens it
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
+        }
+        .sheet(isPresented: $showsEditor) {
+            if let editorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
+                NavigationStack { editorDestination(value.id, scope) }
+                    .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.full])
+            }
         }
         .sheet(isPresented: $showsPricing, onDismiss: { barSheetOrigin = nil }) {
             if let pricingDestination {

@@ -126,6 +126,6 @@ import Combine
                     ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } }
                 }
             }
-        }.navigationTitle("templateTeam.title").onAppear { editor.reload() }.onDisappear { editor.retire() }
+        }.navigationTitle("templateTeam.title").navigationBarTitleDisplayMode(.inline).onAppear { editor.reload() }.onDisappear { editor.retire() }
     }
 }

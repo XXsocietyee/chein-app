@@ -78,7 +78,10 @@ struct ClubOpsBanSection: View {
                     if let note = row.unbanReason {
                         Text("clubOpsGov.unbanNote \(note)", tableName: "ClubOpsGovernance").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
-                    if row.unbanSeed != nil { unban(row) }
+                    // CLB-governance-18: VoiceOver names the member on 解封.
+                    if row.unbanSeed != nil {
+                        unban(row).accessibilityLabel(Text("club.gov.a11y.unban \(row.nickname ?? "#\(row.targetMemberID)")"))
+                    }
                 }.accessibilityIdentifier("clubOpsGov.ban.\(row.id)")
             }
         } header: { Text("club.gov.bans") }
@@ -93,6 +96,8 @@ struct ClubOpsGovernanceMembersSection: View {
     var scope: ClubGovernanceScope? = nil
     var capability: ClubOpsGovernanceCapability? = nil
     var document: ClubGovernanceValue? = nil
+    var showsBan = true
+    var memberGovernanceDenial: String? = nil
     private var page: ClubOpsGovernancePage? {
         guard let scope, let capability else { return nil }
         return ClubOpsGovernancePage.project(members: document, scope: scope, capability: capability, includeBans: false, includeMembers: true, includeCases: false)
@@ -106,6 +111,12 @@ struct ClubOpsGovernanceMembersSection: View {
             if let text = countText {
                 Text("clubOpsGov.count.members \(text)", tableName: "ClubOpsGovernance").cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit().accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.memberCount)
             }
+            if let memberGovernanceDenial {
+                Text(verbatim: memberGovernanceDenial)
+                    .cyText(.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("club.memberGovernance.denied")
+            }
             if roster.members.isEmpty {
                 CYEmptyState(systemImage: "person.2", "clubOpsGov.members.empty", tableName: "ClubOpsGovernance", messageIdentifier: "clubOpsGov.members.empty")
                     .listRowBackground(Color.clear)
@@ -113,10 +124,20 @@ struct ClubOpsGovernanceMembersSection: View {
             // One row per member: name, then its actions side by side (ban, and transfer for the owner).
             ForEach(roster.members) { member in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    ClubOpsGovernanceCopy.member(member.nickname, id: member.id).cyText(.cardTitle)
                     HStack(spacing: CYSpacing.sm) {
-                        ban(member).foregroundStyle(CYColor.dangerText)
-                        if roster.viewerIsOwner { transfer(member) }
+                        // Round 2 MP asset: governance wxml:149 `item.avatar || d_profile.png` (the read has no avatar yet).
+                        ClubMPAvatar(url: nil, name: member.nickname ?? "", size: .sm)
+                        ClubOpsGovernanceCopy.member(member.nickname, id: member.id).cyText(.cardTitle)
+                    }
+                    HStack(spacing: CYSpacing.sm) {
+                        // CLB-governance-18: VoiceOver names the member on 封禁 / 转让.
+                        if showsBan {
+                            ban(member).foregroundStyle(CYColor.dangerText)
+                                .accessibilityLabel(Text("club.gov.a11y.ban \(member.nickname ?? "#\(member.id)")"))
+                        }
+                        if roster.viewerIsOwner {
+                            transfer(member).accessibilityLabel(Text("club.gov.a11y.transfer \(member.nickname ?? "#\(member.id)")"))
+                        }
                     }.buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false)).controlSize(.small)
                 }.accessibilityIdentifier("clubOpsGov.member.\(member.id)")
             }
@@ -264,13 +285,15 @@ struct ClubOpsRoleSection: View {
             }.accessibilityIdentifier("clubOpsGov.roles.owner")
             ForEach(roster.assignments) { row in
                 VStack(alignment: .leading, spacing: 6) {
-                    HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .center) {
+                        // Round 2 MP asset: roles wxml:87 `item.avatar || d_profile.png` (the read has no avatar yet).
+                        ClubMPAvatar(url: nil, name: row.memberName ?? "", size: .sm)
                         ClubOpsGovernanceCopy.member(row.memberName, id: row.targetMemberID).cyText(.cardTitle)
                         Spacer()
                         ClubOpsTag(label: row.roleName.map { Text(verbatim: $0) } ?? ClubOpsGovernanceCopy.text("clubOpsGov.roles.roleFallback"))
                     }
                     Self.summary(row).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    revoke(row)
+                    revoke(row).accessibilityLabel(Text("club.gov.a11y.revoke \(row.memberName ?? "#\(row.targetMemberID)")"))
                 }.accessibilityIdentifier("clubOpsGov.roles.assignment.\(row.id)")
             }
         } header: { Text("club.gov.assignments") } footer: {
@@ -279,7 +302,8 @@ struct ClubOpsRoleSection: View {
         }
         Section {
             if roster.delegableMemberCount == 0 {
-                ClubOpsGovernanceCopy.text("clubOpsGov.roles.empty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                // CLB-roles-10: MP roles empty copy 暂无成员.
+                Text("club.gov.roles.noMembers").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("clubOpsGov.roles.empty")
             } else {
                 assign
@@ -303,9 +327,11 @@ struct ClubOpsGovernanceDeniedNote: View {
     var body: some View {
         switch operation {
         case .bans, .members:
-            note("clubOpsGov.denied.title", "clubOpsGov.denied.body")
+            // cursor/core-club hand-off (CLB-r7-A-07 / C-02): member governance is owner or co-owner only; the body is
+            // `ClubGovernancePermissions.memberGovernanceDenial` (仅主理人与联合主理人可进行成员治理), catalogued.
+            note("clubOpsGov.denied.title", Text("club.memberGovernance.denied"))
         case .roles:
-            note("clubOpsGov.roles.denied.title", "clubOpsGov.roles.denied.body")
+            note("clubOpsGov.roles.denied.title", ClubOpsGovernanceCopy.text("clubOpsGov.roles.denied.body"))
         case .audienceCounts:
             Section { ClubOpsNotifyDeniedText() }
         case .access:
@@ -313,15 +339,15 @@ struct ClubOpsGovernanceDeniedNote: View {
         default: EmptyView()
         }
     }
-    private func note(_ title: String, _ body: String) -> some View {
+    private func note(_ title: String, _ message: Text) -> some View {
         Section {
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: "lock")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(CYColor.textSecondary)
                 ClubOpsGovernanceCopy.text(title)
                     .cyText(.cardTitle)
-                ClubOpsGovernanceCopy.text(body)
+                message
                     .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                 // CLB-governance-08 / CLB-roles-06 (parity r2): the MP denial offers 返回 (cta="返回").
@@ -367,11 +393,10 @@ struct ClubOpsGovernanceFormNotes: View {
         case .appeal:
             ClubOpsGovernanceCopy.text("clubOpsGov.appeal.note")
         case .revokeRole:
+            // CLB-roles-07: the three consequences live in the one confirm sheet (`ClubGovernanceConsequence.revokeRole`);
+            // the form keeps only the title and the one-line effect.
             if let role = seed["roleName"]?.string { Text("clubOpsGov.roles.revoke.title \(role)", tableName: "ClubOpsGovernance").cyText(.cardTitle) }
             ClubOpsGovernanceCopy.text("clubOpsGov.roles.revoke.body")
-            ForEach(["clubOpsGov.roles.revoke.consequence1", "clubOpsGov.roles.revoke.consequence2", "clubOpsGov.roles.revoke.consequence3"], id: \.self) { key in
-                Label { ClubOpsGovernanceCopy.text(key).cyText(.meta) } icon: { Image(systemName: "exclamationmark.triangle") }
-            }
         default: EmptyView()
         }
     }
@@ -393,9 +418,11 @@ struct ClubOpsBanDurationPicker: View {
 struct ClubOpsBanExpiryReview: View {
     let fields: [String: ClubGovernanceValue]
     var body: some View {
-        if let value = fields["expiresAtEpochMs"], let text = ClubOpsGovernanceClock.minute(value) {
-            LabeledContent { Text("clubOpsGov.until \(text)", tableName: "ClubOpsGovernance") } label: { ClubOpsGovernanceCopy.text("clubOpsGov.duration") }
-                .accessibilityIdentifier("clubOpsGov.review.expiry")
+        if let days = fields["durationDays"]?.int, ClubGovernanceFormDraft.banDayChoices.contains(days) {
+            LabeledContent {
+                Text("clubOpsGov.days \(days)", tableName: "ClubOpsGovernance")
+            } label: { ClubOpsGovernanceCopy.text("clubOpsGov.duration") }
+            .accessibilityIdentifier("clubOpsGov.review.expiry")
         }
     }
 }

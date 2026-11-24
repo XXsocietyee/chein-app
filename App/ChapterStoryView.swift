@@ -16,6 +16,8 @@ import UIKit
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
     var imageReader: (any RetainedPublicImageReading)? = nil
+    /// Nil for callers that have no cast. The play host passes the run's coordinator.
+    var castModel: CastCoordinator? = nil
     let nodeDestination: (Int) -> AnyView
     @State private var advancedVariables: [String: PlayWireValue] = [:]
     @State private var dirtyNodes = Set<Int>()
@@ -32,6 +34,10 @@ import UIKit
     @State private var readingSegmentID: String?
     @State private var resumeTried = false
     @State private var zoomedImage: ChapterStoryZoomedImage?
+    @State private var castCard: ChapterStoryCastCard?
+    /// Reading rhythm (mini-program reading-motion.js): fade, then settle. Tap shows the rest at once.
+    @State private var revealSettled = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let readingStore = ChapterReadingPositionStore()
     private var readingKey: String? {
         ChapterReadingPositionStore.key(runIdentity: model.identity, contentVersion: model.contentVersion, chapterID: chapterID)
@@ -39,6 +45,10 @@ import UIKit
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     private var chapter: ChapterStoryDocument? { model.chapterStories[chapterID] }
+    private var gameStage: PlayGameStage? {
+        guard let result = model.snapshot?.result else { return nil }
+        return PlayGameStage.resolve(nodeID: nodeID, nodes: result.nodes, chapters: result.chapters)
+    }
     private var visible: Bool {
         guard model.hasCurrentMediaSnapshot, let snapshot = model.snapshot,
               snapshot.availability == .active || snapshot.availability == .completed,
@@ -49,7 +59,8 @@ import UIKit
         guard visible, let chapter, let snapshot = model.snapshot else { return [] }
         return ChapterStoryProjection.segments(chapter: chapter, snapshot: snapshot,
             variables: model.storyVariables.merging(advancedVariables) { _, new in new },
-            thoughts: model.storyThoughts, storyVoices: model.storyVoices, activeInlineNodeID: activeInlineNodeID)
+            thoughts: model.storyThoughts, storyVoices: model.storyVoices, activeInlineNodeID: activeInlineNodeID,
+            cast: castModel?.context)
     }
     /// Position of this chapter in the run (1-based) and the run's chapter count.
     private var chapterPosition: (number: Int, total: Int, name: String?, next: String?)? {
@@ -94,10 +105,11 @@ import UIKit
                 if visible, let chapter {
                     if let title = chapter.title { CYHeroHeader(verbatim: title) }
                     if segments.isEmpty { CYEmptyState(systemImage: "book.closed", "chapterStory.empty") }
-                    ForEach(segments) { segment in
+                    ForEach(Array(segments.enumerated()), id: \.element.id) { index, segment in
                         segmentBody(segment)
                             .cyThemeEdge(mood: segment.mood, odd: segment.odd)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .modifier(ChapterReadingReveal(index: index, settled: revealSettled || reduceMotion))
                             .accessibilityIdentifier("chapterStory.segment." + segment.id)
                             .id(segment.id)
                             .background(GeometryReader { proxy in
@@ -113,6 +125,13 @@ import UIKit
                         } icon: { Image(systemName: "lock") }
                         .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("chapterStory.lockedStop")
+                    }
+                    if let position = chapterPosition {
+                        Text("chapterStory.footer.station \(position.number) \(position.total)")
+                            .font(.footnote.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .accessibilityIdentifier("chapterStory.footer")
                     }
                     if model.thoughtSyncPhase == .syncing { ProgressView("chapterStory.thought.syncing") }
                     if model.thoughtSyncPhase == .disabled { Text("chapterStory.thought.disabled").cyText(.bodyCompact).foregroundStyle(.secondary) }
@@ -160,7 +179,9 @@ import UIKit
                 } else {
                     ChapterGate()
                 }
-            }.padding(CYSpacing.pageHorizontal).frame(maxWidth: 720).frame(maxWidth: .infinity)
+            }
+            .padding(CYSpacing.pageHorizontal).frame(maxWidth: 720).frame(maxWidth: .infinity)
+            .simultaneousGesture(TapGesture().onEnded { revealSettled = true })
         }
         .coordinateSpace(.named(Self.scrollSpace))
         .onPreferenceChange(ChapterSegmentOffsetKey.self) { offsets in
@@ -186,7 +207,23 @@ import UIKit
                 ChapterStoryImageViewer(image: item.image, alt: item.alt)
             }
         }
-        .background(CYColor.bgPage.ignoresSafeArea())
+        .background {
+            if visible, let atmosphere = chapter?.atmosphere {
+                ChapterAtmosphereFill(atmosphere).ignoresSafeArea()
+            } else {
+                CYColor.bgPage.ignoresSafeArea()
+            }
+        }
+        .modifier(ChapterAtmosphereScheme(atmosphere: visible ? chapter?.atmosphere : nil))
+        .environment(\.questifyCast, castModel?.context)
+        .environment(\.playGameStage, gameStage)
+        .sheet(item: $castCard) { target in
+            if let member = castModel?.config?.member(target.memberID) {
+                CastCharacterCard(member: member, trust: castModel?.trust[member.id] ?? 0,
+                                  reachedChapters: reachedChapters, line: target.line, chapterID: chapterID,
+                                  cast: castModel, mediaScope: mediaScope, makeAudio: makeAudio, imageReader: imageReader)
+            }
+        }
         .scrollDismissesKeyboard(.interactively)
         .cyPageTitle("chapterStory.title")
         // Unsaved answers: the one exit guard (system-look back + confirm), swipe back blocked while dirty.
@@ -203,6 +240,14 @@ import UIKit
         }
         .toolbar(showGate ? .hidden : .automatic, for: .navigationBar)
         .onAppear { audioMounted = true; if !gateSeen && visible && chapter != nil { gateSeen = true; showGate = true } }
+        .task(id: segments.map(\.id).joined(separator: "\u{1e}")) {
+            guard !reduceMotion, !segments.isEmpty else { revealSettled = true; return }
+            revealSettled = false
+            let steps = min(segments.count, 6)
+            let seconds = CYMotion.Duration.quick + Double(steps) * (CYMotion.Stagger.rewrite.dropFirst().first ?? 0.04)
+            try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            if !Task.isCancelled { revealSettled = true }
+        }
         .onChange(of: visible) { _, now in
             if !now { zoomedImage = nil }
             if now && !gateSeen && chapter != nil { gateSeen = true; showGate = true }
@@ -295,6 +340,40 @@ import UIKit
                 }
             }.frame(maxWidth: .infinity, alignment: .leading).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                 .accessibilityElement(children: .combine)
+        case .line(let line):
+            let member = marginMember(line)
+            VStack(alignment: .leading, spacing: 6) {
+                ChapterStoryLineView(name: marginName(line), text: line.text, margin: marginName(line) == nil ? 0 : 72,
+                                     onTapName: member.map { picked in { castCard = ChapterStoryCastCard(memberID: picked.id, line: line) } })
+                if member != nil || line.audioURL != nil || line.blockKey != nil {
+                    CastVoiceButton(line: line, member: member, chapterID: chapterID, cast: castModel,
+                                    mediaScope: mediaScope, makeAudio: makeAudio, compact: true)
+                }
+                CastRememberedLines(members: (castModel?.config).map { config in
+                    line.rememberedBy.compactMap { config.member($0) }
+                } ?? [])
+            }
+        case .optionalReading(let subtitle, let paragraphs):
+            ChapterOptionalReadingCard(subtitle: subtitle, paragraphs: paragraphs)
+        case .choice(let choice):
+            VStack(alignment: .leading, spacing: 10) {
+                if let question = choice.question {
+                    Text(verbatim: question).font(.body).fixedSize(horizontal: false, vertical: true)
+                }
+                ForEach(Array(choice.options.enumerated()), id: \.offset) { index, option in
+                    Button {
+                        Task { await castModel?.pick(choice, optionIndex: index) }
+                    } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            Text(verbatim: String(index + 1)).font(.body.monospacedDigit()).foregroundStyle(.secondary)
+                            Text(verbatim: option.text).font(.body).multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("chapterStory.choice.\(index)")
+                }
+            }
         case .game(let id):
             if let journey = journeyModel?(id) {
                 JourneyRoleViewInlineHost(model: journey.roleContent, sessionIdentity: model.identity,
@@ -323,6 +402,7 @@ import UIKit
                 if let url = selection.guideURL { Button("chapterStory.guide", systemImage: "location.circle") { selectAudio(url) } }
             }.disabled(makeAudio == nil)
         }
+        if visible { NarrationAutoplayToggle() }
     }
     private func scopedAudioSelection() -> (String) -> Void {
         let expectedIdentity = model.identity
@@ -339,6 +419,22 @@ import UIKit
         audioURL = url
     }
     private func leave() { if dirtyNodes.isEmpty { dismiss() } else { confirmLeave = true } }
+    private var reachedChapters: Set<Int> {
+        guard let snapshot = model.snapshot else { return [] }
+        return Set(snapshot.visibleNodes.compactMap { snapshot.isDone($0) ? $0.chapterID : nil })
+    }
+    private func marginName(_ line: ChapterStoryLine) -> String? {
+        switch line.speaker {
+        case .cast(let id): return castModel?.config?.member(id)?.name
+        case .player: return castModel?.profile?.name ?? CastStoryVariables.playerFallback
+        case .named(let name): return name
+        case nil: return nil
+        }
+    }
+    private func marginMember(_ line: ChapterStoryLine) -> CastMember? {
+        if case .cast(let id) = line.speaker { return castModel?.config?.member(id) }
+        return nil
+    }
 }
 
 @MainActor private struct ChapterStoryGameHost: View {
@@ -568,5 +664,81 @@ struct ChapterStoryZoomedImage: Identifiable {
                 loadedURL = captured.url; image = decoded
             } catch { if imageRequestID == requestID && captured == requestKey && !Task.isCancelled { failed = true } }
         }.onDisappear { imageRequestID = UUID(); image = nil; loadedURL = nil; loading = false; failed = false }
+    }
+}
+
+/// F06 「到站自动播放」. The preference is read by playback when P2 wires `autoplaySelectedNarration`.
+public struct NarrationAutoplayToggle: View {
+    @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var enabled = PlatformNarrationAutoplayPreference.defaultValue
+    public init() {}
+    public var body: some View {
+        Toggle("platform.audio.autoplay", isOn: $enabled)
+            .font(.body)
+            .accessibilityIdentifier("platform.audio.autoplay")
+    }
+}
+
+/// 「延伸阅读」. Collapsed until the reader opens it. Shared with the journey ending chapter.
+public struct ChapterOptionalReadingCard: View {
+    public let subtitle: String?
+    public let paragraphs: [String]
+    public init(subtitle: String?, paragraphs: [String]) {
+        self.subtitle = subtitle
+        self.paragraphs = paragraphs
+    }
+    public var body: some View {
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, text in
+                    Text(verbatim: text).font(.body).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+                }
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("chapterStory.optionalReading").font(.headline)
+                if let subtitle { Text(verbatim: subtitle).font(.subheadline).foregroundStyle(.secondary) }
+            }
+        }
+        .accessibilityIdentifier("chapterStory.optionalReading")
+    }
+}
+
+private struct ChapterStoryCastCard: Identifiable, Equatable {
+    let memberID: String
+    let line: ChapterStoryLine?
+    var id: String { memberID }
+}
+
+/// Flat fill of the route's own chapter colour. No glow.
+private struct ChapterAtmosphereFill: View {
+    let atmosphere: ProjectChapterAtmosphere
+    init(_ atmosphere: ProjectChapterAtmosphere) { self.atmosphere = atmosphere }
+    var body: some View {
+        CYPackedRGB.color(atmosphere.backgroundRGB)
+    }
+}
+
+/// White chapters stay light. Every other painted chapter is the night reading scheme.
+private struct ChapterAtmosphereScheme: ViewModifier {
+    let atmosphere: ProjectChapterAtmosphere?
+    func body(content: Content) -> some View {
+        if let atmosphere {
+            content.environment(\.colorScheme, atmosphere == .white ? .light : .dark)
+        } else {
+            content
+        }
+    }
+}
+
+/// One fade, staggered at most 40ms, capped at six steps. Reduce Motion is already settled by the caller.
+private struct ChapterReadingReveal: ViewModifier {
+    let index: Int
+    let settled: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    func body(content: Content) -> some View {
+        let step = CYMotion.Stagger.rewrite.dropFirst().first ?? 0.04
+        content
+            .opacity(settled || reduceMotion ? 1 : 0)
+            .animation(reduceMotion ? nil : .easeOut(duration: CYMotion.Duration.quick).delay(Double(min(index, 6)) * step), value: settled)
     }
 }

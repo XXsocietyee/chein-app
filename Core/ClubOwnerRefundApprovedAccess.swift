@@ -77,6 +77,7 @@ public struct ClubOwnerRefundApproval {
     }
     public func send(_ review: ClubOwnerRefundReview) async throws -> ClubOwnerRefundReceipt {
         let captured = try capturedContext()
+        guard ReleaseMoneyWriteSwitch.isEnabled(.refund) else { throw ClubOwnerRefundFailure.disabled }
         guard review.identity == identity, review.namespace == namespace, let configuration else { throw ClubOwnerRefundFailure.stale }
         // Request builder is shared with the inert/offline client; exact form contains only id.
         let request = try ClubOwnerRefundService(configuration: configuration).request(

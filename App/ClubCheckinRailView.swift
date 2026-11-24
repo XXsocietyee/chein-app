@@ -3,10 +3,37 @@ import SwiftUI
 struct ClubCheckinRailView: View {
     let rail: ClubCheckinRail
     var stateKind: ClubCheckinRail.StateKind? = nil
+    /// CLB-checkin-detail-03 (fix-r3-club-b): MP 重新加载 for a load failure; denied and missing only go back.
+    var onReload: (() -> Void)? = nil
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.locale) private var locale
     var body: some View {
+        if let stateKind {
+            // CLB-checkin-detail-03 (fix-r3-club-b): denied / missing / error are full-page states (MP cy-error /
+            // cy-empty fill), not a meta line under the rail.
+            Section {
+                CYEmptyState(
+                    systemImage: stateKind == .error ? "exclamationmark.triangle" : (stateKind == .denied ? "lock" : "doc.text"),
+                    LocalizedStringKey(stateCopy(stateKind)),
+                    messageIdentifier: "club.checkin.rail.stateTitle",
+                    actionTitle: stateKind == .error && onReload != nil ? "clubR3b.checkin.reload" : "clubR3b.checkin.back",
+                    actionIdentifier: "club.checkin.state.action",
+                    actionStyle: .primary,
+                    kind: stateKind == .error ? .failure : .generic
+                ) {
+                    if stateKind == .error, let onReload { onReload() } else { dismiss() }
+                }
+                .listRowBackground(Color.clear)
+            }
+        } else {
+            railSection
+        }
+    }
+
+    /// CLB-checkin-detail-04 (fix-r3-club-b): the MP rail sits under the order card with no section title.
+    private var railSection: some View {
         Section {
             if typeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -16,13 +43,6 @@ struct ClubCheckinRailView: View {
                 HStack(alignment: .top, spacing: CYSpacing.sm) {
                     ForEach(rail.stops) { stopView($0, fills: true) }
                 }
-            }
-            if let stateKind {
-                Text(verbatim: stateCopy(stateKind))
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("club.checkin.rail.stateTitle")
             }
             if let sessionTime = rail.sessionTimeText {
                 Text(verbatim: sessionTime)
@@ -47,22 +67,19 @@ struct ClubCheckinRailView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.checkin.rail.refundedNote")
             }
-        } header: {
-            Text("club.checkin.rail.title")
-                .cyText(.sectionTitle)
-                .foregroundStyle(palette.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private func stopView(_ stop: ClubCheckinRail.Stop, fills: Bool) -> some View {
         VStack(spacing: CYSpacing.xs) {
+            // CLB-checkin-detail-08 (fix-r3-club-b): MP success dots for reached stops, warning for 已接洽; the shape stays.
             Image(systemName: stop.reached ? "checkmark.circle.fill" : "circle")
                 .font(.body.weight(.semibold))
-                .foregroundStyle(stop.reached ? palette.textPrimary : palette.textTertiary)
+                .foregroundStyle(stopTint(stop))
                 .accessibilityHidden(true)
             Text(LocalizedStringKey("club.checkin.rail." + stop.step.rawValue))
-                .font(stop.current ? CYTypography.label : CYTypography.meta)
+                .cyText(.meta)
+                .fontWeight(stop.current ? .bold : .regular)
                 .foregroundStyle(stop.reached ? palette.textPrimary : palette.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -73,6 +90,11 @@ struct ClubCheckinRailView: View {
         .accessibilityAddTraits(stop.current ? .isSelected : [])
         .accessibilityValue(Text(stop.reached ? "club.checkin.rail.reached" : "club.checkin.rail.notReached"))
         .accessibilityIdentifier("club.checkin.rail." + stop.step.rawValue)
+    }
+
+    private func stopTint(_ stop: ClubCheckinRail.Stop) -> Color {
+        guard stop.reached else { return palette.textTertiary }
+        return stop.step == .contacted ? palette.warning : palette.success
     }
 
     /// `titleKey` is not in the catalog yet. Use it once it resolves; otherwise the bilingual fallback, never the dotted key.
@@ -109,9 +131,25 @@ struct ClubCheckinDetailRows: View {
             }
         }
         Section {
+            // CLB-checkin-detail-04 (fix-r3-club-b): MP order card — topic cover, session time, name, 单号.
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                if let cover = text("topicCover") {
+                    SquareImage(source: cover)
+                        .frame(width: 59, height: 40)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .accessibilityHidden(true)
+                }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                if let session = text("sessionTimeText") {
+                    Text(verbatim: session)
+                        .cyText(.meta)
+                        .foregroundStyle(palette.textSecondary)
+                        .monospacedDigit()
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                // CLB-checkin-detail-07: MP topic is label-bold; body-medium is the closest step on the scale.
                 Text(verbatim: text("topicName") ?? "—")
-                    .cyText(.cardTitle)
+                    .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let order = text("orderNo") {
@@ -122,26 +160,35 @@ struct ClubCheckinDetailRows: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            // The internal 报名编号 row is gone (MP shows none); the UI-test arrival anchor stays as an identifier.
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier(value["registrationId"].text != nil ? "club.gov.fact.registrationId" : "club.checkin.order")
             row("club.gov.field.ticketText", "ticketText")
             row("club.gov.field.orderTimeText", "orderTimeText")
             row("club.gov.field.paidAmountText", "paidAmountText")
             row("club.gov.field.verifyTimeText", "verifyTimeText")
             row("club.gov.field.storeName", "storeName")
             row("club.gov.field.operatorName", "operatorName")
-            ClubGovernanceFactRows(value: value, fields: ["registrationId"])
         }
     }
     private var identityBlock: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            if let avatar = text("avatar") {
-                SquareImage(source: avatar)
-                    .frame(width: 48, height: 48)
-                    .clipShape(Circle())
-                    .accessibilityHidden(true)
+            // MP `detail.avatar || '/images/d_profile.png'`: the default face, never an empty slot (round 2 MP asset).
+            Group {
+                if let avatar = text("avatar") {
+                    SquareImage(source: avatar)
+                } else {
+                    MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                }
             }
+            .frame(width: 48, height: 48)
+            .clipShape(Circle())
+            .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: text("displayName") ?? "—")
-                    .cyText(.sectionTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.gov.fact.displayName")
@@ -201,8 +248,9 @@ struct ClubCheckinDetailRows: View {
         return raw
     }
     private func row(_ title: LocalizedStringKey, _ key: String) -> some View {
-        LabeledContent(title) { Text(verbatim: text(key) ?? "—").monospacedDigit() }
-            .cyText(.body)
+        // Owner decision 9: amounts read ¥12.50 through `MoneyDisplay` (via `ClubMoneyText`).
+        LabeledContent(title) { Text(verbatim: text(key).map { ClubMoneyText.amountKeys.contains(key) ? ClubMoneyText.display($0) : $0 } ?? "—").monospacedDigit() }
+            .cyText(.bodyCompact)
             .foregroundStyle(palette.textPrimary)
     }
 }

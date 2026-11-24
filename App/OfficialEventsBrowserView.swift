@@ -14,8 +14,9 @@ import SwiftUI
     @State private var canPublish = false
     private var query: OfficialEventBrowseQuery { .sourceList(bucket: bucket, keyword: keyword) }
     private var privateList: Bool { query.isPrivate }
+    /// R7-PC-C3-1: no own NavigationStack. The deep link pushes this into the caller's stack; the 首页 sheet wraps it.
     var body: some View {
-        NavigationStack {
+        Group {
             VStack(spacing: 12) {
                 VStack(spacing: 8) {
                     // Source order: search (hidden on "mine"), chip tabs, then the summary row.
@@ -105,7 +106,10 @@ import SwiftUI
                     }
                 }.cyText(.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("officialList.summary")
                 if page.phase == .empty {
-                    CYEmptyState(systemImage: "sparkles", LocalizedStringKey(query.emptyTitleKey), detail: LocalizedStringKey(query.emptyDetailKey))
+                    // R7-PC-C3-3 (MP list/index.js EMPTY_COPY): one title line per tab, no second line; the search keeps its hint.
+                    CYEmptyState(systemImage: bucket == .upcoming && !query.isSearching ? "clock" : "sparkles",
+                                 LocalizedStringKey(query.emptyTitleKey),
+                                 detail: query.isSearching ? LocalizedStringKey(query.emptyDetailKey) : nil)
                         .listRowBackground(Color.clear)
                         .transition(.opacity)
                 }

@@ -1,4 +1,5 @@
 import SwiftUI
+import Accessibility
 
 /// Original income-table analysis: at most ten approved 20-row reads, not an atomic snapshot.
 @MainActor struct WalletIncomeAnalysisView: View {
@@ -24,7 +25,7 @@ import SwiftUI
                 text("login")
                 if let onSignIn {
                     Button(action: onSignIn) { Text("mp.common.signIn") }
-                        .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
+                        .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
                         .accessibilityIdentifier("wallet.analysis.signIn")
                 }
             }
@@ -37,16 +38,15 @@ import SwiftUI
             else if model.unavailable { text("unavailable") }
             else if model.failed {
                 Label { text("failed") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
-                    .font(CYTypography.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 Button { Task { await load() } } label: { text("retry") }
-                    .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
+                    .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
             } else if let slice = model.displayedResult(for: reader) {
                 content(slice)
             } else { CYSkeleton(variant: .detail) }
         }
         .listStyle(.insetGrouped)
         .cyText(.body)
-        .scrollContentBackground(.hidden)
         .background(Theme.Color.bgPage(in: domain))
         .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
         .navigationTitle(Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis"))
@@ -74,7 +74,7 @@ import SwiftUI
             if slice.isPartial {
                 Label { readText("partial") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
                 Button { Task { await load() } } label: { text("retry") }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
+                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
                     .accessibilityIdentifier("wallet.analysis.partial.retry")
             } else if slice.stop == .budget {
                 readText("budget").cyText(.caption).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
@@ -120,8 +120,15 @@ import SwiftUI
                     }.padding(.vertical, CYSpacing.sm)
                 }
                 if !dynamicTypeSize.isAccessibilitySize {
+                    // R7-PC-D6-2: VoiceOver reads the month values from the chart itself (Audio Graph + data table),
+                    // without opening the disclosure below.
                     monthChart(summary)
-                        .accessibilityHidden(true)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(text("months"))
+                        .accessibilityChartDescriptor(WalletIncomeMonthChartDescriptor(
+                            months: summary.months.map { (label: $0.id, value: NSDecimalNumber(decimal: $0.amount).doubleValue,
+                                                          spoken: WalletIncomeAnalysisPresentation.text($0.amount, currency: currency, locale: locale)) },
+                            title: String(localized: LocalizedStringResource("wallet.analysis.months", table: "WalletIncomeAnalysis", locale: locale))))
                     DisclosureGroup { monthRows(summary, currency: currency) } label: { text("months") }
                 } else { monthRows(summary, currency: currency) }
             } header: { text("months") }
@@ -163,7 +170,7 @@ import SwiftUI
                         VStack {
                             Spacer(minLength: 0)
                             if summary.unknownCount == 0 || month.count > 0 {
-                                RoundedRectangle(cornerRadius: Theme.Radius.sm)
+                                RoundedRectangle(cornerRadius: CYRadius.inner)
                                     .fill(month.id == summary.months.last?.id ? Theme.Color.textPrimary(in: domain) : Theme.Color.bgRaised(in: domain))
                                     .frame(height: geometry.size.height * CGFloat(summary.fraction(month.amount)))
                             }
@@ -198,10 +205,27 @@ import SwiftUI
 private struct WalletIncomeAnalysisDetailStyle: LabeledContentStyle {
     func makeBody(configuration: Configuration) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            configuration.label.font(Theme.Font.body).foregroundStyle(.secondary)
+            configuration.label.cyText(.body).foregroundStyle(.secondary)
             configuration.content.fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// R7-PC-D6-2: month income as an accessible chart (categorical x = month, y = amount).
+private struct WalletIncomeMonthChartDescriptor: AXChartDescriptorRepresentable {
+    let months: [(label: String, value: Double, spoken: String)]
+    let title: String
+    func makeChartDescriptor() -> AXChartDescriptor {
+        let x = AXCategoricalDataAxisDescriptor(title: title, categoryOrder: months.map { $0.label })
+        let maxValue = max(months.map { $0.value }.max() ?? 0, 1)
+        let spokenByValue = Dictionary(months.map { ($0.value, $0.spoken) }, uniquingKeysWith: { first, _ in first })
+        let y = AXNumericDataAxisDescriptor(title: title, range: 0...maxValue, gridlinePositions: []) { value in
+            spokenByValue[value] ?? String(format: "%.2f", value)
+        }
+        let series = AXDataSeriesDescriptor(name: title, isContinuous: false,
+                                            dataPoints: months.map { AXDataPoint(x: $0.label, y: $0.value) })
+        return AXChartDescriptor(title: title, summary: nil, xAxis: x, yAxis: y, additionalAxes: [], series: [series])
     }
 }

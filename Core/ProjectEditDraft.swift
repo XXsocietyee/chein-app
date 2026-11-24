@@ -10,7 +10,7 @@ public enum ProjectEditScope: String, Codable {
     public var allowsEditing: Bool { self == .full || self == .whitelist }
 }
 public enum ProjectEditOwner: String, Codable { case personal = "", merchant = "MERCHANT" }
-public enum ProjectEditJSON: Codable, Equatable {
+public enum ProjectEditJSON: Codable, Equatable, Sendable {
     case null, bool(Bool), number(Decimal), string(String), array([ProjectEditJSON]), object([String: ProjectEditJSON])
     public init(from decoder: Decoder) throws {
         let c = try decoder.singleValueContainer()

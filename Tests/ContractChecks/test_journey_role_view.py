@@ -14,11 +14,14 @@ class JourneyRoleViewChecks(unittest.TestCase):
         self.assertNotIn('encounter["roleViews"]',self.domain)
         for token in ['TemplateAdvancedDraft','advancedConfigJson','memberIndex','teamOrder']:self.assertNotIn(token,self.domain+self.coordinator+self.view)
     def test_exact_server_role_values(self):
-        self.assertIn('case a = "A", b = "B", solo = "SOLO", missing',self.domain)
+        # Port plan C4 (ios-port-plan.md): server role ids are A–D plus SOLO, not A/B only.
+        self.assertIn('case a = "A", b = "B", c = "C", d = "D", solo = "SOLO", missing',self.domain)
         self.assertIn('assignment != .missing',self.domain)
+        self.assertIn('public static let roleIDs = ["A", "B", "C", "D"]',self.domain)
     def test_assignment_privacy_cardinality(self):
+        # An assigned member still sees exactly their own role. SOLO is 2–4 distinct ids (C4), not a fixed A+B pair.
         self.assertIn('parsed.count == 1, ids == [role]',self.domain)
-        self.assertIn('parsed.count == 2, ids == ["A", "B"]',self.domain)
+        self.assertIn('assignment == .solo ? (2...Self.roleIDs.count).contains(rows.count) : rows.count == 1',self.domain)
         self.assertIn('guard rows.isEmpty',self.domain)
         self.assertIn('ids.insert(id).inserted',self.domain)
     def test_node_run_version_binding(self):

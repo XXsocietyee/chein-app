@@ -128,7 +128,7 @@ import Observation
                     Button("privateHome.map.cancel", role: .cancel) { picker.close() }.accessibilityIdentifier("privateHome.map.cancel")
                 }
             }
-            .navigationTitle("privateHome.map.title").privacySensitive().accessibilityIdentifier("privateHome.map.host")
+            .navigationTitle("privateHome.map.title").navigationBarTitleDisplayMode(.inline).privacySensitive().accessibilityIdentifier("privateHome.map.host")
             .onChange(of: scenePhase) { _, phase in if phase != .active { picker.close() } }
             .overlay { if scenePhase != .active { Color(.systemBackground).overlay(Text("privateHome.title")) } }
         }

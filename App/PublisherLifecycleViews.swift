@@ -21,8 +21,13 @@ import SwiftUI
     @State private var generation = UUID()
     @State private var visible = false
     @State private var resultSession: PublishingSession?
+    /// R7-PC-B4-4 (MP pricing js:446-460): a confirmed price toasts and returns; a 支付资质 note is a modal first.
+    @State private var successToast: String?
+    @State private var paymentQualificationNote: String?
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
+    @Environment(\.pricingChapterProjectDestination) private var pricingChapterProjectDestination
     private func text(_ key: String) -> String { appLocalized(String.LocalizationValue(key), locale: locale) }
     /// pages/topic/pricing/index screen from the view's own read facts (TopicPricingXcx.screen).
     private var screen: TopicPricingXcx.Screen {
@@ -113,7 +118,12 @@ import SwiftUI
                     Section {
                         ForEach(preview.lineup) { row in
                             NavigationLink {
-                                PublisherPartnerView(topicID: topicID, row: row, client: client)
+                                // R7-PC-B4-7: a chapter-supply row (`chapterId`) opens the merchant 承接 page, like MP.
+                                if TopicPricingXcx.opensChapterProject(row), let chapterProject = pricingChapterProjectDestination {
+                                    chapterProject(topicID)
+                                } else {
+                                    PublisherPartnerView(topicID: topicID, row: row, client: client)
+                                }
                             } label: {
                                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                     if let name = partnerNames[row.id] { Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary) }
@@ -134,6 +144,10 @@ import SwiftUI
                     if showsConfirm {
                         CYPillButton(verbatim: text("publisherPricing.confirmFinalPriceAndSubmitFor")) { beginPrepare() }
                             .listRowBackground(Color.clear).disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
+                    } else {
+                        // R7-PC-B4-1 (owner decision pending): the page is read-only without the pricing grant — say so.
+                        Text("publisherPricing.confirmNotOpen").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("publisher.confirmNotOpen")
                     }
                 }
             }
@@ -149,6 +163,11 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
+        .cyToast(verbatimMessage: $successToast, tone: .success)
+        .alert(Text("publisherPricing.confirmedTitle"), isPresented: Binding(
+            get: { paymentQualificationNote != nil }, set: { if !$0 { paymentQualificationNote = nil } })) {
+            Button("publisherPricing.gotIt") { paymentQualificationNote = nil; dismiss() }
+        } message: { Text(verbatim: paymentQualificationNote ?? "") }
         // PC-B-4-7: the page title is drawn once, inline by the bar (no in-content hero header).
         .cyPageTitle(verbatim: text("publisherPricing.confirmFinalPrice"))
         .cyPushedChrome(domain: .merchant)
@@ -264,7 +283,19 @@ import SwiftUI
             let review = value
             let outcome = await coordinator.confirm(review, consequentialApproval: true)
             guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
-            message = PublisherLifecycleCopy.outcome(outcome, zh: isChinese); resultSession = session; self.review = nil
+            self.review = nil
+            if case .acknowledged(let serverMessage, _) = outcome {
+                // MP: the server only moves the topic to PRICING; never claim 已开售.
+                let trimmed = serverMessage?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let text = trimmed.isEmpty
+                    ? (isChinese ? "终价已确认，请等待开售审核" : "Final price confirmed. Waiting for the sales review.") : trimmed
+                if text.contains("支付资质") { paymentQualificationNote = text; return }
+                successToast = text
+                try? await Task.sleep(nanoseconds: 2_500_000_000)
+                if visible { dismiss() }
+                return
+            }
+            message = PublisherLifecycleCopy.outcome(outcome, zh: isChinese); resultSession = session
         }
     }
 }
@@ -289,6 +320,8 @@ import SwiftUI
         .init(client: ObjectIdentifier(client), session: client.session, topicID: topicID, row: row, active: phase == .active)
     }
     private var isClub: Bool { row.type == "club" }
+    @Environment(\.topicLineupClubDestination) private var clubDestination
+    @Environment(\.topicLineupMerchantDestination) private var merchantDestination
     var body: some View {
         List {
             if topicID <= 0 || row.partnerID <= 0 || !["club", "merchant"].contains(row.type) {
@@ -319,7 +352,24 @@ import SwiftUI
                         if let description = profile["description"]?.text, !description.isEmpty { Text(description).foregroundStyle(CYColor.textSecondary) }
                         let rows = profileRows(profile)
                         if rows.isEmpty { Text(text("publisherPricing.noProfileYet")).foregroundStyle(CYColor.textSecondary) }
-                        ForEach(rows, id: \.0) { key, value in LabeledContent(key, value: value) }
+                        ForEach(rows, id: \.0) { key, value in
+                            // R7-PC-B5-2: MP address row opens the place in the map app.
+                            if key == text("publisherPricing.address"), let url = HomeFeedMapsLink.url(for: value) {
+                                Link(destination: url) { LabeledContent(key, value: value) }
+                                    .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
+                                    .accessibilityIdentifier("publisher.partner.address")
+                            } else {
+                                LabeledContent(key, value: value)
+                            }
+                        }
+                        // R7-PC-B5-2 (r1 PC-B-5-2): MP 查看 opens the club detail / merchant home.
+                        if isClub, let clubDestination {
+                            NavigationLink { clubDestination(row.partnerID) } label: { Text("publisherPricing.viewPartner") }
+                                .accessibilityIdentifier("publisher.partner.view")
+                        } else if !isClub, let merchantDestination {
+                            NavigationLink { merchantDestination(row.partnerID) } label: { Text("publisherPricing.viewPartner") }
+                                .accessibilityIdentifier("publisher.partner.view")
+                        }
                     }
                 } header: { Text(isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")) }
                 if resultKey == readKey, let terms = result?.terms {
@@ -573,5 +623,14 @@ enum PublisherLifecycleCopy {
         case .notSent: return zh ? "未发送。授权关闭或审阅已过期。" : "Not sent. Authorization is disabled or review expired."
         case .unknown: return zh ? "结果未知。请核对服务器状态，勿重复提交。" : "Outcome unknown. Check server state; do not resubmit."
         }
+    }
+}
+
+private struct PricingChapterProjectDestinationKey: EnvironmentKey { static let defaultValue: ((Int) -> AnyView)? = nil }
+extension EnvironmentValues {
+    /// Merchant 承接 page (`pages/topic/merchantinfo?topicId=`) for chapter-supply lineup rows. Nil keeps the partner page.
+    var pricingChapterProjectDestination: ((Int) -> AnyView)? {
+        get { self[PricingChapterProjectDestinationKey.self] }
+        set { self[PricingChapterProjectDestinationKey.self] = newValue }
     }
 }

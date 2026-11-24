@@ -75,7 +75,7 @@ struct HomeHeroHeaderSectionView: View {
                         .buttonStyle(.plain)
                         .pageTemplateControl(
                             label: Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)),
-                            hint: Text("searchMap.citySearch"),
+                            hint: Text("homeSearch.mapHint"),
                             traits: .isButton
                         )
                         .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
@@ -92,8 +92,13 @@ struct HomeHeroHeaderSectionView: View {
                             .accessibilityIdentifier("homeIndex.hero.greeting")
                         (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
                             if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
-                                Label(isMerchantViewer ? "account.role.merchant" : "homeFeed.player",
-                                      systemImage: isMerchantViewer ? "storefront.fill" : "checkmark.seal.fill")
+                                // MP asset (pages/index/index.wxml:46): the player badge is `index-figma/icon-member.png`.
+                                Label {
+                                    Text(LocalizedStringKey(isMerchantViewer ? "account.role.merchant" : "homeFeed.player"))
+                                } icon: {
+                                    if isMerchantViewer { Image(systemName: "storefront.fill") }
+                                    else { MPAsset.FeatureIcon.iconMember.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true) }
+                                }
                                     .foregroundStyle(CYColor.brand)
                             }
                             if hasCity {
@@ -152,7 +157,8 @@ struct HomeHeroHeaderSectionView: View {
                         Button {
                             onSelectBanner?(banner)
                         } label: {
-                            Label(banner.title(locale: locale), systemImage: "arrow.up.right")
+                            // MP assets (utils/index/home-action-banner.js:21-35): each action banner's poster.
+                            Label { Text(verbatim: banner.title(locale: locale)) } icon: { HomeActionBannerPoster(id: banner.id) }
                         }
                         .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
                     }
@@ -166,7 +172,7 @@ struct HomeHeroHeaderSectionView: View {
                     HStack(spacing: 6) {
                         Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
                             .cyWrapText()
-                        Image(systemName: "chevron.down").font(.caption2.weight(.bold))
+                        Image(systemName: "chevron.down").font(.caption.weight(.bold))
                     }
                     .cyText(.label)
                     .foregroundStyle(CYColor.textSecondary)
@@ -246,9 +252,22 @@ private struct HomeHeroAvatar: View {
         .overlay { Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
         .accessibilityHidden(true)
     }
+    /// MP asset (pages/index/index.wxml:38): a missing avatar is `/images/d_profile.png`.
     private var fallback: some View {
-        CYColor.bgRaised
-            .overlay { Image(systemName: "person.fill").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textSecondary) }
+        MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+    }
+}
+
+/// Poster for a home action banner (`home-action-banner.js` `poster`). Other banners keep the arrow glyph.
+private struct HomeActionBannerPoster: View {
+    let id: String
+    var body: some View {
+        switch id {
+        case "activity_list": MPAsset.BannerCover.homeBannerFriends.resizable().scaledToFill()
+        case "club_apply": MPAsset.BannerCover.homeBannerClub.resizable().scaledToFill()
+        case "merchant_apply": MPAsset.BannerCover.homeBannerMerchant.resizable().scaledToFill()
+        default: Image(systemName: "arrow.up.right").accessibilityHidden(true)
+        }
     }
 }
 
@@ -267,7 +286,7 @@ struct PlayContinuationBannerView: View {
             if let messageKey = readAvailability.messageKey, readAvailability != .unauthenticated {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: readAvailability == .failed ? "exclamationmark.triangle" : "info.circle")
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.textSecondary)
                     Text(LocalizedStringKey(messageKey))
                         .cyText(.caption)
@@ -310,7 +329,7 @@ struct PlayContinuationBannerView: View {
                             }
                             Spacer(minLength: 0)
                             Image(systemName: "play.circle.fill")
-                                .font(CYTypography.dataXL)
+                                .cyText(.dataXL)
                                 .foregroundStyle(.white)
                                 .shadow(color: .black.opacity(0.4), radius: 6, y: 2)
                                 .accessibilityHidden(true)
@@ -513,7 +532,7 @@ struct MerchantRootModeSwitchBannerView: View {
                             Image(systemName: descriptor.systemImage)
                                 .font(.subheadline)
                             Text(LocalizedStringKey(descriptor.titleKey))
-                                .font(.caption2.weight(isSelected ? .semibold : .regular))
+                                .font(.caption.weight(isSelected ? .semibold : .regular))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
@@ -1339,11 +1358,8 @@ struct SessionMerchantRootContainerView: View {
                             .cyPushedChrome(domain: .merchant)
                         }
                     } else {
-                        MerchantFailureView(
-                            errorKey: "merchant.access.denied",
-                            identifier: "merchant.marketing",
-                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } }
-                        )
+                        // MC7-10-2 (marketing/index.wxml:13): 当前身份不能查看营销 + 申请入驻 (or 返回 for a member).
+                        MerchantDeniedState(title: "merchant.gate.marketing.denied", identifier: "merchant.marketing")
                     }
                 }
                 .toolbar {
@@ -1396,7 +1412,8 @@ struct SessionMerchantRootContainerView: View {
                         MerchantFailureView(
                             errorKey: "merchant.access.denied",
                             identifier: "merchant.cooperation",
-                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } }
+                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } },
+                            apply: { onReturnToConsumer(.mine) }
                         )
                     }
                 }
@@ -1459,8 +1476,7 @@ struct SessionMerchantRootContainerView: View {
     }
 
     private func merchantTabLabel(_ tab: MerchantRootBusinessTab) -> some View {
-        let descriptor = tab.descriptor
-        return Label(LocalizedStringKey(descriptor.titleKey), systemImage: descriptor.systemImage)
+        CYDomainTabLabel(tab: tab.rootTab, selected: coordinator.selectedMerchantTab.rootTab, domain: .merchant)
     }
 }
 
@@ -1523,7 +1539,7 @@ struct PublishTabFloatingSheetView: View {
                                         .foregroundStyle(item.isEnabled ? CYColor.textPrimary : CYColor.textSecondary)
                                     Text(verbatim: copy.tr(item.subtitle))
                                         .cyText(.meta)
-                                        .foregroundStyle(CYColor.textTertiary)
+                                        .foregroundStyle(CYColor.textSecondary)
                                     if let reason = item.disabledReason, !item.isEnabled {
                                         Text(verbatim: copy.tr(reason))
                                             .cyText(.micro)
@@ -1534,7 +1550,7 @@ struct PublishTabFloatingSheetView: View {
                                 Spacer(minLength: CYSpacing.sm)
                                 Image(systemName: "chevron.right")
                                     .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(CYColor.textTertiary)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityHidden(true)
                             }
                             .frame(minHeight: CYSpacing.minTouchTarget)
@@ -1550,7 +1566,7 @@ struct PublishTabFloatingSheetView: View {
                 .padding(.vertical, CYSpacing.lg)
             }
             .cyDomainPageBackground()
-            .navigationTitle(Text(verbatim: copy.tr(presentation.sheetTitle)))
+            .navigationTitle(Text(verbatim: copy.tr(presentation.sheetTitle))).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if let onClose {
                     ToolbarItem(placement: .cancellationAction) {
@@ -1560,7 +1576,7 @@ struct PublishTabFloatingSheetView: View {
                 }
             }
         }
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .cyDomainScreen(.topicEditor)
     }
 }

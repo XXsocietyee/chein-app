@@ -70,7 +70,7 @@ public struct MerchantBusinessRecord: Equatable, Identifiable {
             guard images.count <= 9, images.allSatisfy(Self.safeHTTPS) else { throw MerchantBusinessFailure.malformed }
         case .redemption:
             id = try fields.mbRequiredText("recordKey")
-            guard Self.redemptionRecordID(id) != nil else { throw MerchantBusinessFailure.malformed }
+            guard MerchantLedgerRecordRef(wire: id) != nil else { throw MerchantBusinessFailure.malformed }
             _ = try MerchantBusinessMoney(fields["settlementAmount"], strictString: true)
         case .entry:
             id = try fields.mbRequiredText("entryKey")
@@ -107,7 +107,9 @@ public struct MerchantBusinessRecord: Equatable, Identifiable {
         case .customer: return (Int(id).flatMap { try? MerchantCustomerID($0) }).map(MerchantBusinessQuery.customer)
         case .refund: return (Int(id).flatMap { try? MerchantRefundID($0) }).map(MerchantBusinessQuery.refund)
         case .batch: return (Int(id).flatMap { try? MerchantBatchID($0) }).map(MerchantBusinessQuery.batch)
-        case .redemption: return Self.redemptionRecordID(id).map { .redemption(recordID: $0) }
+        case .redemption:
+            guard let ref = MerchantLedgerRecordRef(wire: id) else { return nil }
+            return .redemption(recordID: ref.recordType == "redemption" ? ref.recordID : ref.recordKey)
         default: return nil
         }
     }
@@ -217,6 +219,8 @@ public struct MerchantBusinessDocument: Equatable {
     public let total: Int?
     public let hasMore: Bool
     public let payload: MerchantBusinessValue
+    /// Manage-review `filterCounts` when the server sent a complete tab object. Nil when the key is absent.
+    public let reviewFilterCounts: [String: Int]?
     public var rows: [MerchantBusinessRecord] { sections.flatMap(\.rows) }
     public var customerDetail: MerchantCustomerDetailPresentation? {
         guard case .customer(let id) = query else { return nil }
@@ -230,6 +234,7 @@ public struct MerchantBusinessDocument: Equatable {
         _ = try query.request()
         self.query = query; self.payload = payload
         var sections: [MerchantBusinessSection] = [], summary: MerchantBusinessObject = [:], total: Int?, more = false
+        var reviewFilterCounts: [String: Int]?
         func records(_ values: [MerchantBusinessObject], _ kind: MerchantBusinessRecord.Kind) throws -> [MerchantBusinessRecord] { try values.map { try .init(kind: kind, fields: $0) } }
         func section(_ title: String, _ values: [MerchantBusinessObject], _ kind: MerchantBusinessRecord.Kind) throws -> MerchantBusinessSection { try .init(title, rows: records(values, kind)) }
         let object = payload.object ?? [:]
@@ -281,6 +286,7 @@ public struct MerchantBusinessDocument: Equatable {
                     // Missing is unknown, never a local count or a guessed zero.
                     summary[key] = value
                 }
+                reviewFilterCounts = try MerchantReviewManageRead.filterCounts(in: object)
             }
         case .refund(let id):
             guard try object.mbInt("refundId", minimum: 1) == id.rawValue else { throw MerchantBusinessFailure.malformed }
@@ -308,9 +314,9 @@ public struct MerchantBusinessDocument: Equatable {
             guard try batch.mbInt("batchId", minimum: 1) == id.rawValue else { throw MerchantBusinessFailure.malformed }
             sections = [try section("batch", [batch], .batch), try section("earnings", object.mbObjects("earningEntries"), .entry), try section("adjustments", object.mbObjects("adjustments"), .entry)]
         case .redemption(let id):
-            guard object.mbText("recordKey") == "redemption:\(id)" else { throw MerchantBusinessFailure.malformed }
-            guard object["recordId"]?.numberText == id,
-                  object.mbText("recordType") == "redemption",
+            guard let ref = MerchantLedgerRecordRef(queryID: id), object.mbText("recordKey") == ref.recordKey else { throw MerchantBusinessFailure.malformed }
+            guard object["recordId"]?.numberText == ref.recordID,
+                  object.mbText("recordType") == ref.recordType,
                   let fulfillment = object.mbText("fulfillmentState"), !fulfillment.isEmpty else {
                 throw MerchantBusinessFailure.malformed
             }
@@ -327,7 +333,8 @@ public struct MerchantBusinessDocument: Equatable {
             // finance/redemptions page {rows,total}; rows carry recordKey/chapterName/topicName/storeName/fulfillmentState/occurredAt.
             let objects = try object.mbObjects("rows")
             total = object["total"]?.integer
-            // One 50-row page; the list marks counts "+" when total exceeds it (no prev/next pager).
+            // A full 50-row page keeps "+" while collected rows are still short of total.
+            more = MerchantVerificationRecordPage.hasMore(pageRowCount: objects.count, collected: objects.count, total: total ?? 0)
             sections = [try section("verifications", objects, .verification)]
         case .operators:
             sections = [try section("operators", object.mbObjects("operators"), .operatorMember), try section("invites", object.mbObjects("invites"), .invite)]
@@ -336,6 +343,7 @@ public struct MerchantBusinessDocument: Equatable {
             sections = [try section("roles", values.map { guard let value = $0.object else { throw MerchantBusinessFailure.malformed }; return value }, .role)]
         }
         self.sections = sections; self.summary = summary; self.total = total; self.hasMore = more
+        self.reviewFilterCounts = reviewFilterCounts
     }
     public static let reviewMetricKeys = ["pendingReplyCount", "monthNewCount", "replyRatePct"]
     public static let overviewMoneyKeys = ["personalArrivedThisMonthGross", "personalExecutedAdjustmentsThisMonth", "personalArrivedThisMonthNet", "publicPayablePending", "adjustmentPending"]

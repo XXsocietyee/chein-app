@@ -11,6 +11,7 @@ struct DiscoveryTemplateDetailView: View {
     @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplateRead>()
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State private var galleryScope = UUID()
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
@@ -79,6 +80,12 @@ struct DiscoveryTemplateDetailView: View {
                                 Button {
                                     guard loadedKey == requestKey, reader.isConfigured,
                                           authoringCompletion?.isCurrent() != false else { return }
+                                    // R7-PC-A6-2 (r1 PC-A-6-3): MP `ensureLogin` before 应用 — a guest goes to sign-in.
+                                    if (reader as? AppSession)?.isSignedIn == false {
+                                        toastMessage = appLocalized("discovery.adopt.signIn", locale: locale)
+                                        if rootTabSwitch.isAvailable { (reader as? AppSession)?.dismissNativeEntry(); rootTabSwitch(.mine) }
+                                        return
+                                    }
                                     adoption = Adoption(source: item, key: requestKey)
                                 } label: { TemplateXbApplyLabel() }
                                     .buttonStyle(.plain)
@@ -97,7 +104,7 @@ struct DiscoveryTemplateDetailView: View {
                     if tab == .details {
                         DiscoveryPlayMetadata(item: item).discoveryCardRow()
                         DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader, showsPublisher: false)
-                        textSection(parity?.isTopicTemplate == true ? "u10.template.story" : "discovery.introduction", text: item.description)
+                        textSection(parity?.isTopicTemplate == true ? "u10.template.story" : "discovery.introduction", text: item.description, art: MPAsset.FeatureIcon.book)
                         if let parity, !parity.ruleSteps.isEmpty {
                             Section {
                                 ForEach(Array(parity.ruleSteps.enumerated()), id: \.offset) { index, step in
@@ -110,14 +117,14 @@ struct DiscoveryTemplateDetailView: View {
                                     .accessibilityElement(children: .combine)
                                     .accessibilityIdentifier("discovery.templateDetail.rule.\(index)")
                                 }
-                            } header: { DiscoverySectionHeader("discovery.rules") }
+                            } header: { DiscoverySectionHeader("discovery.rules", art: MPAsset.FeatureIcon.interaction) }
                                 .discoveryCardRow()
                         } else {
-                            textSection("discovery.rules", text: item.ruleInstructions)
+                            textSection("discovery.rules", text: item.ruleInstructions, art: MPAsset.FeatureIcon.interaction)
                         }
                         if let parity {
                             // Carries 怎么验证, 分类与适用场景, 所需物料, 评价 and the 不能直接开团 notice.
-                            if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials) }
+                            if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials, art: MPAsset.FeatureIcon.flashlight) }
                             DiscoveryTemplateDetailParitySections(presentation: parity)
                         } else {
                             textSection("discovery.location", text: item.usageLocation)
@@ -217,9 +224,10 @@ struct DiscoveryTemplateDetailView: View {
             .filter { !$0.isEmpty }
             .map { TemplateCapabilityRow.Chip(text: $0) }
     }
-    @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
+    @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?, art: Image? = nil) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Section { Text(text).cyText(.body).foregroundStyle(palette.textSecondary).textSelection(.enabled) } header: { DiscoverySectionHeader(title) }
+            // R7-PC-A6-4 (r1 PC-A-6-5): MP clamps 简介 / 规则 to 4 lines with 更多 / 收起.
+            Section { DiscoveryClampedText(text: text) } header: { DiscoverySectionHeader(title, art: art) }
                 .discoveryCardRow()
         }
     }
@@ -283,6 +291,9 @@ struct DiscoveryTopicTemplatePreview: View {
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var tab: TemplateDetailTab = .details
     @State private var openingExpanded = false
+    /// R7-PC-A8-2 (MP topic-detail js:281 `previewNode`): a node image opens the full-screen gallery over all node images.
+    @State private var nodeGallery: NodeGallerySelection?
+    private struct NodeGallerySelection: Identifiable { let id = UUID(); let snapshot: MediaGallerySnapshot }
     /// Caller override. Nil asks the existing parsers; an unparsed topic path copies its mini-program path and has no public URL.
     var shareURL: URL? = nil
     var scope: String? = nil
@@ -299,7 +310,9 @@ struct DiscoveryTopicTemplatePreview: View {
                 ContentUnavailableView("discovery.templateSessionChanged", systemImage: "person.crop.circle.badge.exclamationmark",
                                        description: Text("discovery.templateReopen"))
             } else if detail.isLoading {
-                ProgressView("discovery.loading")
+                // R7-PC-A7-2 (r1 PC-A-7-4): MP skeleton, not a centred spinner.
+                CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityLabel(Text("discovery.loading"))
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error) { Task { await detail.load() } }
             } else if let item = detail.value {
@@ -308,12 +321,34 @@ struct DiscoveryTopicTemplatePreview: View {
                     Section {
                         TemplateXbHead(title: (item.name ?? "").isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name ?? ""),
                                        publisher: topicAuthor(item), official: false, subtitle: item.subtitle) {
-                            E1CoverArt(seed: item.name ?? "topic", symbol: "building.2", imageURL: item.imgUrl, debugLabel: false,
-                                       symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                            if QuestifyCardArtwork.safeURL(item.imgUrl) != nil {
+                                E1CoverArt(seed: item.name ?? "topic", symbol: "building.2", imageURL: item.imgUrl, debugLabel: false,
+                                           symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                            } else {
+                                // MP asset (topic-detail/index.wxml:31): no cover → the city 3D art `art/cat/city.png`.
+                                MPAsset.FeatureIcon.pagesTemplatedetailArtCatCity.resizable().scaledToFit().padding(CYSpacing.sm)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .background(CYColor.bgRaised)
+                                    .accessibilityHidden(true)
+                            }
                         }
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
                         let topicShare = topicShareOffer(item.id)
-                        if topicShare.url != nil || topicShare.copyText != nil {
+                        let hasShare = topicShare.url != nil || topicShare.copyText != nil
+                        // R7-PC-A8-5 (owner V-24, MP `xb-cta`): 用这个模板 and share sit in one head row. The live adoption
+                        // flow keeps its own section below (it carries plan + progress state).
+                        if !TopicTemplateUseFactory.isLive {
+                            HStack(spacing: CYSpacing.sm) {
+                                Button {} label: {
+                                    Text("topicTemplate.useCta").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.cyPrimary(fullWidth: true))
+                                .disabled(true)
+                                .accessibilityIdentifier("topicTemplate.use.unavailable")
+                                if hasShare { TemplateXbShareButton(url: topicShare.url, copyText: topicShare.copyText, label: "u10.template.shareTopic") }
+                            }
+                            Text("topicTemplate.useUnavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        } else if hasShare {
                             HStack { Spacer(minLength: 0); TemplateXbShareButton(url: topicShare.url, copyText: topicShare.copyText, label: "u10.template.shareTopic") }
                         }
                         TemplateXbTabs(selection: $tab)
@@ -328,20 +363,8 @@ struct DiscoveryTopicTemplatePreview: View {
                                 copiedDestination?(topicID)
                             }
                         }.discoveryCardRow()
-                    } else {
-                        // PC-A-7-3: never hide the page's main action; show it disabled and say why.
-                        Section {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Button {} label: {
-                                    Text("topicTemplate.useCta").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                                }
-                                .buttonStyle(.cyPrimary(fullWidth: true))
-                                .disabled(true)
-                                .accessibilityIdentifier("topicTemplate.use.unavailable")
-                                Text("topicTemplate.useUnavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            }
-                        }.discoveryCardRow()
                     }
+                    // PC-A-7-3: when the write is gated the main action is never hidden; it is the disabled head-row CTA above.
                     if tab == .details {
                         topicDetails(item)
                     } else {
@@ -352,7 +375,10 @@ struct DiscoveryTopicTemplatePreview: View {
                 .cyDomainPageBackground()
                 .refreshable { await detail.load() }
                 .accessibilityIdentifier("discovery.topicPreview.content")
-            } else { ProgressView("discovery.loading") }
+            } else {
+                CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityLabel(Text("discovery.loading"))
+            }
         }
         .appNavigationTitle("discovery.topicPreview")
         .toolbar {
@@ -369,6 +395,9 @@ struct DiscoveryTopicTemplatePreview: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(item: $nodeGallery) { selected in
+            NativeMediaGallery(snapshot: selected.snapshot, titleKey: "u10.template.nodes", reader: RetainedPublicImageReader())
+        }
         .task { await detail.load() }
         .onDisappear { detail.clear() }
     }
@@ -404,7 +433,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                             if !TopicXcxFacts.hidesGeneratedChapterOrdinal(chapter.name ?? "") {
-                                Text("u10.template.chapterNo \(index + 1)").cyText(.meta).foregroundStyle(palette.textTertiary)
+                                Text("u10.template.chapterNo \(index + 1)").cyText(.meta).foregroundStyle(palette.textSecondary)
                             }
                             DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").cyText(.cardTitle)
                         }
@@ -426,7 +455,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     }
                     .accessibilityElement(children: .contain)
                 }
-            } header: { TemplateXbSectionTitle(title: "u10.template.story", systemImage: "book") }
+            } header: { TemplateXbSectionTitle(title: "u10.template.story", systemImage: "book", art: MPAsset.FeatureIcon.book) }
                 .discoveryCardRow()
         }
         let free = item.mode == "FREE_EXPLORE"
@@ -439,25 +468,29 @@ struct DiscoveryTopicTemplatePreview: View {
             }
             TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
         }.discoveryCardRow()
-        TopicTemplateAdoptionConditionsSection(
-            delivery: item.contentDelivery,
-            canViewEvidence: item.viewerIsPublisher || (scope == "MERCHANT" && item.viewerIsMerchant)
-        )
         let nodes = item.chapters.flatMap(\.nodes)
         if !nodes.isEmpty {
             Section {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: CYSpacing.md) {
+                        let gallery = nodes.compactMap { nonempty($0.imgUrl) }.filter { QuestifyCardArtwork.safeURL($0) != nil }
                         ForEach(Array(nodes.enumerated()), id: \.offset) { index, node in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                E1CoverArt(seed: (node.name ?? "") + String(index), symbol: "mappin.and.ellipse", imageURL: node.imgUrl, debugLabel: false)
+                                let cover = E1CoverArt(seed: (node.name ?? "") + String(index), symbol: "mappin.and.ellipse", imageURL: node.imgUrl, debugLabel: false)
                                     .frame(width: 150, height: 150)
                                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                                    .accessibilityHidden(true)
+                                if let raw = nonempty(node.imgUrl), let galleryIndex = gallery.firstIndex(of: raw) {
+                                    Button { nodeGallery = NodeGallerySelection(snapshot: .init(sources: gallery, selectedIndex: galleryIndex)) } label: { cover }
+                                        .buttonStyle(.plain)
+                                        .accessibilityLabel(Text("media.destination.openImage"))
+                                        .accessibilityIdentifier("discovery.topicDetail.nodeImage.\(index)")
+                                } else {
+                                    cover.accessibilityHidden(true)
+                                }
                                 (nonempty(node.name).map { Text(verbatim: $0) } ?? Text("u10.template.nodeNo \(index + 1)"))
                                     .cyText(.label).foregroundStyle(palette.textPrimary).cyWrapText()
                                 if let teaser = nonempty(node.hookTeaser) {
-                                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textTertiary).cyWrapText()
+                                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textSecondary).cyWrapText()
                                 }
                                 // U02-05: credit for the first 8 node images only (mini _loadCredits).
                                 if index < 8, let reference = nonempty(node.imgUrl), TopicTemplateAdoptionFactory.attributionIsLive {
@@ -465,12 +498,12 @@ struct DiscoveryTopicTemplatePreview: View {
                                 }
                             }
                             .frame(width: 150, alignment: .leading)
-                            .accessibilityElement(children: .combine)
+                            .accessibilityElement(children: .contain)
                         }
                     }
                 }
                 .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: 0))
-            } header: { TemplateXbSectionTitle(title: "u10.template.nodes", systemImage: "safari") }
+            } header: { TemplateXbSectionTitle(title: "u10.template.nodes", systemImage: "safari", art: MPAsset.FeatureIcon.explore) }
                 .discoveryCardRow()
                 .accessibilityIdentifier("discovery.topicDetail.nodes")
         }
@@ -481,9 +514,9 @@ struct DiscoveryTopicTemplatePreview: View {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: medal).cyText(.cardTitle)
-                    Text("u10.template.medalHint").cyText(.meta).foregroundStyle(palette.textTertiary)
+                    Text("u10.template.medalHint").cyText(.meta).foregroundStyle(palette.textSecondary)
                 }.accessibilityElement(children: .combine)
-            } header: { TemplateXbSectionTitle(title: "u10.template.medal", systemImage: "star") }
+            } header: { TemplateXbSectionTitle(title: "u10.template.medal", systemImage: "star", art: MPAsset.FeatureIcon.star) }
                 .discoveryCardRow()
                 .accessibilityIdentifier("discovery.topicDetail.medal")
         }
@@ -496,7 +529,7 @@ struct DiscoveryTopicTemplatePreview: View {
     private func topicStat<V: View>(_ value: V, label: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
             value.cyText(.numericBody).foregroundStyle(palette.textPrimary)
-            Text(label).cyText(.caption).foregroundStyle(palette.textTertiary)
+            Text(label).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -513,6 +546,15 @@ struct DiscoveryTopicTemplatePreview: View {
                 }
             }
             .accessibilityIdentifier("discovery.topicDetail.summary")
+            // R7-PC-A8-1 (r1 PC-A-8-3): MP `xb-stat` cards — 节点 / 玩法 / 总时长.
+            HStack(alignment: .top) {
+                topicStat(Text(verbatim: String(stops.count)), label: "discovery.templateDetail.stat.nodes")
+                if !item.games.isEmpty {
+                    topicStat(Text(verbatim: String(item.games.count)), label: "discovery.templateDetail.stat.games")
+                }
+                topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+            }
+            .accessibilityIdentifier("discovery.topicDetail.stats")
             if stops.isEmpty {
                 CYEmptyState(systemImage: "map", "template.cap.emptyState", messageIdentifier: "template.cap.empty")
             }
@@ -532,6 +574,11 @@ struct DiscoveryTopicTemplatePreview: View {
                 ForEach(stops, id: \.number) { stopRow($0) }
             }
         }.discoveryCardRow()
+        // R7-PC-A8-4 (r1 PC-A-8-4): MP 采用条件 sits under 能力, after the stops.
+        TopicTemplateAdoptionConditionsSection(
+            delivery: item.contentDelivery,
+            canViewEvidence: item.viewerIsPublisher || (scope == "MERCHANT" && item.viewerIsMerchant)
+        )
     }
     private func stopRow(_ stop: NumberedStop) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
@@ -543,7 +590,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     Text(verbatim: play).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
                 if let teaser = stop.hookTeaser {
-                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
             }
         }
@@ -613,11 +660,32 @@ private struct PublicTemplateSilhouette: View {
             }
             #if DEBUG
             Text(verbatim: "ROUTE SHAPE · DEBUG")
-                .cyText(.micro).foregroundStyle(palette.textTertiary)
+                .cyText(.micro).foregroundStyle(palette.textSecondary)
                 .padding(CYSpacing.sm)
             #endif
         }
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .ignore)
+    }
+}
+
+/// Long template text: 4 lines with 更多, full text with 收起. Short text shows no control.
+struct DiscoveryClampedText: View {
+    let text: String
+    var lineLimit = 4
+    @State private var expanded = false
+    @Environment(\.cyPalette) private var palette
+    private var isLong: Bool { text.count > 80 || text.filter { $0 == "\n" }.count >= lineLimit }
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(text).cyText(.body).foregroundStyle(palette.textSecondary).textSelection(.enabled)
+                .lineLimit(expanded || !isLong ? nil : lineLimit)
+                .fixedSize(horizontal: false, vertical: true)
+            if isLong {
+                Button(expanded ? "discovery.text.less" : "discovery.text.more") { expanded.toggle() }
+                    .cyText(.label).buttonStyle(.borderless).frame(minHeight: 44)
+                    .accessibilityIdentifier("discovery.clampedText.toggle")
+            }
+        }
     }
 }

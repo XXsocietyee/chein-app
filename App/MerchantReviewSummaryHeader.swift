@@ -12,8 +12,8 @@ struct MerchantReviewSummaryHeader: View {
                     .accessibilityIdentifier("merchant.reviewSummary.average")
                 HStack(spacing: 2) {
                     ForEach(1...5, id: \.self) { star in
-                        Image(systemName: star <= presentation.filledStars ? "star.fill" : "star")
-                            .foregroundStyle(star <= presentation.filledStars ? CYColor.warningText : CYColor.textTertiary)
+                        // MP asset (reviews/index.wxml:42): icon-star-filled / icon-star-muted.
+                        MerchantMPIcon(image: star <= presentation.filledStars ? MPAsset.FeatureIcon.iconStarFilled : MPAsset.FeatureIcon.iconStarMuted, size: 18)
                     }
                 }
                 .accessibilityElement(children: .ignore)
@@ -25,18 +25,20 @@ struct MerchantReviewSummaryHeader: View {
         }
         .padding(.vertical, 4)
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: CYSpacing.md) {
-            metric(Text(presentation.pendingReplyCount.map { String($0) } ?? "—"), "merchant.reviewSummary.pending", note: "merchant.reviewSummary.pending.note")
-            metric(Text(presentation.monthNewCount.map { String($0) } ?? "—"), "merchant.reviewSummary.month", note: "merchant.reviewSummary.month.note")
-            metric(Text(presentation.replyRatePct.map { "\($0)%" } ?? "—"), "merchant.reviewSummary.rate", note: "merchant.reviewSummary.rate.note")
-            metric(Text(presentation.averageText ?? "—"), "merchant.reviewSummary.average30", note: "merchant.reviewSummary.average30.note")
+            metric(Text(presentation.pendingReplyCount.map { String($0) } ?? "—"), "merchant.reviewSummary.pending", icon: MPAsset.FeatureIcon.iconBubble, note: "merchant.reviewSummary.pending.note")
+            metric(Text(presentation.monthNewCount.map { String($0) } ?? "—"), "merchant.reviewSummary.month", icon: MPAsset.FeatureIcon.iconPlus, note: "merchant.reviewSummary.month.note")
+            metric(Text(presentation.replyRatePct.map { "\($0)%" } ?? "—"), "merchant.reviewSummary.rate", icon: MPAsset.FeatureIcon.iconCheckBlue, note: "merchant.reviewSummary.rate.note")
+            metric(Text(presentation.averageText ?? "—"), "merchant.reviewSummary.average30", icon: MPAsset.FeatureIcon.iconStarOutline, note: "merchant.reviewSummary.average30.note")
         }
         .accessibilityIdentifier("merchant.reviewSummary.metrics")
     }
-    private func metric(_ value: Text, _ title: LocalizedStringKey, note: LocalizedStringKey) -> some View {
+    private func metric(_ value: Text, _ title: LocalizedStringKey, icon: Image, note: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
+            // MP asset (reviews/index.wxml:50-75): each manage metric card leads with its review-stat icon.
+            MerchantMPIcon(image: icon, size: 20)
             value.cyText(.cardTitle, monospacedDigit: true).foregroundStyle(CYColor.textPrimary).monospacedDigit()
             Text(title).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-            Text(note).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+            Text(note).cyText(.meta).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.md)

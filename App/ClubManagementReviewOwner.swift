@@ -3,7 +3,7 @@ import UIKit
 import Combine
 
 /// Retained by the management journey; a review belongs to one visible detail visit.
-@MainActor final class ClubManagementReviewOwner: ObservableObject {
+@MainActor final class ClubManagementReviewOwner: @preconcurrency ObservableObject {
     struct Context: Equatable {
         let clubID: Int
         let identity: ClubReadIdentity?

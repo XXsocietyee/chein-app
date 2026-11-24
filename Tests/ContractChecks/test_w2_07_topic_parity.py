@@ -30,7 +30,7 @@ class W207TopicParity(unittest.TestCase):
 
     def test_second_pass_sections_are_wired(self):
         view = read('App/TopicDetailView.swift')
-        for exact in ['TopicXcxSessionChip(startDate: activity.startDate)', 'TopicXcxTemplatesSection(templates: TopicXcxFacts.nodeTemplates(value))',
+        for exact in ['TopicXcxSessionChip(startDate: activity.startDate)', 'TopicChapterCardsSection(cards: TopicChapterCards.cards(chapters: value.chapters, routeCover: value.imageURL))',
                       'TopicXcxNodeFootView(node: node)', 'NativeMediaGalleryEntry(sources: covers']:
             self.assertIn(exact, view)
 

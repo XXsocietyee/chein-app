@@ -13,6 +13,10 @@ struct E1CoverArt: View {
     /// Where the generated-art glyph sits, as a fraction of the cover. Cards that put a chip top-right move it away.
     /// `nil` drops the glyph (covers whose title block would sit on it).
     var symbolPoint: CGPoint? = CGPoint(x: 0.8, y: 0.24)
+    /// MP default cover (`MPAsset.BannerCover.*`) shown instead of the generated art when there is no
+    /// loadable image. `fallbackFills` false draws it aspect-fit on the neutral tile (MP `cy-cover-fb`).
+    var fallbackImage: Image? = nil
+    var fallbackFills = true
     @Environment(\.cyPalette) private var palette
 
     private var url: URL? {
@@ -36,6 +40,15 @@ struct E1CoverArt: View {
     }
 
     @ViewBuilder private var art: some View {
+        if let fallbackImage {
+            if fallbackFills { fallbackImage.resizable().scaledToFill() }
+            else {
+                LinearGradient(colors: [palette.bgStrong, palette.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .overlay { fallbackImage.resizable().scaledToFit().padding(CYSpacing.md) }
+            }
+        } else { generatedArt }
+    }
+    @ViewBuilder private var generatedArt: some View {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--design-fixture") { debugArt } else { neutral }
         #else
@@ -138,7 +151,7 @@ struct E1IconHeader: View {
     @Environment(\.cyPalette) private var palette
     var body: some View {
         Label { Text(verbatim: title) } icon: { Image(systemName: systemImage).foregroundStyle(palette.textSecondary) }
-            .font(CYTypography.sectionTitle.weight(.semibold))
+            .cyText(.sectionTitle, weight: .semibold)
             .foregroundStyle(palette.textPrimary)
             .textCase(nil)
             .accessibilityAddTraits(.isHeader)

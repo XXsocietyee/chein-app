@@ -43,6 +43,18 @@ public struct PlaySnapshot: Equatable {
     }
     public var displayedDoneCount: Int? { route?.isBranch == true ? visibleNodes.filter(isDone).count : result.doneCount }
     public func isDone(_ node: PlayNode) -> Bool { node.done == true || route?.nodeStates[node.id] == "COMPLETED" || node.routeNodeState == "COMPLETED" }
+    /// Free-exploration story lock. City mode is never story-locked. A missing `storyLocked`
+    /// counts as locked only while `PlayRuntimePortRouteGate` says so (default off).
+    public func isStoryLocked(_ node: PlayNode) -> Bool {
+        guard result.mode == PlayGameplayMode.freeExploration.rawValue else { return false }
+        if let storyLocked = node.storyLocked { return storyLocked }
+        return PlayRuntimePortRouteGate.storyLockMissingIsLocked
+    }
+    /// Visited places stay visited. A missing `storyLocked` is not treated as visited.
+    public func isVisited(_ node: PlayNode) -> Bool {
+        result.mode == PlayGameplayMode.freeExploration.rawValue
+            && (node.visited == true || node.storyLocked == false || isDone(node))
+    }
     public func isLocked(_ node: PlayNode) -> Bool {
         if node.locked == true { return true }
         if route?.isBranch == true { return !isDone(node) && route?.nodeStates[node.id] != "PLAYABLE" }
@@ -76,5 +88,24 @@ public struct PlaySnapshot: Equatable {
         let availability = answerAvailability(for: node)
         guard availability.canAnswer else { throw APIError.invalidRequest }
         if availability == .choice, node.options?[answer] == nil { throw APIError.invalidRequest }
+    }
+}
+
+/// Story counts, the all-visited ending, and perk-only progress live beside the snapshot.
+/// `FreeExplorationPresentation` is not owned by this package, so these facts are not stored on it.
+public struct FreeExplorationStoryFacts: Equatable {
+    public let storyUnlocked: Int?
+    public let storyTotal: Int?
+    public let isFullyVisited: Bool
+    public let isPerkOnly: Bool
+    public init(snapshot: PlaySnapshot) {
+        storyUnlocked = snapshot.result.storyUnlocked
+        storyTotal = snapshot.result.storyTotal
+        let stores = snapshot.availability == .registrationRequired ? [] : snapshot.visibleNodes
+        isFullyVisited = snapshot.result.mode == PlayGameplayMode.freeExploration.rawValue
+            && snapshot.availability != .registrationRequired
+            && !stores.isEmpty
+            && stores.allSatisfy(snapshot.isVisited)
+        isPerkOnly = snapshot.result.perkOnly == true
     }
 }

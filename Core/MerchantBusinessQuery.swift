@@ -78,20 +78,23 @@ public enum MerchantBusinessQuery: Equatable, Hashable {
         switch self {
         case .customers(let query): try query.validate(); return .json("api/merchant/crm/customers/list", query.fields)
         case .customer(let id): return .empty("api/merchant/crm/customers/\(id.rawValue)/detail")
-        case .aftercare(let bucket, _): return .query("api/merchant/aftercare/list", ["bucket": bucket.rawValue, "pageNum": String(page), "pageSize": "20"])
+        // Ledger helper always posts JSON.stringify(data || {}). The three buckets and the page
+        // stay on the query string, and the body is an empty object.
+        case .aftercare(let bucket, _):
+            return .queryJSON("api/merchant/aftercare/list", ["bucket": bucket.rawValue, "pageNum": String(page), "pageSize": "20"], [:])
         case .refund(let id): return .query("api/merchant/aftercare/detail", ["refundId": String(id.rawValue)])
-        case .reviews: return .query("api/merchant/reviews/manage", ["pageNum": String(page), "pageSize": "20"])
+        case .reviews: return try MerchantReviewManageRead(filter: "all", page: page).request()
         case .overview: return .json("api/merchant/finance/overview", [:])
-        case .redemptions(let filter, _): return .json("api/merchant/finance/redemptions", paging.merging(["filter": .string(filter)]) { _, rhs in rhs })
+        case .redemptions(let filter, _): return try MerchantFinanceRedemptionList.request(filter: filter, page: page, pageSize: 20)
         case .entries(let source, _): return .json("api/merchant/finance/settlement-entries", paging.merging(["source": .string(source)]) { _, rhs in rhs })
         case .batches: return .json("api/merchant/finance/public-transfer-batches", paging)
         case .batch(let id): return .json("api/merchant/finance/public-transfer-batch-detail", ["batchId": .int(id.rawValue)])
         case .redemption(let id):
-            guard !id.isEmpty, id.range(of: #"^[0-9]+$"#, options: .regularExpression) != nil, id.contains(where: { $0 != "0" }) else { throw MerchantBusinessFailure.invalid }
-            return .json("api/merchant/finance/redemption-detail", ["recordType": .string("redemption"), "recordId": .string(id)])
+            guard let ref = MerchantLedgerRecordRef(queryID: id) else { throw MerchantBusinessFailure.invalid }
+            return .json("api/merchant/finance/redemption-detail", ["recordType": .string(ref.recordType), "recordId": .string(ref.recordID)])
         // Parity X5 / M-03: the MP reads the finance redemption source (VERIFY_RECORD_READ on the server; amounts redacted
         // without finance:read). The retired cms_registration_scan source produced false counts.
-        case .verificationRecords: return .json("api/merchant/finance/redemptions", ["filter": .string("all"), "pageNum": .int(1), "pageSize": .int(50)])
+        case .verificationRecords: return try MerchantVerificationRecordPage(page: 1).request()
         case .operators: return .empty("api/merchant/operators/list")
         case .roles: return .empty("api/merchant/operators/roles")
         }
@@ -105,5 +108,8 @@ public struct MerchantBusinessRequest: Equatable {
     public static func empty(_ path: String) -> Self { .init(path: path, query: [:], body: .none) }
     public static func json(_ path: String, _ fields: MerchantBusinessObject) -> Self { .init(path: path, query: [:], body: .json(fields)) }
     public static func query(_ path: String, _ fields: [String: String]) -> Self { .init(path: path, query: fields, body: .none) }
+    public static func queryJSON(_ path: String, _ query: [String: String], _ fields: MerchantBusinessObject) -> Self {
+        .init(path: path, query: query, body: .json(fields))
+    }
     public static func form(_ path: String, _ fields: [String: String]) -> Self { .init(path: path, query: [:], body: .form(fields)) }
 }

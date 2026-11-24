@@ -137,7 +137,7 @@ import SwiftUI
         }
         .nativeChannelFlowPage()
         .cyGroupedSurface()
-        .navigationTitle("d7.channelModeration.title")
+        .navigationTitle("d7.channelModeration.title").navigationBarTitleDisplayMode(.inline)
         .task { await open() }
         .task {
             while !Task.isCancelled {

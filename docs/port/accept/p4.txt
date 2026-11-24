@@ -1,0 +1,4 @@
+--design-fixture hfeat-playkit-truefalse
+--design-fixture hfeat-playkit-jigsaw
+--design-fixture hfeat-playkit-scratchcard
+--uitesting-module playExperience --uitesting-play-experience-scenario classic

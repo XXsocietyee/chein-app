@@ -55,6 +55,8 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
     public let refund: TicketWalletRefund?
     /// Source `manualRefundCaseStatus`: any value means a manual after-sale case is open (退款中).
     public let hasManualRefundCase: Bool
+    /// `cmsActivity.imgUrl`, else `cmsTopic.imgUrl`. Nil when neither object carries one.
+    public let coverURL: String?
 
     /// `true` / `false` are the 已通关 / 即将开始 buckets. Absent and unknown stay nil (全部 only).
     public var topicCompletedFlag: Bool? {
@@ -130,6 +132,7 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
         refund = try? c.decodeIfPresent(TicketWalletRefund.self, forKey: TicketWalletKey("refundApplication"))
         let manual = TicketWalletKey("manualRefundCaseStatus")
         hasManualRefundCase = c.contains(manual) && (try? c.decodeNil(forKey: manual)) == false
+        coverURL = activity?.imgUrl ?? topic?.imgUrl
     }
 }
 
@@ -231,6 +234,16 @@ public struct TicketWalletEntitlement: Decodable, Equatable, Identifiable {
     public let statusLabel: String?
     public let invalidReason: String?
     public let redeemedAt: String?
+    /// FE-G5 perk terms from the entitlement snapshot. Each is optional; absent or
+    /// malformed values stay nil and nothing is shown.
+    public let included: Bool?
+    public let extraSpendText: String?
+    public let reserveRequired: Bool?
+    /// FE-G6: an empty server label is no label; the row falls back to the local status name.
+    public var displayStatusLabel: String? {
+        guard let statusLabel, !statusLabel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return statusLabel
+    }
     public var statusKey: String {
         switch status { case 0: return "pending"; case 1: return "redeemed"; case 2: return "invalid"; default: return "unknown" }
     }
@@ -240,6 +253,9 @@ public struct TicketWalletEntitlement: Decodable, Equatable, Identifiable {
         chapterID = try c.integer("chapterId"); chapterName = try c.text("chapterName")
         statusLabel = try c.text("statusLabel"); invalidReason = try c.text("invalidReason")
         redeemedAt = try c.text("redeemedAt")
+        included = (try? c.decodeIfPresent(Bool.self, forKey: TicketWalletKey("included"))) ?? nil
+        extraSpendText = (try? c.decodeIfPresent(String.self, forKey: TicketWalletKey("extraSpendText"))) ?? nil
+        reserveRequired = (try? c.decodeIfPresent(Bool.self, forKey: TicketWalletKey("reserveRequired"))) ?? nil
     }
 }
 
@@ -311,11 +327,13 @@ private struct TicketWalletOwner: Decodable {
     let startDate: String?
     let endDate: String?
     let addressName: String?
+    let imgUrl: String?
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TicketWalletKey.self)
         id = try c.integer("id")
         name = try c.text("name"); productType = try c.integer("productType")
         startDate = try c.text("startDate"); endDate = try c.text("endDate"); addressName = try c.text("addressName")
+        imgUrl = try c.text("imgUrl")
     }
 }
 private struct TicketWalletKey: CodingKey {

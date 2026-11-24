@@ -68,7 +68,8 @@ extension MPParityBindings {
             teammate: active && overview.holding.teammateBenefit,
             expiring: active && overview.holding.expiring,
             daysLeft: active ? overview.holding.daysRemaining : nil,
-            daysTotal: active ? overview.holding.daysTotal : nil)
+            daysTotal: active ? overview.holding.daysTotal : nil,
+            terms: overview.terms)
     }
 
     /// Explore feed card: city, period, and year passes that have a cash price and covered works.
@@ -258,7 +259,7 @@ extension MPParityBindings {
         if amount.hasSuffix(suffix), let points = Int(amount.dropLast(suffix.count)) {
             return String(localized: LocalizedStringResource("mp.pass.points.amount \(points)", locale: locale))
         }
-        return amount
+        return moneyText(amount)
     }
 
     private static func giftStatus(_ state: String) -> PassGiftStatus {
@@ -293,29 +294,24 @@ extension MPParityBindings {
         return Int(value.rounded())
     }
 
-    fileprivate static func yuan(_ value: Double) -> String {
-        let cents = Int((value * 100).rounded())
-        let sign = cents < 0 ? "-" : ""
-        let whole = abs(cents) / 100
-        let frac = abs(cents) % 100
-        if frac == 0 { return "\(sign)¥\(whole)" }
-        return "\(sign)¥\(whole)." + (frac < 10 ? "0" : "") + "\(frac)"
+    /// Owner decision 9 (11-24): money is always two decimals through the shared `MoneyDisplay` formatter (¥12.50, ¥99.00).
+    fileprivate static func yuan(_ value: Double) -> String { yuanFen(Int((value * 100).rounded())) }
+
+    fileprivate static func yuanFixed(_ value: Double) -> String { yuan(value) }
+
+    static func yuanFen(_ fen: Int) -> String {
+        (fen < 0 ? "-" : "") + MoneyDisplay.yuan(Decimal(abs(fen)) / 100)
     }
 
-    fileprivate static func yuanFixed(_ value: Double) -> String {
-        let cents = Int((value * 100).rounded())
-        let sign = cents < 0 ? "-" : ""
-        let whole = abs(cents) / 100
-        let frac = abs(cents) % 100
-        return "\(sign)¥\(whole)." + (frac < 10 ? "0" : "") + "\(frac)"
-    }
-
-    private static func yuanFen(_ fen: Int) -> String {
-        let sign = fen < 0 ? "-" : ""
-        let whole = abs(fen) / 100
-        let frac = abs(fen) % 100
-        if frac == 0 { return "\(sign)¥\(whole)" }
-        return "\(sign)¥\(whole)." + (frac < 10 ? "0" : "") + "\(frac)"
+    /// Server money text (`¥12.5`, `-¥3`) re-shown through `MoneyDisplay.text`; anything else is shown as given.
+    static func moneyText(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sign = trimmed.hasPrefix("-") ? "-" : ""
+        let body = trimmed.drop { $0 == "-" }
+        guard body.hasPrefix("¥") else { return raw }
+        let digits = String(body.dropFirst())
+        let formatted = MoneyDisplay.text(digits)
+        return formatted == digits && !digits.contains(".") ? raw : sign + "¥" + formatted
     }
 }
 

@@ -181,16 +181,19 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
             Self.performInvalidate(compareToken: &compareToken, flow: armedFlow)
             armedFlow = nil
         }) {
-            if let presentation {
-                NavigationStack {
-                    WorkshopModUpgradeSheetView(presentation: presentation) { draft in
-                        guard let token = compareToken else { throw WorkshopUpgradeDraftIssue.stalePresentation }
-                        _ = try Self.performCommitDraft(draft, handlers: handlers, item: item, presentation: presentation, token: token, current: compareToken, draftSaved: &draftSaved, showing: &showing, saveFailed: &saveFailed, receipt: &receipt)
+            Group {
+                if let presentation {
+                    NavigationStack {
+                        WorkshopModUpgradeSheetView(presentation: presentation) { draft in
+                            guard let token = compareToken else { throw WorkshopUpgradeDraftIssue.stalePresentation }
+                            _ = try Self.performCommitDraft(draft, handlers: handlers, item: item, presentation: presentation, token: token, current: compareToken, draftSaved: &draftSaved, showing: &showing, saveFailed: &saveFailed, receipt: &receipt)
+                        }
+                        .navigationTitle(Text("workshopUpgrade.title")).navigationBarTitleDisplayMode(.inline)
+                        .toolbar { ToolbarItem(placement: .topBarLeading) { Button { Self.performCancel(showing: &showing, compareToken: &compareToken, flow: armedFlow); armedFlow = nil } label: { Text("workshopUpgrade.back") }.accessibilityIdentifier("workshopPurchased.upgrade.back") } }
                     }
-                    .navigationTitle(Text("workshopUpgrade.title")).navigationBarTitleDisplayMode(.inline)
-                    .toolbar { ToolbarItem(placement: .topBarLeading) { Button { Self.performCancel(showing: &showing, compareToken: &compareToken, flow: armedFlow); armedFlow = nil } label: { Text("workshopUpgrade.back") }.accessibilityIdentifier("workshopPurchased.upgrade.back") } }
                 }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }

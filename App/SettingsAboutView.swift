@@ -22,15 +22,11 @@ import UIKit
         Form {
             Section {
                 VStack(spacing: CYSpacing.md) {
-                    Image(uiImage: UIImage(named: "SettingsBrandMark") ?? UIImage())
+                    // MP about: `/images/cy_logo_mark.png`, aspectFit, no backdrop.
+                    MPAsset.BrandLogo.cyLogoMark
                         .resizable()
                         .scaledToFit()
-                        .padding(CYSpacing.lg)
                         .frame(width: 112, height: 112)
-                        .background {
-                            CYCoverArt(seed: "about-brand", symbol: "mappin", showsDebugLabel: false, showsGlyph: false)
-                                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.xl, style: .continuous))
-                        }
                         .accessibilityHidden(true)
                     appName
                     Text("settingsNative.about.tagline")
@@ -64,10 +60,10 @@ import UIKit
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(LocalizedStringKey(type.titleKey))
                                 if type == .userAgreement {
-                                    Text("settingsNative.about.agreementHint").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                                    Text("settingsNative.about.agreementHint").cyText(.meta).foregroundStyle(palette.textTertiary)
                                 }
                             }
-                        } icon: { Image(systemName: type == .privacyPolicy ? "hand.raised.fill" : "doc.text.fill") }
+                        } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconAgreement) } // MP about: icon_agreement on both
                             .environment(\.settingsTileTint, type == .privacyPolicy ? SettingsTint.blue : SettingsTint.gray)
                     }
                     .accessibilityIdentifier("settingsNative.about.openLegal.\(type.rawValue)")
@@ -75,19 +71,39 @@ import UIKit
             } header: { Text("settingsNative.about.linksSection") }
             .labelStyle(SettingsTileLabelStyle())
             if let phone = model.contactPhone {
+                // B-AB-05: the MP about page has no footer bar; copying the number is the contact row's own action.
                 Section {
-                    Text(verbatim: phone)
-                        .cyText(.numericBody)
-                        .foregroundStyle(palette.textPrimary)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityIdentifier("settingsNative.about.contactPhone")
+                    HStack(spacing: CYSpacing.md) {
+                        AccountPublishMPGlyph(MPAsset.FeatureIcon.iconHeadset) // MP about 联系我们 = icon_headset
+                            .foregroundStyle(palette.textSecondary)
+                        Text(verbatim: phone)
+                            .cyText(.numericBody)
+                            .foregroundStyle(palette.textPrimary)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("settingsNative.about.contactPhone")
+                        Button { copy(phone) } label: {
+                            Image(systemName: "doc.on.doc")
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(Text("settingsNative.about.copyPhone"))
+                        .accessibilityIdentifier("settingsNative.about.copyPhone")
+                    }
+                    if let copyStatus {
+                        Text(LocalizedStringKey(copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"))
+                            .cyText(.meta)
+                            .foregroundStyle(palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("settingsNative.about.copyPhone." + (copyStatus == .copied ? "copied" : "failed"))
+                    }
                 } header: { Text("settingsNative.about.contact") } footer: { Text("settingsNative.about.contactSource") }
             } else {
                 // B-AB-03: the MP always offers 联系我们; without a phone the support contact page is the way in.
                 Section {
                     NavigationLink { WithdrawalSupportContactView() } label: {
-                        Label("settingsNative.about.contact", systemImage: "bubble.left.and.bubble.right")
+                        Label { Text("settingsNative.about.contact") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconHeadset) }
                     }
                     .accessibilityIdentifier("settingsNative.about.contactFallback")
                 }
@@ -95,29 +111,8 @@ import UIKit
             }
             SettingsAttributionsSection(copyText: copyText)
         }
-        .scrollContentBackground(.hidden)
         .cyDomainPageBackground()
         .cyPageTitle("settingsNative.about.title")
-        .safeAreaInset(edge: .bottom) {
-            if let phone = model.contactPhone {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    if let copyStatus {
-                        Text(LocalizedStringKey(copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"))
-                            .font(CYTypography.meta)
-                            .foregroundStyle(palette.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("settingsNative.about.copyPhone." + (copyStatus == .copied ? "copied" : "failed"))
-                    }
-                    CYPillButton("settingsNative.about.copyPhone", systemImage: "doc.on.doc") {
-                        copy(phone)
-                    }
-                    .accessibilityIdentifier("settingsNative.about.copyPhone")
-                }
-                .padding(CYSpacing.lg)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(palette.bgPage)
-            }
-        }
         .onDisappear { copyStatus = nil; showsPlayerCodePending = false; toastMessage = nil }
         .cyToast(message: $toastMessage, tone: copyStatus == .failed ? .warning : .info)
     }
@@ -139,7 +134,7 @@ import UIKit
                     .accessibilityLabel(Text("settingsNative.about.playerCode"))
                 } else {
                     Image(systemName: "qrcode")
-                        .font(.largeTitle).imageScale(.large)
+                        .cyText(.pageTitle).imageScale(.large)
                         .foregroundStyle(palette.textTertiary.opacity(0.5))
                         .accessibilityHidden(true)
                     RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
@@ -151,11 +146,11 @@ import UIKit
             case .ready:
                 EmptyView()
             case .loading:
-                Text("settingsNative.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text("settingsNative.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
             case .error:
                 Text("settingsNative.about.playerCodeUnavailable").cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
                     .accessibilityIdentifier("settingsNative.about.playerCodeUnavailable")
-                Text("settingsNative.about.playerCodeHint").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text("settingsNative.about.playerCodeHint").cyText(.meta).foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             case .empty, .unknown:
                 Text(verbatim: SettingsAboutMetadataPhase.unknownText).cyText(.numericBody).foregroundStyle(palette.textSecondary)
@@ -190,7 +185,8 @@ import UIKit
     }
 
     private var appName: some View {
-        Text(verbatim: "chein - 城瘾")
+        // B-AB-04: MP about/index.wxml:24 shows the product name 城瘾 only.
+        Text(verbatim: "城瘾")
             .cyText(.pageTitle)
             .foregroundStyle(palette.textPrimary)
             .multilineTextAlignment(.center)

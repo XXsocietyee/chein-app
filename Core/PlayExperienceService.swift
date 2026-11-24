@@ -19,6 +19,8 @@ public enum PlayCompletionEvidence: Codable, Equatable {
     case location(longitude: Double, latitude: Double, coordinateSystem: String, accuracyMeters: Double? = nil, measuredAt: Date? = nil)
     case photo(uploadedURL: String)
     case sensor(type: String, payload: [String: PlayWireValue])
+    /// Station tap after the run has started. Same `/api/play/arrive` channel, no coordinates.
+    case stationArrival
     /// Only for a new command. Recovery encodes the immutable original evidence.
     func validateNewLocationMeasurement(now: Date = Date()) throws {
         if case .location(_, _, _, let accuracy, let time) = self {
@@ -26,7 +28,13 @@ public enum PlayCompletionEvidence: Codable, Equatable {
         }
     }
     var path: String {
-        switch self { case .answer: return "answer"; case .scan: return "checkin"; case .location: return "arrive"; case .photo: return "photo"; case .sensor: return "sensor-result" }
+        switch self {
+        case .answer: return "answer"
+        case .scan: return "checkin"
+        case .location, .stationArrival: return "arrive"
+        case .photo: return "photo"
+        case .sensor: return "sensor-result"
+        }
     }
 }
 /// Dormant production adapter; enabling a capability is an integration acceptance gate,
@@ -41,6 +49,14 @@ public struct PlayExperienceService {
     }
     /// Only an actual bounded reply can prove authentication loss. Malformed or
     /// over-limit envelopes remain ordinary unknown errors, never guessed 401s.
+    static func isOffline(_ error: URLError) -> Bool {
+        switch error.code {
+        case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed, .internationalRoamingOff,
+             .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed, .timedOut:
+            return true
+        default: return false
+        }
+    }
     public static func isAuthenticationFailure(_ reply: (Data, Int)) -> Bool {
         if reply.1 == 401 { return true }
         guard reply.0.count <= 512 * 1024,
@@ -63,6 +79,12 @@ public struct PlayExperienceService {
         try await checkReturnedMode(document.base.mode)
         if case .topic(let id) = scope, let returnedID = document.base.topicID, returnedID != id { throw PlayExperienceError.malformed }
         return document
+    }
+    /// Expired free-exploration ticket: read-only visited chapters. Same reads capability as nodes.
+    public func freeExplorationHistory(topicID: Int, activityID: Int?, token: String) async throws -> FreeExplorationHistoryDocument {
+        guard topicID > 0 else { throw APIError.invalidRequest }
+        let raw = try await request("api/play/history", query: ["topicId": String(topicID), "activityId": String(activityID ?? 0)], capability: .reads, token: token)
+        return try FreeExplorationHistoryDocument(raw: raw)
     }
     public func route(scope: PlaySessionScope, token: String) async throws -> PlayRouteState {
         let raw = try await request("api/play/route-state", query: scopeFields(scope), capability: .reads, token: token)
@@ -119,6 +141,8 @@ public struct PlayExperienceService {
             if advance?.isContextBound == true, let measuredAt, measuredAt.timeIntervalSince1970.isFinite {
                 fields["locationTimestamp"] = String(Int64((measuredAt.timeIntervalSince1970 * 1000).rounded(.down)))
             }
+        case .stationArrival:
+            break
         case .photo(let url):
             guard Self.validHTTPS(url) else { throw APIError.invalidRequest }
             fields["picUrl"] = url

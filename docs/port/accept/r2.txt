@@ -1,0 +1,20 @@
+# R2 club & social: fixture routes (one launch-argument line per screen; zh-Hans unless noted)
+--uitesting-club-fixture owner --uitesting-club-top-tabs
+--uitesting-club-fixture owner
+--uitesting-club-fixture member
+--uitesting-club-fixture visitor
+--uitesting-club-fixture empty
+--uitesting-club-fixture retry
+--uitesting-club-fixture tabFacts
+--uitesting-club-fixture merchantLocality
+--uitesting-club-action-fixture join
+--uitesting-club-action-fixture leave
+--uitesting-club-management-fixture owner
+--uitesting-club-management-fixture loadFailure
+--club-community-fixture
+--im-expanded-fixture message-success
+--im-expanded-fixture message-empty
+--im-expanded-fixture message-error
+--uitesting-module socialAccount --uitesting-social-destination profile --uitesting-social-scenario content
+--uitesting-module socialAccount --uitesting-social-destination guide --uitesting-social-scenario content
+--uitesting-module socialAccount --uitesting-social-destination invites --uitesting-social-scenario content

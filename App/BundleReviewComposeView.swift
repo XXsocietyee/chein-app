@@ -16,13 +16,12 @@ import SwiftUI
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                CYHeroHeader(verbatim: W8Text.t("评价", "Review")) {
-                    CYCoverArt(seed: "bundle-review", symbol: "star.bubble", showsDebugLabel: false)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: artHeight)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                        .accessibilityHidden(true)
-                }
+                // Native restyle r1 (spec §3.1): the title is the system inline title; the cover stays as the hero.
+                CYCoverArt(seed: "bundle-review", symbol: "star.bubble", showsDebugLabel: false)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: artHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
+                    .accessibilityHidden(true)
                 switch model.state {
                 case .idle, .loading:
                     CYSkeleton()
@@ -53,11 +52,13 @@ import SwiftUI
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.top, CYSpacing.md)
             .padding(.bottom, CYSpacing.xxl)
         }
         .cyDomainPageBackground()
         .themeDomain(.player)
-        .cyHeroScreen()
+        .navigationTitle(Text(verbatim: W8Text.t("评价", "Review")))
+        .navigationBarTitleDisplayMode(.inline)
         .cyAnimation(value: model.state)
         .cyHaptic(.success, trigger: model.state) { _, new in
             if case .submitted = new { return true }
@@ -82,7 +83,7 @@ import SwiftUI
                 .frame(minHeight: editorMin)
                 .scrollContentBackground(.hidden)
                 .padding(CYSpacing.sm)
-                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 .accessibilityLabel(Text(verbatim: W8Text.t("评价内容", "Review text")))
             Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)")
                 .cyText(.caption)

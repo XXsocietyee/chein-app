@@ -37,7 +37,7 @@ import SwiftUI
                 if error { Section { Text("nativeCondition.fieldFailed").foregroundStyle(CYColor.dangerText) } }
                 if !isCurrent { Section { Text("nativeCondition.unavailable") } }
             } else { Text("nativeCondition.unavailable") }
-        }.navigationTitle("nativeCondition.editFields")
+        }.navigationTitle("nativeCondition.editFields").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("nativeCondition.cancel") { dismiss() } }
             ToolbarItem(placement: .confirmationAction) { Button("nativeCondition.done", action: commit).disabled(!isCurrent) }

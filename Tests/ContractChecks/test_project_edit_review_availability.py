@@ -8,7 +8,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 CAN_EDIT = '    var canEdit: Bool { ownsVisit && !coordinator.isReadOnly && !coordinator.hasUnconfirmedChapterRemoval && loadedSnapshot && loadedSession == coordinator.session && coordinator.snapshot != nil && !busy && !coordinator.isLocked && coordinator.state != .simulated && coordinator.state != .acknowledged && coordinator.state != .blocked && !hasRestore }'
 CAN_REVIEW = '    var canReview: Bool { currentReviewLease() != nil }'
-BUTTON = '                        Button("projectEdit.review") { focusedField = nil; model.review() }\n                            .buttonStyle(.questifyPrimary).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")'
+BUTTON = '                        Button("projectEdit.review") { focusedField = nil; model.review() }\n                            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true)).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")'
 
 
 def verify(view, prepared):

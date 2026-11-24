@@ -75,7 +75,7 @@ extension EnvironmentValues {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
-    @ScaledMetric(relativeTo: .headline) private var coverSide: CGFloat = 56
+    @ScaledMetric(relativeTo: .headline) private var coverSide: CGFloat = 72  // CLB-enroll-06: MP cover 144 rpx
     @StateObject private var navigation = ClubEnrollmentNavigation()
     private var liveHost: ClubEnrollmentHostContext {
         .init(clubID: clubID, focusTopicID: focusTopicID, identity: identity, access: access, profile: profile)
@@ -109,7 +109,7 @@ extension EnvironmentValues {
                     // Core's denied title is a Chinese literal; show the localized equivalent.
                     if ClubEnrollmentReader.failureTitle(for: issue) != nil {
                         Text("club.enroll.denied")
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.enroll.deniedTitle")
@@ -239,14 +239,14 @@ extension EnvironmentValues {
     }
     private func teamHeader(_ team: ClubEnrollmentTeam) -> some View {
         let expanded = reader.expanded.contains(team.id)
-        let text = VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        let text = VStack(alignment: .leading, spacing: CYSpacing.xs) {
             title(team.name, fallback: "club.enroll.unnamedTeam")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             ViewThatFits(in: .horizontal) {
                 signupLine(team)
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) { signupLine(team) }
+                VStack(alignment: .leading, spacing: CYSpacing.xs) { signupLine(team) }
             }
         }
         return Group {
@@ -255,7 +255,7 @@ extension EnvironmentValues {
                     cover(team)
                     text
                     Image(systemName: expanded ? "chevron.down" : "chevron.right")
-                        .font(.footnote.weight(.semibold))
+                        .cyText(.label)  // CLB-enroll-06
                         .foregroundStyle(palette.textTertiary)
                         .accessibilityHidden(true)
                 }
@@ -265,7 +265,7 @@ extension EnvironmentValues {
                     text
                     Spacer(minLength: CYSpacing.sm)
                     Image(systemName: expanded ? "chevron.down" : "chevron.right")
-                        .font(.footnote.weight(.semibold))
+                        .cyText(.label)  // CLB-enroll-06
                         .foregroundStyle(palette.textTertiary)
                         .accessibilityHidden(true)
                 }
@@ -278,10 +278,11 @@ extension EnvironmentValues {
     private func cover(_ team: ClubEnrollmentTeam) -> some View {
         Group {
             if let image = team.image { SquareImage(source: image) }
-            else { CYCoverArt(seed: "\(clubID)-\(team.id)", symbol: "flag.fill", showsDebugLabel: false, showsGlyph: true) }
+            // Round 2 MP asset: `team.imgUrl || '/images/route_city_cover.png'` (enroll wxml:37).
+            else { MPAsset.BannerCover.routeCityCover.resizable().scaledToFill() }
         }
         .frame(width: coverSide, height: coverSide)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityHidden(true)
     }
     private func signupLine(_ team: ClubEnrollmentTeam) -> some View {
@@ -328,9 +329,7 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("club.enroll.paidRefundSummary.\(team.id)")
                 fact("club.enroll.refundable", value: number(roster.refundableCount))
                 if let deadline = roster.deadline { fact("club.enroll.deadline", value: Text(verbatim: deadline)) }
-                if let status = roster.teamStatus {
-                    fact("club.enroll.teamStatus", value: teamStatusText(status))
-                }
+                // CLB-enroll-05: the MP removed the 团状态 row (enroll/index.js teamStatusText is gone).
             }
             .cyText(.bodyCompact)
             .accessibilityIdentifier("club.enroll.summary.\(team.id)")
@@ -338,14 +337,14 @@ extension EnvironmentValues {
             if !roster.sessionMoney.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     ForEach(roster.sessionMoney) { money in
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack(spacing: CYSpacing.xs) {
                                 if let label = money.label { Text(verbatim: label).lineLimit(1) } else { Text("club.enroll.money.session") }
                                 if money.cancelled { CYStatusChip("club.enroll.money.cancelled", tone: .neutral) }
                             }
                             .cyText(.bodyCompact)
                             .foregroundStyle(palette.textPrimary)
-                            Text("club.enroll.money.line \(money.paidText) \(money.refundedText) \(money.netText)")
+                            Text("club.enroll.money.line \(ClubMoneyText.twoDecimals(money.paidText)) \(ClubMoneyText.twoDecimals(money.refundedText)) \(ClubMoneyText.twoDecimals(money.netText))")
                                 .cyText(.numericBody)
                                 .monospacedDigit()
                                 .foregroundStyle(palette.textSecondary)
@@ -368,7 +367,7 @@ extension EnvironmentValues {
                             Spacer(minLength: CYSpacing.sm)
                             capacity(ticket)
                         }
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             ticketTitle(ticket)
                             capacity(ticket)
                         }
@@ -384,7 +383,7 @@ extension EnvironmentValues {
     }
     private func ticketTitle(_ ticket: ClubEnrollmentTicket) -> some View {
         title(ticket.name, fallback: "club.enroll.unnamedTicket")
-            .font(CYTypography.cardTitle)
+            .cyText(.cardTitle)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("club.enroll.ticket.\(ticket.id)")
@@ -417,7 +416,7 @@ extension EnvironmentValues {
     private func fact(_ title: LocalizedStringKey, value: some View) -> some View {
         ViewThatFits(in: .horizontal) {
             LabeledContent(title) { value }
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(title).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                 value
             }
@@ -473,12 +472,14 @@ extension EnvironmentValues {
     }
     private func attendee(_ value: ClubEnrollmentRegistrant) -> some View {
         HStack(spacing: CYSpacing.sm) {
-            if let avatar = value.avatar {
-                SquareImage(source: avatar)
-                    .frame(width: coverSide * 0.64, height: coverSide * 0.64)
-                    .clipShape(Circle())
-                    .accessibilityHidden(true)
+            // Round 2 MP asset: `r.avatar || '/images/d_profile.png'` (enroll wxml:76).
+            Group {
+                if let avatar = value.avatar { SquareImage(source: avatar) }
+                else { MPAsset.AvatarDefault.dProfile.resizable().scaledToFill() }
             }
+            .frame(width: coverSide * 0.64, height: coverSide * 0.64)
+            .clipShape(Circle())
+            .accessibilityHidden(true)
             title(value.nickname, fallback: "club.enroll.player")
                 .cyText(.body)
                 .foregroundStyle(palette.textPrimary)

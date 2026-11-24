@@ -34,6 +34,7 @@ import UIKit
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.timeZone) private var timeZone
     @Environment(\.cyHeroNamespace) private var heroNamespace
+    @Environment(\.openURL) private var openURL
     @StateObject private var model = HomeFeedModel()
     @State private var kind: HomeFeedKind = .topics
     @State private var keyword = ""
@@ -87,8 +88,8 @@ import UIKit
                                 } : nil,
                                 onOpenUnifiedSearch: onOpenUnifiedSearch
                             ) { banner in
-                                if banner.id == "activity_list" { kind = .activities }
-                                onActionBanner?(banner)
+                                // R7-PC-A1-2: a host that routes banners opens the activity list; without one, show the 活动 stream.
+                                if let onActionBanner { onActionBanner(banner) } else if banner.id == "activity_list" { kind = .activities }
                             }
                             .cySectionReveal(order: 1, gate: reveal)
                             .pageTemplateReadingOrder(80)
@@ -155,14 +156,17 @@ import UIKit
                                          messageIdentifier: "homeFeed.empty")
                         }
                         if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
-                            Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
-                                .buttonStyle(.cySecondary)
-                                .frame(minHeight: 44)
+                            // R7-PC-A1-6 (r1 PC-A-1-11): MP pages on reach-bottom. The sentinel loads the next page when it
+                            // scrolls into view; a failed page keeps its retry row above.
+                            ProgressView()
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .onAppear { model.schedule(.page, reader: reader, permit: permit) }
+                                .accessibilityLabel(Text("homeFeed.loading"))
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
                             Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
                                 .cyText(.meta)
-                                .foregroundStyle(CYColor.textTertiary)
+                                .foregroundStyle(CYColor.textSecondary)
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
@@ -275,13 +279,13 @@ import UIKit
                         if let items, !items.isEmpty {
                             Text("homeFeed.editorsPicksFootnote")
                                 .cyText(.meta)
-                                .foregroundStyle(CYColor.textTertiary)
+                                .foregroundStyle(CYColor.textSecondary)
                                 .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
                             if model.loading, !failed {
                                 // Also above the carousel, so it never lands under the tab bar.
                                 Text("homeFeed.updating.recommended")
                                     .cyText(.meta)
-                                    .foregroundStyle(CYColor.textTertiary)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityIdentifier("homeFeed.updating.recommended")
                             }
                         }
@@ -303,6 +307,10 @@ import UIKit
                             LazyHStack(spacing: CYSpacing.md) {
                                 ForEach(items) { item in
                                     row(item, section: section.rawValue, style: .shelf)
+                                        // R7-PC-A1-5: MP 附近活动 `进行中` badge.
+                                        .overlay(alignment: .topLeading) {
+                                            if item.isLive(at: Date(), sourceTimeZone: sourceTimeZone) { HomeFeedLiveChip() }
+                                        }
                                 }
                             }
                             .scrollTargetLayout()
@@ -325,7 +333,7 @@ import UIKit
                         }
                     }
                         .cyText(.meta)
-                        .foregroundStyle(CYColor.textTertiary)
+                        .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("homeFeed.updating.\(section.rawValue)")
                 }
             }
@@ -340,7 +348,9 @@ import UIKit
         let slides: [CYCarouselSlide] = capped.map { item in
             CYCarouselSlide(id: item.accessibilityKey, seed: item.name, title: item.name,
                             date: QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone),
-                            place: item.place, badge: section == .upcoming ? upcomingCountdown(item) : nil,
+                            // R7-PC-A1-3 (r1 PC-A-1-6): 编辑精选 keeps the MP `Beta 试玩` signal.
+                            place: item.place, badge: section == .upcoming ? upcomingCountdown(item)
+                                : (item.isBeta ? appLocalized("topic.source.betaBadge", locale: locale) : nil),
                             imageURL: QuestifyCardArtwork.safeURL(item.imageURL))
         }
         return CYCarouselRail(phase: .loaded(slides),
@@ -383,12 +393,13 @@ import UIKit
         }
             .buttonStyle(QuestifyCardButtonStyle())
             .pageTemplateGroupedCard(label: feedCardLabel(item), traits: .isButton)
+            .modifier(HomeFeedOpenPlaceInMaps(url: HomeFeedMapsLink.url(for: item.place), openURL: openURL))
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
     }
     /// One label for the grouped feed card: name, then the price, time, and place lines already on the card.
     private func feedCardLabel(_ item: HomeFeedItem) -> Text {
         let price: Text
-        if let amount = QuestifyCardText.amount(item.amount, locale: locale) {
+        if let amount = HomeFeedMoney.plain(item.amount) {
             price = Text("playx.finishRoute.priceFrom \(amount)")
         } else {
             price = PageTemplateVoiceOver.spoken(HomeFeedSurfaceState.unknownText, locale: locale)
@@ -415,7 +426,7 @@ import UIKit
     private func retry(_ message: Text, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Label { message } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
             Button("homeFeed.retry", action: action)
                 .buttonStyle(.cySecondary)
@@ -472,7 +483,7 @@ struct HomeFeedShelfCard: View {
     var body: some View {
         let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone)
         // Currency + 起/From come from the shared price key; unknown price shows an em dash, never 0.
-        let price = QuestifyCardText.amount(item.amount, locale: locale).map { appLocalized("playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
+        let price = HomeFeedMoney.plain(item.amount).map { appLocalized("playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
@@ -493,10 +504,17 @@ struct HomeFeedCard: View {
     private var typeSymbol: String {
         switch item { case .activity: return "figure.walk"; case .topic: return "map" }
     }
+    private var eyebrow: LocalizedStringKey {
+        switch item { case .activity: return "homeFeed.activities"; case .topic: return "homeFeed.topics" }
+    }
     /// Mini-program `v2-fcard` + `v2-status`: cover and title, then 价格 / 时间 / 地点.
     /// A missing price or place is an em dash. A missing time is the source fallback 长期开放.
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            // R7-PC-A1-4: MP `feedTypeLabel` eyebrow above the card.
+            Text(eyebrow)
+                .cyText(.meta)
+                .foregroundStyle(CYColor.textSecondary)
             QuestifyImageEntityCard(imageSource: safeImageSource, title: item.name, fallbackSymbol: typeSymbol,
                                     minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
                 EmptyView()
@@ -512,7 +530,7 @@ struct HomeFeedCard: View {
     }
     private var priceRow: some View {
         statusRow("homeFeed.status.price", tabular: true) {
-            if let amount = QuestifyCardText.amount(item.amount, locale: locale) {
+            if let amount = HomeFeedMoney.plain(item.amount) {
                 Text("playx.finishRoute.priceFrom \(amount)")
             } else {
                 Text(verbatim: HomeFeedSurfaceState.unknownText)
@@ -539,7 +557,7 @@ struct HomeFeedCard: View {
     }
     private func statusRow<Value: View>(_ label: LocalizedStringKey, tabular: Bool = false, @ViewBuilder value: () -> Value) -> some View {
         let valueLabel = value()
-            .font(tabular ? CYTypography.bodyCompact.monospacedDigit() : CYTypography.bodyCompact)
+            .cyText(.bodyCompact, monospacedDigit: tabular)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
         let name = Text(label)
@@ -750,3 +768,56 @@ struct HomeTodayCard: View {
         .padding(CYSpacing.pageHorizontal).cyDomainPageBackground().themeDomain(.player)
 }
 #endif
+
+/// MP 附近活动 `进行中` badge (R7-PC-A1-5).
+struct HomeFeedLiveChip: View {
+    var body: some View {
+        Label("homeFeed.live", systemImage: "play.fill")
+            .labelStyle(.titleAndIcon)
+            .cyText(.meta)
+            .foregroundStyle(.white)
+            .padding(.horizontal, CYSpacing.sm)
+            .padding(.vertical, 4)
+            .background(CYColor.brand, in: Capsule())
+            .padding(CYSpacing.sm)
+            .accessibilityIdentifier("homeFeed.liveChip")
+    }
+}
+
+/// MP `onAddressTap` (open-address.js): the 地点 opens the place in Maps. The feed has no coordinates, so the address
+/// is the query (R7-PC-A1-4).
+enum HomeFeedMapsLink {
+    static func url(for place: String?) -> URL? {
+        guard let place = place?.trimmingCharacters(in: .whitespacesAndNewlines), !place.isEmpty,
+              place != HomeFeedSurfaceState.unknownText else { return nil }
+        var components = URLComponents(string: "https://maps.apple.com/")
+        components?.queryItems = [URLQueryItem(name: "q", value: place)]
+        return components?.url
+    }
+}
+
+/// Long-press 在地图中打开 (and the matching VoiceOver action) on a feed card with an address.
+struct HomeFeedOpenPlaceInMaps: ViewModifier {
+    let url: URL?
+    let openURL: OpenURLAction
+    func body(content: Content) -> some View {
+        if let url {
+            content
+                .contextMenu {
+                    Button("accountCollection.coupon.openInMaps", systemImage: "map") { openURL(url) }
+                }
+                .accessibilityAction(named: Text("accountCollection.coupon.openInMaps")) { openURL(url) }
+        } else {
+            content
+        }
+    }
+}
+
+/// Owner decision 9 (11-24): money reads with two decimals through the shared `MoneyDisplay` (¥12.50). Unknown or
+/// negative stays nil (the card says "—", never 0).
+enum HomeFeedMoney {
+    static func plain(_ value: Decimal?) -> String? {
+        guard let value, value >= 0 else { return nil }
+        return MoneyDisplay.plain(value)
+    }
+}

@@ -173,7 +173,7 @@ import FoundationNetworking
         for state in ["PENDING_REVIEW", "APPLIED", "REJECTED", "CANCELLED", "EXPIRED", "INVALIDATED"] {
             transport.reply = try reviewPayload(requestID: id, outcome: state)
             let receipt = try await service.receipt(peerID: 9, action: .request, requestID: id)
-            XCTAssertEqual(receipt.review?.state.rawValue, state);XCTAssertEqual(receipt.relationship?.state, .none)
+            XCTAssertEqual(receipt.review?.state.rawValue, state);XCTAssertEqual(receipt.relationship?.state, NativeFriendRelation.none)
         }
         XCTAssertTrue(transport.requests.allSatisfy { $0.httpMethod == "GET" && $0.httpBody == nil && !$0.httpShouldHandleCookies })
     }
@@ -196,7 +196,11 @@ import FoundationNetworking
         let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
         XCTAssertEqual(fields["review_id"] as? Int, 71);XCTAssertEqual(fields["expected_version"] as? Int, 1)
         XCTAssertEqual(fields["request_id"] as? String, command.requestID)
-        transport.reply = try reviewPayload(requestID: command.requestID, outcome: "APPLIED", action: "cancel", originalID: UUID().uuidString, state: "CANCELLED")
+        var accepted = try XCTUnwrap(JSONSerialization.jsonObject(with: try reviewPayload(requestID: command.requestID, outcome: "APPLIED", action: "cancel", originalID: UUID().uuidString, state: "CANCELLED")) as? [String: Any])
+        var acceptedData = try XCTUnwrap(accepted["data"] as? [String: Any])
+        acceptedData["payload_hash"] = command.originalIntentProof
+        accepted["data"] = acceptedData
+        transport.reply = try JSONSerialization.data(withJSONObject: accepted)
         let result = try await service.write(command);XCTAssertEqual(result.review?.state, .cancelled)
     }
 

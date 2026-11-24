@@ -91,6 +91,10 @@ struct JourneyRunScope: Hashable {
     var registrationID: String?
     /// The viewer's `play_team` id when the run is a team run. Only this opens the in-team member board.
     var teamID: String?
+    /// Report link codes (`JourneyRankBoardContract.LinkCodes`). Raw city and country; club only when it is an id.
+    var cityCode: String? = nil
+    var countryCode: String? = nil
+    var clubID: String? = nil
 }
 
 // MARK: - Routes
@@ -125,6 +129,8 @@ enum MPParityRoute: Hashable, Identifiable {
     case myProjects
     /// `pages/merchant/ledger/index`. Read-only settlement overview. Payout stays off.
     case merchantLedger
+    /// MC7-06-1 (merchant-finance.js normalizeMerchantFinanceRoute): `view=settlement` / `tab=2|3` opens the 结算 segment.
+    case merchantLedgerSettlement
     /// A page-map path whose native screen already exists. The query is the one `MiniProgramPageLink` accepted.
     case screen(page: String, query: [String: String])
 
@@ -160,6 +166,8 @@ enum MPParityRoute: Hashable, Identifiable {
         case "subpackageMember/market/passes/index":
             self = .passes(tab: query["tab"].flatMap(PassMarketTab.init(rawValue:)) ?? .shop)
         case "subpackageMember/market/pass/index":
+            // R7-MEM-2-1: no id opens the page's missing state (商品不存在或已下架 + 返回), as MP load() does.
+            if query["id"]?.isEmpty ?? true { self = .pass(productID: ""); return }
             guard let id = safeIdentifier("id") else { return nil }
             self = .pass(productID: id)
         case "subpackageMember/market/gift/index":
@@ -172,6 +180,8 @@ enum MPParityRoute: Hashable, Identifiable {
         case "subpackageMember/market/library/index":
             self = .library(kind: query["kind"].flatMap(PassLibraryKind.init(rawValue:)) ?? .all)
         case "subpackageMember/market/pass-order/index":
+            // R7-MEM-5-1: no orderNo opens the missing-param state + 返回 (MP PG-041), not a read with an empty number.
+            if query["orderNo"]?.isEmpty ?? true { self = .passOrder(orderNo: ""); return }
             guard let orderNo = nonEmpty("orderNo"), PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { return nil }
             self = .passOrder(orderNo: orderNo)
         case "subpackagePass/reveal/index":
@@ -190,9 +200,13 @@ enum MPParityRoute: Hashable, Identifiable {
                 if query[numericKey]?.isEmpty == false && positiveIDString(numericKey) == nil { return nil }
             }
             if let topicName = nonEmpty("topicName"), topicName.count > 128 { return nil }
+            let codes = JourneyRankBoardContract.LinkCodes.parse(query)
             let scope = JourneyRunScope(activityID: positiveIDString("activityId"), topicID: positiveIDString("topicId"),
                                         runID: positiveIDString("runId"), topicName: nonEmpty("topicName"),
-                                        registrationID: positiveIDString("registrationId"), teamID: positiveIDString("teamId"))
+                                        registrationID: positiveIDString("registrationId"), teamID: positiveIDString("teamId"),
+                                        cityCode: codes.cityCode.isEmpty ? nil : codes.cityCode,
+                                        countryCode: codes.countryCode.isEmpty ? nil : codes.countryCode,
+                                        clubID: codes.clubID.isEmpty ? nil : codes.clubID)
             self = page.hasSuffix("report/index") ? .journeyReport(scope) : .journeySettle(scope)
         case "pages/club/payout-receiver/index":
             let club = positiveID("clubId") ?? positiveID("id")
@@ -220,7 +234,11 @@ enum MPParityRoute: Hashable, Identifiable {
         case "subpackageA/pages/myproject/index":
             self = .myProjects
         case "pages/merchant/ledger/index":
-            self = .merchantLedger
+            if let finance = MerchantFinanceRoute.normalize(query), finance.topicID != nil {
+                self = .screen(page: page, query: query)
+            } else {
+                self = .merchantLedger
+            }
         default:
             // The page's link rule still applies on internal paths: parity r1 gave several pages required keys
             // (club governance `clubId`, customer-detail `memberId`, …), so a bare path must not open them.
@@ -241,13 +259,16 @@ enum MPParityRoute: Hashable, Identifiable {
             if let make = bindings.videoBounty { VideoBountyHost(binding: make(), campaignKey: campaignKey, topicID: topicID) } else { unavailable }
         case .passes(let tab):
             if let make = bindings.passMarket { PassMarketHost(binding: make(), initialTab: tab) } else { unavailable }
+        case .pass(let id) where id.isEmpty:
+            MemberMissingLinkState(title: "g6.product.reason.PRODUCT_NOT_FOUND", identifier: "passDetail.missing")
+        case .passOrder(let orderNo) where orderNo.isEmpty:
+            MemberMissingLinkState(identifier: "passOrder.missing")
         case .pass(let id):
             if let make = bindings.passDetail { PassDetailHost(binding: make(id)) } else { unavailable }
         case .gift(let token):
             if token.isEmpty {
-                CYStateLayout(kind: .generic, title: Text("mp.gift.linkInvalid"))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityIdentifier("passGift.missing")
+                // MP cy-empty missing-param: 链接已失效 + 返回 (the deep-link sheet has no system back).
+                MemberMissingLinkState(title: "mp.gift.linkInvalid", identifier: "passGift.missing")
             } else if bindings.isSignedIn?() == false {
                 CYStateLayout(kind: .generic, title: Text("mp.gift.signIn"),
                               primary: (title: "mp.pass.signIn.action", action: { PlayerJourneySignInBridge.shared.request() }),
@@ -278,7 +299,7 @@ enum MPParityRoute: Hashable, Identifiable {
             MerchantPayoutAccountView()
         case .clubSettlement(let clubID, let mine, let personal):
             if let clubID { ClubPersonalSettlementView(clubID: clubID, personal: personal) } else if mine { ClubSettlementMineView() } else { unavailable }
-        case .playerOrderList, .coopList, .myProjects, .merchantLedger:
+        case .playerOrderList, .coopList, .myProjects, .merchantLedger, .merchantLedgerSettlement:
             SubscribeMessageTapEntry(route: route)
         case .screen(let page, let query):
             MPReviewedPageScreen(page: page, query: query)
@@ -345,7 +366,8 @@ struct MPRow: View {
             if let leading { leading }
             layout {
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    title.cyText(.bodyMedium)
+                    // Native row (native-ios-r1 §3.2): regular .body title, .footnote sub, value in secondary label.
+                    title.cyText(.body)
                         .foregroundStyle(muted ? CYColor.textTertiary : CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let sub {
@@ -356,7 +378,7 @@ struct MPRow: View {
                 }
                 if !stack { Spacer(minLength: CYSpacing.sm) }
                 if let value {
-                    value.font(strong ? CYTypography.cardTitle : CYTypography.bodyCompact)
+                    value.cyText(strong ? .cardTitle : .body)
                         .monospacedDigit()
                         .foregroundStyle(muted ? CYColor.textTertiary : (strong ? CYColor.textPrimary : CYColor.textSecondary))
                         .multilineTextAlignment(stack ? .leading : .trailing)
@@ -365,7 +387,7 @@ struct MPRow: View {
             }
             if stack { Spacer(minLength: 0) }
             if chevron {
-                Image(systemName: "chevron.right").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             }
         }
         .padding(.horizontal, CYSpacing.lg)
@@ -398,9 +420,10 @@ struct MPRows<Item: Identifiable, Row: View>: View {
 struct MPSectionHeader: View {
     let title: LocalizedStringKey
     var body: some View {
-        Text(title).cyText(.label).foregroundStyle(CYColor.textSecondary)
+        // Native inset-grouped section header (native-ios-r1 §3.2): .footnote secondary, sentence case, row inset.
+        Text(title).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             .textCase(nil)
-            .padding(.horizontal, CYSpacing.xs)
+            .padding(.horizontal, CYSpacing.lg)
             .accessibilityAddTraits(.isHeader)
     }
 }
@@ -464,7 +487,7 @@ struct MPGatedNote: View {
     var identifier: String = "mp.gated"
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Image(systemName: "lock").font(CYTypography.caption).accessibilityHidden(true)
+            Image(systemName: "lock").cyText(.caption).accessibilityHidden(true)
             text.cyText(.meta).fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(CYColor.textSecondary)

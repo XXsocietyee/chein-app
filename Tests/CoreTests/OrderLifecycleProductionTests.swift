@@ -76,6 +76,8 @@ import FoundationNetworking
         XCTAssertEqual(http.mutations, 1)
     }
     func testRefundUsesIndependentRouteAndKeepsThreeDimensions() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         let http = HTTP(detail: orderData(paid: true)); http.response = #"{"code":200,"data":{"registrationId":77,"cancellationStatus":"CANCELLED","cashRefundStatus":"PROCESSING","pointsRefundStatus":"RETURNED"}}"#
         let dispatcher = try XCTUnwrap(make(configuration(.refund), holder: Holder(context()), http: http, journal: Journal()))
         guard case .cancellation(let value, _) = try await dispatcher.dispatch(review(.refund), visible: { true }) else { return XCTFail() }
@@ -414,6 +416,8 @@ import FoundationNetworking
         XCTAssertEqual(try XCTUnwrap(harness.dispatcher()).pending(orderID: 77)?.attemptID, review.localAttemptID)
     }
     func testPaidHistoryAfterReloginPermitsOnlySeparatelyApprovedRefund() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         let harness = try replayHarness(actions: [.payment, .refund]); defer { harness.cleanup() }
         let coordinator = harness.coordinator
         await coordinator.load(id: 77); coordinator.prepare(.payment, orderID: 77)

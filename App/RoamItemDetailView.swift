@@ -92,8 +92,8 @@ struct RoamItemDetailView: View {
                 else { content }
             }
             .disabled(scenePhase != .active)
-            .appNavigationTitle("roam.detail")
-            .navigationBarTitleDisplayMode(.inline)
+            // RPOI-6: the place's own name is the one (inline) title; 地点 only while the name is unknown.
+            .modifier(RoamItemDetailTitle(name: displayName))
             .cyHideTabBar()
             .navigationDestination(item: $eventNavigation) { selection in
                 if selection.mayRemainOpen(in: eventScope), let eventDestination {
@@ -169,12 +169,15 @@ struct RoamItemDetailView: View {
         .cyPlayerSheetGlass()
         .accessibilityIdentifier("roam.detail")
     }
+    private var displayName: String? {
+        let raw = (node?.name ?? item.title).trimmingCharacters(in: .whitespacesAndNewlines)
+        return raw.isEmpty ? nil : raw
+    }
     private var content: some View {
         List {
             Section {
-                RoamTitle(node?.name ?? item.title).cyText(.sheetTitle)
                 Label(item.kindLabel, systemImage: item.symbol)
-                if reader.isOfflineExample { Text("roam.offlineExample").font(.caption) }
+                if reader.isOfflineExample { Text("roam.offlineExample").cyText(.meta) }
             }
             switch item {
             case .place(let place): placeContent(place)
@@ -199,14 +202,18 @@ struct RoamItemDetailView: View {
             else if merchantFailed {
                 merchantRetrySection(node: node)
             }
-            Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination) }
+            Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination, showsFavorite: poiActions == nil) }
             // Official place extras (play, Xiaohongshu, quotes, player reviews, photo credit); hidden without a binding.
             RoamPlaceExtrasMount(poiID: node.poiId)
             Section("roam.yourStatus") {
                 let isCompleted = poiActionModel.completedOverride ?? node.completed
                 Label(LocalizedStringKey(isCompleted ? "roam.completed" : "roam.notCompleted"), systemImage: isCompleted ? "checkmark.circle" : "circle")
-                if poiActionModel.favoriteOverride ?? node.favorited { Label("roam.favorited", systemImage: "heart.fill") }
-                if let poiActions { RoamPOIActionRows(node: node, actions: poiActions, model: poiActionModel) }
+                // RPOI-2: favorite shows once — the action row's toggle when writes exist, else the node card's state line.
+                if let poiActions {
+                    RoamPOIActionRows(node: node, actions: poiActions, model: poiActionModel, ownerID: checkInOwnerID) {
+                        startLoad(visit: eventPresentationID)
+                    }
+                }
                 NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: { Label("media.poster.title", systemImage: "qrcode.viewfinder") }
                     .accessibilityIdentifier("media.poster.open")
                 if node.isPublished && !node.completed {
@@ -273,8 +280,8 @@ struct RoamItemDetailView: View {
     @ViewBuilder private func merchantContent(_ detail: RoamMerchantDetail) -> some View {
         let merchant = detail.merchant
         Section("roam.merchant") {
-            if let name = merchant.name { Text(verbatim: name).font(.headline) }
-            if let role = merchant.cityRole { Text(verbatim: role).font(.subheadline).foregroundStyle(.secondary) }
+            if let name = merchant.name { Text(verbatim: name).cyText(.cardTitle) }
+            if let role = merchant.cityRole { Text(verbatim: role).cyText(.bodyCompact).foregroundStyle(.secondary) }
             LabeledContent("roamSub.w208.poi.chargeLabel") { Text(LocalizedStringKey(RoamPOINodePresentation.chargeKey(merchant.chargeType))) }
                 .accessibilityIdentifier("roamSub.w208.poi.charge")
             if let title = merchant.storyTitle { Text(verbatim: title) }
@@ -416,6 +423,11 @@ struct RoamItemDetailView: View {
         }
         }
     }
+    private var checkInOwnerID: String? {
+        guard let identity = reader.identity else { return nil }
+        let text = String(identity.accountID)
+        return JourneyLoopSource.isID(text) ? text : nil
+    }
     private func suspendReads() {
         merchantRetry.cancel(); readOwner.deactivate(); generation += 1; loading = false
     }
@@ -443,6 +455,8 @@ struct RoamItemDetailView: View {
             try Task.checkCancellation()
             guard operation == generation, readsActive else { return }
             node = detail
+            poiActionModel.adopt(ownerID: checkInOwnerID, poiID: detail.poiId)
+            poiActionModel.noteReloaded(poiID: detail.poiId, completed: detail.completed)
             if let id = detail.merchantId, id > 0 {
                 do {
                     let result = try await reader.roamMerchantDetail(id: id)
@@ -514,5 +528,13 @@ struct RoamMerchantBusinessStatusLabel: View {
         Label(LocalizedStringKey(localizationKey), systemImage: symbol)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("roam.merchantBusinessStatus")
+    }
+}
+
+/// RPOI-6: object-name inline title (consist-1: no page-type title when the object has a name).
+private struct RoamItemDetailTitle: ViewModifier {
+    let name: String?
+    @ViewBuilder func body(content: Content) -> some View {
+        if let name { content.cyPageTitle(verbatim: name) } else { content.cyPageTitle("roam.detail") }
     }
 }

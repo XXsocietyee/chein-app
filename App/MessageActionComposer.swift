@@ -191,7 +191,7 @@ struct MessageComposerSubmission: Equatable {
                     .accessibilityIdentifier("message.send.button")
                 }
                 .frame(minHeight:44)
-                .background(Theme.Color.bgRaised(in:domain),in:RoundedRectangle(cornerRadius:22,style:.continuous))
+                .background(Theme.Color.bgRaised(in:domain),in:RoundedRectangle(cornerRadius: CYRadius.card, style:.continuous))
             }
             if !conversationReady { Text("message.send.historyRequired").cyText(.meta).foregroundStyle(.secondary) }
         }
@@ -266,7 +266,7 @@ private struct MessageComposerReceipt: View {
             .fixedSize(horizontal: false, vertical: true)
             .padding(.vertical, 11).padding(.leading, 16).padding(.trailing, 4)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(fill, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .background(fill, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .allowsHitTesting(false)
             .accessibilityIdentifier("message.send.receipt")
             .transition(.asymmetric(insertion: .identity,

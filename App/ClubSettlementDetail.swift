@@ -163,7 +163,7 @@ import UIKit
         Color.clear.frame(width: 0, height: 0)
             .sheet(isPresented: owner.binding(item, source: source, active: active), onDismiss: {
                 if owner.dismissed(item, source: source(), active: active()) { returned() }
-            }) {
+            }) { Group {
                 NavigationStack {
                     Group {
                         if owner.current(item, source: source(), active: active()) {
@@ -175,6 +175,7 @@ import UIKit
                         Button("club.gov.close") { owner.binding(item, source: source, active: active).wrappedValue = false }
                     } }
                 }
+            }.cySheet(detents: [.large])
             }
     }
 }
@@ -220,9 +221,9 @@ import UIKit
     var body: some View {
         Group {
             if presentation.records.isEmpty {
-                ContentUnavailableView {
-                    Label { Text("clubOps.settlement.empty", tableName: "ClubOpsCustomer") } icon: { Image(systemName: "yensign.circle") }
-                }.accessibilityIdentifier("clubOps.settlement.empty")
+                // Round 2 MP asset: settlement 还没有平台分润记录 is cy-empty kind="empty" (MP illustration).
+                ClubMPEmptyState(title: Text("clubOps.settlement.empty", tableName: "ClubOpsCustomer"))
+                    .accessibilityIdentifier("clubOps.settlement.empty")
             }
             ForEach(presentation.records) { row in
                 if let target = presentation.target(recordID: row.id, context: context, snapshotGeneration: snapshotGeneration, namespace: namespace) {
@@ -287,7 +288,7 @@ import UIKit
             if sourceIsCurrent(), let row = model.accepted(expected, access: access) {
                 Section {
                     Text(verbatim: row.name).cyText(.sheetTitle)
-                    Text("club.settlementDetail.perspective").font(.subheadline)
+                    Text("club.settlementDetail.perspective").cyText(.body)
                     Text(LocalizedStringKey(row.status.localizationKey))
                     LabeledContent(LocalizedStringKey(row.amountLabelKey)) {
                         if let amount = row.amountText { Text(verbatim: amount) }

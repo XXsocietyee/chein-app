@@ -1,0 +1,21 @@
+appId: invalid.example.questify.ios
+---
+# Roam home through the wired DEBUG fixture d2-roam
+# (DesignFixtureRegistry.make -> D2Fixture(screen: .roam) -> RoamHomeFixtureHostView
+# -> RoamBrowserView). The content reader is signed in with a search area, so the
+# map chrome is on screen. GO, rules, and the map control are not tapped.
+# No typed text, payment, location prompt, or host URL. DEBUG builds only.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    stopApp: true
+    arguments:
+      "--design-fixture": "d2-roam"
+- extendedWaitUntil:
+    visible:
+      id: "roam.go"
+    timeout: 20000
+- assertVisible:
+    id: "roam.rules"
+- assertVisible:
+    id: "roam.openMap"

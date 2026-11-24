@@ -134,7 +134,7 @@ public struct OfflineDurableRecoverySectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -169,7 +169,7 @@ public struct OfflineDurableRecoverySectionView: View {
                             .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                             .foregroundStyle(pillar.isVerified ? CYColor.successText : CYColor.warningText)
                             .accessibilityIdentifier("durableRecovery.pillarStatus.\(pillar.id)")
                     }
@@ -179,14 +179,14 @@ public struct OfflineDurableRecoverySectionView: View {
                         .foregroundStyle(.primary)
 
                     Text(verbatim: pillar.recoveryRuleSummary)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("durableRecovery.pillarRule.\(pillar.id)")
                 }
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                         .fill(Color.primary.opacity(0.04))
                 )
                 .accessibilityElement(children: .combine)

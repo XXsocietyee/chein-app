@@ -17,7 +17,6 @@ struct BundleReserveWindowView: View {
         if let first = window.earliestMs, let last = window.latestMs {
             let range = date(first)...date(last)
             Section {
-                hero
                 DatePicker(selection: Binding(get: { selection ?? range.lowerBound },
                                               set: { selection = $0 }),
                            in: range) { text("window.pick") }
@@ -31,22 +30,23 @@ struct BundleReserveWindowView: View {
                 .cyHaptic(.impactMedium, trigger: commitTick)
                 .listRowInsets(rowInsets)
                 .listRowBackground(Color.clear)
+            } header: {
+                hero
             }
         } else {
             Section {
-                hero
                 CYEmptyState(systemImage: "calendar.badge.exclamationmark", "window.none", tableName: table, messageIdentifier: "bundleStall.noWindow")
                     .listRowInsets(rowInsets)
                     .listRowBackground(Color.clear)
+            } header: {
+                hero
             }
         }
     }
 
+    /// Native restyle r1 (spec §3.2): the window title is the section header, not an in-list hero title.
     private var hero: some View {
-        CYHeroHeader(LocalizedStringKey("window.header"), tableName: table)
-            .listRowInsets(rowInsets)
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
+        text("window.header")
     }
 
     private var rowInsets: EdgeInsets {

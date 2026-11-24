@@ -133,9 +133,10 @@ import UIKit
                     HStack(spacing: CYSpacing.md) {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                             Text(row.title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            ActivityTemplateChoiceMeta(row: row)
                             if row.availability != .available {
                                 Text(LocalizedStringKey(row.availability.rawValue), tableName: "ActivityTemplateSelection")
-                                    .cyText(.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
+                                    .cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                             }
                         }
                         Spacer(minLength: CYSpacing.sm)
@@ -163,7 +164,7 @@ import UIKit
             Button { owner.close(stamp) } label: { Text("cancel", tableName: "ActivityTemplateSelection") }
                 .buttonStyle(CYPillButtonStyle(style: .tertiary))
                 .accessibilityIdentifier("activityTemplate.cancel")
-        } header: { Text("title", tableName: "ActivityTemplateSelection").cyText(.label).foregroundStyle(palette.textTertiary) }
+        } header: { Text("title", tableName: "ActivityTemplateSelection").cyText(.label).foregroundStyle(palette.textSecondary) }
     }
 }
 
@@ -188,7 +189,7 @@ extension ActivityTemplateSelectionOwner {
     }
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: owner.creationBinding(original), onDismiss: { owner.creationDismissed(original) }) { offered in
+            .sheet(item: owner.creationBinding(original), onDismiss: { owner.creationDismissed(original) }) { offered in Group {
                 NavigationStack {
                     if owner.currentCreation(offered) {
                         contentOwner.view.toolbar { ToolbarItem(placement: .cancellationAction) {
@@ -197,7 +198,7 @@ extension ActivityTemplateSelectionOwner {
                         } }
                     }
                 }
-            }
+            }.cySheet(detents: [.large]) }
     }
 }
 
@@ -229,5 +230,35 @@ extension ActivityTemplateSelectionOwner {
         let presented = source.contains { $0.presentedViewController != nil }
         let leaving = departing || source.contains { $0.isMovingFromParent || $0.isBeingDismissed } || parent == nil
         owner?.parentDisappeared(departing: leaving, coveredByPresentation: presented)
+    }
+}
+
+/// MP publish/activity template row `.david_mbxi` (wxml:254-257): 人数 with `d_mbico1`, then 「N分钟」 with `d_mbico2`
+/// only when the duration is positive. Nothing is drawn when the server row has neither.
+struct ActivityTemplateChoiceMeta: View {
+    let row: ActivityTemplateChoice
+    @Environment(\.cyPalette) private var palette
+    @ScaledMetric(relativeTo: .caption) private var icon: CGFloat = 14
+
+    private var players: String? {
+        let value = row.raw["players"]?.text ?? row.raw["players"]?.integer.map(String.init)
+        return value.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+    }
+    private var minutes: Int? { row.raw["duration"]?.integer.flatMap { $0 > 0 ? $0 : nil } }
+
+    var body: some View {
+        if players != nil || minutes != nil {
+            HStack(spacing: CYSpacing.md) {
+                if let players {
+                    Label { Text(verbatim: players) } icon: { MPAsset.FeatureIcon.dMbico1.resizable().scaledToFit().frame(width: icon, height: icon) }
+                }
+                if let minutes {
+                    Label { Text("fixr3.activity.templateMinutes \(minutes)") } icon: { MPAsset.FeatureIcon.dMbico2.resizable().scaledToFit().frame(width: icon, height: icon) }
+                }
+            }
+            .labelStyle(.titleAndIcon)
+            .cyText(.meta).foregroundStyle(palette.textSecondary)
+            .accessibilityElement(children: .combine)
+        }
     }
 }

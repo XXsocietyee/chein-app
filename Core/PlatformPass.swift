@@ -8,9 +8,9 @@ import FoundationNetworking
 /// Source: hengyin `chengyinhub-xcx` `1c80c5aea8f721ca8575e6108048495b100f5576`
 /// (`subpackageMember/utils/platform-pass.js`, `pass-library.js`, `market-view.js`,
 /// `market/membership`, `market/library`, `market/passes`).
-/// Purchase, quote, and gift claim are compiled on this type and always refuse.
+/// Purchase, quote, gift claim, cancel, confirm, and refund-apply are compiled on this type and always refuse.
 /// Money stays off: this type does not build a payment body or call a pay route.
-public struct PlatformPass: Sendable {
+public struct PlatformPass: @unchecked Sendable {
     public static let miniProgramCommit = "1c80c5aea8f721ca8575e6108048495b100f5576"
     public static let moneyEnabled = false
 
@@ -21,9 +21,19 @@ public struct PlatformPass: Sendable {
     public static let giftsBoughtPath = "api/marketing/product/gifts/bought"
     public static let giftsReceivedPath = "api/marketing/product/gifts/received"
     public static let pointsPath = "api/user/info"
+    /// Owner 2026-11-24: players may read platform-pass orders. This is a read, not a money write.
+    public static let orderReadsEnabled = true
+
     public static let purchasePath = "api/platform-pass/orders"
     /// GET on the purchase URL lists the viewer's own pass orders (`market/passes` 我的订单). POST stays refused.
     public static let passOrdersPath = "api/platform-pass/orders"
+    /// POST `api/platform-pass/orders/{orderNo}/cancel` with no body. Compiled, never sent.
+    public static let cancelOrderPath = "api/platform-pass/orders/{}/cancel"
+    /// POST `api/platform-pass/orders/{orderNo}/confirm` with no body. Compiled, never sent.
+    public static let confirmOrderPath = "api/platform-pass/orders/{}/confirm"
+    /// POST `api/platform-pass/orders/{orderNo}/refund-apply` JSON `{reason}`. Compiled, never sent.
+    public static let refundApplyPath = "api/platform-pass/orders/{}/refund-apply"
+    public static let refundApplyField = "reason"
     /// GET `api/marketing/product/{id}` (`market/pass` detail).
     public static let productDetailPrefix = "api/marketing/product/"
     /// POST `api/public-catalog/list`: the theme library (`market/library`) reads the public catalog, not the pass
@@ -123,14 +133,17 @@ public struct PlatformPass: Sendable {
     }
 
     /// GET `/api/platform-pass/orders?limit=20`: the viewer's own city-pass subscription orders.
-    public func passOrders(token: String) async throws -> [PlatformPassSubscriptionOrder] {
+    /// Merchants do not read it. The read gate stays on; purchase never sends.
+    public func passOrders(token: String, viewerIsMerchant: Bool = false) async throws -> [PlatformPassSubscriptionOrder] {
+        guard Self.orderReadsEnabled, !viewerIsMerchant else { return [] }
         let data = try await get(Self.passOrdersPath, query: [URLQueryItem(name: "limit", value: "20")], token: token)
         guard let rows = PlatformPassJSON.rows(data) else { throw APIError.malformedResponse }
         return rows.compactMap { PlatformPassJSON.dictionary($0).flatMap(PlatformPassSubscriptionOrder.decode) }
     }
 
     /// GET `/api/platform-pass/orders/{orderNo}` (`market/pass-order`). Read only: pay, cancel and refund stay off.
-    public func passOrderDetail(orderNo: String, token: String) async throws -> PlatformPassSubscriptionOrder {
+    public func passOrderDetail(orderNo: String, token: String, viewerIsMerchant: Bool = false) async throws -> PlatformPassSubscriptionOrder {
+        guard Self.orderReadsEnabled, !viewerIsMerchant else { throw APIError.notConfigured }
         guard PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { throw APIError.invalidRequest }
         let data = try await get(Self.passOrdersPath + "/" + orderNo, query: [], token: token)
         guard let row = PlatformPassJSON.dictionary(data), let order = PlatformPassSubscriptionOrder.decode(row) else {
@@ -168,6 +181,86 @@ public struct PlatformPass: Sendable {
     public func claim(giftToken: String, requestID: String, token: String) throws -> Never {
         _ = (giftToken, requestID, token, Self.moneyEnabled, Self.writesReachable, Self.claimPath)
         throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// `POST api/platform-pass/orders/{orderNo}/cancel` (`market/pass-order` `onCancelOrder`).
+    /// The page sends no `data` key. Its `request()` sets `content-type: application/json`, and the
+    /// request client substitutes `{}`. Compiled, never sends. `moneyEnabled` stays false.
+    public static func passOrderCancelPath(orderNo: String) -> String {
+        "api/platform-pass/orders/\(orderNo)/cancel"
+    }
+
+    /// `POST api/platform-pass/orders/{orderNo}/confirm` (`platform-pass-pay.js` `proceed`).
+    /// No `data` key, same JSON `{}` body. Compiled, never sends.
+    public static func passOrderConfirmPath(orderNo: String) -> String {
+        "api/platform-pass/orders/\(orderNo)/confirm"
+    }
+
+    /// `POST api/platform-pass/orders/{orderNo}/refund-apply` with `{reason}` (`onRefundSubmit`).
+    /// Compiled, never sends.
+    public static func passOrderRefundApplyPath(orderNo: String) -> String {
+        "api/platform-pass/orders/\(orderNo)/refund-apply"
+    }
+
+    public static func passOrderCancelRequest(baseURL: URL, orderNo: String, token: String) throws -> URLRequest {
+        try passOrderJSON(baseURL: baseURL, path: passOrderCancelPath(orderNo: orderNo), orderNo: orderNo, token: token, body: [:])
+    }
+
+    public static func passOrderConfirmRequest(baseURL: URL, orderNo: String, token: String) throws -> URLRequest {
+        try passOrderJSON(baseURL: baseURL, path: passOrderConfirmPath(orderNo: orderNo), orderNo: orderNo, token: token, body: [:])
+    }
+
+    public static func passOrderRefundApplyRequest(baseURL: URL, orderNo: String, reason: String, token: String) throws -> URLRequest {
+        let trimmed = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw APIError.invalidRequest }
+        return try passOrderJSON(baseURL: baseURL, path: passOrderRefundApplyPath(orderNo: orderNo), orderNo: orderNo, token: token, body: ["reason": trimmed])
+    }
+
+    /// Cancel, confirm, and refund-apply success body: `code` 200 or `"200"`, then one order.
+    /// The page reads `data.status` and `data.refund.reviewStatus`.
+    public static func decodeOrderEnvelope(_ data: Data) throws -> PlatformPassSubscriptionOrder {
+        let object = try PlatformPassJSON.object(data)
+        guard PlatformPassJSON.isBizOK(object),
+              let row = PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)),
+              let order = PlatformPassSubscriptionOrder.decode(row) else { throw APIError.malformedResponse }
+        return order
+    }
+
+    /// Cancel. Compiled, never sends.
+    public func cancelPassOrder(orderNo: String, token: String) throws -> Never {
+        _ = (orderNo, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderCancelPath(orderNo: orderNo))
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Confirm. Compiled, never sends.
+    public func confirmPassOrder(orderNo: String, token: String) throws -> Never {
+        _ = (orderNo, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderConfirmPath(orderNo: orderNo))
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Refund apply. Compiled, never sends.
+    public func refundApplyPassOrder(orderNo: String, reason: String, token: String) throws -> Never {
+        _ = (orderNo, reason, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderRefundApplyPath(orderNo: orderNo))
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    private static func passOrderJSON(baseURL: URL, path: String, orderNo: String, token: String, body: [String: String]) throws -> URLRequest {
+        guard PlatformPassSubscriptionOrder.orderNoAllowed(orderNo), AuthRequestBuilder.isValidToken(token) else {
+            throw APIError.invalidRequest
+        }
+        let built = path.split(separator: "/").reduce(baseURL) { partial, part in
+            partial.appendingPathComponent(String(part))
+        }
+        var request = URLRequest(url: built)
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 20
+        request.httpShouldHandleCookies = false
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        return request
     }
 
     private static func libraryQuery(_ kind: String) throws -> [URLQueryItem] {
@@ -261,6 +354,51 @@ public struct PlatformPassHolding: Equatable, Sendable {
     }
 }
 
+/// `utils/platform-pass.js` `passTerms`: a string list, or the older object shape.
+/// First matching line wins. `有效期：` is stored without that prefix.
+public struct PlatformPassTermFacts: Equatable, Sendable {
+    public var period: String?
+    public var renewal: String?
+    public var refund: String?
+    public var seat: String?
+    public var coverage: String?
+    public static let empty = PlatformPassTermFacts()
+    public init(period: String? = nil, renewal: String? = nil, refund: String? = nil, seat: String? = nil, coverage: String? = nil) {
+        self.period = period; self.renewal = renewal; self.refund = refund; self.seat = seat; self.coverage = coverage
+    }
+
+    static func parse(_ value: Any?) -> PlatformPassTermFacts {
+        if let lines = PlatformPassJSON.rows(value) {
+            var facts = PlatformPassTermFacts()
+            for line in lines {
+                guard let raw = line as? String else { continue }
+                let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+                if text.isEmpty { continue }
+                let key: WritableKeyPath<PlatformPassTermFacts, String?>
+                var stored = text
+                if text.range(of: #"^有效期[：:]"#, options: .regularExpression) != nil {
+                    key = \.period
+                    stored = text.replacingOccurrences(of: #"^有效期[：:]\s*"#, with: "", options: .regularExpression)
+                } else if text.contains("续费") { key = \.renewal }
+                else if text.contains("退款") { key = \.refund }
+                else if text.contains("本人") || text.contains("同行") { key = \.seat }
+                else { key = \.coverage }
+                if facts[keyPath: key] == nil { facts[keyPath: key] = stored }
+            }
+            return facts
+        }
+        if let object = PlatformPassJSON.dictionary(value) {
+            return PlatformPassTermFacts(
+                period: PlatformPassJSON.text(object["period"]),
+                renewal: PlatformPassJSON.text(object["renewal"]),
+                refund: PlatformPassJSON.text(object["refund"]),
+                seat: PlatformPassJSON.text(object["seat"]),
+                coverage: PlatformPassJSON.text(object["coverage"]))
+        }
+        return .empty
+    }
+}
+
 public struct PlatformPassOverview: Equatable, Sendable {
     public let enabled: Bool
     public let merchantBlocked: Bool
@@ -269,6 +407,8 @@ public struct PlatformPassOverview: Equatable, Sendable {
     public let holding: PlatformPassHolding
     public let jsapiAvailable: Bool
     public let xpayAvailable: Bool
+    /// Server `overview.terms`, normalized the way `passTerms` does.
+    public let terms: PlatformPassTermFacts
 
     public static let merchantBlocked = PlatformPassOverview(
         enabled: false, merchantBlocked: true, libraryCount: nil, plans: [],
@@ -276,7 +416,8 @@ public struct PlatformPassOverview: Equatable, Sendable {
         jsapiAvailable: false, xpayAvailable: false)
 
     public init(enabled: Bool, merchantBlocked: Bool, libraryCount: Int?, plans: [PlatformPassPlan],
-                holding: PlatformPassHolding, jsapiAvailable: Bool, xpayAvailable: Bool) {
+                holding: PlatformPassHolding, jsapiAvailable: Bool, xpayAvailable: Bool,
+                terms: PlatformPassTermFacts = .empty) {
         self.enabled = enabled
         self.merchantBlocked = merchantBlocked
         self.libraryCount = libraryCount
@@ -284,6 +425,7 @@ public struct PlatformPassOverview: Equatable, Sendable {
         self.holding = holding
         self.jsapiAvailable = jsapiAvailable
         self.xpayAvailable = xpayAvailable
+        self.terms = terms
     }
 
     static func decode(_ data: Any) throws -> PlatformPassOverview {
@@ -309,7 +451,8 @@ public struct PlatformPassOverview: Equatable, Sendable {
                                          teammateBenefit: PlatformPassJSON.flag(holding["teammateBenefit"]),
                                          expiring: PlatformPassJSON.text(holding["badge"]) == "EXPIRING"),
             jsapiAvailable: PlatformPassJSON.flag(PlatformPassJSON.dictionary(channels["jsapi"])?["available"]),
-            xpayAvailable: PlatformPassJSON.flag(PlatformPassJSON.dictionary(channels["xpay"])?["available"]))
+            xpayAvailable: PlatformPassJSON.flag(PlatformPassJSON.dictionary(channels["xpay"])?["available"]),
+            terms: PlatformPassTermFacts.parse(object["terms"]))
     }
 }
 
@@ -653,14 +796,9 @@ public struct PlatformPassSubscriptionOrder: Equatable, Sendable {
             canRefund: status == .paid && (review == "NONE" || review == "REJECTED"))
     }
 
-    /// `platform-pass.js` `yuanFen`: ¥ plus the decimal yuan without trailing zeros.
+    /// Shared two-decimal yuan (`MoneyDisplay`). Owner 2026-11-24: ¥12.50, never one decimal.
     static func yuanFen(_ fen: Int) -> String {
-        let sign = fen < 0 ? "-" : ""
-        let whole = abs(fen) / 100
-        let frac = abs(fen) % 100
-        if frac == 0 { return "\(sign)¥\(whole)" }
-        if frac % 10 == 0 { return "\(sign)¥\(whole).\(frac / 10)" }
-        return "\(sign)¥\(whole)." + (frac < 10 ? "0" : "") + "\(frac)"
+        MoneyDisplay.yuan(fen: fen)
     }
 
     /// Server dates arrive as `yyyy-MM-dd HH:mm:ss` (China time), ISO text or epoch numbers.

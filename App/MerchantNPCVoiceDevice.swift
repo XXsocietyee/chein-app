@@ -26,7 +26,7 @@ import AVFoundation
         MerchantNPCVoiceTemporaryFiles.sweep(in: temporaryDirectory)
         let session = AVAudioSession.sharedInstance()
         let permitted: Bool
-        switch session.recordPermission {
+        switch AVAudioApplication.shared.recordPermission {
         case .granted: permitted = true
         case .denied: permitted = false
         default: permitted = await withCheckedContinuation { continuation in session.requestRecordPermission { continuation.resume(returning: $0) } }

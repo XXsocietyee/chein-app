@@ -4,7 +4,9 @@ import SwiftUI
     @Environment(\.locale) private var locale
     let reader: any GrowthCenterReading
     @Environment(\.cyPalette) private var palette
-    @Environment(\.growthExploreHomeAction) private var onExploreHome
+    @Environment(\.growthExploreHomeAction) private var injectedExploreHome
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    private var onExploreHome: (() -> Void)? { rootTabSwitch.growthExploreFallback(injectedExploreHome) }
     @Environment(\.scenePhase) private var scenePhase
     private var reads: GrowthNormalReadTask { model.overviewReads }
     @State private var query = GrowthBoardQuery()
@@ -75,12 +77,12 @@ import SwiftUI
                         ForEach(Array(board.list.enumerated()), id: \.offset) { index, row in
                             if index >= 3 {
                                 GrowthLeaderboardRow(entry: row, fallback: "growth.explorer", metric: board.metric,
-                                                     isMe: meID != nil && row.memberID == meID)
+                                                     isMe: meID != nil && row.memberID == meID, listIndex: index)
                                     .accessibilityIdentifier("growth.board.row.\(index)")
                             }
                         }
                         if !listed, let rank = board.me.rank {
-                            GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true)
+                            GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true, listIndex: -1)
                                 .accessibilityIdentifier("growth.board.me.\(rank)")
                         }
                     }
@@ -138,6 +140,8 @@ private struct GrowthLeaderboardRow: View {
     let metric: GrowthBoardMetric
     var place: Int? = nil
     var isMe = false
+    /// MP `toRow(it, index)`: the list index picks the Memoji; the pinned 我 row is -1.
+    var listIndex = 0
     var body: some View {
         // Mini-program order: rank, name, trailing score + unit. One tappable-height row;
         // at accessibility sizes the score drops under the name instead of squeezing it.
@@ -148,17 +152,19 @@ private struct GrowthLeaderboardRow: View {
                 else if let rank = entry.rank { Text(rank, format: .number).monospacedDigit() }
                 else { Text("growth.unranked") }
             }
-            .font(.headline).foregroundStyle(palette.textTertiary)
+            // LEADER-5: MP `.gc-row-rank` subtitle size, semibold, secondary.
+            .cyText(.cardTitle, monospacedDigit: true).foregroundStyle(palette.textSecondary)
             .frame(minWidth: 28, alignment: .leading)
+            GrowthMemojiAvatar(index: listIndex, side: 40)
             VStack(alignment: .leading, spacing: 4) {
                 let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(spacing: 8))
                 layout {
-                    GrowthCenterName(name: entry.nickname, fallback: fallback).font(.headline)
+                    GrowthCenterName(name: entry.nickname, fallback: fallback).cyText(.bodyMedium)
                         .foregroundStyle(palette.textPrimary).lineLimit(2)
                     if isMe { CYStatusChip("growth.board.meTag") }
                 }
                 if let percentage = GrowthCenterFormatting.nonempty(entry.rankPercentage) {
-                    Text(verbatim: percentage).font(.caption).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: percentage).cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
                 if stacked { score(alignment: .leading) }
             }
@@ -171,9 +177,26 @@ private struct GrowthLeaderboardRow: View {
     }
     private func score(alignment: HorizontalAlignment) -> some View {
         VStack(alignment: alignment, spacing: 2) {
-            GrowthCenterInteger(value: entry.score).font(.headline).foregroundStyle(palette.textPrimary)
-            Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
+            GrowthCenterInteger(value: entry.score).cyText(.label, weight: .semibold, monospacedDigit: true).foregroundStyle(palette.textPrimary)
+            Text(LocalizedStringKey("growth.unit." + metric.rawValue)).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
+    }
+}
+
+/// MP leaderboard avatar (index.js:10-17, wxml:132-134): own avatar → Memoji by list index → initial. Remote avatars are
+/// not loaded on Growth screens, so every row shows the MP Memoji (MP assets `memoji-1/2/3`, rotating, me = the first).
+struct GrowthMemojiAvatar: View {
+    @Environment(\.cyPalette) private var palette
+    let index: Int
+    let side: CGFloat
+    var body: some View {
+        [MPAsset.AvatarDefault.memoji1, MPAsset.AvatarDefault.memoji2, MPAsset.AvatarDefault.memoji3][max(index, 0) % 3]
+            .resizable()
+            .scaledToFill()
+            .frame(width: side, height: side)
+            .background(palette.bgRaised)
+            .clipShape(Circle())
+            .accessibilityHidden(true)
     }
 }
 
@@ -188,7 +211,7 @@ struct GrowthPodiumMark: View {
     }
 }
 
-/// Mini-program chip pair (周榜 / 总榜, 积分榜 / 成长榜): capsules, the selected one solid.
+/// Mini-program chip pair (周榜 / 总榜, 积分榜 / 成长榜) on the shared chip tabs.
 private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
     @Environment(\.cyPalette) private var palette
     let title: LocalizedStringKey
@@ -198,28 +221,18 @@ private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
     init(title: LocalizedStringKey, selection: Binding<Option>, options: [Option], key: @escaping (Option) -> String) {
         self.title = title; self._selection = selection; self.options = options; self.key = key
     }
+    @Environment(\.locale) private var locale
+    /// LEADER-7: the shared chip tabs (`CYTabs(variant: .chip)`), not a hand-rolled capsule row.
     var body: some View {
-        HStack(spacing: CYSpacing.sm) {
-            ForEach(options) { option in
-                let selected = selection == option
-                Button { selection = option } label: {
-                    Text(LocalizedStringKey(key(option)))
-                        .font(selected ? CYTypography.label.weight(.semibold) : CYTypography.label)
-                        .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textPrimary)
-                        .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-                        .background(selected ? palette.actionPrimaryBg : palette.bgElevated, in: Capsule())
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(selected ? .isSelected : [])
-            }
-        }
-        .sensoryFeedback(.selection, trigger: selection)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text(title))
+        CYTabs(items: options.map { CYTabItem(id: $0, title: appLocalized(String.LocalizationValue(key($0)), locale: locale)) },
+               selection: $selection, variant: .chip)
+            .sensoryFeedback(.selection, trigger: selection)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(title))
     }
 }
 
-/// Mini-program podium: 2 · 1 · 3, initial discs with a rank coin, name, score + unit. Unknown score is an em dash.
+/// Mini-program podium: 2 · 1 · 3, Memoji discs with a rank coin, name, score + unit. Unknown score is an em dash.
 private struct GrowthLeaderboardPodiumView: View {
     @Environment(\.cyPalette) private var palette
     let entries: [GrowthLeaderboardEntry]
@@ -236,14 +249,17 @@ private struct GrowthLeaderboardPodiumView: View {
     }
     private func column(_ entry: GrowthLeaderboardEntry, place: Int) -> some View {
         let side: CGFloat = place == 1 ? 96 : 76
-        let ring = place == 1 && themeDomain == .player ? palette.avatarRing : palette.borderStrong
+        // LEADER-6 (MP RING_BG): gold / pale gold / bronze rings for 1 · 2 · 3.
+        let ring = place == 1 ? Color(red: 0.96, green: 0.77, blue: 0.26)
+            : place == 2 ? Color(red: 0.90, green: 0.77, blue: 0.42) : Color(red: 0.85, green: 0.59, blue: 0.29)
         let name = GrowthCenterFormatting.nonempty(entry.nickname)
         return VStack(spacing: CYSpacing.sm) {
+            // LEADER-6: MP `gc-crown` star above the first place (decorative).
+            if place == 1 {
+                Image(systemName: "star.fill").foregroundStyle(ring).accessibilityHidden(true)
+            }
             ZStack(alignment: .bottom) {
-                Text(verbatim: name.map { String($0.prefix(1)) } ?? "—")
-                    .font(place == 1 ? .largeTitle.weight(.heavy) : .title.weight(.heavy)).foregroundStyle(palette.textPrimary)
-                    .frame(width: side, height: side)
-                    .background(palette.bgRaised, in: Circle())
+                GrowthMemojiAvatar(index: place - 1, side: side)
                     .overlay(Circle().strokeBorder(ring, lineWidth: 3))
                 Text(place, format: .number).cyText(.label, weight: .bold).foregroundStyle(palette.textInverse)
                     .frame(width: 28, height: 28).background(palette.textPrimary, in: Circle())
@@ -254,7 +270,8 @@ private struct GrowthLeaderboardPodiumView: View {
             GrowthCenterName(name: entry.nickname, fallback: "growth.explorer").cyText(.label, weight: .semibold)
                 .foregroundStyle(palette.textPrimary).cyWrapText(alignment: .center)
             HStack(spacing: 4) {
-                GrowthCenterInteger(value: entry.score).cyText(.dataXL)
+                // LEADER-5: `dataXL` overflowed a ⅓ column; MP `.gc-num` is label-sized.
+                GrowthCenterInteger(value: entry.score).cyText(.numericBody)
                     .foregroundStyle(palette.textPrimary)
                 Text(LocalizedStringKey("growth.unit." + metric.rawValue)).cyText(.caption).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)

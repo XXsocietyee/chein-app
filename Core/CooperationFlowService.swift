@@ -17,6 +17,9 @@ public enum CoopFlowRead: Equatable {
     case inviteRequests(before: String?, limit: Int)
     /// GET `/api/coop/supply-stations?topicId=&merchantMemberId=`.
     case supplyStations(topicID: Int, merchantMemberID: Int)
+    /// Coop settlement detail `source=club`. POST `/api/club/settlement/summary` body `{clubId}` or `{clubId, personal:true}`.
+    /// Read only: this case does not withdraw, adjust, or rewrite an amount.
+    case clubSettlementSummary(clubID: Int, personal: Bool)
     public var path: String {
         switch self {
         case .invitations: return "api/coop/list"; case .pool: return "api/coop/pool/list"
@@ -37,6 +40,7 @@ public enum CoopFlowRead: Equatable {
         case .inviteRequest: return "api/coop/invite/request"
         case .inviteRequests: return "api/coop/invite/requests"
         case .supplyStations: return "api/coop/supply-stations"
+        case .clubSettlementSummary: return "api/club/settlement/summary"
         }
     }
     /// GET reads send the query and no body. Every other read stays a JSON POST.
@@ -88,6 +92,11 @@ public enum CoopFlowRead: Equatable {
         case .supplyStations(let topicID, let merchantMemberID):
             guard topicID > 0, merchantMemberID > 0 else { throw APIError.invalidRequest }
             return .object([:])
+        case .clubSettlementSummary(let clubID, let personal):
+            guard clubID > 0 else { throw APIError.invalidRequest }
+            var fields: [String: CoopFlowJSON] = ["clubId": .id(clubID)]
+            if personal { fields["personal"] = .bool(true) }
+            return .object(fields)
         default: return .object([:])
         }
     }
@@ -162,6 +171,7 @@ public struct CoopFlowService {
         case .invitations: guard value["sent"].rows != nil, value["received"].rows != nil else { throw CoopFlowFailure.malformed }
         case .pool, .registrations, .ownedTopics: guard value["rows"].rows != nil else { throw CoopFlowFailure.malformed }
         case .relations: _ = try CoopRelationDiscovery(value)
+        case .clubSettlementSummary: guard value["topics"].rows != nil else { throw CoopFlowFailure.malformed }
         default: break
         }
         return value
@@ -198,6 +208,14 @@ public struct CoopFlowService {
         }
         return result
     }
+    /// Station-topic accept. Uses the same dormant handle grant as `.handle(.accept)` and adds `supplyStationId`.
+    /// Default configuration sends nothing.
+    public func acceptSupplyStation(inviteID: Int, reason: String?, supplyStationID: Int, session: CoopFlowSession) async throws -> CoopFlowJSON {
+        let operation = CoopFlowMutation.handle(inviteID: inviteID, action: .accept, reason: reason)
+        guard permitsDispatch(operation) else { throw CoopFlowFailure.disabled }
+        let body = try CoopSupplyStationAccept.body(inviteID: inviteID, reason: reason, supplyStationID: supplyStationID)
+        return try await send(makeRequest(path: CoopSupplyStationAccept.path, body: body, session: session))
+    }
     /// Invitee's read receipt. Not a money or merchant write, so it does not wait on the dormant write switch.
     public func markInviteRead(inviteID: Int, session: CoopFlowSession) async throws -> CoopFlowJSON {
         let operation = CoopFlowMutation.markInviteRead(inviteID: inviteID)
@@ -229,6 +247,8 @@ public struct CoopFlowService {
     func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement
     func markInviteRead(inviteID: Int) async throws -> CoopFlowJSON
+    /// Station-topic accept. Default sends nothing; the dormant handle grant is unchanged.
+    func acceptSupplyStation(inviteID: Int, reason: String?, supplyStationID: Int) async throws -> CoopFlowJSON
 }
 extension CoopFlowReading {
     public func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON {
@@ -238,6 +258,7 @@ extension CoopFlowReading {
         return value
     }
     public func markInviteRead(inviteID: Int) async throws -> CoopFlowJSON { throw CoopFlowFailure.disabled }
+    public func acceptSupplyStation(inviteID: Int, reason: String?, supplyStationID: Int) async throws -> CoopFlowJSON { throw CoopFlowFailure.disabled }
 }
 @MainActor public final class CoopFlowSessionReader: CoopFlowReading {
     private let service: CoopFlowService?
@@ -256,6 +277,9 @@ extension CoopFlowReading {
     }
     public func markInviteRead(inviteID: Int) async throws -> CoopFlowJSON {
         try await fenced { try await $0.markInviteRead(inviteID: inviteID, session: $1) }
+    }
+    public func acceptSupplyStation(inviteID: Int, reason: String?, supplyStationID: Int) async throws -> CoopFlowJSON {
+        try await fenced { try await $0.acceptSupplyStation(inviteID: inviteID, reason: reason, supplyStationID: supplyStationID, session: $1) }
     }
     private func fenced<T>(isCurrent: () -> Bool = { true }, _ operation: (CoopFlowService, CoopFlowSession) async throws -> T) async throws -> T {
         guard isCurrent() else { throw CoopFlowFailure.stale }

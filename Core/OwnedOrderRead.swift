@@ -112,6 +112,10 @@ public struct OwnedOrderReadSession: Equatable {
     public func profileOrders() async throws -> [ProfileOrder] {
         try await read { try await $0.orders(token: $1.context.session.token, expectedAccountID: $1.context.session.accountID) }
     }
+    /// History screen opt-in. `profileOrders()` stays unpaged and does not send `status`.
+    public func profileOrderHistory(pageNum: Int) async throws -> ProfileOrderPage {
+        try await read { try await $0.orderHistory(token: $1.context.session.token, pageNum: pageNum, expectedAccountID: $1.context.session.accountID) }
+    }
     public func profileOrder(id: Int) async throws -> ProfileOrder {
         try await read { try await $0.order(id: id, token: $1.context.session.token, expectedAccountID: $1.context.session.accountID) }
     }

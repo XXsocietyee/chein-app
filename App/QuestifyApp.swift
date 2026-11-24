@@ -330,7 +330,7 @@ struct SessionRootView: View {
                             return AnyView(TopicIssueView(issue: .unavailable))
                         }
                         return AnyView(SessionTopicDetailView(id: id, session: session))
-                    }, locationSettings: RoamSystemLocationSettingsProvider())
+                    }, locationSettings: RoamSystemLocationSettingsProvider(), presentedAsSheet: true)
                         .environment(\.roamPOIActions, session.makeRoamPOIActions())
                         .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
@@ -368,6 +368,7 @@ struct SessionRootView: View {
                     clubTab
                     mineTab
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
+                .environment(\.growthSessionProfile, session.account.map { GrowthSessionProfile(name: $0.nickname, avatar: $0.avatar) })
                 .sessionOfflineBanner(reachability: reachability, session: session)
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
@@ -563,6 +564,11 @@ struct SessionRootView: View {
     private func chain3_3<V: View>(_ v: V) -> some View {
         v
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
+        // fix/r3-merchant-coop-a: MerchantDeniedState offers 申请入驻 only when access/me has no active merchant.
+        .environment(\.merchantCoopProfitDestination, { AnyView(CoopFinanceProfitView(reader: session.cooperationFlowReader).cyPushedChrome(domain: .merchant)) })
+        .environment(\.merchantGateActions, MerchantGateActions(
+            hasMerchantIdentity: { (try? await session.merchantAccess())?.active == true },
+            applicationDestination: { AnyView(MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)) }))
     }
 
     private func chain3_4<V: View>(_ v: V) -> some View {
@@ -589,6 +595,12 @@ struct SessionRootView: View {
         v
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.coopFlowPreviewWrite, CoopFlowPreviewWriteFactory.live(session))
+        // MC7-32-5: after 联系对方 succeeds, the preview opens the returned conversation.
+        .environment(\.coopConversationDestination, { id in
+            AnyView(MessagingHistoryView(conversationID: id, reader: session.messagingReader,
+                sender: session.messageSender(for: id), mediaReader: session.socialMessageMediaReader,
+                expanded: session.imExpandedNavigation))
+        })
         .environment(\.merchantCoopInboxDestination, {
             AnyView(CooperationBrowserView(reader: session.cooperationReader, peerReader: session.cooperationFlowReader,
                                            operationScope: "MERCHANT", embedsNavigationStack: false))
@@ -601,7 +613,19 @@ struct SessionRootView: View {
             inviteDestination: { id in
                 AnyView(CooperationInviteDetailView(key: CooperationInviteKey(id: id, direction: .received),
                                                     reader: session.cooperationReader, peerReader: session.cooperationFlowReader))
+            },
+            markConversationRead: { id in
+                do { try await session.imExpandedWriter.markInboxConversationRead(conversationID: id) }
+                catch APIError.notConfigured {}
+                catch {}
             }))
+        .environment(\.merchantDeskManualCode, MerchantDeskManualCodeAction { code in
+            guard let configuration = session.regionalConfiguration?.apiConfiguration, let token = session.token else {
+                throw MerchantBusinessFailure.disabled
+            }
+            return try await MerchantDeskManualCodeClient(configuration: configuration, transport: session.runtimeHTTPTransport, gate: .off)
+                .resolve(code: code, token: token)
+        })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
         .environment(\.merchantOpsWp03Bridge, MerchantOpsWp03Bridge(
@@ -631,9 +655,12 @@ struct SessionRootView: View {
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })
                 .cyPlayerSheetGlass()
         }
-        .sheet(isPresented:Binding(get: { showsAreaPicker && presentation.allowsSecondaryRootSheet && session.nativeEntry == nil }, set: { showsAreaPicker = $0 })) {
+        .sheet(isPresented:Binding(get: { showsAreaPicker && presentation.allowsSecondaryRootSheet && session.nativeEntry == nil }, set: { showsAreaPicker = $0 })) { Group {
             RoamAreaPicker(onSelect:{ session.roamArea=$0 })
                 .cyPlayerSheetGlass()
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, presentation: presentation, onDecline: { browsingAsGuest = true })
     }
@@ -642,9 +669,12 @@ struct SessionRootView: View {
         v
         .sessionExpiryNotice(session: session, onContinueAsGuest: { browsingAsGuest = true })
         #if DEBUG
-        .sheet(isPresented: $showsScannerFixture) {
+        .sheet(isPresented: $showsScannerFixture) { Group {
             NativeQRScanner { _ in }
                 .cyPlayerSheetGlass()
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .onAppear {
             if ProcessInfo.processInfo.arguments.contains("--uitesting-scanner") {
@@ -656,7 +686,7 @@ struct SessionRootView: View {
 
 
     private func rootTabLabel(_ tab: RootTab) -> some View {
-        Label(LocalizedStringKey(tab.playerTitleKey), systemImage: tab.playerSystemImage)
+        CYDomainTabLabel(tab: tab, selected: selectedTab, domain: .player)
     }
 }
 

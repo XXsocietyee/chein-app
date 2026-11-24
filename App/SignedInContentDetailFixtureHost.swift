@@ -102,6 +102,7 @@ import SwiftUI
             if args.contains("--content-detail-forbidden") { return (Data(#"{"code":403}"#.utf8), 403) }
             if path.hasSuffix("/activity/info") {
                 if args.contains("--content-detail-club-gate") { json = #"{"code":200,"data":{"gate":true,"clubId":9,"message":"Join the synthetic club first","activityName":"Summary only"}}"# }
+                else if args.contains("--content-detail-guest") { json = #"{"code":200,"data":{"id":21,"name":"Synthetic activity detail","description":"Read-only content","topicId":31,"isSignUp":0,"omsTicketList":[{"id":1,"name":"Open","price":0,"remainingInventory":2}]}}"# }
                 else { json = #"{"code":200,"data":{"id":21,"name":"Synthetic activity detail","description":"Read-only content","topicId":31,"omsTicketList":[]}}"# }
             } else {
                 let shelf = args.contains("--content-detail-unknown-shelf") ? "null" : args.contains("--content-detail-empty-shelf") ? "[]" : #"[{"id":21,"name":"Synthetic available walk","addressName":"Synthetic square"}]"#

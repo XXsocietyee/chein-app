@@ -41,7 +41,7 @@ struct TeamSeatFactsCard: View {
             let chinese = locale.language.languageCode?.identifier == "zh"
             if let text = TeamPagePresentation.startText(raw, chinese: chinese) {
                 Label { Text("team.invite.expires \(text)") } icon: { Image(systemName: "clock") }
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("teamSeats.invite")
             }
         }
@@ -60,7 +60,7 @@ struct TeamViewerRelationshipLine: View {
                              systemImage: duty == "team.viewer.captain" ? "crown" : "person")
                     .accessibilityIdentifier("teamViewer.duty")
                 Text("team.viewer.dutyScope")
-                    .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if invitation, let status = TeamSeatPresentation.applicationKey(detail.viewer) {
@@ -75,6 +75,75 @@ struct TeamViewerRelationshipLine: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("teamViewer.joinHint")
             }
+        }
+    }
+}
+
+/// C-J6 (MP team/join wxml:39-42, team-seats.js joinedSeats/openSeats): one row of seats on the join page.
+/// Joined seats are filled, open seats dashed; each side is capped at 12. Open seats come from the server's
+/// `seats.available`, else `maxMembers − joinedCount`; unknown counts draw nothing. Seats pop in 70 ms apart;
+/// Reduce Motion shows them at once.
+struct TeamJoinSeatRow: View {
+    let detail: TeamDetail
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var shown = false
+    @ScaledMetric(relativeTo: .body) private var seat: CGFloat = 44
+
+    private var joined: Int { min(max(detail.team.joinedCount ?? 0, 0), 12) }
+    private var open: Int {
+        if let available = detail.seats?.available { return min(max(available, 0), 12) }
+        guard let maxMembers = detail.team.maxMembers, let count = detail.team.joinedCount else { return 0 }
+        return min(max(maxMembers - count, 0), 12)
+    }
+
+    var body: some View {
+        if joined + open > 0 {
+            FlowSeats(spacing: CYSpacing.sm) {
+                ForEach(0..<(joined + open), id: \.self) { index in
+                    let on = index < joined
+                    ZStack {
+                        if on {
+                            Circle().fill(CYColor.brand.opacity(0.14))
+                        } else {
+                            Circle().strokeBorder(CYColor.textSecondary, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                        }
+                        Image(systemName: on ? "person.fill" : "plus")
+                            .foregroundStyle(on ? CYColor.brand : CYColor.textSecondary)
+                    }
+                    .frame(width: seat, height: seat)
+                    .opacity(shown || reduceMotion ? 1 : 0)
+                    .scaleEffect(shown || reduceMotion ? 1 : 0.6)
+                    .animation(reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.6).delay(Double(index) * 0.07), value: shown)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("fixr3.team.seats.a11y \(joined) \(open)"))
+            .accessibilityIdentifier("teamJoin.seats")
+            .onAppear { shown = true }
+        }
+    }
+}
+
+/// Wraps seat circles onto as many lines as the width needs.
+private struct FlowSeats: Layout {
+    var spacing: CGFloat
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, row: CGFloat = 0, widest: CGFloat = 0
+        for view in subviews {
+            let size = view.sizeThatFits(.unspecified)
+            if x > 0, x + size.width > width { y += row + spacing; x = 0; row = 0 }
+            x += size.width + spacing; row = max(row, size.height); widest = max(widest, x - spacing)
+        }
+        return CGSize(width: proposal.width ?? widest, height: y + row)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX, y = bounds.minY, row: CGFloat = 0
+        for view in subviews {
+            let size = view.sizeThatFits(.unspecified)
+            if x > bounds.minX, x + size.width > bounds.maxX { y += row + spacing; x = bounds.minX; row = 0 }
+            view.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing; row = max(row, size.height)
         }
     }
 }

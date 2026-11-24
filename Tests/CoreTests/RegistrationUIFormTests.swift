@@ -29,6 +29,30 @@ final class RegistrationUIFormTests: XCTestCase {
         let zh = RegistrationUIMoney.display(12.5, locale: Locale(identifier: "zh_Hans_CN"), currencyCode: RegistrationUIMoney.yuanCurrencyCode)
         XCTAssertTrue(zh?.contains("12.50") == true)
     }
+    /// Owner 2026-11-24: one shared MoneyDisplay, two decimals (¥12.50). The live switch stays `.twoDecimals`.
+    func testMoneyDisplaySwitchDefaultsToCurrentTwoDecimals() throws {
+        XCTAssertEqual(MoneyDisplay.current, .twoDecimals)
+        XCTAssertEqual(MoneyDisplay.minimumFractionDigits(), 2)
+        for (value, expected) in [("29.9", "29.90"), ("39", "39.00"), ("1200", "1200.00"), ("0.01", "0.01"), ("12.35", "12.35"), ("12.345", "12.35"), ("0", "0.00"), ("-15.4", "-15.40")] {
+            XCTAssertEqual(MoneyDisplay.plain(try XCTUnwrap(Decimal(string: value)), rule: .twoDecimals), expected, value)
+        }
+        XCTAssertEqual(MoneyDisplay.yuan(try XCTUnwrap(Decimal(string: "39"))), "¥39.00")
+        for (raw, expected) in [("29.9", "29.90"), ("39", "39.00"), ("39.000", "39.00"), ("0.01", "0.01"), ("+5.5", "+5.50"), ("12.345", "12.345"), ("n/a", "n/a")] {
+            XCTAssertEqual(MoneyDisplay.text(raw, rule: .twoDecimals), expected, raw)
+        }
+    }
+    /// chengyin-ios `fix/owner-decisions-1122` cases, run against the `.oneDecimal` rule explicitly.
+    func testMoneyDisplayOneDecimalRuleUsesOneDecimalUnlessTheSecondIsNonZero() throws {
+        XCTAssertEqual(MoneyDisplay.minimumFractionDigits(.oneDecimal), 1)
+        for (value, expected) in [("29.9", "29.9"), ("39", "39.0"), ("1200", "1200.0"), ("0.01", "0.01"), ("12.35", "12.35"), ("0", "0.0"), ("-15.4", "-15.4"), ("-39", "-39.0")] {
+            XCTAssertEqual(MoneyDisplay.plain(try XCTUnwrap(Decimal(string: value)), rule: .oneDecimal), expected, value)
+        }
+        XCTAssertEqual(MoneyDisplay.yuan(try XCTUnwrap(Decimal(string: "39")), rule: .oneDecimal), "¥39.0")
+        for (raw, expected) in [("29.90", "29.9"), ("39", "39.0"), ("39.00", "39.0"), ("1200.00", "1200.0"), ("0.01", "0.01"), ("12.35", "12.35"),
+                                ("0", "0.0"), ("0.00", "0.0"), ("-12.00", "-12.0"), ("-0.01", "-0.01"), ("+5.50", "+5.5"), ("12.345", "12.345"), ("n/a", "n/a")] {
+            XCTAssertEqual(MoneyDisplay.text(raw, rule: .oneDecimal), expected, raw)
+        }
+    }
     func testOnlyVerifiedRegistrationLabelsAndCreationDisabledByDefault() {
         XCTAssertFalse(RegistrationUICreationPolicy.disabled.permitsCreation)
         XCTAssertTrue(RegistrationUICreationPolicy.free.permitsCreation)

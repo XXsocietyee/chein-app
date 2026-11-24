@@ -138,6 +138,9 @@ struct CYShareCardContent: Equatable {
     var brand: String
     /// Generated art carries CYCoverArt's tiny label in DEBUG builds only; Release never shows it.
     var debugArt = true
+    /// MP share card without a cover: the route illustration (`subpackageRoam/components/cy/share-card/route-art.png`)
+    /// replaces the generated art. Default off keeps every other card unchanged.
+    var mpRouteArt = false
 
     var placeDisplay: String { place?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? place! : "—" }
     var trimmedCaption: String { caption.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -370,13 +373,27 @@ private struct CYShareMedalArt: View {
     let content: CYShareCardContent
     let tint: CYShareCardTint
     var size: CGFloat = 150
+
+    /// Gold is the completion medal. Silver and bronze follow when the title or symbol names that metal.
+    /// A stamp share (`mappin.and.ellipse` on a medal card) uses the 3D stamp.
+    private var medalImage: Image {
+        let blob = (content.artSymbol + " " + content.title + " " + content.artSeed).lowercased()
+        if blob.contains("bronze") || blob.contains("铜") { return MPAsset.BadgeMedal.medalBronze }
+        if blob.contains("silver") || blob.contains("银") { return MPAsset.BadgeMedal.medalSilver }
+        if content.artSymbol == "mappin.and.ellipse" { return MPAsset.BadgeMedal.stamp3d }
+        if content.artSymbol == "storefront.fill" { return MPAsset.BadgeMedal.glShop }
+        if content.artSymbol == "medal" { return MPAsset.BadgeMedal.medal }
+        return MPAsset.BadgeMedal.medalGold
+    }
+
     var body: some View {
         CYFoilMedal(unlocked: true, size: size, tint: tint.primary) {
             ZStack {
                 CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: false, showsGlyph: false)
-                Image(systemName: content.artSymbol)
-                    .font(.system(size: size * 0.4, weight: .semibold))
-                    .foregroundStyle(.white)
+                medalImage
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size * 0.62, height: size * 0.62)
                     .shadow(color: .black.opacity(0.4), radius: 4, y: 2)
             }
         }
@@ -391,7 +408,8 @@ private struct CYShareCardPoster: View {
     var body: some View {
         let ratio = style.ratio
         ZStack(alignment: .bottomLeading) {
-            CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: content.debugArt, showsGlyph: content.kind != .medal)
+            if content.mpRouteArt { MPAsset.BannerCover.routeArt.resizable().scaledToFill() }
+            else { CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: content.debugArt, showsGlyph: content.kind != .medal) }
             LinearGradient(colors: [style.tint.primary.opacity(0.22), style.tint.secondary.opacity(0.92)],
                            startPoint: .top, endPoint: .bottom)
             LinearGradient(colors: [.clear, .black.opacity(0.55)], startPoint: .center, endPoint: .bottom)
@@ -438,7 +456,10 @@ private struct CYShareCardTicket: View {
         let ground = style.tint.secondary
         ZStack {
             LinearGradient(colors: [style.tint.secondary, style.tint.secondary.opacity(0.75)], startPoint: .top, endPoint: .bottom)
-            CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: content.debugArt, showsGlyph: false)
+            Group {
+                if content.mpRouteArt { MPAsset.BannerCover.routeArt.resizable().scaledToFill() }
+                else { CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: content.debugArt, showsGlyph: false) }
+            }
                 .opacity(0.28)
             VStack(spacing: 0) {
                 // Upper stub: identity.

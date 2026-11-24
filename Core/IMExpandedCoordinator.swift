@@ -97,6 +97,19 @@ public extension IMExpandedWriting {
     public var identity: MessagingReadIdentity? { session()?.identity }
     public var isConfigured: Bool { service?.isConfigured == true }
     public var canWriteOrdinaryRead: Bool { service?.canWriteOrdinaryRead == true && identity != nil }
+    /// Inbox mark-read. The service sends nothing unless its own inbox flag is on; this writer does not turn that flag on.
+    public var canWriteInboxConversationRead: Bool { service?.canWriteInboxConversationRead == true && identity != nil }
+    public func markInboxConversationRead(conversationID: Int) async throws {
+        guard let service, let snapshot = session() else { throw APIError.notConfigured }
+        do {
+            try await service.markInboxConversationRead(conversationID: conversationID, token: snapshot.token)
+            guard session() == snapshot, !Task.isCancelled else { throw IMCapabilityGap.staleScope }
+        } catch {
+            guard session() == snapshot, !Task.isCancelled else { throw IMCapabilityGap.staleScope }
+            if (error as? MessagingReadFailure)?.isUnauthorized == true { onUnauthorized(snapshot) }
+            throw error
+        }
+    }
     public var canReadOrdinaryReadReceipt: Bool { service?.ordinaryReadReceiptEnabled == true && identity != nil }
     public var canReadOrdinaryReadState: Bool { service?.ordinaryReadStateEnabled == true && identity != nil }
     public func performOrdinaryRead(_ intent: OrdinaryIMReadIntent) async throws -> OrdinaryIMReadReceipt {

@@ -1,0 +1,107 @@
+import SwiftUI
+
+/// Route detail 「节点介绍」: a horizontal row of chapter cards (owner request 2026-11-19; MP `index.wxml` `det4`,
+/// `pages/topic/utils/chapter-cards.js`). Tapping a card discloses its description in place; tapping again
+/// collapses it, and only one card is open at a time. Ending chapters are already excluded by `TopicChapterCards`.
+/// Ported from chengyin-ios `f815bf30` (port plan r1 C9), re-skinned for the native iOS rule: Dynamic Type `.cyText` tokens,
+/// 12 pt card radius, `CYMotion` spring (instant under Reduce Motion), system press feedback.
+/// Replaces the old per-template 「节点介绍」 shelf (`TopicXcxTemplatesSection`), which the MP also replaced.
+struct TopicChapterCardsSection: View {
+    let cards: [TopicChapterCard]
+    @State private var openID: Int?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        if !cards.isEmpty {
+            Section("topicXcx.section.nodeIntro") {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                        ForEach(cards) { card in
+                            TopicChapterCardView(card: card, isOpen: openID == card.id) { toggle(card.id) }
+                        }
+                    }
+                    .padding(.vertical, CYSpacing.xs)
+                }
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 16, bottom: CYSpacing.sm, trailing: 16))
+                .accessibilityIdentifier("topic.chapterCards")
+            }
+        }
+    }
+
+    private func toggle(_ id: Int) {
+        let next = TopicChapterCards.toggle(open: openID, tapped: id)
+        // Reduce Motion: the description is simply there (plan C9: "instant under Reduce Motion").
+        guard !reduceMotion else { openID = next; return }
+        withAnimation(CYMotion.standard) { openID = next }
+    }
+}
+
+struct TopicChapterCardView: View {
+    @Environment(\.cyPalette) private var palette
+    let card: TopicChapterCard
+    let isOpen: Bool
+    let toggle: () -> Void
+    private static let width: CGFloat = 156
+
+    var body: some View {
+        Button(action: toggle) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                // The image's own retry button must not swallow the card tap; a later appearance retries it.
+                Group {
+                    if card.imageSource == nil {
+                        // REV-B B-05 (MP chapter-cards.js FALLBACK_COVER): no chapter or route image → `route_city_cover.png`.
+                        Color.clear
+                            .aspectRatio(CYCachedAsyncImageRole.cover.aspectRatio, contentMode: .fit)
+                            .overlay { MPAsset.BannerCover.routeCityCover.resizable().scaledToFill() }
+                            .clipped()
+                            .accessibilityIdentifier("topic.chapterCard.fallbackCover")
+                    } else {
+                        CYCachedAsyncImage(card.imageSource, role: .cover)
+                    }
+                }
+                    .frame(width: Self.width)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+                Text(verbatim: card.title)
+                    .cyText(.cardTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .lineLimit(1)
+                if let metaText {
+                    metaText
+                        .cyText(.caption)
+                        .monospacedDigit()
+                        .foregroundStyle(palette.textSecondary)
+                        .lineLimit(1)
+                }
+                if isOpen, let description = card.description {
+                    Text(verbatim: description)
+                        .cyText(.bodyCompact)
+                        .foregroundStyle(palette.textSecondary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .frame(width: Self.width, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.cyPressable)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityValue(Text(isOpen ? LocalizedStringKey("topic.chapterCard.expanded") : LocalizedStringKey("topic.chapterCard.collapsed")))
+        .accessibilityIdentifier("topic.chapterCard.\(card.id)")
+    }
+
+    /// 含 N 个玩法 · 约 M 分钟; a missing part is left out, never written as zero (plan Q3a).
+    private var metaText: Text? {
+        let games = card.gameCount.map { Text("topic.chapterCard.games \($0)") }
+        let minutes = card.minutes.map { Text("topic.chapterCard.minutes \($0)") }
+        switch (games, minutes) {
+        case let (g?, m?): return g + Text(verbatim: " · ") + m
+        case let (g?, nil): return g
+        case let (nil, m?): return m
+        default: return nil
+        }
+    }
+}

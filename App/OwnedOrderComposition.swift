@@ -13,7 +13,7 @@ import SwiftUI
             .environment(\.bundleCommercePublicMerchant, session.publicMerchantHomeContext)
             .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
             .id(session.ownedOrderReader.identity)
-            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player).environmentObject(session) }
+            .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 
@@ -26,15 +26,41 @@ import SwiftUI
     @State private var coordinator: OrderLifecycleCoordinator
     private let session: AppSession
     private let onSignIn: (() -> Void)?
-    init(session: AppSession, onSignIn: (() -> Void)? = nil) {
+    /// R7-MEM-17-1: a deep-link order id mounts the detail on this same coordinator and ticket reader.
+    private let detailID: Int?
+    init(session: AppSession, onSignIn: (() -> Void)? = nil, detailID: Int? = nil) {
         self.session = session
         self.onSignIn = onSignIn
+        self.detailID = detailID
         _coordinator = State(initialValue: OrderLifecycleCoordinator(
             reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader),
             production: { [weak session] in session?.makeOrderLifecycleDispatcher() }))
     }
     var body: some View {
-        ProfileOrdersView(reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader, onSignIn: onSignIn)
+        if let detailID {
+            ProfileOrderDetailView(id: detailID, reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader)
+                .environment(\.profileReadSignIn, onSignIn)
+        } else {
+            ProfileOrdersView(reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader, onSignIn: onSignIn)
+        }
+    }
+}
+
+/// R7-MEM-17-1: the `orderinfo?id=` deep link mounts the detail with the same lifecycle coordinator
+/// and ticket reader as 我的订单, so 取消订单 / 申请退款 and 查看票 stay on the page (MP
+/// scene-member-order-detail). Writes keep the reviewed factory's gates; payment stays TEST-gated.
+@MainActor struct SessionOwnedOrderDetailView: View {
+    @ObservedObject var session: AppSession
+    let id: Int
+    @State private var showsSignIn = false
+    var body: some View {
+        OwnedOrdersLifecycleHost(session: session, onSignIn: { showsSignIn = true }, detailID: id)
+            .environment(\.freeExploreBundleReadProvider, session.freeExploreBundleReadProvider)
+            .environment(\.bundleCommerceBaseURL, session.currentRuntimeDependencyContext?.baseURL)
+            .environment(\.bundleCommercePublicMerchant, session.publicMerchantHomeContext)
+            .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
+            .id(session.ownedOrderReader.identity)
+            .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 

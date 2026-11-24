@@ -25,6 +25,14 @@ public struct IMExpandedService {
     public let ordinaryReadReceiptEnabled: Bool
     public let ordinaryReadStateEnabled: Bool
     public var canWriteOrdinaryRead: Bool { writesEnabled && ordinaryReadRequestEnabled && (enabledPaths?.contains("api/im/read") ?? false) }
+    /// Merchant inbox mark-read (`POST /api/im/read` body `{conversation_id}` only).
+    /// Default off. Independent of `canWriteOrdinaryRead`, which still requires the ordinary
+    /// read-receipt fields and is not opened here. A later App mount sets this and calls
+    /// `markInboxConversationRead`.
+    public let inboxConversationReadEnabled: Bool
+    public var canWriteInboxConversationRead: Bool {
+        writesEnabled && inboxConversationReadEnabled && (enabledPaths?.contains("api/im/read") ?? false)
+    }
     public let ordinaryMuteRequestEnabled: Bool
     public let ordinaryMuteReceiptEnabled: Bool
     public let ordinaryMuteStateEnabled: Bool
@@ -35,8 +43,8 @@ public struct IMExpandedService {
     private let enabledPaths: Set<String>?
     public var isConfigured: Bool { writesEnabled }
     public var canSendOrdinaryImage: Bool { writesEnabled && ordinarySendEnabled && (enabledPaths?.contains("api/im/send") ?? true) }
-    public init(configuration: APIConfiguration, transport: any HTTPTransport, approvedMediaOrigins: Set<String>, writesEnabled: Bool = false, enabledPaths: Set<String>? = nil, staticLocationEnabled: Bool = false, staticLocationReceiptEnabled: Bool = false, ordinarySendEnabled: Bool = true, ordinaryReceiptEnabled: Bool = false, imageUploadReceiptEnabled: Bool = false, routeShareReadEnabled: Bool = false, routeSendEnabled: Bool? = nil, routeReceiptEnabled: Bool = false, voiceSendEnabled: Bool = false, voiceReceiptEnabled: Bool = false, fileSendEnabled: Bool = false, fileReceiptEnabled: Bool = false, videoSendEnabled: Bool = false, videoReceiptEnabled: Bool = false, ordinaryMuteRequestEnabled: Bool = false, ordinaryMuteReceiptEnabled: Bool = false, ordinaryMuteStateEnabled: Bool = false, ordinaryReadRequestEnabled: Bool = false, ordinaryReadReceiptEnabled: Bool = false, ordinaryReadStateEnabled: Bool = false) {
-        self.ordinaryReadRequestEnabled = ordinaryReadRequestEnabled; self.ordinaryReadReceiptEnabled = ordinaryReadReceiptEnabled; self.ordinaryReadStateEnabled = ordinaryReadStateEnabled
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, approvedMediaOrigins: Set<String>, writesEnabled: Bool = false, enabledPaths: Set<String>? = nil, staticLocationEnabled: Bool = false, staticLocationReceiptEnabled: Bool = false, ordinarySendEnabled: Bool = true, ordinaryReceiptEnabled: Bool = false, imageUploadReceiptEnabled: Bool = false, routeShareReadEnabled: Bool = false, routeSendEnabled: Bool? = nil, routeReceiptEnabled: Bool = false, voiceSendEnabled: Bool = false, voiceReceiptEnabled: Bool = false, fileSendEnabled: Bool = false, fileReceiptEnabled: Bool = false, videoSendEnabled: Bool = false, videoReceiptEnabled: Bool = false, ordinaryMuteRequestEnabled: Bool = false, ordinaryMuteReceiptEnabled: Bool = false, ordinaryMuteStateEnabled: Bool = false, ordinaryReadRequestEnabled: Bool = false, ordinaryReadReceiptEnabled: Bool = false, ordinaryReadStateEnabled: Bool = false, inboxConversationReadEnabled: Bool = false) {
+        self.ordinaryReadRequestEnabled = ordinaryReadRequestEnabled; self.ordinaryReadReceiptEnabled = ordinaryReadReceiptEnabled; self.ordinaryReadStateEnabled = ordinaryReadStateEnabled; self.inboxConversationReadEnabled = inboxConversationReadEnabled
         self.ordinaryMuteRequestEnabled = ordinaryMuteRequestEnabled; self.ordinaryMuteReceiptEnabled = ordinaryMuteReceiptEnabled; self.ordinaryMuteStateEnabled = ordinaryMuteStateEnabled
         self.configuration = configuration; self.transport = transport; self.approvedMediaOrigins = approvedMediaOrigins; self.writesEnabled = writesEnabled; self.enabledPaths = enabledPaths; self.staticLocationEnabled=staticLocationEnabled; self.staticLocationReceiptEnabled=staticLocationReceiptEnabled; self.ordinarySendEnabled=ordinarySendEnabled;self.ordinaryReceiptEnabled=ordinaryReceiptEnabled;self.imageUploadReceiptEnabled=imageUploadReceiptEnabled;self.routeShareReadEnabled=routeShareReadEnabled;self.routeSendEnabled=routeSendEnabled ?? writesEnabled;self.routeReceiptEnabled=routeReceiptEnabled; self.videoSendEnabled=videoSendEnabled;self.videoReceiptEnabled=videoReceiptEnabled;self.fileSendEnabled=fileSendEnabled;self.fileReceiptEnabled=fileReceiptEnabled;self.voiceSendEnabled=voiceSendEnabled; self.voiceReceiptEnabled=voiceReceiptEnabled
     }
@@ -296,6 +304,27 @@ public struct IMExpandedService {
               let origin = SocialMessageMediaService.origin(url), approvedMediaOrigins.contains(origin),
               URLComponents(url: url, resolvingAgainstBaseURL: false)?.fragment == nil else { throw APIError.malformedResponse }
         return url
+    }
+    /// Merchant inbox and conversation-list mark-read. The mini-program posts urlencoded
+    /// `conversation_id` only (no header, so request-client uses form-urlencoded). Sends nothing
+    /// unless the write switch, the inbox flag, and an `api/im/read` path grant are all on.
+    /// Chat `markRead` also sends `read_to`; that stays on the ordinary-read gate.
+    public func markInboxConversationRead(conversationID: Int, token: String) async throws {
+        guard canWriteInboxConversationRead else { throw APIError.notConfigured }
+        let request = try Self.merchantInboxMarkReadRequest(baseURL: configuration.baseURL, conversationID: conversationID, token: token)
+        _ = try await response(request)
+    }
+    static func merchantInboxMarkReadRequest(baseURL: URL, conversationID: Int, token: String) throws -> URLRequest {
+        guard conversationID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/im/read"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpShouldHandleCookies = false
+        request.setValue("application/x-www-form-urlencoded;", forHTTPHeaderField: "Content-Type")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.httpBody = Data("conversation_id=\(conversationID)".utf8)
+        return request
     }
     public func performOrdinaryRead(_ intent: OrdinaryIMReadIntent, token: String) async throws -> OrdinaryIMReadReceipt {
         guard canWriteOrdinaryRead else { throw APIError.notConfigured }

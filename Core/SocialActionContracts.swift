@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -192,6 +193,62 @@ public struct SocialActionRequestBuilder {
         request.httpMethod = method; request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]; request.httpBody = try encoder.encode(fields)
         return request
+    }
+}
+
+/// Profile `onStartChat` (`subpackageMember/components/cy/profile/index.js`).
+/// `community.request` passes this URL through to `app.sendRequest` because it is not under
+/// `/api/creativesquare` or `/api/comment`. A POST with no header is
+/// `content-type: application/x-www-form-urlencoded;` and the body is `target_member_id`.
+public struct ProfileIMStartContract {
+    public static let path = "api/im/start"
+    public static let method = "POST"
+
+    public static func request(baseURL: URL, targetMemberID: String, token: String) throws -> URLRequest {
+        guard AuthRequestBuilder.isValidToken(token), !targetMemberID.isEmpty else { throw APIError.invalidRequest }
+        var allowed = CharacterSet.alphanumerics
+        allowed.insert(charactersIn: "-_.!~*'()")
+        guard let encoded = targetMemberID.addingPercentEncoding(withAllowedCharacters: allowed), !encoded.isEmpty else {
+            throw APIError.invalidRequest
+        }
+        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        request.httpMethod = method
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 12
+        request.httpShouldHandleCookies = false
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/x-www-form-urlencoded;", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Data("target_member_id=\(encoded)".utf8)
+        return request
+    }
+
+    /// `res.code == 200` and `res.data.conversationId` (number or decimal string, greater than 0).
+    public static func conversationID(in data: Data) throws -> Int {
+        guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw APIError.malformedResponse }
+        guard Self.code(object["code"]) == 200, let payload = object["data"] as? [String: Any] else {
+            throw APIError.malformedResponse
+        }
+        guard let id = Self.positive(payload["conversationId"]) else { throw APIError.malformedResponse }
+        return id
+    }
+
+    private static func code(_ value: Any?) -> Int? {
+        if value == nil || value is NSNull { return nil }
+        if let number = value as? NSNumber {
+            if CFGetTypeID(number) == CFBooleanGetTypeID() { return nil }
+            let int = number.intValue
+            guard number.doubleValue == Double(int) else { return nil }
+            return int
+        }
+        if let text = value as? String { return Int(text) }
+        return nil
+    }
+
+    private static func positive(_ value: Any?) -> Int? {
+        guard let int = code(value), int > 0 else { return nil }
+        if let text = value as? String, text != String(int) { return nil }
+        return int
     }
 }
 

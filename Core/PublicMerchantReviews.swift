@@ -16,6 +16,8 @@ public struct PublicMerchantReviewPage: Decodable, Equatable {
         public let canCreate: Bool
         public let reasonCode: String
         public let registrationId: Int?
+        /// The registration the list was asked about. Nil when the payload omitted it.
+        public let requestedRegistrationId: Int?
     }
     public struct Item: Decodable, Equatable, Identifiable {
         public let id: Int

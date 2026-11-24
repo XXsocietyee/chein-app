@@ -102,9 +102,11 @@ struct PlayNodeDetailView: View {
         let offeredAnswer = reviewOwner.capture(nodeID: nodeID)
         return Form {
             Section {
+                PlayStationArtwork(image: PlayStationImageResolver.station(for: node, in: snapshot.result), title: node.name ?? "")
+                    .accessibilityIdentifier("play.node.artwork")
                 if let name = node.name, !name.isEmpty { Text(verbatim: name).cyText(.display).foregroundStyle(CYColor.textPrimary) }
                 else { Text("play.node.untitled").cyText(.display).foregroundStyle(CYColor.textPrimary) }
-                if let address = node.address, !address.isEmpty {
+                if node.addressHidden != true, let address = node.address, !address.isEmpty {
                     Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
                 CYStatusChip(LocalizedStringKey(snapshot.isDone(node) ? "play.node.completed" : snapshot.isLocked(node) ? "play.node.locked" : "play.node.open"),
@@ -124,7 +126,13 @@ struct PlayNodeDetailView: View {
                 if let hours = node.businessTime, !hours.isEmpty { LabeledContent("play.businessTime") { Text(verbatim: hours) } }
                 if let open = node.openStatus, !open.isEmpty { LabeledContent("play.openStatus") { Text(verbatim: open) } }
             }
-            if !snapshot.isLocked(node) {
+            if snapshot.isStoryLocked(node) {
+                Section {
+                    CYStatusChip("playFree.story.locked", tone: .neutral, systemImage: "lock.fill")
+                        .accessibilityLabel(Text("playFree.story.locked.a11y"))
+                    Text("playFree.story.lockedCard").font(.subheadline)
+                }
+            } else if !snapshot.isLocked(node) {
                 if let story = node.storyText, !story.isEmpty { Section("play.story") { Text(verbatim: story) } }
                 if let description = node.description, !description.isEmpty { Section("play.description") { Text(verbatim: description) } }
                 if let title = node.gameTitle, !title.isEmpty {
@@ -219,12 +227,23 @@ struct PlayNodeDetailView: View {
                     Text(LocalizedStringKey(availability.detailKey)).foregroundStyle(.secondary)
                 }
             }
+            if let perk = node.perk {
+                Section("playx.perk.title") {
+                    if perk.included == true { Text("playx.perk.included") }
+                    if let spend = perk.extraSpendText, !spend.isEmpty { Text(verbatim: spend) }
+                    if perk.reserveRequired == true { Text("playx.perk.reserve") }
+                }
+            }
             if snapshot.isDone(node) {
                 Section("play.result") {
                     if let xp = node.xp { LabeledContent("play.xp") { Text(verbatim: String(xp)) } }
                     else { Text("play.xp.unknown") }
                     if let score = node.puzzleScore { LabeledContent("play.puzzleScore") { Text(verbatim: String(score)) } }
-                    if let mode = node.completionMode, !mode.isEmpty { LabeledContent("play.completionMode") { Text(verbatim: mode) } }
+                    if let presented = PlayCompletionModePresentation(raw: node.completionMode) {
+                        LabeledContent("play.completionMode") { Text(LocalizedStringKey(presented.titleKey)) }
+                    } else if let mode = node.completionMode, !mode.isEmpty {
+                        LabeledContent("play.completionMode") { Text(verbatim: mode) }
+                    }
                 }
             }
         }

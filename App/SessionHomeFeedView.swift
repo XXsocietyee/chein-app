@@ -25,6 +25,7 @@ import SwiftUI
     @State private var showsClubApplication=false
     @State private var showsMerchantApplication=false
     @State private var showsMiniGames = false
+    @State private var showsSearchMap = false
     @Environment(\.locale) private var locale
     @StateObject private var cityConsent = HomeCityLocationConsentModel()
     var body:some View {
@@ -42,7 +43,7 @@ import SwiftUI
         .onChange(of:session.homeFeedReader.scope) { _,_ in resetForHomeScopeChange() }
         .onChange(of:session.officialEventReader.scope) { _,_ in showsOfficialEvents=false }
         .onChange(of:session.sessionRevision) { _,_ in resetForSessionRevisionChange() }
-        .sheet(isPresented:$showsProjectEditor) {
+        .sheet(isPresented:$showsProjectEditor) { Group {
             NavigationStack {
                 ProjectEditLaunchView().toolbar {
                     ToolbarItem(placement:.cancellationAction) {
@@ -52,20 +53,23 @@ import SwiftUI
                 }
             }.id(session.sessionRevision)
             .themeDomain(.topicEditor)
-            .presentationCornerRadius(CYRadius.sheet)
+        }.cySheet(detents: [.large])
         }
         .sheet(isPresented:$showsOfficialEvents) {
+            NavigationStack {
             OfficialEventsBrowserView(reader:session.officialEventReader,actions:session.officialActionCoordinator,onClose:{ showsOfficialEvents=false },onLogin:{
                 showsOfficialEvents=false
                 onSignIn?()
-            },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) })).id(session.officialEventReader.scope)
+            },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }))
+            }.id(session.officialEventReader.scope)
             .cyPlayerSheetGlass()
         }
         .sheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope).cyPlayerSheetGlass() }
         .sheet(isPresented:$showsCreate) {
             NavigationStack {
                 DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
-                    publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) })
+                    publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) },
+                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) })
                     .toolbar {
                         ToolbarItem(placement:.cancellationAction) {
                             Button("action.close") { showsCreate=false }
@@ -80,7 +84,8 @@ import SwiftUI
             NavigationStack {
                 // PC-A-2-6: 浏览模板 keeps 发布 like the 发布 tab entry.
                 DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
-                    publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) }).id(session.templateAuthoringViewIdentity)
+                    publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) },
+                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }).id(session.templateAuthoringViewIdentity)
                     .toolbar {
                         ToolbarItem(placement:.cancellationAction) {
                             Button("action.close") { showsTemplates=false }
@@ -127,8 +132,11 @@ import SwiftUI
                 todayTicket: todayTicket,
                 onOpenTodayTicket: { showsTodayTickets=true },
                 onStartRoam: onStartRoam,
+                // R7-PC-A1-1 (r1 PC-A-1-3): MP `onManualCityChange` — the 首页 city menu is live.
+                onSelectCity: { city, nationwide in selectHomeCity(city, nationwide: nationwide) },
                 cityLocationConsent: cityConsent.asks ? (agree: { cityConsent.agree(session) }, decline: { cityConsent.decline() }) : nil,
-                onOpenUnifiedSearch: { _ in openSearch() },
+                // R7-PC-A5-1 (r1 PC-A-5-1): the hero map button opens the city map, the field opens the list search.
+                onOpenUnifiedSearch: { mode in if mode == .map { showsSearchMap = true } else { openSearch() } },
                 cityRail: AnyView(CitySessionHomeRail(onOpenMap: { onStartRoam?() }))
             ) { router.pushHome($0) }
                 .cyHeroNamespace(hero)
@@ -167,11 +175,25 @@ import SwiftUI
         .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
         .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
         .sheet(isPresented:$showsClubApplication) { clubApplicationSheet.cyPlayerSheetGlass() }
-        .sheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).presentationCornerRadius(CYRadius.sheet) }
+        .sheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).cySheet(detents: [.large]) }
+        .sheet(isPresented: $showsSearchMap) {
+            NavigationStack {
+                SessionLinkedSearchView(startsOnMap: true, onSignIn: { showsSearchMap = false; onSignIn?() })
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("action.close") { showsSearchMap = false }
+                                .accessibilityIdentifier("homeFeed.searchMap.close")
+                        }
+                    }
+            }
+            .environmentObject(session)
+            .cyPlayerSheetGlass()
+        }
         .sheet(isPresented: $showsMiniGames) {
             NavigationStack {
                 ScrollView { ExternalGameLibrarySection(store: ExternalGameStore()).padding(.horizontal, CYSpacing.pageHorizontal) }
                     .navigationTitle(Text(verbatim: HomeIndexParityPresentation.miniGamesBanner.title(locale: locale)))
+                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("action.close") { showsMiniGames = false }
@@ -194,22 +216,18 @@ import SwiftUI
             }
         }
     }
+    /// R7-PC-A1-2 (r1 PC-A-1-5): MP `/pages/club/apply/index` — the club host application, the same screen the
+    /// deep link opens, not the club browser.
     private var clubApplicationSheet: some View {
         NavigationStack {
-            ClubHomeView(
-                reader: session,
-                onSignIn: { showsClubApplication = false; onSignIn?() },
-                actionCoordinator: session.clubActionCoordinator,
-                management: session.clubManagementContext,
-                community: session.clubCommunityContext,
-                topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
-                authorSquare: session.squareReader
-            )
-            .toolbar {
-                ToolbarItem(placement:.cancellationAction) {
-                    Button("action.close") { showsClubApplication = false }
+            MPReviewedPageScreen(page: "pages/club/apply/index", query: [:])
+                .environmentObject(session)
+                .toolbar {
+                    ToolbarItem(placement:.cancellationAction) {
+                        Button("action.close") { showsClubApplication = false }
+                            .accessibilityIdentifier("clubApplication.close")
+                    }
                 }
-            }
         }.id(session.sessionRevision)
     }
     private var merchantApplicationSheet: some View {
@@ -238,6 +256,7 @@ import SwiftUI
         showsProjectEditor=false
         showsClubApplication=false
         showsMerchantApplication=false
+        showsSearchMap=false
     }
     private func resetForSessionRevisionChange() {
         activeContinuationScope=nil
@@ -316,8 +335,17 @@ import SwiftUI
             search = HomeInPageSearch(returnFocus: search.returnFocus + 1)
         }
     }
+    /// MP `onManualCityChange` stores only the city name. The app keeps the label and moves the search centre to that
+    /// city when it is one of the supported cities; 全国 keeps the current centre.
+    private func selectHomeCity(_ city: String?, nationwide: Bool) {
+        guard !nationwide, let city, let centre = HomeCityCentre.coordinate(for: city) else { return }
+        session.roamArea = RoamSearchArea(coordinate: centre, label: city)
+    }
     private func handleActionBanner(_ banner: HomeIndexParityPresentation.ActionBanner) {
         switch banner.id {
+        case "activity_list":
+            // R7-PC-A1-2: MP `/pages/activity/list/index` — the activity list, not a feed-tab flip.
+            showsOfficialEvents = true
         case "club_apply":
             if session.account == nil { onSignIn?() } else { showsClubApplication = true }
         case "merchant_apply":
@@ -394,5 +422,18 @@ private struct HomeSearchClearStackBackground: ViewModifier {
         } else {
             content
         }
+    }
+}
+
+/// City centres for the 首页 city menu (`HomeCitySwitchState.defaultSupportedCities`). WGS-84, city-hall level.
+enum HomeCityCentre {
+    private static let table: [String: (Double, Double)] = [
+        "上海": (31.2304, 121.4737), "北京": (39.9042, 116.4074), "杭州": (30.2741, 120.1551),
+        "成都": (30.5728, 104.0668), "深圳": (22.5431, 114.0579), "广州": (23.1291, 113.2644),
+    ]
+    static func coordinate(for city: String) -> RoamCoordinate? {
+        let key = city.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "市", with: "")
+        guard let pair = table[key] else { return nil }
+        return RoamCoordinate(latitude: pair.0, longitude: pair.1)
     }
 }

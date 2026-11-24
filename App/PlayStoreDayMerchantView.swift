@@ -139,6 +139,7 @@ import SwiftUI
                 hero(node)
                 VStack(alignment: .leading, spacing: CYSpacing.xxl) {
                     header(node)
+                    if let perk = node.perk, perk.name != nil { perkSection(perk) }
                     proofSection(node)
                     referenceSection(node)
                     if let notice = model.notice {
@@ -149,6 +150,7 @@ import SwiftUI
                             .accessibilityIdentifier("storeDayPage.feedback")
                     }
                     if model.consent == .agree { consentSection }
+                    if let perk = node.perk, let name = perk.name { perkSection(name: name, rule: perk.redeemRule) }
                     if let address = node.address { infoSection(node, address: address) }
                     PlayStoreDaySafetyRatingEntry(ownerMemberID: node.merchantID)
                 }
@@ -192,6 +194,17 @@ import SwiftUI
                     .accessibilityIdentifier("storeDayPage.meta.onsite")
             }.padding(.top, CYSpacing.xs)
         }
+    }
+    /// PLAYM-2: 本店权益 when `perk.name` is set. The rule is the subtitle. No catalog key.
+    private func perkSection(_ perk: PlayStoreDayPerk) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: "本店权益").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+            if let name = perk.name { Text(verbatim: name).cyText(.body).foregroundStyle(CYColor.textPrimary) }
+            if let rule = perk.redeemRule { Text(verbatim: rule).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("storeDayPage.perk")
     }
     /// Letter-spaced key + primary value, baseline aligned (mini-program .mp-mc).
     private func metaRow(label: Text, value: Text) -> some View {
@@ -276,6 +289,23 @@ import SwiftUI
             .cyCardSurface(variant: .surface, radius: CYRadius.md, padding: CYSpacing.md)
         }
     }
+    /// PLAYM-2: MP 本店权益 (`node.perk.name` + `redeemRule`), with the MP gift artwork.
+    private func perkSection(name: String, rule: String?) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text("playMerchant.perk.title").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                MPAsset.FeatureIcon.gift.resizable().scaledToFit().frame(width: 24, height: 24).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    Text(verbatim: name).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                    if let rule { Text(verbatim: rule).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText() }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .cyCardSurface(variant: .surface, radius: CYRadius.md, padding: CYSpacing.md)
+            .accessibilityElement(children: .combine).accessibilityIdentifier("storeDayPage.perk")
+        }
+    }
     private func infoSection(_ node: PlayStoreDayNode, address: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text("playStoreDay.section.info", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
@@ -347,6 +377,11 @@ import SwiftUI
         .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md).background(.bar)
     }
     @ViewBuilder private func primaryButton(_ node: PlayStoreDayNode) -> some View {
+        if let notice = node.redeemBlockedNotice {
+            Text(verbatim: notice).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier("storeDayPage.perk.blocked")
+        } else {
         switch PlayStoreDayPrimaryAction.resolve(node, receipt: model.receipt, arriveRetry: model.arriveRetry) {
         case .confirmPending: primary(L("playStoreDay.cta.confirmPending"), disabled: false) { Task { await model.retryProofReadback() } }
         case .arrive: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.arrive"), disabled: model.busy) { arriveHere() }
@@ -354,8 +389,12 @@ import SwiftUI
         case .scanUnlock: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scanUnlock"), disabled: model.busy) { model.prepareScan() }
         case .scan: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scan"), disabled: model.busy) { model.prepareScan() }
         case .photo: primary(L(model.busy ? "playStoreDay.cta.photoBusy" : "playStoreDay.cta.photo"), disabled: model.busy) { model.preparePhoto() }
+        case .verify where node.redeemBlockedNotice != nil:
+            // PLAYM-2: daily quota used up / not started yet: the server line, no code (MP .mp-cta__main.is-dead).
+            primary(node.redeemBlockedNotice ?? "", disabled: true) {}
         case .verify: primary(L(model.consentBusy ? "playStoreDay.cta.verifyBusy" : "playStoreDay.cta.verify"), disabled: model.consentBusy) { model.openVerifyCode() }
         case .redeemed: primary(L("playStoreDay.cta.redeemed"), disabled: true) {}
+        }
         }
     }
     /// MP `arriveHere`: purpose prompt once, then one foreground GCJ-02 fix handed to /api/play/arrive.

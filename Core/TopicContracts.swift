@@ -155,7 +155,15 @@ public struct TopicChapter: Decodable, Equatable, Identifiable {
     public let id: Int
     public let title: String
     public let description: String?
-    public let totalTimeMinutes: Int?
+    /// Source `total_time` as sent: **seconds** (cms_topic_chapter; MP `pages/topic/utils/chapter-cards.js`).
+    /// It was read as minutes before port P3 (C9), which showed chapter durations 60× too large.
+    /// Display goes through `TopicChapterCards.minutes(_:)`, which rounds to minutes.
+    public let totalTimeSeconds: Int?
+    /// Raw `img_arr`: comma-separated, a JSON array string, or an array. Cards use the first entry.
+    public let imageSources: [String]
+    /// Server-counted games in this chapter; nil when omitted.
+    public let templateCount: Int?
+    public let sortID: Int?
     public let nodes: [TopicNode]
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -163,7 +171,14 @@ public struct TopicChapter: Decodable, Equatable, Identifiable {
         guard id > 0 else { throw APIError.malformedResponse }
         title = c.text("title") ?? c.text("name") ?? ""
         description = c.text("description")
-        totalTimeMinutes = c.int("totalTime")
+        totalTimeSeconds = c.int("totalTime")
+        if let list = try? c.decode([String].self, forKey: TopicKey("imgArr")) {
+            imageSources = list.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        } else {
+            imageSources = TopicChapterCards.imageList(c.text("imgArr"))
+        }
+        templateCount = c.int("templateCount")
+        sortID = c.int("sortId")
         nodes = try c.list("nodes")
     }
 }
@@ -190,6 +205,8 @@ public struct TopicTicket: Decodable, Equatable, Identifiable {
     public let price: Decimal?
     public let remaining: Int?
     public let totalInventory: Int
+    /// People who share one ticket (`teamSize`, else `maxPeople`; MP `topic-motion.js buyOptions`). Nil when omitted.
+    public let teamSize: Int?
     public let registrants: [TopicRegistrant]
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -203,6 +220,7 @@ public struct TopicTicket: Decodable, Equatable, Identifiable {
         price = c.money("price")
         remaining = c.int("remainingInventory").map { min(2147483647, max(0, $0)) }
         totalInventory = c.int("totalInventory") ?? 0
+        teamSize = (c.int("teamSize").flatMap { $0 > 0 ? $0 : nil }) ?? (c.int("maxPeople").flatMap { $0 > 0 ? $0 : nil })
         registrants = try c.list("cmsRegistrationList")
     }
     /// Null remaining inventory is unknown, not sold out. A literal zero is sold out.
@@ -277,6 +295,13 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let platformPassCovered: Bool
     public let merchantCount: Int?
     public let isOwner: Bool
+    /// `contentPublisherName`, else `clubName`. Avatar only for a MEMBER publisher (`umsMember.avatar`).
+    public let publisher: TopicPublisher?
+    public let contentPublisherType: String?
+    /// Source `userStatus` / `status` / `rejectReason` for the owner review chip. Nil stays unknown.
+    public let userStatus: Int?
+    public let status: Int?
+    public let rejectReason: String?
     public let betaFlag: Int
     /// Source `publishMode` (`ai_simple` marks generated content for the AIGC label). Absent stays nil.
     public let publishMode: String?
@@ -299,6 +324,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let reviews: TopicReviews
     /// Nil means omitted/unknown; an empty array means the server returned no sessions.
     public let activities: [TopicActivitySummary]?
+    /// Route 「人物」 column. Nil when the topic has no cast.
+    public let castConfig: CastConfig?
     public init(from decoder: Decoder) throws {
         publisherAuthoritySource = try? PublisherTopicAuthoritySource(from: decoder)
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -333,6 +360,16 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         platformPassCovered = c.flag("platformPassCovered")
         merchantCount = c.int("registrationMerchantCount")
         isOwner = c.flag("isOwner")
+        contentPublisherType = c.text("contentPublisherType")
+        let publisherName = (c.text("contentPublisherName") ?? c.text("clubName"))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let publisherName, !publisherName.isEmpty {
+            let member = (try? c.decodeIfPresent(TopicPublisherMember.self, forKey: TopicKey("umsMember"))) ?? nil
+            let avatar = contentPublisherType == "MEMBER" ? member?.avatar?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+            publisher = TopicPublisher(name: publisherName, avatar: (avatar?.isEmpty == false) ? avatar : nil)
+        } else { publisher = nil }
+        userStatus = c.int("userStatus")
+        status = c.int("status")
+        rejectReason = c.text("rejectReason")
         betaFlag = c.int("betaFlag") ?? 0
         merchantClosed = (try? c.decode(Bool.self, forKey: TopicKey("merchantClosed"))) == true
         addressName = c.text("addressName")
@@ -350,6 +387,26 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         reviews = try TopicReviews(from: decoder)
         activities = try c.decodeIfPresent([TopicActivitySummary].self, forKey: TopicKey("activityList"))
         if let activities, Set(activities.map(\.id)).count != activities.count { throw APIError.malformedResponse }
+        if let raw = try c.decodeIfPresent(PlayWireValue.self, forKey: TopicKey("castConfig")) {
+            castConfig = CastConfig(raw: raw)
+        } else { castConfig = nil }
+    }
+}
+
+public struct TopicPublisher: Equatable, Sendable {
+    public let name: String
+    public let avatar: String?
+    public init(name: String, avatar: String?) { self.name = name; self.avatar = avatar }
+}
+private struct TopicPublisherMember: Decodable { let avatar: String? }
+
+public extension TopicDetail {
+    /// pages/topic/index/index.js `ownerStateText`. Empty when the viewer is not the owner or the topic is public (`userStatus == 1`).
+    var ownerReviewLabel: String? {
+        guard isOwner, userStatus != 1 else { return nil }
+        if status == 2 { return "未通过" }
+        if status == 0 || rejectReason?.contains("内容安全") == true { return "审核中" }
+        return "已下架"
     }
 }
 

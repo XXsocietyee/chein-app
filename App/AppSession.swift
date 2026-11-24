@@ -1021,8 +1021,10 @@ final class AppSession: ObservableObject {
             }
         } else if comment != nil { throw ClubCommunityFailure.invalid }
         guard try currentCommunitySession() == captured else { throw ClubCommunityFailure.stale }
+        // cursor/core-club hand-off (CLB-detail-16): the detail's 成员发帖 setting gates plain members' posts. Nil = allowed.
         return .init(identity: captured.identity, clubID: clubID, joined: membership.isJoined, owner: membership.isOwner,
-            administrator: membership.viewerIsAdmin, post: freshPost, comment: freshComment)
+            administrator: membership.viewerIsAdmin, post: freshPost, comment: freshComment,
+            memberPostAllowed: membership.memberPostAllowed)
     }
     // Independent personal-sharing approvals. Restoring metadata never grants location access.
     private var personalLocationShareReadApproval: PersonalLocationShareEndpointApproval? = nil
@@ -3477,7 +3479,7 @@ final class AppSession: ObservableObject {
         return coordinator
     }
     var activityHostCancelAccess: (any ActivityHostCancelAccess)? {
-        guard let api = regionalConfiguration?.apiConfiguration else { return nil }
+        guard let api = regionalConfiguration?.apiConfiguration, ReviewedAreaSwitch.moneyPayments(apiHost: api.baseURL.host) else { return nil } // owner #6: refunds TEST-only
         return ActivityHostCancelHTTPAccess(
             configuration: api,
             transport: runtimeHTTPTransport,
@@ -7667,8 +7669,15 @@ final class AppSession: ObservableObject {
     }
 
     func activityDetail(id:Int) async throws -> ActivityDetailAccess {
-        guard account != nil, let credential = token else { throw APIError.unauthorized }
         guard let activityService else { throw APIError.notConfigured }
+        // Guests read api/activity/info with a nil token. A signed-in account still needs its token.
+        let credential: String?
+        if account == nil {
+            credential = nil
+        } else {
+            guard let token else { throw APIError.unauthorized }
+            credential = token
+        }
         let stamp = gate.currentStamp, viewerRevision = compositionViewerRevision
         do {
             let result = try await activityService.detail(id:id,token:credential)

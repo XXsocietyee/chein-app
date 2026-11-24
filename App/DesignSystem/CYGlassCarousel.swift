@@ -147,6 +147,7 @@ struct CYGlassCarousel: View {
 
     private func slideView(_ slide: CYCarouselSlide) -> some View {
         let position = (slides.firstIndex(of: slide) ?? 0) + 1
+        let reduced = reduceMotion
         return Button {
             if slide.id == (selectedID ?? state.selected) {
                 onOpen(slide.id)
@@ -159,7 +160,7 @@ struct CYGlassCarousel: View {
                 // Glass only over neighbours: the focused card keeps its caption crisp (also when scroll phases are not evaluated, e.g. fixtures).
                 .overlay { if slide.id != (selectedID ?? state.selected) { CYGlassSliver() } }
                 .scrollTransition(.interactive, axis: .horizontal) { view, phase in
-                    view.scaleEffect(reduceMotion ? 1 : 1 - abs(phase.value) * 0.08)
+                    view.scaleEffect(reduced ? 1 : 1 - abs(phase.value) * 0.08)
                 }
         }
         .buttonStyle(QuestifyCardButtonStyle())
@@ -237,10 +238,11 @@ struct CYCarouselArt: View {
     var imageURL: URL?
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
+        let reduced = reduceMotion
         art
             .scaleEffect(1.12)   // headroom so the parallax offset never exposes an edge
             .scrollTransition(.interactive, axis: .horizontal) { view, phase in
-                view.offset(x: reduceMotion ? 0 : phase.value * 32)
+                view.offset(x: reduced ? 0 : phase.value * 32)
             }
     }
     @ViewBuilder private var art: some View {
@@ -262,6 +264,7 @@ struct CYCarouselCaption: View {
     var contrast: ColorSchemeContrast = .standard
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
+        let reduced = reduceMotion
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: title).cyText(.sectionTitle).lineLimit(2)
             if let date, !date.isEmpty { Text(verbatim: date).cyText(.meta).monospacedDigit() }
@@ -271,8 +274,8 @@ struct CYCarouselCaption: View {
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .scrollTransition(.interactive, axis: .horizontal) { view, phase in
-            view.offset(x: reduceMotion ? 0 : -phase.value * 18)
-                .opacity(reduceMotion ? 1 : max(0, 1 - abs(phase.value) / 0.55))
+            view.offset(x: reduced ? 0 : -phase.value * 18)
+                .opacity(reduced ? 1 : max(0, 1 - abs(phase.value) / 0.55))
         }
     }
 }
@@ -285,9 +288,10 @@ struct CYGlassSliver: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
+        let reduced = reduceMotion
         sliverFill
             .scrollTransition(.interactive, axis: .horizontal) { view, phase in
-                view.opacity(reduceMotion ? (phase.isIdentity ? 0 : 1) : min(1, max(0, (abs(phase.value) - 0.35) / 0.65)))
+                view.opacity(reduced ? (phase.isIdentity ? 0 : 1) : min(1, max(0, (abs(phase.value) - 0.35) / 0.65)))
             }
             .allowsHitTesting(false)
             .accessibilityHidden(true)

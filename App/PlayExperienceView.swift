@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 /// Integration entry for migrated runtime. Factories are scope-specific, optional, and
 /// never create provider/network permissions as a side effect of opening the screen.
@@ -63,6 +64,11 @@ import SwiftUI
     @State private var showChapterPicker = false
     @State private var showEmergencyHelp = false
     @State private var titleCardTopic: Int?
+    /// Cast for this run. Nil until a nodes read carries cast. Capabilities stay empty.
+    @State private var castModel: CastCoordinator?
+    @State private var castPlaybillSeen = false
+    @State private var castCover = false
+    @State private var showingCastRoster = false
     @State private var runTeamPool: TeamPoolHintModel?
     @Environment(\.playThemePresentationReader) private var themeReader
     @Environment(\.scenePhase) private var scenePhase
@@ -82,7 +88,7 @@ import SwiftUI
     var body: some View {
         Group {
             if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
-                FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) }, rewardCollectionDestination: rewardCollectionDestination)
+                FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) }, rewardCollectionDestination: rewardCollectionDestination, castConfig: castModel?.config, castEnding: model.castPayload)
             } else if model.gameplayMode == .cityOrientation {
                 orientationContent.cyThemeLook(themeFacts?.look)
             } else if model.snapshot == nil {
@@ -105,6 +111,7 @@ import SwiftUI
                 }
             } else { CYEmptyState(systemImage: "questionmark.circle", "playMode.unavailable") }
         }
+        .environment(\.questifyCast, castModel?.context)
         .privacySensitive()
         .cyDomainScreen(.game)
         .cyPushedChrome(domain: .game)
@@ -127,6 +134,11 @@ import SwiftUI
                 .cyPushedChrome(domain: .game)
         }
         .toolbar {
+            if castModel?.config != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    CastRosterButton { showingCastRoster = true }
+                }
+            }
             // The play HUD carries the channel as its 队伍 circle; elsewhere it stays in the bar.
             if let scope = playChannelScope, hudStop == nil {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -242,6 +254,7 @@ import SwiftUI
             report.load()
         }
         .onChange(of: model.hasCurrentMediaSnapshot) { _, current in if !current { invalidateShopNPC?() } }
+        .modifier(PlayExperienceCastMounts(host: self))
         .modifier(PlaySessionLocationHold(identity: model.identity, running: model.clock.phase == .running,
                                           currentIdentity: { [model] in model.identity }))
         .onChange(of: scenePhase) { _, next in
@@ -468,7 +481,8 @@ import SwiftUI
                                 NavigationLink {
                                     ChapterStoryView(chapterID: chapter.id, nodeID: node.id, model: model,
                                         advancedModel: advancedModel, journeyModel: journeyModel, deviceModel: deviceModel, mediaScope: mediaScope,
-                                        makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval, nodeDestination: { AnyView(nodeDestination($0)) })
+                                        makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
+                                        castModel: castModel, nodeDestination: { AnyView(nodeDestination($0)) })
                                 } label: {
                                     if let title = chapter.name { Label { Text(verbatim: title) } icon: { Image(systemName: "book") } }
                                     else { Label("chapterStory.title", systemImage: "book") }
@@ -478,6 +492,36 @@ import SwiftUI
                     }
                 }
                 Section("playx.results") {
+                    if let mode = model.snapshot?.result.runStartMode {
+                        LabeledContent("playx.completion.start") {
+                            Text(LocalizedStringKey(mode == .desk ? "playx.completion.desk" : "playx.completion.alternate"))
+                        }
+                        .accessibilityIdentifier("playx.runStartMode")
+                    }
+                    if let snapshot = model.snapshot {
+                        let cards = PlayRunKeepsakes.evidence(in: snapshot)
+                        if !cards.isEmpty {
+                            Text("playx.evidence.title").cyText(.cardTitle)
+                            ForEach(cards) { card in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    if let title = card.title { Text(verbatim: title).cyText(.cardTitle) }
+                                    Text(verbatim: card.text).cyText(.body)
+                                }
+                                .accessibilityIdentifier("playx.evidence.\(card.id)")
+                            }
+                        }
+                        let photos = PlayRunKeepsakes.photos(in: snapshot)
+                        if !photos.isEmpty {
+                            Text("playx.photos.title").cyText(.cardTitle)
+                            ForEach(photos) { photo in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    if let title = photo.title { Text(verbatim: title).cyText(.bodyCompact) }
+                                    PlayStationArtwork(image: PlayStationImage(source: photo.url, tier: .station), title: photo.title ?? "")
+                                }
+                                .accessibilityIdentifier("playx.photos.\(photo.id)")
+                            }
+                        }
+                    }
                     if model.snapshot?.availability == .completed, model.hasCurrentMediaSnapshot {
                         Button { finishScreen = true } label: { Label("medalScreen.open", systemImage: "rosette") }
                             .accessibilityIdentifier("medalScreen.open")
@@ -544,9 +588,12 @@ import SwiftUI
                         if ending.hasStory {
                             if !ending.opener.isEmpty { Text(verbatim: ending.opener) }
                             ForEach(Array(ending.fragments.enumerated()), id: \.offset) { _, fragment in
-                                VStack(alignment: .leading) { Text(verbatim: fragment.name).font(.headline); if let text = fragment.text, !text.isEmpty { Text(verbatim: text) } }
+                                VStack(alignment: .leading) { Text(verbatim: fragment.name).cyText(.cardTitle); if let text = fragment.text, !text.isEmpty { Text(verbatim: text) } }
                             }
                         } else { Text("playx.ending.empty").accessibilityIdentifier("playx.ending.empty") }
+                    }
+                    if let config = castModel?.config {
+                        CastEndingSection(config: config, result: CastEndingResult(raw: model.castPayload))
                     }
                 }
                 if let board = model.leaderboard {
@@ -574,7 +621,8 @@ import SwiftUI
             ToolbarItem(placement: .topBarTrailing) {
                 // 游玩工具: 切换章节 when the route has more than one chapter (also after the run is done), 紧急求助 always.
                 PlayToolsMenu(showsChapters: (model.snapshot?.result.chapters.count ?? 0) > 1, showsEmergency: model.snapshot != nil,
-                              openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true })
+                              openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true },
+                              openScanArrival: hudStop == nil ? nil : { if let id = hudStop?.node.id { selectedNode = id } })
             }
         }
         .accessibilityIdentifier("playx.overview")
@@ -599,7 +647,7 @@ import SwiftUI
     /// Map-first play screen: static map ground, glass clock / route map / end on top, the one primary
     /// (pause / resume) above the panel, and the unchanged task list in a three-detent panel.
     private var orientationContent: some View {
-        CYMapScaffold(detent: .medium, map: { CYMapPlaceholder() }, controls: { runHeader }, floating: { runFloating },
+        CYMapScaffold(detent: .medium, map: { PlayStoryMapGround(snapshot: model.snapshot) }, controls: { runHeader }, floating: { runFloating },
                       panel: { orientationList })
     }
     /// The one current stop of a live run, for the play HUD (401:4731). nil while branches are a choice, before the
@@ -697,8 +745,10 @@ import SwiftUI
                           model.chapterStories[chapterID] != nil else { return nil }
                     return AnyView(ChapterStoryView(chapterID: chapterID, nodeID: node.id, model: model,
                         mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts,
+                        castModel: castModel,
                         nodeDestination: { AnyView(freeStoreDestination($0)) }))
-                }, storeDayModel: storeDayModel)
+                }, storeDayModel: storeDayModel,
+                arrivalLocation: RuntimeNativeLocationProvider(enabled: true))
         } else { Text("playMode.unavailable") }
     }
     /// Chapters whose visible places are all done and unlocked (the same rule as the 旅程记录 stage rows).
@@ -714,7 +764,7 @@ import SwiftUI
             NavigationLink {
                 JourneyNarrativeView(model: narrative, imageReader: narrativeImageReader, makeAudio: makeAudio, mediaScope: mediaScope)
             } label: {
-                VStack(alignment: .leading) { Text(LocalizedStringKey(query.titleKey)); if let subtitle { Text(verbatim: subtitle).font(.caption) } }
+                VStack(alignment: .leading) { Text(LocalizedStringKey(query.titleKey)); if let subtitle { Text(verbatim: subtitle).cyText(.meta) } }
             }.accessibilityIdentifier("journey.record.open." + query.key)
         }
     }
@@ -776,6 +826,25 @@ import SwiftUI
         ambientModel?.project(eggs: result.eggs, topicID: result.topicID)
     }
     private static var milliseconds: Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
+    /// Naming, then the playbill, only at the start of an active run that has not finished a station.
+    private var castOpeningStep: CastOpeningFlow.Step? {
+        guard let config = castModel?.config, model.snapshot?.availability == .active, let snapshot = model.snapshot else { return nil }
+        let anyDone = snapshot.visibleNodes.contains { snapshot.isDone($0) }
+        return CastOpeningFlow.step(config: config, profile: castModel?.profile, anyStationDone: anyDone, playbillSeen: castPlaybillSeen)
+    }
+    private func adoptCast() {
+        let payload = model.castPayload
+        guard payload != .null else {
+            castModel?.invalidate()
+            castModel = nil
+            castCover = false
+            return
+        }
+        let next = castModel ?? model.makeCastCoordinator()
+        next.adopt(raw: payload, topicID: model.snapshot?.result.topicID, runID: model.snapshot?.route?.sessionID)
+        if castModel !== next { castModel = next }
+        if castOpeningStep != nil { castCover = true }
+    }
 }
 
 @MainActor private struct PlayExperienceNodeView: View {
@@ -825,6 +894,9 @@ import SwiftUI
     @State private var justSubmitted = false
     /// The server's reason when this screen's answer was not accepted, shown above the button.
     @State private var rejectionText: String?
+    /// 「我已到达」 on the existing completion channel. One when-in-use fix; no continuous roam.
+    @State private var arrival: PlayArrivalService?
+    @State private var continuedWithoutPhoto = false
     private var answerPhase: CYResultPhase {
         if outcomeState == .submitting { return .loading }
         if justSubmitted && (outcomeState == .completed || nodeDone) { return .done }
@@ -841,13 +913,21 @@ import SwiftUI
         return model.extras[nodeID]?.dispatchedTask
     }
     private var helpEnabled: Bool { help?.enabled == true && help?.identity.nodeID == nodeID }
+    private var gameStage: PlayGameStage? {
+        guard let result = model.snapshot?.result else { return nil }
+        guard PlayKitPilotGate.allows(eventID: result.topicID) else { return nil }
+        return PlayGameStage.resolve(nodeID: nodeID, nodes: result.nodes, chapters: result.chapters)
+    }
     var body: some View {
         let context = model.interactionContext
         nodeWithConfirms(context: context)
+            .environment(\.playGameStage, gameStage)
             // Design hand-off r1 PL-15: the hint ladder is a resizable sheet over the play screen.
             .sheet(isPresented: Binding(get: { showHelpPanel && helpEnabled }, set: { if !$0 { showHelpPanel = false } })) {
                 if let help {
-                    PlayHelpLadderPanel(model: help, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts, close: { showHelpPanel = false })
+                    PlayHelpLadderPanel(model: help, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts,
+                                         onPoolTrimmed: { Task { await advanced?.refreshAuthoritative() } },
+                                         close: { showHelpPanel = false })
                 }
             }
             .cyModalOverlay(isPresented: showUnsavedDiscard) {
@@ -871,7 +951,8 @@ import SwiftUI
                     Task { await model.load() }
                 }
             }
-            .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
+            .onAppear { if arrival == nil { arrival = PlayArrivalService(runtime: model, location: RuntimeNativeLocationProvider(enabled: true)) } }
+            .onDisappear { journey?.roleContent.close(); device?.cancel(); arrival?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
     }
 
     @ViewBuilder
@@ -1044,6 +1125,9 @@ import SwiftUI
         nodeAnswerSection(node: node, context: context)
         nodeHelpAndHintSections(node: node, context: context)
         nodeSensorAndDeviceSections(node: node, context: context)
+        if let arrival, arrival.offer(for: node.id) != nil {
+            Section { PlayArrivalControl(arrival: arrival, nodeID: node.id, context: context) }
+        }
     }
 
     @ViewBuilder
@@ -1170,10 +1254,12 @@ import SwiftUI
                 }
             }
         }
-        if let device { PlayDeviceTaskSection(model: device, task: PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node),
+        let resolvedTask = PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node)
+        let arrivalReplacesDevice = arrival?.offer(for: node.id) != nil && (resolvedTask == .arrive || resolvedTask == .merchantScan)
+        if let device, !arrivalReplacesDevice { PlayDeviceTaskSection(model: device, task: resolvedTask,
             photoFilter: node.sensorType == "filter_shot" ? PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") : nil,
             unsupportedPhotoSubtype: node.validationMethod == 2 && node.sensorType?.isEmpty == false && (node.sensorType != "filter_shot" || PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") == nil), interaction: .init(context: context, current: { model.interactionContext }), onEvidence: { prepare($0, context: $1) }) }
-        else if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) != .answer { Text("playx.device.disabled") }
+        else if !arrivalReplacesDevice, resolvedTask != .answer { Text("playx.device.disabled") }
     }
     @ViewBuilder
     private func nodeBriefCard(node: PlayNode) -> some View {
@@ -1196,10 +1282,17 @@ import SwiftUI
                     systemImage: node.arrived == true ? "checkmark.circle.fill" : "location.fill"
                 )
             }
+            if let result = model.snapshot?.result {
+                PlayStationArtwork(image: PlayStationImageResolver.station(for: node, in: result), title: node.name ?? "")
+                    .accessibilityIdentifier("playx.station.artwork")
+            }
             PlayNodeTitle(name: node.name)
                 .cyText(.pageTitle)
                 .foregroundStyle(palette.textPrimary)
-            if let body = node.storyText ?? node.description {
+            if model.snapshot?.isStoryLocked(node) == true {
+                CYStatusChip("playFree.story.locked", tone: .neutral, systemImage: "lock.fill")
+                    .accessibilityLabel(Text("playFree.story.locked.a11y"))
+            } else if let body = node.storyText ?? node.description {
                 Text(verbatim: body)
                     .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
@@ -1221,6 +1314,25 @@ import SwiftUI
                 PlayKitArtwork(source: image, approvedHosts: approvedArtworkHosts)
                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .accessibilityIdentifier("playx.question.image")
+            }
+            if let perk = node.perk {
+                if perk.included == true { Text("playx.perk.included").cyText(.bodyCompact) }
+                if let spend = perk.extraSpendText, !spend.isEmpty { Text(verbatim: spend).cyText(.bodyCompact) }
+                if perk.reserveRequired == true { Text("playx.perk.reserve").cyText(.bodyCompact) }
+            }
+            if let mode = PlayCompletionModePresentation(raw: node.completionMode) {
+                Text(LocalizedStringKey(mode.titleKey)).cyText(.bodyCompact).accessibilityIdentifier("playx.completion.mode")
+            }
+            if model.extras[node.id]?.photoCheckMode == "RECORD" {
+                Button("playkit.photo.continueWithout") {
+                    if case .success(let submission) = PlayPhotoRecordSubmission.validate(mode: "RECORD", imageURL: nil, textConfirmed: true, submitPhotoCheck: false) {
+                        continuedWithoutPhoto = true
+                        if let advanced { Task { await PlayKitInputContract.postRecord(submission, through: advanced) } }
+                    }
+                }
+                .cyText(.body)
+                .disabled(continuedWithoutPhoto)
+                .accessibilityIdentifier("playkit.photo.continueWithout")
             }
             if node.validationMethod == 2, let requirement = node.photoRequirement, !requirement.isEmpty {
                 Text(verbatim: requirement)
@@ -1412,7 +1524,7 @@ struct PlayExperienceIssueView: View {
     var body: some View {
         VStack(alignment: .leading) {
             if case .rejected(let code, let message) = issue {
-                Label("playx.rejected", systemImage: "exclamationmark.circle").font(.headline)
+                Label("playx.rejected", systemImage: "exclamationmark.circle").cyText(.cardTitle)
                 Text(verbatim: message ?? String(code)).fixedSize(horizontal: false, vertical: true)
             } else { Text(LocalizedStringKey(issue == .disabled ? "playx.disabled" : issue == .staleSession ? "playx.session.changed" : issue == .unsupported ? "playx.unsupported" : "playx.error")) }
             // OWN-OPT-072: unknown result or server error carries the server request reference for support.
@@ -1434,6 +1546,9 @@ struct PlayExperienceIssueView: View {
             }
             if let xp = reward["xp"].tolerantInteger ?? reward["score"].tolerantInteger { LabeledContent("playx.reward.xp") { Text(verbatim: String(xp)) } }
             if let score = reward["puzzleScore"].tolerantInteger { LabeledContent("playx.reward.puzzle") { Text(verbatim: String(score)) } }
+            if let mode = PlayCompletionModePresentation(raw: reward["completionMode"].text) {
+                LabeledContent("play.completionMode") { Text(LocalizedStringKey(mode.titleKey)) }
+            }
             if let drop = PlayRewardDrop.fromReward(reward) {
                 LabeledContent {
                     Text(verbatim: drop.detailText(locale: locale))
@@ -1467,10 +1582,10 @@ struct PlayExperienceIssueView: View {
     static func medals(in reward: PlayWireValue, locale: Locale) -> [CYMedalItem] {
         var items: [CYMedalItem] = []
         if let medal = reward["medalName"].text, !medal.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            items.append(.init(id: "topic-medal", name: medal, imageURL: reward["medalImg"].text ?? reward["medalImage"].text, systemImage: "rosette"))
+            items.append(.init(id: "topic-medal", name: medal, imageURL: reward["medalImg"].text ?? reward["medalImage"].text, systemImage: "rosette", mpDefault: .trophy))
         }
         for target in PlayRewardBadgeTarget.targets(in: reward) {
-            items.append(.init(id: "badge-" + target.code, name: target.name ?? appLocalized("medalDeck.unnamed", locale: locale), systemImage: "seal.fill"))
+            items.append(.init(id: "badge-" + target.code, name: target.name ?? appLocalized("medalDeck.unnamed", locale: locale), systemImage: "seal.fill", mpDefault: .glassBadge))
         }
         return items
     }
@@ -1501,7 +1616,18 @@ struct PlayExperienceIssueView: View {
                                              reload: { Task { await model.loadLead(context: context) } })
                 } else if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
-                    if lead.exists, case .activity(let activityID) = model.scope { LeadMemberTicketScanButton(activityID: activityID) }
+                    if lead.exists, case .activity(let activityID) = model.scope {
+                        LeadMemberTicketScanButton(activityID: activityID)
+                        // PLAY-8: MP 展示整团码 (`leadShowGroupCode` → scene qr-group-code for this activity). The club
+                        // group-code page issues and shows it; its own access check covers a leader without club rights.
+                        NavigationLink {
+                            MPReviewedPageScreen(page: "pages/club/group-code/index", query: ["activityId": String(activityID)])
+                                .cyPushedChrome()
+                        } label: {
+                            Label("playTools.lead.showGroupCode", systemImage: "qrcode")
+                        }
+                        .accessibilityIdentifier("playx.lead.showGroupCode")
+                    }
                     TextField("playx.lead.text", text: $text, axis: .vertical).accessibilityIdentifier("playx.lead.text")
                     if !lead.exists { actionButton(context: context, .start) }
                     else {
@@ -1593,4 +1719,82 @@ struct PlayExperiencePresentationKey: Hashable {
 struct PlayStageSettlementTarget: Identifiable, Equatable {
     let chapterID: Int
     var id: Int { chapterID }
+}
+
+/// Cast mounts (W1) split out of `PlayExperienceView.body` so the modifier chain type-checks in time.
+private struct PlayExperienceCastMounts: ViewModifier {
+    let host: PlayExperienceView
+    func body(content: Content) -> some View {
+        host.castMounts(content)
+    }
+}
+
+extension PlayExperienceView {
+    @ViewBuilder fileprivate func castMounts<C: View>(_ content: C) -> some View {
+        content
+            .onAppear { adoptCast() }
+            .onChange(of: model.castPayload) { _, _ in adoptCast() }
+            .onChange(of: model.snapshot?.route?.sessionID) { old, new in
+                if old != new { castPlaybillSeen = false }
+                adoptCast()
+            }
+            .onChange(of: castOpeningStep) { _, step in castCover = step != nil }
+            .fullScreenCover(isPresented: $castCover) {
+                if let config = castModel?.config {
+                    CastOpeningFlow(config: config, profile: castModel?.profile, routeName: model.snapshot?.result.topicName,
+                                    suggestedName: castModel?.profile?.name ?? "", initial: castOpeningStep ?? .playbill,
+                                    save: { name, identity in Task { await castModel?.saveProfile(name: name, identityKey: identity) } },
+                                    finish: { castPlaybillSeen = true; castCover = false })
+                }
+            }
+            .sheet(isPresented: $showingCastRoster) {
+                if let config = castModel?.config {
+                    NavigationStack {
+                        CastPlaybillView(config: config, profile: castModel?.profile, routeName: model.snapshot?.result.topicName, start: { showingCastRoster = false })
+                    }
+                }
+            }
+    }
+}
+
+/// PLAY-2: MP pages/play story map (wxml:102, 145): the route's stops and dashed order line drawn as the play
+/// screen's ground, with no chrome. Read-only and not interactive (the full route map stays one push away);
+/// it shows only what PlayRouteMapPresentation already exposes (no story, answers or player position).
+/// A route without coordinates keeps the placeholder ground.
+@MainActor private struct PlayStoryMapGround: View {
+    let snapshot: PlaySnapshot?
+    var body: some View {
+        if let snapshot, let presentation = PlayRouteMapPresentation(snapshot: snapshot), !presentation.mappedStops.isEmpty {
+            let points = presentation.mappedStops.compactMap(\.coordinate).map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+            Map(initialPosition: .region(CYMapRegion.boundingRegion(coordinates: points)), interactionModes: []) {
+                ForEach(presentation.segments) { segment in
+                    MapPolyline(coordinates: [
+                        CLLocationCoordinate2D(latitude: segment.start.latitude, longitude: segment.start.longitude),
+                        CLLocationCoordinate2D(latitude: segment.end.latitude, longitude: segment.end.longitude),
+                    ])
+                    .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [6, 5]))
+                }
+                ForEach(presentation.mappedStops) { stop in
+                    if let location = stop.coordinate {
+                        Annotation("", coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)) {
+                            Image(systemName: stop.state.symbol)
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(stop.state == .current ? CYColor.textOnAccent : Color.primary)
+                                .padding(6)
+                                .background(stop.state == .current ? CYColor.actionPrimaryBg : Color(uiColor: .systemBackground), in: Circle())
+                        }
+                    }
+                }
+            }
+            .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+            .environment(\.colorScheme, .light)
+            .background { CYMapPlaceholder(fog: false) }
+            // Decorative ground: the stop list in the panel carries the same facts for VoiceOver.
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
+            .id(presentation.mappedStops.map(\.id))
+        } else {
+            CYMapPlaceholder()
+        }
+    }
 }

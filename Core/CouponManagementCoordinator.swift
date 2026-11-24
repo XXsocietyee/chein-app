@@ -74,6 +74,8 @@ public struct CouponManagementReview: Equatable, Identifiable {
     public private(set) var acknowledged = false
     public private(set) var verifiedRecord: CouponDefinition?
     public private(set) var acknowledgedDefinitionID: CouponDefinitionID?
+    /// `coupon.js` list scope. Merchant is the historical default; a player page sets `.player` (no `scope` field).
+    public var publishListScope: CouponPublishListScope = .merchant
     public var session: CouponManagementSession? { currentSession() }
     public var canSimulate: Bool { adapter.canSimulate }
     public var canSubmit: Bool { adapter.canSubmit }
@@ -110,7 +112,7 @@ public struct CouponManagementReview: Equatable, Identifiable {
         readGeneration &+= 1; let sequence = readGeneration
         loading = true; rows = []; issue = nil
         do {
-            let result = try await adapter.published(session: session, keyword: keyword)
+            let result = try await adapter.published(session: session, keyword: keyword, scope: publishListScope)
             guard currentSession() == session, captured == session, !Task.isCancelled, sequence == readGeneration else { return }
             rows = result; loading = false
         } catch {
@@ -143,7 +145,7 @@ public struct CouponManagementReview: Equatable, Identifiable {
         simulated = false; acknowledged = false; verifiedRecord = nil; acknowledgedDefinitionID = nil
         do {
             try unlocked(session, resource: "stop:\(id.value)")
-            let owned = try await adapter.published(session: session)
+            let owned = try await adapter.published(session: session, scope: publishListScope)
             guard active(session, stamp) else { return }
             guard let row = owned.first(where: { $0.id == id }), row.state.canStop else { throw CouponManagementError.forbidden }
             let permission = try await authorizer.freshPermission(session: session)
@@ -167,7 +169,7 @@ public struct CouponManagementReview: Equatable, Identifiable {
             case .publish(let value):
                 guard draft == value else { throw CouponManagementError.changed }
             case .stop(let baseline):
-                let owned = try await adapter.published(session: session)
+                let owned = try await adapter.published(session: session, scope: publishListScope)
                 guard active(session, stamp) else { return }
                 guard let fresh = owned.first(where: { $0.id == baseline.id }), fresh == baseline, fresh.state.canStop else { throw CouponManagementError.changed }
             }
@@ -265,7 +267,7 @@ public struct CouponManagementReview: Equatable, Identifiable {
     private func refreshAfterMutation(session: CouponManagementSession, stamp: UInt64) async {
         readGeneration &+= 1; let sequence = readGeneration
         do {
-            let result = try await adapter.published(session: session)
+            let result = try await adapter.published(session: session, scope: publishListScope)
             guard active(session, stamp), sequence == readGeneration else { return }; rows = result
         } catch {
             guard active(session, stamp), sequence == readGeneration else { return }; rows = []

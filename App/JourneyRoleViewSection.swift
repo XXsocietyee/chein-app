@@ -77,20 +77,32 @@ import SwiftUI
                 messageIdentifier: "roleView.missing"
             )
         } else {
-            Text(LocalizedStringKey("roleView.assignment." + projection.assignment.rawValue))
-                .cyText(.cardTitle)
-                .foregroundStyle(CYColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("roleView.assignment")
-            if let other = projection.otherRoleLabel {
+            Group {
+                if let own = projection.roleLabel { Text("roleView.yourRole \(own)") }
+                else { Text(LocalizedStringKey("roleView.assignment." + projection.assignment.rawValue)) }
+            }
+            .font(.headline)
+            .foregroundStyle(CYColor.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("roleView.assignment")
+            if !projection.otherRoleLabels.isEmpty {
                 LabeledContent("roleView.otherRole") {
-                    Text(verbatim: other)
+                    Text(verbatim: projection.otherRoleLabels.joined(separator: "、"))
                 }
-                .cyText(.body)
+                .font(.body)
                 .foregroundStyle(CYColor.textPrimary)
+                .accessibilityIdentifier("roleView.otherRoles")
             }
             ForEach(projection.views) { view in
                 roleCard(view, solo: projection.assignment == .solo)
+            }
+            if projection.assignment != .solo {
+                Text("roleView.teammatesOther")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("roleView.teammatesOther")
             }
         }
         Text("roleView.serverAssigned")
@@ -102,10 +114,15 @@ import SwiftUI
     @ViewBuilder private func roleCard(_ view: JourneyRoleContent, solo: Bool) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if solo {
-                Text(LocalizedStringKey("roleView.assignment." + view.roleID))
-                    .cyText(.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                Group {
+                    if let label = view.label { Text(verbatim: label) }
+                    else { Text(LocalizedStringKey("roleView.assignment." + view.roleID)) }
+                }
+                .font(.headline)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("roleView.heading." + view.roleID)
             }
             if !view.title.isEmpty {
                 Text(verbatim: view.title)

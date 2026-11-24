@@ -14,7 +14,7 @@ import SwiftUI
                 CYEmptyState(systemImage: "person.crop.circle.badge.xmark", "当前地图不可用")
             }
         }
-        .navigationTitle("城市地图快照")
+        .navigationTitle("城市地图快照").navigationBarTitleDisplayMode(.inline)
         .task { await model.open() }
         .task {
             while !Task.isCancelled {

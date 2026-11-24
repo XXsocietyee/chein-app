@@ -1,0 +1,14 @@
+# P5 acceptance fixtures (launch argument: --design-fixture <name>), one per line.
+# FE-G5 / FE-G6: ticket entitlement rows (perk terms, empty statusLabel fallback); MoneyDisplay amounts.
+ticket-detail
+e1-ticket-holder-valid
+e1-ticket-holder-pending
+# OR-023: system conversation title 城瘾小助手 in the inbox list and search; reply notice in chat.
+e3-inbox
+d2-inbox
+e3-chat
+# V-23: club calendar / activity list with no 「举报活动」 button on topic rows.
+e3-club-calendar
+# MC-055: club governance entry (owner/admin, viewerCanGovern).
+d4-tab-manage
+e3-club-detail

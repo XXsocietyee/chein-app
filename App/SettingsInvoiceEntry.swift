@@ -11,7 +11,7 @@ import SwiftUI
                     InvoiceLaunchSessionHistory(session: session, model: invoice)
                 } label: {
                     Label { invoiceText("history") } icon: {
-                        Image(systemName: "doc.text").accessibilityHidden(true)
+                        AccountPublishMPGlyph(MPAsset.FeatureIcon.iconAgreement)
                     }
                 }
                 .accessibilityIdentifier("settings.invoices")
@@ -42,7 +42,7 @@ import SwiftUI
     @State private var login = false
     var body: some View {
         InvoiceLaunchHistoryView(model: model, onSignIn: { login = true })
-            .sheet(isPresented: $login) { LoginView(intent: .player).environmentObject(session) }
+            .sheet(isPresented: $login) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .onChange(of: session.sessionRevision) { _, _ in login = false }
     }
 }

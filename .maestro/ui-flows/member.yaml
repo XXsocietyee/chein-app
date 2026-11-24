@@ -1,0 +1,28 @@
+appId: invalid.example.questify.ios
+---
+# Member home through the wired DEBUG fixture e4-member
+# (DesignFixtureRegistry.make -> E4Fixtures -> MemberHomeFixtureHost, scenario ready).
+# Asserts the identity card that is on screen before any read finishes.
+# Rows are not opened. No typed text, payment, or host URL. DEBUG builds only.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    stopApp: true
+    arguments:
+      "--design-fixture": "e4-member"
+- extendedWaitUntil:
+    visible:
+      id: "member.card.name"
+    timeout: 20000
+- assertVisible:
+    id: "member.card.level"
+- assertVisible:
+    id: "member.card.city"
+- assertVisible:
+    id: "member.card.tickets"
+- assertVisible:
+    id: "member.card.friends"
+- assertVisible:
+    id: "member.card.following"
+- assertVisible:
+    id: "member.card.fans"

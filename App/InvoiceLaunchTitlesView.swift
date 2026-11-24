@@ -31,7 +31,8 @@ import SwiftUI
                 CYEmptyState(systemImage: "person.text.rectangle", "noTitles", tableName: "InvoiceLaunchUI")
                     .frame(maxWidth: .infinity).listRowBackground(Color.clear)
             }
-            if facts.showsPendingSave {
+            // R7-MEM-14-1: the shared state section already states an unresolved save with its 查询结果 row.
+            if facts.showsPendingSave, !model.unresolved {
                 // Source 上次保存结果未确认 · 确认前请勿修改抬头. Request numbers are never shown or spoken (FIN-14-2).
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {

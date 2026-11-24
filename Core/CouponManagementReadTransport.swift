@@ -24,7 +24,7 @@ public struct CouponManagementReadCredentials: Equatable {
     }
     public func send(_ descriptor: CouponManagementRequest, session: CouponManagementSession) async throws -> (Data, Int) {
         guard !descriptor.mutates, descriptor.path == "/api/coupon/mypublishlist", case .multipart(let fields) = descriptor.body,
-              fields["scope"] == "MERCHANT", Set(fields.keys).isSubset(of: ["keyword", "scope"]) else { throw CouponManagementError.unavailable }
+              CouponManagementContract.acceptsPublishedList(fields) else { throw CouponManagementError.unavailable }
         guard let captured = credentials(), captured.session == session else { throw CouponManagementError.signedOut }
         try Task.checkCancellation()
         let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/coupon/mypublishlist"), fields: fields, token: captured.token)
@@ -68,7 +68,7 @@ public struct CouponManagementReadCredentials: Equatable {
             }
         } else {
             guard descriptor.path == "/api/coupon/mypublishlist", case .multipart(let fields) = descriptor.body,
-                  fields["scope"] == "MERCHANT", Set(fields.keys).isSubset(of: ["keyword", "scope"]) else { throw CouponManagementError.unavailable }
+                  CouponManagementContract.acceptsPublishedList(fields) else { throw CouponManagementError.unavailable }
         }
         try Task.checkCancellation()
         let payload = try descriptor.encodedBody(boundary: "CouponNative-" + UUID().uuidString)

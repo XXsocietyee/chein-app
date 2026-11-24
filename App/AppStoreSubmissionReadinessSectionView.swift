@@ -215,7 +215,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(CYColor.textSecondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(CYColor.textSecondary.opacity(0.08)))
         .accessibilityIdentifier("appStoreReadiness.section")
     }
 
@@ -228,7 +228,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).title")
                 Spacer()
                 Text(verbatim: item.referenceCode)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).ref")
                 Text(verbatim: item.statusBadgeText)
@@ -244,7 +244,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
 
             if !item.requiredKeys.isEmpty {
                 Text(verbatim: item.requiredKeys.joined(separator: " · "))
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).keys")
             }
@@ -258,7 +258,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(CYColor.textSecondary.opacity(0.06)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous).fill(CYColor.textSecondary.opacity(0.06)))
         .accessibilityIdentifier("appStoreReadiness.item.\(item.id)")
     }
 }

@@ -6,6 +6,8 @@ import SwiftUI
     let view: CooperationInvitePresentation
     let peerReader: (any CoopFlowReading)?
     @Environment(\.dismiss) private var dismiss
+    /// MC7-32-4: 进入项目 opens the bound topic when the list supplied the project destination.
+    @Environment(\.cooperationProjectDestination) private var projectDestination
     private var invite: CooperationInvite { view.invite }
     var body: some View {
         if view.showsContactPartner, let peerReader { accepted(peerReader) }
@@ -13,8 +15,22 @@ import SwiftUI
             switch view.footer {
             case .legacy: Text("cooperation.detail.footer.legacy").foregroundStyle(.secondary)
             case .decide:
+                if let name = invite.supplyStationName, !name.isEmpty, invite.supplyStationId != nil {
+                    Text(verbatim: name).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityIdentifier("cooperation.detail.supplyStation")
+                }
                 // Mini bottom bar: 接受合作 is the single solid action, 拒绝 the quiet one.
-                handle(.accept, label: "cooperation.detail.accept", emphasis: true)
+                if let stationID = invite.supplyStationId {
+                    // MC7-30-6: a station topic confirms the frozen station, then sends `supplyStationId` with the accept.
+                    NavigationLink {
+                        CoopSupplyStationAcceptView(inviteID: invite.id, stationID: stationID, stationName: invite.supplyStationName)
+                    } label: {
+                        Text("cooperation.detail.accept").cyText(.bodyMedium).foregroundStyle(CYColor.infoText)
+                    }
+                    .accessibilityIdentifier("cooperation.detail.handle.\(CoopFlowHandle.accept.rawValue)")
+                } else {
+                    handle(.accept, label: "cooperation.detail.accept", emphasis: true)
+                }
                 handle(.reject, label: "cooperation.detail.reject")
                 Text("cooperation.detail.reply.hint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             case .withdraw:
@@ -37,8 +53,16 @@ import SwiftUI
     @ViewBuilder private func accepted(_ reader: any CoopFlowReading) -> some View {
         Section("cooperation.detail.actions") {
             if let scope = view.projectScope, let topic = invite.topicId {
-                LabeledContent { Text(verbatim: "#" + String(topic)) } label: { Text("cooperation.detail.project") }
+                if let projectDestination, topic > 0 {
+                    NavigationLink {
+                        CooperationProjectNavigationDestination(topicID: topic, invite: CooperationInviteKey(id: invite.id, direction: view.direction),
+                                                                destination: projectDestination)
+                    } label: { Text("cooperation.detail.project") }
                     .accessibilityIdentifier("cooperation.detail.project.\(scope.rawValue)")
+                } else {
+                    LabeledContent { Text(verbatim: "#" + String(topic)) } label: { Text("cooperation.detail.project") }
+                        .accessibilityIdentifier("cooperation.detail.project.\(scope.rawValue)")
+                }
             }
             NavigationLink { CoopFlowRequestPreview(operation: .contact(inviteID: invite.id)) } label: { Text("cooperation.detail.contactPartner") }
                 .accessibilityIdentifier("cooperation.detail.contactPartner")
@@ -65,8 +89,14 @@ import SwiftUI
         }
     }
     private func handle(_ action: CoopFlowHandle, label: String, emphasis: Bool = false) -> some View {
-        NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0) } label: {
-            Text(LocalizedStringKey(label)).font(emphasis ? CYTypography.bodyMedium : CYTypography.body)
+        let stationID = action == .accept ? invite.supplyStationId : nil
+        return NavigationLink {
+            CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0,
+                                 supplyStationID: stationID,
+                                 supplyStationName: stationID == nil ? nil : invite.supplyStationName,
+                                 flowReader: stationID == nil ? nil : peerReader)
+        } label: {
+            Text(LocalizedStringKey(label)).cyText(emphasis ? .bodyMedium : .body)
                 .foregroundStyle(emphasis ? CYColor.infoText : CYColor.textPrimary)
         }
             .accessibilityIdentifier("cooperation.detail.handle.\(action.rawValue)")
@@ -111,7 +141,7 @@ import SwiftUI
                                 Text(verbatim: MerchantAreaCopy.text("下一步", "Next", locale))
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .font(CYTypography.caption.weight(.semibold))
+                                    .cyText(.meta, weight: .semibold)
                                     .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityHidden(true)
                             }
@@ -174,7 +204,7 @@ struct CooperationInviteTermsText: View {
         switch terms {
         case .traffic: Text("cooperation.terms.traffic")
         case .share(let rate): Text("cooperation.detail.terms.share \(rate.map(cooperationInviteNumber) ?? "?")")
-        case .fixed(let fee): Text("cooperation.detail.terms.fixed \(fee.map(cooperationInviteNumber) ?? "?")")
+        case .fixed(let fee): Text("cooperation.detail.terms.fixed \(fee.map(cooperationInviteMoney) ?? "?")")
         case .unknown: Text(verbatim: "—")
         }
     }
@@ -184,13 +214,17 @@ struct CooperationInviteDepositText: View {
     var body: some View {
         switch deposit {
         case .notRequired: Text("cooperation.detail.deposit.none")
-        case .owed(let amount?): Text("cooperation.detail.deposit.owed \(cooperationInviteNumber(amount))").monospacedDigit().foregroundStyle(CYColor.dangerText)
+        case .owed(let amount?): Text("cooperation.detail.deposit.owed \(cooperationInviteMoney(amount))").monospacedDigit().foregroundStyle(CYColor.dangerText)
         case .owed(nil): Text("cooperation.detail.deposit.owedUnknown").foregroundStyle(CYColor.dangerText)
         }
     }
 }
 /// No default amount, exchange rate, estimated deposit or contract total.
 func cooperationInviteNumber(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(0...8))) }
+/// Owner decision #9 (2026-11-24): money shows two decimals through the one shared formatter (`MoneyDisplay`).
+func cooperationInviteMoney(_ value: Double) -> String {
+    MoneyDisplay.plain(Decimal(string: String(value), locale: Locale(identifier: "en_US_POSIX")) ?? Decimal(value))
+}
 
 /// MR-36 star rating: five stars, tap to set; the word under them changes with the tap; one `.selection` tick per tap.
 /// The cooperation contract (`test_cooperation_structure`) keeps these pages free of custom motion, so the stars fill
@@ -207,7 +241,7 @@ struct CoopStarRatingControl: View {
                 ForEach(1...5, id: \.self) { star in
                     Button { select(star) } label: {
                         Image(systemName: star <= value ? "star.fill" : "star")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(star <= value ? CYColor.warningText : CYColor.textTertiary)
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                             .contentShape(Rectangle())

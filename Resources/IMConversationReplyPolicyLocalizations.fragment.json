@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notices can't be replied to."
+            "value": "Chengyin Assistant does not accept replies"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "系统通知不支持回复"
+            "value": "城瘾小助手不接收回复"
           }
         }
       }

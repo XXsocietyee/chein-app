@@ -169,7 +169,7 @@ import Combine
                 }
             }
             Section { Button("templateAuthor.saveLocal", action: editor.saveAction()).disabled(!editor.canEdit || !model.draft.canSave).accessibilityIdentifier("templateScan.saveLocal") }
-        }.navigationTitle("templateScan.title")
+        }.navigationTitle("templateScan.title").navigationBarTitleDisplayMode(.inline)
             .onDisappear { editor.retire() }
             .onChange(of: model.canEdit) { _, allowed in if !allowed { editor.suspend() } }
             .onChange(of: scenePhase) { _, phase in if phase != .active { editor.suspend() } }

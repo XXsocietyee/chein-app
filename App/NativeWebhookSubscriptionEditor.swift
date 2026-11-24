@@ -57,9 +57,9 @@ import SwiftUI
             .listRowInsets(EdgeInsets())
         }
         .nativeChannelFlowPage()
-        .navigationTitle(resource == nil ? nativeWebhookLocalized("d7.webhook.add") : nativeWebhookLocalized("d7.webhook.editor.editTitle"))
+        .navigationTitle(resource == nil ? nativeWebhookLocalized("d7.webhook.add") : nativeWebhookLocalized("d7.webhook.editor.editTitle")).navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button(nativeWebhookLocalized("d7.webhook.cancel")) { model.dismissSheet() }.accessibilityIdentifier("webhook.subscription.cancel") } }
-        .onChange(of: draft.replaceURL) { enabled in if !enabled { draft.url = "" } }
+        .onChange(of: draft.replaceURL) { _, enabled in if !enabled { draft.url = "" } }
         .onDisappear { draft.url = ""; draft.avatarURL = "" }
         .accessibilityIdentifier("webhook.subscription.editor")
     }

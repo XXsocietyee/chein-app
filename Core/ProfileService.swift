@@ -20,7 +20,23 @@ public struct ProfileReadFailure: Error, Equatable {
 
 /// Own-account reads only. No production host, mutations, payment, player-code issuance,
 /// retry loop, credential storage, or redirection. Inject the existing no-redirect transport.
+/// One page of `POST /api/registration/list` as `scene-member-order-history` sends it.
+public struct ProfileOrderPage: Equatable {
+    public let rows: [ProfileOrder]
+    public let total: Int?
+    public let pageNum: Int
+    public let pageSize: Int
+    /// More pages when this page is full and the loaded count is still under `total`.
+    public var hasMore: Bool {
+        guard let total, pageSize > 0 else { return false }
+        let loaded = (pageNum - 1) * pageSize + rows.count
+        return rows.count >= pageSize && loaded < total
+    }
+}
+
 public struct ProfileService {
+    /// `app.getPageSize()` in the mini-program.
+    public static let registrationListPageSize = 10
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
@@ -36,6 +52,19 @@ public struct ProfileService {
                   Set(result.rows.map(\.id)).count == result.rows.count else { throw APIError.malformedResponse }
         }
         return result.rows
+    }
+    /// `pageNum` / `pageSize` / `owner_type: 3` / `status: "0"`. Does not replace `orders()`, which stays unpaged.
+    public func orderHistory(token: String, pageNum: Int, pageSize: Int = ProfileService.registrationListPageSize, expectedAccountID: Int? = nil) async throws -> ProfileOrderPage {
+        if let expectedAccountID, expectedAccountID <= 0 { throw APIError.invalidRequest }
+        guard pageNum > 0, (1...100).contains(pageSize) else { throw APIError.invalidRequest }
+        let result: OrderRows = try await execute(form("api/registration/list", fields: [
+            "pageNum": String(pageNum), "pageSize": String(pageSize), "owner_type": "3", "status": "0"
+        ], token: token))
+        if let expectedAccountID {
+            guard result.rows.allSatisfy({ $0.memberID == expectedAccountID }),
+                  Set(result.rows.map(\.id)).count == result.rows.count else { throw APIError.malformedResponse }
+        }
+        return ProfileOrderPage(rows: result.rows, total: result.total, pageNum: pageNum, pageSize: pageSize)
     }
     public func order(id: Int, token: String, expectedAccountID: Int? = nil) async throws -> ProfileOrder {
         if let expectedAccountID, expectedAccountID <= 0 { throw APIError.invalidRequest }

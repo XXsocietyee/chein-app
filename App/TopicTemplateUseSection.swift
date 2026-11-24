@@ -136,7 +136,7 @@ extension AppCompositionRoot {
             Section {
                 ForEach(rows) { row in
                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-                        Text(row.label).cyText(.meta).foregroundStyle(palette.textTertiary)
+                        Text(row.label).cyText(.meta).foregroundStyle(palette.textSecondary)
                             .frame(minWidth: 64, alignment: .leading)
                         Text(row.value).cyText(.bodyCompact).foregroundStyle(palette.textPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -163,7 +163,7 @@ extension AppCompositionRoot {
     var body: some View {
         Group {
             if let credit {
-                Text(credit).cyText(.micro).foregroundStyle(palette.textTertiary).lineLimit(1)
+                Text(credit).cyText(.micro).foregroundStyle(palette.textSecondary).lineLimit(1)
                     .accessibilityLabel(Text(W8Text.t("图片署名：\(credit)", "Image credit: \(credit)")))
                     .accessibilityIdentifier("topicTemplate.nodeCredit")
             }

@@ -140,7 +140,7 @@ import WebKit
                 }
             )
         }
-        .sheet(item: $store.activeLaunchingGame) { game in
+        .sheet(item: $store.activeLaunchingGame) { game in Group {
             ExternalGameRunnerSheet(
                 store: store,
                 game: game,
@@ -148,23 +148,32 @@ import WebKit
                 review: review,
                 onReport: { reportGame = game }
             )
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .navigationDestination(isPresented: $showSubmissions) {
             ExternalGameSubmissionsScreen(model: review, session: session)
         }
-        .sheet(item: $ageTarget) { game in
+        .sheet(item: $ageTarget) { game in Group {
             ExternalGameAgeGateSheet(game: game, onConfirm: {
                 store.acceptAgeGate(game.manifest)
                 ageTarget = nil
                 store.activeLaunchingGame = game
             }, onCancel: { ageTarget = nil })
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
-        .sheet(item: $reportGame) { game in
+        .sheet(item: $reportGame) { game in Group {
             ExternalGameReportSheet(manifest: game.manifest, onSend: { draft in
                 if draft.blocked { store.block(game.manifest) }
                 Task { await review.report(draft, session: session) }
                 reportGame = nil
             }, onCancel: { reportGame = nil })
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .task(id: session?.token) { await review.reload(session: session) }
         .fileImporter(isPresented: $submitForReview, allowedContentTypes: [.json, .data], allowsMultipleSelection: false) { result in
@@ -206,7 +215,8 @@ import WebKit
 
     private func headerCircle(_ symbol: String) -> some View {
         Image(systemName: symbol)
-            .font(CYTypography.bodyMedium)
+            .accessibilityHidden(true)
+            .cyText(.bodyMedium)
             .foregroundStyle(palette.textPrimary)
             .frame(width: EditorKitMetric.closeVisual, height: EditorKitMetric.closeVisual)
             .background(Circle().fill(palette.brandSoft))
@@ -219,7 +229,7 @@ import WebKit
     private func installedRow(_ game: InstalledExternalGame) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             Image(systemName: "puzzlepiece.extension")
-                .font(CYTypography.bodyMedium)
+                .cyText(.bodyMedium)
                 .foregroundStyle(palette.textSecondary)
                 .frame(width: 44, height: 44)
                 .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.bgRaised))
@@ -245,7 +255,7 @@ import WebKit
             .accessibilityIdentifier("externalGame.run.\(game.manifest.id)")
             Menu { rowActions(game) } label: {
                 Image(systemName: "ellipsis")
-                    .font(CYTypography.bodyMedium)
+                    .cyText(.bodyMedium)
                     .foregroundStyle(palette.textSecondary)
                     .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     .contentShape(Rectangle())
@@ -343,7 +353,7 @@ import WebKit
                     Section {
                         Label(ExternalGameLibraryPresentation.message(for: check),
                               systemImage: check == .validButNotDownloadable ? "info.circle" : "exclamationmark.triangle.fill")
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(check == .validButNotDownloadable ? CYColor.infoText : CYColor.dangerText)
                             .accessibilityIdentifier("externalGameLinkResult")
                     }
@@ -420,7 +430,7 @@ import WebKit
                                     .fixedSize(horizontal: false, vertical: true)
                                 Spacer(minLength: CYSpacing.sm)
                                 Image(systemName: "checkmark")
-                                    .font(CYTypography.label)
+                                    .cyText(.label)
                                     .foregroundStyle(palette.textPrimary)
                                     .accessibilityHidden(true)
                             }
@@ -448,7 +458,7 @@ import WebKit
             }
             .navigationTitle(confirmation.isUpdate
                 ? String(localized: LocalizedStringResource("playx.externalGame.confirmUpdateTitle", defaultValue: "Confirm External Game Update", locale: locale))
-                : String(localized: LocalizedStringResource("playx.externalGame.confirmInstallTitle", defaultValue: "Confirm Import of External Game", locale: locale)))
+                : String(localized: LocalizedStringResource("playx.externalGame.confirmInstallTitle", defaultValue: "Confirm Import of External Game", locale: locale))).navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier("externalGame.permissions")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -589,7 +599,7 @@ struct ExternalGameNodePlayContext: Equatable, Sendable {
                     await reportSignedResult(passed: reported.passed, score: reported.score, digest: reported.digest)
                 }
             }
-            .navigationTitle(game.manifest.name)
+            .navigationTitle(game.manifest.name).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("common.close", defaultValue: "Close", locale: locale))) {

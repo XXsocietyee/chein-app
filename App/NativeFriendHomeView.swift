@@ -367,7 +367,7 @@ import SwiftUI
                     .accessibilityHidden(true)
                 if item.starred == 1 {
                     Image(systemName: "star.fill")
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.warningText)
                         .accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata"))
                 }

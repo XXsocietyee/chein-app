@@ -29,7 +29,6 @@ import SwiftUI
     @State private var generation = UUID()
     var body: some View {
         List {
-            Section { CYHeroHeader("memberTemplate.title") }.e1HeroRow()
             if loading {
                 CYSkeleton()
                     .accessibilityElement(children: .ignore)
@@ -123,7 +122,7 @@ import SwiftUI
                 } else { textSection("memberTemplate.story", value: item.storyText) }
                 textSection("discovery.creator", value: item.publisher)
             }
-        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
+        }.listStyle(.insetGrouped).cyGroupedSurface().navigationTitle(Text("memberTemplate.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive().accessibilityIdentifier("memberTemplate.detail")
         .task(id: reader.scope) { detail = nil; await load() }
         .refreshable { await load() }

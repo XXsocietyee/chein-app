@@ -75,6 +75,12 @@ public struct ClubEnrollmentTicket: Equatable, Identifiable {
         registrants = value["cmsRegistrationList"] == .null ? [] : try ClubEnrollmentDecode.rows(value["cmsRegistrationList"]).map(ClubEnrollmentRegistrant.init)
         try ClubEnrollmentDecode.unique(registrants.map(\.id))
     }
+    /// Numerator of 「已报名 n / 上限」. The MP sets `signups` to the registrant list length.
+    public var signups: Int { registrants.count }
+    public var signupNumeratorText: String {
+        if let capacity, capacity > 0 { return "\(signups) / \(capacity)" }
+        return "\(signups) 人"
+    }
     /// Nil inventory is unknown. A literal `0` stays `0` here; it is not rewritten to a blank.
     public var capacityText: String { ClubEnrollmentCountText.display(capacity) }
 }
@@ -83,7 +89,8 @@ public struct ClubEnrollmentRoster: Equatable {
     public let topicID: Int
     public let canRefund: Bool
     public let tickets: [ClubEnrollmentTicket]
-    public var paidCount: Int { tickets.reduce(0) { $0 + $1.registrants.count } }
+    /// 已支付 counts registrants whose `paymentStatus` is 2. Anyone else is not paid.
+    public var paidCount: Int { tickets.reduce(0) { $0 + $1.registrants.filter { $0.paymentStatus == 2 }.count } }
     /// Unknown payment/checkin fields cannot safely contribute a definite refundable count.
     public var refundableCount: Int? {
         let rows = tickets.flatMap(\.registrants)
@@ -161,13 +168,10 @@ public struct ClubEnrollmentSessionMoney: Equatable, Identifiable {
                          paidText: yuanText(row["paidFen"]), refundedText: yuanText(row["refundedFen"]), netText: yuanText(row["netFen"]))
         }
     }
-    /// MP `yuanText` + utils/money-format `decimalText`: ¥0.0, ¥10.0, ¥10.5, ¥10.55; unknown is "—".
+    /// Shared two-decimal yuan (`MoneyDisplay`). Unknown fen is "—".
     public static func yuanText(_ fen: ClubGovernanceValue) -> String {
         guard let raw = fen.number, raw.isFinite else { return "—" }
         let cents = Int(abs(raw).rounded())
-        let sign = raw < 0 && cents > 0 ? "-" : ""
-        if cents == 0 { return "¥0.0" }
-        let body = cents % 10 == 0 ? String(format: "%.1f", Double(cents) / 100) : String(format: "%.2f", Double(cents) / 100)
-        return sign + "¥" + body
+        return MoneyDisplay.yuan(fen: raw < 0 ? -cents : cents)
     }
 }

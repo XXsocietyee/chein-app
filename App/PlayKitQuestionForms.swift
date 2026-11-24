@@ -28,8 +28,17 @@ extension PlayKitScreen {
                 }
             }
             submitButton("SUBMIT_QA", payload: multi ? ["optionIds": .array(selected.sorted().map(PlayWireValue.string))] : ["optionId": .string(selected.first ?? "")], valid: !selected.isEmpty)
+        } else if raw["letterPool"] != .null {
+            PlayKitQuestionLetterPoolView(segment: raw, revision: runtimeIdentity, enabled: enabled,
+                onDirty: { dirty = true }, requestReview: prepare)
+                .id(childReset)
+            wrongReply
         } else {
             TextField("playkit.qa.answer", text: textBinding(), axis: .vertical).cyField().disabled(!enabled)
+            wrongReply
+            if let howTo = raw["howTo"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !howTo.isEmpty {
+                PlayKitHowToButton(text: howTo, identifier: "playkit.qa.howTo")
+            }
             submitButton("SUBMIT_QA", payload: ["input": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         if let answer = raw["answerId"].text, !answer.isEmpty, projection.complete {
@@ -38,12 +47,25 @@ extension PlayKitScreen {
         attempts
     }
     @ViewBuilder var branchForm: some View {
+        if let echo = CastBranchEcho(branch: raw) {
+            CastBranchEchoLabel(echo: echo, config: castContext?.config)
+        }
         if let title = raw["currentStep"]["title"].text { Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader) }
         if let body = raw["currentStep"]["body"].text { Text(verbatim: body).cyText(.body).foregroundStyle(CYColor.textSecondary) }
+        if projection.options.isEmpty, !projection.complete {
+            ContentUnavailableView("playkit.branch.waiting", systemImage: "arrow.triangle.branch")
+                .accessibilityIdentifier("playkit.branch.waiting")
+        }
         ForEach(projection.options) { option in
             CYChoiceRow(label: option.label, selected: false, enabled: enabled) { prepare("CHOOSE", ["optionId": .string(option.id)]) }
         }
         if projection.complete { Text("playkit.branch.ended") }
+    }
+    @ViewBuilder var wrongReply: some View {
+        if let reply = PlayKitWrongReply.text(segment: raw) {
+            Text(verbatim: reply).font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("playkit.qa.wrongReply")
+        }
     }
     @ViewBuilder var estimateForm: some View {
         // Read only the current accepted node projection, with no cached tier.
@@ -119,10 +141,17 @@ extension PlayKitScreen {
                         .accessibilityAction(named: Text("playkit.hidden.center")) {
                             if enabled { prepare("SUBMIT_HIDDEN_OBJECT", ["x": .number(0.5), "y": .number(0.5)]) }
                         }
-                } else if phase.error != nil { Label("playkit.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
-                else { ProgressView("playkit.imageLoading") }
+                }                 else if phase.error != nil {
+                    ContentUnavailableView {
+                        Label("playkit.imageUnavailable", systemImage: "photo.badge.exclamationmark")
+                    } actions: {
+                        Button("playkit.imageRetry") { childReset = UUID() }
+                    }
+                }
+                else { PlayGameImagePlaceholder(titleKey: "playkit.hidden.scenePending", loading: true) }
             }
-        } else { Label("playkit.imageGated", systemImage: "photo") }
+            .id(childReset)
+        } else { PlayGameImagePlaceholder(titleKey: "playkit.hidden.scenePending", systemImage: "photo") }
         attempts
     }
     @ViewBuilder var predictForm: some View {
@@ -192,11 +221,11 @@ extension PlayKitScreen {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             LabeledContent("playkit.estimate.range") {
-                Text(verbatim: "\(wheel.minimum.formatted()) – \(wheel.maximum.formatted()) \(unit)")
+                Text(verbatim: PlayGameNumber.text(wheel.minimum, unit: unit) + " – " + PlayGameNumber.text(wheel.maximum, unit: unit))
             }
             Picker("playkit.estimate.value", selection: $selectedIndex) {
                 ForEach(wheel.ticks.indices, id: \.self) { index in
-                    Text(verbatim: "\(wheel.ticks[index]) \(unit)")
+                    Text(verbatim: PlayGameNumber.text(wheel.ticks[index], unit: unit))
                         .lineLimit(1).minimumScaleFactor(0.5).tag(index)
                 }
             }.pickerStyle(.wheel).frame(height: wheelHeight).disabled(!enabled)

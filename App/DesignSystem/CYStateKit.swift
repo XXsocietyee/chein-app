@@ -110,6 +110,15 @@ struct CYStateArt: View {
     @State private var floating = false
 
     var body: some View {
+        if let illustration = CYEmptyIllustration.kind(matching: kind == .orders ? "ticket" : kind.symbol) {
+            CYEmptyIllustration(kind: illustration, size: size)
+        } else {
+            illustrated
+        }
+    }
+
+    @ViewBuilder
+    private var illustrated: some View {
         let hue = kind.hue
         let sat = kind.muted ? 0.12 : 0.62
         let top = Color(hue: hue, saturation: sat, brightness: kind.muted ? 0.62 : 0.86)
@@ -171,41 +180,130 @@ struct CYStateLayout: View {
     var secondaryVerbatim: (title: String, action: () -> Void)? = nil
     var primaryIdentifier: String? = nil
     var artSize: CGFloat = 132
+    /// Set by `CYEmptyState` when the caller's symbol has a mini-program illustration (`sparkles` → no data).
+    var emptyIllustration: CYEmptyIllustration.Kind? = nil
     @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        VStack(spacing: CYSpacing.md) {
-            CYStateArt(kind: kind, size: artSize)
-                .padding(.bottom, CYSpacing.xs)
-            title
-                .cyText(.sectionTitle)
-                .foregroundStyle(palette.textPrimary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-            if let detail {
-                detail
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(palette.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
+        // Native iOS restyle r1: the system `ContentUnavailableView` (title, one sentence, one action).
+        ContentUnavailableView {
+            Label {
+                title
+            } icon: {
+                if let emptyIllustration {
+                    // MP empty-state figure (C7/Q4): the exact mini-program illustration.
+                    CYEmptyIllustration(kind: emptyIllustration, size: artSize)
+                } else {
+                    Image(systemName: kind.symbol)
+                        .foregroundStyle(palette.textTertiary)
+                }
             }
-            if let primary {
-                CYPillButton(primary.title, style: primaryStyle, fullWidth: false, action: primary.action)
-                    .padding(.top, CYSpacing.sm)
-                    .ifLet(primaryIdentifier) { $0.accessibilityIdentifier($1) }
-            } else if let primaryVerbatim {
-                CYPillButton(verbatim: primaryVerbatim.title, style: primaryStyle, fullWidth: false, action: primaryVerbatim.action)
-                    .padding(.top, CYSpacing.sm)
-                    .ifLet(primaryIdentifier) { $0.accessibilityIdentifier($1) }
-            }
-            if let secondaryVerbatim {
-                CYPillButton(verbatim: secondaryVerbatim.title, style: .tertiary, fullWidth: false, action: secondaryVerbatim.action)
+        } description: {
+            if let detail { detail }
+        } actions: {
+            actions
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder private var actions: some View {
+        if let primary {
+            CYStateActionButton(style: primaryStyle, action: primary.action) { Text(primary.title) }
+                .ifLet(primaryIdentifier) { $0.accessibilityIdentifier($1) }
+        } else if let primaryVerbatim {
+            CYStateActionButton(style: primaryStyle, action: primaryVerbatim.action) { Text(verbatim: primaryVerbatim.title) }
+                .ifLet(primaryIdentifier) { $0.accessibilityIdentifier($1) }
+        }
+        if let secondaryVerbatim {
+            CYStateActionButton(style: .tertiary, action: secondaryVerbatim.action) { Text(verbatim: secondaryVerbatim.title) }
+        }
+    }
+}
+
+/// The one state vocabulary (native restyle r1, spec §3.5) on the system `ContentUnavailableView`: empty, failed,
+/// signed out, gated and offline. Use it for new code and in the R1-R5 sweeps; `CYEmptyState`, `CYErrorState`,
+/// `CYStateLayout` and `CYStateView` already render through `ContentUnavailableView` too.
+/// One action at most: `.borderedProminent` when it is the screen's next step, `.bordered` for 重试.
+struct CYContentState: View {
+    enum Kind: Equatable {
+        case empty(String)
+        case failed
+        case signedOut
+        case gated
+        case offline
+
+        var symbol: String {
+            switch self {
+            case .empty(let symbol): symbol
+            case .failed: "exclamationmark.triangle"
+            case .signedOut: "person.crop.circle.badge.questionmark"
+            case .gated: "lock"
+            case .offline: "wifi.slash"
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.xxl)
-        .padding(.horizontal, CYSpacing.xxl)
-        .accessibilityElement(children: .contain)
+
+        /// Retry is secondary; sign-in and a gate's next step are the screen's one primary.
+        var actionStyle: CYPillStyle {
+            switch self {
+            case .failed, .offline: .secondary
+            case .empty, .signedOut, .gated: .primary
+            }
+        }
+    }
+
+    let kind: Kind
+    let title: LocalizedStringKey
+    var description: LocalizedStringKey? = nil
+    var descriptionVerbatim: String? = nil
+    var action: (label: LocalizedStringKey, run: () -> Void)? = nil
+    var actionIdentifier: String? = nil
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        ContentUnavailableView {
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemName: kind.symbol)
+                    .foregroundStyle(palette.textTertiary)
+            }
+        } description: {
+            if let descriptionVerbatim {
+                Text(verbatim: descriptionVerbatim)
+            } else if let description {
+                Text(description)
+            }
+        } actions: {
+            if let action {
+                CYStateActionButton(style: kind.actionStyle, action: action.run) { Text(action.label) }
+                    .ifLet(actionIdentifier) { $0.accessibilityIdentifier($1) }
+            }
+        }
+    }
+}
+
+/// System button for state actions: `.borderedProminent` for the screen's one primary, `.bordered` for a retry or
+/// secondary, borderless for a quiet link. 44 pt minimum target.
+struct CYStateActionButton<ButtonLabel: View>: View {
+    let style: CYPillStyle
+    let action: () -> Void
+    @ViewBuilder let label: () -> ButtonLabel
+
+    var body: some View {
+        switch style {
+        case .primary:
+            Button(action: action, label: label)
+                .buttonStyle(.borderedProminent)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+        case .secondary:
+            Button(action: action, label: label)
+                .buttonStyle(.bordered)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+        case .tertiary:
+            Button(action: action, label: label)
+                .buttonStyle(.borderless)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+        }
     }
 }
 

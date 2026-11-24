@@ -165,31 +165,29 @@ struct TopicXcxDurationText: View {
     }
 }
 
-struct TopicXcxIncludes: View {
-    let rows: [TopicXcxFacts.Include]
-    var body: some View {
-        ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-            switch row {
-            case .chapters(let n): Label { Text("topicXcx.include.chapters \(n)") } icon: { Image(systemName: "book") }
-            case .chapterBreakdown(let story, let endings):
-                Label {
-                    Text(story > 0 ? "topicXcx.include.storyAndEndings \(story) \(endings)" : "topicXcx.include.endings \(endings)")
-                } icon: { Image(systemName: "book") }
-            case .stops(let n): Label { Text("topicXcx.include.stops \(n)") } icon: { Image(systemName: "mappin.and.ellipse") }
-            case .plays(let n): Label { Text("topicXcx.include.plays \(n)") } icon: { Image(systemName: "gamecontroller") }
-            case .audioMinutes(let n): Label { Text("topicXcx.include.audioMinutes \(n)") } icon: { Image(systemName: "headphones") }
-            case .audio: Label("topicXcx.include.audio", systemImage: "headphones")
-            case .medal(let name?): Label { Text("topicXcx.include.medal \(name)") } icon: { Image(systemName: "medal") }
-            case .medal(nil): Label("topicXcx.include.medalFallback", systemImage: "medal")
-            case .coupon: Label("topicXcx.include.coupon", systemImage: "ticket")
+struct TopicXcxLineup: View {
+    @Environment(\.ugcSafetySubjectID) private var safetySubjectID
+    @Environment(\.topicLineupClubDestination) private var clubDestination
+    let members: [TopicXcxFacts.LineupMember]
+    /// R7-PC-B1-10 (MP `lineup-row` tap → club detail / merchant home). Nil context leaves merchant cards static.
+    var publicMerchant: PublicMerchantHomeContext? = nil
+
+    @ViewBuilder private func destination(_ member: TopicXcxFacts.LineupMember) -> some View {
+        switch member.kind {
+        case .club:
+            if member.targetID > 0, let clubDestination { clubDestination(member.targetID) }
+        case .merchant:
+            if let owner = PublicMerchantOwnerID(member.targetID), let publicMerchant {
+                PublicMerchantHomeView(target: .ownerMemberID(owner), context: publicMerchant)
             }
         }
     }
-}
-
-struct TopicXcxLineup: View {
-    @Environment(\.ugcSafetySubjectID) private var safetySubjectID
-    let members: [TopicXcxFacts.LineupMember]
+    private func opens(_ member: TopicXcxFacts.LineupMember) -> Bool {
+        switch member.kind {
+        case .club: return member.targetID > 0 && clubDestination != nil
+        case .merchant: return PublicMerchantOwnerID(member.targetID) != nil && publicMerchant != nil
+        }
+    }
 
     private var lineupReportTarget: UGCSafetyReportTarget {
         .topic(id: max(1, safetySubjectID ?? 1))
@@ -201,12 +199,21 @@ struct TopicXcxLineup: View {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 ForEach(Array(members.enumerated()), id: \.offset) { _, member in
                     UGCBlockedFilterContainer(authorName: member.name) {
-                        VStack(spacing: CYSpacing.xs) {
+                        let card = VStack(spacing: CYSpacing.xs) {
                             CYAvatarView(name: member.name, size: .lg)
                             Text(verbatim: member.name).cyText(.label).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
                             Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").cyText(.micro).foregroundStyle(CYColor.textTertiary)
                         }
                         .frame(width: 88)
+                        Group {
+                            if opens(member) {
+                                NavigationLink { destination(member) } label: { card }
+                                    .buttonStyle(.plain)
+                                    .accessibilityIdentifier("topic.lineup.\(member.kind == .club ? "club" : "merchant").\(member.targetID)")
+                            } else {
+                                card
+                            }
+                        }
                         .accessibilityElement(children: .combine)
                         .contextMenu {
                             UGCReviewSafetyFooter(
@@ -232,6 +239,9 @@ struct TopicXcxActionBar: View {
     var openSessions: () -> Void
     var openSelfPlay: () -> Void
     var openPricing: (() -> Void)?
+    var openEditor: (() -> Void)? = nil
+    /// `via=session`: the bar opens the session picker before self-play.
+    var preferSession = false
     var openTickets: (() -> Void)? = nil
     var shareURL: URL? = nil
     var shareTitle: String? = nil
@@ -252,7 +262,7 @@ struct TopicXcxActionBar: View {
 
     @ViewBuilder private var priceColumn: some View {
         VStack(alignment: .leading, spacing: 2) {
-            switch TopicXcxFacts.action(topic) {
+            switch TopicXcxFacts.action(topic, preferSession: preferSession) {
             case .ticketWallet:
                 Text("topicXcx.bar.signedUp").cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
             case .locked, .closed:
@@ -294,7 +304,7 @@ struct TopicXcxActionBar: View {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     priceColumn
                     Spacer(minLength: CYSpacing.sm)
-                    switch TopicXcxFacts.action(topic) {
+                    switch TopicXcxFacts.action(topic, preferSession: preferSession) {
                     case .ticketWallet:
                         if let openTickets {
                             Button(action: openTickets) {
@@ -302,18 +312,22 @@ struct TopicXcxActionBar: View {
                             }
                             .buttonStyle(.cyPrimary)
                             .modifier(TopicBarHeroSource(sheet: .tickets, namespace: heroNamespace))
-                            .accessibilityLabel(Text("topicXcx.cta.ticketWallet"))
+                            // R7-PC-B1-23 (r1 PC-B-1-17): the spoken label is the visible 去票夹.
                             .accessibilityIdentifier("topic.cta.tickets")
                         } else {
                             Label("topicXcx.cta.ticketWallet", systemImage: "ticket").foregroundStyle(palette.textSecondary)
                         }
                     case .locked(let lifecycle):
-                        if TopicXcxFacts.opensPricing(topic), let openPricing {
-                            Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                        switch TopicXcxFacts.ownerSaleRoute(topic) {
+                        case .pricing where openPricing != nil:
+                            Button(action: { openPricing?() }) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
                                 .modifier(TopicBarHeroSource(sheet: .pricing, namespace: heroNamespace))
                                 .pageTemplateControl(label: Text("topicXcx.cta.confirmPrice"), traits: .isButton)
                                 .accessibilityIdentifier("topic.cta.pricing")
-                        } else {
+                        case .editor where openEditor != nil:
+                            Button(action: { openEditor?() }) { Text("topicXcx.cta.edit").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                                .accessibilityIdentifier("topic.cta.editor")
+                        default:
                             Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
                         }
                     case .closed:
@@ -413,11 +427,17 @@ struct TopicXcxToolbarActions: View {
 }
 
 private struct TopicPricingDestinationKey: EnvironmentKey { static let defaultValue: ((Int) -> AnyView)? = nil }
+private struct TopicEditorDestinationKey: EnvironmentKey { static let defaultValue: ((Int, String?) -> AnyView)? = nil }
 extension EnvironmentValues {
     /// Owner-only final-price page (source `pages/topic/pricing`); nil hides the entry.
     var topicPricingDestination: ((Int) -> AnyView)? {
         get { self[TopicPricingDestinationKey.self] }
         set { self[TopicPricingDestinationKey.self] = newValue }
+    }
+    /// Owner lifecycle-2 free explore opens `pages/publish/fabu/index`. Nil hides the entry. This does not grant pricing.
+    var topicEditorDestination: ((Int, String?) -> AnyView)? {
+        get { self[TopicEditorDestinationKey.self] }
+        set { self[TopicEditorDestinationKey.self] = newValue }
     }
 }
 
@@ -453,7 +473,27 @@ struct TopicXcxRouteSection: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(verbatim: stop.node.name)
                                 if let hours = stop.node.businessTime { Text(verbatim: hours).cyText(.meta) }
-                                if let address = stop.node.address { Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption) }
+                                // R7-PC-B1-18: MP stop row opens the place in the map app.
+                                if let address = stop.node.address {
+                                    if let url = TopicStopMapsLink.url(for: stop.node) {
+                                        Link(destination: url) {
+                                            Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption)
+                                        }
+                                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                                        .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
+                                        .accessibilityIdentifier("topic.route.stop.\(stop.id).map")
+                                    } else {
+                                        Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption)
+                                    }
+                                }
+                            }
+                            Spacer(minLength: 0)
+                            // R7-PC-B1-18: MP stop image.
+                            if let image = stop.node.images.first, let url = QuestifyCardArtwork.safeURL(image) {
+                                PlayerFeedRemoteImage(url: url, maxPixel: 160, placeholder: { CYColor.bgSurfaceStrong }, failure: { CYColor.bgSurfaceStrong })
+                                    .frame(width: 56, height: 56)
+                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                                    .accessibilityHidden(true)
                             }
                         }
                     }
@@ -479,48 +519,6 @@ struct TopicXcxSessionChip: View {
     }
 }
 
-/// Source 节点介绍: horizontal template cards (title, players, minutes). Images stay behind the gated gallery.
-struct TopicXcxTemplatesSection: View {
-    @Environment(\.cyPalette) private var palette
-    let templates: [TopicTemplate]
-    var body: some View {
-        if !templates.isEmpty {
-            Section("topicXcx.section.nodeIntro") {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: CYSpacing.md) {
-                        ForEach(templates, id: \.id) { template in
-                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                Text(verbatim: template.title)
-                                    .cyText(.cardTitle)
-                                    .foregroundStyle(palette.textPrimary)
-                                    .cyWrapText()
-                                if let players = template.players {
-                                    Text(verbatim: players)
-                                        .cyText(.caption)
-                                        .foregroundStyle(palette.textSecondary)
-                                }
-                                Text("topicXcx.templateMinutes \(TopicXcxFacts.templateMinutes(template))")
-                                    .cyText(.caption)
-                                    .foregroundStyle(palette.textTertiary)
-                            }
-                            .frame(width: 152, alignment: .leading)
-                            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
-                            .accessibilityElement(children: .combine)
-                            .accessibilityIdentifier("topic.nodeIntro.\(template.id)")
-                            .contextMenu {
-                                UGCReviewSafetyFooter(
-                                    target: .template(id: template.id),
-                                    subjectTitle: template.title
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 /// Source node card foot: `{商家}（{节点}）` plus `等 N 家`.
 struct TopicXcxNodeFootView: View {
     let node: TopicNode
@@ -532,5 +530,108 @@ struct TopicXcxNodeFootView: View {
                 if foot.merchantCount > 1 { Text("topicXcx.moreMerchants \(foot.merchantCount)").cyText(.meta).foregroundStyle(.secondary) }
             }.accessibilityIdentifier("topic.nodeFoot")
         }
+    }
+}
+
+/// 「出发前」 (MP `index.wxml` `topic-includes`, `pages/topic/utils/depart-notes.js`, 2026-11-21; port plan r1 C13):
+/// one short line per fact the route already has. Nothing shows when nothing is known.
+struct TopicDepartSection: View {
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
+    let items: [TopicDepartNotes.Item]
+
+    var body: some View {
+        if !items.isEmpty {
+            Section("topic.depart") {
+                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                    row(item)
+                        .cyText(.bodyCompact)
+                        .foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("topic.depart.\(index)")
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func row(_ item: TopicDepartNotes.Item) -> some View {
+        switch item {
+        case .price(let name, let amount, let from, let sharedBy):
+            // REV-B B-02: the one money switch (`MoneyDisplay`), not a locale currency formatter.
+            let price = MoneyDisplay.yuan(amount)
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                if let name { Text(verbatim: name) } else { Text("topic.depart.selfPlay") }
+                Spacer(minLength: CYSpacing.sm)
+                VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
+                    Group {
+                        if from { Text("topic.depart.priceFrom \(price)") } else { Text(verbatim: price) }
+                    }
+                    .monospacedDigit()
+                    if let sharedBy {
+                        Text("topic.depart.sharedBy \(sharedBy)").cyText(.caption).foregroundStyle(palette.textSecondary)
+                    }
+                }
+            }
+            .accessibilityElement(children: .combine)
+        case .includes(let parts):
+            Text("topic.depart.includes \(includesText(parts))")
+        case .pauseResume:
+            Text("topic.depart.pauseResume")
+        case .badge(let name):
+            if let name { Text("topic.depart.badge \(name)") } else { Text("topic.depart.badgeUnnamed") }
+        case .coupon:
+            Text("topic.depart.coupon")
+        case .note(let line):
+            Text(verbatim: line)
+        }
+    }
+
+    /// 含 N 个章节、N 个站点、N 个玩法、语音导览: the same include copy as the rest of the page, joined like the MP.
+    private func includesText(_ parts: [TopicXcxFacts.Include]) -> String {
+        let texts: [String] = parts.compactMap { part in
+            switch part {
+            case .chapters(let n): return appLocalized("topicXcx.include.chapters \(n)", locale: locale)
+            case .chapterBreakdown(let story, let endings):
+                return story > 0
+                    ? appLocalized("topicXcx.include.storyAndEndings \(story) \(endings)", locale: locale)
+                    : appLocalized("topicXcx.include.endings \(endings)", locale: locale)
+            case .stops(let n): return appLocalized("topicXcx.include.stops \(n)", locale: locale)
+            case .plays(let n): return appLocalized("topicXcx.include.plays \(n)", locale: locale)
+            case .audioMinutes(let n): return appLocalized("topicXcx.include.audioMinutes \(n)", locale: locale)
+            case .audio: return appLocalized("topicXcx.include.audio", locale: locale)
+            case .medal, .coupon: return nil
+            }
+        }
+        return texts.joined(separator: appLocalized("topic.depart.separator", locale: locale))
+    }
+}
+
+private struct TopicLineupClubDestinationKey: EnvironmentKey { static let defaultValue: ((Int) -> AnyView)? = nil }
+extension EnvironmentValues {
+    /// Club detail for a topic lineup card (club id). Nil leaves club cards static.
+    var topicLineupClubDestination: ((Int) -> AnyView)? {
+        get { self[TopicLineupClubDestinationKey.self] }
+        set { self[TopicLineupClubDestinationKey.self] = newValue }
+    }
+}
+
+/// Apple Maps link for a topic stop: coordinate when present, else the address text.
+enum TopicStopMapsLink {
+    static func url(for node: TopicNode) -> URL? {
+        if let lat = node.latitude, let lng = node.longitude, (-90...90).contains(lat), (-180...180).contains(lng), lat != 0 || lng != 0 {
+            var components = URLComponents(string: "https://maps.apple.com/")
+            components?.queryItems = [URLQueryItem(name: "ll", value: "\(lat),\(lng)"), URLQueryItem(name: "q", value: node.name)]
+            return components?.url
+        }
+        return HomeFeedMapsLink.url(for: node.address)
+    }
+}
+
+private struct TopicLineupMerchantDestinationKey: EnvironmentKey { static let defaultValue: ((Int) -> AnyView)? = nil }
+extension EnvironmentValues {
+    /// Public merchant home for a partner owner member id. Nil hides 查看 on merchant partner pages.
+    var topicLineupMerchantDestination: ((Int) -> AnyView)? {
+        get { self[TopicLineupMerchantDestinationKey.self] }
+        set { self[TopicLineupMerchantDestinationKey.self] = newValue }
     }
 }

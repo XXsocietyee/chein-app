@@ -1,0 +1,38 @@
+# fix/r3-player-content-a — player-content, first half of the round-1 page list (A1–A8, B1–B6, C1).
+# One fixture route per line; # comments are ignored. All data is synthetic DEBUG fixture data.
+# A1 首页: hero city menu (live), 进行中 chip on 附近活动, feed eyebrow, sentinel paging (no 加载更多 button)
+d2-home
+d2-home-offline
+# A4 search: topic/activity results as cover cards
+d2-search-results
+# A5 search map: result-card long-press 在地图中打开
+cur6-search-map
+cur6-search-map-failed
+# A2 template shelf: named failures (主题模板加载失败 / 玩法模板加载失败); previewOnly → 暂未开放 toast
+template-topics
+template-games
+cur6-shelf-topics-failed
+cur6-shelf-games
+# A6 template detail: 简介 / 规则 clamped to 4 lines with 更多 / 收起; notice copy 「应用」…
+template-detail
+# A7/A8 topic template: skeleton while loading; 能力 stat cards + 采用条件 under 能力
+topic-preview
+# B1 topic detail (P3 fixtures): no standing 补充姓名和手机号 row, no duplicate start/end/merchant/duration rows,
+# chapter rows with X小时Y分钟 and 玩法 count, 出发前 price via MoneyDisplay, route stops with image + map link
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN scroll:topic.chapter.11
+# C1 activity detail: ticket 场次 / 报名截止 / 集合点 rows; host footer 取消活动并退款 (host fixtures only)
+e1-activity-detail
+activity-expanded
+# ---- Round 2 (2026-11-24) ----
+# A1 首页: player badge = MP icon-member, avatar default = MP d_profile, 更多玩法 menu rows carry the MP banner posters
+d2-home
+# A6/A7/A8 template detail: MP section art (book / interaction / magnifier / city / flashlight / star), city 3D cover
+# when the topic template has no cover, 用这个模板 + share in one head row, node image → full-screen gallery
+template-detail
+topic-preview
+# B1 topic: publisher row (avatar + name + 发布) and owner review chip; chapter-card MP route_city_cover fallback;
+# review header with MP stars and 基于N条评论; 出发前 「N 个章节」/「N 个节点」; two-decimal prices (¥12.50)
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN
+# C1 activity: two-decimal price chip / pinned summary; a missing isSignUp shows a disabled "—"
+e1-activity-detail

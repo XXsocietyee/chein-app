@@ -64,7 +64,7 @@ import SwiftUI
                     .disabled(!model.canRefresh || model.isBusy)
                     .accessibilityIdentifier("notification.badge.refresh")
             }
-        }.nativeChannelScreen().navigationTitle(c("badge.title")).privacySensitive()
+        }.nativeChannelScreen().navigationTitle(c("badge.title")).navigationBarTitleDisplayMode(.inline).privacySensitive()
     }
     private var statusText: String {
         switch model.status {

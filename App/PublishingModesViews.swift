@@ -139,13 +139,13 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                     if !journey.storageMessage.isEmpty { Text(LocalizedStringKey(journey.storageMessage)) }
                 }
             }
-        }.publishFormChrome().disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
+        }.publishFormChrome().disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick")).navigationBarTitleDisplayMode(.inline)
         .questifyBottomAction {
             VStack(spacing: 8) {
                 if journey.problem {
-                    Text("publishModes.confirmEveryPlace").font(CYTypography.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
+                    Text("publishModes.confirmEveryPlace").cyText(.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
                     ForEach(Array(QuickPublishValidation.issues(draft.wrappedValue).enumerated()), id: \.offset) { _, issue in
-                        Text(verbatim: issue.message).font(CYTypography.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
+                        Text(verbatim: issue.message).cyText(.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
                     }
                 }
                 CYPillButton("publishModes.continueEditor", action: journey.handoffAction(openProfessional))
@@ -243,7 +243,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             .themeDomain(.topicEditor)
         }
         .cyToast(verbatimMessage: $toastMessage)
-        .cyDomainScreen(.merchant)
+        // C-A7: one creator domain for the whole activity form and its sheets.
+        .cyDomainScreen(.topicEditor)
         .background {
             if let original = timeRange.presentation {
                 ActivityPublishingTimeRangePresenter(owner: timeRange, original: original) { selected in
@@ -406,7 +407,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         chooserRow("publishModes.collaborators", value: draft.collaboratorMemberIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.collaboratorMemberIDs.count)", locale: locale), icon: "person.2")
                     }
                     Text(verbatim: CoreLoopCopy(locale: locale).tr(ActivityPublishingWizard.collaboratorSettlementNotice))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                     fieldError("collaborators")
                 } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("合作与核销", "Collaborators")) }
@@ -539,7 +540,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             CYFooterBar {
                 VStack(spacing: CYSpacing.sm) {
                     if !message.isEmpty {
-                        Text(LocalizedStringKey(message)).font(CYTypography.meta)
+                        Text(LocalizedStringKey(message)).cyText(.meta)
                             .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? palette.danger : palette.textSecondary)
                             .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("publishModes.message")
@@ -607,7 +608,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     @ViewBuilder private func fieldError(_ field: String) -> some View {
         if wizardBlock == field {
             Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: field))
-                .font(CYTypography.meta).foregroundStyle(palette.danger).fixedSize(horizontal: false, vertical: true)
+                .cyText(.meta).foregroundStyle(palette.danger).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.wizard.validation")
         }
     }
@@ -873,7 +874,7 @@ struct ActivityPublishingTimeRangeDraft {
 }
 
 
-@MainActor final class ActivityPublishingTimeRangeOwner: ObservableObject {
+@MainActor final class ActivityPublishingTimeRangeOwner: @preconcurrency ObservableObject {
     struct Presentation: Identifiable {
         let id = UUID()
         let generation: UUID
@@ -967,7 +968,10 @@ struct ActivityPublishingTimeRangeDraft {
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: owner.binding(original, timeZoneID: { TimeZone.autoupdatingCurrent.identifier })) { offered in
-                ActivityPublishingTimeRangeSheet(owner: owner, original: offered, apply: apply)
+                Group {
+                    ActivityPublishingTimeRangeSheet(owner: owner, original: offered, apply: apply)
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
     }
 }
@@ -1033,9 +1037,9 @@ struct ActivityPublishingTimeRangeDraft {
     }
     private func endpointRow(_ key: LocalizedStringKey, value: String, selected: Bool) -> some View {
         HStack(spacing: CYSpacing.md) {
-            Text(key).font(selected ? CYTypography.label : CYTypography.body).foregroundStyle(selected ? palette.textPrimary : palette.textSecondary)
+            Text(key).cyText(selected ? .label : .body).foregroundStyle(selected ? palette.textPrimary : palette.textSecondary)
             Spacer(minLength: CYSpacing.sm)
-            Text(verbatim: value).font(CYTypography.numericBody).monospacedDigit()
+            Text(verbatim: value).cyText(.numericBody).monospacedDigit()
                 .foregroundStyle(selected ? palette.textPrimary : palette.textTertiary)
         }
         .padding(CYSpacing.lg).frame(minHeight: 56)
@@ -1048,7 +1052,7 @@ struct ActivityPublishingTimeRangeDraft {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    Text("publishModes.beijingTime").font(CYTypography.label).foregroundStyle(palette.textTertiary)
+                    Text("publishModes.beijingTime").cyText(.label).foregroundStyle(palette.textTertiary)
                     VStack(spacing: CYSpacing.sm) {
                         Button { editingEnd = false; failure = false } label: {
                             endpointRow("publishModes.start", value: ProjectEditDateSelection.beijingValue(draft.start) ?? "—", selected: !editingEnd)
@@ -1064,7 +1068,7 @@ struct ActivityPublishingTimeRangeDraft {
                         .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityIdentifier("publishModes.activity.timeRange.date")
                     if failure || (editingEnd && draft.end <= draft.start) {
-                        Text("publishModes.timeRange.invalid").font(CYTypography.meta).foregroundStyle(palette.danger)
+                        Text("publishModes.timeRange.invalid").cyText(.meta).foregroundStyle(palette.danger)
                             .accessibilityIdentifier("publishModes.activity.timeRange.invalid")
                     }
                 }

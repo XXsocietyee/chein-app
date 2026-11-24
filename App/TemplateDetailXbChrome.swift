@@ -37,7 +37,7 @@ struct TemplateXbHead<Cover: View>: View {
                         .accessibilityIdentifier("template.xb.publisher")
                 }
                 if official {
-                    Text("discovery.templateDetail.publisher.official").cyText(.micro)
+                    Text("discovery.templateDetail.publisher.official").cyText(.meta)
                         .foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYNight.glassFill, in: Capsule())
@@ -245,9 +245,12 @@ struct TemplateXbSectionTitle: View {
     let title: LocalizedStringKey
     let systemImage: String
     var note: Text? = nil
+    /// MP `xb-section-ico` art; when set it replaces the SF Symbol.
+    var art: Image? = nil
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Image(systemName: systemImage).foregroundStyle(CYNight.lantern).accessibilityHidden(true)
+        HStack(alignment: art == nil ? .firstTextBaseline : .center, spacing: CYSpacing.sm) {
+            if let art { art.resizable().scaledToFit().frame(width: 22, height: 22).accessibilityHidden(true) }
+            else { Image(systemName: systemImage).foregroundStyle(CYNight.lantern).accessibilityHidden(true) }
             Text(title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
             if let note { note.cyText(.meta).foregroundStyle(CYColor.textTertiary) }
         }

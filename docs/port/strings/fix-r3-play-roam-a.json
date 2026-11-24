@@ -1,0 +1,261 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "play.tools.scanArrive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan to arrive"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫码到达"
+          }
+        }
+      }
+    },
+    "play.tools.scanArrive.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the code on site when you reach the stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到站后扫现场的码"
+          }
+        }
+      }
+    },
+    "playMerchant.perk.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shop perk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店权益"
+          }
+        }
+      }
+    },
+    "roam.passportSheet.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roam passport and tools"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游护照与工具"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the current result, or verify again on site with the current task. The earlier record stays until the result is confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可查询当前结果，或重新到现场按当前任务核验；旧记录保留到确认完成。"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.notShown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The place doesn't show as completed or awaiting redemption yet. That doesn't mean the last request wasn't applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前尚未显示完成或待核销，不能据此判断上次请求未执行。"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.query": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check current status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询当前状态"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.recoveredDone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed: completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认当前已完成"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.recoveredRedeem": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed: awaiting redemption"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认当前待核销"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.reverify": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify again on site"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新现场核验"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.reverifyReady": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the on-site check with the current task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请按当前任务开始现场核验"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.startReverify": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start on-site check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始现场核验"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.storageMessage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local storage isn't working, so no check-in is sent. Check the current status once storage is back."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地存储异常，暂不提交打卡。请恢复存储后查询当前状态。"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.storageTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check-in record can't be read or saved right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打卡记录暂时无法读取或保存"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check-in result pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打卡结果待确认"
+          }
+        }
+      }
+    },
+    "roam.poi.pending.unresolved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result can't be confirmed yet. Please check again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前结果还无法确认，请继续查询。"
+          }
+        }
+      }
+    }
+  }
+}

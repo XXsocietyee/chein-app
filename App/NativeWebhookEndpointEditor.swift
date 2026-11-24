@@ -41,7 +41,7 @@ import SwiftUI
             .listRowInsets(EdgeInsets())
         }
         .nativeChannelFlowPage()
-        .navigationTitle(resource == nil ? nativeWebhookLocalized("d7.webhook.add") : nativeWebhookLocalized("d7.webhook.editor.editTitle"))
+        .navigationTitle(resource == nil ? nativeWebhookLocalized("d7.webhook.add") : nativeWebhookLocalized("d7.webhook.editor.editTitle")).navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button(nativeWebhookLocalized("d7.webhook.cancel")) { model.dismissSheet() } } }
         .onDisappear { draft.url = ""; draft.avatarURL = ""; draft.allowedIPs = "" }
         .accessibilityIdentifier("webhook.endpoint.editor")

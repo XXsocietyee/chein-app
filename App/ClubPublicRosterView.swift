@@ -73,13 +73,14 @@ import SwiftUI
         }
         .onAppear { active = true }
         .onDisappear { active = false; invalidate() }
-        .sheet(item: $profileTarget) { target in
+        .sheet(item: $profileTarget) { target in Group {
             if let profile, current(target) {
                 NavigationStack {
                     SocialPublicProfileView(memberID: target.memberID, reader: profile.reader, squareReader: profile.squareReader,
                                             actions: nil, showsStartChat: false, isCurrent: { current(target) })
                 }
             } else { Color.clear.onAppear { profileTarget = nil } }
+        }.cySheet(detents: [.large])
         }
         .cyDomainScreen(.player)
     }
@@ -217,7 +218,8 @@ import SwiftUI
         .accessibilityIdentifier("club.publicRoster.member.\(id)")
     }
     private func memberPortrait(_ avatar: String?, name: String) -> some View {
-        CYAvatarView(url: ClubCloud14HTTPS.url(avatar), name: name, size: .md)
+        // Round 2 MP asset: club detail members `item.avatar || '/images/d_profile.png'` (detail wxml:295).
+        ClubMPAvatar(url: ClubCloud14HTTPS.url(avatar), name: name, size: .md)
             .accessibilityHidden(true)
     }
     private var profileMatches: Bool {
@@ -266,7 +268,7 @@ private struct ClubCloud14Banner: View {
         Color.clear
             .aspectRatio(2.4, contentMode: .fit)
             .overlay { CYCoverArt(seed: seed, symbol: symbol) }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityHidden(true)
     }
 }

@@ -18,7 +18,11 @@ typealias PlayKitAccusationWrite = (String) -> Void
     var stationPassText: String? = nil
     var submit: PlayKitHangmanWrite? = nil
     var close: (() -> Void)? = nil
+    /// Raw kit segment, for the reference picture. The projection is still the source of the board.
+    var segment: PlayWireValue = .null
+    var nodeID: Int? = nil
     @State private var text = ""
+    @State private var pool: LetterPoolState?
     @State private var typed: [Int: String] = [:]
     @State private var popped: Int?
     @State private var sent = false
@@ -30,17 +34,25 @@ typealias PlayKitAccusationWrite = (String) -> Void
     @State private var word = ""
     @FocusState private var focused: Bool
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.analyticsEventClient) private var analytics
+    @Environment(\.playGameStage) private var stage
 
     var body: some View {
         VStack(spacing: CYSpacing.xxl) {
+            if let stage { PlayGameStageHeader(stage: stage) }
             Spacer(minLength: CYSpacing.xxl)
             if !shownTitle.isEmpty {
                 Text(verbatim: shownTitle).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("playkit.hangman.title")
             }
-            board
-            if !projection.solved && wholeWord {
+            if projection.inputMode != .pool { board }
+            if projection.inputMode == .pool, projection.poolMalformed {
+                ContentUnavailableView("playkit.configurationInvalid", systemImage: "exclamationmark.triangle")
+                    .accessibilityIdentifier("playkit.hangman.invalid")
+            } else if projection.inputMode == .pool, !projection.solved {
+                poolSection
+            } else if !projection.solved && wholeWord {
                 TextField("playkit.hangman.wholePlaceholder", text: Binding(get: { word }, set: {
                     word = String(PlayKitHangmanProjection.codePoints($0).prefix(PlayKitHangmanProjection.wholeWordLimit).joined())
                     wrong = false; unavailable = false
@@ -90,11 +102,29 @@ typealias PlayKitAccusationWrite = (String) -> Void
                 Text("playkit.questo.unavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .multilineTextAlignment(.center).accessibilityIdentifier("playkit.hangman.unavailable")
             }
-            cta
+            if projection.inputMode != .pool, let howTo = projection.howTo, !projection.solved {
+                PlayKitHowToButton(text: howTo)
+            }
+            if let source = PlayKitReferenceImage.source(in: segment) {
+                PlayKitReferenceButton(source: source, alt: PlayKitReferenceImage.alt(in: segment), nodeID: nodeID, kit: "hangman")
+            }
+            if projection.inputMode != .pool || projection.solved { cta }
         }
         .frame(maxWidth: .infinity)
-        .onAppear(perform: load)
+        .onAppear {
+            load()
+            PlayStageAnalytics.track(analytics, .stageEnter, nodeID: nodeID, kit: "hangman")
+        }
         .onChange(of: projection) { _, next in
+            if next.inputMode == .pool {
+                if let fresh = LetterPoolState(hangman: next) {
+                    pool = pool.map { fresh.rebased(keeping: $0) } ?? fresh
+                }
+                guard sent else { return }
+                sent = false
+                if !next.solved { wrong = true }
+                return
+            }
             // Server came back unsolved after this screen sent: the whole guess was wrong, start over.
             guard sent else { return }
             sent = false
@@ -154,9 +184,9 @@ typealias PlayKitAccusationWrite = (String) -> Void
                 .font(.system(.title, design: .serif).weight(.bold))
                 .foregroundStyle(CYColor.textPrimary)
                 .frame(width: 34, height: 44)
-                .background(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous)
+                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
                     .fill(given ? CYColor.bgRaised : CYColor.bgElevated))
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous)
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
                     .strokeBorder(projection.solved ? CYNight.verify : (active ? CYColor.textPrimary : CYColor.borderStrong), lineWidth: active ? 2 : 1))
                 .offset(y: active && !reduceMotion ? -2 : 0)
                 .scaleEffect(popped == cell.slot.index && !reduceMotion ? 1.12 : 1)
@@ -181,11 +211,34 @@ typealias PlayKitAccusationWrite = (String) -> Void
         }
     }
 
+    @ViewBuilder private var poolSection: some View {
+        if projection.poolRemoved > 0 {
+            Text("playkit.letterPool.removed \(projection.poolRemoved)").font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("playkit.hangman.poolRemoved")
+        }
+        if let binding = Binding($pool) {
+            PlayKitLetterPoolInput(state: binding, enabled: enabled && !projection.solved, identifierPrefix: "playkit.hangman",
+                                   onEdit: { wrong = false; unavailable = false })
+        }
+        if let reply = PlayKitWrongReply.text(segment: segment) {
+            Text(verbatim: reply).font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("playkit.qa.wrongReply")
+        }
+        if wrong { Text("playkit.hangman.notYet").font(.footnote).accessibilityIdentifier("playkit.hangman.notYet") }
+        if let howTo = projection.howTo { PlayKitHowToButton(text: howTo) }
+        PlayKitLetterPoolActions(enabled: enabled, canClear: pool?.hasPlacedCandidates == true,
+            canSubmit: pool?.isComplete == true && pool?.hasPlacedCandidates == true,
+            identifierPrefix: "playkit.hangman", submitIdentifier: "playkit.submit.hangman",
+            clear: { pool?.clearAll(); wrong = false },
+            submit: send)
+    }
+
     private func load() {
         guard !loaded else { return }
         loaded = true
         text = projection.initialText
         typed = projection.distribute(text)
+        if let fresh = LetterPoolState(hangman: projection) { pool = fresh }
     }
 
     private func input(_ value: String) {
@@ -205,7 +258,11 @@ typealias PlayKitAccusationWrite = (String) -> Void
     }
 
     private var currentPayload: [String: PlayWireValue]? {
-        wholeWord ? PlayKitHangmanProjection.wholeWordPayload(word) : projection.payload(typed: typed)
+        if projection.inputMode == .pool {
+            guard let pool, pool.isComplete, pool.hasPlacedCandidates else { return nil }
+            return pool.hangmanPayload
+        }
+        return wholeWord ? PlayKitHangmanProjection.wholeWordPayload(word) : projection.payload(typed: typed)
     }
 
     private func send() {
@@ -213,6 +270,147 @@ typealias PlayKitAccusationWrite = (String) -> Void
         guard let submit else { unavailable = true; return }
         sent = true
         submit(payload)
+    }
+}
+
+/// Shared letter-pool input: answer slots on top, candidates below.
+/// Tapping a candidate fills the first empty slot. Tapping a filled slot returns it.
+@MainActor struct PlayKitLetterPoolInput: View {
+    @Binding var state: LetterPoolState
+    let enabled: Bool
+    let identifierPrefix: String
+    let onEdit: () -> Void
+    @ScaledMetric(relativeTo: .title2) private var cell: CGFloat = 44
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("playkit.letterPool.instructions").font(.subheadline)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: cell), spacing: 8)], alignment: .leading, spacing: 8) {
+                ForEach(state.slots) { slot in
+                    let value = state.text(of: slot)
+                    if slot.isFillable {
+                        Button {
+                            if state.clear(slotID: slot.id) { onEdit() }
+                        } label: { PlayKitLetterSlotFace(text: value, fixed: false, cell: cell) }
+                        .buttonStyle(.plain)
+                        .disabled(!enabled || slot.poolIndex == nil)
+                        .accessibilityLabel(value.map { Text(verbatim: $0) } ?? Text("playkit.letterPool.emptySlot"))
+                        .accessibilityHint(slot.poolIndex == nil ? Text(verbatim: "") : Text("playkit.letterPool.returnHint"))
+                        .accessibilityIdentifier(identifierPrefix + ".slot." + String(slot.id))
+                    } else {
+                        PlayKitLetterSlotFace(text: value, fixed: true, cell: cell)
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text(verbatim: value ?? ""))
+                            .accessibilityIdentifier(identifierPrefix + ".fixed." + String(slot.id))
+                    }
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text("playkit.letterPool.answerRow"))
+            Text("playkit.letterPool.candidates").font(.footnote).foregroundStyle(.secondary)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: cell), spacing: 8)], alignment: .leading, spacing: 8) {
+                ForEach(Array(state.pool.enumerated()), id: \.offset) { index, character in
+                    let used = state.isUsed(index)
+                    Button {
+                        if state.pick(index) { onEdit() }
+                    } label: {
+                        Text(verbatim: character).font(.title2.weight(.semibold))
+                            .frame(minWidth: cell, minHeight: cell)
+                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(.plain)
+                    .opacity(used ? 0.35 : 1)
+                    .disabled(!enabled || used || state.isComplete)
+                    .accessibilityLabel(Text("playkit.letterPool.candidate \(character)"))
+                    .accessibilityValue(used ? Text("playkit.letterPool.used") : Text(verbatim: ""))
+                    .accessibilityIdentifier(identifierPrefix + ".candidate." + String(index))
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text("playkit.letterPool.candidates"))
+        }
+    }
+}
+
+@MainActor struct PlayKitLetterPoolActions: View {
+    let enabled: Bool
+    let canClear: Bool
+    let canSubmit: Bool
+    let identifierPrefix: String
+    let submitIdentifier: String
+    let clear: () -> Void
+    let submit: () -> Void
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) { clearButton; submitButton }
+            VStack(alignment: .leading, spacing: 12) { clearButton; submitButton }
+        }
+    }
+    private var clearButton: some View {
+        Button("playkit.letterPool.clear", systemImage: "delete.left", action: clear)
+            .buttonStyle(.bordered).disabled(!enabled || !canClear)
+            .accessibilityIdentifier(identifierPrefix + ".clear")
+    }
+    private var submitButton: some View {
+        Button("playkit.letterPool.submit", action: submit)
+            .buttonStyle(.borderedProminent).controlSize(.large)
+            .disabled(!enabled || !canSubmit)
+            .accessibilityIdentifier(submitIdentifier)
+    }
+}
+
+@MainActor struct PlayKitLetterSlotFace: View {
+    let text: String?
+    let fixed: Bool
+    let cell: CGFloat
+    var body: some View {
+        Text(verbatim: text ?? " ")
+            .font(.title2.weight(fixed ? .regular : .semibold))
+            .foregroundStyle(fixed ? HierarchicalShapeStyle.secondary : HierarchicalShapeStyle.primary)
+            .frame(minWidth: cell, minHeight: cell)
+            .background {
+                if !fixed {
+                    RoundedRectangle(cornerRadius: 12).strokeBorder(text == nil ? Color.secondary : Color.accentColor, lineWidth: text == nil ? 1 : 2)
+                }
+            }
+    }
+}
+
+/// TYPE question letter pool. Submit stays on the question form; this view only arranges characters.
+@MainActor struct PlayKitQuestionLetterPoolView: View {
+    let segment: PlayWireValue
+    let revision: String
+    let enabled: Bool
+    let onDirty: () -> Void
+    let requestReview: PlayKitReviewRequest
+    @State private var pool: LetterPoolState?
+    @State private var loadedRevision: String?
+    private var letterPool: PlayQuestionLetterPool? { try? PlayQuestionLetterPool(question: segment) }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if let letterPool, let binding = Binding($pool) {
+                if letterPool.removed > 0 {
+                    Text("playkit.letterPool.removed \(letterPool.removed)").font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playkit.letterPool.removed")
+                }
+                PlayKitLetterPoolInput(state: binding, enabled: enabled, identifierPrefix: "playkit.letterPool", onEdit: onDirty)
+                PlayKitLetterPoolActions(enabled: enabled, canClear: binding.wrappedValue.hasPlacedCandidates,
+                    canSubmit: binding.wrappedValue.isComplete,
+                    identifierPrefix: "playkit.letterPool", submitIdentifier: "playkit.submit.qa",
+                    clear: { pool?.clearAll(); onDirty() },
+                    submit: { if let state = pool { requestReview("SUBMIT_QA", state.questionPayload, {}) } })
+            } else {
+                ContentUnavailableView("playkit.configurationInvalid", systemImage: "exclamationmark.triangle")
+                    .accessibilityIdentifier("playkit.letterPool.invalid")
+            }
+        }
+        .onAppear { synchronize() }
+        .onChange(of: revision) { _, _ in synchronize() }
+    }
+    private func synchronize() {
+        guard loadedRevision != revision else { return }
+        loadedRevision = revision
+        guard let letterPool, let fresh = LetterPoolState(question: letterPool) else { pool = nil; return }
+        pool = pool.map { fresh.rebased(keeping: $0) } ?? fresh
     }
 }
 
@@ -292,7 +490,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     Button { openClue = index; confirmOpen = false } label: {
                         Text(verbatim: name).cyText(.label).foregroundStyle(CYColor.textPrimary)
                             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
-                            .background(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).fill(CYColor.bgElevated))
+                            .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgElevated))
                             .rotationEffect(.degrees(reduceMotion ? 0 : Self.pinTilt[index % Self.pinTilt.count]))
                     }
                     .buttonStyle(.plain)

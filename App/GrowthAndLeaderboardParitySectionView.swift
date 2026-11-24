@@ -203,7 +203,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -231,19 +231,19 @@ public struct GrowthAndLeaderboardParitySectionView: View {
                 Text(verbatim: "I07 Form-Encoded 请求体")
                     .cyText(.meta, weight: .semibold)
                 Text(verbatim: snapshot.formEncodedContentType)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("growthLeaderboardAudit.contentType")
             }
             Text(verbatim: snapshot.formEncodedBodyPreview)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .accessibilityIdentifier("growthLeaderboardAudit.formBodyPreview")
         }
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(Color.primary.opacity(0.04))
         )
         .accessibilityIdentifier("growthLeaderboardAudit.formEncodingCard")
@@ -252,7 +252,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
     private var authSeparationBannerView: some View {
         HStack(spacing: 8) {
             Text(verbatim: snapshot.authSeparationState.rawValue)
-                .font(.caption2.monospaced().weight(.bold))
+                .font(.caption.monospaced().weight(.bold))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(Capsule().fill(CYColor.warningText.opacity(0.2)))
@@ -290,7 +290,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
                         .foregroundStyle(.secondary)
                     Spacer()
                     Text(verbatim: badge.progressText)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

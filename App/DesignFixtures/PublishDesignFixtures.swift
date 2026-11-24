@@ -66,11 +66,16 @@ enum PublishDesignFixtures {
                 .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "封面设置（设计预览）")).navigationBarTitleDisplayMode(.inline) })
         case "publish-template-select":
             let owner = ActivityTemplateSelectionOwner()
-            let rows = [(1, "示例：西湖夜游漫步（设计预览）", ""), (2, "示例：运河博物寻踪（设计预览）", ""), (3, "示例：老街图集模板（设计预览）", #","advancedConfigJson":"{}""#)]
+            let rows = [(1, "示例：西湖夜游漫步（设计预览）", #","players":"2-4人","duration":45"#), (2, "示例：运河博物寻踪（设计预览）", #","players":"3人""#), (3, "示例：老街图集模板（设计预览）", #","advancedConfigJson":"{}""#)]
                 .compactMap { try? ActivityTemplateChoice(JSONDecoder().decode(ProjectEditJSON.self, from: Data(#"{"id":\#($0.0),"title":"\#($0.1)"\#($0.2)}"#.utf8))) }
             owner.designPreviewRows(rows, selected: 1)
             return wrap(NavigationStack { Form { ActivityTemplateSelectionSection(owner: owner, apply: { _ in true }, createAvailable: true) }
                 .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "模板选择（设计预览）")).navigationBarTitleDisplayMode(.inline) })
+        // fix/r3-account-publish-b: the pass reveal with the MP key frame sheets (paid plays the full intro every time).
+        case "fr3-pass-reveal-paid":
+            return wrap(NavigationStack { PassRevealView(paid: PassRevealPaidFacts(count: 12, untilText: "2027-11-24"), accountKey: "fixture") })
+        case "fr3-pass-reveal-first":
+            return wrap(NavigationStack { PassRevealView(paid: nil, accountKey: "fixture-\(UUID().uuidString)") })
         case "publish-timerange":
             let draft = ActivityPublishingTimeRangeDraft(source: ActivityPublishDraft(), now: Date())!
             let presentation = ActivityPublishingTimeRangeOwner.Presentation(generation: UUID(), source: Data(), draft: draft, timeZoneID: TimeZone.autoupdatingCurrent.identifier)

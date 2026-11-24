@@ -140,7 +140,7 @@ import SwiftUI
                                     }
                                     if block.url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                         Text(imageText("projectStoryAudio.emptyBlock", "This empty audio block stays in the local draft. It is omitted from the submitted story until an audio reference is applied."))
-                                            .font(.footnote).accessibilityIdentifier("projectStoryAudio.empty." + block.id)
+                                            .cyText(.meta).accessibilityIdentifier("projectStoryAudio.empty." + block.id)
                                     }
                                     Button(imageText("projectStoryAudio.open", "Choose or replace an audio file")) {
                                         guard let opening, exists, storyImages.presentation == nil, storyAudios.presentation == nil, storyTemplates.opening == nil else { return }
@@ -152,7 +152,7 @@ import SwiftUI
                                     }.buttonStyle(.borderless).disabled(local == nil).accessibilityIdentifier("projectStoryAudio.remove." + block.id)
                                     if opening == nil && audioPresentation == nil {
                                         Text(imageText("projectStoryAudio.unavailable", "Audio upload is not configured for this account or this chapter has not yet been saved in the editor. The existing block and reference remain editable locally."))
-                                            .font(.footnote).accessibilityIdentifier("projectStoryAudio.unavailable." + block.id)
+                                            .cyText(.meta).accessibilityIdentifier("projectStoryAudio.unavailable." + block.id)
                                     }
                                 }
                             case .dream, .mood, .thought, .voice, .odd, .reveal:
@@ -190,18 +190,18 @@ import SwiftUI
                         }.buttonStyle(.bordered)
                         if imageOpening == nil && imagePresentation == nil {
                             Text(imageText("projectStoryImage.unavailable", "Image upload is not configured for this account or this chapter has not yet been saved in the editor. Existing references are preserved."))
-                                .font(.footnote).accessibilityIdentifier("projectStoryImage.unavailable")
+                                .cyText(.meta).accessibilityIdentifier("projectStoryImage.unavailable")
                         }
                         Button("projectStoryTemplate.add") {
                             guard let templateInsertion, exists, storyImages.presentation == nil, storyAudios.presentation == nil else { return }
                             _ = storyTemplates.open(templateInsertion)
                         }.disabled(templateInsertion == nil).accessibilityIdentifier("projectStoryTemplate.add")
                         if storyTemplates.state == .saveRequired {
-                            Text("projectStoryTemplate.saveRequired").font(.footnote)
+                            Text("projectStoryTemplate.saveRequired").cyText(.meta)
                                 .accessibilityIdentifier("projectStoryTemplate.saveRequired")
                         }
                         if templateInsertion == nil && templateOpening == nil {
-                            Text("projectStoryTemplate.unavailable").font(.footnote).foregroundStyle(.secondary)
+                            Text("projectStoryTemplate.unavailable").cyText(.meta).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("projectStoryTemplate.unavailable")
                         }
                         Menu("projectEdit.rich.addBlock") {
@@ -254,7 +254,7 @@ import SwiftUI
                     }
                     Button("projectEdit.addNode", systemImage: "plus", action: addNode).disabled(pendingGap != nil || chapter.wrappedValue.preserved["opening"] == .bool(true) || chapter.wrappedValue.preserved["ending"]?.object != nil || (model.draft.product == .city && !chapter.wrappedValue.hasRealStory) || (chapter.wrappedValue.blocks?.count ?? 0) >= 200)
                         .accessibilityIdentifier("projectEdit.addNode")
-                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").font(.footnote).foregroundStyle(CYColor.dangerText) }
+                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").cyText(.meta).foregroundStyle(CYColor.dangerText) }
                 }.id("project-issue-anchor-nodes")
                 if let key = model.coordinator.messageKey {
                     Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectStoryAudio.localStatus") }
@@ -268,10 +268,16 @@ import SwiftUI
                 ProjectStoryImageAuthorView(original: original, picker: model.storyImagePicker?(), apply: { storyImages.apply($0) }, close: { storyImages.close(original) })
             }
             .sheet(item: storyAudios.binding(audioPresentation)) { original in
-                ProjectStoryAudioAuthorView(original: original, picker: model.storyAudioPicker?(), apply: { storyAudios.apply($0) }, close: { storyAudios.close(original) })
+                Group {
+                    ProjectStoryAudioAuthorView(original: original, picker: model.storyAudioPicker?(), apply: { storyAudios.apply($0) }, close: { storyAudios.close(original) })
+                }
+                .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
             }
             .sheet(item: storyTemplates.binding(templateOpening)) { original in
-                ProjectStoryTemplateView(controller: storyTemplates, original: original)
+                Group {
+                    ProjectStoryTemplateView(controller: storyTemplates, original: original)
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
             .modifier(ProjectPendingNodeRemovalPresentation(controller: pendingNodeRemoval))
             .modifier(ProjectCityStoryNodeRemovalPresentation(controller: cityRemoval))
@@ -506,7 +512,7 @@ import SwiftUI
                 ProjectEditDateField(title: "projectEdit.saleEnd", value: ticket.saleEndTime, identifier: "projectEdit.saleEnd").dateEditing(.init(model: model, field: .saleEnd(ticketID)))
                     .disabled(!ticket.wrappedValue.canEditSaleTime(end: true))
                 if !ticket.wrappedValue.canEditSaleTime(end: false) || !ticket.wrappedValue.canEditSaleTime(end: true) {
-                    Text("projectEdit.saleLegacy").font(.footnote).foregroundStyle(.secondary)
+                    Text("projectEdit.saleLegacy").cyText(.meta).foregroundStyle(.secondary)
                 }
             }.id("project-issue-anchor-ticketSale")
             Section("projectEdit.ticketSchedule") {
@@ -514,7 +520,7 @@ import SwiftUI
                     Toggle("projectEdit.syncThemeDates", isOn: model.ticketDateSync(ticketID))
                         .disabled(!ticket.wrappedValue.canEditThemeDateSync)
                         .accessibilityIdentifier("projectEdit.syncThemeDates")
-                    if !ticket.wrappedValue.canEditThemeDateSync { Text("projectEdit.syncThemeDatesLegacy").font(.caption).foregroundStyle(.secondary) }
+                    if !ticket.wrappedValue.canEditThemeDateSync { Text("projectEdit.syncThemeDatesLegacy").cyText(.caption).foregroundStyle(.secondary) }
                 }
                 if model.draft.product == .freeExplore && ticket.wrappedValue.syncsWithThemeDates {
                     let schedule = ticket.wrappedValue.schedule(in: model.draft)
@@ -553,7 +559,7 @@ struct ProjectEditReviewView: View {
                 Section {
                     if confirmation.intent != .ordinary { ProjectCloudDraftIntentSummary(intent: confirmation.intent) }
                     Text(LocalizedStringKey(canSimulate ? "projectEdit.fixtureNotice" : (canSubmit ? "projectEdit.confirmLiveHint" : "projectEdit.unconfigured")))
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .cyText(.meta).foregroundStyle(.secondary)
                 }
                 if !localSaveConfirmed { Section { Text("projectPrepared.localSaveUnconfirmed").accessibilityIdentifier("projectPrepared.localSaveUnconfirmed") } }
                 Section {
@@ -564,7 +570,7 @@ struct ProjectEditReviewView: View {
                             OpsR3Text.text(showsAll ? "publish.preview.hideAll" : "publish.preview.showAll")
                             Spacer(minLength: CYSpacing.sm)
                             Image(systemName: "chevron.down")
-                                .font(.footnote.weight(.semibold))
+                                .cyText(.meta, weight: .semibold)
                                 .rotationEffect(.degrees(showsAll ? 180 : 0))
                                 .accessibilityHidden(true)
                         }
@@ -579,7 +585,7 @@ struct ProjectEditReviewView: View {
                 ProjectStoryImagePreparedReferences(payload: confirmation.payload)
                 ProjectStoryAudioPreparedReferences(payload: confirmation.payload)
                 ProjectEditPreparedPayloadView(payload: confirmation.payload)
-                Section { Text("projectPrepared.draftContext").font(.footnote).foregroundStyle(.secondary) }
+                Section { Text("projectPrepared.draftContext").cyText(.meta).foregroundStyle(.secondary) }
                 Section("projectEdit.basics") {
                     row("projectEdit.name", confirmation.draft.name)
                     row("projectEdit.subtitle", confirmation.draft.subtitle)
@@ -606,7 +612,7 @@ struct ProjectEditReviewView: View {
                             ForEach(Array((ending["when"]?.array ?? []).enumerated()), id: \.offset) { _, raw in
                                 if let condition = raw.object {
                                     Text(verbatim: [condition["op"]?.text, condition["var"]?.text, condition["value"]?.text,
-                                        condition["value"]?.integer.map(String.init), condition["nodeId"]?.integer.map(String.init)].compactMap { $0 }.joined(separator: " ")).font(.caption)
+                                        condition["value"]?.integer.map(String.init), condition["nodeId"]?.integer.map(String.init)].compactMap { $0 }.joined(separator: " ")).cyText(.caption)
                                 }
                             }
                         }
@@ -690,11 +696,11 @@ struct ProjectPublishPreviewSummary: View {
                         if draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { OpsR3Text.text("editor.topic.untitled") }
                         else { Text(verbatim: draft.name) }
                     }
-                    .font(.headline).foregroundStyle(palette.textPrimary).lineLimit(2)
+                    .cyText(.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
                     Text("publish.preview.counts \(draft.chapters.count) \(draft.chapters.reduce(0) { $0 + $1.nodes.count }) \(draft.tickets.count)", tableName: OpsR3Text.table)
                         .cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textSecondary)
                     Text(LocalizedStringKey(draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
-                        .font(.footnote).foregroundStyle(palette.textTertiary)
+                        .cyText(.meta).foregroundStyle(palette.textTertiary)
                 }
                 Spacer(minLength: 0)
             }

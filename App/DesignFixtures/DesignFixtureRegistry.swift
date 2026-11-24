@@ -8,6 +8,8 @@ import AuthenticationServices
 enum DesignFixtureRegistry {
     @MainActor static func make(_ name: String) -> AnyView {
         switch name {
+        case let name where name == "native-gallery" || name.hasPrefix("native-gallery-"):
+            return AnyView(NativeGalleryFixture(route: name))
         case "design-kit": return AnyView(DesignKitFixture())
         // ui/h-code-r3-player: the shared in-place result kit (App/DesignFixtures/R3InPlaceKitFixtures.swift).
         case "r3-inplace": return AnyView(R3InPlaceKitFixture())
@@ -151,6 +153,7 @@ enum DesignFixtureRegistry {
         // Pop-up parity fixtures (PopupsSocialFixtures): popups-*
         case let n where n.hasPrefix("popups-") && PopupsSocialFixtures.make(n) != nil: return PopupsSocialFixtures.make(n)!
         default:
+            if let r3prb = MainActor.assumeIsolated({ FixR3PlayRoamBFixtures.make(name) }) { return r3prb }
             if let t5 = MainActor.assumeIsolated({ T5PageFixtures.make(name) }) { return t5 }
             if let gap = MainActor.assumeIsolated({ CoreGapPageFixtures.make(name) }) { return gap }
             if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }
@@ -548,11 +551,13 @@ enum T5PageFixtures {
                 untilText: "2026-12-31",
                 themeCount: 24,
                 plans: [
-                    PassPlanCard(code: "Y", priceText: "¥198", line: .year(monthlyText: "16.5"), best: true),
-                    PassPlanCard(code: "M", priceText: "¥28", line: .month, best: false)
+                    PassPlanCard(code: "Y", priceText: "¥198.00", line: .year(monthlyText: "¥16.50"), best: true),
+                    PassPlanCard(code: "M", priceText: "¥28.00", line: .month, best: false)
                 ],
                 selectedPlan: "Y",
-                buyBlock: nil
+                buyBlock: nil,
+                // fix-r3 member-a r2: server `overview.terms` rows (适用范围 + server refund text).
+                terms: PlatformPassTermFacts(period: "365 天", refund: "开通后 7 天内未使用可整单退款", seat: "本人及 1 位同行")
             )
             return wrapPlayer(NavigationStack {
                 PassMembershipView(phase: .ready(content), onRetry: {}, onSelectPlan: { _ in }, onOpenLibrary: {})

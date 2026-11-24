@@ -83,9 +83,9 @@ public struct ClubGovernanceCommand: Equatable {
     public let operation: ClubGovernanceMutation
     public let scope: ClubGovernanceScope
     public let fields: [String: ClubGovernanceValue]
-    public static let maximumClubBanMilliseconds = 90 * 86_400_000
     public init(operation: ClubGovernanceMutation, scope: ClubGovernanceScope, values: [String: ClubGovernanceValue], now: Date = Date()) throws {
         try scope.validate()
+        _ = now // The ban body sends durationDays. The server clock owns the expiry.
         self.operation = operation; self.scope = scope
         var result: [String: ClubGovernanceValue] = [:]
         let requiredKeys: [String]
@@ -99,7 +99,7 @@ public struct ClubGovernanceCommand: Equatable {
             scopeKeys = ["clubId", "topicId"]; requiredKeys = ["recurrenceType", "startDate", "startTime", "occurrenceCount", "customDates", "capacity", "defaultLeadMemberId", "waitlistEnabled", "offerMinutes"] + (operation == .createSeries ? ["requestId"] : ["expectedVersion"])
         case .cancelOccurrence: scopeKeys = ["clubId", "activityId"]; requiredKeys = ["reason", "requestId"]
         case .correctAttendance: scopeKeys = ["clubId", "activityId", "memberId"]; requiredKeys = ["arrived", "expectedVersion", "reason", "requestId"]
-        case .ban: scopeKeys = ["clubId"]; requiredKeys = ["targetMemberId", "reason", "requestId"]; optionalKeys = ["expiresAt", "expiresAtEpochMs"]
+        case .ban: scopeKeys = ["clubId"]; requiredKeys = ["targetMemberId", "reason", "requestId", "durationDays"]
         case .unban: scopeKeys = ["clubId"]; requiredKeys = ["banId", "version", "reason", "requestId"]
         case .transferOwner: scopeKeys = ["clubId"]; requiredKeys = ["targetMemberId", "reason", "requestId"]
         case .report: scopeKeys = ["clubId"]; requiredKeys = ["targetType", "targetId", "reason", "requestId"]
@@ -168,14 +168,8 @@ public struct ClubGovernanceCommand: Equatable {
         if operation == .sendNotification { try Self.validateNotification(result, scope: scope) }
         if operation == .chapterRecruit { guard [0, 1].contains(result["enabled"]?.int ?? -1) else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .ban {
-            // Exactly one expiry form. The absolute instant must be in the future and within the 90-day club cap.
-            switch (result["expiresAt"], result["expiresAtEpochMs"]) {
-            case (.some(let expiration), .none): guard let text = expiration.string, !text.isEmpty else { throw ClubGovernanceFailure.invalidRequest }
-            case (.none, .some(.integer(let epoch))):
-                let nowMs = Int((now.timeIntervalSince1970 * 1000).rounded(.down))
-                guard epoch > nowMs, epoch - nowMs <= Self.maximumClubBanMilliseconds else { throw ClubGovernanceFailure.invalidRequest }
-            default: throw ClubGovernanceFailure.invalidRequest
-            }
+            // Owner 2026-11-24: send the chosen day count. The server clock owns the expiry.
+            guard let days = result["durationDays"]?.int, ClubGovernanceFormDraft.banDayChoices.contains(days) else { throw ClubGovernanceFailure.invalidRequest }
         }
         if operation == .reportHours { guard ["PREP", "CONTENT", "ONSITE", "REVIEW"].contains(result["hourKind"]?.string ?? ""), let number = result["actualHours"]?.number, number.isFinite, number >= 0 else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .submitEvidence { guard ["DELIVERY_SAFETY", "PLAYER_EXPERIENCE", "CONTENT_REPORT"].contains(result["dimension"]?.string ?? ""), Self.matches(result["evidenceHash"]?.string, "^[0-9a-f]{64}$") else { throw ClubGovernanceFailure.invalidRequest } }

@@ -35,7 +35,12 @@ import UIKit
             ForEach(SettingsLegalType.allCases) { type in
                 NavigationLink {
                     SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
-                } label: { Label(LocalizedStringKey(type.titleKey), systemImage: "doc.text") }
+                } label: {
+                    // MP shezhi 用户服务协议 = icon_lc_scroll-text; the other legal rows use about's icon_agreement.
+                    Label { Text(LocalizedStringKey(type.titleKey)) } icon: {
+                        AccountPublishMPGlyph(type == .userAgreement ? MPAsset.FeatureIcon.iconLcScrollText : MPAsset.FeatureIcon.iconAgreement)
+                    }
+                }
                 .accessibilityIdentifier("settingsNative.openLegal.\(type.rawValue)")
             }
         }
@@ -48,9 +53,9 @@ import UIKit
                 Label {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("settingsNative.about.title")
-                        Text("settingsNative.about.entryHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("settingsNative.about.entryHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
-                } icon: { Image(systemName: "info.circle.fill") }
+                } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcInfo) }
             }
             .accessibilityIdentifier("settingsNative.openAbout")
         }
@@ -190,7 +195,7 @@ struct SettingsTileLabelStyle: LabelStyle {
                 .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .frame(width: 30, height: 30)
-                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 .accessibilityHidden(true)
             configuration.title
                 .fixedSize(horizontal: false, vertical: true)

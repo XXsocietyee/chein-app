@@ -15,6 +15,30 @@ public enum ChinaReviewedRouteMark: String, Equatable, Sendable {
     case missing
 }
 
+/// P2 play-runtime gates. Reviewed, and default off. They live outside `marks` and
+/// `wiredPatterns` so this package does not change `callSiteCount` (995) or
+/// `wiredPatternCount` (679). Other packages add their own rows later.
+public enum PlayRuntimePortRouteGate {
+    /// Missing `storyLocked` counts as locked only after this is turned on.
+    public static let storyLockMissingCountsAsLocked = false
+    #if DEBUG
+    /// Unit tests flip this to prove both behaviors. Release builds ignore it.
+    public static var testStoryLockMissingCountsAsLocked: Bool?
+    #endif
+    public static var storyLockMissingIsLocked: Bool {
+        #if DEBUG
+        if let testStoryLockMissingCountsAsLocked { return testStoryLockMissingCountsAsLocked }
+        #endif
+        return storyLockMissingCountsAsLocked
+    }
+    /// `GET /api/topic/free-explore/visit-config`. Reviewed (`live-in-production`), default off.
+    public static let freeExploreVisitConfigRead = false
+    /// `POST /api/topic/free-explore/visit-config`. Reviewed, write default off.
+    public static let freeExploreVisitConfigWrite = false
+    public static let visitConfigPath = "/api/topic/free-explore/visit-config"
+    public static let visitConfigMark = ChinaReviewedRouteMark.liveInProduction
+}
+
 public enum ChinaReviewedRouteCapability {
     public static let productionBackendCommit = "014fc0d83afe9f53cf4a8b1f9544bcf634e9ce6c"
     public static let publicSnapshotCommit = "147754ba8740abf208bda75cf86ed5901cac4c02"
@@ -81,6 +105,8 @@ public enum ChinaReviewedRouteCapability {
         if wp06PartialPagesOwnerGrant.contains(key) { return true }
         if ownerDecisionGuardGrant.contains(key) { return true }
         if popupCloseOwnerGrant.contains(key) { return true }
+        // Owner 2026-11-24: platform-pass order reads are on for players. Not a money write.
+        if isPlatformPassOrderPath(key) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -418,9 +444,16 @@ public enum ChinaReviewedRouteCapability {
         "/api/content-landing/translation/save"
     ]
 
+    /// Owner 2026-11-24: GET `/api/platform-pass/orders` and the order detail. A read, not a money write.
+    /// Purchase POST to the same path stays refused in `refuseUnwiredChinaProduction`.
+    public static let platformPassOrderReadGrant: Set<String> = [
+        "/api/platform-pass/orders",
+        "/api/platform-pass/orders/{}"
+    ]
+
     /// Capability gap G6 (owner approval). Roam/topic NPC reads, the two non-money V2 AI draft writes and their
-    /// history read, and three marketing reads. Attribution claim, platform-pass order reads, quote, order, pay,
-    /// gift claim, and the roam NPC chat track stay out.
+    /// history read, and three marketing reads. Attribution claim, quote, order, pay,
+    /// gift claim, and the roam NPC chat track stay out. Platform-pass order reads use `platformPassOrderReadGrant`.
     private static let g6OwnerGrant: Set<String> = [
         "/api/ai/npc/profile",
         "/api/ai/npc/event",
@@ -681,7 +714,24 @@ public enum ChinaReviewedRouteCapability {
     /// Other hosts, including every test double, are unchanged.
     public static func refuseUnwiredChinaProduction(_ request: URLRequest) throws {
         guard let url = request.url, targetsChinaProduction(url) else { return }
+        // The order-list path is a player read. A write on that path is not admitted.
+        if isPlatformPassOrderWrite(request) { throw APIError.notConfigured }
         guard admitsChinaProductionCall(url) else { throw APIError.notConfigured }
+    }
+
+    /// The order list and any order-number child. Order numbers are not always a numeric `{}` segment.
+    public static func isPlatformPassOrderPath(_ key: String) -> Bool {
+        let path = normalized(key)
+        return path == "/api/platform-pass/orders" || path.hasPrefix("/api/platform-pass/orders/")
+    }
+
+    /// POST (or any non-read) to the platform-pass order path. The GET stays a player read.
+    public static func isPlatformPassOrderWrite(_ request: URLRequest) -> Bool {
+        guard let url = request.url else { return false }
+        let key = normalized(relativePath(url).map { "/" + $0 } ?? url.path)
+        guard isPlatformPassOrderPath(key) else { return false }
+        let method = request.httpMethod?.uppercased() ?? "GET"
+        return method != "GET" && method != "HEAD"
     }
 
     /// Password login, bank withdrawal, and virtual goods stay off even when the route is live.
@@ -2582,6 +2632,10 @@ public enum ReleaseMoneyWriteKind: String, Sendable, CaseIterable {
     case payout
     case withdrawal
     case virtualGoods
+    /// Player refund and owner cancel-refund. Owner 2026-11-24: counts as money.
+    case refund
+    /// Host cancel that refunds unredeemed registrations. Preview is not this kind.
+    case hostCancelRefund
 }
 
 public enum ReleaseMoneyWriteSwitch {
@@ -2593,11 +2647,15 @@ public enum ReleaseMoneyWriteSwitch {
     public static var payoutEnabled: Bool { testDerivation?(.payout) ?? false }
     public static var withdrawalEnabled: Bool { testDerivation?(.withdrawal) ?? false }
     public static var virtualGoodsEnabled: Bool { testDerivation?(.virtualGoods) ?? false }
+    public static var refundEnabled: Bool { testDerivation?(.refund) ?? false }
+    public static var hostCancelRefundEnabled: Bool { testDerivation?(.hostCancelRefund) ?? false }
     #else
     public static let paymentEnabled = false
     public static let payoutEnabled = false
     public static let withdrawalEnabled = false
     public static let virtualGoodsEnabled = false
+    public static let refundEnabled = false
+    public static let hostCancelRefundEnabled = false
     #endif
 
     public static func isEnabled(_ kind: ReleaseMoneyWriteKind) -> Bool {
@@ -2606,6 +2664,8 @@ public enum ReleaseMoneyWriteSwitch {
         case .payout: return payoutEnabled
         case .withdrawal: return withdrawalEnabled
         case .virtualGoods: return virtualGoodsEnabled
+        case .refund: return refundEnabled
+        case .hostCancelRefund: return hostCancelRefundEnabled
         }
     }
 
@@ -2637,6 +2697,11 @@ public enum ReleaseMoneyWriteSwitch {
             return .withdrawal
         case "/api/cart/cart/add", "/api/cart/add", "/api/cart/update", "/api/cart/delete", "/api/cart/order/settlement":
             return .virtualGoods
+        case "/api/registration/cancel-refund", "/api/registration/cancel-by-owner",
+             "/api/free-explore/bundle/order/refund":
+            return .refund
+        case "/api/activity/cancel":
+            return .hostCancelRefund
         default:
             break
         }

@@ -46,7 +46,7 @@ public struct MerchantMarketingConsentOriginalReceipt:Decodable,Equatable,Identi
  public nonisolated static func validRequestID(_ value: String) -> Bool {
   value.utf8.count <= 64 && value.range(of: #"\A[A-Za-z0-9._:-]+\z"#, options: .regularExpression) != nil
  }
- public static let path="api/merchant/crm/marketing-consents",resultPath=path+"/result"
+ public nonisolated static let path="api/merchant/crm/marketing-consents",resultPath=path+"/result"
  public let context:RuntimeDependencyContext,approval:MerchantMarketingConsentOriginalApproval
  private let transport:any HTTPTransport,current:()->RuntimeDependencyContext?,stillApproved:()->Bool
  private let unauthorized:()->Void

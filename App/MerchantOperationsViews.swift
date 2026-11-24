@@ -14,6 +14,8 @@ struct MerchantOperationsHomeView: View {
     @State private var generation = 0
     @StateObject private var readLifetime = MerchantOperationsHomeReadLifetime()
     @Environment(\.scenePhase) private var scenePhase
+    /// MC7-24-4: MP decor `goCityNode` (index.js:1213-1215) opens pages/merchant/citynode directly.
+    @Environment(\.merchantCityNodeHubDestination) private var cityNodeHub
     /// Source pages/merchant/decor groups: 门店信息, 品牌介绍, 门店相册, AI 店铺角色, 合作经营.
     private let groups: [(titleKey: LocalizedStringKey, destinations: [MerchantOperationsDestination])] = [
         ("merchant.decor.section.store", [.profile, .businessStatus]),
@@ -35,7 +37,18 @@ struct MerchantOperationsHomeView: View {
                     }.accessibilityIdentifier("merchant.operations.cityEntry")
                 }
                 let blocked = MerchantOperationsHomeState.resolve(active: access.identity.active, visibleEntryCount: groups.reduce(0) { total, group in total + group.destinations.filter { access.allows($0) }.count })
-                if blocked != .content {
+                // MC7-19-3 / MC7-19-5: inactive identity → 去商家入驻; no decor grant → 当前身份不能装修店铺.
+                switch blocked {
+                case .empty:
+                    MerchantCoopApplyState(title: "merchant.decor.state.empty.title", message: "merchant.decor.state.empty.message",
+                                           actionTitle: "merchantCoop.decor.openApplication", identifier: "merchantCoop.decor.inactive")
+                        .listRowBackground(Color.clear)
+                case .denied:
+                    MerchantCoopActionState(systemImage: "lock", title: "merchantCoop.decor.denied.title", identifier: "closew5d.state.denied")
+                        .listRowBackground(Color.clear)
+                case .content:
+                    EmptyView()
+                default:
                     CloseW5dStateView(state: blocked, emptyTitle: "merchant.decor.state.empty.title", emptyMessage: "merchant.decor.state.empty.message") { Task { await load(readPermit) } }
                 }
                 if !reader.canSave && access.identity.active {
@@ -48,7 +61,8 @@ struct MerchantOperationsHomeView: View {
                         Section(group.titleKey) {
                             ForEach(visible) { destination in
                                 NavigationLink {
-                                    if let destinationFactory { destinationFactory(destination, access) }
+                                    if destination == .cityNodes, let cityNodeHub { cityNodeHub() }
+                                    else if let destinationFactory { destinationFactory(destination, access) }
                                     else { MerchantOperationsDocumentView(reader: reader, destination: destination) }
                                 } label: {
                                     Label(LocalizedStringKey(destination.titleKey), systemImage: symbol(destination))
@@ -64,12 +78,17 @@ struct MerchantOperationsHomeView: View {
                         }
                     }
                 }
-                if !access.identity.active { Text("merchant.access.inactive").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             } else if let issue, loadedScope == reader.scope {
                 VStack(spacing: CYSpacing.md) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(CYTypography.display)
+                        .accessibilityHidden(true)
+                        .cyText(.display)
                         .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityHidden(true)
+                    // MC7-19-6: MP `品牌中心加载失败` title above the reason.
+                    Text("merchantCoop.decor.failed.title")
+                        .cyText(.sectionTitle)
+                        .accessibilityAddTraits(.isHeader)
                     MerchantOperationsIssueView(issue: issue)
                     CYPillButton("action.retry", style: .primary) { Task { await load(readPermit) } }
                         .accessibilityIdentifier("merchant.operations.retry")
@@ -417,7 +436,7 @@ private struct MerchantOperationsCityView: View {
                 if catalog.applications.isEmpty { Text("merchant.operations.empty") }
                 ForEach(catalog.applications) { application in
                     VStack(alignment: .leading, spacing: 8) {
-                        if let name = application.name { Text(verbatim: name).font(CYTypography.cardTitle) }
+                        if let name = application.name { Text(verbatim: name).cyText(.cardTitle) }
                         Text(LocalizedStringKey(application.applicationType == 2 ? "merchant.operations.claim" : application.applicationType == 1 ? "merchant.operations.placement" : "merchant.operations.review.unknown"))
                         Text(LocalizedStringKey(application.reviewKey))
                         if application.status == 2, let reason = application.reason { Text(verbatim: reason).foregroundStyle(CYColor.textTertiary) }

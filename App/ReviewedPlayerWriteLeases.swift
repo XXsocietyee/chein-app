@@ -719,7 +719,7 @@ enum ReviewedPlayerReadRoute {
         return playPaths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
     }
     /// G4/G5 GET reads. The play grant admits a GET only for these (body empty).
-    static let capabilityReadPaths: Set<String> = [
+    nonisolated static let capabilityReadPaths: Set<String> = [
         "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
         "api/community-trust/safety/merchants/{}", "api/template/adoption-source", "api/template/adoption-receipt",
         "api/template/adoption-detail", "api/map/weather", "api/search/unified", "api/free-explore/bundle/exit-options",
@@ -741,7 +741,7 @@ enum ReviewedPlayerReadRoute {
         // Popup parity closure: player & organizer event attendance readback.
         "api/official/events/{}/attendance", "api/official/events/{}/attendance/manage"
     ]
-    static let externalGamePaths: Set<String> = [
+    nonisolated static let externalGamePaths: Set<String> = [
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
         "api/external-game/submissions/{}/cancel", "api/external-game/submissions/{}/resubmit",
         "api/external-game/catalog", "api/external-game/catalog/{}", "api/external-game/catalog/{}/package",
@@ -843,7 +843,7 @@ enum ReviewedPlayerReadRoute {
         return nil
     }
     /// Handover 21. Non-cash pledge, claim and the exact coupon root. Cash refund is not in this set.
-    static let rewardPledgePaths: Set<String> = [
+    nonisolated static let rewardPledgePaths: Set<String> = [
         "api/reward-pledge", "api/reward-pledge/awards", "api/reward-pledge/drafts",
         "api/reward-pledge/fulfilment/awards", "api/reward-pledge/fulfilment/expire",
         "api/reward-pledge/fulfilment/preview", "api/reward-pledge/fulfilment/redeem",

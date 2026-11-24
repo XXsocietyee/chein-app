@@ -105,7 +105,7 @@ struct DiscoveryPlayRow: View {
                 }
             }
             Spacer(minLength: CYSpacing.sm)
-            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textSecondary).accessibilityHidden(true)
         }
     }
 }
@@ -120,7 +120,7 @@ extension DiscoveryPlayRow {
         ].compactMap { $0 }
         if let first = parts.first {
             parts.dropFirst().reduce(first) { $0 + Text(verbatim: " · ") + $1 }
-                .cyText(.meta).foregroundStyle(palette.textTertiary)
+                .cyText(.meta).foregroundStyle(palette.textSecondary)
         }
     }
 }
@@ -196,8 +196,18 @@ extension View {
 }
 struct DiscoverySectionHeader: View {
     let title: LocalizedStringKey
-    init(_ title: LocalizedStringKey) { self.title = title }
+    /// MP `xb-section-ico` art (templatedetail.wxml), drawn before the title. Nil keeps the plain header.
+    var art: Image? = nil
+    init(_ title: LocalizedStringKey, art: Image? = nil) { self.title = title; self.art = art }
     var body: some View {
-        CYSectionHeader(title).textCase(nil).padding(.top, CYSpacing.sm)
+        if let art {
+            HStack(alignment: .center, spacing: CYSpacing.sm) {
+                art.resizable().scaledToFit().frame(width: 22, height: 22).accessibilityHidden(true)
+                CYSectionHeader(title).textCase(nil)
+            }
+            .padding(.top, CYSpacing.sm)
+        } else {
+            CYSectionHeader(title).textCase(nil).padding(.top, CYSpacing.sm)
+        }
     }
 }

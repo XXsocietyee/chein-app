@@ -42,6 +42,12 @@ public struct MerchantBusinessSnapshot: Equatable {
     /// pages/merchant/bundle-reservations (defaults in MerchantBundleReservations.swift: unavailable).
     func bundleReservations(now: Date) async throws -> [MerchantBundleReservation]
     func markBundleNoShow(_ id: Int64) async throws
+    /// Manage-tab reviews other than 全部. `.reviews(page:)` stays the all tab.
+    func managedReviews(filter: String, page: Int) async throws -> MerchantBusinessSnapshot
+    /// Ledger redemptions that carry `topicId`. The no-topic query stays `.redemptions(filter:page:)`.
+    func redemptions(filter: String, page: Int, topicID: Int) async throws -> MerchantBusinessSnapshot
+    /// Verify-records page N (`pageSize` 50). Page 1 stays `.verificationRecords`.
+    func verificationPage(_ page: Int) async throws -> MerchantBusinessSnapshot
 }
 public extension MerchantBusinessReading {
     func snapshot(_ query: MerchantBusinessQuery, isCurrent: () -> Bool) async throws -> MerchantBusinessSnapshot {
@@ -64,6 +70,9 @@ public extension MerchantBusinessReading {
     func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator {
         .init(service: nil, journal: journal, currentSession: { nil })
     }
+    func managedReviews(filter: String, page: Int) async throws -> MerchantBusinessSnapshot { throw MerchantBusinessFailure.disabled }
+    func redemptions(filter: String, page: Int, topicID: Int) async throws -> MerchantBusinessSnapshot { throw MerchantBusinessFailure.disabled }
+    func verificationPage(_ page: Int) async throws -> MerchantBusinessSnapshot { throw MerchantBusinessFailure.disabled }
 }
 @MainActor public final class MerchantBusinessSessionReader: MerchantBusinessReading {
     private let service: MerchantBusinessService?
@@ -105,6 +114,27 @@ public extension MerchantBusinessReading {
     public func access() async throws -> MerchantBusinessAccess { try await read { try await $0.access(token: $1.token) } }
     public func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
         try await snapshot(query, isCurrent: { true })
+    }
+    public func managedReviews(filter: String, page: Int) async throws -> MerchantBusinessSnapshot {
+        try await read { service, session in
+            let access = try await service.access(token: session.token)
+            let document = try await service.managedReviews(filter: filter, page: page, access: access, token: session.token)
+            return .init(access: access, document: document, roles: nil)
+        }
+    }
+    public func redemptions(filter: String, page: Int, topicID: Int) async throws -> MerchantBusinessSnapshot {
+        try await read { service, session in
+            let access = try await service.access(token: session.token)
+            let document = try await service.redemptions(filter: filter, page: page, topicID: topicID, access: access, token: session.token)
+            return .init(access: access, document: document, roles: nil)
+        }
+    }
+    public func verificationPage(_ page: Int) async throws -> MerchantBusinessSnapshot {
+        try await read { service, session in
+            let access = try await service.access(token: session.token)
+            let document = try await service.verificationPage(page, access: access, token: session.token)
+            return .init(access: access, document: document, roles: nil)
+        }
     }
     public func snapshot(_ query: MerchantBusinessQuery, isCurrent: () -> Bool) async throws -> MerchantBusinessSnapshot {
         try await read(isCurrent: isCurrent) { service, session in

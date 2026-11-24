@@ -95,7 +95,7 @@ private extension TemplateAuthoringModel {
                 .accessibilityIdentifier("templateBasicClear." + kind.identifier)
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(CYTypography.bodyMedium)
+                    .cyText(.bodyMedium)
                     .foregroundStyle(palette.textSecondary)
                     .editorHitTarget()
             }
@@ -167,7 +167,7 @@ private extension TemplateAuthoringModel {
             Button(action: start) {
                 VStack(spacing: CYSpacing.xs) {
                     Image(systemName: reference.isEmpty ? "photo.badge.plus" : "photo")
-                        .font(CYTypography.sectionTitle)
+                        .cyText(.sectionTitle)
                         .accessibilityHidden(true)
                     ConfigR4Text.text(reference.isEmpty ? "config.qimage.choose" : "config.qimage.set")
                         .cyText(.bodyMedium)
@@ -255,10 +255,10 @@ private extension TemplateAuthoringModel {
             } label: {
                 HStack(spacing: CYSpacing.md) {
                     Image(systemName: kind == .audio ? "waveform" : "photo")
-                        .font(CYTypography.bodyMedium)
+                        .cyText(.bodyMedium)
                         .foregroundStyle(palette.textSecondary)
                         .frame(width: EditorKitMetric.optionThumb, height: EditorKitMetric.optionThumb)
-                        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(palette.bgElevated))
+                        .background(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous).fill(palette.bgElevated))
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         ConfigR4Text.text(isSet ? (kind == .audio ? "config.qaudio.set" : "config.qimage.set")
@@ -271,7 +271,7 @@ private extension TemplateAuthoringModel {
                     }
                     Spacer(minLength: CYSpacing.sm)
                     Image(systemName: "chevron.forward")
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .foregroundStyle(palette.textTertiary)
                         .accessibilityHidden(true)
                 }

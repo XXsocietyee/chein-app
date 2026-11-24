@@ -59,6 +59,15 @@
       "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
     },
     {
+      "file": "App/ChapterStoryView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Narration autoplay switch bound to the device-local UserDefaults bool play.narrationOn (default on). No story text and nothing is uploaded.",
+      "retention": "Device-local preference until the player changes the switch or deletes the app",
+      "deletion": "Removed with the app's UserDefaults; not an account record"
+    },
+    {
       "file": "App/ClubChannelMessagingView.swift",
       "kinds": [
         "userDefaults"
@@ -166,6 +175,15 @@
       "purpose": "Merchant workbench 我的消息 read marks (source merchant_inbox_read_<userID>): read keys of conversations, received coop invites and business events, per account, capped at 300",
       "retention": "Until the marks age out of the 300 newest or the app is removed",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/MerchantStoreCharacterView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "AppStorage flag cy_ai_npc_intro_seen (MP same key): the AI NPC first-visit intro was dismissed; no personal data",
+      "retention": "until app deletion (same as the MP storage flag)",
+      "deletion": "app deletion; not account-scoped"
     },
     {
       "file": "App/NativeChannelReportJournalKeys.swift",
@@ -328,6 +346,15 @@
       "purpose": "One Bool (roamLivePurposeAcceptedV1): the player agreed once, on the first GO consent card, to use location while roaming; it only seeds the in-view consent state",
       "retention": "Until app data is deleted or the app is reinstalled",
       "deletion": "Removed with app data; no account data stored"
+    },
+    {
+      "file": "App/RoamPOIActions.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "RPOI-3 pending POI check-in record (MP cy_roam_poi_checkin_pending:v1:{owner}:{poi}): version, owner id, poi id, attempt id, uncertain flag only; no coordinates, answers, photos or scan text",
+      "retention": "Until the attempt is confirmed (completed / awaiting redemption) or rejected before write, as in the MP",
+      "deletion": "Cleared by attempt id on a confirmed read or receipt; logout cleanup not verified per store (key is per owner id)"
     },
     {
       "file": "App/RoamReceivedStampMetadataView.swift",
@@ -518,6 +545,15 @@
       "purpose": "Application Support JSON of the pending chapter-replacement invitation intent",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/ChapterStoryContracts.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Reads and writes the device-local narration autoplay bool play.narrationOn (default on). No story text and nothing is uploaded.",
+      "retention": "Device-local preference until the player changes the switch or deletes the app",
+      "deletion": "Removed with the app's UserDefaults; not an account record"
     },
     {
       "file": "Core/CityAcquisitionIdentityJournal.swift",

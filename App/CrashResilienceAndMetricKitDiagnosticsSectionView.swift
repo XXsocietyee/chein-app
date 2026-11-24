@@ -198,7 +198,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(CYColor.textSecondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(CYColor.textSecondary.opacity(0.08)))
         .accessibilityIdentifier("crashResilienceMetricKit.section")
     }
 
@@ -211,7 +211,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
                     .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.category.rawValue)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).category")
                 Text(verbatim: row.statusBadgeText)
@@ -221,7 +221,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
             }
 
             Text(verbatim: row.budgetRuleText)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).budgetRule")
 
@@ -239,7 +239,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(CYColor.textSecondary.opacity(0.06)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous).fill(CYColor.textSecondary.opacity(0.06)))
         .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id)")
     }
 }

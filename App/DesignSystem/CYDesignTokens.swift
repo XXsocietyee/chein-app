@@ -228,7 +228,7 @@ public enum CYColor {
 
 // MARK: - Typography Scale (CYTextStyle -> CYTypography / Theme.Font / cyText)
 
-/// The one type scale (consist-1). Base: mini-program `style/tokens.wxss`, pt = rpx / 2 as integers (owner rule).
+/// The one type scale (consist-1), mapped onto semantic Dynamic Type styles by the native iOS restyle r1.
 /// Rule card: `docs/design/type-and-chrome.md`. `CYTypography`, `Theme.Font` and `.cyText(_:)` all read this table.
 enum CYTextStyle: String, CaseIterable {
     case display, pageTitle, sheetTitle, sectionTitle, cardTitle, button
@@ -238,38 +238,56 @@ enum CYTextStyle: String, CaseIterable {
 
 /// One row of the scale.
 struct CYTypeSpec {
-    /// Point size at the default Dynamic Type size (Large). rpx / 2 from the mini-program.
+    /// The semantic Dynamic Type style (native iOS restyle r1).
+    let textStyle: Font.TextStyle
+    /// The style's point size at the default Dynamic Type size (Large); drives the CJK line spacing only.
     let size: CGFloat
     let weight: Font.Weight
     let design: Font.Design
-    /// Mini-program CSS `line-height` multiple. Applied through `lineSpacing` by `.cyText(_:)`.
+    /// Line-height multiple for Chinese text. Applied through `lineSpacing` by `.cyText(_:)`.
     let lineHeight: CGFloat
     /// Letter spacing in pt. 0 for every style: Chinese takes no tracking, and SF applies its own optical tracking.
     let tracking: CGFloat
-    /// Dynamic Type style the size scales with (`@ScaledMetric(relativeTo:)` in `.cyText(_:)`).
-    let relativeTo: Font.TextStyle
-    /// Set only when `size` equals this text style's default size; the static `Font` token then uses the
-    /// text style itself, so it scales with Dynamic Type even without `.cyText(_:)`.
-    let nativeStyle: Font.TextStyle?
+    /// Kept for callers that read it: the same as `textStyle`.
+    var relativeTo: Font.TextStyle { textStyle }
+    var nativeStyle: Font.TextStyle? { textStyle }
     let monospacedDigit: Bool
+    /// Set only for `data2XL` (42 pt hero number, scaled relative to `textStyle`).
+    let fixedSize: CGFloat?
 
     init(
-        _ size: CGFloat,
+        _ textStyle: Font.TextStyle,
         _ weight: Font.Weight,
-        lineHeight: CGFloat,
-        relativeTo: Font.TextStyle,
-        nativeStyle: Font.TextStyle? = nil,
+        lineHeight: CGFloat = CYTypeSpec.cjkNaturalLineHeight,
         design: Font.Design = .default,
-        monospacedDigit: Bool = false
+        monospacedDigit: Bool = false,
+        fixedSize: CGFloat? = nil
     ) {
-        self.size = size
+        self.textStyle = textStyle
+        self.fixedSize = fixedSize
+        self.size = fixedSize ?? Self.defaultSize(of: textStyle)
         self.weight = weight
         self.design = design
         self.lineHeight = lineHeight
         self.tracking = 0
-        self.relativeTo = relativeTo
-        self.nativeStyle = nativeStyle
         self.monospacedDigit = monospacedDigit
+    }
+
+    /// Apple's default (Large) point sizes for the text styles.
+    static func defaultSize(of style: Font.TextStyle) -> CGFloat {
+        switch style {
+        case .largeTitle: return 34
+        case .title: return 28
+        case .title2: return 22
+        case .title3: return 20
+        case .headline, .body: return 17
+        case .callout: return 16
+        case .subheadline: return 15
+        case .footnote: return 13
+        case .caption: return 12
+        case .caption2: return 11
+        default: return 17
+        }
     }
 
     /// PingFang SC, the system CJK face, is ascent 1.06 + descent 0.34 = 1.4 em tall, so a Chinese line is already
@@ -283,59 +301,61 @@ struct CYTypeSpec {
 }
 
 extension CYTextStyle {
+    /// Native iOS restyle r1 (owner, 11-24; docs/design/native-ios-r1.md §2.1): every token IS a semantic Dynamic
+    /// Type style. Line height is natural except `.body` / `.bodyMedium` paragraphs (+0.2 em, the MP reading leading).
+    /// Nothing below `.caption`.
     var spec: CYTypeSpec {
         switch self {
-        // rpx 56 -> 28 pt. Hero display text (onboarding, result, empty-state hero).
-        case .display: return CYTypeSpec(Theme.length("--cy-type-display"), .bold, lineHeight: 1.15, relativeTo: .largeTitle)
-        // rpx 58 -> 29 pt. In-content page title. Tab roots use the system large title instead (cyRootHeader).
-        case .pageTitle: return CYTypeSpec(Theme.length("--cy-type-page-title"), .bold, lineHeight: 1.2, relativeTo: .largeTitle)
-        // rpx 44 -> 22 pt. Sheet / modal title (CYSheetHeader).
-        case .sheetTitle: return CYTypeSpec(Theme.length("--cy-type-sheet-title"), .bold, lineHeight: 1.3, relativeTo: .title2, nativeStyle: .title2)
-        // rpx 36 -> 18 pt. Section header inside a page.
-        case .sectionTitle: return CYTypeSpec(Theme.length("--cy-type-section-title"), .bold, lineHeight: 1.25, relativeTo: .title3)
-        // rpx 32 -> 16 pt, 600. Card / row headline.
-        case .cardTitle: return CYTypeSpec(Theme.length("--cy-type-card-title"), .semibold, lineHeight: 1.3, relativeTo: .callout, nativeStyle: .callout)
-        // rpx 32 -> 16 pt, 700. Button label (CYPillButton).
-        case .button: return CYTypeSpec(Theme.length("--cy-type-button"), .bold, lineHeight: 1.3, relativeTo: .callout, nativeStyle: .callout)
-        // rpx 28 -> 14 pt. Reading body.
-        case .body: return CYTypeSpec(Theme.length("--cy-type-body"), .regular, lineHeight: 1.6, relativeTo: .body)
-        // rpx 28 -> 14 pt, 600 (`.cy-text-body-strong`). Emphasised body.
-        case .bodyMedium: return CYTypeSpec(Theme.length("--cy-type-body"), .semibold, lineHeight: 1.6, relativeTo: .body)
-        // rpx 28 -> 14 pt, tight leading. Dense secondary copy: list subtitles, one- or two-line descriptions.
-        case .bodyCompact: return CYTypeSpec(Theme.length("--cy-type-body"), .regular, lineHeight: 1.3, relativeTo: .subheadline)
-        // rpx 24 -> 12 pt, 500. Control label: tab, field label, chip.
-        case .label: return CYTypeSpec(Theme.length("--cy-type-label"), .medium, lineHeight: 1.35, relativeTo: .caption, nativeStyle: .caption)
-        // rpx 24 -> 12 pt, 400. Metadata: time, count, location, secondary row hint.
-        case .meta: return CYTypeSpec(Theme.length("--cy-type-label"), .regular, lineHeight: 1.35, relativeTo: .caption, nativeStyle: .caption)
-        // rpx 22 -> 11 pt. Caption, tag, badge text.
-        case .caption: return CYTypeSpec(Theme.length("--cy-type-caption"), .regular, lineHeight: 1.45, relativeTo: .caption2, nativeStyle: .caption2)
-        // rpx 20 -> 10 pt, 500. Micro counter, legal footnote, status dot label.
-        case .micro: return CYTypeSpec(Theme.length("--cy-type-micro"), .medium, lineHeight: 1.3, relativeTo: .caption2)
-        // rpx 28 -> 14 pt, 600 rounded tabular. Inline numbers: price, points, counts in rows.
-        case .numericBody: return CYTypeSpec(Theme.length("--cy-type-body"), .semibold, lineHeight: 1.3, relativeTo: .body, design: .rounded, monospacedDigit: true)
-        // rpx 64 -> 32 pt, 700 rounded tabular. Stat hero number (wallet, leaderboard).
-        case .dataXL: return CYTypeSpec(Theme.length("--cy-type-data-xl"), .bold, lineHeight: 1.05, relativeTo: .largeTitle, design: .rounded, monospacedDigit: true)
-        // rpx 84 -> 42 pt, 700 rounded tabular. Balance / settlement total.
-        case .data2XL: return CYTypeSpec(Theme.length("--cy-type-data-2xl"), .bold, lineHeight: 1.05, relativeTo: .largeTitle, design: .rounded, monospacedDigit: true)
+        // Hero display text (onboarding, result, empty-state hero).
+        case .display: return CYTypeSpec(.largeTitle, .bold)
+        // An object's name in the content. Tab roots use the system large navigation title instead.
+        case .pageTitle: return CYTypeSpec(.title, .bold)
+        // In-content sheet heading (sheet titles belong in the navigation bar).
+        case .sheetTitle: return CYTypeSpec(.title2, .bold)
+        // Section header inside a scroll page (in a List use `Section { } header:`).
+        case .sectionTitle: return CYTypeSpec(.title3, .semibold)
+        // Card / row headline.
+        case .cardTitle: return CYTypeSpec(.headline, .semibold)
+        // Button label (system buttons set their own font).
+        case .button: return CYTypeSpec(.headline, .semibold)
+        // Reading body.
+        case .body: return CYTypeSpec(.body, .regular, lineHeight: 1.6)
+        // Emphasised body.
+        case .bodyMedium: return CYTypeSpec(.body, .semibold, lineHeight: 1.6)
+        // Row subtitles, one- or two-line descriptions.
+        case .bodyCompact: return CYTypeSpec(.subheadline, .regular)
+        // Control label: field label, chip, segmented text (native control text is 15).
+        case .label: return CYTypeSpec(.subheadline, .medium)
+        // Metadata: time, count, location, secondary row hint.
+        case .meta: return CYTypeSpec(.footnote, .regular)
+        // Caption, tag, badge text.
+        case .caption: return CYTypeSpec(.caption, .regular)
+        // Micro counter, legal footnote, status dot label: the floor is `.caption`.
+        case .micro: return CYTypeSpec(.caption, .medium)
+        // Inline numbers: price, points, counts in rows (rounded dropped so it matches row text).
+        case .numericBody: return CYTypeSpec(.body, .semibold, monospacedDigit: true)
+        // Stat hero number (wallet, leaderboard).
+        case .dataXL: return CYTypeSpec(.largeTitle, .bold, design: .rounded, monospacedDigit: true)
+        // Balance / settlement total: the ONLY fixed size (42), scaled with `.largeTitle` by `.cyText(_:)`.
+        case .data2XL: return CYTypeSpec(.largeTitle, .bold, design: .rounded, monospacedDigit: true, fixedSize: 42)
         }
     }
 
-    /// Static token (no line spacing). Scales with Dynamic Type only when the spec has a `nativeStyle`.
+    /// Static token: the semantic text style, so it scales with Dynamic Type everywhere.
     var font: Font {
+        font(weight: nil, monospacedDigit: false)
+    }
+
+    /// The semantic font with an optional one-off weight. `scaledSize` is the `@ScaledMetric` size `.cyText(_:)`
+    /// passes; only the one fixed-size token (`data2XL`) uses it.
+    func font(weight: Font.Weight?, monospacedDigit: Bool, scaledSize: CGFloat? = nil) -> Font {
         let spec = self.spec
         let base: Font
-        if let native = spec.nativeStyle {
-            base = .system(native, design: spec.design, weight: spec.weight)
+        if let fixed = spec.fixedSize {
+            base = .system(size: scaledSize ?? fixed, weight: weight ?? spec.weight, design: spec.design)
         } else {
-            base = .system(size: spec.size, weight: spec.weight, design: spec.design)
+            base = .system(spec.textStyle, design: spec.design, weight: weight ?? spec.weight)
         }
-        return spec.monospacedDigit ? base.monospacedDigit() : base
-    }
-
-    /// The font at an already-scaled size (used by `.cyText(_:)`).
-    func font(size: CGFloat, weight: Font.Weight? = nil, monospacedDigit: Bool = false) -> Font {
-        let spec = self.spec
-        let base = Font.system(size: size, weight: weight ?? spec.weight, design: spec.design)
         return (spec.monospacedDigit || monospacedDigit) ? base.monospacedDigit() : base
     }
 
@@ -361,7 +381,7 @@ private struct CYTextModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .font(style.font(size: size, weight: weight, monospacedDigit: monospacedDigit))
+            .font(style.font(weight: weight, monospacedDigit: monospacedDigit, scaledSize: size))
             .lineSpacing(style.lineSpacing(at: size))
     }
 }
@@ -484,22 +504,24 @@ extension View {
 
 // MARK: - 4pt Grid Spacing Scale (CYSpacing -> Theme.Space)
 
-/// Spatial grid delegating to `Theme.Space` (generated from `tokens.wxss`), including 6/10/14pt half-steps.
+/// Spatial grid delegating to `Theme.Space` (generated from `tokens.wxss`).
+/// Native restyle (native-ios-r1 §2.4): one 4/8 grid. The retired half-steps keep their names for call sites but
+/// snap to the grid (2 → 4, 6 → 8, 10 → 12, 14 → 16).
 public enum CYSpacing {
-    /// `2pt` optical hairline offset.
-    public static let xxs: CGFloat = 2
+    /// Retired `2pt` hairline step; snaps to `xs` (4pt).
+    public static let xxs: CGFloat = Theme.Space.s1
     /// `4pt` minimum grid unit (`Theme.Space.s1`, `--cy-space-1`).
     public static let xs: CGFloat = Theme.Space.s1
-    /// `6pt` compact half-step (`Theme.Space.s1_5`, `--cy-space-1-5`).
-    public static let s1_5: CGFloat = Theme.Space.s1_5
+    /// Retired `6pt` half-step; snaps to `sm` (8pt).
+    public static let s1_5: CGFloat = Theme.Space.s2
     /// `8pt` compact chip/tag gap (`Theme.Space.s2`, `--cy-space-2`).
     public static let sm: CGFloat = Theme.Space.s2
-    /// `10pt` dense half-step (`Theme.Space.s2_5`, `--cy-space-2-5`).
-    public static let s2_5: CGFloat = Theme.Space.s2_5
+    /// Retired `10pt` half-step; snaps to `md` (12pt).
+    public static let s2_5: CGFloat = Theme.Space.s3
     /// `12pt` list row / inner card stack spacing (`Theme.Space.s3`, `--cy-space-3`).
     public static let md: CGFloat = Theme.Space.s3
-    /// `14pt` half-step (`Theme.Space.s3_5`, `--cy-space-3-5`).
-    public static let s3_5: CGFloat = Theme.Space.s3_5
+    /// Retired `14pt` half-step; snaps to `lg` (16pt).
+    public static let s3_5: CGFloat = Theme.Space.s4
     /// `16pt` standard page horizontal margin & card padding (`Theme.Space.s4`, `--cy-space-4`).
     public static let lg: CGFloat = Theme.Space.s4
     /// `20pt` spacious card padding.
@@ -530,12 +552,18 @@ public enum CYRadius {
     public static let sm: CGFloat = Theme.Radius.sm
     /// `12pt` buttons, text fields, list rows (`Theme.Radius.md`, `--cy-radius-md`).
     public static let md: CGFloat = Theme.Radius.md
-    /// `16pt` standard content cards (`Theme.Radius.lg`, `--cy-radius-lg`).
+    /// `12pt` standard content cards (native restyle r1: same as `card`).
     public static let lg: CGFloat = Theme.Radius.lg
-    /// `20pt` featured topic/activity cards (`Theme.Radius.xl`, `--cy-radius-xl`).
+    /// `20pt` featured / hero cards (native restyle r1: same as `hero`).
     public static let xl: CGFloat = Theme.Radius.xl
-    /// `22pt` hero banners & wallet summary cards (`Theme.Radius.xxl`, `--cy-radius-2xl`).
+    /// `20pt` hero banners & wallet summary cards (native restyle r1: same as `hero`).
     public static let xxl: CGFloat = Theme.Radius.xxl
+    /// `12pt` the ONE card radius (native iOS restyle r1): feed cards, grouped surfaces, `CYCard` default.
+    public static let card: CGFloat = Theme.Radius.card
+    /// `20pt` the ONE hero radius (native iOS restyle r1): hero banners, cover heroes, wallet summary.
+    public static let hero: CGFloat = Theme.Radius.hero
+    /// `8pt` thumbnails inside a card (concentric: card radius minus the inset; native restyle r1).
+    public static let inner: CGFloat = Theme.Radius.sm
     /// `24pt` bottom sheets & modal dialogs.
     public static let sheet: CGFloat = 24
     /// Full capsule pills & primary CTAs (`Theme.Radius.pill`, `--cy-radius-pill`; prefer `Capsule()`).
@@ -543,6 +571,25 @@ public enum CYRadius {
 }
 
 // MARK: - DesignSystem Typealiases
+
+/// Author cast swatch. Core accepts only the six palette hex strings; the fallback is the system gray.
+public enum CYCastSwatch {
+    public static func color(hex: String) -> Color {
+        let value = UInt32(hex.dropFirst(), radix: 16) ?? 0x8E8E93
+        return Color(red: Double((value >> 16) & 0xFF) / 255,
+                     green: Double((value >> 8) & 0xFF) / 255,
+                     blue: Double(value & 0xFF) / 255)
+    }
+}
+
+/// Packed `0xRRGGBB` chapter fill. Lives with the token sources so views do not call `Color(red:)`.
+public enum CYPackedRGB {
+    public static func color(_ rgb: UInt32) -> Color {
+        Color(red: Double((rgb >> 16) & 0xFF) / 255,
+              green: Double((rgb >> 8) & 0xFF) / 255,
+              blue: Double(rgb & 0xFF) / 255)
+    }
+}
 
 public extension DesignSystem {
     typealias Colors = CYColor

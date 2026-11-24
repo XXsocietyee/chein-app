@@ -254,6 +254,19 @@ public struct PlayKitActionReview: Equatable, Identifiable {
 }
 
 public enum PlayKitInputContract {
+    /// Photo-record write on the existing `photoCheck` action. Not `SUBMIT_PHOTO_CHECK`.
+    public static let recordAction = "RECORD"
+    /// Body `PlayPhotoRecordSubmission` already accepted for mode `RECORD`.
+    public static func recordBody(_ submission: PlayPhotoRecordSubmission) -> [String: PlayWireValue] {
+        switch submission {
+        case .textConfirmed: return ["textConfirmed": .bool(true)]
+        case .image(let url): return ["imageUrl": .string(url)]
+        }
+    }
+    /// Posts that body on `api/play/advanced/action` through the kit session. No new route.
+    @MainActor public static func postRecord(_ submission: PlayPhotoRecordSubmission, through model: PlayAdvancedCoordinator) async {
+        await model.submit(kind: "photoCheck", action: recordAction, detail: recordBody(submission))
+    }
     public static func validate(kind: String, action: String, payload: [String: PlayWireValue], segment: PlayWireValue) throws {
         if kind == PlayKitPublishedWrites.hangmanKind {
             try validateHangman(action: action, payload: payload, segment: segment)
@@ -286,7 +299,13 @@ public enum PlayKitInputContract {
                 let ids = (payload["optionIds"]?.array ?? []).compactMap(\.text)
                 try require(keys == ["optionIds"] && !ids.isEmpty && ids.count == payload["optionIds"]?.array?.count && Set(ids).count == ids.count && Set(ids).isSubset(of: Set(projection.options.map(\.id))))
             } else if mode == "PICK" { try require(keys == ["optionId"] && projection.options.contains { $0.id == payload["optionId"]?.text }) }
-            else { try require(keys == ["input"] && text("input")) }
+            else {
+                try require(keys == ["input"] && text("input"))
+                if segment["letterPool"] != .null, let pool = try PlayQuestionLetterPool(question: segment) {
+                    let picked = (payload["input"]?.text ?? "").map { String($0) }
+                    try require(picked.count == pool.answerLength && LetterPoolState.fits(picked, in: pool.chars))
+                }
+            }
         case .branch: try require(keys == ["optionId"] && projection.options.contains { $0.id == payload["optionId"]?.text })
         case .pricePair: try require(keys == ["pickId"] && projection.options.contains { $0.id == payload["pickId"]?.text })
         case .predict: try require(keys == ["optionKey"] && projection.options.contains { $0.id == payload["optionKey"]?.text })
@@ -295,7 +314,20 @@ public enum PlayKitInputContract {
             try require(keys == ["value"] && finite("value", range: lo...hi))
         case .hiddenObject: try require(keys == ["x", "y"] && finite("x", range: 0...1) && finite("y", range: 0...1))
         case .scan: try require(keys == ["code"] && text("code", max: 4096))
-        case .photoCheck: try require(keys == ["imageUrl"] && PlayExperienceService.validHTTPS(payload["imageUrl"]?.text ?? ""))
+        case .photoCheck:
+            if segment["mode"].text == "RECORD" {
+                try require(action == recordAction)
+                if payload["textConfirmed"]?.bool == true {
+                    try require(keys == ["textConfirmed"])
+                    guard case .success(.textConfirmed) = PlayPhotoRecordSubmission.validate(mode: "RECORD", imageURL: nil, textConfirmed: true, submitPhotoCheck: false) else { throw PlayExperienceError.invalidAction }
+                } else {
+                    try require(keys == ["imageUrl"])
+                    guard case .success = PlayPhotoRecordSubmission.validate(mode: "RECORD", imageURL: payload["imageUrl"]?.text, textConfirmed: false, submitPhotoCheck: false) else { throw PlayExperienceError.invalidAction }
+                }
+            } else {
+                try require(action != recordAction)
+                try require(keys == ["imageUrl"] && PlayExperienceService.validHTTPS(payload["imageUrl"]?.text ?? ""))
+            }
         case .profile:
             guard keys == ["answers", "avatarUrl"], let answers = payload["answers"]?.object else { throw PlayExperienceError.invalidAction }
             let questions = segment["questions"].array ?? [], questionKeys = Set(questions.compactMap { $0["key"].text })
@@ -381,8 +413,14 @@ public enum PlayKitInputContract {
     private static func validateHangman(action: String, payload: [String: PlayWireValue], segment: PlayWireValue) throws {
         guard segment.object != nil, segment["solved"].bool != true else { throw PlayExperienceError.invalidAction }
         if action == PlayKitPublishedWrites.hangmanAction, Set(payload.keys) == ["input"] {
+            if segment["inputMode"].text == "pool" { throw PlayExperienceError.invalidAction }
             guard let input = payload["input"]?.text, PlayKitHangmanProjection.wholeWordPayload(input)?["input"] == .string(input)
             else { throw PlayExperienceError.invalidAction }
+            return
+        }
+        if segment["inputMode"].text == "pool" {
+            guard action == PlayKitPublishedWrites.hangmanAction else { throw PlayExperienceError.invalidAction }
+            try PlayKitHangmanProjection(validated: segment).validate(payload)
             return
         }
         guard action == PlayKitPublishedWrites.hangmanAction, Set(payload.keys) == ["slots"],
@@ -424,6 +462,24 @@ public enum PlayKitInputContract {
     }
     /// Aspect-fit image hit testing. Letterboxing and out-of-image taps are rejected,
     /// not clamped into a valid-looking corner hit.
+}
+
+/// CG-09 / CG-10: an optional reference picture attached to a puzzle. Absent means no entry.
+public enum PlayKitReferenceImage {
+    public static let keys = ["referenceImage", "referenceImageUrl"]
+    public static func source(in segment: PlayWireValue) -> String? {
+        for key in keys {
+            if let value = segment[key].text?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty { return value }
+        }
+        return nil
+    }
+    public static func alt(in segment: PlayWireValue) -> String? {
+        let value = segment["referenceImageAlt"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value?.isEmpty == false ? value : nil
+    }
+}
+
+extension PlayKitInputContract {
     public static func imagePoint(x: Double, y: Double, viewWidth: Double, viewHeight: Double, imageWidth: Double, imageHeight: Double) -> (Double, Double)? {
         guard [x,y,viewWidth,viewHeight,imageWidth,imageHeight].allSatisfy(\.isFinite), viewWidth > 0, viewHeight > 0, imageWidth > 0, imageHeight > 0 else { return nil }
         let scale = min(viewWidth / imageWidth, viewHeight / imageHeight)

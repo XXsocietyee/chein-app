@@ -109,7 +109,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(LocalizedStringKey("cooperation.settlement.perspective." + detail.perspective.rawValue)).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(LocalizedStringKey("cooperation.settlement.perspective." + detail.perspective.rawValue)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         Text(verbatim: title(detail)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     }
                     Spacer(minLength: CYSpacing.sm)
@@ -124,14 +124,14 @@ import SwiftUI
         }
         Section("cooperation.settlement.breakdown") {
             ForEach(Array(detail.lines.enumerated()), id: \.offset) { _, line in
-                LabeledContent { Text(verbatim: valueText(line.value)).monospacedDigit().font(line.strong ? CYTypography.bodyMedium : CYTypography.label).foregroundStyle(CYColor.textPrimary) } label: {
+                LabeledContent { Text(verbatim: valueText(line.value)).monospacedDigit().cyText(line.strong ? .bodyMedium : .label).foregroundStyle(CYColor.textPrimary) } label: {
                     Text(LocalizedStringKey("cooperation.settlement.line." + line.key)).cyText(.label).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityIdentifier("cooperation.settlement.line.\(line.key)")
             }
         }
         Section("cooperation.settlement.progress") {
             ForEach(Array(detail.timeline.enumerated()), id: \.offset) { _, step in
-                LabeledContent { Text(verbatim: valueText(step.value)).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary) } label: {
+                LabeledContent { Text(verbatim: valueText(step.value)).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) } label: {
                     // Mini `.sd__timeline`: dot + label (600) with the time beneath on the trailing side.
                     HStack(spacing: CYSpacing.sm) {
                         Circle()
@@ -194,6 +194,119 @@ import SwiftUI
     private func load() async {
         guard scenePhase == .active else { return }
         await model.load(reader: reader, source: source, id: id)
+    }
+}
+
+/// `pages/coop/settlement-detail`. Club reads `POST api/club/settlement/summary` with `{clubId}`.
+/// `personal: true` is sent only when the link asked for it. Finance and ledger keep their existing reads.
+@MainActor struct CoopSettlementDetailRoute: View {
+    let reader: any CoopFlowReading
+    let query: [String: String]
+
+    var body: some View {
+        if let link = MerchantSettlementDetailLink.resolve(query) {
+            switch link.source {
+            case .finance: existing(.finance, link.recordID)
+            case .ledger: existing(.mybiz, link.recordID)
+            case .club:
+                if let clubID = link.clubID {
+                    CoopClubSettlementScreen(reader: reader, clubID: clubID, recordID: link.recordID, personal: link.personal)
+                } else { missing }
+            }
+        } else { missing }
+    }
+
+    @ViewBuilder private func existing(_ source: CoopFlowSettlement.Source, _ recordID: String) -> some View {
+        if let id = Self.positive(recordID) {
+            CoopSettlementDetailView(reader: reader, source: source, id: id)
+        } else { missing }
+    }
+
+    private var missing: some View {
+        MerchantMissingParamState(title: LocalizedStringKey(MerchantSettlementDetailLink.missing))
+    }
+
+    private static func positive(_ raw: String) -> Int? {
+        guard let id = Int(raw), id > 0, String(id) == raw else { return nil }
+        return id
+    }
+}
+
+/// One club settlement row. Amounts stay the server strings from `CoopClubSettlementDetail`. This read does not withdraw.
+@MainActor struct CoopClubSettlementScreen: View {
+    let reader: any CoopFlowReading
+    let clubID: Int
+    let recordID: String
+    /// True only when the screen query is `personal=1`.
+    let personal: Bool
+    @State private var detail: CoopClubSettlementDetail?
+    @State private var phase: Phase = .loading
+    private enum Phase { case loading, ready, missing, failed }
+
+    var body: some View {
+        List {
+            switch phase {
+            case .loading:
+                CYSkeleton(variant: .detail).accessibilityIdentifier("cooperation.settlement.club.loading")
+            case .missing:
+                Text(verbatim: MerchantSettlementDetailLink.missing).cyText(.body)
+                    .accessibilityIdentifier("cooperation.settlement.club.missing")
+            case .failed:
+                Text("cooperation.settlement.staleError").cyText(.body)
+                    .accessibilityIdentifier("cooperation.settlement.club.failed")
+            case .ready:
+                if let detail { content(detail) }
+            }
+        }
+        .cyGroupedSurface()
+        .navigationTitle("cooperation.settlement.title")
+        .navigationBarTitleDisplayMode(.inline)
+        .task(id: "\(clubID)|\(recordID)|\(personal)") { await load() }
+        .accessibilityIdentifier("cooperation.settlement.club.\(clubID)")
+    }
+
+    @ViewBuilder private func content(_ detail: CoopClubSettlementDetail) -> some View {
+        Section {
+            Text(verbatim: detail.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: detail.statusText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            line(detail.amountLabel, detail.amountText)
+            if !detail.lineTypeText.isEmpty { line("分成", detail.lineTypeText) }
+            line("原金额", detail.originalAmountText)
+            line("已执行调整", detail.executedAdjustmentText)
+            line("净额", detail.netAmountText)
+            line("已到账", detail.arrivedText)
+            line("已支付", detail.paidText)
+        }
+    }
+
+    private func line(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: value).cyText(.body).foregroundStyle(CYColor.textPrimary)
+        }
+    }
+
+    private func load() async {
+        phase = .loading
+        detail = nil
+        do {
+            let value = try await reader.read(.clubSettlementSummary(clubID: clubID, personal: personal))
+            guard let wanted = Self.positive(recordID) else { phase = .missing; return }
+            let match = (value["topics"].rows ?? []).first { row in
+                row["topicId"].integer == wanted || row["id"].integer == wanted
+            }
+            if let match, let built = CoopClubSettlementDetail.resolve(match) {
+                detail = built
+                phase = .ready
+            } else { phase = .missing }
+        } catch {
+            phase = .failed
+        }
+    }
+
+    private static func positive(_ raw: String) -> Int? {
+        guard let id = Int(raw), id > 0, String(id) == raw else { return nil }
+        return id
     }
 }
 

@@ -64,7 +64,7 @@ struct PublicCatalogView: View {
             .padding(.vertical, CYSpacing.lg)
         }
         .background { CYExploreGround() }
-        .navigationTitle(cities.isEmpty || title.isEmpty ? Text("publicCatalog.title") : Text(verbatim: title))
+        .navigationTitle(cities.isEmpty || title.isEmpty ? Text("publicCatalog.title") : Text(verbatim: title)).navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if !cities.isEmpty {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -177,7 +177,7 @@ struct PublicCatalogDetailView: View {
 
     private func content(_ card: PWaveCatalogCard) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            LazyVStack(alignment: .leading, spacing: CYSpacing.lg) {
                 PublicCatalogCardRow(card: card)
                 if let summary = card.summary, !summary.isEmpty {
                     Text(verbatim: summary).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
@@ -191,6 +191,8 @@ struct PublicCatalogDetailView: View {
                 .accessibilityIdentifier("publicCatalog.seo.open")
                 if let chapters = card.chapterNames, !chapters.isEmpty {
                     Text("publicCatalog.detail.chapters").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
+                }
+                if let chapters = card.chapterNames, !chapters.isEmpty {
                     ForEach(Array(chapters.enumerated()), id: \.offset) { _, name in
                         Text(verbatim: name).padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                             .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
@@ -212,7 +214,7 @@ struct PublicCatalogDetailView: View {
                 .buttonStyle(.cyPrimary)
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .padding(CYSpacing.pageHorizontal)
-                .background(.ultraThinMaterial)
+                .background(.bar)
                 .accessibilityIdentifier("publicCatalog.detail.open")
         }
     }

@@ -144,10 +144,16 @@ public struct PlayCompletionReview: Equatable {
     public private(set) var submitRecovery: PlaySubmitRecoveryState?
     /// U05-01/02: the last definite arrival refusal for this run, with server-approved replacements.
     public private(set) var arrivalFailure: PlayArrivalFailure?
+    /// Read-only free-exploration chapters. Set for an offline or expired read; a live route keeps using `snapshot`.
+    public private(set) var storyArchive: FreeExplorationStoryArchive?
+    public private(set) var storyArchiveSource: FreeExplorationArchiveSource?
+    private let storyArchiveStore: (any FreeExplorationStoryArchiveStore)?
     /// §23.2: the arrival reading from a real success receipt only; never from a refusal or a read.
     public var arrivalReading: PlayArrivalReading? { reward.flatMap(PlayArrivalReading.init(receipt:)) }
     /// U05-02: route-level notice (configuration withdrawn, ended, switched to the fallback route).
     public var routeNotice: PlayRouteNotice? { PlayRouteNotice(route: snapshot?.route) }
+    /// Cast fields from the latest accepted nodes read. Cleared with the snapshot.
+    public private(set) var castPayload: PlayWireValue = .null
     public private(set) var leaderOutcomeUnknown = false
     /// The latest applied team-progress read failed; the last applied lead stays as read.
     public private(set) var leadReadFailed = false
@@ -246,7 +252,7 @@ public struct PlayCompletionReview: Equatable {
     }
     private func retireChildRead(generation request: UInt64) {
         guard generation == request else { return }
-        generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]
+        generation &+= 1; loadedSession = nil; snapshot = nil; castPayload = .null; extras = [:]
         reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []
         // Keep durable completion/pause records and pending thought keys intact.
         // Nothing about a changed mode proves an earlier mutation's outcome.
@@ -265,18 +271,23 @@ public struct PlayCompletionReview: Equatable {
     }
     /// A read-only projection must not enable completion, hint or leader controls.
     public var canWrite: Bool { !service.enabled.isDisjoint(with: [.classicCompletion, .hints, .leader, .thoughtClaims]) && phase == .ready && !unresolved && !thoughtSyncInFlight && pendingThoughtKeys.isEmpty && loadedSession != nil && loadedSession == currentSession() }
+    /// Arrival uses the existing classic-completion channel. The grant stays off until a composition turns it on.
+    public var canSubmitArrival: Bool { service.enabled.contains(.classicCompletion) && canWrite }
     /// Run state and durable pause records require their own reviewed capability.
     public var canManageRun: Bool { gameplayMode == .cityOrientation && service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot && !localRecoveryFailed && pausedLease?.value?.pendingRemote != true }
     public init(scope: PlaySessionScope, service: PlayExperienceService, recovery: any PlayCompletionRecoveryStore,
                 pausedStorage: any PlayPausedStorage, currentSession: @escaping () -> PlayExperienceSession?,
-                onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in }) {
+                onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in },
+                storyArchiveStore: (any FreeExplorationStoryArchiveStore)? = nil) {
         self.scope = scope; self.service = service; self.recovery = recovery; self.pausedStorage = pausedStorage
         self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
+        self.storyArchiveStore = storyArchiveStore ?? (recovery as? any FreeExplorationStoryArchiveStore)
     }
     public func load() async {
         guard phase != .submitting else { return }
         generation &+= 1; let request = generation
-        phase = .loading; issue = nil; snapshot = nil; extras = [:]; cachedCompletion = nil; retryReadbackVerified = false
+        phase = .loading; issue = nil; snapshot = nil; castPayload = .null; extras = [:]; cachedCompletion = nil; retryReadbackVerified = false
+        storyArchive = nil; storyArchiveSource = nil
         guard let session = currentSession(), scope.isValid else { phase = .failed; issue = .staleSession; return }
         if authorityOwner != session {
             reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; leadNotice = nil
@@ -349,7 +360,7 @@ public struct PlayCompletionReview: Equatable {
                 advancedReadyNodeIDs = []
             }
             authorityMode = mode
-            self.snapshot = snapshot; extras = document.extras; loadedSession = session
+            self.snapshot = snapshot; extras = document.extras; castPayload = document.castPayload; loadedSession = session
             if mode != .cityOrientation {
                 // Discard only in-memory orientation state. Free exploration does
                 // not read, clear or rewrite its durable pause records.
@@ -371,7 +382,20 @@ public struct PlayCompletionReview: Equatable {
                 unresolved = unresolved || !pendingThoughtKeys.isEmpty
             }
             phase = unresolved ? .unknown : .ready
-        } catch { fail(error, session: session, generation: request) }
+            await refreshStoryArchive(snapshot: snapshot, session: session, generation: request)
+        } catch {
+            let offline = (error as? URLError).map(PlayExperienceService.isOffline) == true
+            let expired: Bool
+            if case PlayExperienceError.rejected(402, _) = error { expired = true } else { expired = false }
+            fail(error, session: session, generation: request)
+            guard generation == request, currentSession() == session else { return }
+            if expired {
+                let topicID: Int? = { if case .topic(let id) = scope { return id }; return nil }()
+                await loadExpiredStory(session: session, topicID: topicID, topicName: nil, generation: request)
+            } else if offline {
+                await showCachedStory(session: session, generation: request)
+            }
+        }
     }
     public func claimVisibleThoughts(chapterID: Int) async {
         guard service.enabled.contains(.thoughtClaims) else { thoughtSyncPhase = .disabled; return }
@@ -435,6 +459,15 @@ public struct PlayCompletionReview: Equatable {
                   node.validationMethod != 3 || node.options?[text] != nil else { throw PlayExperienceError.invalidAction }
             guard (node.needScan != true && node.needGPS != true) || node.arrived == true else { throw PlayExperienceError.invalidAction }
         case (.scan, .scan), (.merchantScan, .scan), (.photo, .photo), (.merchantPhoto, .photo), (.arrive, .location): break
+        case (.arrive, .stationArrival): break
+        case (.answer, .stationArrival):
+            guard node.needGPS == true, node.needScan != true, node.arrived != true else { throw PlayExperienceError.invalidAction }
+        case (.answer, .location(let longitude, let latitude, let system, _, _)):
+            guard node.needGPS == true, node.needScan != true, node.arrived != true,
+                  system == "GCJ02", longitude.isFinite, latitude.isFinite else { throw PlayExperienceError.invalidAction }
+        case (.merchantScan, .location(let longitude, let latitude, let system, _, _)):
+            guard node.visitCheck != .scan, node.visitCheck != .online,
+                  system == "GCJ02", longitude.isFinite, latitude.isFinite else { throw PlayExperienceError.unsupported }
         case (.sensor, .sensor(let type, let payload)):
             guard type == node.sensorType else { throw PlayExperienceError.invalidAction }
             switch type {
@@ -522,6 +555,7 @@ public struct PlayCompletionReview: Equatable {
         submitRecovery = .failed(nodeID: review.nodeID, refusal: refusal)
         var arrival = refusal.arrivalReason != nil
         if case .location = review.evidence { arrival = true }
+        if case .stationArrival = review.evidence { arrival = true }
         if arrival { arrivalFailure = PlayArrivalFailure(nodeID: review.nodeID, refusal: refusal, snapshot: snapshot, arrivalRequestID: review.advance?.actionID) }
         if refusal.refreshRequired || refusal.code == 409 {
             submitRecovery = .conflict(nodeID: review.nodeID); phase = .needsReadback; await load()
@@ -668,6 +702,10 @@ public struct PlayCompletionReview: Equatable {
             unresolved = !hintUnknownNodes.isEmpty
             fail(error, session: session, generation: request)
         }
+    }
+    /// Cast reads for this play session. Capabilities stay empty, so profile, voice and branch writes do not send.
+    public func makeCastCoordinator() -> CastCoordinator {
+        CastCoordinator(service: CastService(configuration: service.configuration, transport: service.transport, enabled: CastCapability.productionEnabled), currentSession: currentSession)
     }
     /// UG-05…UG-09: the hint ladder client for one node of the current route run. Nil without a route
     /// session, a current read, or both the read and hint grants. Replies for another session are dropped.
@@ -983,7 +1021,7 @@ public struct PlayCompletionReview: Equatable {
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
         compatibility = nil; contentVersion = nil
-        generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
+        generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; castPayload = .null; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
         submitRecovery = nil; arrivalFailure = nil
     }
@@ -1000,6 +1038,48 @@ public struct PlayCompletionReview: Equatable {
     }
     private func check(_ session: PlayExperienceSession, _ request: UInt64) throws {
         guard !Task.isCancelled, currentSession() == session, generation == request else { throw PlayExperienceError.staleSession }
+    }
+    /// Live mode-2 read: merge unlocked chapters into the encrypted archive. Never re-sends a visit.
+    /// An unplayable ticket reads `/api/play/history` instead. Failures here do not fail the play load.
+    private func refreshStoryArchive(snapshot: PlaySnapshot, session: PlayExperienceSession, generation request: UInt64) async {
+        guard snapshot.result.mode == PlayGameplayMode.freeExploration.rawValue else { return }
+        if snapshot.result.playable == false {
+            await loadExpiredStory(session: session, topicID: snapshot.result.topicID, topicName: snapshot.result.topicName, generation: request)
+            return
+        }
+        guard let store = storyArchiveStore,
+              let built = FreeExplorationStoryArchive(snapshot: snapshot, chapterStories: chapterStories, owner: PlayRecoveryOwner(session: session)) else { return }
+        let key = PlayRunStorageKey.make(session: session, scope: scope)
+        let merged: FreeExplorationStoryArchive
+        if let existing = try? await store.readStoryArchive(key: key) { merged = existing.merging(built) }
+        else { merged = built }
+        guard generation == request, currentSession() == session else { return }
+        try? await store.writeStoryArchive(merged, key: key)
+    }
+    private func loadExpiredStory(session: PlayExperienceSession, topicID: Int?, topicName: String?, generation request: UInt64) async {
+        guard let store = storyArchiveStore, let topicID, topicID > 0 else { return }
+        let key = PlayRunStorageKey.make(session: session, scope: scope)
+        let known = (try? await store.readStoryArchive(key: key))?.lockedPlaces ?? []
+        let activityID: Int? = { if case .activity(let id) = scope { return id }; return nil }()
+        do {
+            let history = try await service.freeExplorationHistory(topicID: topicID, activityID: activityID, token: session.token)
+            guard generation == request, currentSession() == session else { return }
+            let archive = FreeExplorationStoryArchive(history: history, owner: PlayRecoveryOwner(session: session), topicID: topicID, topicName: topicName, knownPlaces: known)
+            try await store.writeStoryArchive(archive, key: key)
+            guard generation == request, currentSession() == session else { return }
+            storyArchive = archive
+            storyArchiveSource = .expired
+        } catch {
+            await showCachedStory(session: session, generation: request)
+        }
+    }
+    private func showCachedStory(session: PlayExperienceSession, generation request: UInt64) async {
+        guard let store = storyArchiveStore else { return }
+        let key = PlayRunStorageKey.make(session: session, scope: scope)
+        guard let cached = try? await store.readStoryArchive(key: key), !cached.isEmpty else { return }
+        guard generation == request, currentSession() == session else { return }
+        storyArchive = cached
+        storyArchiveSource = .offline
     }
     private func fail(_ error: Error, session: PlayExperienceSession, generation request: UInt64) {
         guard generation == request else { return }

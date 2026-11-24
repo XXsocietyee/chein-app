@@ -50,7 +50,7 @@ struct PlayAnswerReview: Identifiable, Equatable {
 }
 
 /// One stable screen owner. A concrete review gets its own presenter only after it exists.
-@MainActor final class PlayAnswerReviewPresentation: ObservableObject {
+@MainActor final class PlayAnswerReviewPresentation: @preconcurrency ObservableObject {
     let model: PlayViewModel
     let objectWillChange = ObservableObjectPublisher()
     private var dismantling = false
@@ -151,12 +151,12 @@ struct PlayAnswerReview: Identifiable, Equatable {
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(isPresented: Binding(get: { owner.isPresented(offered) }, set: { if !$0 { owner.cancel(offered) } }),
-                   onDismiss: { owner.dismissed(offered) }) {
+                   onDismiss: { owner.dismissed(offered) }) { Group {
                 PlayAnswerReviewSheet(review: offered, isCurrent: owner.isCurrent(offered), confirm: {
                     guard owner.confirm(offered) else { return }
                     Task { await owner.sendClaimed(offered) }
                 }, cancel: { owner.cancel(offered) })
-            }
+            }.cySheet(detents: [.large]) }
     }
 }
 

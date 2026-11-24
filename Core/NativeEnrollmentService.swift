@@ -6,10 +6,10 @@ import FoundationNetworking
 /// Exact frozen native-device routes. Configuration grants and per-operation UI
 /// consent are separate. No route is inferred from server text or SDK callbacks.
 @MainActor public struct NativeEnrollmentService: NativeEnrollmentServing {
-    public static let statusPath = "api/native/device/status"
-    public static let challengePath = "api/native/device/enrollment-challenge"
-    public static let enrollPath = "api/native/device/enroll"
-    public static let revokePath = "api/native/device/revoke"
+    nonisolated public static let statusPath = "api/native/device/status"
+    nonisolated public static let challengePath = "api/native/device/enrollment-challenge"
+    nonisolated public static let enrollPath = "api/native/device/enroll"
+    nonisolated public static let revokePath = "api/native/device/revoke"
     public static let paths: Set<String> = [statusPath, challengePath, enrollPath, revokePath]
     private let api: APIConfiguration
     private let transport: any HTTPTransport

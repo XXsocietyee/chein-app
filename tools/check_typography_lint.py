@@ -2,7 +2,9 @@
 """consist-1 typography + chrome ratchet. Text scan, not a Swift compiler.
 
 Counts, per App/*.swift file (not App/Theme/ or CYDesignTokens.swift, which define the scale):
-  raw text style   `.font(.caption)`, `.system(.title3 ...)`, `Font.headline`, `font: .footnote`
+  raw text style   `.font(.caption2)` and `Font.caption2` (smaller than `.caption`).
+                   Semantic Dynamic Type from `.largeTitle` through `.caption` is allowed
+                   (`.headline`, `.body`, `.title`, and the other styles in that range).
   Theme.Font       `Theme.Font.body` (use `CYTypography` / `.cyText(_:)`)
   raw size         `.system(size: 14)`, `UIFont.systemFont(ofSize:)`
   back chevron     `"chevron.left"` / `"chevron.backward"` used as a back control (pagers are not counted)
@@ -37,14 +39,15 @@ HIDDEN_BACK = 'hidden back'
 LARGE_TITLE = 'large title'
 KINDS = (RAW_STYLE, THEME_FONT, RAW_SIZE, BACK_CHEVRON, HIDDEN_BACK, LARGE_TITLE)
 
-S = ts.STYLE_RE
+# Owner rule: `.largeTitle` … `.caption` scale with Dynamic Type. `.caption2` is below that floor.
+BELOW_CAPTION = 'caption2'
 RAW_STYLE_PATTERNS = (
-    re.compile(rf'(?<![\w.])Font\.(?:{S})\b'),
-    re.compile(rf'\.font\(\s*\.(?:{S})\b'),
-    re.compile(rf'\.system\(\s*\.(?:{S})\b'),
-    re.compile(rf'\bfont\s*:\s*\.(?:{S})\b'),
-    re.compile(rf'(?<![\w.])Font\s*=\s*\.(?:{S})\b'),
-    re.compile(rf'\?\s*\.(?:{S})\s*:\s*\.(?:{S})\b'),
+    re.compile(rf'(?<![\w.])Font\.{BELOW_CAPTION}\b'),
+    re.compile(rf'\.font\(\s*\.{BELOW_CAPTION}\b'),
+    re.compile(rf'\.system\(\s*\.{BELOW_CAPTION}\b'),
+    re.compile(rf'\bfont\s*:\s*\.{BELOW_CAPTION}\b'),
+    re.compile(rf'(?<![\w.])Font\s*=\s*\.{BELOW_CAPTION}\b'),
+    re.compile(rf'\?\s*\.{BELOW_CAPTION}\s*:\s*\.{BELOW_CAPTION}\b'),
 )
 THEME_FONT_RE = re.compile(r'\bTheme\.Font\.\w+')
 RAW_SIZE_RE = re.compile(r'\.system\(\s*size\s*:|\bsystemFont\s*\(\s*ofSize\s*:|\bboldSystemFont\s*\(\s*ofSize\s*:'
@@ -123,7 +126,7 @@ def compare(actual, baseline):
 
 
 HINT = {
-    RAW_STYLE: 'use `.cyText(.token)` (tools/codemod_typography.py prints the mapping)',
+    RAW_STYLE: '`.caption2` is below `.caption`; use `.caption` or `.cyText(.token)`',
     THEME_FONT: 'use `.cyText(.token)` / `CYTypography.token`',
     RAW_SIZE: 'use a scale token; decorative glyph sizes belong in App/DesignSystem components',
     BACK_CHEVRON: 'use the system back button (exit guard: `cyGuardedBack`; hero: `CYHeroBackButton` in `cyHeroChrome`)',
@@ -137,6 +140,7 @@ def self_test():
         'Text("a").font(.caption)',
         'Text("b").font(.system(.title3, weight: .bold))',
         'let f: Font = .headline',
+        'Text("e").font(.caption2)',
         'Label("x", systemImage: "chevron.left").onTapGesture { dismiss() }',
         'Button { shift(-1) } label: { Image(systemName: "chevron.left") }',
         '.navigationBarBackButtonHidden(true)',
@@ -147,7 +151,7 @@ def self_test():
         'Text("d").cyText(.meta)',
     ])
     got = counts_in('App/Sample.swift', sample)
-    want = {RAW_STYLE: 3, THEME_FONT: 1, RAW_SIZE: 1, BACK_CHEVRON: 1, HIDDEN_BACK: 1, LARGE_TITLE: 1}
+    want = {RAW_STYLE: 1, THEME_FONT: 1, RAW_SIZE: 1, BACK_CHEVRON: 1, HIDDEN_BACK: 1, LARGE_TITLE: 1}
     assert got == want, got
     inc, dec = compare({'App/A.swift': {RAW_STYLE: 2}}, {'App/A.swift': {RAW_STYLE: 1}})
     assert inc and not dec, 'ratchet missed an increase'
@@ -161,7 +165,7 @@ def self_test():
         (root / 'App' / 'DesignSystem').mkdir()
         (root / 'App' / 'Theme' / 'Theme.swift').write_text('.font(.caption)\n', encoding='utf-8')
         (root / 'App' / 'DesignSystem' / 'CYDesignTokens.swift').write_text('.system(size: 14)\n', encoding='utf-8')
-        (root / 'App' / 'Dirty.swift').write_text('.font(.caption)\n', encoding='utf-8')
+        (root / 'App' / 'Dirty.swift').write_text('.font(.caption2)\n', encoding='utf-8')
         assert set(scan(root)) == {'App/Dirty.swift'}, 'scanned the scale definition files'
 
 

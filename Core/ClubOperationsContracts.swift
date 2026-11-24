@@ -195,7 +195,7 @@ public struct ClubOperationsReceipt: Equatable {
         self.clubID = clubID; self.message = message; self.settingValue = settingValue
     }
 }
-public enum ClubOperationsWriteAvailability: Equatable { case unverified, approved, syntheticOnly }
+public enum ClubOperationsWriteAvailability: Equatable, Sendable { case unverified, approved, syntheticOnly }
 @MainActor public protocol ClubOperationsAccess: AnyObject {
     var identity: ClubReadIdentity? { get }
     var isConfigured: Bool { get }

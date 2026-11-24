@@ -112,7 +112,7 @@ import SwiftUI
                         Button { model.open(nil, permit: permit) } label: {
                             Label("merchant.operations.newTemplate", systemImage: "plus")
                                 .cyText(.button).frame(maxWidth: .infinity, minHeight: 44)
-                        }.buttonStyle(.questifyPrimary).disabled(!browser.canOpen).accessibilityIdentifier("merchant.operations.newTemplate")
+                        }.buttonStyle(.borderedProminent).disabled(!browser.canOpen).accessibilityIdentifier("merchant.operations.newTemplate")
                         if let total = browser.total {
                             Text("merchant.templateBrowser.count \(browser.rows.count) \(total)")
                                 .cyText(.label).foregroundStyle(.secondary).accessibilityIdentifier("merchant.templateBrowser.count")
@@ -223,7 +223,7 @@ private struct MerchantTemplateBrowserCard: View {
                     Image(systemName: "chevron.forward").cyText(.label).foregroundStyle(.secondary).accessibilityHidden(true)
                 }
                 if let description = row.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(verbatim: description).font(Theme.Font.body).foregroundStyle(.secondary)
+                    Text(verbatim: description).cyText(.body).foregroundStyle(.secondary)
                 }
                 Divider()
                 Text(LocalizedStringKey(statusKey)).cyText(.label).fontWeight(.semibold)

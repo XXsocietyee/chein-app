@@ -133,7 +133,7 @@ import Combine
                             Text(LocalizedStringKey(stageKey(state))).cyText(.pageTitle)
                             Text(LocalizedStringKey(hintKey(state))).cyText(.body)
                         }.frame(maxWidth: .infinity, minHeight: 180).padding()
-                            .background(stageColor(state).opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
+                            .background(stageColor(state).opacity(0.18), in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                             .contentShape(Rectangle())
                     }.buttonStyle(.plain).disabled(!state.canTap)
                         .accessibilityIdentifier("templateReaction.stage")

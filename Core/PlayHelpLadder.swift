@@ -107,7 +107,8 @@ public struct PlayHelpRow: Equatable, Identifiable {
 }
 
 public struct PlayHelpProjection: Equatable {
-    public static let renderable: [String] = ["TEXT", "IMAGE", "LETTER", "DIGIT", "ANSWER"]
+    /// POOL_TRIM is requestable only while `poolTrimEnabled` is true. The gate defaults off.
+    public static let renderable: [String] = ["TEXT", "IMAGE", "LETTER", "DIGIT", "ANSWER", "POOL_TRIM"]
     public let enabled: Bool
     public let rows: [PlayHelpRow]
     /// Level of a usable SKIP layer. Nil hides the skip row.
@@ -118,7 +119,7 @@ public struct PlayHelpProjection: Equatable {
     public static let disabled = PlayHelpProjection(enabled: false, rows: [], skipLevel: nil, freeLeft: nil)
 
     /// Author order. A layer after a not-yet-unlocked (non-skip) layer is gated.
-    public static func project(_ view: PlayWireValue, identity: PlayHelpIdentity? = nil) -> PlayHelpProjection {
+    public static func project(_ view: PlayWireValue, identity: PlayHelpIdentity? = nil, poolTrimEnabled: Bool = false) -> PlayHelpProjection {
         guard view["enabled"].bool == true, let layers = view["layers"].array else { return .disabled }
         if let identity {
             if let run = view["runId"].tolerantInteger, run != identity.runID { return .disabled }
@@ -130,6 +131,10 @@ public struct PlayHelpProjection: Equatable {
         for layer in layers {
             guard let level = layer["level"].integer, level > 0 else { continue }
             let type = layer["type"].text ?? ""
+            if type == "POOL_TRIM", !poolTrimEnabled {
+                previousUnlocked = layer["unlocked"].bool == true
+                continue
+            }
             if type == "SKIP" {
                 if layer["usable"].bool == true { skip = level }
                 continue
@@ -227,8 +232,11 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
     public private(set) var receiptUnavailable = false
     public private(set) var receiptOpen = false
     public private(set) var loaded = false
+    /// Bumps after a POOL_TRIM use so the host can re-read the trimmed pool.
+    public private(set) var poolTrimGeneration = 0
 
     @ObservationIgnored private let client: PlayHelpClient
+    @ObservationIgnored private let poolTrimEnabled: Bool
     @ObservationIgnored private let store: any PlayHelpRequestStore
     @ObservationIgnored private let makeRequestID: () -> String
     @ObservationIgnored private var epoch: UInt64 = 0
@@ -239,8 +247,9 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
     public var showsSkip: Bool { (projection.skipLevel != nil && !skipped) || skipPending }
 
     public init(client: PlayHelpClient, store: any PlayHelpRequestStore,
+                poolTrimEnabled: Bool = false,
                 makeRequestID: @escaping () -> String = PlayHelpLadderModel.newRequestID) {
-        self.client = client; self.store = store; self.makeRequestID = makeRequestID
+        self.client = client; self.store = store; self.poolTrimEnabled = poolTrimEnabled; self.makeRequestID = makeRequestID
     }
 
     /// `h` plus 32 hex characters: printable ASCII, under the server's 64-character limit.
@@ -260,7 +269,7 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
             projection = .disabled; rows = []
             return
         }
-        apply(PlayHelpProjection.project(data, identity: client.identity), keepContent: false)
+        apply(PlayHelpProjection.project(data, identity: client.identity, poolTrimEnabled: poolTrimEnabled), keepContent: false)
     }
 
     public func row(_ level: Int) -> PlayHelpRow? { rows.first { $0.level == level } }
@@ -285,6 +294,23 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
             if data["reason"].text == "POINTS_INSUFFICIENT" {
                 store.forget(key)
                 patch(level) { $0.problem = .insufficient; $0.content = nil }
+                return
+            }
+            if row.type == "POOL_TRIM" || data["type"].text == "POOL_TRIM" {
+                guard data["level"].integer == level else {
+                    patch(level) { $0.problem = .pending }
+                    return
+                }
+                store.forget(key)
+                let type = data["type"].text ?? "POOL_TRIM"
+                patch(level) {
+                    $0.problem = nil; $0.state = .review; $0.contentType = type
+                    if let content = data["content"].text { $0.content = Self.renderable(content: content, type: type) }
+                    $0.chargedPoints = data["chargedPoints"].integer
+                    $0.balanceAfter = data["balanceAfter"].integer
+                }
+                poolTrimGeneration &+= 1
+                await reloadCounter(ticket)
                 return
             }
             guard data["level"].integer == level, let content = data["content"].text else {
@@ -377,7 +403,7 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
     /// Re-read the counter and row states after a use. The counter is never decremented here.
     private func reloadCounter(_ ticket: UInt64) async {
         guard case .ok(let data) = await client.view(), current(ticket) else { return }
-        apply(PlayHelpProjection.project(data, identity: client.identity), keepContent: true)
+        apply(PlayHelpProjection.project(data, identity: client.identity, poolTrimEnabled: poolTrimEnabled), keepContent: true)
     }
 
     private func apply(_ next: PlayHelpProjection, keepContent: Bool) {

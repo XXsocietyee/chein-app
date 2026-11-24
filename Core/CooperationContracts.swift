@@ -37,6 +37,9 @@ public struct CooperationInvite: Decodable, Equatable {
     public let topicStartDate: CooperationSourceTime?
     /// Set when this invite answers a club's open application (`coop_club_apply.id`).
     public let originApplyId: Int?
+    /// Frozen supply station on a station-topic invite. Absent when the invite has none.
+    public let supplyStationId: Int?
+    public let supplyStationName: String?
     public var legacyReadonly: Bool { inviteType == 2 }
     public var statusKey: String {
         guard let status, (0...5).contains(status) else { return "cooperation.status.unknown" }
@@ -46,7 +49,7 @@ public struct CooperationInvite: Decodable, Equatable {
         case id, inviteType, fromId, fromType, toType, toId, topicId, gameId, status, message, handleReason
         case shareMode, shareRate, fixedFee, depositOwed, depositAmount, depositRefundPending, termsFrozen
         case expireTime, createTime, partner, cover, topicCover, topicImgUrl
-        case topicName, viewerPartyName, topicStartDate, originApplyId
+        case topicName, viewerPartyName, topicStartDate, originApplyId, supplyStationId, supplyStationName
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -76,6 +79,18 @@ public struct CooperationInvite: Decodable, Equatable {
         viewerPartyName = (try? c.decodeIfPresent(String.self, forKey: .viewerPartyName)).flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
         topicStartDate = try? c.decodeIfPresent(CooperationSourceTime.self, forKey: .topicStartDate)
         originApplyId = (try? c.decodeIfPresent(Int.self, forKey: .originApplyId)).flatMap { $0 > 0 ? $0 : nil }
+        supplyStationId = Self.optionalStationID(c)
+        supplyStationName = Self.optionalStationName(c)
+    }
+    private static func optionalStationID(_ c: KeyedDecodingContainer<CodingKeys>) -> Int? {
+        if let number = try? c.decodeIfPresent(Int.self, forKey: .supplyStationId) { return number > 0 ? number : nil }
+        if let text = try? c.decodeIfPresent(String.self, forKey: .supplyStationId), let number = Int(text), number > 0, String(number) == text { return number }
+        return nil
+    }
+    private static func optionalStationName(_ c: KeyedDecodingContainer<CodingKeys>) -> String? {
+        guard let text = try? c.decodeIfPresent(String.self, forKey: .supplyStationName) else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 public struct CooperationPartner: Decodable, Equatable {

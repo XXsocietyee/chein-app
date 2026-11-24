@@ -39,6 +39,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.offlineWriteSession) private var offlineWriteSession
+    @Environment(\.analyticsEventClient) private var analytics
+    @Environment(\.playGameStage) private var stage
+    @Environment(\.questifyCast) var castContext
+    @QuestifyReduceMotion private var reduceMotion
     private var segment: PlayWireValue {
         guard let state = model.state else { return .null }
         return ChapterInlineKitSelection.segment(kind, in: state)
@@ -82,7 +86,11 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
             onCancel: { leaveReview = false },
             onConfirm: { leaveReview = false; clearTransient(); dismiss() }
         )
-        .onAppear { loadInitial() }
+        .onAppear {
+            loadInitial()
+            PlayStageAnalytics.track(analytics, .stageEnter, nodeID: model.state?.nodeID, kit: kind.rawValue)
+        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: CYMotion.Duration.quick), value: showsStoryResult)
         .onChange(of: model.playKitPresentation.playKitOpen) { _, open in
             if !open { review = nil; reviewedCompletion = nil }
         }
@@ -155,8 +163,15 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
                 .accessibilityIdentifier("playkit.screen." + kind.rawValue)
         }
     }
+    private var showsStoryResult: Bool { PlayGameOutcome.resolve(projection) != nil }
     private var contents: some View {
         VStack(alignment: .leading, spacing: 24) {
+            if let stage { PlayGameStageHeader(stage: stage) }
+            if let source = PlayKitReferenceImage.source(in: segment) {
+                PlayKitReferenceButton(source: source, alt: PlayKitReferenceImage.alt(in: segment),
+                    approvedHosts: approvedArtworkHosts, nodeID: model.state?.nodeID, kit: kind.rawValue)
+            }
+            PlayKitIssueReportMenu(nodeID: model.state?.nodeID, kit: kind.rawValue)
             header
             CYScreenOfflineWriteBanner(
                 routes: ["/api/play/advanced/action"],
@@ -251,12 +266,23 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     }
     @ViewBuilder var authoritativeResult: some View {
         if reasoningFeedback.showsResult(for: projection), accusationProjection == nil {
-            if kind == .photoCheck, segment["degraded"].bool == true {
+            let recordedChoice = PlayKitNoRightAnswer.applies(kind: kind, segment: segment) && projection.reportedPass != nil
+            if recordedChoice {
+                Label("playkit.story.recorded", systemImage: "bookmark.circle")
+            } else if kind == .photoCheck, segment["degraded"].bool == true {
                 Label("playkit.photo.noVerdict", systemImage: "exclamationmark.bubble")
             } else if let passed = projection.reportedPass {
                 Label(passed ? "playkit.result.passed" : "playkit.result.notPassed", systemImage: passed ? "checkmark.circle" : "info.circle")
             } else if projection.complete { Label("playkit.result.recorded", systemImage: "checkmark.circle") }
+            if let outcome = PlayGameOutcome.resolve(projection) {
+                PlayGameResultLine(outcome: outcome, open: !projection.complete)
+            }
             if let feedback = projection.feedback, !feedback.isEmpty { Text(verbatim: feedback) }
+            if presentation != .inline,
+               PlayGameOutcome.showsContinue(complete: projection.complete, pending: model.pending != nil, phase: model.phase) {
+                CYPillButton("playkit.story.continue") { dismiss() }
+                    .accessibilityIdentifier("playkit.story.continue")
+            }
         }
     }
     @ViewBuilder private var recovery: some View {
@@ -325,18 +351,28 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
 /// headers, arbitrary scheme, local file path or hard-coded media origin is accepted.
 @MainActor struct PlayKitArtwork: View {
     let source: String?; let approvedHosts: Set<String>
+    var alt: String? = nil
+    @State private var attempt = 0
     var body: some View {
         if let url = QuestifyCardArtwork.safeURL(source), let host = url.host, approvedHosts.contains(host) {
             AsyncImage(url: url) { phase in
-                if let image = phase.image { image.resizable().scaledToFit().accessibilityLabel(Text("playkit.image")) }
-                else if phase.error != nil { Label("playkit.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
-                else { ProgressView("playkit.imageLoading") }
+                if let image = phase.image {
+                    image.resizable().scaledToFit()
+                        .accessibilityLabel(alt.map { Text(verbatim: $0) } ?? Text("playkit.image"))
+                }
+                else if phase.error != nil {
+                    ContentUnavailableView {
+                        Label("playkit.imageUnavailable", systemImage: "photo.badge.exclamationmark")
+                    } actions: {
+                        Button("playkit.imageRetry") { attempt += 1 }
+                            .accessibilityIdentifier("playkit.imageRetry")
+                    }
+                }
+                else { PlayGameImagePlaceholder(titleKey: "playkit.imageLoading", loading: true) }
             }
+            .id(attempt)
         } else if source?.isEmpty == false {
-            // Clean placeholder, no text, for an image this build may not load.
-            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgSurfaceSubtle).frame(minHeight: 160)
-                .overlay { Image(systemName: "photo").font(.largeTitle).foregroundStyle(CYColor.textTertiary) }
-                .accessibilityHidden(true)
+            PlayGameImagePlaceholder(titleKey: "playkit.imageGated", systemImage: "photo")
         }
     }
 }

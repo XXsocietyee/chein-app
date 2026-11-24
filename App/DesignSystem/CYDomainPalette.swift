@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // UI-F10: role-domain palette that follows the WeChat mini-program token sheet
 // (`chengyinhub-xcx/style/tokens.wxss`) exactly.
@@ -40,6 +43,26 @@ struct CYDomainPalette {
         return (isDark ? dark : light).swiftUIColor
     }
 
+    #if canImport(UIKit)
+    /// Native restyle (native-ios-r1 §2.2): a UIKit semantic colour resolved in this domain's appearance
+    /// (player dark, merchant light), keeping the user's Increase Contrast and elevation traits.
+    private func system(_ color: UIColor) -> Color {
+        let style: UIUserInterfaceStyle = isDark ? .dark : .light
+        return Color(uiColor: UIColor { traits in
+            color.resolvedColor(with: traits.modifyingTraits { $0.userInterfaceStyle = style })
+        })
+    }
+    #endif
+
+    /// A native semantic colour where UIKit has one; the MP token sheet value elsewhere (previews, macOS tools).
+    private func native(_ kind: CYNativeColor, _ name: String, dark: CYRGB, light: CYRGB) -> Color {
+        #if canImport(UIKit)
+        return system(kind.uiColor)
+        #else
+        return token(name, dark: dark, light: light)
+        #endif
+    }
+
     /// Dark-domain text colours that the generated token sheet leaves under 4.5:1 on raised surfaces (`#1C1C1E`/`#2A2A2C`)
     /// or on their own soft fill are lifted here once, so no page needs a local fix. Light domains keep the sheet values.
     private func legible(_ name: String, darkText: UInt32, dark: CYRGB, light: CYRGB) -> Color {
@@ -47,29 +70,44 @@ struct CYDomainPalette {
     }
 
     // MARK: Surfaces (--cy-color-bg-*)
+    // Native restyle (native-ios-r1 §2.2): page, surface, fill, label and separator tokens resolve to the iOS
+    // semantic colours in the domain's appearance. The MP hex values stay as the non-UIKit fallback.
+    // `textTertiary` maps to `secondaryLabel`, not `tertiaryLabel`: most call sites are small meta text, which
+    // needs 4.5:1 (spec §2.2 "small meta text uses .secondary"). `bgElevated` stays at the card level
+    // (`secondarySystemGroupedBackground`) so existing elevated cards keep lifting off the page; `bgRaised`
+    // is the card-in-card level (`tertiarySystemGroupedBackground`). `borderStrong` keeps the owner-adopted 3:1
+    // control-boundary value (`opaqueSeparator` is ~1.7:1 on white, below the non-text 3:1 floor in spec §2.2).
 
     /// `--cy-color-bg-page`: `#000000` / `#F3F4F4`.
-    var bgPage: Color { token("--cy-color-bg-page", dark: CYRGB(hex: 0x000000), light: CYRGB(hex: 0xF3F4F4)) }
+    var bgPage: Color { native(.groupedBackground, "--cy-color-bg-page", dark: CYRGB(hex: 0x000000), light: CYRGB(hex: 0xF3F4F4)) }
     /// `--cy-color-bg-surface`: `#0A0A0B` / `#FFFFFF`.
     /// e5c: dark layering is #000 page / #111 surface / #1C1C1E elevated. The generated token (#0A0A0B) sat too close to the
     /// page to read as a layer, so the player surface is pinned to #111111. Light domain still follows the token sheet.
-    var bgSurface: Color { isDark ? CYRGB(hex: 0x111111).swiftUIColor : token("--cy-color-bg-surface", dark: CYRGB(hex: 0x111111), light: CYRGB(hex: 0xFFFFFF)) }
+    var bgSurface: Color { native(.secondaryGroupedBackground, "--cy-color-bg-surface", dark: CYRGB(hex: 0x111111), light: CYRGB(hex: 0xFFFFFF)) }
     /// `--cy-color-bg-surface-subtle`: `#141416` / `#EEEEEE` (dividers, nested slots).
-    var bgSurfaceSubtle: Color { token("--cy-color-bg-surface-subtle", dark: CYRGB(hex: 0x141416), light: CYRGB(hex: 0xEEEEEE)) }
+    var bgSurfaceSubtle: Color { native(.tertiaryFill, "--cy-color-bg-surface-subtle", dark: CYRGB(hex: 0x141416), light: CYRGB(hex: 0xEEEEEE)) }
     /// `--cy-color-bg-elevated` (= card fill `--cy-comp-card-bg`): `#1C1C1E` / `#FFFFFF`.
-    var bgElevated: Color { token("--cy-color-bg-elevated", dark: CYRGB(hex: 0x1C1C1E), light: CYRGB(hex: 0xFFFFFF)) }
+    var bgElevated: Color { native(.secondaryGroupedBackground, "--cy-color-bg-elevated", dark: CYRGB(hex: 0x1C1C1E), light: CYRGB(hex: 0xFFFFFF)) }
     /// `--cy-color-bg-raised` (card-in-card, input base): `#2A2A2C` / `#E6E6E6`.
-    var bgRaised: Color { token("--cy-color-bg-raised", dark: CYRGB(hex: 0x2A2A2C), light: CYRGB(hex: 0xE6E6E6)) }
+    var bgRaised: Color { native(.tertiaryGroupedBackground, "--cy-color-bg-raised", dark: CYRGB(hex: 0x2A2A2C), light: CYRGB(hex: 0xE6E6E6)) }
     /// `--cy-color-bg-surface-strong`: `#3B3B3D` / `#E4E4E4`.
     var bgStrong: Color { token("--cy-color-bg-surface-strong", dark: CYRGB(hex: 0x3B3B3D), light: CYRGB(hex: 0xE4E4E4)) }
     /// `--cy-color-bg-interactive` (round action buttons, unselected chips): `#4D4D4D` / `#FFFFFF`.
-    var bgInteractive: Color { token("--cy-color-bg-interactive", dark: CYRGB(hex: 0x4D4D4D), light: CYRGB(hex: 0xFFFFFF)) }
+    var bgInteractive: Color { native(.secondaryFill, "--cy-color-bg-interactive", dark: CYRGB(hex: 0x4D4D4D), light: CYRGB(hex: 0xFFFFFF)) }
     /// Player sheet glass (`rgba(44,44,46,.98)`) / merchant sheet (`#FFFFFF`).
+    /// Native restyle (native-ios-r1 §3.4): the system sheet background (`systemBackground`, which iOS lifts to the
+    /// elevated level inside a sheet), so in-sheet bars match the system sheet. The MP glass stays as the fallback.
     var sheetGlass: Color {
-        isDark
+        #if canImport(UIKit)
+        return system(CYNativeColor.background.uiColor)
+        #else
+        return isDark
             ? token("--cy-comp-sheet-player-glass", dark: CYRGB(hex: 0x2C2C2E, alpha: 0.98), light: CYRGB(hex: 0xFFFFFF))
             : token("--cy-comp-sheet-merchant-glass", dark: CYRGB(hex: 0x2C2C2E, alpha: 0.98), light: CYRGB(hex: 0xFFFFFF))
+        #endif
     }
+    /// The selected segment's thumb, as `UISegmentedControl` draws it (white on light, `#636366` on dark).
+    var segmentThumb: Color { native(.segmentThumb, "--cy-color-bg-surface", dark: CYRGB(hex: 0x636366), light: CYRGB(hex: 0xFFFFFF)) }
     /// Nested card inside a sheet (`#3A3A3C` player / `#F8F9FA` merchant).
     var sheetCard: Color {
         isDark
@@ -101,12 +139,12 @@ struct CYDomainPalette {
     var photoCardAction: Color { token("--cy-comp-photo-card-action", dark: CYRGB(hex: 0x060606, alpha: 0.94), light: CYRGB(hex: 0x060606, alpha: 0.94)) }
 
     /// Card fill, `--cy-comp-card-bg`.
-    var cardFill: Color { bgElevated }
+    var cardFill: Color { bgSurface }
 
     // MARK: Borders
 
     /// `--cy-color-border-subtle`: `rgba(255,255,255,.08)` / `#E8E8E8`.
-    var borderSubtle: Color { token("--cy-color-border-subtle", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0xE8E8E8)) }
+    var borderSubtle: Color { native(.separator, "--cy-color-border-subtle", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0xE8E8E8)) }
     /// `--cy-color-border-strong`: `rgba(255,255,255,.16)` dark. Light uses the handbook's 3:1 control-boundary fix `#8C8C8C`
     /// (owner adopted it in the design hand-off r1; the shipped token sheet still says `#DBDBDB`).
     var borderStrong: Color { isDark ? token("--cy-color-border-strong", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.16), light: CYRGB(hex: 0x8C8C8C)) : CYRGB(hex: Self.handbookBorderStrongHex).swiftUIColor }
@@ -120,15 +158,15 @@ struct CYDomainPalette {
     // MARK: Text
 
     /// `#F8F8F8` / `#000000`.
-    var textPrimary: Color { token("--cy-color-text-primary", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
+    var textPrimary: Color { native(.label, "--cy-color-text-primary", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
     /// `#C7C7C7` / `#404040`.
-    var textSecondary: Color { token("--cy-color-text-secondary", dark: CYRGB(hex: 0xC7C7C7), light: CYRGB(hex: 0x404040)) }
+    var textSecondary: Color { native(.secondaryLabel, "--cy-color-text-secondary", dark: CYRGB(hex: 0xC7C7C7), light: CYRGB(hex: 0x404040)) }
     /// `#A8A8A8` / `#6B6B6B`.
-    var textTertiary: Color { token("--cy-color-text-tertiary", dark: CYRGB(hex: 0xA8A8A8), light: CYRGB(hex: 0x6B6B6B)) }
+    var textTertiary: Color { native(.secondaryLabel, "--cy-color-text-tertiary", dark: CYRGB(hex: 0xA8A8A8), light: CYRGB(hex: 0x6B6B6B)) }
     /// `#9E9E9E` / `#6F6F6F`.
-    var textPlaceholder: Color { token("--cy-color-text-placeholder", dark: CYRGB(hex: 0x9E9E9E), light: CYRGB(hex: 0x6F6F6F)) }
+    var textPlaceholder: Color { native(.placeholder, "--cy-color-text-placeholder", dark: CYRGB(hex: 0x9E9E9E), light: CYRGB(hex: 0x6F6F6F)) }
     /// `rgba(255,255,255,.40)` / `#737373`.
-    var textDisabled: Color { token("--cy-color-text-disabled", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.40), light: CYRGB(hex: 0x737373)) }
+    var textDisabled: Color { native(.quaternaryLabel, "--cy-color-text-disabled", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.40), light: CYRGB(hex: 0x737373)) }
     /// `#0A0A0A` / `#FFFFFF` (text on a primary fill).
     var textInverse: Color { token("--cy-color-text-inverse", dark: CYRGB(hex: 0x0A0A0A), light: CYRGB(hex: 0xFFFFFF)) }
 
@@ -256,9 +294,10 @@ struct CYDomainPalette {
 
     /// Selected tab icon/label tint. Neutral since the design hand-off r1 (owner ruling, PL-01): the selected tab is the
     /// primary ink at full opacity (white on the player bar, black on the merchant bar); unselected items stay at 60%.
-    var tabSelectedTint: Color { textPrimary }
+    /// The MP tab ink (`#F8F8F8` / `#000000`), kept as the brand selected state while body text moves to `label`.
+    var tabSelectedTint: Color { token("--cy-color-text-primary", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
     /// Selected tab capsule behind the icon and label: ink at 12% (PL-01; was a violet pill, then a blank white one).
-    var tabSelectedCapsule: Color { textPrimary.opacity(0.12) }
+    var tabSelectedCapsule: Color { tabSelectedTint.opacity(0.12) }
     /// Profile hero avatar ring (`--cy-comp-profile-avatar-ring` `#7A5CFF`).
     var avatarRing: Color {
         token(
@@ -296,7 +335,7 @@ extension EnvironmentValues {
 /// Mini-program card: 16pt continuous radius, 16pt padding, fill `bgElevated`, no border,
 /// dark = 0.5pt top-edge highlight, light = soft shadow (offset 1pt, blur 4pt).
 struct CYDomainCardModifier: ViewModifier {
-    var radius: CGFloat = Theme.Radius.lg   // --cy-comp-card-radius 32rpx = 16pt
+    var radius: CGFloat = Theme.Radius.card   // native restyle r1: one card radius, 12pt
     var padding: CGFloat = 16               // --cy-comp-card-pad 32rpx
 
     @Environment(\.cyPalette) private var palette
@@ -304,8 +343,8 @@ struct CYDomainCardModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let shadowRadius: CGFloat = colorScheme == .light ? 6 : 0
-        let shadowY: CGFloat = colorScheme == .light ? 2 : 0
+        let shadowRadius: CGFloat = 0   // native restyle r1 (spec §3.3): cards carry no shadow
+        let shadowY: CGFloat = 0
         content
             .padding(padding)
             .background(
@@ -330,7 +369,7 @@ struct CYDomainCardModifier: ViewModifier {
 extension View {
     /// Card surface that follows the mini-program tokens for the current role domain.
     /// Default radius is `--cy-comp-card-radius` (32rpx = 16pt).
-    func cyDomainCard(radius: CGFloat = Theme.Radius.lg, padding: CGFloat = 16) -> some View {
+    func cyDomainCard(radius: CGFloat = Theme.Radius.card, padding: CGFloat = 16) -> some View {
         modifier(CYDomainCardModifier(radius: radius, padding: padding))
     }
 
@@ -360,7 +399,7 @@ struct CYDomainPrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         let tokens = CYDomainButtonTokens.resolve(kind: .primary, isEnabled: isEnabled, isPressed: configuration.isPressed, in: palette)
-        let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+        let shape = Capsule(style: .continuous)   // native-ios-r1 §3.6: capsule system buttons
         configuration.label
             .cyText(.button)
             .cyWrapText(alignment: .center)
@@ -382,7 +421,7 @@ struct CYDomainSecondaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         let tokens = CYDomainButtonTokens.resolve(kind: .secondary, isEnabled: isEnabled, isPressed: configuration.isPressed, in: palette)
-        let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+        let shape = Capsule(style: .continuous)   // native-ios-r1 §3.6: capsule system buttons
         configuration.label
             .cyText(.button)
             .cyWrapText(alignment: .center)
@@ -404,7 +443,7 @@ struct CYDomainDestructiveButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         let tokens = CYDomainButtonTokens.resolve(kind: .destructive, isEnabled: isEnabled, isPressed: configuration.isPressed, in: palette)
-        let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+        let shape = Capsule(style: .continuous)   // native-ios-r1 §3.6: capsule system buttons
         configuration.label
             .cyText(.button)
             .cyWrapText(alignment: .center)
@@ -510,4 +549,34 @@ private struct CYDomainPalettePreviewContent: View {
 
 #Preview("Merchant (light)") {
     CYDomainPalettePreviewContent().themeDomain(.merchant)
+}
+
+/// The UIKit semantic colours the native restyle maps palette tokens onto (native-ios-r1 §2.2).
+enum CYNativeColor {
+    case groupedBackground, secondaryGroupedBackground, tertiaryGroupedBackground
+    case secondaryFill, tertiaryFill
+    case label, secondaryLabel, quaternaryLabel, placeholder
+    case separator, segmentThumb, background
+
+    #if canImport(UIKit)
+    var uiColor: UIColor {
+        switch self {
+        case .groupedBackground: return .systemGroupedBackground
+        case .secondaryGroupedBackground: return .secondarySystemGroupedBackground
+        case .tertiaryGroupedBackground: return .tertiarySystemGroupedBackground
+        case .secondaryFill: return .secondarySystemFill
+        case .tertiaryFill: return .tertiarySystemFill
+        case .label: return .label
+        case .secondaryLabel: return .secondaryLabel
+        case .quaternaryLabel: return .quaternaryLabel
+        case .placeholder: return .placeholderText
+        case .separator: return .separator
+        case .segmentThumb:
+            return UIColor { $0.userInterfaceStyle == .dark
+                ? UIColor(red: 0x63 / 255, green: 0x63 / 255, blue: 0x66 / 255, alpha: 1)
+                : .white }
+        case .background: return .systemBackground
+        }
+    }
+    #endif
 }

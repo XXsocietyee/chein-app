@@ -36,6 +36,34 @@ extension EnvironmentValues {
     }
 }
 
+/// R7-PC-D1-5 (MP myproject ops sheet 收到的申请 → `/pages/coop/list/index?tab=received`). The host owns the push.
+private struct MyProjectReceivedAppliesKey: EnvironmentKey {
+    static let defaultValue: (() -> Void)? = nil
+}
+
+extension EnvironmentValues {
+    var myProjectReceivedApplies: (() -> Void)? {
+        get { self[MyProjectReceivedAppliesKey.self] }
+        set { self[MyProjectReceivedAppliesKey.self] = newValue }
+    }
+}
+
+enum MyProjectReceivedAppliesRule {
+    /// MP `canViewApplies`: a topic whose pool is open (clubOpen / merchantOpen) or already accepted.
+    static func applies(_ project: CreatorContentProject) -> Bool {
+        project.bizType == "topic" && ["clubOpen", "merchantOpen", "clubAccepted", "merchantAccepted"].contains(project.acceptStatus ?? "")
+    }
+}
+
+/// MP `open-address.js` without coordinates (the my-project row carries only the address text).
+enum MyProjectAddressLink {
+    @MainActor static func open(address: String, name: String?, openURL: OpenURLAction) {
+        var components = URLComponents(string: "https://maps.apple.com/")
+        components?.queryItems = [URLQueryItem(name: "q", value: address)]
+        if let url = components?.url { openURL(url) }
+    }
+}
+
 @MainActor struct MyProjectTemplateTabSection: View {
     let shelf: MyProjectTemplateShelfHost?
     var body: some View {
@@ -113,6 +141,7 @@ extension EnvironmentValues {
     let chinese: Bool
     var canEditActivity: Bool = true
     @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
+    @Environment(\.openURL) private var openURL
 
     var resolvedRoute: MyProjectCardRoute? {
         MyProjectListPresentation.resolveRoute(
@@ -135,7 +164,18 @@ extension EnvironmentValues {
         if let when = MyProjectListPresentation.whenText(start: project.startTime, end: project.endTime, chinese: chinese) {
             Text(verbatim: when).cyText(.meta)
         }
-        if let address = project.addressName { Text(verbatim: address).cyText(.meta).foregroundStyle(.secondary) }
+        if let address = project.addressName {
+            // R7-PC-D1-6 (MP myproject/index.wxml:47 `onAddressTap`): the address opens Maps.
+            Button { MyProjectAddressLink.open(address: address, name: project.title, openURL: openURL) } label: {
+                Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
+                    .cyText(.meta).foregroundStyle(.secondary)
+                    .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(Text("myProject.address.open \(address)"))
+            .accessibilityIdentifier("myProject.address.\(project.id)")
+        }
         MyProjectTopicFactLine(project: project)
     }
 }
@@ -149,7 +189,9 @@ extension EnvironmentValues {
     @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     @Environment(\.myProjectMutation) private var mutation
     @Environment(\.myProjectTopicCancel) private var topicCancel
+    @Environment(\.myProjectReceivedApplies) private var receivedApplies
     private var hasItems: Bool {
+        if receivedApplies != nil, MyProjectReceivedAppliesRule.applies(project) { return true }
         let card = MyProjectListPresentation.card(project, merchantScopeAccess: merchantScopeAccess)
         if topicCancel != nil, MyProjectBiz(rawValue: project.bizType) == .topic, card.operations.contains(.cancel) { return true }
         return mutation != nil && MyProjectBiz(rawValue: project.bizType) != nil && !card.operations.isEmpty
@@ -177,7 +219,13 @@ extension EnvironmentValues {
     }
     @Environment(\.myProjectMutation) private var mutation
     @Environment(\.myProjectTopicCancel) private var topicCancel
+    @Environment(\.myProjectReceivedApplies) private var receivedApplies
     var body: some View {
+        // R7-PC-D1-5: 收到的申请 sits after 编辑 in the MP ops sheet.
+        if let receivedApplies, MyProjectReceivedAppliesRule.applies(project) {
+            Button { receivedApplies() } label: { Label("myProject.op.viewApplies", systemImage: "list.bullet") }
+                .accessibilityIdentifier("myProject.op.received.\(project.id)")
+        }
         // While 上下架 / 取消 / 删除 are gated the long-press menu offers nothing rather than a column of
         // disabled rows. Once composition supplies a live mutator the list injects its model here.
         let card = MyProjectListPresentation.card(project, merchantScopeAccess: merchantScopeAccess)
@@ -196,9 +244,9 @@ extension EnvironmentValues {
                     }
                     .accessibilityIdentifier("myProject.op.toggle.\(project.id)")
                 case .cancel where biz == .activity:
-                    // Topic cancel goes through the source cancel-preview flow, which has no native model yet.
+                    // R7-PC-D1-2 (MP myproject/index.js:589-607): read cancel_preview first; the confirm names the paid players.
                     Button("myProject.op.cancel", role: .destructive) {
-                        Task { await mutation.begin(.cancelActivity(id: project.sourceID)) }
+                        Task { await mutation.beginActivityCancel(id: project.sourceID, title: project.title) }
                     }
                     .accessibilityIdentifier("myProject.op.cancel.\(project.id)")
                 case .delete:

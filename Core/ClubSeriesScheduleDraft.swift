@@ -3,7 +3,7 @@ import Foundation
 /// A local copy of the five scheduling fields. It never creates an occurrence or grants write authority.
 public struct ClubSeriesScheduleDraft: Equatable {
     public enum Recurrence: String, CaseIterable { case once = "ONCE", weekly = "WEEKLY", custom = "CUSTOM_DATES" }
-    public enum Issue: String { case recurrence, date, time, count, past, futureOnly
+    public enum Issue: String { case recurrence, date, time, count, past, futureOnly, weeklyHorizon
         public var localizationKey: String { "club.schedule.error." + rawValue }
     }
     public struct CustomDate: Identifiable, Equatable {
@@ -79,7 +79,17 @@ public struct ClubSeriesScheduleDraft: Equatable {
         guard days.allSatisfy({ $0 >= today }) else { return .past }
         // Minute equality is already past, matching Mini assemblyAlreadyPast.
         if days.contains(today), startTime <= Self.time(now) { return .past }
+        if kind == .weekly {
+            let max = ClubEventOpsFormRules.maxWeeklyOccurrences(startDate: startDate, todayKey: today)
+            if occurrenceCount > max { return .weeklyHorizon }
+        }
         return nil
+    }
+    /// Sentence for `.weeklyHorizon`. Nil when this draft is inside the window.
+    public func weeklyHorizonMessage(now: Date) -> String? {
+        guard issue(now: now) == .weeklyHorizon else { return nil }
+        let max = ClubEventOpsFormRules.maxWeeklyOccurrences(startDate: startDate, todayKey: Self.day(now))
+        return ClubEventOpsFormRules.weeklyHorizonMessage(max: max)
     }
     public func applying(to form: ClubGovernanceFormDraft, now: Date) throws -> ClubGovernanceFormDraft {
         guard [.createSeries, .updateSeries].contains(form.operation), issue(now: now, operation: form.operation) == nil else { throw ClubGovernanceFailure.invalidRequest }

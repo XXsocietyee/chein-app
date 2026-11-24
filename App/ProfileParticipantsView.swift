@@ -78,8 +78,6 @@ struct ProfileParticipantsView: View {
                                 // Blank phone shows the model's em dash, never an empty line.
                                 Text(verbatim: card.phoneText).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                                     .accessibilityLabel(PageTemplateVoiceOver.spoken(card.phoneText, locale: locale))
-                                // Mini-program pages/address row caption: 用于报名联系和到场核验.
-                                Text("profile.participants.rowPurpose").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                             }
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -125,10 +123,15 @@ struct ProfileParticipantsView: View {
                         }
                     }
                 } footer: {
-                    // Table total only when the reader exposes it; the row count is never shown in its place.
-                    if reader is ProfileParticipantListFactsReading {
-                        Text("profile.participants.total \(page.totalText)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                            .accessibilityIdentifier("profile.participants.total")
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        // A5-05: MP pages/address purpose line (用于报名联系和到场核验) once for the list, not on every row.
+                        Text("profile.participants.rowPurpose").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            .accessibilityIdentifier("profile.participants.purpose")
+                        // Table total only when the reader exposes it; the row count is never shown in its place.
+                        if reader is ProfileParticipantListFactsReading {
+                            Text("profile.participants.total \(page.totalText)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                .accessibilityIdentifier("profile.participants.total")
+                        }
                     }
                 }
             }
@@ -159,20 +162,29 @@ struct ProfileParticipantsView: View {
             if let recoveryIdentity { coordinator?.discardReadback(expectedIdentity: recoveryIdentity) }
             recoveryIdentity = nil; snapshotIdentity = nil
         }
-        .sheet(isPresented: $showsCreate, onDismiss: { deletedNotice = nil; refreshID = UUID() }) {
+        .sheet(isPresented: $showsCreate, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { Group {
             if let coordinator {
                 NavigationStack { ParticipantFormView(reader: reader, coordinator: coordinator) }
             }
         }
-        .sheet(item: $editing, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { target in
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $editing, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { target in Group {
             if let coordinator {
                 NavigationStack { ParticipantFormView(id: target.id, reader: reader, coordinator: coordinator) }
             }
         }
-        .sheet(item: $deleting, onDismiss: { refreshID = UUID() }) { target in
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $deleting, onDismiss: { refreshID = UUID() }) { target in Group {
             if let coordinator {
                 NavigationStack { ParticipantListDeleteView(id: target.id, reader: reader, coordinator: coordinator) { deletedNotice = UUID() } }
             }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         }
         .cyDomainScreen(ThemeDomain.player)
     }
@@ -243,14 +255,8 @@ enum ProfileParticipantDisplay {
                 CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", messageIdentifier: "profile.participants.unavailable")
             }
         }
+        // A5-04 (native spec §3.1): pull to refresh is the one refresh; no duplicate toolbar button.
         .refreshable { await loadOwner.run { await reload() } }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload() } }
-                    .disabled(page.phase == .loading || page.isRefreshing || !reader.isConfigured || reader.identity == nil)
-                    .accessibilityIdentifier("profile.participants.refresh")
-            }
-        }
         .task(id: ProfileParticipantListLoadKey(identity: reader.identity, refreshID: refreshID)) {
             loadOwner.activate(); await loadOwner.run { await reload() }
         }

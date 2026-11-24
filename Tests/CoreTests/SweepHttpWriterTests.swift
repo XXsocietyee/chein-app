@@ -124,6 +124,8 @@ import XCTest
     }
 
     func testMyProjectHTTPMutatorSendsAllSevenActionsAndMapsLibraryStatus() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .hostCancelRefund }
         let transport = StubTransport()
         transport.nextHandler = { _ in
             (Data(#"{"code":200,"msg":"操作成功"}"#.utf8), 200)

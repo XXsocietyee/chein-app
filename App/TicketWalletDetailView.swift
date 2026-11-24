@@ -9,6 +9,9 @@ import SwiftUI
     /// Zoom source in the wallet (iOS 18); nil keeps the default push.
     var heroNamespace: Namespace.ID? = nil
     var heroID: Int? = nil
+    /// PLY-21-3: the pass sheet's 开始游戏 pill pushes this page and starts play once the fresh read allows it.
+    var autoStartsPlay = false
+    @State private var didAutoStart = false
     @Environment(\.ticketWalletPlayProvider) private var playProvider
     @Environment(\.mpParity) private var mpParity
     @Environment(\.locale) private var locale
@@ -56,7 +59,11 @@ import SwiftUI
                                   playReadOwner == playProvider.owner else { return }
                             playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: playProvider,
                                                presentationID: presentationID)
-                        } label: { Label("playerJourney.start", systemImage: "play.fill") }
+                        } label: {
+                            // PLY-21-4: MP signup wxml:103-105 labels a cleared ticket 查看记录.
+                            if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() } }
+                            else { Label { Text("playerJourney.start") } icon: { TicketWalletPlayGlyph() } }
+                        }
                         .modifier(TicketWalletPlayButtonStyle(secondary: ticket.status == .ready))
                         .listRowBackground(Color.clear)
                         .accessibilityIdentifier("ticketWallet.play.open")
@@ -173,6 +180,12 @@ import SwiftUI
            let provider, provider.owner == playProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured)?.id == id, captured == key {
             playReadOwner = provider.owner
+            if autoStartsPlay, !didAutoStart, let ticket = model.value(owner: captured),
+               playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: provider) {
+                didAutoStart = true
+                playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: provider,
+                                   presentationID: playEntry.presentationID)
+            }
         }
     }
 }
@@ -313,12 +326,18 @@ private struct TicketWalletEntitlementRow: View {
                 }
                 .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                Label {
-                    if let label = entitlement.statusLabel { Text(verbatim: label) }
-                    else { Text(LocalizedStringKey("ticketWallet.entitlementStatus." + entitlement.statusKey)) }
-                } icon: { Image(systemName: symbol).accessibilityHidden(true) }
-                .font(.subheadline).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                // B-21 (FE-G6): MP order-detail wxml:278 prints `statusLabel || ''`, so an empty server label shows no text.
+                // The glyph stays and carries the local state name for VoiceOver, so the state is never colour or shape alone.
+                if let label = entitlement.displayStatusLabel {
+                    Label { Text(verbatim: label) } icon: { Image(systemName: symbol).accessibilityHidden(true) }
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Image(systemName: symbol).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityLabel(Text(LocalizedStringKey("ticketWallet.entitlementStatus." + entitlement.statusKey)))
+                }
             }
+            // B-16: no 已含 / 需消费 / 需预约 line here. The backend sends those perk terms only on the play-nodes perk map
+            // and the free-explore catalog, never on the ticket-wallet entitlement, so the row could never render.
             TicketWalletOptionalField(label: "ticketWallet.redeemedAt", value: entitlement.redeemedAt).font(.caption)
             if let reason = entitlement.invalidReason, !reason.isEmpty {
                 Text(verbatim: reason).font(.caption).foregroundStyle(CYColor.textSecondary)

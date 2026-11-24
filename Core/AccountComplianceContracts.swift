@@ -103,16 +103,52 @@ public struct ComplianceDeregistration: Decodable, Equatable {
     }
 }
 public enum ComplianceMarketingChannel: String, CaseIterable { case inApp = "IN_APP", coupon = "COUPON" }
-public struct ComplianceMarketingConsent: Decodable, Equatable, Identifiable {
+public struct ComplianceMarketingConsent: Equatable, Identifiable {
     public let merchantRowId: Int
     public let merchantOwnerMemberId: Int
     public let merchantName: String?
+    /// Raw `merchantLogo` from `GET /api/merchant/crm/marketing-consents`. A missing or blank key is "".
+    public let merchantLogo: String
     public let inAppOptedIn: Bool
     public let couponOptedIn: Bool
     public var id: String { "\(merchantRowId)|\(merchantOwnerMemberId)" }
     public func value(_ channel: ComplianceMarketingChannel) -> Bool { channel == .inApp ? inAppOptedIn : couponOptedIn }
     public var valid: Bool { merchantRowId > 0 && merchantOwnerMemberId > 0 }
     public func operation(_ channel: ComplianceMarketingChannel) -> String { "marketing|\(id)|\(channel.rawValue)" }
+    public init(merchantRowId: Int, merchantOwnerMemberId: Int, merchantName: String?, merchantLogo: String = "", inAppOptedIn: Bool, couponOptedIn: Bool) {
+        self.merchantRowId = merchantRowId
+        self.merchantOwnerMemberId = merchantOwnerMemberId
+        self.merchantName = merchantName
+        self.merchantLogo = merchantLogo
+        self.inAppOptedIn = inAppOptedIn
+        self.couponOptedIn = couponOptedIn
+    }
+}
+
+extension ComplianceMarketingConsent: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case merchantRowId, merchantOwnerMemberId, merchantName, merchantLogo, inAppOptedIn, couponOptedIn
+    }
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        merchantRowId = try values.decode(Int.self, forKey: .merchantRowId)
+        merchantOwnerMemberId = try values.decode(Int.self, forKey: .merchantOwnerMemberId)
+        merchantName = try values.decodeIfPresent(String.self, forKey: .merchantName)
+        merchantLogo = (try values.decodeIfPresent(String.self, forKey: .merchantLogo) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        inAppOptedIn = try values.decode(Bool.self, forKey: .inAppOptedIn)
+        couponOptedIn = try values.decode(Bool.self, forKey: .couponOptedIn)
+    }
+}
+
+/// `POST /api/user/info` `{ member_id }` phone used by the deregister SMS step.
+public struct DeregistrationBoundPhone: Equatable {
+    public let phone: String
+    public var tail: String { String(phone.suffix(4)) }
+    /// pages/deregister scene: `验证码已发送至尾号 {{phoneMasked}} 的手机号`.
+    public var sentNotice: String { "验证码已发送至尾号 \(tail) 的手机号" }
+    public static let missingMessage = "请先绑定手机号后再获取验证码"
+    public init(phone: String) { self.phone = phone }
 }
 /// A review is bound to the account/session and authoritative load that the user saw.
 public struct ComplianceMarketingReview: Equatable {

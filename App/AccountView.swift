@@ -20,6 +20,9 @@ import SwiftUI
     @State private var showsTickets=false
     @State private var showsTicketPass=false
     @State private var showsPassportWallet=false
+    @State private var showsPointsLedger=false
+    @State private var showsPointsHelp=false
+    @State private var showsEditProfile=false
     @State private var showsPassportMessages=false
     @State private var showsPassportStamps=false
     @State private var showsPassportBadges=false
@@ -34,8 +37,12 @@ import SwiftUI
         NavigationStack {
             Form {
                 MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTicketPass = true },
-                                          // 积分 opens 钱包, where 积分明细 lives (the Passport root's one wallet entry).
-                                          onOpenPoints: showsPassportOverview ? { showsPassportWallet = true } : nil,
+                                          // A1-07: 积分 opens 积分明细 directly (MP goPointsHistory); 如何获取积分 opens 积分任务.
+                                          onOpenPoints: showsPassportOverview ? { showsPointsLedger = true } : nil,
+                                          onOpenPointsHelp: showsPassportOverview ? { showsPointsHelp = true } : nil,
+                                          // A1-04: the avatar opens 个人资料 (MP onAvatarTap); A1-09: 账户余额 opens the wallet.
+                                          onEditProfile: { showsEditProfile = true },
+                                          onOpenBalance: { showsPassportWallet = true },
                                           refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
                 if showsPassportOverview {
                     PassportOverviewSection(reader: session.roamExperienceReader, growth: session.growthCenterReader, refreshToken: memberRefreshToken, onOpenTickets: { showsTicketPass = true },
@@ -74,10 +81,10 @@ import SwiftUI
                     }.accessibilityIdentifier("account.growthCenter")
                     ProfileAccountLinks(reader:session.profileReader, part: .collection)
                     NavigationLink { SessionObjectCardsView().cyPushedChrome()                     } label: {
-                        CYListRow("objects.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") }
+                        CYListRow("objects.title", trailing: .none) { AccountPublishMPRowIcon(MPAsset.FeatureIcon.object3d) } // MP album 藏品 object-3d.png
                     }.accessibilityIdentifier("account.objectCards")
                     if session.playerGapService != nil {
-                        NavigationLink { List { CityFavoriteNodesSection() }.navigationTitle(Text("playerGap.cityFavorites.title")).cyPushedChrome() } label: {
+                        NavigationLink { List { CityFavoriteNodesSection() }.navigationTitle(Text("playerGap.cityFavorites.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
                             CYListRow("playerGap.cityFavorites.title", trailing: .none) { CYRowIcon(systemImage: "mappin.and.ellipse") }
                         }.accessibilityIdentifier("account.cityFavorites")
                     }
@@ -125,7 +132,8 @@ import SwiftUI
                     }.accessibilityIdentifier("account.clubs")
                     }
                     if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
-                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome() } label: {
+                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome()
+                            .environment(\.socialConversationDestination, session.socialConversationDestination) } label: {
                         CYListRow("social.invites.title", trailing: .none) { CYRowIcon(systemImage: "person.2.badge.plus") }
                     }.accessibilityIdentifier("account.inviteHistory")
                     NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity).cyPushedChrome() } label: {
@@ -135,7 +143,7 @@ import SwiftUI
                         CYListRow("door.inviter.title", trailing: .none) { CYRowIcon(systemImage: "person.badge.plus") }
                     }.accessibilityIdentifier("door.inviter.entry")
                     if session.playerGapService != nil {
-                        NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).cyPushedChrome() } label: {
+                        NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
                             CYListRow("playerGap.playerCode.title", trailing: .none) { CYRowIcon(systemImage: "qrcode") }
                         }.accessibilityIdentifier("account.playerCode")
                     }
@@ -161,11 +169,13 @@ import SwiftUI
                 // Passport has one sign-out: Settings (settings.signOut). The legacy account page keeps its own.
                 if !showsPassportOverview {
                 Section {
-                    Button("auth.signOut", role: .destructive) {
+                    // Native spec §3.6: sign out is a neutral centred row (deleting the account is the destructive one).
+                    Button {
                         logoutConfirmation = session.signOutConfirmation(accountID: account.id)
                         confirmsLogout = logoutConfirmation != nil
+                    } label: {
+                        Text("auth.signOut").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
                     .accessibilityLabel(Text("auth.signOut"))
                     .accessibilityIdentifier("account.signOut")
                 }
@@ -174,7 +184,6 @@ import SwiftUI
             // Pull to refresh: light tick at release; the cards reload in place (numbers roll, nothing re-enters).
             .cyRefreshable { await MainActor.run { memberRefreshToken += 1 } }
             .listSectionSpacing(CYSpacing.xl)
-            .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             // Design hand-off r1 PL-11: the root title is the tab's label (我的), not 主页 / 护照; 消息 then 设置 at the right.
             .cyRootHeader(.mine)
@@ -186,17 +195,33 @@ import SwiftUI
             })
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
-                    Button("settings.title",systemImage:"gearshape") {
+                    Button {
                         if settingsGuideHandoff.begin() { showsSettings=true }
+                    } label: {
+                        // MP profile index.wxml:17 `/subpackageMember/images/icon_set.png`.
+                        Label { Text("settings.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconSet, side: 22) }
                     }
                     .accessibilityLabel(Text("settings.title"))
                     .accessibilityIdentifier("account.settings")
                 }
             }
             .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsPointsLedger) { WalletLedgerView(reader: session.walletHistoryReader, kind: .assetPoints).id(session.walletCommerceScope).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsEditProfile) { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders).cyPushedChrome() }
+            .sheet(isPresented:$showsPointsHelp) {
+                NavigationStack {
+                    WalletPointsTasksView(reader: session.walletHistoryReader).id(session.walletCommerceScope)
+                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("common.close") { showsPointsHelp = false }.accessibilityIdentifier("member.pointsHelp.close") } }
+                }
+                .themeDomain(.player)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
             .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session).cyPushedChrome() }
             // A1-06: 邮票 opens the stamp album and 勋章 the badge wall, as the MP 收集册 piles do.
-            .navigationDestination(isPresented:$showsPassportStamps) { RoamStampAlbumView(reader: session.roamExperienceReader).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsPassportStamps) { RoamStampAlbumView(reader: session.roamExperienceReader,
+                // SALBUM-r7-1: the camera item / empty CTA open the session camera, not the disabled bare one.
+                stampDestination: { [session] in AnyView(SessionRoamStampCameraView().environmentObject(session)) }).cyPushedChrome() }
             .navigationDestination(isPresented:$showsPassportBadges) { ObjectBadgeWallView(reader: session.profileReader, media: session.makeObjectCardImageLoader()).cyPushedChrome() }
             .background {
                 ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
@@ -214,7 +239,7 @@ import SwiftUI
             .onChange(of: session.profileFavoritesReader.scope) { _, scope in
                 savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)
             }
-            .sheet(isPresented:$showsSettings, onDismiss: settingsDismissHandler) {
+            .sheet(isPresented:$showsSettings, onDismiss: settingsDismissHandler) { Group {
                 let presentation = settingsGuideHandoff.presentation
                 let revision = session.sessionRevision
                 SettingsView(onOpenGuideDestination: onOpenGuideDestination.map { open in { destination in
@@ -225,11 +250,16 @@ import SwiftUI
                           }) else { return }
                     showsSettings = false
                 } })
-                .cyPlayerSheetGlass()
+                .themeDomain(.player)
             }
-            .sheet(isPresented:$showsCooperation) {
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented:$showsCooperation) { Group {
                 CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader,topicDestination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }).id(session.cooperationReader.scope)
-                    .presentationCornerRadius(CYRadius.sheet)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
             }
             .sheet(isPresented:$showsTicketPass, onDismiss: { if opensWalletAfterPass { opensWalletAfterPass = false; showsTickets = true } }) {
                 TicketPassSheet(reader: session.ticketWalletReader, onClose: { showsTicketPass = false },
@@ -237,9 +267,10 @@ import SwiftUI
                                 lifecycleCoordinator: session.orderLifecycleCoordinator, makeTeamCoordinator: { session.makeTeamCoordinator() })
                     .environment(\.ticketWalletPlayProvider, ticketPlayProvider)
                     .id(session.ticketWalletReader.scope)
-                    .cyPlayerSheetGlass()
+                    .themeDomain(.player)
+                    .cySheet(detents: [.large])
             }
-            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).cyPlayerSheetGlass() }
+            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).themeDomain(.player).cySheet(detents: [.large]) }
             .sheet(isPresented: $confirmsLogout) {
                 if let expected = logoutConfirmation {
                     MemberSignOutConfirmSheet(confirmIdentifier: "auth.signOut.confirm") {

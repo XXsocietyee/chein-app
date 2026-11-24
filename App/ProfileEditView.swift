@@ -582,6 +582,20 @@ struct ProfileEditView: View {
     @State private var openedInitialField = false
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
+    /// A3-11-r7: MP 正在保存资料 → 资料已保存 → back, or an inline error with 重试保存 (gerenziliao js:743-776).
+    @State private var savingProfile = false
+    @State private var saveFailed = false
+    @State private var savedTick = 0
+    /// A3-09: best-effort name lookup; a failed read leaves the count row alone (no chips, no error line).
+    @MainActor private func loadPreferenceNames() async {
+        guard let reader = categoryReader, reader.isConfigured else { preferenceNames = [:]; return }
+        let identity = reader.discoveryPresentationIdentity
+        guard let values = try? await reader.discoveryCategories(type: 1), !Task.isCancelled,
+              reader.discoveryPresentationIdentity == identity else { return }
+        preferenceNames = Dictionary(values.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
+    }
+    /// A3-09: names for the route-preference chips (`discoveryCategories(type: 1)`, the picker's own read).
+    @State private var preferenceNames: [Int: String] = [:]
     /// Nil when the stored `tagIds` is unreadable: the count is then an em dash, never a stand-in 0.
     private var selectedPreferences: [Int]? {
         model.draft.routePreferenceIDs ?? ProfilePreferenceRemoval.parse(model.coordinator.snapshot?.tagIds ?? "")
@@ -647,6 +661,21 @@ struct ProfileEditView: View {
                     }.disabled(!model.canBeginTextEdit)
                     Section("context.preferences.title") {
                         LabeledContent("context.preferences.selected", value: selectedPreferences.map { String($0.count) } ?? "—")
+                        // A3-09 (gerenziliao.wxml 路线偏好): the chosen preferences as chips; ids without a loaded name are skipped.
+                        let named = (selectedPreferences ?? []).compactMap { preferenceNames[$0] }
+                        if !named.isEmpty {
+                            ClubR1WrapLayout(spacing: CYSpacing.sm) {
+                                ForEach(Array(named.enumerated()), id: \.offset) { _, name in
+                                    Text(verbatim: name)
+                                        .cyText(.meta, weight: .medium)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                                        .background(CYColor.bgRaised, in: Capsule(style: .continuous))
+                                }
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("profile.edit.preferenceChips")
+                        }
                         Button("profile.preferenceRemoval.open") { model.beginTextEdit(.preferences) }
                             .disabled(!model.canBeginTextEdit)
                             .accessibilityIdentifier("profile.preferenceRemoval.open")
@@ -658,7 +687,20 @@ struct ProfileEditView: View {
                     CYStatusChip(LocalizedStringKey(key))
                         .accessibilityIdentifier("profile.edit.status")
                 }
+                if savingProfile {
+                    Label { Text("profile.edit.saving") } icon: { ProgressView() }
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("profile.edit.saving")
+                }
                 if let remote = model.coordinator.remoteMessage { Text(verbatim: remote) }
+                if saveFailed, !savingProfile {
+                    Label { Text("profile.edit.saveFailed") } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
+                        .foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("profile.edit.saveFailed")
+                    CYPillButton("profile.edit.retrySave") { saveFailed = false; Task { await model.prepare() } }
+                        .disabled(model.busy || model.textEdit != nil)
+                        .accessibilityIdentifier("profile.edit.retrySave")
+                }
                 CYPillButton(LocalizedStringKey(model.coordinator.isLocked ? "profile.edit.check" : "profile.edit.reload"), style: .secondary) {
                     Task { await model.requestReload() }
                 }.disabled(model.busy || model.textEdit != nil).accessibilityIdentifier("profile.edit.reload")
@@ -682,6 +724,7 @@ struct ProfileEditView: View {
             }
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
+        .sensoryFeedback(.success, trigger: savedTick)
         // A3-03: pushed page → inline title. A3-02 (T&C §3): the system back and its swipe while nothing is unsaved;
         // only while the draft is dirty does the same-looking guarded back ask first.
         .cyPageTitle("profile.edit.title")
@@ -724,6 +767,7 @@ struct ProfileEditView: View {
         }
         .modifier(ProfileCurrentReviewNoticeLifecycle(model: model, reader: currentReviewReader, owner: currentReviewNotice))
         .task(id: sessionRevision) { model.retirePreferencePicker(); await model.resetAndLoad(); openInitialFieldOnce() }
+        .task(id: categoryReader?.discoveryPresentationIdentity) { await loadPreferenceNames() }
         .background {
             if let edit = model.textEdit {
                 ProfileTextEditPresentationOwner(model: model, edit: edit, caseImageReader: caseImageReader, nicknameReader: nicknameReader, savedMedia: savedMedia)
@@ -740,7 +784,7 @@ struct ProfileEditView: View {
         .onChange(of: categoryReader?.discoveryPresentationIdentity) { _, _ in model.retirePreferencePicker() }
         .onChange(of: categoryReader?.isConfigured) { _, _ in model.retirePreferencePicker() }
         .onDisappear(perform: handleEditorDisappear)
-        .sheet(item: $model.confirmation) { value in
+        .sheet(item: $model.confirmation) { value in Group {
             NavigationStack {
                 Form {
                     ProfileDraftReviewSection(summary: value.reviewSummary,
@@ -770,7 +814,17 @@ struct ProfileEditView: View {
                     }
                     CYPillButton("profile.edit.confirm") {
                         Task {
-                            guard let receipt = await model.save(value), model.consumeSavedReturn(receipt) else { return }
+                            savingProfile = true; saveFailed = false
+                            let receipt = await model.save(value)
+                            savingProfile = false
+                            guard let receipt, model.consumeSavedReturn(receipt) else {
+                                let key = model.coordinator.messageKey
+                                if key != "profile.edit.saved", key != "profile.edit.nicknameTaken", key != "profile.edit.nicknameInvalid" { saveFailed = true }
+                                return
+                            }
+                            // The page's status line reads 资料已保存 for a beat before going back (MP toast then navigateBack).
+                            savedTick += 1
+                            try? await Task.sleep(for: .milliseconds(900))
                             if let onSaved { onSaved() } else { dismiss() }
                         }
                     }
@@ -778,9 +832,12 @@ struct ProfileEditView: View {
                     CYPillButton("profile.edit.cancel", style: .tertiary) {
                         model.coordinator.cancel(value); model.confirmation = nil
                     }
-                }.appNavigationTitle("profile.edit.reviewTitle")
+                }.appNavigationTitle("profile.edit.reviewTitle").navigationBarTitleDisplayMode(.inline)
             }.interactiveDismissDisabled(model.busy)
-            .cyPlayerSheetGlass()
+            .themeDomain(.player)
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
         }
     }
     private func textFieldRow(_ field: ProfileTextField, value: String) -> some View {
@@ -792,7 +849,8 @@ struct ProfileEditView: View {
                     } else if value.isEmpty { Text("profile.fieldEdit.empty").foregroundStyle(.secondary) }
                     else { Text(verbatim: value).fixedSize(horizontal: false, vertical: true) }
                 } label: { Text(LocalizedStringKey(field.titleKey)) }
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+                // A3-09: the system disclosure glyph size (tertiary, footnote semibold), not a hand-sized caption.
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
             }.contentShape(Rectangle())
         }
@@ -828,7 +886,7 @@ struct ProfileEditView: View {
     let savedMedia: ProfileSavedMediaReaders?
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) }) { value in
+            .sheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) }) { value in Group {
             NavigationStack {
                 if value.field == .contactQR {
                     ProfileContactQREditor(edit: value, reader: caseImageReader,
@@ -856,6 +914,9 @@ struct ProfileEditView: View {
                 }
             }.interactiveDismissDisabled(false)
         }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
     }
 }
 
@@ -868,13 +929,16 @@ struct ProfileEditView: View {
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: model.preferencePickerPresentation(for: edit),
-                   onDismiss: { model.cancelPreferencePicker(edit) }) { offered in
+                   onDismiss: { model.cancelPreferencePicker(edit) }) { offered in Group {
                 NavigationStack {
                     ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,
                         currentIdentity: { model.preferencePickerIdentity(offered) }) {
                             _ = model.confirmPreferencePicker(offered, selectedIDs: $0)
                         }
                 }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
             }
     }
 }

@@ -75,7 +75,8 @@ struct RoamFinishReport: Equatable {
         .background(Color.black.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showShare) {
-            if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } }
+            Group { if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } } }
+                .cySheet(detents: [.large])
         }
         .accessibilityIdentifier("roam.finishReport")
         .onAppear {
@@ -144,7 +145,7 @@ struct RoamFinishReport: Equatable {
     }
     private func cell(_ value: String?, _ label: LocalizedStringKey, id: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: value ?? "—").font(CYTypography.dataXL.italic()).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: value ?? "—").cyText(.dataXL).italic().foregroundStyle(CYColor.textPrimary)
                 .lineLimit(1).minimumScaleFactor(0.6)
             Text(label).cyText(.bodyCompact).foregroundStyle(CYColor.textTertiary)
         }
@@ -170,8 +171,8 @@ struct RoamFinishReport: Equatable {
             if let address = report.currentAddress {
                 Text(verbatim: address).cyText(.label).foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
-                    .background(CYNight.ink0, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                    .background(CYNight.ink0, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
                     .padding(CYSpacing.lg)
             }
         }

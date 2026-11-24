@@ -98,7 +98,7 @@ struct ClubRosterCard: View {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     CYCoverArt(seed: coverSeed.isEmpty ? model.title : coverSeed, showsDebugLabel: false)
                         .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: clubR1Value(model.title))
@@ -117,7 +117,7 @@ struct ClubRosterCard: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     if model.isExpandable {
                         Image(systemName: "chevron.down")
-                            .font(CYTypography.label.weight(.semibold))
+                            .cyText(.label, weight: .semibold)
                             .foregroundStyle(palette.textTertiary)
                             .rotationEffect(.degrees(expanded ? 180 : 0))
                             .accessibilityHidden(true)
@@ -151,7 +151,7 @@ struct ClubRosterCard: View {
             }
         }
         .padding(CYSpacing.lg)
-        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated))
+        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
         .onAppear {
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.4)) { shownFill = model.fill ?? 0 }
         }
@@ -169,7 +169,7 @@ struct ClubRosterCard: View {
     }
 
     private func money(_ key: String, _ raw: String?) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: clubR1Value(raw))
                 .cyText(.numericBody)
                 .foregroundStyle(palette.textPrimary)

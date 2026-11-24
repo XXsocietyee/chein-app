@@ -65,7 +65,7 @@ struct E1MotionLabFixture: View {
                 }
                 .padding(CYSpacing.pageHorizontal)
             }
-            .navigationTitle("Routes")
+            .navigationTitle("Routes").navigationBarTitleDisplayMode(.inline)
         case .list:
             ScrollView {
                 CYContentSwap(isLoading: loading) {
@@ -82,7 +82,7 @@ struct E1MotionLabFixture: View {
                     .padding(CYSpacing.pageHorizontal)
                 }
             }
-            .navigationTitle("Activities")
+            .navigationTitle("Activities").navigationBarTitleDisplayMode(.inline)
         case .scroll:
             if showEmpty {
                 CYEmptyState(systemImage: "map", "No routes yet", detail: "New routes appear here")

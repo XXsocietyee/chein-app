@@ -129,7 +129,8 @@ struct InvoiceLaunchWriteNotice: Equatable {
                 do { _ = try await coordinator.recover(); recheckMissed = false; writeNotice = nil }
                 catch {
                     guard accept(visit) else { return }
-                    if manual { recheckMissed = true }
+                    // A proven original-request miss keeps 暂未查到. A transport failure stays the unknown copy.
+                    recheckMissed = manual && (error as? InvoiceLaunchIssue) == .notFound
                 }
             } else { recheckMissed = false }
             let result = try await coordinator.overview()
@@ -207,7 +208,7 @@ struct InvoiceLaunchWriteNotice: Equatable {
         case .rejected(let value)?:
             code = value; kind = value == "INVOICE_ORDERS_TOO_MANY" ? .tooMany : .rejected
         case .invalid?: kind = .rejected
-        case .outcomeUnknown?, .pendingConflict?, .originalReadUnavailable?: kind = .unknown
+        case .outcomeUnknown?, .pendingConflict?, .originalReadUnavailable?, .notFound?: kind = .unknown
         default: fail(error, visit: visit); return
         }
         guard overview != nil else { fail(error, visit: visit); return }
@@ -241,7 +242,7 @@ struct InvoiceLaunchWriteNotice: Equatable {
         switch error as? InvoiceLaunchIssue {
         case .staleSession, .unauthorized: invalidate(); issue = "session"
         case .disabled: issue = "unavailable"
-        case .outcomeUnknown, .originalReadUnavailable, .pendingConflict: unresolved = true; issue = "unknown"
+        case .outcomeUnknown, .originalReadUnavailable, .pendingConflict, .notFound: unresolved = true; issue = "unknown"
         case .storageUnavailable: unresolved = true; issue = "storage"
         case .invalid, .rejected: issue = "notSaved"
         default: issue = "loadFailed"; overview = shown
@@ -252,7 +253,8 @@ struct InvoiceLaunchWriteNotice: Equatable {
 func invoiceText(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: "InvoiceLaunchUI") }
 func invoiceAmount(_ value: Decimal, locale: Locale) -> String {
     let formatter = NumberFormatter(); formatter.locale = locale; formatter.numberStyle = .decimal
-    formatter.minimumFractionDigits = 2; formatter.maximumFractionDigits = 2
+    // Owner decision 9: the shared money rule (`MoneyDisplay`, two decimals).
+    formatter.minimumFractionDigits = MoneyDisplay.minimumFractionDigits(); formatter.maximumFractionDigits = MoneyDisplay.maximumFractionDigits
     return formatter.string(from: NSDecimalNumber(decimal: value)) ?? "—"
 }
 /// Known money stays the two-place formatter, including 0.00. A non-finite amount is the page-model em dash.
@@ -305,10 +307,13 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
             Section {
                 // Source cy-inline-error: 上次的开票申请结果未确认 · 确认前请勿重复提交 · 查询结果,
                 // and after a miss 暂未查到这次申请 · 请稍后再查，或联系客服 · 再查一次 (FIN-11-4, FIN-11-6).
+                // R7-MEM-14-1: an unconfirmed title save reads 上次保存结果未确认 · 确认前请勿修改抬头 (MP invoice-titles).
+                let savingTitle = model.overview?.pending?.kind == .saveTitle
+                let key = model.recheckMissed ? "notFound" : (savingTitle ? "titleSave.unknown" : "unknown")
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Label { invoiceText(model.recheckMissed ? "notFound" : "unknown") } icon: { Image(systemName: "clock.badge.questionmark") }
+                    Label { invoiceText(key) } icon: { Image(systemName: "clock.badge.questionmark") }
                         .cyText(.bodyMedium)
-                    invoiceText(model.recheckMissed ? "notFound.sub" : "unknown.sub")
+                    invoiceText(key + ".sub")
                         .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityElement(children: .combine).accessibilityIdentifier("invoice.pending")

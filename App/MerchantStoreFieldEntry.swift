@@ -38,7 +38,10 @@ import SwiftUI
         content.background {
             Color.clear.frame(width: 0, height: 0)
                 .sheet(item: presentation.presentationBinding()) { selected in
-                    MerchantStoreFieldSheet(session: selected) { presentation.close(selected.id) }
+                    Group {
+                        MerchantStoreFieldSheet(session: selected) { presentation.close(selected.id) }
+                    }
+                    .presentationDetents([.large]).presentationDragIndicator(.visible)
                 }
                 // A newly selected session gets a fresh sheet binding owner, including first open.
                 .id(presentation.session?.id)
@@ -62,7 +65,10 @@ import SwiftUI
         NavigationStack {
             Form {
                 Section {
-                    if session.buffer.field == .description {
+                    if session.buffer.field == .preference {
+                        // MC7-19-2: MP decor 经营类目 is a fixed multi-select list (PREFERENCE_OPTIONS), joined with 、.
+                        MerchantPreferenceChoices(value: text)
+                    } else if session.buffer.field == .description {
                         TextEditor(text: text).frame(minHeight: 160)
                             .accessibilityLabel(Text(LocalizedStringKey(session.buffer.field.titleKey)))
                             .accessibilityIdentifier("merchant.storeField.input")
@@ -100,5 +106,53 @@ import SwiftUI
             onConfirm: { if session.discard() { close() } }
         )
         .onDisappear { session.cancel() }
+    }
+}
+
+/// MP pages/merchant/decor/index.js:42-60 `PREFERENCE_OPTIONS` / `parsePreference`: the fixed 经营类目 list plus any
+/// value the store already has, multi-select, written back as one 「、」-joined string (same server field).
+enum MerchantPreferenceOptions {
+    static let fixed = ["城市运动", "户外活动", "健康生活", "美食", "咖啡", "茶饮", "烘焙甜品", "酒吧小酌",
+                        "手作", "亲子", "夜生活", "文化艺术", "展览", "书店阅读", "音乐现场", "剧本密室", "桌游", "电玩",
+                        "摄影", "城市漫步", "骑行", "露营", "瑜伽", "球类", "水上运动", "花艺", "美容美发", "宠物友好"]
+    private static let separators = CharacterSet(charactersIn: "、,，·/|").union(.whitespacesAndNewlines)
+    static func parse(_ value: String) -> [String] {
+        var seen: [String] = []
+        for part in value.components(separatedBy: separators) {
+            let item = part.trimmingCharacters(in: .whitespaces)
+            if !item.isEmpty, !seen.contains(item) { seen.append(item) }
+        }
+        return seen
+    }
+    static func options(current: [String]) -> [String] { fixed + current.filter { !fixed.contains($0) } }
+    static func join(_ picked: [String]) -> String { picked.joined(separator: "、") }
+}
+
+@MainActor private struct MerchantPreferenceChoices: View {
+    @Binding var value: String
+    @State private var options: [String] = []
+    private var picked: [String] { MerchantPreferenceOptions.parse(value) }
+    var body: some View {
+        ForEach(options, id: \.self) { option in
+            let isOn = picked.contains(option)
+            Button {
+                var next = picked
+                if isOn { next.removeAll { $0 == option } } else { next.append(option) }
+                // Keep the list order, like the MP chip sheet's checked keys.
+                value = MerchantPreferenceOptions.join(options.filter { next.contains($0) })
+            } label: {
+                HStack {
+                    Text(verbatim: option).foregroundStyle(CYColor.textPrimary)
+                    Spacer()
+                    if isOn { Image(systemName: "checkmark").foregroundStyle(CYColor.brand).accessibilityHidden(true) }
+                }
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(isOn ? .isSelected : [])
+            .accessibilityIdentifier("merchant.storeField.preference.\(option)")
+        }
+        .onAppear { if options.isEmpty { options = MerchantPreferenceOptions.options(current: picked) } }
     }
 }

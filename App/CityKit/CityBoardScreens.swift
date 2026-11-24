@@ -51,7 +51,7 @@ struct CityBoardView: View {
         }
         .background(palette.bgPage.ignoresSafeArea())
         .navigationTitle(Text(verbatim: copy("城市大富翁", "City Monopoly")))
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable { if let center = store.center { await store.load(center: center) } }
         .accessibilityIdentifier("city.board")
     }
@@ -141,7 +141,7 @@ struct CityBoardView: View {
     private func moreLink(_ text: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack { Text(verbatim: text); Image(systemName: "chevron.right").imageScale(.small) }
-                .font(CYTypography.meta).foregroundStyle(palette.textSecondary).frame(minHeight: 44)
+                .cyText(.meta).foregroundStyle(palette.textSecondary).frame(minHeight: 44)
         }
         .buttonStyle(.plain)
     }
@@ -160,7 +160,7 @@ struct CityBoardView: View {
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
             }
             .padding(CYSpacing.md).frame(minHeight: 60)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -207,7 +207,7 @@ struct CityMyPropertiesView: View {
         }
         .background(palette.bgPage.ignoresSafeArea())
         .navigationTitle(Text(verbatim: copy("我的地盘", "My places")))
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("city.mine")
     }
 
@@ -280,6 +280,7 @@ struct CityRentLedgerView: View {
         .scrollContentBackground(.hidden)
         .background(palette.bgPage.ignoresSafeArea())
         .navigationTitle(Text(verbatim: copy("收租明细", "Rent ledger")))
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             await store.loadRevenue()
             notificationsOff = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus == .denied

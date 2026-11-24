@@ -12,6 +12,8 @@ import CryptoKit
     private let paused: PlayEncryptedSlot
     private let game: PlayEncryptedSlot
     private let tagRevocation: PlayEncryptedSlot
+    /// Free-exploration story archive. Same encrypted journal, its own binding, never a visit write.
+    private let storyArchiveSlot: PlayEncryptedSlot
     #if canImport(Security) && canImport(Darwin)
     private var systemStorage: PlayRecoverySystemStorage?
     var isSystemBacked: Bool { systemStorage != nil }
@@ -39,6 +41,7 @@ import CryptoKit
         paused = try PlayEncryptedSlot(binding: key + ":paused", anchors: anchors, ciphertexts: ciphertexts)
         game = try PlayEncryptedSlot(binding: key + ":game", anchors: anchors, ciphertexts: ciphertexts)
         tagRevocation = try PlayEncryptedSlot(binding: key + ":tag", anchors: anchors, ciphertexts: ciphertexts)
+        storyArchiveSlot = try PlayEncryptedSlot(binding: key + ":fe-story", anchors: anchors, ciphertexts: ciphertexts)
     }
     private func check(_ key: String) throws {
         guard self.key.utf8.elementsEqual(key.utf8) else { throw PlayExperienceError.persistenceUnavailable }
@@ -168,6 +171,22 @@ extension PlayDurableRecovery: PlayTagRevocationRecovery {
         guard snapshot.value.owner == owner, let bytes = snapshot.persistedBytes,
               try PropertyListDecoder().decode(PlayTagRevocationIntent.self, from: bytes) == snapshot.value else { throw PlayExperienceError.persistenceUnavailable }
         _ = try await tagRevocation.write(nil, replacing: .init(data: bytes, generation: snapshot.generation))
+    }
+}
+extension PlayDurableRecovery: FreeExplorationStoryArchiveStore {
+    public func readStoryArchive(key: String) async throws -> FreeExplorationStoryArchive? {
+        try check(key)
+        let raw = try await storyArchiveSlot.read()
+        guard let data = raw.data else { return nil }
+        let archive = try PropertyListDecoder().decode(FreeExplorationStoryArchive.self, from: data)
+        guard archive.schema == FreeExplorationStoryArchive.currentSchema, archive.owner == owner else { return nil }
+        return archive
+    }
+    public func writeStoryArchive(_ archive: FreeExplorationStoryArchive, key: String) async throws {
+        try check(key)
+        guard archive.owner == owner, archive.schema == FreeExplorationStoryArchive.currentSchema else { throw PlayExperienceError.persistenceUnavailable }
+        let current = try await storyArchiveSlot.read()
+        _ = try await storyArchiveSlot.write(encode(archive), replacing: current)
     }
 }
 private struct PlayEncryptedSnapshot: Equatable {
