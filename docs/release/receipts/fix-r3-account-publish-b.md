@@ -252,6 +252,7 @@ I checked every round-1 and round-2 commit of this branch, hunk by hunk, against
 
 ### Checks run in the cloud (round 3)
 
+- `contract_ratchet.py --check`: 217 failing (baseline 184, new 33). `origin/ui/combined-r7` `b0ac0108d` gives the identical 33-name set, so this branch adds **0** new failures.
 - `check_typography_lint.py`: PASS.
 - `check_appsession_ratchet.py`: PASS.
 - `check_a11y_lint.py`: 17 new against the baseline, which is the same 17 as `origin/ui/combined-r7`. None are in files this branch touches.
