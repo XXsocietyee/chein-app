@@ -28,6 +28,17 @@ import XCTest
         XCTAssertFalse(expanded.review(try route(expanded), permits: system.permits))
         XCTAssertTrue(writer.texts.isEmpty); XCTAssertTrue(writer.mutations.isEmpty)
     }
+    /// OR-023 (port P5). The reply copy comes from docs/port/strings/p5.json once the integrator merges it.
+    func testSystemConversationUsesAssistantTitleAndReplyHint() throws {
+        let chinese = Locale(identifier: "zh-Hans")
+        XCTAssertEqual(appLocalized("messaging.system", locale: chinese), "城瘾小助手")
+        XCTAssertEqual(appLocalized("im.reply.systemNotice", locale: chinese), "城瘾小助手不接收回复")
+        let system = try JSONDecoder().decode(MessagingConversation.self, from: Data(#"{"conversationId":9,"type":2}"#.utf8))
+        XCTAssertTrue(IMConversationTitlePolicy.usesAssistantTitle(system))
+        let member = try JSONDecoder().decode(MessagingConversation.self, from: Data(#"{"conversationId":9,"type":1}"#.utf8))
+        XCTAssertFalse(IMConversationTitlePolicy.usesAssistantTitle(member))
+        XCTAssertFalse(IMConversationTitlePolicy.usesAssistantTitle(nil))
+    }
     func testSystemReadMuteStillDispatchThroughExistingOwner() async throws {
         let writer = Writer(), model = try expandedModel(writer), system = try policy(2)
         for mutation in [IMMutation.read(conversationID: 9), .mute(conversationID: 9, muted: true)] {

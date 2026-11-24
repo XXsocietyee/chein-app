@@ -314,11 +314,14 @@ private struct TicketWalletEntitlementRow: View {
                 .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 Label {
-                    if let label = entitlement.statusLabel { Text(verbatim: label) }
+                    if let label = entitlement.displayStatusLabel { Text(verbatim: label) }
                     else { Text(LocalizedStringKey("ticketWallet.entitlementStatus." + entitlement.statusKey)) }
                 } icon: { Image(systemName: symbol).accessibilityHidden(true) }
                 .font(.subheadline).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
+            if entitlement.included == true { Text("ticketWallet.perk.included").cyText(.caption) }
+            else if let spend = entitlement.extraSpendText, !spend.isEmpty { Text(verbatim: spend).cyText(.caption) }
+            if entitlement.reserveRequired == true { Text("ticketWallet.perk.reserveRequired").cyText(.caption) }
             TicketWalletOptionalField(label: "ticketWallet.redeemedAt", value: entitlement.redeemedAt).font(.caption)
             if let reason = entitlement.invalidReason, !reason.isEmpty {
                 Text(verbatim: reason).font(.caption).foregroundStyle(CYColor.textSecondary)
