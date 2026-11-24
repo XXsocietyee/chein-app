@@ -96,7 +96,8 @@ struct CYMedalFace: View {
                 CYCachedAsyncImage(url, role: .shelf)
                     .frame(width: side * 0.7, height: side * 0.7)
                     .clipShape(CYHexagon())
-            } else if let art = CYMedalGlyph.image(for: item.systemImage) {
+            } else if let art = item.mpDefault?.image ?? CYMedalGlyph.image(for: item.systemImage) {
+                // The page's own MP default (trophy / glass badge) wins over the symbol-derived glyph.
                 art
                     .resizable()
                     .scaledToFit()

@@ -22,13 +22,14 @@ enum RoamPinCategory: String, Equatable {
         else if place.tags.contains("roam:shop") { self = .shop }
         else { self = .landmark }
     }
-    var pin: Image {
+    /// MP `categoryKey` → the shared MP marker set (unselected dot, selected teardrop pin).
+    var markerKind: CYMapMarkerKind {
         switch self {
-        case .merchant: MPAsset.MapMarker.pinMerchant
-        case .park: MPAsset.MapMarker.pinPark
-        case .street: MPAsset.MapMarker.pinStreet
-        case .shop: MPAsset.MapMarker.pinShop
-        case .landmark: MPAsset.MapMarker.pinLandmark
+        case .merchant: .merchant
+        case .park: .park
+        case .street: .street
+        case .shop: .shop
+        case .landmark: .landmark
         }
     }
 }
@@ -119,15 +120,15 @@ enum QuestifyMapAppearance {
 struct QuestifyMapPinSymbol: View {
     let symbol: String
     var selected = false
-    /// MP marker artwork (roam pins / cluster); drawn at the MP size inside a 44 pt hit area.
-    private var art: Image? = nil
+    /// Roam places / clusters: the MP marker kind from the place's MP `categoryKey` (nil keeps the symbol mapping).
+    private var kind: CYMapMarkerKind? = nil
     @ScaledMetric(relativeTo: .body) private var diameter = 44.0
     init(symbol: String, selected: Bool = false) { self.symbol = symbol; self.selected = selected }
-    /// Roam pins: the MP marker image instead of the symbol disc (nil keeps the symbol).
-    func mpArt(_ image: Image?) -> Self { var copy = self; copy.art = image; return copy }
+    /// Roam pins: the MP marker kind instead of the symbol-derived one (nil keeps the symbol).
+    func mpKind(_ kind: CYMapMarkerKind?) -> Self { var copy = self; copy.kind = kind; return copy }
     @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
-        CYMapMarker(symbol: symbol, selected: selected)
+        CYMapMarker(symbol: symbol, kind: kind, selected: selected)
             .frame(width: max(44, diameter), height: max(44, diameter))
             .overlay(Circle().strokeBorder(QuestifyMapAppearance.markerEdge,
                 lineWidth: selected ? 3 : (contrast == .increased ? 2 : 1)).opacity(selected ? 1 : 0))
