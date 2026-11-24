@@ -91,6 +91,11 @@ struct JourneyRunScope: Hashable {
     var registrationID: String?
     /// The viewer's `play_team` id when the run is a team run. Only this opens the in-team member board.
     var teamID: String?
+    /// JREPORT-3 (MP report `onLoad`, Core `JourneyRankBoardContract.LinkCodes`): raw city / country codes and a club id
+    /// from the link, for the 更多 boards. Core `menu` decides which of them are usable.
+    var cityCode: String?
+    var countryCode: String?
+    var clubID: String?
 }
 
 // MARK: - Routes
@@ -190,9 +195,13 @@ enum MPParityRoute: Hashable, Identifiable {
                 if query[numericKey]?.isEmpty == false && positiveIDString(numericKey) == nil { return nil }
             }
             if let topicName = nonEmpty("topicName"), topicName.count > 128 { return nil }
+            let codes = JourneyRankBoardContract.LinkCodes.parse(query)
             let scope = JourneyRunScope(activityID: positiveIDString("activityId"), topicID: positiveIDString("topicId"),
                                         runID: positiveIDString("runId"), topicName: nonEmpty("topicName"),
-                                        registrationID: positiveIDString("registrationId"), teamID: positiveIDString("teamId"))
+                                        registrationID: positiveIDString("registrationId"), teamID: positiveIDString("teamId"),
+                                        cityCode: codes.cityCode.isEmpty ? nil : codes.cityCode,
+                                        countryCode: codes.countryCode.isEmpty ? nil : codes.countryCode,
+                                        clubID: codes.clubID.isEmpty ? nil : codes.clubID)
             self = page.hasSuffix("report/index") ? .journeyReport(scope) : .journeySettle(scope)
         case "pages/club/payout-receiver/index":
             let club = positiveID("clubId") ?? positiveID("id")

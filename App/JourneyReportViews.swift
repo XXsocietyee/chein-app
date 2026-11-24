@@ -249,11 +249,13 @@ struct JourneyRankBoardView: View {
     private func hero(rank: Int, board: JourneyRankBoard) -> some View {
         VStack(spacing: CYSpacing.sm) {
             HStack(spacing: CYSpacing.sm) {
-                Image(systemName: "laurel.leading").font(CYTypography.data2XL)
+                // MP rank-board wxml:12/:20: the shipped `laurel.svg`, the right branch mirrored (MP assets).
+                MPAsset.BadgeMedal.laurel.resizable().scaledToFit().frame(width: 48, height: 110)
                 Text(verbatim: String(heroOn ? rank : 0))
                     .cyText(.data2XL).monospacedDigit()
                     .contentTransition(.numericText(value: Double(heroOn ? rank : 0)))
-                Image(systemName: "laurel.trailing").font(CYTypography.data2XL)
+                MPAsset.BadgeMedal.laurel.resizable().scaledToFit().frame(width: 48, height: 110)
+                    .scaleEffect(x: -1, y: 1)
             }
             .foregroundStyle(CYNight.lanternHot)
             .scaleEffect(heroOn ? 1 : 0.6)

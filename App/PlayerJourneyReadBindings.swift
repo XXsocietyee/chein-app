@@ -318,7 +318,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private(set) var feedback: JourneyFeedbackState = .editing(nil)
     /// JREPORT-1: set once the report is ready (topic link; the referral token stays a money write, see `PlayerJourneyShare`).
     private(set) var shareURL: URL?
-    private let scope: JourneyRunScope
+    /// `var`: JREPORT-3 fills `teamID` from choices after the report is ready.
+    private var scope: JourneyRunScope
     private let source: JourneyLoopSource
     private let token: () -> String?
     /// Kept unchanged while the answer is unknown: the same request id is only re-sent with the same text.
@@ -330,7 +331,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
         self.source = source
         self.token = token
         rank.tabs = PlayerJourneyProjection.rankTabs(scope)
-        rank.more = PlayerJourneyProjection.rankMore()
+        rank.more = PlayerJourneyProjection.rankMore(scope)
         rank.scope = rank.tabs.first ?? rank.more.first
         rank.phase = .loading
     }
@@ -420,8 +421,23 @@ struct PlayerJourneySignInSheet: ViewModifier {
         }
         if case .ready(let report) = phase, !report.legacy, !teamsProbed {
             teamsProbed = true
+            await loadTeamFromChoices(session)
             await probeTeams(session)
         }
+    }
+
+    /// JREPORT-3 (MP report `_loadTeam`): a link without `teamId` reads choices; the first `teamCapacity.teamId`
+    /// (Core `JourneyRankBoardContract.teamID`) opens 队内. A failed read changes nothing.
+    private func loadTeamFromChoices(_ session: String) async {
+        guard scope.teamID == nil, scope.activityID != nil || scope.topicID != nil,
+              let envelope = try? await source.choices(activityID: scope.activityID,
+                                                       topicID: scope.activityID == nil ? scope.topicID : nil, token: session),
+              envelope.ok, let team = JourneyRankBoardContract.teamID(choicesJSON: envelope.dataJSON) else { return }
+        scope.teamID = team
+        let tabs = PlayerJourneyProjection.rankTabs(scope)
+        let extra = rank.tabs.filter { !tabs.contains($0) }
+        rank.tabs = tabs + extra
+        if rank.scope == nil { rank.scope = rank.tabs.first }
     }
 
     /// The Teams tab only appears when the server returns team rows for this topic or activity.
@@ -685,7 +701,13 @@ private func playerJourneyRank(selected: JourneyRankScope, run: JourneyRunScope,
             let envelope = try await source.rank(scope: "team", scopeID: team, period: period.rawValue, token: token)
             return PlayerJourneyProjection.rank(envelope, scope: "team", scopeID: team, period: period.rawValue)
         case .city, .country, .club:
-            return .empty
+            // JREPORT-3: `GET /api/rank/list` with `scope`, `scopeId`, `period` only; the scope id comes from Core's menu
+            // (city / country codes from the link, club id). A run without that code never offers the tab.
+            guard let tab = PlayerJourneyProjection.rankMenu(run).more.first(where: { $0.kind.rawValue == selected.kind.rawValue }),
+                  !tab.scopeID.isEmpty else { return .empty }
+            let scope = selected.kind.rawValue
+            let envelope = try await source.rank(scope: scope, scopeID: tab.scopeID, period: period.rawValue, token: token)
+            return PlayerJourneyProjection.rank(envelope, scope: scope, scopeID: tab.scopeID, period: period.rawValue)
         }
     } catch {
         return .failed(nil)
@@ -703,16 +725,19 @@ private func playerJourneyTeams(run: JourneyRunScope, source: JourneyLoopSource,
 }
 
 enum PlayerJourneyProjection {
-    /// Whole board for this topic. City, country and club need frozen codes or a club id the run scope does not carry.
-    static func rankTabs(_ run: JourneyRunScope) -> [JourneyRankScope] {
-        var tabs: [JourneyRankScope] = []
-        if let topic = run.topicID, JourneyLoopSource.isID(topic) { tabs.append(JourneyRankScope(kind: .quest)) }
-        // In-team board (队内) only for a team run (channels contract §5).
-        if let team = run.teamID, JourneyLoopSource.isID(team) { tabs.append(JourneyRankScope(kind: .team)) }
-        return tabs
+    /// JREPORT-3: Core `JourneyRankBoardContract.menu` — 本关 and 队内 on the tabs; city, country, world, club in 更多.
+    static func rankMenu(_ run: JourneyRunScope) -> JourneyRankBoardContract.Menu {
+        JourneyRankBoardContract.menu(topicID: run.topicID, cityCode: run.cityCode, countryCode: run.countryCode,
+                                      clubID: run.clubID, teamID: run.teamID)
     }
 
-    static func rankMore() -> [JourneyRankScope] { [JourneyRankScope(kind: .world)] }
+    static func rankTabs(_ run: JourneyRunScope) -> [JourneyRankScope] {
+        rankMenu(run).tabs.compactMap { JourneyRankScope.Kind(rawValue: $0.kind.rawValue).map(JourneyRankScope.init(kind:)) }
+    }
+
+    static func rankMore(_ run: JourneyRunScope) -> [JourneyRankScope] {
+        rankMenu(run).more.compactMap { JourneyRankScope.Kind(rawValue: $0.kind.rawValue).map(JourneyRankScope.init(kind:)) }
+    }
 
     static func landing(link: JourneyLandingLink, envelope: JourneyEnvelope, choices: JourneyEnvelope?, activeMode: String?) -> JourneyLandingPhase {
         if envelope.unconfirmed || envelope.netFail { return .failed }

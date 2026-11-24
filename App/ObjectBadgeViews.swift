@@ -227,8 +227,8 @@ private struct ObjectBadgeShowcasePage: View {
         VStack(spacing: CYSpacing.md) {
             CYFoilMedal(unlocked: true, size: 150) {
                 ZStack {
-                    LinearGradient(colors: [Color(hue: 0.12, saturation: 0.7, brightness: 0.9).opacity(0.9), Color(hue: 0.08, saturation: 0.7, brightness: 0.4)], startPoint: .top, endPoint: .bottom)
-                    Image(systemName: "medal.fill").cyText(.display).foregroundStyle(.white.opacity(0.92))
+                    // MP badge-3d / xr-badge default art `badge-demo.png` (MP assets), not an SF medal.
+                    MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit().padding(CYSpacing.md)
                 }
             }
             Text(verbatim: name).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
@@ -291,8 +291,8 @@ struct ObjectBadgeWallBadgeLabel: View {
             VStack(spacing: CYSpacing.sm) {
                 CYFoilMedal(unlocked: !badge.isLocked, size: 76) {
                     ZStack {
-                        LinearGradient(colors: [Color(hue: 0.12, saturation: 0.7, brightness: 0.9).opacity(0.9), Color(hue: 0.08, saturation: 0.7, brightness: 0.4)], startPoint: .top, endPoint: .bottom)
-                        Image(systemName: "medal.fill").font(.title2).foregroundStyle(.white.opacity(0.9))
+                        // MP default badge art `badge-demo.png` (MP assets).
+                        MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit().padding(CYSpacing.xs)
                     }
                 }.padding(6).accessibilityHidden(true)   // the name + locked chip carry the meaning
                 description.fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
@@ -447,8 +447,10 @@ struct ObjectBadgeWallBadgeLabel: View {
                 if media == nil || badge.image.isEmpty {
                     ZStack {
                         LinearGradient(colors: [tint.opacity(0.9), tint.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Image(systemName: "medal.fill").cyText(.data2XL).foregroundStyle(.white.opacity(0.92))
-                            .symbolEffect(.bounce, value: celebrate && !reduceMotion)
+                        // MP badge-3d `DEFAULT_BADGE_ASSET` (`badge-demo.png`, MP assets) when the badge has no art.
+                        MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit().padding(CYSpacing.lg)
+                            .scaleEffect(celebrate && !reduceMotion ? 1.06 : 1)
+                            .animation(reduceMotion ? nil : .spring(duration: 0.35, bounce: 0.4), value: celebrate)
                     }
                 } else {
                     ObjectCardArtwork(url: badge.image, label: badge.name, media: media,

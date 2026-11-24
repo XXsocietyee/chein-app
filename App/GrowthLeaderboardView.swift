@@ -77,12 +77,12 @@ import SwiftUI
                         ForEach(Array(board.list.enumerated()), id: \.offset) { index, row in
                             if index >= 3 {
                                 GrowthLeaderboardRow(entry: row, fallback: "growth.explorer", metric: board.metric,
-                                                     isMe: meID != nil && row.memberID == meID)
+                                                     isMe: meID != nil && row.memberID == meID, listIndex: index)
                                     .accessibilityIdentifier("growth.board.row.\(index)")
                             }
                         }
                         if !listed, let rank = board.me.rank {
-                            GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true)
+                            GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true, listIndex: -1)
                                 .accessibilityIdentifier("growth.board.me.\(rank)")
                         }
                     }
@@ -140,6 +140,8 @@ private struct GrowthLeaderboardRow: View {
     let metric: GrowthBoardMetric
     var place: Int? = nil
     var isMe = false
+    /// MP `toRow(it, index)`: the list index picks the Memoji; the pinned 我 row is -1.
+    var listIndex = 0
     var body: some View {
         // Mini-program order: rank, name, trailing score + unit. One tappable-height row;
         // at accessibility sizes the score drops under the name instead of squeezing it.
@@ -153,6 +155,7 @@ private struct GrowthLeaderboardRow: View {
             // LEADER-5: MP `.gc-row-rank` subtitle size, semibold, secondary.
             .cyText(.cardTitle, monospacedDigit: true).foregroundStyle(palette.textSecondary)
             .frame(minWidth: 28, alignment: .leading)
+            GrowthMemojiAvatar(index: listIndex, side: 40)
             VStack(alignment: .leading, spacing: 4) {
                 let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(spacing: 8))
                 layout {
@@ -177,6 +180,23 @@ private struct GrowthLeaderboardRow: View {
             GrowthCenterInteger(value: entry.score).cyText(.label, weight: .semibold, monospacedDigit: true).foregroundStyle(palette.textPrimary)
             Text(LocalizedStringKey("growth.unit." + metric.rawValue)).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
+    }
+}
+
+/// MP leaderboard avatar (index.js:10-17, wxml:132-134): own avatar → Memoji by list index → initial. Remote avatars are
+/// not loaded on Growth screens, so every row shows the MP Memoji (MP assets `memoji-1/2/3`, rotating, me = the first).
+struct GrowthMemojiAvatar: View {
+    @Environment(\.cyPalette) private var palette
+    let index: Int
+    let side: CGFloat
+    var body: some View {
+        [MPAsset.AvatarDefault.memoji1, MPAsset.AvatarDefault.memoji2, MPAsset.AvatarDefault.memoji3][max(index, 0) % 3]
+            .resizable()
+            .scaledToFill()
+            .frame(width: side, height: side)
+            .background(palette.bgRaised)
+            .clipShape(Circle())
+            .accessibilityHidden(true)
     }
 }
 
@@ -222,7 +242,7 @@ private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
     }
 }
 
-/// Mini-program podium: 2 · 1 · 3, initial discs with a rank coin, name, score + unit. Unknown score is an em dash.
+/// Mini-program podium: 2 · 1 · 3, Memoji discs with a rank coin, name, score + unit. Unknown score is an em dash.
 private struct GrowthLeaderboardPodiumView: View {
     @Environment(\.cyPalette) private var palette
     let entries: [GrowthLeaderboardEntry]
@@ -243,10 +263,7 @@ private struct GrowthLeaderboardPodiumView: View {
         let name = GrowthCenterFormatting.nonempty(entry.nickname)
         return VStack(spacing: CYSpacing.sm) {
             ZStack(alignment: .bottom) {
-                Text(verbatim: name.map { String($0.prefix(1)) } ?? "—")
-                    .cyText(place == 1 ? .display : .pageTitle, weight: .heavy).foregroundStyle(palette.textPrimary)
-                    .frame(width: side, height: side)
-                    .background(palette.bgRaised, in: Circle())
+                GrowthMemojiAvatar(index: place - 1, side: side)
                     .overlay(Circle().strokeBorder(ring, lineWidth: 3))
                 Text(place, format: .number).cyText(.label, weight: .bold).foregroundStyle(palette.textInverse)
                     .frame(width: 28, height: 28).background(palette.textPrimary, in: Circle())

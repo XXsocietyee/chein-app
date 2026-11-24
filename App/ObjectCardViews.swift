@@ -40,7 +40,12 @@ extension EnvironmentValues {
                                 .accessibilityIdentifier("objects.category.\(category.localizationKey)")
                         }
                     } label: {
-                        Label(LocalizedStringKey(model.category.localizationKey), systemImage: "line.3.horizontal.decrease.circle")
+                        // MP object-cards wxml:15: the filter shows the category's own icon (`cat/*.png`, MP assets).
+                        Label {
+                            Text(LocalizedStringKey(model.category.localizationKey))
+                        } icon: {
+                            model.category.mpIcon.resizable().scaledToFit().frame(width: 24, height: 24).accessibilityHidden(true)
+                        }
                             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                             .contentShape(Rectangle())
                     }
@@ -310,3 +315,21 @@ extension AppSession {
     }
 }
 
+
+
+/// MP object-cards `CAT_ICON` (index.js:18-22): one Fluent 3D icon per category, shipped as MP assets.
+extension ObjectCardCategory {
+    var mpIcon: Image {
+        switch self {
+        case .all: MPAsset.FeatureIcon.all
+        case .electronics: MPAsset.FeatureIcon.electronics
+        case .clothing: MPAsset.FeatureIcon.clothing
+        case .bags: MPAsset.FeatureIcon.bags
+        case .food: MPAsset.FeatureIcon.subpackageP3ImagesCatFood
+        case .books: MPAsset.FeatureIcon.books
+        case .toys: MPAsset.FeatureIcon.toys
+        case .household: MPAsset.FeatureIcon.daily
+        case .other: MPAsset.FeatureIcon.subpackageP3ImagesCatOther
+        }
+    }
+}

@@ -307,25 +307,25 @@ extension RootTabSwitch {
     }
 }
 
-/// Initial disc for the score card (the mini-program avatar slot; remote avatars are not loaded on this screen).
+/// Score-card avatar. MP growthcenter wxml:20 is `profile.avatarUrl || '/images/d_profile.png'`; remote avatars are
+/// not loaded on Growth screens (third-party media), so the slot always shows the MP default `d_profile` (MP assets).
 struct GrowthProfileDisc: View {
     @Environment(\.cyPalette) private var palette
     let name: String?
     @Environment(\.themeDomain) private var themeDomain
     var body: some View {
-        let initial = GrowthCenterFormatting.nonempty(name).map { String($0.prefix(1)) }
-        ZStack {
-            Circle().fill(palette.bgRaised)
-            if let initial { Text(verbatim: initial).cyText(.sectionTitle).foregroundStyle(palette.textPrimary) }
-            else { Image(systemName: "person.fill").cyText(.sectionTitle).foregroundStyle(palette.textTertiary) }
-        }
-        .frame(width: 48, height: 48)
-        .overlay {
-            if themeDomain == .player {
-                Circle().strokeBorder(palette.avatarRing, lineWidth: 2)
+        MPAsset.AvatarDefault.dProfile
+            .resizable()
+            .scaledToFill()
+            .frame(width: 48, height: 48)
+            .background(palette.bgRaised)
+            .clipShape(Circle())
+            .overlay {
+                if themeDomain == .player {
+                    Circle().strokeBorder(palette.avatarRing, lineWidth: 2)
+                }
             }
-        }
-        .accessibilityHidden(true)
+            .accessibilityHidden(true)
     }
 }
 
