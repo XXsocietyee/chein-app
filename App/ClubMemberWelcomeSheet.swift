@@ -86,6 +86,13 @@ import SwiftUI
                         step("calendar", Text(LocalizedStringKey(value.eventsKey), tableName: "ClubMemberWelcome"))
                         Divider().overlay(CYColor.borderSubtle).padding(.leading, 52)
                         step("person.3", Text("welcome.overview", tableName: "ClubMemberWelcome"))
+                        if let memberPriceText {
+                            // cursor/core-club hand-off (CLB-detail-29): the member price perk, shown only when Core
+                            // has one. Owner decision 9: two decimals through the shared `MoneyDisplay`.
+                            Divider().overlay(CYColor.borderSubtle).padding(.leading, 52)
+                            step("tag", Text("club.welcome.memberPrice \(memberPriceText)"))
+                                .accessibilityIdentifier("club.welcome.memberPrice")
+                        }
                     }
                     .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 }
@@ -112,6 +119,15 @@ import SwiftUI
             // CLB-detail-29: two exits are enough (去看活动 / 知道了, plus the drag); no toolbar 关闭.
         }
     }
+    /// Server text wins (as `ClubMemberWelcome.memberPricePerk` does); otherwise `MoneyDisplay.yuan` (¥12.50).
+    private var memberPriceText: String? {
+        guard value.memberPricePerk != nil, let price = value.club.memberDiscountPrice else { return nil }
+        if let text = value.club.memberDiscountPriceText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+            return text
+        }
+        return MoneyDisplay.yuan(Decimal(price))
+    }
+
     private func step(_ symbol: String, _ text: Text) -> some View {
         HStack(spacing: CYSpacing.md) {
             Image(systemName: symbol).foregroundStyle(CYColor.textPrimary).frame(width: 24)

@@ -258,7 +258,7 @@ import SwiftUI
             if busy { ProgressView() }
             if let review {
                 Section {
-                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true, localizesEnums: true)
+                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "durationDays" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true, localizesEnums: true)
                     if route.operation == .createSeries, review.command.fields["defaultLeadMemberId"] == .null {
                         LabeledContent("club.gov.field.defaultLeadMemberId") { Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent") }
                             .accessibilityIdentifier("clubOpsEvent.review.ownerDefault")

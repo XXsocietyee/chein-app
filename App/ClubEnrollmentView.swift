@@ -278,7 +278,8 @@ extension EnvironmentValues {
     private func cover(_ team: ClubEnrollmentTeam) -> some View {
         Group {
             if let image = team.image { SquareImage(source: image) }
-            else { CYCoverArt(seed: "\(clubID)-\(team.id)", symbol: "flag.fill", showsDebugLabel: false, showsGlyph: true) }
+            // Round 2 MP asset: `team.imgUrl || '/images/route_city_cover.png'` (enroll wxml:37).
+            else { MPAsset.BannerCover.routeCityCover.resizable().scaledToFill() }
         }
         .frame(width: coverSide, height: coverSide)
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
@@ -471,12 +472,14 @@ extension EnvironmentValues {
     }
     private func attendee(_ value: ClubEnrollmentRegistrant) -> some View {
         HStack(spacing: CYSpacing.sm) {
-            if let avatar = value.avatar {
-                SquareImage(source: avatar)
-                    .frame(width: coverSide * 0.64, height: coverSide * 0.64)
-                    .clipShape(Circle())
-                    .accessibilityHidden(true)
+            // Round 2 MP asset: `r.avatar || '/images/d_profile.png'` (enroll wxml:76).
+            Group {
+                if let avatar = value.avatar { SquareImage(source: avatar) }
+                else { MPAsset.AvatarDefault.dProfile.resizable().scaledToFill() }
             }
+            .frame(width: coverSide * 0.64, height: coverSide * 0.64)
+            .clipShape(Circle())
+            .accessibilityHidden(true)
             title(value.nickname, fallback: "club.enroll.player")
                 .cyText(.body)
                 .foregroundStyle(palette.textPrimary)

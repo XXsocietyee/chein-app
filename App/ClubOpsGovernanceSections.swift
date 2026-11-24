@@ -310,9 +310,11 @@ struct ClubOpsGovernanceDeniedNote: View {
     var body: some View {
         switch operation {
         case .bans, .members:
-            note("clubOpsGov.denied.title", "clubOpsGov.denied.body")
+            // cursor/core-club hand-off (CLB-r7-A-07 / C-02): member governance is owner or co-owner only; the body is
+            // `ClubGovernancePermissions.memberGovernanceDenial` (仅主理人与联合主理人可进行成员治理), catalogued.
+            note("clubOpsGov.denied.title", Text("club.memberGovernance.denied"))
         case .roles:
-            note("clubOpsGov.roles.denied.title", "clubOpsGov.roles.denied.body")
+            note("clubOpsGov.roles.denied.title", ClubOpsGovernanceCopy.text("clubOpsGov.roles.denied.body"))
         case .audienceCounts:
             Section { ClubOpsNotifyDeniedText() }
         case .access:
@@ -320,7 +322,7 @@ struct ClubOpsGovernanceDeniedNote: View {
         default: EmptyView()
         }
     }
-    private func note(_ title: String, _ body: String) -> some View {
+    private func note(_ title: String, _ message: Text) -> some View {
         Section {
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: "lock")
@@ -328,7 +330,7 @@ struct ClubOpsGovernanceDeniedNote: View {
                     .foregroundStyle(CYColor.textSecondary)
                 ClubOpsGovernanceCopy.text(title)
                     .cyText(.cardTitle)
-                ClubOpsGovernanceCopy.text(body)
+                message
                     .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                 // CLB-governance-08 / CLB-roles-06 (parity r2): the MP denial offers 返回 (cta="返回").
@@ -400,7 +402,11 @@ struct ClubOpsBanDurationPicker: View {
 struct ClubOpsBanExpiryReview: View {
     let fields: [String: ClubGovernanceValue]
     var body: some View {
-        if let value = fields["expiresAtEpochMs"], let text = ClubOpsGovernanceClock.minute(value) {
+        // cursor/core-club hand-off (CLB-r7-C-01): the ban body carries `durationDays` (7/30/90), shown as 「N 天」.
+        if let days = fields["durationDays"]?.int {
+            LabeledContent { Text("clubOpsGov.days \(days)", tableName: "ClubOpsGovernance") } label: { ClubOpsGovernanceCopy.text("clubOpsGov.duration") }
+                .accessibilityIdentifier("clubOpsGov.review.duration")
+        } else if let value = fields["expiresAtEpochMs"], let text = ClubOpsGovernanceClock.minute(value) {
             LabeledContent { Text("clubOpsGov.until \(text)", tableName: "ClubOpsGovernance") } label: { ClubOpsGovernanceCopy.text("clubOpsGov.duration") }
                 .accessibilityIdentifier("clubOpsGov.review.expiry")
         }

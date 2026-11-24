@@ -67,16 +67,43 @@ struct ClubOpsPageFailureSection: View {
     /// X3 (parity r2): the one reason line under the page title (server sentence or generic key).
     var reason: Text? = nil
     let retry: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    /// cursor/core-club hand-off (CLB-topic-detail-09, CLB-event-ops-05, CLB-notify-04): Core's MP sentence
+    /// (`literalTitle`, e.g. 网络连接失败 vs 活动无法打开) wins over `titleKey`. The sentence is looked up through its
+    /// catalogued key (`docs/port/strings/cursor-core-club.json`) so English still reads in English.
+    static func literalKey(_ literal: String?) -> String? {
+        switch literal {
+        case ClubOpsNetworkFailureClassifier.networkFailureTitle?: return "clubOps.notify.network"
+        case ClubOpsNetworkFailureClassifier.topicUnavailableTitle?: return "clubOps.topic.unavailable"
+        case ClubOpsNetworkFailureClassifier.linkInvalidTitle?: return "clubOps.topic.invalid"
+        case ClubOpsNetworkFailureClassifier.seriesFailedTitle?: return "clubOps.series.failed"
+        case ClubOpsNetworkFailureClassifier.eventTopicsFailedTitle?: return "clubOps.eventTopics.failed"
+        case ClubOpsNetworkFailureClassifier.eventOpsUnavailableTitle?: return "clubOps.eventOps.unavailable"
+        case ClubOpsNetworkFailureClassifier.settlementUnavailableTitle?: return "clubOps.settlement.unavailable"
+        default: return nil
+        }
+    }
+
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    LocalizedStringKey(copy.titleKey),
-                    tableName: copy.table,
-                    messageIdentifier: "clubOps.pageFailure.title",
-                    kind: .failure
-                )
+                if let key = Self.literalKey(copy.literalTitle) {
+                    CYEmptyState(
+                        systemImage: "exclamationmark.triangle",
+                        LocalizedStringKey(key),
+                        messageIdentifier: "clubOps.pageFailure.title",
+                        kind: .failure
+                    )
+                } else {
+                    CYEmptyState(
+                        systemImage: "exclamationmark.triangle",
+                        LocalizedStringKey(copy.titleKey),
+                        tableName: copy.table,
+                        messageIdentifier: "clubOps.pageFailure.title",
+                        kind: .failure
+                    )
+                }
                 if let reason {
                     reason
                         .cyText(.bodyCompact)
@@ -86,8 +113,14 @@ struct ClubOpsPageFailureSection: View {
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("club.gov.error")
                 }
-                CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, systemImage: "arrow.clockwise", tableName: copy.table, action: retry)
-                    .accessibilityIdentifier("clubOps.pageFailure.retry")
+                if copy.prefersBack {
+                    // An invalid or retargeted topic link: MP offers 返回 (pop), not reload.
+                    CYPillButton("clubOps.topic.back", style: .secondary) { dismiss() }
+                        .accessibilityIdentifier("clubOps.pageFailure.back")
+                } else {
+                    CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, systemImage: "arrow.clockwise", tableName: copy.table, action: retry)
+                        .accessibilityIdentifier("clubOps.pageFailure.retry")
+                }
             }
             .e1ActionRow()
         }
