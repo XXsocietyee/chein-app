@@ -338,7 +338,7 @@ public struct PlayLeadProgress: Equatable {
         guard isLeader, leaderMemberID == accountID else { return false }
         if action == .start { return !exists }
         guard exists else { return false }
-        return action != .unlockChapter || allArrived
+        return action != .unlockChapter || ChapterArrivalLock.opens(arrivedAtStop: meArrived && allArrived, chapterLocked: false)
     }
 }
 public enum PlayLeadAction: String, CaseIterable {

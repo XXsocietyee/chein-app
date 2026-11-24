@@ -21,6 +21,9 @@ public struct PlatformPass: Sendable {
     public static let giftsBoughtPath = "api/marketing/product/gifts/bought"
     public static let giftsReceivedPath = "api/marketing/product/gifts/received"
     public static let pointsPath = "api/user/info"
+    /// Owner 2026-11-24: players may read platform-pass orders. This is a read, not a money write.
+    public static let orderReadsEnabled = true
+
     public static let purchasePath = "api/platform-pass/orders"
     /// GET on the purchase URL lists the viewer's own pass orders (`market/passes` 我的订单). POST stays refused.
     public static let passOrdersPath = "api/platform-pass/orders"
@@ -123,14 +126,17 @@ public struct PlatformPass: Sendable {
     }
 
     /// GET `/api/platform-pass/orders?limit=20`: the viewer's own city-pass subscription orders.
-    public func passOrders(token: String) async throws -> [PlatformPassSubscriptionOrder] {
+    /// Merchants do not read it. The read gate stays on; purchase never sends.
+    public func passOrders(token: String, viewerIsMerchant: Bool = false) async throws -> [PlatformPassSubscriptionOrder] {
+        guard Self.orderReadsEnabled, !viewerIsMerchant else { return [] }
         let data = try await get(Self.passOrdersPath, query: [URLQueryItem(name: "limit", value: "20")], token: token)
         guard let rows = PlatformPassJSON.rows(data) else { throw APIError.malformedResponse }
         return rows.compactMap { PlatformPassJSON.dictionary($0).flatMap(PlatformPassSubscriptionOrder.decode) }
     }
 
     /// GET `/api/platform-pass/orders/{orderNo}` (`market/pass-order`). Read only: pay, cancel and refund stay off.
-    public func passOrderDetail(orderNo: String, token: String) async throws -> PlatformPassSubscriptionOrder {
+    public func passOrderDetail(orderNo: String, token: String, viewerIsMerchant: Bool = false) async throws -> PlatformPassSubscriptionOrder {
+        guard Self.orderReadsEnabled, !viewerIsMerchant else { throw APIError.notConfigured }
         guard PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { throw APIError.invalidRequest }
         let data = try await get(Self.passOrdersPath + "/" + orderNo, query: [], token: token)
         guard let row = PlatformPassJSON.dictionary(data), let order = PlatformPassSubscriptionOrder.decode(row) else {
@@ -703,14 +709,9 @@ public struct PlatformPassSubscriptionOrder: Equatable, Sendable {
             canRefund: status == .paid && (review == "NONE" || review == "REJECTED"))
     }
 
-    /// `platform-pass.js` `yuanFen`: ¥ plus the decimal yuan without trailing zeros.
+    /// Shared two-decimal yuan (`MoneyDisplay`). Owner 2026-11-24: ¥12.50, never one decimal.
     static func yuanFen(_ fen: Int) -> String {
-        let sign = fen < 0 ? "-" : ""
-        let whole = abs(fen) / 100
-        let frac = abs(fen) % 100
-        if frac == 0 { return "\(sign)¥\(whole)" }
-        if frac % 10 == 0 { return "\(sign)¥\(whole).\(frac / 10)" }
-        return "\(sign)¥\(whole)." + (frac < 10 ? "0" : "") + "\(frac)"
+        MoneyDisplay.yuan(fen: fen)
     }
 
     /// Server dates arrive as `yyyy-MM-dd HH:mm:ss` (China time), ISO text or epoch numbers.

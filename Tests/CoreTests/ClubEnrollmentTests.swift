@@ -254,8 +254,8 @@ final class ClubEnrollmentTests: XCTestCase {
             .object(["label": .string("no id")]),
         ]))
         XCTAssertEqual(rows.map(\.id), [5, 6])
-        XCTAssertEqual(rows[0].paidText, "¥100.0"); XCTAssertEqual(rows[0].refundedText, "¥10.5"); XCTAssertEqual(rows[0].netText, "¥89.5")
-        XCTAssertEqual(rows[1].paidText, "¥0.0"); XCTAssertEqual(rows[1].refundedText, "¥0.01"); XCTAssertEqual(rows[1].netText, "—")
+        XCTAssertEqual(rows[0].paidText, "¥100.00"); XCTAssertEqual(rows[0].refundedText, "¥10.50"); XCTAssertEqual(rows[0].netText, "¥89.50")
+        XCTAssertEqual(rows[1].paidText, "¥0.00"); XCTAssertEqual(rows[1].refundedText, "¥0.01"); XCTAssertEqual(rows[1].netText, "—")
         XCTAssertTrue(rows[1].cancelled); XCTAssertNil(rows[1].label)
         XCTAssertEqual(ClubEnrollmentSessionMoney.yuanText(.integer(-255)), "-¥2.55")
     }

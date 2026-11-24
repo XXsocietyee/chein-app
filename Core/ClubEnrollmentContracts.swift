@@ -168,13 +168,10 @@ public struct ClubEnrollmentSessionMoney: Equatable, Identifiable {
                          paidText: yuanText(row["paidFen"]), refundedText: yuanText(row["refundedFen"]), netText: yuanText(row["netFen"]))
         }
     }
-    /// MP `yuanText` + utils/money-format `decimalText`: ¥0.0, ¥10.0, ¥10.5, ¥10.55; unknown is "—".
+    /// Shared two-decimal yuan (`MoneyDisplay`). Unknown fen is "—".
     public static func yuanText(_ fen: ClubGovernanceValue) -> String {
         guard let raw = fen.number, raw.isFinite else { return "—" }
         let cents = Int(abs(raw).rounded())
-        let sign = raw < 0 && cents > 0 ? "-" : ""
-        if cents == 0 { return "¥0.0" }
-        let body = cents % 10 == 0 ? String(format: "%.1f", Double(cents) / 100) : String(format: "%.2f", Double(cents) / 100)
-        return sign + "¥" + body
+        return MoneyDisplay.yuan(fen: raw < 0 ? -cents : cents)
     }
 }

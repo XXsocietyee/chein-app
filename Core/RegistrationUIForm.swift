@@ -77,15 +77,14 @@ public enum RegistrationUICreationPolicy: Equatable {
 /// The one shared money-display formatter (owner ruling 2026-11-22, chengyin-ios `fix/owner-decisions-1122`).
 /// Display only: stored, quoted and computed amounts never change.
 ///
-/// SINGLE SWITCH: `MoneyDisplay.current`. It stays `.twoDecimals` (today's behaviour, ¥39.00) until the
-/// owner confirms the one-decimal rule for chengyin-app (port plan §7 Q3). Flipping it to `.oneDecimal`
-/// gives ¥39.0 / ¥29.9 and keeps two places when the second decimal is non-zero (¥0.01, ¥12.35).
+/// SINGLE SWITCH: `MoneyDisplay.current`. Owner 2026-11-24 confirmed two decimals (¥12.50 / ¥39.00).
+/// `.oneDecimal` remains only so an explicit rule can still be named; no money path passes it.
 /// Text the server sends already formatted (for example `WalletAmount.text`) is shown as given.
 public enum MoneyDisplay {
     public enum Rule: Equatable, Sendable {
         /// Current behaviour: always two decimal places (39 -> 39.00).
         case twoDecimals
-        /// Owner ruling 2026-11-22 (pending confirmation): one place, two when the second is non-zero.
+        /// Named rule only. Production money uses `.twoDecimals` (owner 2026-11-24).
         case oneDecimal
     }
     /// The switch. Every money formatter reads this value; change nothing else to flip the rule.
@@ -112,6 +111,15 @@ public enum MoneyDisplay {
     }
     /// "¥" followed by the plain text.
     public static func yuan(_ amount: Decimal, rule: Rule = current) -> String { "¥" + plain(amount, rule: rule) }
+
+    /// Fen (cents) through the shared two-decimal rule. A negative amount is `-¥2.55`.
+    public static func yuan(fen: Int) -> String {
+        let cents = Decimal(abs(fen))
+        let amount = cents / Decimal(100)
+        let body = plain(amount)
+        if fen < 0, amount != 0 { return "-¥" + body }
+        return "¥" + body
+    }
     /// Server decimal text in the same digits, lexically: no Decimal/Double conversion, so no
     /// rounding or overflow. Trailing zeros past the rule's minimum places are dropped and missing
     /// places are padded. Text that is not a plain decimal is shown as given.

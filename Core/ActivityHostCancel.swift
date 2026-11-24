@@ -92,6 +92,8 @@ public enum ActivityHostCancelFailure: Error, Equatable { case disabled, invalid
     public func cancel(activityID: Int, reason: String) async throws -> ActivityHostCancelOutcome {
         let text = ActivityHostCancelRules.trimmedReason(reason)
         guard activityID > 0, !text.isEmpty, text.count <= ActivityHostCancelRules.reasonLimit else { throw ActivityHostCancelFailure.invalid }
+        // Host-cancel refunds are money. Off unless a TEST derivation opens this kind. Preview stays a read.
+        guard ReleaseMoneyWriteSwitch.isEnabled(.hostCancelRefund) else { throw ActivityHostCancelFailure.disabled }
         let r = try await post("api/activity/cancel", ["id": activityID, "reason": text])
         return r.code == 200 ? .cancelled(r.msg) : .rejected(r.msg)
     }

@@ -28,7 +28,7 @@ import FoundationNetworking
         XCTAssertFalse(MPParityBindings.viewerIsMerchant(role: "", userType: "2", debugView: "user"))
 
         let selling = overview(active: false, coverageEnd: nil, libraryCount: 12, plans: plans)
-        XCTAssertEqual(MPParityBindings.memberSide(viewerIsMerchant: false, overview: selling), .plans("¥299 · ¥39"))
+        XCTAssertEqual(MPParityBindings.memberSide(viewerIsMerchant: false, overview: selling), .plans("¥299.00 · ¥39.00"))
         XCTAssertNil(MPParityBindings.memberSide(viewerIsMerchant: true, overview: selling))
         let held = overview(active: true, coverageEnd: "2027-12-10 12:00:00", libraryCount: nil, plans: plans)
         XCTAssertEqual(MPParityBindings.memberSide(viewerIsMerchant: false, overview: held), .activeUntil("2027.12.10"))
@@ -45,7 +45,7 @@ import FoundationNetworking
         let cheaper = product(id: "2", name: "时限", kind: 3, city: "上海", topics: ["外滩"], topicIDs: ["990014"], cash: 39)
         let gift = product(id: "7", name: "礼品", kind: 7, city: "上海", topics: ["老城"], topicIDs: ["990014"], cash: 1)
         let card = MPParityBindings.exploreCard(products: [city])
-        XCTAssertEqual(card?.priceText, "¥88")
+        XCTAssertEqual(card?.priceText, "¥88.00")
         XCTAssertEqual(card?.covers, ["老城"])
         XCTAssertNil(MPParityBindings.exploreCard(products: [gift]))
         let both = MPParityBindings.exploreCard(products: [city, cheaper])
@@ -59,7 +59,7 @@ import FoundationNetworking
         let open = MPParityBindings.checkoutCover(topicCovered: false, products: [city, gift], topicID: "990014")
         XCTAssertFalse(open.covered)
         XCTAssertEqual(open.passes.map(\.id), ["1"])
-        XCTAssertEqual(open.passes.first?.priceText, "¥88")
+        XCTAssertEqual(open.passes.first?.priceText, "¥88.00")
 
         let detail = MPParityBindings.orderFacts(
             id: "ORD-1", purchaseKind: 2, ownerType: 1, ticketID: nil, expiresAt: "2027-12-11 00:00:00",

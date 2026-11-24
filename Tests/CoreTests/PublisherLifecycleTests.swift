@@ -96,6 +96,8 @@ private actor LifecycleFakeHTTP: HTTPTransport {
         XCTAssertThrowsError(try PublisherPricingInput(topicID: 4, subtype: .selfPlay, scope: "CLUB"))
     }
     func testCancellationUsesActualPaidPlayersAndServerMessage() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .hostCancelRefund }
         let server = "已核销票需人工跟进"
         let transport = LifecycleFakeHTTP([paid, paid, "{\"code\":200,\"msg\":\"\(server)\"}"])
         let owner = coordinator(try setup(transport))

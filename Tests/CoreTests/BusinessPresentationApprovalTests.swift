@@ -102,6 +102,8 @@ import FoundationNetworking
         XCTAssertFalse(try refundApproval(context).matches(other))
     }
     func testRefundConfiguredAccessUsesFreshOwnerReadsExactFormAndRetainsBothLocks() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         let context = try context(), fixture = fallback(context), recorder = BusinessPresentationTestTransport()
         recorder.refundFixture = true
         let access = ClubOwnerRefundConfiguredAccess(fallback: fixture, configuration: try .init(baseURL: context.baseURL), approval: try refundApproval(context), transport: recorder, current: { context })
@@ -129,6 +131,8 @@ import FoundationNetworking
         XCTAssertEqual(model.state(target).phase, .idle)
     }
     func testRefundAmbiguousDispatchStaysUnknownAndNeverReplays() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         let context = try context(), fixture = fallback(context), recorder = BusinessPresentationTestTransport(); recorder.refundFixture = true; recorder.failRefund = true
         let access = ClubOwnerRefundConfiguredAccess(fallback: fixture, configuration: try .init(baseURL: context.baseURL), approval: try refundApproval(context), transport: recorder, current: { context })
         let locks = ClubOwnerRefundMemoryLocks(), model = ClubOwnerRefundCoordinator(access: access, locks: locks)
