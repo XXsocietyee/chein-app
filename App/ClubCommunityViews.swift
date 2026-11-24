@@ -29,7 +29,10 @@ final class ClubCommunityViewModel: ObservableObject {
     @Published private(set) var pendingRecord: ClubCommunityPendingRecord?
     private var generation: UInt64 = 0
     private var postCursor = ClubCommunityReadCursor()
+    private var feedCursor = ClubCommunityFeedCursor()
     var canLoadMorePosts: Bool { postCursor.hasMore && !loading && !busy }
+    /// Cross-club `scope:"all"` feed. A club-scoped list uses `canLoadMorePosts` instead.
+    var canLoadMoreFeed: Bool { feedCursor.hasMore && !loading && !busy }
     private var identity: ClubReadIdentity?
     private var pendingDraft: (ClubCommunityOperation, Int, ClubCommunityPost?, ClubReadIdentity)?
     func stageDraft(_ operation: ClubCommunityOperation, clubID: Int, post: ClubCommunityPost?) {
@@ -47,7 +50,7 @@ final class ClubCommunityViewModel: ObservableObject {
         context.coordinator?.cancel()
     }
     func invalidate() {
-        suspend(); postCursor.reset(); imageReadScope = UUID(); snapshot = nil; notice = nil; pendingRecord = nil
+        suspend(); postCursor.reset(); feedCursor.reset(); imageReadScope = UUID(); snapshot = nil; notice = nil; pendingRecord = nil
     }
     private func pendingEvidenceProbe(
         clubID: Int,
@@ -138,9 +141,17 @@ final class ClubCommunityViewModel: ObservableObject {
         guard canLoadMorePosts, postCursor.clubID == clubID, let beforeID = postCursor.beforeID else { return }
         await load(.posts(clubID: clubID, beforeID: beforeID, limit: 20))
     }
+    func loadMoreFeed() async {
+        guard canLoadMoreFeed, let beforeID = feedCursor.beforeID else { return }
+        await load(.feed(limit: 20, beforeID: beforeID))
+    }
     func load(_ operation: ClubCommunityRead) async {
+        let keepsVisibleFeed: Bool
+        if case .feed(_, let beforeID) = operation { keepsVisibleFeed = beforeID != nil } else { keepsVisibleFeed = false }
         generation &+= 1; let ticket = generation
-        imageReadScope = UUID(); snapshot = nil; loading = true; notice = nil
+        imageReadScope = UUID()
+        if !keepsVisibleFeed { snapshot = nil }
+        loading = true; notice = nil
         feedSourceReadScope = nil
         let sourceScope = context.feedSourceScope()
         do {
@@ -150,6 +161,7 @@ final class ClubCommunityViewModel: ObservableObject {
             }
             guard ticket == generation, try context.currentSession() == session else { return }
             if case .posts = operation { snapshot = try postCursor.accept(result, identity: session.identity) }
+            else if case .feed = operation { snapshot = try feedCursor.accept(result, identity: session.identity) }
             else { snapshot = result }
             if case .feed = operation, context.feedSourceScope() == sourceScope {
                 feedSourceReadScope = sourceScope
@@ -304,11 +316,17 @@ struct ClubCommunityFeedView: View {
                         }
                     }
                     // CLB-detail-15: the next page loads when the end of the list scrolls in (MP onReachBottom).
-                    if let clubID, model.canLoadMorePosts {
+                    // The same row pages the cross-club feed (`scope:"all"`, `beforeId`).
+                    if clubID == nil ? model.canLoadMoreFeed : model.canLoadMorePosts {
                         ProgressView()
                             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                             .accessibilityLabel(Text("club.community.loading"))
-                            .onAppear { Task { await model.loadMorePosts(clubID: clubID) } }
+                            .onAppear {
+                                Task {
+                                    if let clubID { await model.loadMorePosts(clubID: clubID) }
+                                    else { await model.loadMoreFeed() }
+                                }
+                            }
                     }
                 }
                 // CLB-detail-15: pull to refresh covers a loaded feed; the button is only the retry when nothing loaded.

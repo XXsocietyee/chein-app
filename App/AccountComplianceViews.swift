@@ -545,6 +545,29 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     }
     /// pages/shezhi/marketing/index read model over the coordinator state already on screen. No extra request.
     private var marketingPage: ShezhiMarketingIndexPageModel { ShezhiMarketingIndexPageModel(state: model.state) }
+    /// B-MK-06: a non-empty `merchantLogo` replaces the initial tile. `""` keeps the initial.
+    @ViewBuilder private func merchantMark(_ row: ComplianceMarketingConsent) -> some View {
+        let initial = Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
+            .cyText(.bodyMedium, weight: .bold).foregroundStyle(.white)
+            .frame(width: 36, height: 36)
+            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+            .accessibilityHidden(true)
+        if row.merchantLogo.isEmpty {
+            initial
+        } else {
+            AsyncImage(url: URL(string: row.merchantLogo)) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().scaledToFill()
+                default:
+                    initial
+                }
+            }
+            .frame(width: 36, height: 36)
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+            .accessibilityHidden(true)
+        }
+    }
     private var marketing: some View {
         let page = marketingPage
         return Section {
@@ -569,11 +592,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             ForEach(model.state.marketing) { row in
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: CYSpacing.md) {
-                        Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
-                            .cyText(.bodyMedium, weight: .bold).foregroundStyle(.white)
-                            .frame(width: 36, height: 36)
-                            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
-                            .accessibilityHidden(true)
+                        merchantMark(row)
                         // B-MK-06b: MP mc-name is body-medium, not a headline.
                         Text(row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
                             .cyText(.bodyMedium).accessibilityAddTraits(.isHeader)

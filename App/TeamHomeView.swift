@@ -1,5 +1,13 @@
 import SwiftUI
 
+private struct TeamCommandWriterKey: EnvironmentKey { static let defaultValue: TeamCommandWriter? = nil }
+extension EnvironmentValues {
+    var teamCommandWriter: TeamCommandWriter? {
+        get { self[TeamCommandWriterKey.self] }
+        set { self[TeamCommandWriterKey.self] = newValue }
+    }
+}
+
 /// Embed in an existing NavigationStack. A session-owned factory creates isolated route models.
 @MainActor struct TeamHomeView: View {
     @StateObject private var model: TeamScreenModel
@@ -64,6 +72,7 @@ import SwiftUI
     var legacyTeamID = false
     @Environment(\.teamReformHooks) private var reformHooks
     @Environment(\.teamChannelManagementHooks) private var channelManagementHooks
+    @Environment(\.teamCommandWriter) private var commandWriter
     @State private var reformSheet: TeamReformSheet?
     init(lookup: TeamLookup, coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, requiresMembership: Bool = false, readOnly: Bool = false, onLogin: (() -> Void)? = nil, legacyTeamID: Bool = false) {
         self.lookup = lookup; self.makeCoordinator = makeCoordinator; self.requiresMembership = requiresMembership; self.readOnly = readOnly
@@ -210,12 +219,13 @@ import SwiftUI
                         TeamReportEntryButton(teamID: detail.team.id)
                     }
                 }
-                if !readOnly, model.coordinator.pending != nil {
+                if !readOnly, let pending = model.coordinator.pending {
                     Button("team.checkOutcome") {
                         let permit = model.captureRun()
                         Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
                     }
                         .buttonStyle(.cySecondary).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
+                    teamRecoveryButtons(pending: pending)
                 }
                 // C-D9: 重新加载 only when the read failed; a loaded detail refreshes by pull-to-refresh.
                 if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil,
@@ -238,6 +248,33 @@ import SwiftUI
             .sheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cySheet() }
             .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cySheet(detents: [.large]) }
         .cyDomainScreen(.player)
+    }
+    /// C-D12 recovery card. `checkOutcome()` stays synthetic. Query, retry, and cancel share one key and the original fields.
+    @ViewBuilder private func teamRecoveryButtons(pending: TeamPendingRecord) -> some View {
+        let command = model.recoveryCommand?.targetKey == pending.targetKey ? model.recoveryCommand : nil
+        let key = command?.key ?? pending.targetKey
+        let fields = command?.fields ?? [:]
+        Button {
+            let permit = model.captureRun()
+            Task { await model.run(permit: permit) { _ = await commandWriter?.query(key: key) } }
+        } label: { Text(verbatim: TeamCommandRecoveryCopy.query) }
+            .buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.recovery.query")
+        Button {
+            guard fields["action"] != nil else { return }
+            let permit = model.captureRun()
+            Task { await model.run(permit: permit) { _ = await commandWriter?.submit(key: key, path: "api/team/command", fields: fields) } }
+        } label: { Text(verbatim: TeamCommandRecoveryCopy.retry) }
+            .buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.recovery.retry")
+        Button {
+            guard fields["action"] != nil else { return }
+            let permit = model.captureRun()
+            Task { await model.run(permit: permit) { _ = await commandWriter?.cancel(key: key, fields: fields) } }
+        } label: { Text(verbatim: TeamCommandRecoveryCopy.abort) }
+            .buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.recovery.abort")
+        Text(verbatim: TeamCommandRecoveryCopy.abortNote)
+            .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("team.recovery.abortNote")
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {
         if !readOnly, action.isAllowed(detail: detail) {
@@ -270,6 +307,7 @@ import SwiftUI
     /// C-J3: prepare and confirm in one tap. Without a submit authority the review stays and its sheet explains why.
     private func joinDirectly(_ action: TeamAction) {
         model.prepare(action)
+        model.rememberRecovery(action)
         guard model.coordinator.canSubmit, let review = model.coordinator.review else { return }
         let permit = model.captureRun()
         Task {
