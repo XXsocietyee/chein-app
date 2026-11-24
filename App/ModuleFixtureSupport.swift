@@ -12,7 +12,7 @@ enum ModuleFixture: String {
     case nativeEnrollment
     case nativePlatform
     case playBranchHistory
-    case playExperience, compareGame
+    case playExperience, compareGame, letterPoolGame
     case journeyContent
     case squareWorkspace = "square-workspace"
     case objectCards
@@ -76,6 +76,7 @@ struct ModuleFixtureRootView: View {
             case .playBranchHistory: PlayBranchHistoryFixtureHost()
             case .playExperience: PlayExperienceFixtureHostView()
             case .compareGame: PlayCompareFixtureHost()
+            case .letterPoolGame: LetterPoolGameFixtureHost()
             case .journeyContent: JourneyContentFixtureHostView()
             case .squareWorkspace: SquareWorkspaceFixtureHost()
             case .objectCards: ObjectCardFixtureHostView()
@@ -110,6 +111,23 @@ struct ModuleFixtureRootView: View {
             }
         }
         .modifier(AccessibilityFixtureOptions())
+    }
+}
+
+/// Registered letter-pool board. Pool trim and stage analytics stay off; this host only shows the kit.
+@MainActor private struct LetterPoolGameFixtureHost: View {
+    private static let segmentJSON = #"{"length":5,"blankCount":3,"caseSensitive":false,"solved":false,"display":"__-_D","inputMode":"pool","pool":["C","X","A","Y","B","A"],"poolRemoved":0,"slots":[{"i":0,"kind":"BLANK"},{"i":1,"kind":"BLANK"},{"i":2,"ch":"-","kind":"SEPARATOR"},{"i":3,"kind":"BLANK"},{"i":4,"ch":"D","kind":"PREFILLED"}]}"#
+    private var segment: PlayWireValue {
+        (try? JSONDecoder().decode(PlayWireValue.self, from: Data(Self.segmentJSON.utf8))) ?? .null
+    }
+    var body: some View {
+        NavigationStack {
+            PlayKitHangmanView(projection: PlayKitHangmanProjection(segment: segment), segment: segment)
+                .environment(\.playGameStage, PlayGameStage(ordinal: 1, stationName: nil, chapterTitle: nil, lead: nil))
+                .navigationTitle(Text(verbatim: "letterPoolGame"))
+                .navigationBarTitleDisplayMode(.inline)
+        }
+        .accessibilityIdentifier("letterPoolGame.host")
     }
 }
 #endif
