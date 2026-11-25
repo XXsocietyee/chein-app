@@ -342,6 +342,12 @@ import UIKit
             .cySectionReveal(order: order, gate: reveal)
         }
     }
+    static func recoChips(_ item: HomeFeedItem) -> [String] {
+        var chips: [String] = []
+        if let first = item.categoryNames.first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty }) { chips.append(first) }
+        if let status = item.statusLabel?.trimmingCharacters(in: .whitespaces), !status.isEmpty { chips.append(status) }
+        return chips
+    }
     /// Glass carousel over the already-loaded section items. Open goes through the same guarded destination as the shelf cards.
     private func carouselRail(_ items: [HomeFeedItem], section: HomeFeedSection) -> some View {
         let capped = Array(items.prefix(12))
@@ -353,7 +359,10 @@ import UIKit
                                 : (item.isBeta ? appLocalized("topic.source.betaBadge", locale: locale) : nil),
                             imageURL: QuestifyCardArtwork.safeURL(item.imageURL),
                             // Round 4 image parity: MP 编辑精选 falls back to reco-hero.jpg, 即将上线 to route_city_cover.png.
-                            fallback: section == .recommended ? .recoHero : .routeCityCover)
+                            fallback: section == .recommended ? .recoHero : .routeCityCover,
+                            // R7-PC-A1-3: MP index.wxml:107-120 — club label, first category and status on 编辑精选.
+                            club: section == .recommended ? item.clubLabel : nil,
+                            chips: section == .recommended ? Self.recoChips(item) : [])
         }
         return CYCarouselRail(phase: .loaded(slides),
                               railLabel: section == .recommended ? "carousel.editorsPicks" : "carousel.upcoming",
@@ -549,6 +558,20 @@ struct HomeFeedCard: View {
             // Round 4 image parity: MP stream card default (index.wxml:216/253).
             .fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)
             .cachingFeedImage()
+            // R7-PC-A1-3: MP stream card shows ≤2 category chips (`feedTags`, pages/index/index.wxml:216-253).
+            if !item.feedTags.isEmpty {
+                HStack(spacing: CYSpacing.xs) {
+                    ForEach(Array(item.feedTags.enumerated()), id: \.offset) { _, tag in
+                        Text(verbatim: tag)
+                            .cyText(.meta)
+                            .lineLimit(1)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                            .background(CYColor.bgElevated, in: Capsule())
+                    }
+                }
+                .accessibilityElement(children: .combine)
+            }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 priceRow
                 timeRow
