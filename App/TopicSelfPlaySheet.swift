@@ -5,17 +5,30 @@ import SwiftUI
     @Published var revision = 0
     init(_ flow: TopicSelfPlayFlow) { self.flow = flow; flow.onChange = { [weak self] in self?.revision += 1 } }
 }
+private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play; var id: Self { self } }
 @MainActor struct TopicSelfPlaySheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: TopicSelfPlayModel
     var orders: (() -> AnyView)? = nil
     var tickets: (() -> AnyView)? = nil
-    init(flow: TopicSelfPlayFlow, orders: (() -> AnyView)? = nil, tickets: (() -> AnyView)? = nil) {
-        _model = StateObject(wrappedValue: TopicSelfPlayModel(flow)); self.orders = orders; self.tickets = tickets
+    /// R7-PC-B1-12: 开始游戏 on the pass reveal (MP onRevealPlay → pages/play).
+    var play: (() -> AnyView)? = nil
+    @State private var revealDestination: TopicRevealDestination?
+    init(flow: TopicSelfPlayFlow, orders: (() -> AnyView)? = nil, tickets: (() -> AnyView)? = nil, play: (() -> AnyView)? = nil) {
+        _model = StateObject(wrappedValue: TopicSelfPlayModel(flow)); self.orders = orders; self.tickets = tickets; self.play = play
     }
     var body: some View {
         NavigationStack {
             Form {
+                if model.flow.phase == .complete, model.flow.registrationID != nil {
+                    // R7-PC-B1-12: MP cy-pass-reveal (index.wxml:511-513) after the order succeeds.
+                    Section {
+                        TopicPostPurchaseRevealView(model: TopicPurchaseRevealBuilder.model(topic: model.flow.topic),
+                            onWallet: { if tickets != nil { revealDestination = .wallet } },
+                            onPlay: { if play != nil { revealDestination = .play } else if tickets != nil { revealDestination = .wallet } })
+                            .listRowInsets(EdgeInsets())
+                    }
+                }
                 // Mini-program self-play-checkout order: 1 theme head, pass coverage, 2 single purchase,
                 // 3 city passes covering this theme, participant, 7 breakdown.
                 Section {
@@ -97,6 +110,12 @@ import SwiftUI
                     .padding(.horizontal, Theme.Space.pageX)
                     .padding(.vertical, Theme.Space.s2_5)
                     .background(.bar)
+                }
+            }
+            .navigationDestination(item: $revealDestination) { destination in
+                switch destination {
+                case .wallet: if let tickets { tickets() }
+                case .play: if let play { play() }
                 }
             }
             .navigationTitle("contextSelfPlay.title").navigationBarTitleDisplayMode(.inline)

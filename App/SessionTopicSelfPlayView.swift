@@ -7,7 +7,8 @@ import SwiftUI
         if let flow = session.topicSelfPlayFlow(topic: topic) {
             TopicSelfPlaySheet(flow: flow,
                 orders: { AnyView(ProfileOrdersView(reader: session.profileReader, lifecycleCoordinator: session.orderLifecycleCoordinator)) },
-                tickets: { AnyView(SessionTicketWalletHost(isPushed: true, focusTopicID: topic.id).environmentObject(session)) })
+                tickets: { AnyView(SessionTicketWalletHost(isPushed: true, focusTopicID: topic.id).environmentObject(session)) },
+                play: { AnyView(SessionPlayRuntimeView(session: session, destination: .journey(.topic(topic.id)))) })
                 .id(session.sessionRevision)
         } else { TopicSelfPlayUnavailableSheet(topic: topic) }
     }
