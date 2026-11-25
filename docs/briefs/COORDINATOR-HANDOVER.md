@@ -2,7 +2,7 @@
 
 This is the live state of the chengyin-app go-live push and the exact steps to continue it. It is updated on every hourly and half-hourly check. If Claude (the coordinator) is out of credit, anyone (a person, Cursor, Gemini or another Claude) can pick up from here.
 
-**Last updated:** 2026-11-25 04:10 UTC by Claude (coordinator).
+**Last updated:** 2026-11-25 04:16 UTC by Claude (coordinator).
 
 ---
 
@@ -40,10 +40,9 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 - **Next:** K7e CHECK on `f95850a46`; r8-wire (App call sites); A3 screenshot retry.
 
 **Claude cloud routines** (claude.ai/code/routines):
-- 12 × `cloud FIX r3 R4 · <area> a|b`: branches `fix/r3-<area>-<a|b>`; flows, images, copy.
-- 6 × `cloud FIX r8 · <area>`: branches `fix/r8-<area>`; r8 Claude-App rows.
-- 1 × `cloud FIX r8 · MP-first gates`: branch `fix/r8-mp-first`.
-- **Not yet merged (conflicts; the agents re-merge the base):** `fix/r8-club`, `fix/r3-member-a`, `fix/r3-play-roam-a`, `fix/r3-player-content-b`, `fix/r8-player-content`.
+- Round 4 and fix-r8 (19 routines) have finished; merged: fix/r8-member, merchant-coop, play-roam, account-publish, mp-first and most r3 branches.
+- **Round 5 "REBASE R5"** (started 04:17 UTC, 7 routines): each merges `f95850a46` into its own branch, resolves conflicts keeping both sides, passes the gate, pushes, then continues its open rows. Branches: `fix/r8-club`, `fix/r8-club-a-topic`, `fix/r8-club-b-ops`, `fix/r8-player-content`, `fix/r3-member-a`, `fix/r3-play-roam-a`, `fix/r3-player-content-b`. Merge each when its tip contains `f95850a46` and `git merge-tree` shows no conflict.
+- **Acceptance workflow change** `cursor/a3-screenshot-retry` goes onto `ci/acceptance` (Cursor fast-forwards it), not into `ui/combined-r7`.
 
 **Gemini:** down. Orca restarted and lost its terminals; the quota resets about 05:50 UTC. Its MP-alignment work moved to the Claude F-agents (`fix-r3-round4.md`).
 
