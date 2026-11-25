@@ -141,6 +141,15 @@ The finish line: every MP feature works in the app the way it does in the MP (no
 
 | Lane | Branch | Base | Status | SHA | Notes |
 |---|---|---|---|---|---|
-| (Cursor fills this in) | | | | | |
+| r9-play-roam | `cursor/r9-play-roam` | `d9115273d` | merged | `92b6bf4f5267` | ROAM-7. Already inside `dd3622219`. PR 1302 merged by `liboyang42-cpu`. |
+| r9-merchant-a | `cursor/r9-merchant-a` | `d9115273d` | merged | `e6b50fbee2c4` | 8 P0 + first 5 P1. Last owned row MC9-23-4. Deposit create / create-app / refund-retry do not send. Review report and chapter invite do send. PR 1308. |
+| r9-merchant-b | `cursor/r9-merchant-b` | `d9115273d` | merged | `f3c302693891` | Starts at MC9-23-5. Boundary matches merchant-a. Money sends nothing. PR 1306. |
+| r9-club | `cursor/r9-club` | `d9115273d` | merged | `53beecf3e947` | CLB-r9-gate-01..04 and CLB-detail-42. Money sends nothing. PR 1307. |
+| r9-player-content | `cursor/r9-player-content` | `d9115273d` | merged | `5a02bdb2f119` | 4 fixed, 4 blocked on money or chapter writes. PR 1305. |
+| r9-account-publish | `cursor/r9-account-publish` | `d9115273d` | merged | `ab4c5ff61dc5` | C-F5b, C-F8, C-F7c. Money sends nothing. PR 1304. |
+| r9-member | `cursor/r9-member` | `d9115273d` | not pushed | | No branch on origin at 07:35 UTC. |
+| acceptance checkout | `ci/acceptance` | `4899ce0a` | pushed | `918acdf9c4` | Jobs load `acceptance-checkout` from `9bdac9b5`. A local `./` path cannot run before checkout. |
 
-**Acceptance (Cursor owns):** latest CHECK run, its SHA, and the new Core/AppUnit/contract failures by name.
+Integration tip: `ui/combined-r7` `7623036a378a`. Parents are the five cursor merges above, then a gate commit: `@AppStorage` keys are not catalog keys, and the AppSession ceiling is 7993. AppCompositionRoot ceiling on that tip is 4175. Structural gate printed `PASS structural checks`. No Xcode build was run before the push. `cursor/r9-member` is still out.
+
+**Acceptance (Cursor owns):** CHECK [45569229597](https://github.com/liboyang42-cpu/chengyin-app/actions/runs/45569229597) is queued. Merge `39d0d0ae208c`, parents include `7623036a378a`. Baselines 27 and 71, the simulator lock, and the paid-professional contract failure are on that commit. The previous CHECK [45566597658](https://github.com/liboyang42-cpu/chengyin-app/actions/runs/45566597658) failed before any test: every job died on `./.github/actions/acceptance-checkout` because the action file is not on disk yet. No test names from that run. Failure names for 45569229597 are not in yet.
