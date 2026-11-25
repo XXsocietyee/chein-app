@@ -74,7 +74,8 @@ struct TemplateGameplayPickerSheet: View {
         switch game {
         case .sort: return "arrow.up.arrow.down"
         case .match: return "point.3.connected.trianglepath.dotted"
-        default: return "square.grid.2x2"
+        case .classify: return "square.grid.2x2"
+        default: return "gamecontroller"
         }
     }
 
