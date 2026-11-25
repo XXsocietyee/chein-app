@@ -46,3 +46,9 @@ d2-home
 topic-preview
 # A6/A8 template detail heads: bundled MP cover for a known title (detailCover / topicArt)
 template-detail
+# Round 4 — A1 home rails: MP default covers (编辑精选 reco-hero, 附近活动/即将上线 route_city_cover, stream placeholder)
+d2-home
+# Round 4 — A7 topic-preview: check/clock MP art, cover-route fallback; 用这个模板 copies and pushes the topic editor (live writer only)
+topic-preview
+# Round 4 — A6/A8 template detail: scene 3D icons row, no-cover scene icon, 创作者说 bulb; 主题模板没能打开 / 玩法没能打开 failure titles
+template-detail

@@ -37,9 +37,6 @@ import SwiftUI
     @State private var discard = false
     @State private var placementTemplateReturnReadback = false
     @State private var placementTemplateProtectedReadback: Date?
-    /// Round 4 flow (MP merchantapply.js:737 `goProgress`): after a saved registration, 查看承接进度 opens the
-    /// merchantinfo 承接 view for that topic (`merchantinfo?topicId=&scope=MERCHANT`).
-    @State private var showsRegistrationProgress = false
     @Environment(\.dismiss) private var dismiss
     init(service: any MerchantContentServing, query: MerchantContentQuery, kind: Kind, placeSearch: (any PublishingPlaceSearching)? = nil) {
         self.service = service; self.query = query; self.kind = kind; self.placeSearch = placeSearch
@@ -52,25 +49,6 @@ import SwiftUI
     }
     private var registrationWritesGated: Bool {
         switch kind { case .apply, .registrationCreate, .registrationEdit: return true; default: return false }
-    }
-    /// Round 4 copy (MP merchantapply.wxml:21 `nav-title`): 商家报名 / 修改报名, then 提交成功 / 修改已保存 after the save.
-    private var navigationTitleKey: String {
-        switch kind {
-        case .registrationCreate: return c.receipt != nil ? "merchantApply.nav.submitted" : "merchantApply.nav.create"
-        case .registrationEdit: return c.receipt != nil ? "merchantApply.nav.saved" : "merchantApply.nav.edit"
-        default: return "merchant.content." + query.key
-        }
-    }
-    /// MP `pages/topic/merchantapply` (registration create / edit), as opposed to the chapter apply form.
-    private var isRegistrationForm: Bool {
-        switch kind { case .registrationCreate, .registrationEdit: return true; default: return false }
-    }
-        private var registrationTopicID: Int? {
-        switch kind {
-        case .registrationCreate(let topicID, _): return topicID
-        case .registrationEdit: return c.snapshot?.value["topicId"].integer
-        default: return nil
-        }
     }
     private var canEditAvailability: Bool {
         availabilityContext != nil && !c.busy && !c.locked && c.review == nil && c.receipt == nil
@@ -128,20 +106,8 @@ import SwiftUI
                     } else { Text("merchant.content.completeFields").foregroundStyle(.secondary) }
                 }
             } else if c.busy { ProgressView("merchant.loading") }
-            if isRegistrationForm, c.receipt != nil, registrationTopicID != nil {
-                Section {
-                    Button("merchantApply.success.progress") { showsRegistrationProgress = true }
-                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                        .accessibilityIdentifier("merchantApply.success.progress")
-                }
-            }
         }
         .accessibilityIdentifier("merchant.content.editor")
-        .navigationDestination(isPresented: $showsRegistrationProgress) {
-            if let topicID = registrationTopicID {
-                MerchantContentDocumentView(service: service, query: .project(topicID: topicID), focusedTopicID: topicID)
-            }
-        }
         .modifier(MerchantRegistrationAvailabilityPresentation(editor: $availabilityEditor,
             context: currentAvailabilityContext, source: currentAvailabilitySource,
             replacement: availabilityReplacement, canEdit: canEditAvailability,
@@ -161,18 +127,16 @@ import SwiftUI
         .onAppear { if case .placement = kind { addressChoice.appear(active: addressScenePhase == .active) } }
         .onChange(of: addressScenePhase) { _, phase in addressChoice.sceneChanged(active: phase == .active) }
         .onChange(of: service.scope) { _, _ in addressChoice.invalidate() }
-        .appNavigationTitle(key: navigationTitleKey).navigationBarTitleDisplayMode(.inline)
+        .appNavigationTitle(key: "merchant.content." + query.key).navigationBarTitleDisplayMode(.inline)
         .task(id: service.scope) { addressGeneration = UUID(); addressConfirmation = nil; placementTemplateReturnReadback = false; placementTemplateProtectedReadback = nil; text = [:]; availabilityReplacement = nil; pauseFallback = nil; dirty = false; addressGeneration = UUID(); await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
         // type-and-chrome §3: one exit guard — system back while clean; the same-looking guarded back asks first while dirty.
         .cyGuardedBack(when: dirty) { discard = true }
         .interactiveDismissDisabled(dirty || c.busy)
         .cyModalConfirm(
             isPresented: $discard,
-            // Round 4 copy (MP merchantapply.js:451-455): the registration form asks 放弃这次报名？ / 继续填写 / 放弃.
-            title: appLocalized(isRegistrationForm ? "merchantApply.discard.title" : "merchant.content.discardTitle", locale: locale),
-            message: isRegistrationForm ? appLocalized("merchantApply.discard.message", locale: locale) : "",
-            cancelTitle: appLocalized(isRegistrationForm ? "merchantApply.discard.keep" : "merchant.content.keepEditing", locale: locale),
-            confirmTitle: appLocalized(isRegistrationForm ? "merchantApply.discard.confirm" : "merchant.content.discard", locale: locale),
+            title: appLocalized("merchant.content.discardTitle", locale: locale),
+            cancelTitle: appLocalized("merchant.content.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchant.content.discard", locale: locale),
             isDestructive: true,
             onCancel: { discard = false },
             onConfirm: { discard = false; model.invalidate(); dismiss() }

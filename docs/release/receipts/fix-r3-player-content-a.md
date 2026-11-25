@@ -283,3 +283,91 @@ Each round-2 commit (`5be7191a3`, `6d471bc22`, `f5b96cf93`, `505f1174c`, `d2400b
 - `tools/check_typography_lint.py`: PASS.
 - `tools/check_a11y_lint.py`: no row from this branch's files (17 new rows are all elsewhere, same as the base).
 - `tools/contract_ratchet.py --check`: **217 failing, identical set to the base `ui/combined-r7` @ b0ac0108d (217, 33 above baseline 184)**. 0 new from this branch. (A first run caught one catalog-key failure from a new VoiceOver hint key; the hint was dropped.)
+
+## Round 4 (2026-11-25)
+
+- **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round4.md` (+ `wave-x10.md`, `owner-decisions-1124.md`). **Base:** `origin/ui/combined-r7`
+  (it already contains this branch's round 3; the merge fast-forwarded). Gemini is out of quota, so this round also takes the
+  Gemini MP-alignment work (flows, images, copy) for the 15 pages of this half.
+- **Layer:** App only; no Core type changed. Every API used was grepped on the branch (no compiler in the cloud).
+- **Strings:** 18 new keys in `docs/port/strings/fix-r3-player-content-a.json` (en + zh-Hans); none collides with an existing key.
+
+### 1. Flows (flows-g1 `[GAP-CLAUDE]` edges for this half)
+
+| MP edge | status | files |
+|---|---|---|
+| topic-preview 「用这个模板」 → `topic-use-flow.adopt` → `publish/fabu?id=&scope=` | **Fixed.** The deck now runs the same adoption write (`TopicTemplateUseModel`, offline write opt-in, same requestId reuse) and pushes the copied draft into the topic editor. It used to open the detail page. Still shown only while the writer is live (`TopicTemplateUseFactory.isLive`); a refusal / unknown result is shown under the deck (MP toasts). | DiscoveryTemplateDetailView, MPReviewedPageScreen |
+| topic-preview 「查看详情」 → `topic-detail?id=&scope=&readonly=` | **Fixed (scope).** `scope` is now carried from the link into the detail page and its adoption write. | DiscoveryTemplateDetailView, MPReviewedPageScreen |
+| topic-detail 「应用」 success → `publish/fabu?id=` | **Fixed.** `topicTemplateCopiedDestination` was never set anywhere, so a confirmed copy went nowhere. With no host override the page now pushes the editor through `topicEditorDestination`, which the two MP routes set. `scope` is passed (was `nil`). | DiscoveryTemplateDetailView, MPReviewedPageScreen |
+| template 🔔 → `subpackageB/pages/im/list/index` | **Fixed.** flows-g1 said OK, but the template tab had no inbox entry. Toolbar bell (MP `icon_bell.svg`) pushes `SessionMessagingHome` on all four session entries. | DiscoveryTemplateBrowserView, PublishTabRootView, SessionHomeFeedView, MPReviewedPageScreen |
+| search2 → searchmap, searchmap pin → topic, back | **Already OK.** `GlobalSearchView` has the map pill (`search-actions__map`) and `SearchMapExplorerView` routes `.topic` to `SessionTopicDetailView`. `SearchMapExplorerGapView` duplicates that screen, so it stays unmounted. | — |
+| topic/index → TopicRouteMapAndTeamsSection | Already mounted in round 3 (PC-B-1-5). `RegistrationGapSections` belongs to `RegistrationSheetView` (activity sign-up, half b). | — |
+| merchantapply success → 查看承接进度 (`merchantinfo?topicId=&scope=MERCHANT`) | **Blocked.** It was written, then reverted: `App/MerchantContentEditor.swift` is whole-file hash-pinned by `test_merchant_station_submission_import.test_exact_single_editor_inverse_preserves_every_other_hunk`, and the edit added a new ratchet failure. Needs the pin re-recorded, then the follow-up below. | — |
+| merchantapply `MerchantApplyPickerGapView` / `MerchantJoinContactHostButton` | **Not mounted.** The Gemini map picker is a stub (fixed Shanghai coordinates, no search), and the photo picker has no upload client. Mounting it would submit wrong coordinates. The host editor is hash-pinned too. **Gemini/Cursor:** a real place picker (the editor already takes `placeSearch: PublishingPlaceSearching`) and an upload client. | — |
+| pricing save → topic/index | **OK.** Confirm toasts and dismisses back to the opener. A deep link opens over the previous page, the same as MP `redirectTo` from the user's point of view. | — |
+| pricing `TopicPricingGapSection` (multi-ticket prices, sale status, fee rate) | **Not mounted.** Nothing produces `TopicPricingPerTicketField` / `TopicPricingExtraStatus`, and the pricing confirm still sends `ticketPrices: []`. **Cursor:** decode the MP `tickets`, `saleStatusText`, settlement-pending and fee-rate fields on the pricing read. Money stays TEST-only. | — |
+
+### 2. Image parity (every MP image slot on the half's pages)
+
+| MP page | MP slot (src) | app now | where |
+|---|---|---|---|
+| index | 编辑精选 default `index-figma/reco-hero.jpg` | `MPAsset.BannerCover.recoHero` (carousel + AX rows) | HomeFeedView, CYGlassCarousel (`CYCarouselFallback`) |
+| index | 附近活动 / 即将上线 default `route_city_cover.png` | `MPAsset.BannerCover.routeCityCover` | HomeFeedView, CYGlassCarousel |
+| index | stream default `home-route-city-placeholder.jpg` | `MPAsset.BannerCover.homeRouteCityPlaceholder` (shelf + stream cards) | HomeFeedView |
+| index | `cy_logo_mark.png`, `d_profile.png` avatar | already MP (round 3 / shared header) | — |
+| index | `icon-viewers.png` (distance), `icon-star.png` (rating) | **no slot:** `HomeFeedItem` has no distance or rating. **Cursor:** decode `distance` / `rating` / `remainingTime`. | — |
+| template | `icon_bell.svg` | `MPAsset.FeatureIcon.iconBell` toolbar button | DiscoveryTemplateBrowserView |
+| search2 | `icon_cat.png` (category grid in the search bar) | **blocked:** `GlobalSearchView` / `SearchMapFilterSheet` are hash-pinned (`test_global_search_category_recovery`, `test_category_roam_registration`) | — |
+| search2/result | `item.cover` / `item.art` (URL) | URL images, unchanged | — |
+| searchmap | topic pin `pages/searchmap/images/d_smapicon.png` | `MPAsset.MapMarker.pagesSearchmapImagesDSmapicon` (was `/images/d_smapicon.png`, the roam hangout fallback, a different drawing) | CYMapChrome, SearchMapExplorerGapView |
+| searchmap | `d_location2.png`, `icon_map6.png` | already MP | CYMapChrome |
+| templatedetail | cover fallback `sceneIcons[0] \|\| art/cat/other.png` | `TemplateSceneArt.icon(first scene)` (MP `SCENE_ICON_RULES`, 17 category arts + other) | DiscoveryTemplateDetailView, DiscoveryTemplateDetailParitySections |
+| templatedetail | 分类与适用场景 per-chip `sceneIcons[i]` | icon row with one 3D art per chip (was a joined text line) | DiscoveryTemplateDetailParitySections |
+| templatedetail | 创作者说 `art/3d/bulb.png` | `MPAsset.FeatureIcon.bulb` header | DiscoveryPlayTemplatePresentationView |
+| templatedetail | book / magnifier / flashlight / star / interaction / explore / city | already MP (round 3) | — |
+| topic-preview | `art/tab/check.svg`, `art/tab/clock.svg` | `pagesTemplatedetailArtTabCheck` / `…TabClock` (were SF `checkmark.circle.fill` / `clock`) | TopicTemplateDeckPreviewView |
+| topic-preview | no-cover `cover-route.svg` | `MPAsset.BannerCover.coverRoute` (was the home placeholder photo) | TopicTemplateDeckPreviewView |
+| topic-detail | `art/cat/city.png`, `book.png`, `explore.png`, star | already MP (round 3) | — |
+| topic | favourite `icon_bm.svg` / `icon_bm_on.svg` | `MPAsset.FeatureIcon.iconBm` / `iconBmOn` (were SF bookmark) | TopicXcxSections |
+| topic | no-cover `cover-route.svg` | `MPAsset.BannerCover.coverRoute` (was SF curve-path glyph) | TopicDetailView |
+| topic | 评价路线 stars `icon_star1.png` / `icon_star2.png` | five MP star buttons (was a 1–5 Picker), VoiceOver 「评 N 星」, 44 pt | ContextualReviewComposer |
+| topic | `icon_photo2.png` (review 添加图片) | **no slot:** the review composer has no photo upload | — |
+| topic | buy-option `icon_one/two/team.svg` | **not in the asset catalog.** **Cursor (C7):** import `pages/topic/images/icon_{one,two,team}.svg`. | — |
+| merchantinfo | `merchant-guide/{clock,location,people}.svg`, `xjt.png`, `d_weihao.png`, quick actions `icon_qa_*` | **no slot:** `MerchantContentDocumentView` has no chapter-guide cards or quick-action grid (the merchant-guide layout is not ported) | — |
+| merchantapply | `shop.cover` | **no slot:** no shop card in the editor (hash-pinned) | — |
+| pricing, partner, catalog | no images (catalog is a redirect shell) | — | — |
+| activity/detail | avatars with empty fallback, `cy-icon image` | `cy-icon` is the MP UI glyph set (coolicons), so it stays SF Symbols as system glyphs | — |
+
+### 3. Copy (MP text = app zh-Hans)
+
+| MP | key | where |
+|---|---|---|
+| topic 评价路线 sheet title / 请输入您的评价内容... | `context.review.topicTitle`, `context.review.topicContents` (topic target only) | ContextualReviewComposer |
+| topic aria 收藏主题 / 取消收藏 | `topic.favorite.add` / `topic.favorite.remove` (were 收藏 / 已收藏) | TopicXcxSections |
+| topic aria 分享主题 | `topic.share.mp` (was 分享) | TopicXcxSections |
+| 评 N 星 | `context.review.starLabel %lld` | ContextualReviewComposer |
+| templatedetail 玩法没能打开 | `discovery.play.openFailed` (`DiscoveryErrorView.failureTitle`) | DiscoveryComponents, DiscoveryTemplateDetailView |
+| topic-detail / topic-preview 主题模板没能打开 | `discovery.topicTemplate.openFailed` | DiscoveryTemplateDetailView |
+| topic-preview 正在加载主题模板 | `discovery.topicPreview.loading` | DiscoveryTemplateDetailView |
+| template 消息 (bell aria) | `discovery.templateTab.inbox` | DiscoveryTemplateBrowserView |
+| merchantapply 商家报名 / 修改报名 / 提交成功 / 修改已保存, 放弃这次报名？… | **blocked** (written, then reverted: hash pin on MerchantContentEditor) | — |
+| search2 类别加载失败, 最低/最高区间, result 没有更多了 / 重新搜索, searchmap 地图搜索 | **blocked** (hash pins on GlobalSearchView / SearchMapFilterSheet / SearchMapExplorerView, as in round 2) | — |
+| the other ~120 merchantinfo / merchantapply / pricing rows in `copy-g1-player.md` | these MP features are not in the app (merchant-guide workflow, 分润 panel, supply ops) or are server messages. No app string to align. | — |
+
+### 4. P2 / P1 (audit r7)
+- Claude P2s of this half already closed in rounds 2–3: A1-5, A1-6, A2-4, A2-5, A2-6, A5-5, A6-3, A6-4, A7-2, A8-2 (gallery), A8-4, A8-5, B1-16, B1-17, B1-18, B1-19, B1-20, B1-23, B4-7.
+- Still open, with reasons: A3-4, A3-5, A4-3, A4-4, A5-6 (hash-pinned search files); A1-7 (no public share URL); A1-8 (superseded by the
+  native large-title ruling); A2-7 (`SocialGuideTemplateSection` is half b); A5-7, A8-3, B1-21, B4-5/B4-6, C1-9 (Core decode, Cursor);
+  B1-22 share poster (`TopicSharePosterCardView` builds the QR from the URL only; the MP poster needs `wxacode`, so not mounted).
+  The owner rows (A1-9, A2-8, C1-10) are unchanged.
+- No open P1 in this half has an App-only fix left. The rest are Core or owner lines, listed in the round 3 table.
+
+### 5. Accessibility lint
+- `python3 -B tools/check_a11y_lint.py`: **1 row, not from this branch**: `App/ClubKit/ClubWorkbenchKit.swift:261` (club-a round 3, on the base).
+  It is left to the club agent to avoid a merge conflict. Every image this round adds is `.accessibilityHidden(true)` placed after `.resizable()` / `.scaledToFit()`.
+- `tools/check_typography_lint.py`: PASS.
+
+### Requests
+- **Cursor:** `HomeFeedItem` distance / rating; pricing read `tickets` + sale / settlement / fee fields; import `icon_one/two/team.svg`;
+  re-record the `MerchantContentEditor.swift` pin so the merchantapply nav titles, discard copy and 查看承接进度 can land.
+- **Gemini:** a real place picker plus an upload client for `MerchantApplyPickerGapView` before it is mounted.
