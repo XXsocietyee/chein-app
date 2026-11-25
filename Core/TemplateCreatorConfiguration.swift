@@ -230,6 +230,7 @@ extension TemplateAdvancedDraft {
                 if fields["multi"]?.bool == true ? correct < 1 : correct != 1 { fail("options", "answer") }
             }
         case .scan:
+            if text("kind") == "NONE" { break }
             let needed = ["TEXT": "reply", "VOICE": "audioUrl", "IMAGE": "imageUrl", "OVERLAY": "overlayUrl"][text("kind")] ?? "reply"
             if text(needed).isEmpty { fail(needed, "required") }
             if text("arMode") != "NONE" && text("kind") != "OVERLAY" { fail("arMode", "reference") }

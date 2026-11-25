@@ -530,6 +530,11 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             // B-DR-06: the MP LOGIN_REQUIRED empty state. Sign-in itself happens outside this sheet (close first).
             CYEmptyState(systemImage: "person.crop.circle", "fixr3.deregister.signedOut", detail: "compliance.freshLogin",
                          messageIdentifier: "compliance.freshLogin")
+        case .denied:
+            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark",
+                         "compliance.denied.identity",
+                         detail: "compliance.denied.detail",
+                         messageIdentifier: "compliance.denied")
         case .unknown: Text("compliance.unknown")
             .accessibilityIdentifier("compliance.unknown")
             .accessibilityLabel(Text("compliance.unknown"))

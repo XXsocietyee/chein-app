@@ -26,7 +26,7 @@ class PostJoinNavigationTests(unittest.TestCase):
         self.assertIn('loadPostJoinDetail(teamID: teamID)',ui)
         self.assertIn('if !readOnly, action.isAllowed(detail: detail)',ui)
         self.assertIn('remove: !readOnly && action.isAllowed(detail: detail)',ui)
-        self.assertIn('if !readOnly, model.coordinator.pending != nil',ui)
+        self.assertIn('if !readOnly, let pending = model.coordinator.pending',ui)
         model=(ROOT/'App/TeamComponents.swift').read_text()
         self.assertIn('coordinator.writeState == .simulated || coordinator.writeState == .acknowledged || coordinator.writeState == .blocked',model)
     def test_authored_behavior_covers_failure_and_navigation(self):

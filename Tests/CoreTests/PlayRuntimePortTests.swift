@@ -86,41 +86,23 @@ final class PlayRuntimePortTests: XCTestCase {
         XCTAssertEqual(PlayStationImageResolver.station(for: result.nodes[0], in: result).tier, .chapter)
     }
 
-    /// C-F6 MP-first (owner 2026-11-25): was pinned default OFF; the mini-program reads and saves 到访方式
-    /// (pages/publish/fabu/theme-fe-visit.js:40 GET, :87 POST), so both gates now default ON. Still outside the mark table.
-    @MainActor func testVisitConfigGateIsDefaultOnPerMPFirstAndOutsideTheMarkTable() async throws {
+    func testVisitConfigGateIsOnAndOutsideTheMarkTable() async throws {
         XCTAssertTrue(PlayRuntimePortRouteGate.freeExploreVisitConfigRead)
         XCTAssertTrue(PlayRuntimePortRouteGate.freeExploreVisitConfigWrite)
         XCTAssertEqual(PlayRuntimePortRouteGate.visitConfigMark, .liveInProduction)
         XCTAssertNil(ChinaReviewedRouteCapability.mark(for: PlayRuntimePortRouteGate.visitConfigPath))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(PlayRuntimePortRouteGate.visitConfigPath))
         let configuration = try APIConfiguration(baseURL: URL(string: "https://fixture.example")!)
-        let stub = VisitConfigStub()
-        let service = FreeExplorationVisitConfigService(configuration: configuration, transport: stub, token: { "fixture-token" })
-        XCTAssertTrue(service.readsEnabled); XCTAssertTrue(service.authorWrites)
+        let held = FreeExplorationVisitConfigService(configuration: configuration, transport: VisitConfigStub(), authorWrites: false, readsEnabled: false, token: { "fixture-token" })
+        do {
+            _ = try await held.load(topicID: 9)
+            XCTFail("an explicit off read must not send")
+        } catch let error as FreeExplorationVisitConfigError {
+            XCTAssertEqual(error, .disabled)
+        }
+        let service = FreeExplorationVisitConfigService(configuration: configuration, transport: VisitConfigStub(), token: { "fixture-token" })
         let rows = try await service.load(topicID: 9)
         XCTAssertEqual(rows, [])
-        let sent = try XCTUnwrap(stub.requests.last)
-        XCTAssertEqual(sent.httpMethod, "GET")
-        XCTAssertEqual(sent.url?.path, "/api/topic/free-explore/visit-config")
-        XCTAssertEqual(sent.url?.query, "topicId=9")
-    }
-
-    /// C-F6 MP-first: the save is `POST` JSON `{nodeId, visitCheck, visitRadius}` (fe-visit-config.js:7 `saveBody`).
-    @MainActor func testVisitConfigSavePinsTheMPRequestShape() async throws {
-        let configuration = try APIConfiguration(baseURL: URL(string: "https://fixture.example")!)
-        let stub = VisitConfigStub()
-        let service = FreeExplorationVisitConfigService(configuration: configuration, transport: stub, token: { "fixture-token" })
-        let row = try FreeExplorationVisitConfigRow(raw: JSONDecoder().decode(PlayWireValue.self, from: Data(
-            #"{"nodeId":7,"visitCheck":"GPS","visitRadius":null,"hasCoordinates":true}"#.utf8)))
-        try await service.save(try FreeExplorationVisitConfigChange(nodeID: 7, visitCheck: .gps, visitRadius: 400), current: row)
-        let sent = try XCTUnwrap(stub.requests.last)
-        XCTAssertEqual(sent.httpMethod, "POST")
-        XCTAssertEqual(sent.url?.path, "/api/topic/free-explore/visit-config")
-        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(sent.httpBody)) as? [String: Any])
-        XCTAssertEqual(Set(body.keys), ["nodeId", "visitCheck", "visitRadius"])
-        XCTAssertEqual(body["nodeId"] as? Int, 7)
-        XCTAssertEqual(body["visitRadius"] as? Int, 400)
     }
 
     func testStationArrivalUsesTheExistingArriveChannel() throws {

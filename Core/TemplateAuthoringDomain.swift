@@ -38,6 +38,36 @@ public enum TemplateAuthoringJSON: Codable, Equatable, Sendable {
     }
     public var integer: Int? { guard let v = number, v.isFinite, v.rounded() == v, v > Double(Int.min), v < Double(Int.max) else { return nil }; return Int(v) }
 }
+/// Mini-program `node-game-catalog.js` picker categories. Sort, match, and classify stay the existing advanced sections.
+public enum TemplateAuthoringGameplayCatalog {
+    public static let categories = ["全部", "问答", "推理", "互动", "挑战"]
+    public struct Game: Equatable, Sendable {
+        public let key: String
+        public let label: String
+        public let category: String
+        public let section: String
+        public init(key: String, label: String, category: String, section: String) {
+            self.key = key; self.label = label; self.category = category; self.section = section
+        }
+    }
+    public static let inference: [Game] = [
+        .init(key: "sort", label: "排序", category: "推理", section: "sort"),
+        .init(key: "match", label: "连线", category: "推理", section: "match"),
+        .init(key: "classify", label: "分类", category: "推理", section: "classify")
+    ]
+}
+
+/// Loading and failure for `GET /api/play/theme/support-matrix`, and an adoption that has not been confirmed.
+public enum TemplateAuthoringSupportPhase: Equatable, Sendable {
+    case idle, loading, ready, failed
+    public var loadingMessage: String? { self == .loading ? TemplateAuthoringExtraCopy.supportMatrixLoading : nil }
+}
+
+public enum TemplateAdoptionConfirmation: Equatable, Sendable {
+    case confirmed, pending
+    public var message: String? { self == .pending ? TemplateAuthoringExtraCopy.loadFailedAdoptUnconfirmed : nil }
+}
+
 public enum TemplateAuthoringError: Error, Equatable {
     case invalidDraft, invalidContract, unavailable, changedSession, storageUnavailable, uncertain, staleReview
 }
@@ -115,6 +145,8 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
     public var categoryId: Int?
     public var couponId: Int?
     public var audioDuration: Int?
+    /// MP `formData.scope`. Only `MERCHANT` is written on draft and publish. A player omits it.
+    public var operationScope: String?
     public init(title: String = "") { self.title = title; self.medalStyle = "glow" }
     public var canSave: Bool { !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var publishIssues: [String] {

@@ -15,8 +15,8 @@ public enum ChinaReviewedRouteMark: String, Equatable, Sendable {
     case missing
 }
 
-/// P2 play-runtime gates. Reviewed, and default off. They live outside `marks` and
-/// `wiredPatterns` so this package does not change `callSiteCount` (995) or
+/// P2 play-runtime gates. Story lock stays off. Visit-config follows the mini-program.
+/// They live outside `marks` and `wiredPatterns` so this package does not change `callSiteCount` (995) or
 /// `wiredPatternCount` (679). Other packages add their own rows later.
 public enum PlayRuntimePortRouteGate {
     /// Missing `storyLocked` counts as locked only after this is turned on.
@@ -31,10 +31,9 @@ public enum PlayRuntimePortRouteGate {
         #endif
         return storyLockMissingCountsAsLocked
     }
-    /// `GET /api/topic/free-explore/visit-config`. Reviewed (`live-in-production`). C-F6 MP-first (owner 2026-11-25):
-    /// on, as the mini-program reads it (pages/publish/fabu/theme-fe-visit.js:40).
+    /// `GET /api/topic/free-explore/visit-config`. The mini-program reads this for 到访方式.
     public static let freeExploreVisitConfigRead = true
-    /// `POST /api/topic/free-explore/visit-config`. C-F6 MP-first: on, as the mini-program saves it (theme-fe-visit.js:87).
+    /// `POST /api/topic/free-explore/visit-config`. Same JSON body the mini-program saves.
     public static let freeExploreVisitConfigWrite = true
     public static let visitConfigPath = "/api/topic/free-explore/visit-config"
     public static let visitConfigMark = ChinaReviewedRouteMark.liveInProduction
@@ -110,15 +109,8 @@ public enum ChinaReviewedRouteCapability {
         if popupCloseOwnerGrant.contains(key) { return true }
         // Owner 2026-11-24: platform-pass order reads are on for players. Not a money write.
         if isPlatformPassOrderPath(key) { return true }
-        if mpFirstCMAOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
-
-    /// MP-first rule (owner 2026-11-25): non-money routes the mini-program itself sends. The server's checks decide.
-    /// C-F6: the author's 到访方式 read/save (pages/publish/fabu/theme-fe-visit.js:40, :87).
-    public static let mpFirstCMAOwnerGrant: Set<String> = [
-        "/api/topic/free-explore/visit-config"
-    ]
 
     /// Popup-closure owner grant: reviewed non-money routes surfaced by the popup parity closure pass
     /// (`beta/graduate`, `transfer-to-club`, owned clubs lookup, and official attendance read/commands).
@@ -285,7 +277,8 @@ public enum ChinaReviewedRouteCapability {
         "/api/topic/state-keys/named",
         "/api/topic/invite-chapters",
         "/api/topic/chapter/supply-terms",
-        "/api/topic/host-qrcode"
+        "/api/topic/host-qrcode",
+        "/api/topic/free-explore/visit-config"
     ]
 
     /// `PUT /api/topic/state-keys/{stateKey}` names a key such as `clue.door`, not a numeric id.
