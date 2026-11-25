@@ -1853,6 +1853,8 @@ struct ClubGovernanceReadView: View {
                         }
                     }.accessibilityIdentifier("club.gov.customer.topic.\(target.topicID)")
                 } else if let target = leaderboardMemberRoute(row) {
+                    // Round 4 image parity (MP detail wxml:323 `item.avatar || d_profile.png`): the member's avatar.
+                    ClubMPAvatar(url: QuestifyCardArtwork.safeURL(row["avatar"].string), name: row["nickname"].string ?? "", size: .sm)
                     ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: true)
                     Button { selectLeaderboardMember(target) } label: {
                         Label("social.profile", systemImage: "person.crop.circle")
