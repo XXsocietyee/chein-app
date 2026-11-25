@@ -545,6 +545,22 @@
         }
       }
     },
+    "roam.passport.play.routes.count %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld routes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条路线"
+          }
+        }
+      }
+    },
     "roam.passportSheet.title": {
       "localizations": {
         "en": {

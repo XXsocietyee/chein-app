@@ -291,6 +291,7 @@ struct RoamBrowserView: View {
         RoamHomePassportView(reader: experienceReader, albumMetadataReader: albumMetadataReader,
             stampDestination: stampDestination, liveDestination: liveDestination,
             toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination,
+            officialRouteReader: officialRouteReader,
             anniversaryRouteDestination: anniversaryRouteDestination,
             privateToolsReader: privateToolsReader,
             collectionObjectDestination: { AnyView(SessionObjectCardsView()) })
@@ -394,8 +395,8 @@ struct RoamBrowserView: View {
         // Mini-program order: the permission shell sits above the intro cards.
         if let locationSettings { RoamHomeLocationNotice(provider: locationSettings) }
         if nearbyTeamsDestination != nil || liveDestination != nil {
-            RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination,
-                officialRoutes: officialRouteReader.map { reader in { AnyView(OfficialRouteListView(reader: reader)) } })
+            // MP intro: three tickets (NO.01–03). 官方路线 lives on the 漫游护照 tab as a play card (MP _loadOfficialRoutes).
+            RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination)
         }
         if let recoveryBanner, let experienceReader {
             let rendered = recoveryEntry.revision
