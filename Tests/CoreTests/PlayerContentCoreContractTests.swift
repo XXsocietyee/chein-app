@@ -143,18 +143,20 @@ final class PlayerContentCoreContractTests: XCTestCase {
         } catch {}
     }
 
-    func testCommunityTrustReportSubmitStaysOffAndMatchesTheSheetBody() async throws {
+    func testCommunityTrustReportSubmitDefaultsOnAndMatchesTheSheetBody() async throws {
         let wire = Wire()
         let client = try CommunityMemberReportClient(configuration: configuration(), transport: wire)
-        XCTAssertFalse(client.writesEnabled)
+        XCTAssertTrue(client.writesEnabled)
         let requestID = CommunityMemberReportDraft.requestID(targetType: .member, targetID: 8, nowMillis: 1_700_000_000_000, random: "ab12cd34")
         let draft = try CommunityMemberReportDraft(
             targetType: .member, targetID: 8, reasonCode: "HARASSMENT", policyVersion: "v1",
             description: "具体经过", requestID: requestID
         )
-        do { try await client.submit(draft, token: "synthetic-token"); XCTFail("gate defaulted on") }
+        try await client.submit(draft, token: "synthetic-token")
+        XCTAssertEqual(wire.requests.count, 1)
+        let closed = try CommunityMemberReportClient(configuration: configuration(), transport: wire, writesEnabled: false)
+        do { try await closed.submit(draft, token: "synthetic-token"); XCTFail("closed grant sent") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }
-        XCTAssertTrue(wire.requests.isEmpty)
         let request = try client.submitRequest(draft, token: "synthetic-token")
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.url?.path, "/api/community-trust/reports/submit")

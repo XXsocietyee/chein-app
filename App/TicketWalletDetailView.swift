@@ -50,7 +50,7 @@ import SwiftUI
                 if let makeTeamCoordinator {
                     TicketWalletTeamEntrySection(ticket: ticket, requestedID: id, reader: reader, makeCoordinator: makeTeamCoordinator)
                 }
-                if let playProvider, playReadOwner == playProvider.owner,
+                if ticket.hasGame, let playProvider, playReadOwner == playProvider.owner,
                    playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: playProvider) {
                     let presentationID = playEntry.presentationID
                     Section {
@@ -177,14 +177,19 @@ import SwiftUI
         let provider = playProvider
         await model.load(presentation: presentation, currentOwner: { key }) { try await reader.ticketDetail(id: id) }
         if !Task.isCancelled, model.accepts(presentation, currentOwner: key),
-           let provider, provider.owner == playProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured)?.id == id, captured == key {
-            playReadOwner = provider.owner
-            if autoStartsPlay, !didAutoStart, let ticket = model.value(owner: captured),
-               playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: provider) {
-                didAutoStart = true
-                playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: provider,
-                                   presentationID: playEntry.presentationID)
+            if let ticket = model.value(owner: captured), !ticket.hasGame,
+               ticket.status == .ready, ticket.clearedFlag != true, !ticket.isWalletLocked {
+                presenting = true
+            }
+            if let provider, provider.owner == playProvider?.owner, provider.matches(reader: reader) {
+                playReadOwner = provider.owner
+                if autoStartsPlay, !didAutoStart, let ticket = model.value(owner: captured), ticket.hasGame,
+                   playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: provider) {
+                    didAutoStart = true
+                    playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: provider,
+                                       presentationID: playEntry.presentationID)
+                }
             }
         }
     }

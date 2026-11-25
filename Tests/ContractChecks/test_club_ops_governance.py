@@ -164,7 +164,8 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
         self.assertIn('ClubOpsGovernanceSuccess(operation: route.operation)', receipt)
         self.assertEqual(self.form.count('ClubOpsGovernanceSuccess('), 1)
         self.assertIn('receipt = value; self.review = nil; locked = true', self.form)
-        review = self.form.split('if let review {', 1)[1].split('Button(', 1)[0]
+        # fix-r8-club (CLB-governance-03): direct one-tap commands skip this fact block when the consequence sheet already showed.
+        review = self.form.split('if let review, !(Self.directOperations.contains(route.operation) && consequenceReview?.id == review.id) {', 1)[1].split('Button(', 1)[0]
         self.assertIn('.filter { $0 != "expiresAtEpochMs" && ', review)
         self.assertIn('ClubOpsBanExpiryReview(fields: review.command.fields)', review)
 

@@ -239,8 +239,8 @@
     },
     {
       "key": "club.gov.field.hasGuideCert",
-      "en": "Holds a guide or travel qualification",
-      "zh-Hans": "持导游/旅游资质",
+      "en": "Guide / travel certificate",
+      "zh-Hans": "持导游 / 旅游资质",
       "accessibilityIdentifier": "club.gov.input.hasGuideCert"
     }
   ]

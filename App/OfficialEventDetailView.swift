@@ -111,11 +111,7 @@ enum OfficialDetailID {
                 }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.organizer)
                 Section("official.facts") {
                     OfficialDetailFactsStrip(facts: presentation.facts).accessibilityIdentifier(OfficialDetailID.facts)
-                    LabeledContent("official.price") { Text("official.priceNotProvided") }
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(Text("official.price"))
-                        .accessibilityValue(Text("official.priceNotProvided"))
-                        .accessibilityIdentifier("official.price")
+                    // R7-PC-C4-3: MP official-detail has no 价格 row (index.wxml:155-156), so no 暂无价格信息 placeholder either.
                 }
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {

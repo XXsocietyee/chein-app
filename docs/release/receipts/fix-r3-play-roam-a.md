@@ -205,3 +205,142 @@ Each hunk of my round-2 commits (50329715e, 3cde18d10, 8966aa096) was checked ag
 - Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), base b0ac0108d vs branch: 112 failures + 105 errors on both, identical sorted lists, **0 new**.
 - `tools/check_typography_lint.py`: PASS.
 - Fixture routes: "Round 3" block in `docs/port/accept/f-play-roam-a.txt`.
+
+## Round 4 (2026-11-25)
+
+Brief: `design/handoff-r2:docs/briefs/fix-r3-round4.md` (+ `wave-x10.md`, `owner-decisions-1124.md`). Gemini is out of quota, so this round also covers Gemini's MP-alignment work (flows, images, copy) for half a's 15 pages.
+
+- **Sync:** checked out `origin/fix/r3-play-roam-a`, merged `origin/ui/combined-r7` 4ef0a2840 (clean). Merged again before the final push.
+- **MP source:** `hengyin/chengyinhub-xcx` 3a131849.
+- **Strings:** fragment `docs/port/strings/fix-r3-play-roam-a.json` now 64 keys (en + zh-Hans). It includes **15 rows from Gemini's `docs/mp-gap/copy-diff-g1.md` that never reached the catalog** (every one checked against the MP file:line; `Resources/Localizable.xcstrings` still had the old value). The store-day page uses its own table, so its MP copy is in `tools/build_play_store_day_catalog.py` and the regenerated `Resources/PlayStoreDay.xcstrings` (a fragment cannot reach that table; `test_w2_19_playMerchant` passes).
+- **Method for copy:** a script compared every catalog key and literal used by the 15 pages' App files with the MP text of the page, its `usingComponents` (recursive) and its `require`d utils. 293 strings were not verbatim; each was paired with its closest MP line, and the 40 that are the same message worded differently were changed. The rest are app-only states (gates, permissions, native share / photo-save, TEST-only writes) with no MP counterpart and stay as they are.
+
+### 1. Flows (flows-g1 / flows-g2 edges for half a)
+
+| MP edge | app now | change |
+|---|---|---|
+| roam passport → `official-routes` (MP `_loadOfficialRoutes`: a passport play card after 官方活动, only when ≥ 1 route, `N 条路线`) | was a 4th intro ticket NO.04 | **moved** to the 漫游护照 tab as the MP card (`RoamHomePassportView.officialRoutesCard`); intro is NO.01–03 as in the MP |
+| roam → nearby / my-teams, login (`switchTab member`) on the reviewed `pages/roam` host | nearby / my-teams pushes had no 登录; `onOpenAccount: {}` | **wired** `openSignIn` (r7 residual P2) |
+| poi-challenge `onLoad(q.photo)` (nearby spot camera → challenge with the upload) | no prefill | **added** `ChallengePOIHostView(photoURL:)` + deep-link `photo=` (https only, open photo step only) |
+| poi-challenge medal → `citystamp?kind=sign` / `badge-wall?badgeCode=` (`redirectTo`) | push | kept as push (native stack; back returns to the medal) |
+| poi-challenge exit → back, fallback `nearby` | dismiss | OK |
+| circle no topicId → 返回首页 (`reLaunch index`) | 返回首页 | copy/glyph aligned (below) |
+| history guest → `cy-access-gate kind="login"` | local list shown to guests on the deep link | **added** 登录后查看 + 登录 on the deep-link host |
+| landing 先逛逛 → `switchTab index` | hidden without a root tab switch | **falls back** to closing the page (JLAND-10) |
+| citynode-code / history / session / citystamp / official-route(s) back → `navigateBack`, fallback `switchTab roam` | system back | OK |
+| nearby → my-teams / team detail / activity / topic / citystamp / poi-challenge | present (place sheet hosts the challenge + citystamp) | OK |
+| landing → play / activity / topic; my-teams → team detail; official-routes → official-route | present | OK |
+| flows-g1 GAP-CLAUDE mounts: `RoamSessionToolsSheetView`, `RoamCityStripTabView`, `PlayToolsAndLeadSheetView`, `NearbyTeamsMapAndSheetView`, `RoamHistoryGapView` | not mounted | **unchanged, same reasons as round 3.** Re-checked: `Core/PlayPreferenceRuntime.swift` is the route-preference questionnaire, not BGM / 旁白 / reduce-motion / fog / map-style state, so the two tools sheets would still bind dead toggles. City strip needs `fetchCityStrip` wiring (Cursor). Nearby map sheet and merged history would duplicate the native pages. |
+
+### 2. Image parity (MP image slots → app)
+
+| page | MP slot (src / background / component) | app | state |
+|---|---|---|---|
+| roam | `images/roam/intro-ticket-{route,map,team}.svg` | `FeatureIcon.introTicket*` | ✓ (r2) |
+| roam | `subpackageRoam/assets/icons/{history,stamp,goals}.png` (`cy-roam-photo`) | `FeatureIcon.history/stamp/goals` | ✓ (r2) |
+| roam | `assets/photos/event` (官方活动 card) | `BannerCover.event` | ✓ (r2) |
+| roam | 官方路线 card: first route `previewImg`, else `photo: 'goals'` | `E1CoverArt(imageURL:fallbackImage: FeatureIcon.goals)` | ✓ **r4** |
+| roam | `entryActivity.cover \|\| /images/route_city_cover.png` | `RoamEntryCover` fallback `BannerCover.routeCityCover` (was SF `photo`) | ✓ **r4** |
+| roam | `.entry-card__cover`: `item.cover \|\| /images/home-route-city-placeholder.jpg` | `RoamEntryCardView` `.fallbackArtwork(BannerCover.homeRouteCityPlaceholder)` | ✓ **r4** |
+| roam | map pins `pin-*` / `dot-*` / cluster | `MapMarker.*` via `CYMapMarker` | ✓ (r2/r3) |
+| roam | `avatar \|\| /images/d_profile.png` (tab-root avatar → 我的) | none: the native tab bar's 我的 tab is the entry | native structure |
+| roam | `/images/cy_logo_mark.png` (opening animation) | no app host | — |
+| play/index | `pages/play/assets/pack-foil.png` | `Other.packFoil` | ✓ (r2) |
+| play/index | `medal.img \|\| /images/play/trophy.png`; glass-badge frames | `BadgeMedal.trophy`, `glassBadge` (one sprite frame) | ✓ (r2/r3) |
+| play/index | station without photo → `cover-route` | `BannerCover.coverRoute` | ✓ (r2) |
+| play/merchant | `heroImg` only when present (no default) | stand-in `mappin.circle` glyph removed | ✓ **r4** |
+| play/merchant | 本店权益 gift | `FeatureIcon.gift` | ✓ (r2) |
+| play/circle | `cy-empty kind="missing-param"` → `info` glyph | `info.circle` (was `exclamationmark.triangle`) | ✓ **r4** (cy-icon glyph → SF) |
+| poi-challenge | `cy-medal-screen` `item.img` (place cover) else `mic_key.svg` | `CYImageCard(...).fallbackArtwork(BadgeMedal.micKey)` | ✓ **r4** |
+| citynode-code | `cy-qr-voucher` centre `/images/cy_logo_mark.png` (`brightness(0)`, white circle 96/440, mark 56/440) | `VerificationQRCentreLogo` (template black mark), QR level H | ✓ **r4** (all `VerificationLocalQRCode` surfaces: the MP voucher draws it on every code) |
+| citynode-code | error `/images/no_data.svg` | app error is text + 重试 (no art) | left: the shared voucher error layout is a text state in the app |
+| history | `cy-empty kind="empty"` → `empty_state_bg.svg` + `empty_state_figure.svg` | `CYEmptyState(systemImage: "tray")` → `CYEmptyIllustration(.generic)` | ✓ **r4** |
+| session | `share-card/route-art.png` | `BannerCover.routeArt` | ✓ (r2) |
+| session | `share.mapImage` / `share.imagePath` (canvas) | native share card render | runtime image |
+| poi-detail | gallery / featured / merchant logo / cover: remote only, no MP default | remote only | OK |
+| nearby | `.mt-card__cover`: `item.img`, else `/images/home-route-city-placeholder.jpg` | `NearbyMapDiscoveryRow`: place + event rows always show a cover, default `homeRouteCityPlaceholder` | ✓ **r4** |
+| nearby / my-teams | `avatarsOf` → `FACE = /images/d_profile.png` | `NearbyTeamFaces` → `AvatarDefault.dProfile` (was SF `person.crop.circle.fill`) | ✓ **r4** |
+| citystamp | `mailbox.png` | `Other.mailbox` | ✓ (r2) |
+| citystamp | `.sgprinter` `printer-body.jpg` + `.sgprinter__slot` `printer-slot.jpg` | `RoamStampPrinterView` (MP rpx sizes, stub after tear) | ✓ **r4** |
+| official-routes / route | `item.cover` / `route.cover` only when present (no default) | cover only when `previewImage` is set (was generated art always) | ✓ **r4** |
+| official-route | `cy-empty kind="empty"` | `CYStateLayout(emptyIllustration: .generic)` | ✓ **r4** |
+| official-route | node `item.img` | — | left: no node `imgUrl` in Core (Cursor request 5) |
+| landing | `inviter.avatar` else initial else `cy-icon tab-club`; tiles `cy-icon` | remote / initial / SF | cy-icon glyphs are CSS masks, not MP image files; SF stays |
+
+System-control glyphs (✕, back, share, ⋯, search, chevrons) and `cy-icon` line glyphs stay SF Symbols.
+
+### 3. Copy (zh-Hans = MP)
+
+| page | keys → MP text |
+|---|---|
+| poi-challenge | `playx.poi.submit` 提交 · `answerPlaceholder` 在这里作答 · `photoShoot` 拍一张 · `completed` 地点勋章 (medal name fallback) · new `claimedAgain` 再完成一次不会重复发放. Removed: visible 正在加载地标挑战… (skeleton only), 第一步：现场拍照打卡 header, the extra 选择答案 sheet button |
+| citynode-code | `roamSub.w208.voucher.defaultName` 节点 · new `renderFailed` 核销码二维码没能生成，请重试 · authority line hidden in the citynode scene |
+| official-routes / route | 线路 throughout: `officialRoute.title` 官方线路, `detail.title` 线路详情, `list.error` / `detail.error` 线路加载失败 (no second line), `list.empty` 还没有上架的官方线路, `detail.notFound` 这条线路不存在或已下架, `detail.noNodes` 这条线路还没有节点, `list.open` 查看线路 %@, `share` 分享线路. The roam card stays 官方路线 (MP roam/index.js:799) + new `roam.passport.play.routes.count` %lld 条路线 |
+| play/merchant (PlayStoreDay table) | `cta.confirmPending` 结果待确认 · 点这里确认 · `notice.arriveFirst` 先点「我已到店」，再开始任务 · `notice.noCoordinates` 这家还没填位置，暂时不能导航 · `crowd.unknown` — · steps 1/3 no sub line, step 2 sub = photoDesc once arrived (3 keys removed) |
+| play/circle | missing state: no sub line (title 探索链接不完整, 返回首页) |
+| history / session | `roam.historyLocal.finishPending` 上次漫游需要确认 · `roam.experience.noTrack` 这次没有记录到轨迹 · `roam.share.prepare` 生成足迹卡 · `roam.share.photoPermissionDenied` 在设置里允许保存到相册，返回后点“重试保存”。 · `roamSub.w208.shared.errorTitle` 这条足迹无法打开 (no sub) · history empty without the hint line |
+| poi-detail | `roamSub.w208.poi.offline` / `offlineVoucher` 节点已下线，保留历史记录(，已打卡待核销的券仍可出码领取) · `poi.missing` 找不到这个节点 · `poi.unavailable` 节点未开放或已下线 (both without sub) · `roam.poi.location.unavailable` 暂时无法获取位置，请稍后重试。 |
+| roam live | `roam.live.consentCard.body` …结束漫游即停止。 · `roam.live.locationQuality` 定位精度不足，请到开阔处等待定位稳定后重试。 · `roam.live.finishing` 正在结算 |
+| play/index | `playHelp.skipped` 跳过 · 记 0 分 · 辅助完成 · `playx.node.untitled` 未命名地点 · `playx.answer.placeholder` 把你找到的字填在这里 (MP play/index.wxml:1228, vm 1 text answer) |
+| citystamp | 你是第几位 removed (MP slip: 签号 + number) |
+| Gemini copy-diff-g1 rows carried (15) | `playx.merchant.stat.wait`, `u10.roamFinish.medals`, `playx.circle.notice`, `playx.circle.loading`, `roamTools.clearCache.confirmTitle`, `templateVenue.park`, `nearby.error.apply.{ALREADY_JOINED,APPLY_BLOCKED,APPLY_PENDING}`, `nearby.error.handle.APPLY_BLOCKED`, `nearby.rejected.foot`, `roam.historyLocal.unfinishedHint`, `playkit.photo.fallbackRecorded`, `roam.live.finishing`, `nearby.actionFailed`. The other 6 rows of that file belong to other areas (baoming, report-detail, orient-score, playkit reaction, order lifecycle). |
+
+Kept on purpose: `playCompat.refused.next` says "更新 App" where the MP says "更新小程序"; native permission / photo-save / share-sheet lines; gated-write notices.
+
+### 4. P2 / P1 rows (audit/parity-r7-play-roam, Claude)
+
+| row | change |
+|---|---|
+| poi-challenge #14 (P2) `photo=` prefill | done (flows table) |
+| nearby residual P2 (reviewed roam host, no sign-in) | done |
+| history #1 login gate | done on the deep-link host. Left: the 漫游护照 tile push (MP `ensureLoginFor` on every tile) — `RoamHomePassportView` has no session/sign-in input; needs the host to pass one |
+| landing JLAND-10 (P2) 先逛逛 hidden | done (dismiss fallback) |
+| landing row 21 (account switch re-read) | already present: re-read when the sign-in sheet closes (`PlayerJourneySignInBridge`) |
+| official-routes / route #7 thumbnail | Cursor (node `imgUrl`) |
+| poi-detail #19 share, #7 inline gallery, #16 parked pending | share domain is an owner decision (RPOI-4/5); #16 is done natively (r2/r3 pending card); #7 parked view |
+| my-teams #10, RTEAMS-5 | unchanged (Cursor) |
+| citystamp #4–#11 | gated writes (`mediaUpload` / `stampExchange`, owner) |
+
+### 5. Accessibility
+
+- `python3 -B tools/check_a11y_lint.py`: the only finding is `App/ClubKit/ClubWorkbenchKit.swift:261` (club area, present on the base 4ef0a2840); club-a already fixed it on `fix/r3-club-a` 9ba27a456. Nothing from this branch.
+- New decoration is VoiceOver-hidden (QR centre logo, printer, covers, faces); `.accessibilityHidden(true)` sits after Image-only modifiers.
+
+### Core / other requests (round 4)
+
+10. Core still has no live-session preferences (BGM, 旁白 autoplay, reduce-motion override, fog, map style): request 8 stands; until then the PLAY-6 / ROAM-9 sheets stay unmounted.
+11. `OfficialRouteFormat.distance` prints `km` in Chinese; the app maps it to `公里` locally (`OfficialRouteMeta`). A locale-aware Core formatter would remove that.
+12. Integrator: `docs/port/strings/gap-g1-copy.json` (Gemini) was never merged into `Resources/Localizable.xcstrings`; my fragment carries the 15 play-roam rows, the other 6 belong to other areas.
+
+### Verification (round 4, cloud, no compiler)
+
+- APIs grepped on the branch before use: `CYStateLayout(kind:title:detail:primary:…emptyIllustration:)` (memberwise, used the same way in `CYStates.swift`), `CYImageCard.fallbackArtwork(_:)`, `E1CoverArt(seed:symbol:imageURL:debugLabel:fallbackImage:fallbackFills:)`, `OfficialRouteReader.list`, `OfficialRouteFormat.distance/duration`, `ChallengePOICoordinator.node / uploadedPhotoUrl / confirmPhotoUploaded(_:)`, `QuestifyCardArtwork.safeURL(_:)`, `MPAsset.BrandLogo.cyLogoMark`, `MPAsset.BannerCover.{routeCityCover,homeRouteCityPlaceholder}`, `MPAsset.BadgeMedal.micKey`, `MPAsset.Other.{printerBody,printerSlot}`, `MPAsset.AvatarDefault.dProfile`, `MPAsset.FeatureIcon.goals`, `AppSession.account`, `openSignIn`. New type names (`VerificationQRCentreLogo`, `OfficialRouteMeta`, `RoamStampPrinterView`) grepped: unused before.
+- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), base 4ef0a2840 vs branch: 223 vs 224 failures+errors. The one new row is `test_localization_key_catalog_contract` for `playx.poi.claimedAgain`: the test reads `Resources/*.xcstrings` only, and the key is in this branch's fragment. **It clears when the integrator merges `docs/port/strings/fix-r3-play-roam-a.json`** (same path as earlier rounds' new keys). `test_w2_19_playMerchant` passes after the PlayStoreDay table regeneration.
+- `tools/check_typography_lint.py`: PASS. `tools/check_a11y_lint.py`: 1 finding, pre-existing club line (see §5).
+- New Swift files: none.
+
+## Round 5 (2026-11-25)
+
+Brief: scheduled round 5 (`COORDINATOR-HANDOVER.md` §4/§8, `owner-decisions-1124.md` MP-first, `fix-r3-round4.md`) and `audit/parity-r8-play-roam:docs/audit/parity-r8/play-roam.md` §3 (Claude App rows, half a pages).
+
+### Step 1 · merge `origin/ui/combined-r7` (f95850a46)
+- Conflicts (2), both sides kept:
+  - `App/MPReviewedPageScreen.swift`: poi-challenge keeps the round-4 `photo=` prefill (`ChallengePOIHostView(photoURL:)`) **and** adds combined's `subpackageRoam/poi-detail/index` case (`RoamPOIDetailHost`).
+  - `App/RoamBrowserView.swift`: keeps the MP three-ticket intro (官方路线 stays the 漫游护照 play card, MP roam/index.js:799) **and** passes combined's `teamsLive: introTeamsLive` (ROAM-13 live line, fix-r8).
+- Catalog keys that were used but missing (check_scaffold / check_catalog_coverage): `roam.history.signedOut` 登录后查看, `playx.poi.claimedAgain` 再完成一次不会重复发放 (MP poi-challenge/index.js:191), `roam.passport.play.routes.count %lld` %lld 条路线 (MP roam/index.js:799).
+- `check_scaffold.py`: PASS structural checks. No conflict markers; no duplicate type names.
+
+### Step 2 · rows
+| id | status | what | files |
+|---|---|---|---|
+| ROAM-13 (city strip) | **fixed** | MP 本城推荐 tab on the 附近活动 peek (pages/roam/index.wxml:144-160, index.js:5852-5895, subpackageRoam/utils/roam-city-guide.js). Tabs 附近活动 \| `<城市> · N 处推荐` (map within 60 km of a catalog centre) or 本城推荐 (default = first catalog city). Cards: name, category label (MP `CATEGORY_LABELS`), reason; cover from a loaded place carrying the seed tag `roam:seed:v1:<id>`, else `homeRouteCityPlaceholder`. Tap: loaded place with the exact seed tag, else a wide `/api/roam/pois` read matched by the same tag (never by name), then the existing place sheet; failure = MP toast 这个地点暂时打不开，请重试. Catalog ported App-side from `subpackageRoam/data/roam-city-catalog.js` (11 cities, 33 places), so the Cursor Core catalog request in `fix-r8-play-roam.md` item 2 is no longer needed. Parked `RoamCityStripTabView` stays unmounted (its model and hard-coded copy are not the MP's). | `App/RoamCityGuide.swift` (new), `App/RoamCityGuideCatalog.swift` (new, generated), `App/RoamHomeTabsView.swift` (`RoamEntryPeekView` tabs), `App/RoamBrowserView.swift` (`cityGuideOpen` task), strings fragment |
+| PLAY-r8-1 | verified | L01-039 share switch starts off (`App/PlayerGapViews.swift:210`, fix-r8). L01-032: the app's station rows show name / address only, never story text (`App/PlayExperienceView.swift:300-330`), so nothing leaks. L01-014: `SessionPlayRuntimeView` is `.id(session.sessionRevision)`, so a sign-in re-reads the page (an account switch re-reads instead of the MP's go-home). L02-059 copy equals MP `fe-story-visit.js:37` (已解锁 %lld / %lld 章, 已过期，不能再解锁). | — |
+| RHIST-2, RNEAR-2, RTEAMS-1, ROAM-13 live line | done by fix-r8-play-roam | Checked on the merged tree; not touched. | — |
+
+### Deviations / requests
+- ROAM-13 wide read: the MP reads at the catalog city centre with radius 100 km; `RoamService.validate` caps radius at 20 km and `RoamReading.roamPlaces` reads only at the current search area. The app reads 20 km around the search area. **Cursor:** allow a 100 km places read at an explicit centre if the default-city case must open.
+- a11y lint is 1 on the merged tree: `App/ObjectBadgeTileArtwork.swift:30` (fix-r8 BWALL-2, not half a). Left for its owner.
+
+### Verification (round 5, cloud, no compiler)
+- `python3 tools/check_scaffold.py`: PASS structural checks. `python3 tools/generate_project.py` run for the 2 new files (+24 pbxproj lines only).
+- Grepped before use: `RoamPlace.type/tags/coverImage`, `RoamReading.roamPlaces(radiusM:)`, `RoamSearchArea.coordinate`, `RoamMapItem.place`, `CYImageCard(title:meta:imageURL:style:)`, `.fallbackArtwork(_:)`, `MPAsset.BannerCover.homeRouteCityPlaceholder`, `appLocalized(_:locale:)`, `roamToastMessage`, `CYColor.textPrimary/textSecondary`. New type names (`RoamCityGuideCity`, `RoamCityGuidePlace`, `RoamCityGuideStrip`, `RoamCityGuideOpen`, `RoamCityGuideCards`, `RoamCityGuideCatalog`) were unused before.

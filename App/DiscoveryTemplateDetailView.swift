@@ -16,17 +16,29 @@ struct DiscoveryTemplateDetailView: View {
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
     @State private var adoption: Adoption?
+    @State private var pendingAdoption: Adoption?
+    @State private var showsAdoptLogin = false
     @State private var tab: TemplateDetailTab = .details
     @State private var capabilityPreview: TemplateNodePreviewState?
     @State private var toastMessage: String?
+    @State private var rulesExpanded = false
     /// Caller override. Nil uses `PublicContentShareLink.discoveryTemplate` when that path is already parsed.
     var shareURL: URL? = nil
+    /// R8-PC-A6-1, MP templatedetail.js:202,465: a `readonly=1` link keeps 应用 visible but answers 当前身份不能编辑模板.
+    private(set) var readonly = false
+    func readonlyLink(_ value: Bool) -> DiscoveryTemplateDetailView { var copy = self; copy.readonly = value; return copy }
     private struct Adoption: Identifiable, Hashable {
         let id = UUID()
         let source: DiscoveryPlayTemplate
         let key: RequestKey
         nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
         nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    }
+    private func resumePendingAdoption() {
+        guard let pending = pendingAdoption, loadedKey == requestKey, pending.source.id == id,
+              (reader as? AppSession)?.isSignedIn == true else { return }
+        pendingAdoption = nil
+        adoption = Adoption(source: pending.source, key: requestKey)
     }
     private struct RequestKey: Hashable {
         let id: Int
@@ -88,10 +100,16 @@ struct DiscoveryTemplateDetailView: View {
                                 Button {
                                     guard loadedKey == requestKey, reader.isConfigured,
                                           authoringCompletion?.isCurrent() != false else { return }
+                                    if readonly {
+                                        toastMessage = appLocalized("discovery.templateDetail.readonly", locale: locale)
+                                        return
+                                    }
                                     // R7-PC-A6-2 (r1 PC-A-6-3): MP `ensureLogin` before 应用 — a guest goes to sign-in.
+                                    // R7-PC-A6-2 (r8, MP `ensureLoginFor` callback): sign in over this page, then resume 应用.
                                     if (reader as? AppSession)?.isSignedIn == false {
                                         toastMessage = appLocalized("discovery.adopt.signIn", locale: locale)
-                                        if rootTabSwitch.isAvailable { (reader as? AppSession)?.dismissNativeEntry(); rootTabSwitch(.mine) }
+                                        pendingAdoption = Adoption(source: item, key: requestKey)
+                                        showsAdoptLogin = true
                                         return
                                     }
                                     adoption = Adoption(source: item, key: requestKey)
@@ -115,7 +133,9 @@ struct DiscoveryTemplateDetailView: View {
                         textSection(parity?.isTopicTemplate == true ? "u10.template.story" : "discovery.introduction", text: item.description, art: MPAsset.FeatureIcon.book)
                         if let parity, !parity.ruleSteps.isEmpty {
                             Section {
-                                ForEach(Array(parity.ruleSteps.enumerated()), id: \.offset) { index, step in
+                                // R7-PC-A6-4 (MP templatedetail.wxml:96-110): the step list clamps (3 steps) with 更多 / 收起.
+                                let clampsRules = parity.ruleSteps.count > 3
+                                ForEach(Array(parity.ruleSteps.enumerated().prefix(clampsRules && !rulesExpanded ? 3 : parity.ruleSteps.count)), id: \.offset) { index, step in
                                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
                                         Text(verbatim: String(index + 1)).cyText(.label, monospacedDigit: true)
                                             .frame(width: 28, height: 28).background(CYColor.bgSurfaceStrong, in: Circle())
@@ -124,6 +144,11 @@ struct DiscoveryTemplateDetailView: View {
                                     }
                                     .accessibilityElement(children: .combine)
                                     .accessibilityIdentifier("discovery.templateDetail.rule.\(index)")
+                                }
+                                if clampsRules {
+                                    Button(rulesExpanded ? "discovery.text.less" : "discovery.text.more") { rulesExpanded.toggle() }
+                                        .cyText(.label).frame(minHeight: CYSpacing.minTouchTarget)
+                                        .accessibilityIdentifier("discovery.templateDetail.rules.more")
                                 }
                             } header: { DiscoverySectionHeader("discovery.rules", art: MPAsset.FeatureIcon.interaction) }
                                 .discoveryCardRow()
@@ -161,6 +186,16 @@ struct DiscoveryTemplateDetailView: View {
         .appNavigationTitle("discovery.playDetails")
         .navigationBarTitleDisplayMode(.inline)
         .cyToast(verbatimMessage: $toastMessage)
+        .sheet(isPresented: $showsAdoptLogin, onDismiss: {
+            // Resume once signed in. Signing in changes the read scope, so wait for the re-read of this template if needed.
+            guard (reader as? AppSession)?.isSignedIn == true else { pendingAdoption = nil; return }
+            resumePendingAdoption()
+        }) {
+            if let session = reader as? AppSession {
+                Group { LoginView(intent: .player).environmentObject(session) }
+                    .presentationDetents([.large]).presentationDragIndicator(.visible)
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 UGCSafetyMenuButton(
@@ -176,6 +211,7 @@ struct DiscoveryTemplateDetailView: View {
         .task(id: requestKey) { if reader.isConfigured { await reload() } }
         .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
         .onChange(of: requestKey) { _, _ in adoption = nil; tab = .details }
+        .onChange(of: loadedKey) { _, _ in if !showsAdoptLogin { resumePendingAdoption() } }
         .sheet(item: $capabilityPreview) { state in
             TemplateNodePreviewSheet(state: state) { capabilityPreview = nil }
                 .cyDomainSheet(detents: [.half, .full])
@@ -422,10 +458,10 @@ struct DiscoveryTopicTemplatePreview: View {
     @ViewBuilder private func optionalText(_ value: String?) -> some View {
         if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).cyText(.meta).foregroundStyle(palette.textSecondary).textSelection(.enabled) }
     }
-    /// Mini-program `author || '城瘾'`.
+    /// R8-PC-A8-1, MP topic-detail index.js:182 `author || '创作者'` (PG-012: a missing author never poses as official).
     private func topicAuthor(_ item: PublicTopicTemplateDetail) -> Text {
         if let author = item.author?.trimmingCharacters(in: .whitespacesAndNewlines), !author.isEmpty { return Text(verbatim: author) }
-        return Text("discovery.templateDetail.publisher.platform")
+        return Text("discovery.templateDetail.publisher.creator")
     }
     private func nonempty(_ value: String?) -> String? {
         guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }

@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Status not yet synced"
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "状态待同步"
+            "value": "—"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Result pending · tap to check"
+            "value": "Result pending · tap to confirm"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结果待确认 · 点这里核对"
+            "value": "结果待确认 · 点这里确认"
           }
         }
       }
@@ -966,13 +966,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan the in-store code to check in before starting the task"
+            "value": "Tap “I’m here” first, then start the task"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "先扫店内码进店，再开始任务"
+            "value": "先点「我已到店」，再开始任务"
           }
         }
       }
@@ -1206,13 +1206,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This store has no coordinates yet, so navigation is unavailable"
+            "value": "This store has no location yet, so navigation is unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这家还没填坐标，暂时不能导航"
+            "value": "这家还没填位置，暂时不能导航"
           }
         }
       }
@@ -1745,22 +1745,6 @@
         }
       }
     },
-    "playStoreDay.step.photo.locked": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Photo requirements appear after you arrive"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "到店后显示拍摄要求"
-          }
-        }
-      }
-    },
     "playStoreDay.step.photo.title": {
       "localizations": {
         "en": {
@@ -1777,22 +1761,6 @@
         }
       }
     },
-    "playStoreDay.step.scan.detail": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Records your arrival time; it does not mean redeemed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "记录到店时间，不代表已核销"
-          }
-        }
-      }
-    },
     "playStoreDay.step.scan.title": {
       "localizations": {
         "en": {
@@ -1805,22 +1773,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "我已到店"
-          }
-        }
-      }
-    },
-    "playStoreDay.step.verify.detail": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Service starts only when the store redeems"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "商家核销的时刻才算服务开始"
           }
         }
       }

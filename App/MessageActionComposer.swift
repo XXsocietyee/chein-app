@@ -88,6 +88,9 @@ struct MessageComposerSubmission: Equatable {
     let onAcknowledged:(MessagingMessage)->Void
     /// The view's existing poll entry, shown as the leading `+` when the history offers it.
     let createPoll:(() -> Void)?
+    /// R7-PC-D9-3 (MP im/chat composer `+`): 图片 / 位置 / 路线 open the host's existing send flows; 投票 stays `createPoll`.
+    /// nil keeps the poll-only `+`.
+    var attach:((IMComposerPlusItem) -> Void)? = nil
     /// Continuity (r1 item 9): the history's flight that carries the sent text into its bubble. nil keeps the composer as before.
     let flight:IMSendFlight?
     @Environment(\.themeDomain) private var domain
@@ -101,8 +104,9 @@ struct MessageComposerSubmission: Equatable {
          canReply: @escaping () -> Bool = { true },
          createPoll: (() -> Void)? = nil,
          flight: IMSendFlight? = nil,
+         attach: ((IMComposerPlusItem) -> Void)? = nil,
          onAcknowledged:@escaping (MessagingMessage)->Void) {
-        self.createPoll=createPoll;self.flight=flight
+        self.createPoll=createPoll;self.flight=flight;self.attach=attach
         _model=StateObject(wrappedValue:MessageComposerModel(coordinator))
         self.identity=identity;self.conversationReady=conversationReady;self.canReply=canReply;self.onAcknowledged=onAcknowledged
     }
@@ -129,7 +133,25 @@ struct MessageComposerSubmission: Equatable {
             }
             // `+` on the left, then a rounded field with the send control inside it.
             HStack(alignment:.bottom,spacing:Theme.Space.s2) {
-                if let createPoll {
+                if let attach {
+                    Menu {
+                        ForEach(IMComposerPlusItem.allCases) { item in
+                            if item != .poll || createPoll != nil {
+                                Button {
+                                    if item == .poll { createPoll?() } else { attach(item) }
+                                } label: {
+                                    Label(LocalizedStringKey("im.composer.plus." + item.rawValue), systemImage: item.systemImage)
+                                }
+                                .accessibilityIdentifier("im.composer.plus." + item.rawValue)
+                            }
+                        }
+                    } label: {
+                        Label("im.composer.plus", systemImage: "plus").labelStyle(.iconOnly)
+                            .cyText(.sectionTitle, weight: .medium).frame(minWidth:44,minHeight:44).contentShape(Rectangle())
+                    }
+                    .disabled(!canCompose)
+                    .accessibilityIdentifier("im.composer.plus")
+                } else if let createPoll {
                     Button(action: createPoll) {
                         Label("poll.create",systemImage:"plus").labelStyle(.iconOnly)
                             .cyText(.sectionTitle, weight: .medium).frame(minWidth:44,minHeight:44).contentShape(Rectangle())

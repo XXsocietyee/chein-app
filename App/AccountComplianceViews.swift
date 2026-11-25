@@ -299,8 +299,10 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         .task {
             if destination == .marketing, scenePhase == .active,
                let intent = model.marketingRead(resume: true) { await model.coordinator.loadMarketing(intent: intent) }
-            if destination == .cancellation, scenePhase == .active,
-               let intent = model.cancellationIntent(resume: true) { await loadCancellation(intent) }
+            if destination == .cancellation, scenePhase == .active {
+                if let intent = model.cancellationIntent(resume: true) { await loadCancellation(intent) }
+                else { model.coordinator.noteSignedOut() }
+            }
         }
         .onDisappear {
             code = ""; agreement = false; cancelReview = false; cancelIntent = nil
@@ -327,6 +329,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             code = ""; agreement = false; cancelReview = false; cancelIntent = nil
             if phase != .active { model.pauseCancellation() }
             else if let intent = model.cancellationIntent(resume: true) { Task { await loadCancellation(intent) } }
+            else { model.coordinator.noteSignedOut() }
         }
         .sheet(isPresented: $cancelReview) {
             if let intent = cancelIntent {
@@ -356,7 +359,11 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         await model.coordinator.load(intent: intent)
     }
     private func requestCancellationRead() {
-        guard scenePhase == .active, let intent = model.cancellationIntent() else { return }
+        guard destination == .cancellation, scenePhase == .active else { return }
+        guard let intent = model.cancellationIntent() else {
+            model.coordinator.noteSignedOut()
+            return
+        }
         cancelReview = false; cancelIntent = nil
         Task { await loadCancellation(intent) }
     }
@@ -527,9 +534,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 .accessibilityHint(Text(LocalizedStringKey(model.coordinator.coolingOffHasPassed(now: Date()) ? "compliance.pending.afterCoolingOff" : "compliance.pending.duringCoolingOff")))
         case .completed: Text("compliance.completed", tableName: "AccountDeregistrationPresentation").accessibilityIdentifier("compliance.completed")
         case .freshLogin:
-            // B-DR-06: the MP LOGIN_REQUIRED empty state. Sign-in itself happens outside this sheet (close first).
+            // B-DR-06: the MP LOGIN_REQUIRED empty state. Close this sheet, then open sign-in.
             CYEmptyState(systemImage: "person.crop.circle", "fixr3.deregister.signedOut", detail: "compliance.freshLogin",
-                         messageIdentifier: "compliance.freshLogin")
+                         messageIdentifier: "compliance.freshLogin",
+                         actionTitle: "compliance.signIn", actionIdentifier: "compliance.signIn", action: {
+                             dismiss()
+                             PlayerJourneySignInBridge.shared.request()
+                         })
         case .denied:
             CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark",
                          "compliance.denied.identity",

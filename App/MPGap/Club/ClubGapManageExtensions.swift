@@ -199,6 +199,15 @@ public struct ClubGapSettingsSheet: View {
     public let onEditClub: () -> Void
     public let onTransferOwner: () -> Void
     public let onDissolveClub: () -> Void
+    /// CLB-r7-A-06 (MP detail wxml:690-760): 客户与项目 rows (查看客户 · 报名名册 · 活动运营 · 角色与权限); nil hides a row.
+    public var onCustomers: (() -> Void)? = nil
+    public var onEnroll: (() -> Void)? = nil
+    public var onEventOps: (() -> Void)? = nil
+    public var onRoles: (() -> Void)? = nil
+    /// CLB-r7-A-06 counts (MP detail wxml:697-797): 「N 人」/「暂时读不到」, 「N 个团」, 「N 已委派」; nil or 0 hides each.
+    public var customerCountText: String? = nil
+    public var topicCount: Int? = nil
+    public var delegatedRoleCount: Int = 0
 
     @Environment(\.dismiss) private var dismiss
 
@@ -219,6 +228,16 @@ public struct ClubGapSettingsSheet: View {
     public var body: some View {
         NavigationStack {
             List {
+                if onCustomers != nil || onEnroll != nil || onEventOps != nil || onRoles != nil {
+                    Section {
+                        settingsRow("查看客户", onCustomers, count: customerCountText)
+                        settingsRow("报名名册", onEnroll, count: (topicCount ?? 0) > 0 ? "\(topicCount ?? 0) 个团" : nil)
+                        settingsRow("活动运营", onEventOps)
+                        settingsRow("角色与权限", onRoles, count: delegatedRoleCount > 0 ? "\(delegatedRoleCount) 已委派" : nil)
+                    } header: {
+                        Text(verbatim: "客户与项目").cyText(.sectionTitle)
+                    }
+                }
                 if canGovern {
                     Section {
                         Button("编辑俱乐部资料") {
@@ -246,10 +265,44 @@ public struct ClubGapSettingsSheet: View {
                 }
             }
             .cyPageTitle(verbatim: "俱乐部设置")
+            .accessibilityIdentifier("club.settings.sheet")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("关闭") { dismiss() }
                 }
+            }
+        }
+    }
+
+    /// Supplies the 客户与项目 rows; each closure is the host's route (nil leaves the row out).
+    public func clubTools(customers: (() -> Void)?, enroll: (() -> Void)?, eventOps: (() -> Void)?, roles: (() -> Void)?) -> Self {
+        var copy = self
+        copy.onCustomers = customers; copy.onEnroll = enroll; copy.onEventOps = eventOps; copy.onRoles = roles
+        return copy
+    }
+
+    /// The counts beside 查看客户 · 报名名册 · 角色与权限 (MP loadSettingsCounts js:3579-3601; access.delegatedRoleCount js:2488).
+    public func clubToolCounts(customers: String?, topics: Int?, delegatedRoles: Int) -> Self {
+        var copy = self
+        copy.customerCountText = customers; copy.topicCount = topics; copy.delegatedRoleCount = delegatedRoles
+        return copy
+    }
+
+    @ViewBuilder private func settingsRow(_ title: String, _ action: (() -> Void)?, count: String? = nil) -> some View {
+        if let action {
+            Button {
+                dismiss()
+                action()
+            } label: {
+                HStack {
+                    Text(verbatim: title).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    Spacer()
+                    if let count { Text(verbatim: count).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                    Image(systemName: "chevron.right").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityHidden(true)
+                }
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
             }
         }
     }

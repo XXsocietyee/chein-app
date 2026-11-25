@@ -6,6 +6,10 @@ import SwiftUI
     let topicID: Int
     let client: PublisherLifecycleHTTP
     let coordinator: PublisherLifecycleCoordinator
+    /// R7-PC-B4-6: `scope=MERCHANT` from the link; nil falls back to the topic's owner sale route (environment).
+    var scope: String? = nil
+    @Environment(\.topicPricingScope) private var routeScope
+    private var pricingScope: String? { (scope ?? routeScope)?.uppercased() == "MERCHANT" ? "MERCHANT" : nil }
     /// PC-B-4-6: MP defaults to 有人带 (`subType: 'guided'`).
     @State private var subtype = PublisherPriceSubtype.guided
     @State private var cost = ""
@@ -204,7 +208,7 @@ import SwiftUI
         }
     }
     private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
-    private func input() throws -> PublisherPricingInput { try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team)) }
+    private func input() throws -> PublisherPricingInput { try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team), scope: pricingScope) }
     private var currentAction: PublisherLifecycleAction? {
         guard let value = Decimal(string: price), let input = try? input() else { return nil }
         return .pricing(input, value)
@@ -280,7 +284,7 @@ import SwiftUI
         guard case .pricing = value.action else { return }
         do {
             _ = try PlayerContentMPContract.pricingConfirm(
-                baseURL: client.configuration.baseURL, topicID: topicID, scope: nil,
+                baseURL: client.configuration.baseURL, topicID: topicID, scope: pricingScope,
                 guidedPrice: subtype == .guided ? Int(price) : nil, ticketPrices: [],
                 leadCost: Int(cost), teamSize: Int(team), selfPrice: subtype == .selfPlay ? Int(price) : nil)
         } catch {

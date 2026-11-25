@@ -21,11 +21,13 @@ import SwiftUI
                 ScrollView { CYLoadingStateView(rows: 3).padding(CYSpacing.lg) }
                     .accessibilityLabel(Text("officialRoute.loading"))
             case .failed:
-                CYErrorStateView(title: "officialRoute.list.error", message: "officialRoute.error.message", retryTitle: "officialRoute.retry") { Task { await load() } }
+                // MP cy-error: 线路加载失败 + 重试 (no second line).
+                CYStateLayout(kind: .failure, title: Text("officialRoute.list.error"), primary: ("officialRoute.retry", { _ = Task { await load() } }))
             case .offline:
                 CYStateLayout(kind: .offline, title: Text("officialRoute.list.error"), detail: Text("cy.kit.offline.body"), primary: ("officialRoute.retry", { _ = Task { await load() } }))
             case .empty:
-                CYEmptyStateView(systemImage: "point.topleft.down.to.point.bottomright.curvepath", title: "officialRoute.list.empty")
+                // MP cy-empty kind="empty": the two-layer empty illustration.
+                CYStateLayout(kind: .generic, title: Text("officialRoute.list.empty"), emptyIllustration: .generic)
             case .ready(let routes):
                 ScrollView {
                     LazyVStack(spacing: CYSpacing.lg) {
@@ -77,9 +79,9 @@ import SwiftUI
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityLabel(Text("officialRoute.loading"))
             case .failed:
-                CYErrorStateView(title: "officialRoute.detail.error", message: "officialRoute.error.message", retryTitle: "officialRoute.retry") { Task { await load() } }
+                CYStateLayout(kind: .failure, title: Text("officialRoute.detail.error"), primary: ("officialRoute.retry", { _ = Task { await load() } }))
             case .notFound:
-                CYEmptyStateView(systemImage: "questionmark.folder", title: "officialRoute.detail.notFound")
+                CYStateLayout(kind: .generic, title: Text("officialRoute.detail.notFound"), emptyIllustration: .generic)
             case .ready(let detail):
                 content(detail)
             }

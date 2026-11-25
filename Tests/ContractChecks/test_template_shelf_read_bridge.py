@@ -15,7 +15,11 @@ class TemplateShelfReadBridge(unittest.TestCase):
         s = read('Core/TemplateAuthoringService.swift')
         self.assertIn('public var canRead: Bool { shelfReadTransport?.available == true || canSubmit }', s)
         self.assertIn('public var canSubmit: Bool { canSimulate || transport?.authority == .injectedHTTP }', s)
-        self.assertIn('guard canSubmit, let transport else', s.split('func listMine()')[1].split('func listMinePage')[0])
+        # MP subpackageA/pages/myproject/index.js:749 passes scope on my-list. The write
+        # list still requires canSubmit; a read transport cannot take this path.
+        mine = s.split('func listMine(', 1)[1].split('func listMinePage', 1)[0]
+        self.assertIn('scope: String? = nil', mine)
+        self.assertIn('guard canSubmit, let transport else', mine)
         self.assertIn('!descriptor.mutates', read('Core/TemplateShelfReadApproval.swift'))
         factory = read('App/AppSession.swift').split('func templateShelfCoordinator')[1].split('var templateAuthoringViewIdentity')[0]
         self.assertIn('TemplateAuthoringAdapter(shelfReadTransport: makeTemplateShelfReadTransport())', factory)

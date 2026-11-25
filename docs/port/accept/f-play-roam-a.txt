@@ -29,3 +29,21 @@
 --uitesting-roam-home -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # map view: place markers are the MP dot-<category> (unselected) / pin-<category> (selected) by MP categoryKey; clusters dot-cluster
 --uitesting-module playExperience -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # medals: new badges show ONE glass-badge frame (not the 6x4 sprite sheet); topic medal without image shows trophy
 --roam-subpage-fixture poiLive -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RPOI-3 regression: no pending record → normal 打卡 row; with a record (device) → 打卡结果待确认 card + 查询当前状态 + 重新现场核验, no plain 打卡 row
+# Round 4 (2026-11-25): flows, MP image parity, MP copy, P2 rows
+--design-fixture e1-routes -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # official-routes: title 官方线路; cards = cover only when previewImg, name + "城市 · N 公里 · N 分钟"; no 官方路线 badge
+--design-fixture e1-routes-empty -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # official-routes empty: MP two-layer empty illustration + 还没有上架的官方线路
+--design-fixture e1-route-detail -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # official-route: meta subtitle, cover only when present, 节点（N）, 参考停留 as plain sub line; no stats grid / 在地图中打开起点 bar
+--roam-subpage-fixture voucherDisabled -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # citynode-code: default title 节点 (MP '节点'); with a live code (device) the QR shows the MP centre logo (black mark on a white circle) and no authority line
+--roam-subpage-fixture poiMissing -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # 找不到这个节点 + 返回地图, no sub line
+--roam-subpage-fixture poiUnavailable -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # 节点未开放或已下线 + 返回地图, no sub line
+--roam-subpage-fixture poiOffline -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # 节点已下线，保留历史记录 (…仍可出码领取 when needRedeem)
+--roam-subpage-fixture sharedError -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # 这条足迹无法打开 + 重试, no sub line
+--roam-subpage-fixture stampExchanged -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # citystamp slip: MP printer (brushed body + slot art) above the slip, paper stub after the tear; no 你是第几位 line
+--roam-subpage-fixture stampNoExchange -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # printer shows above 还没有可以换的票
+--roam-subpage-fixture history -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # (empty variant on device) 还没有漫游记录 + MP empty illustration + 出发第一次漫游, no hint line
+--uitesting-roam-home -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # intro: three tickets NO.01–03 (no NO.04 官方路线); 漫游护照 tab: 官方路线 · N 条路线 card after 官方活动 when routes exist; entry cards without cover show home-route-city-placeholder; entry sheet without cover shows route_city_cover
+--uitesting-module playCircleLink --play-circle-link-query "" -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # circle missing link: info glyph + 探索链接不完整 + 返回首页, no sub line
+--uitesting-module merchant-city-npc --w2-19-page playMerchant --w2-19-scenario perk -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # proof steps: titles only (step 2 sub = photoDesc once arrived); 现场 — when crowd unknown; hero without image has no stand-in glyph
+--nearby-team-fixture -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # team faces use the MP d_profile avatar; place/event rows show a cover (home-route-city-placeholder default)
+chein://mp/pages/play/poi-challenge/index?poiId=1&photo=https%3A%2F%2Fexample.invalid%2Fp.jpg  # (device, signed in) PLAYPOI #14: photo step starts confirmed; options inline (no 选择答案 sheet); 提交 / 在这里作答 / 拍一张; medal fallback mic_key art
+chein://mp/subpackageRoam/history/index  # (device, signed out) 登录后查看 + 登录 (MP access gate)

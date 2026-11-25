@@ -1,34 +1,40 @@
 import SwiftUI
 
-/// Image-led route card: cover with duration + distance chips over the art, title on the scrim, city and badge below.
+/// MP `subpackageRoam/utils/official-route.js` metaText: city · distance (公里) · duration (分钟), skipping blanks.
+enum OfficialRouteMeta {
+    static func text(_ route: OfficialRoute, chinese: Bool) -> String {
+        var distance = OfficialRouteFormat.distance(route.distanceKm)
+        if chinese, distance.hasSuffix(" km") { distance = String(distance.dropLast(3)) + " 公里" }
+        return [route.city, distance, OfficialRouteFormat.duration(route.totalMinutes, chinese: chinese)]
+            .filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+}
+
+/// MP `official-routes` `.orl-card`: the route's `previewImg` cover when it has one (no default art in the MP),
+/// then the name and the meta line.
 struct OfficialRouteCard: View {
     let route: OfficialRoute
     let chinese: Bool
     @Environment(\.cyPalette) private var palette
 
+    private var hasCover: Bool { !route.previewImage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
     var body: some View {
         VStack(spacing: 0) {
-            Color.clear.aspectRatio(16.0 / 10.0, contentMode: .fit)
-                .overlay { E1CoverArt(seed: route.name, symbol: "point.topleft.down.to.point.bottomright.curvepath", imageURL: route.previewImage) }
-                .overlay(alignment: .topLeading) { chips.padding(CYSpacing.md) }
-                .overlay(alignment: .bottomLeading) {
-                    Text(verbatim: route.name)
-                        .cyText(.sectionTitle).foregroundStyle(.white).lineLimit(2)
-                        .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.md).padding(.top, CYSpacing.jumbo)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .top, endPoint: .bottom))
-                }
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                CYStatusChip("officialRoute.badge", tone: .info, systemImage: "checkmark.seal")
-                HStack(spacing: CYSpacing.sm) {
-                    if !route.city.isEmpty {
-                        Label { Text(verbatim: route.city) } icon: { Image(systemName: "mappin.and.ellipse") }
-                            .cyText(.meta).foregroundStyle(palette.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        Text(verbatim: "—").cyText(.meta).foregroundStyle(palette.textTertiary)
-                    }
-                    Spacer(minLength: CYSpacing.sm)
+            if hasCover {
+                Color.clear.aspectRatio(16.0 / 10.0, contentMode: .fit)
+                    .overlay { E1CoverArt(seed: route.name, symbol: "point.topleft.down.to.point.bottomright.curvepath", imageURL: route.previewImage) }
+                    .clipped()
+                    .accessibilityHidden(true)
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(verbatim: route.name)
+                    .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                let meta = OfficialRouteMeta.text(route, chinese: chinese)
+                if !meta.isEmpty {
+                    Text(verbatim: meta).cyText(.meta).foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
@@ -38,94 +44,35 @@ struct OfficialRouteCard: View {
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
     }
-
-    @ViewBuilder private var chips: some View {
-        let duration = OfficialRouteFormat.duration(route.totalMinutes, chinese: chinese)
-        let distance = OfficialRouteFormat.distance(route.distanceKm)
-        HStack(spacing: CYSpacing.xs) {
-            if !duration.isEmpty { E1GlassChip(systemImage: "clock", text: duration) }
-            if !distance.isEmpty { E1GlassChip(systemImage: "figure.walk", text: distance) }
-        }
-    }
 }
 
+/// MP `official-route`: page title = route name (the nav bar), subtitle = meta line, the cover when present,
+/// then 节点（N） and the stop rows (tap a located stop → map).
 struct OfficialRouteDetailContent: View {
     let detail: OfficialRouteDetail
     let chinese: Bool
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var route: OfficialRoute { detail.route }
-    private func t(_ zh: String, _ en: String) -> String { chinese ? zh : en }
-
-    private var firstStopURL: URL? {
-        detail.nodes.lazy.compactMap { n -> URL? in
-            guard let lat = n.latitude, let lng = n.longitude else { return nil }
-            return OfficialRouteDetailView.mapURL(lat: lat, lng: lng, name: n.name)
-        }.first
-    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                hero
-                stats
+                let meta = OfficialRouteMeta.text(route, chinese: chinese)
+                if !meta.isEmpty {
+                    Text(verbatim: meta).cyText(.meta).foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if !route.previewImage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Color.clear.aspectRatio(dynamicTypeSize.isAccessibilitySize ? 1.0 : 1.6, contentMode: .fit)
+                        .overlay { E1CoverArt(seed: route.name, symbol: "point.topleft.down.to.point.bottomright.curvepath", imageURL: route.previewImage) }
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+                        .accessibilityHidden(true)
+                }
                 stops
             }
             .padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.sm).padding(.bottom, CYSpacing.xxl)
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if let url = firstStopURL {
-                Link(destination: url) {
-                    Label("officialRoute.openFirstStop", systemImage: "map")
-                        .cyText(.cardTitle).frame(maxWidth: .infinity, minHeight: 48)
-                        .foregroundStyle(palette.actionPrimaryFg)
-                        .background(Capsule(style: .continuous).fill(palette.actionPrimaryBg))
-                }
-                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-                .background(.bar)
-            }
-        }
-    }
-
-    private var hero: some View {
-        Color.clear.aspectRatio(dynamicTypeSize.isAccessibilitySize ? 1.0 : 1.3, contentMode: .fit)
-            .overlay { E1CoverArt(seed: route.name, symbol: "point.topleft.down.to.point.bottomright.curvepath", imageURL: route.previewImage) }
-            .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYStatusChip("officialRoute.badge", tone: .info, systemImage: "checkmark.seal")
-                    Text(verbatim: route.name).cyText(.pageTitle).foregroundStyle(.white)
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2).accessibilityAddTraits(.isHeader)
-                    if !route.city.isEmpty {
-                        Label { Text(verbatim: route.city) } icon: { Image(systemName: "mappin.and.ellipse") }
-                            .cyText(.meta).foregroundStyle(.white.opacity(0.85))
-                    }
-                }
-                .padding(CYSpacing.lg).padding(.top, 72).frame(maxWidth: .infinity, alignment: .leading)
-                .background(LinearGradient(colors: [.clear, .black.opacity(0.82)], startPoint: .top, endPoint: .bottom))
-            }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
-    }
-
-    @ViewBuilder private var stats: some View {
-        let duration = OfficialRouteFormat.duration(route.totalMinutes, chinese: chinese)
-        let distance = OfficialRouteFormat.distance(route.distanceKm)
-        let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
-        layout {
-            stat("clock", "officialRoute.stat.duration", duration.isEmpty ? "—" : duration)
-            stat("figure.walk", "officialRoute.stat.distance", distance.isEmpty ? "—" : distance)
-            stat("mappin.and.ellipse", "officialRoute.stat.stops", detail.nodes.isEmpty ? "—" : "\(detail.nodes.count)")
-        }
-        .fixedSize(horizontal: false, vertical: true)
-    }
-    private func stat(_ icon: String, _ label: LocalizedStringKey, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Image(systemName: icon).font(.subheadline.weight(.semibold)).foregroundStyle(palette.textSecondary)
-            Text(verbatim: value).cyText(.cardTitle).monospacedDigit().foregroundStyle(palette.textPrimary).lineLimit(2).minimumScaleFactor(0.8)
-            Text(label).cyText(.meta).foregroundStyle(palette.textTertiary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
-        .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder private var stops: some View {
@@ -157,8 +104,9 @@ struct OfficialRouteDetailContent: View {
                 Text(verbatim: node.name).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 if !node.address.isEmpty { Text(verbatim: node.address).cyText(.meta).foregroundStyle(palette.textSecondary) }
                 if node.stayMinutes > 0 {
-                    CYStatusChip("officialRoute.detail.stay \(OfficialRouteFormat.duration(node.stayMinutes, chinese: chinese))", systemImage: "hourglass")
-                        .padding(.top, 2)
+                    // MP `.orr-node__sub`: 参考停留 N 分钟 as a plain sub line.
+                    Text("officialRoute.detail.stay \(OfficialRouteFormat.duration(node.stayMinutes, chinese: chinese))")
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
             }
             .padding(.bottom, last ? 0 : CYSpacing.lg)

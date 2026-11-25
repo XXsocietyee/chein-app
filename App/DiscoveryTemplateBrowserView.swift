@@ -193,7 +193,9 @@ struct DiscoveryTemplateBrowserView: View {
         .navigationDestination(isPresented: topicDetailBinding) {
             if let selected = topicSelection,
                selected.identity == reader.discoveryPresentationIdentity {
-                DiscoveryTopicTemplatePreview(coordinator: selected.coordinator).id(selected.id)
+                // R7-PC-A7-1, MP shelf/index.js:421-430: a topic row opens topic-preview (the deck); 查看详情 pushes the detail.
+                DiscoveryTopicTemplateDeckHost(coordinator: selected.coordinator, readonly: false,
+                                               makeDetail: { reader.publicTopicTemplateCoordinator(id: selected.templateID) }).id(selected.id)
             } else { Text("social.changed") }
         }
     }
@@ -395,7 +397,7 @@ struct DiscoveryTemplateBrowserView: View {
         guard topicSelection == nil, topics.canOpen(reader: reader),
               topics.value?.contains(where: { $0.id == item.id }) == true else { return }
         topicSelection = .init(identity: reader.discoveryPresentationIdentity,
-            coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
+            coordinator: reader.publicTopicTemplateCoordinator(id: item.id), templateID: item.id)
         topics.cover()
     }
     /// MP `featTopics` swiper (shelf/index.wxml:21-36): bundled-cover cards with page dots.
@@ -709,6 +711,7 @@ struct DiscoveryTemplateBrowserView: View {
     let id = UUID()
     let identity: String
     let coordinator: PublicTopicTemplateCoordinator
+    let templateID: Int
 }
 
 /// One visible catalog visit owns accepted rows and any deferred unauthorized effect.

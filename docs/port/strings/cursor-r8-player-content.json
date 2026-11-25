@@ -1,0 +1,142 @@
+{
+  "topic.template.preview.minutes": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "%@ min" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "%@ 分钟" } }
+    }
+  },
+  "topic.template.preview.hours": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "%@ hr" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "%@ 小时" } }
+    }
+  },
+  "topic.template.preview.hoursMinutes": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "%1$@ hr %2$@ min" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "%1$@ 小时%2$@ 分" } }
+    }
+  },
+  "topic.template.preview.chapters": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "%@ chapters" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "%@ 章节" } }
+    }
+  },
+  "topic.template.preview.nodes": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "%@ nodes" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "%@ 节点" } }
+    }
+  },
+  "topic.template.preview.chaptersNodes": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "%1$@ chapters · %2$@ nodes" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "%1$@ 章节 · %2$@ 节点" } }
+    }
+  },
+  "topic.template.preview.about": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "About %@" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "约 %@" } }
+    }
+  },
+  "topic.template.preview.medal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "Medal 「%@」" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "勋章「%@」" } }
+    }
+  },
+  "topic.template.preview.oneGame": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "1 activity" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "1 个玩法" } }
+    }
+  },
+  "topic.template.preview.miniGames": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "%@ mini activities" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "%@ 个小玩法" } }
+    }
+  },
+  "topic.template.preview.firstAbout": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "First session about %@" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "首局约 %@" } }
+    }
+  },
+  "topic.template.preview.chapterNames": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "%@" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "%@" } }
+    }
+  },
+  "orient.safety.refused": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "Platform rules say this topic cannot start right now." } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "按平台规则，现在不能开始这个主题。" } }
+    }
+  },
+  "orient.safety.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "Network error. Try again." } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "网络异常，请重试" } }
+    }
+  },
+  "activity.cancelled.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "This activity was cancelled" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "活动已取消" } }
+    }
+  },
+  "activity.detail.missing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "Activity not found" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "活动不存在" } }
+    }
+  },
+  "official.broadcast.recover": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "Restore the original delivery" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "安全恢复原投递" } }
+    }
+  },
+  "official.broadcast.recover.body": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "Restores the original recipients only. Unknown results and historical rows waiting for review are not resent." } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "只会按原收件人恢复，结果不明或历史待核的不会重发。" } }
+    }
+  },
+  "official.leaderboard.provisional": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "Currently #%@" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂列第 %@ 名" } }
+    }
+  },
+  "official.leaderboard.final": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "#%@" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "第 %@ 名" } }
+    }
+  }
+}

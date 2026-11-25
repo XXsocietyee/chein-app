@@ -45,6 +45,87 @@ struct ProfileOrderSourceDetailSections: View {
                 ProfileOptionalRow(key: "profile.orderParity.entitlementExpires", value: order.sourceExpiresAtText)
             }
         }
+        if let party = order.party?.text {
+            Section("profile.order.party") {
+                Text(verbatim: party).accessibilityIdentifier("profile.order.party")
+            }
+        }
+        if order.walletExpired {
+            Section {
+                Text("profile.order.walletExpired").accessibilityIdentifier("profile.order.walletExpired")
+            }
+        }
+    }
+}
+
+/// Team, open seats, and club from the order. Follow posts `api/user/follow/action` and does not pay.
+struct ProfileOrderTeamSeatClubSection: View {
+    let order: ProfileOrder
+    @EnvironmentObject private var session: AppSession
+    @State private var followed = false
+
+    var body: some View {
+        if order.teamOpen || order.seatsOpen || order.club != nil {
+            Section {
+                if order.teamOpen { Text("profile.order.teamOpen").accessibilityIdentifier("profile.order.teamOpen") }
+                if order.seatsOpen { Text("profile.order.seatsOpen").accessibilityIdentifier("profile.order.seatsOpen") }
+                if let club = order.club {
+                    LabeledContent("profile.order.club") {
+                        Text(verbatim: club.name.isEmpty ? "—" : club.name)
+                    }
+                    .accessibilityIdentifier("profile.order.club")
+                    if let leader = club.leaderMemberID, leader > 0 {
+                        Button(followed ? "profile.order.follow" : "profile.order.follow") {
+                            Task { await follow(leader) }
+                        }
+                        .disabled(followed)
+                        .accessibilityIdentifier("profile.order.follow")
+                    }
+                }
+            }
+        }
+    }
+
+    private func follow(_ memberID: Int) async {
+        guard let base = session.currentRuntimeDependencyContext?.baseURL else { return }
+        let service = MemberRound2Service(baseURL: base, token: { [weak session] in session?.token }, transport: session.runtimeHTTPTransport)
+        let reply = await service.followClubOwner(memberID: memberID)
+        if case .ok = reply { followed = true }
+    }
+}
+
+/// One unpaid marketing-consent row for this order's merchant, after the existing marketing GET.
+struct ProfileOrderConsentSection: View {
+    let order: ProfileOrder
+    @EnvironmentObject private var session: AppSession
+    @State private var offer: ComplianceMarketingConsent?
+
+    var body: some View {
+        Group {
+            if let offer {
+                Section("profile.order.consent") {
+                    if let name = offer.merchantName, !name.isEmpty {
+                        Text(verbatim: name).accessibilityIdentifier("profile.order.consent.name")
+                    }
+                    Button("profile.order.follow") { Task { await follow(offer.merchantOwnerMemberId) } }
+                        .accessibilityIdentifier("profile.order.consent.follow")
+                }
+                .accessibilityIdentifier("profile.order.consent")
+            }
+        }
+        .task { if offer == nil { await load() } }
+    }
+
+    private func load() async {
+        guard let pair = session.complianceSignupContext() else { return }
+        let rows = (try? await pair.0.marketing(session: pair.1)) ?? []
+        offer = ProfileOrderConsentOffer.pick(rows: rows, ownerMemberID: order.merchantOwnerMemberID)
+    }
+
+    private func follow(_ memberID: Int) async {
+        guard memberID > 0, let base = session.currentRuntimeDependencyContext?.baseURL else { return }
+        let service = MemberRound2Service(baseURL: base, token: { [weak session] in session?.token }, transport: session.runtimeHTTPTransport)
+        _ = await service.followClubOwner(memberID: memberID)
     }
 }
 

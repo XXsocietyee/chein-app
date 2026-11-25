@@ -38,6 +38,11 @@ public struct PublisherLifecycleGrants {
     func permits(_ path: String, grant: OperationEndpointApproval?, credential: PublishingCredentials) -> Bool {
         grant?.allows(configuration: configuration, namespace: credential.session.namespace, accountID: credential.session.accountID, path: path) == true
     }
+    func authenticated(_ request: URLRequest, credential: PublishingCredentials) -> URLRequest {
+        var copy = request
+        copy.setValue(credential.token, forHTTPHeaderField: "Authorization")
+        return copy
+    }
     func request(path: String, fields: [String: ProjectEditJSON], json: Bool, credential: PublishingCredentials) throws -> URLRequest {
         if json { return try OperationAdapterHTTP.json(configuration: configuration, path: path, body: JSONEncoder().encode(fields), token: credential.token) }
         var form: [String: String] = [:]

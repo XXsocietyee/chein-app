@@ -24,13 +24,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading posts"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载中"
+            "value": "正在加载帖文"
           }
         }
       }
@@ -670,13 +670,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No comments yet"
+            "value": "No comments yet. Be the first."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无评论"
+            "value": "还没有评论，来抢沙发"
           }
         }
       }
@@ -687,13 +687,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write a comment"
+            "value": "Write a comment…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "写评论"
+            "value": "写评论…"
           }
         }
       }

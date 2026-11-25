@@ -793,7 +793,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   request.value(forHTTPHeaderField: "Cookie") == nil,
                   request.value(forHTTPHeaderField: "Proxy-Authorization") == nil else { return false }
             if request.url?.absoluteString == baseURL.appendingPathComponent("api/merchant/events").absoluteString {
-                return request.value(forHTTPHeaderField: "Content-Type") == "application/json" && request.httpBody == Data("{}".utf8)
+                return MerchantEventsBodyAdmission.admits(request)
             }
             guard request.httpBody == nil, request.value(forHTTPHeaderField: "Content-Type") == nil else { return false }
             return ["api/merchant/access/me", "api/merchant/dashboard", "api/merchant/todo-summary"].contains {
@@ -4111,10 +4111,10 @@ enum ReviewedNearbyTeamReadRoute {
 
 /// Merchant operations (`MerchantOperationsService`): the four baseline reads a save needs and the four reviewed saves
 /// (decor, cooperation, NPC character, perk template). Bodies are checked against per-path key allowlists with scalar values
-/// only (`params` may carry `{"clearCapacity":true}`). Profile, business-status and story saves are not matched.
+/// only (`params` may carry `{"clearCapacity":true}`). Profile and story saves are not matched.
 enum ReviewedMerchantOperationsRoute {
     enum Kind: Equatable { case read, write(path: String) }
-    static let writePaths: Set<String> = ["api/merchant/decor/save", "api/merchant/coop-profile/save", "api/merchant/npc/save", "api/merchant/city-node/template/submit"]
+    static let writePaths: Set<String> = ["api/merchant/decor/save", "api/merchant/coop-profile/save", "api/merchant/npc/save", "api/merchant/city-node/template/submit", "api/merchant/business-status/update"]
     private static let decor: Set<String> = ["coverImage", "slogan", "cityRole", "storyTitle", "gallery", "tags", "featuredType", "featuredId", "serviceTag",
         "serviceText", "locationLat", "locationLng", "locationVerified", "categoryIds", "address"]
     private static let coop: Set<String> = ["availableTime", "demand", "capacity", "params", "chargeType", "suitActivityTypes", "coopOpen"]
@@ -4136,7 +4136,7 @@ enum ReviewedMerchantOperationsRoute {
               parts.user == nil, parts.password == nil, parts.query == nil else { return nil }
         let type = request.value(forHTTPHeaderField: "Content-Type")
         func exactPath(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
-        // Reads sent as `{}` JSON.
+        if let form = MerchantBusinessStatusAdmission.kind(contentType: type, body: request.httpBody, matches: exactPath("api/merchant/business-status/update")) { return form }
         if exactPath("api/merchant/coop-profile") || exactPath("api/merchant/npc/profile") {
             return type == "application/json" && request.httpBody == Data("{}".utf8) ? .read : nil
         }

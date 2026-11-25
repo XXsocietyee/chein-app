@@ -20,10 +20,15 @@ public struct ActivitySummary: Decodable, Equatable, Identifiable {
     public let topicID: Int?
     /// PublicActivityListVO.sysCategoryList categoryName values, not category IDs or inferred tags.
     public let categoryNames: [String]
+    public let clubName: String?
+    public let merchantName: String?
+    /// Server text only. The home hero leaves this blank when the payload omits it.
+    public let statusLabel: String?
     public let likeState: ActivityLikeState
     enum CodingKeys: String, CodingKey {
         case id, name, description, imgUrl, addressName, address, minAmout
         case startDate, endDate, latitude, longitude, productType, topicId, isLiked, sysCategoryList
+        case clubName, merchantName, statusLabel
     }
     public init(from decoder: Decoder) throws {
         let c=try decoder.container(keyedBy:CodingKeys.self)
@@ -54,6 +59,9 @@ public struct ActivitySummary: Decodable, Equatable, Identifiable {
         // Business names are preserved verbatim; only absent/blank names are omitted.
         categoryNames = ((try? c.decode([ActivitySummaryCategory].self, forKey: .sysCategoryList)) ?? [])
             .compactMap(\.name)
+        clubName = Self.present(try? c.decode(String.self, forKey: .clubName))
+        merchantName = Self.present(try? c.decode(String.self, forKey: .merchantName))
+        statusLabel = Self.present(try? c.decode(String.self, forKey: .statusLabel))
         likeState=ActivityLikeState(rawValue:integer(.isLiked) ?? 0) ?? .none
     }
     /// The mini detail action accepts positive JavaScript-safe integer topic IDs only.
@@ -68,6 +76,11 @@ public struct ActivitySummary: Decodable, Equatable, Identifiable {
     }
     /// A zero minimum is only a listed starting price, not proof that all tickets are free.
     public var hasZeroStartingPrice: Bool { minimumAmount == Decimal.zero }
+    public var clubLabel: String? { clubName ?? merchantName ?? categoryNames.first }
+    private static func present(_ raw: String?) -> String? {
+        guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return nil }
+        return trimmed
+    }
 }
 
 private struct ActivitySummaryCategory: Decodable {

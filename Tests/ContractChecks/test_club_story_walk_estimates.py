@@ -44,7 +44,8 @@ class ClubStoryWalkEstimateContracts(unittest.TestCase):
     def test_estimate_display_is_in_real_stop_card_with_bilingual_caveat(self):
         card = self.app().split('@MainActor struct ClubStoryStopCard: View', 1)[1].split('@MainActor struct ClubStoryGameplayCard', 1)[0]
         self.assertIn('if let minutes = stop.estimatedWalkingMinutes', card)
-        self.assertIn('CYListRow("topic.itinerary.estimatedWalkMinutes", trailing: .value(minutes.formatted(.number)))', card)
+        # CLB-topic-story-08 (fix-r8-club): MP 「Nmin 步行」 line above the stop; the caveat stays as the VoiceOver hint.
+        self.assertIn('Text("club.story.walkMinutes \\(minutes)")', card)
         self.assertIn('Text("topic.itinerary.estimateNotice")', card)
         self.assertIn('accessibilityIdentifier("club.story.walk.\\(stop.id)")', card)
         strings = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']

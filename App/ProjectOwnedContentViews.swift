@@ -148,7 +148,10 @@ import SwiftUI
         ProjectOwnedContentBrowser(reader: session.creatorContentReader, revision: session.sessionRevision,
             makeEditor: { session.projectEditor(target: $0) }, detail: { destination in
                 switch destination {
-                case .topic(let id): return AnyView(SessionTopicDetailView(id: id, session: session).id(session.topicReader.scope)
+                // R7-PC-B2-4, MP myproject index.js:450-453: 我发布的 topics open the project home (merchantinfo?topicId=, the
+                // host view), not the player ticket page.
+                case .topic(let id): return AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: id), focusedTopicID: id)
+                    .merchantProjectHostDestinations(session: session)
                     .toolbar { TopicCreatorToolsToolbar(session: session, topicID: id, entryScope: entryScope) })
                 case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session)
                     .toolbar { MyProjectActivityDetailWriteToolbar(session: session, activityID: id) })
@@ -186,5 +189,22 @@ import SwiftUI
         let allowed = (try? await session.merchantAccess())?.allows(.projects) == true
         guard session.creatorContentReader.scope == scope else { return }
         canManageProjects = allowed
+    }
+}
+
+extension View {
+    /// R7-PC-B2-3: the merchantinfo project view reached outside the merchant hub (the MP deep link, 我的项目 topic rows)
+    /// gets the same host supply / offer-withdrawal destinations `MerchantHomeView` injects, so those rows are not dead.
+    @MainActor func merchantProjectHostDestinations(session: AppSession) -> some View {
+        let flowReader = session.cooperationFlowReader
+        let contentService = session.merchantContentService
+        let executor = session.offerWithdrawalExecutor
+        return self
+            .environment(\.merchantContentSupplyDestination, { source in
+                AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader))
+            })
+            .environment(\.merchantOfferWithdrawalDestination, { source in
+                AnyView(MerchantOfferWithdrawalHostView(source: source, reader: flowReader, contentService: contentService, executor: executor))
+            })
     }
 }

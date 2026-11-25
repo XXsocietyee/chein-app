@@ -475,9 +475,6 @@ import SwiftUI
             let rows = NearbyTeamBridge.myRows(joined: joinedTeamsStatus.isLoaded ? joinedTeams : [], applications: coordinator.myApplications)
             let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
             let mineReady = !model.running && !mine.loading && coordinator.authenticated && coordinator.hasLoadedMine && coordinator.messageKey == nil && joinedTeamsStatus.isLoaded && !mine.failed
-            if mineReady {
-                LabeledContent("nearby.activeCount") { Text(verbatim: String(NearbyTeamBridge.activeCount(rows))) }
-            }
             if !rows.isEmpty && mineReady {
                 HStack(spacing: 8) {
                     ForEach(NearbyMyTeamGroup.Kind.statsOrder, id: \.self) { kind in

@@ -106,6 +106,8 @@ enum MPParityRoute: Hashable, Identifiable {
     case passes(tab: PassMarketTab)
     case pass(productID: String)
     case gift(token: String)
+    /// `subpackageMember/market/gift/index?mode=code`. Platform redeem, not a gift claim.
+    case platformCode
     case membership
     case library(kind: PassLibraryKind)
     /// `subpackageMember/market/pass-order/index?orderNo=`: one city-pass order, read only.
@@ -174,6 +176,8 @@ enum MPParityRoute: Hashable, Identifiable {
             guard let id = safeIdentifier("id") else { return nil }
             self = .pass(productID: id)
         case "subpackageMember/market/gift/index":
+            // R8-MEM-3-1: `mode=code` is the platform redeem page (兑换码). A gift token is the other entry.
+            if query["mode"] == "code" { self = .platformCode; return }
             // A missing token still opens the page, which shows the shared missing-link state (MKT-3-2).
             guard let token = nonEmpty("token") else { self = .gift(token: ""); return }
             guard !token.contains(".."), !token.contains("://") else { return nil }
@@ -281,6 +285,8 @@ enum MPParityRoute: Hashable, Identifiable {
                               primaryStyle: .primary, primaryIdentifier: "passGift.signIn")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let make = bindings.passGift { PassGiftClaimHost(binding: make(token)) } else { unavailable }
+        case .platformCode:
+            PlatformCodeRedeemPage()
         case .membership:
             if let make = bindings.membership { PassMembershipHost(binding: make()) } else { unavailable }
         case .library(let kind):

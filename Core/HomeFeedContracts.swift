@@ -25,6 +25,20 @@ public enum HomeFeedItem: Equatable, Identifiable {
     /// These verified list contracts provide no currency. Never derive it from device locale.
     public var currencyCode: String? { nil }
     public var startDate: String? { switch self { case .activity(let a): return a.startDate; case .topic(let t): return t.startDate } }
+    public var categoryNames: [String] {
+        switch self { case .activity(let a): return a.categoryNames; case .topic(let t): return t.categoryNames }
+    }
+    /// First two category names, matching the feed card tags.
+    public var feedTags: [String] { Array(categoryNames.prefix(2)) }
+    public var productType: Int? {
+        switch self { case .activity(let a): return a.productType; case .topic(let t): return t.productType }
+    }
+    public var clubLabel: String? {
+        switch self { case .activity(let a): return a.clubLabel; case .topic(let t): return t.clubLabel }
+    }
+    public var statusLabel: String? {
+        switch self { case .activity(let a): return a.statusLabel; case .topic(let t): return t.statusLabel }
+    }
     public var place: String? {
         switch self { case .activity(let a): return homeFeedNonempty(a.addressName) ?? homeFeedNonempty(a.address)
         case .topic(let t): return homeFeedNonempty(t.addressName) }

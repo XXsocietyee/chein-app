@@ -18,7 +18,8 @@ STEPS = [
     ("ticket", "票务与合作", "这场活动怎么卖票？", ["ticket*"]),
 ]
 QUICK_SHA = "c6f8156c2aade5d461d2d9cd602fef121e620e18dcdb9ff23463ddc6ddda32f2"
-PREFIX_SHA = "99bd9812ff2dc47075e6344a8a7b7159d298c87a02e0e7b26b8b6029208f1524"
+# fix/r8-player-content: re-pinned for R7-PC-D1-1 (pushed menu 我的项目 → makeProjects) only.
+PREFIX_SHA = "16b6813414a67654c4bc6eaa49d13176e5f7bd12454877b3eea8132f333ab52c"
 SUFFIX_SHA = "877dee84eae51bfba8b6ad26d5304d8b77017a77034324d7d97ae20392808cb0"
 
 

@@ -9,7 +9,9 @@ INSERTION = '''        if row.kind == .customer, compact {
             MerchantCustomerContactSummary(record: row, access: access)
         }
 '''
-BASE_VIEW_SHA256 = '0011675e43766e2cef16e49304cceffb8f4c22793016590727bfd32337447fdd'
+# reviews/index.wxml:150-175 puts rating, content and time on the author line / card, so those are not raw field rows.
+# Locale check uses language.languageCode (the languageCode shorthand is deprecated). Insertion itself is unchanged.
+BASE_VIEW_SHA256 = '677a50f53445739e0bc5d2e8dc1df05cf0d08da723d0b8bdd4bcd97f082a5324'
 
 
 class MerchantCustomerContactContracts(unittest.TestCase):
