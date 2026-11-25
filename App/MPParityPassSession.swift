@@ -499,6 +499,13 @@ struct MPParityRegistrationOrder: View {
                 }
             }
             guard ticket == generation else { return }
+            var codeOn = false
+            if let token, let base = session.currentRuntimeDependencyContext?.baseURL,
+               let configuration = try? APIConfiguration(baseURL: base) {
+                let source = ChannelRedeemSource(configuration: configuration, transport: session.composition.makeTransport())
+                codeOn = (try? await source.status(token: token)) == true
+            }
+            guard ticket == generation else { return }
             assert(gifts.claimReachable == false)
             assert(gifts.bought.allSatisfy { $0.claimReachable == false })
             var names: [String: String] = [:]
@@ -512,6 +519,7 @@ struct MPParityRegistrationOrder: View {
                 passOrders: passOrders))
             state.member = overview.flatMap { MPParityBindings.memberSide(viewerIsMerchant: false, overview: $0) }
             state.pointBalance = MPParityBindings.wholePoints(points)
+            state.platformCodeEnabled = codeOn
             state.refreshFailed = false
         } catch is CancellationError {
             return
