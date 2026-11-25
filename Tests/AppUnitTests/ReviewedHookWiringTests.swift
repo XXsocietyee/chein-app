@@ -140,6 +140,8 @@ final class ReviewedHookWiringTests: XCTestCase {
         let root = try unconfigured(wire: wire)
         let ctx = try context(root)
         XCTAssertNil(root.roamPassportHistoryReadAccess(ctx))
+        XCTAssertNil(root.roamEntryNearbyReadAccess(ctx))
+        XCTAssertNil(root.roamNearbyPlayersReadAccess(ctx))
         XCTAssertNil(root.teamReadApproval(ctx))
         XCTAssertNil(root.nearbyTeamReadApproval(ctx))
         let transport = root.transport()
@@ -154,6 +156,8 @@ final class ReviewedHookWiringTests: XCTestCase {
         let root = try composition(gates: false, wire: wire)
         let ctx = try context(root)
         XCTAssertNil(root.roamPassportHistoryReadAccess(ctx))
+        XCTAssertNil(root.roamEntryNearbyReadAccess(ctx))
+        XCTAssertNil(root.roamNearbyPlayersReadAccess(ctx))
         XCTAssertNil(root.teamReadApproval(ctx))
         XCTAssertNil(root.nearbyTeamReadApproval(ctx))
         let transport = root.transport()
@@ -167,15 +171,21 @@ final class ReviewedHookWiringTests: XCTestCase {
         for role in ["player", "club", "merchant"] {
             let ctx = try context(root, role: role)
             XCTAssertNotNil(root.roamPassportHistoryReadAccess(ctx), role)
+            XCTAssertNotNil(root.roamEntryNearbyReadAccess(ctx), role)
+            XCTAssertNotNil(root.roamNearbyPlayersReadAccess(ctx), role)
             XCTAssertNotNil(root.teamReadApproval(ctx), role)
             XCTAssertNotNil(root.nearbyTeamReadApproval(ctx), role)
         }
         let guest = try context(root, role: "guest")
         XCTAssertNil(root.roamPassportHistoryReadAccess(guest))
+        XCTAssertNil(root.roamEntryNearbyReadAccess(guest))
+        XCTAssertNil(root.roamNearbyPlayersReadAccess(guest))
         XCTAssertNil(root.teamReadApproval(guest))
         XCTAssertNil(root.nearbyTeamReadApproval(guest))
         let us = try context(root, market: .unitedStates)
         XCTAssertNil(root.roamPassportHistoryReadAccess(us))
+        XCTAssertNil(root.roamEntryNearbyReadAccess(us))
+        XCTAssertNil(root.roamNearbyPlayersReadAccess(us))
         XCTAssertNil(root.teamReadApproval(us))
         XCTAssertNil(root.nearbyTeamReadApproval(us))
         let lease = try XCTUnwrap(root.nearbyTeamReadApproval(try context(root)))
@@ -222,5 +232,45 @@ final class ReviewedHookWiringTests: XCTestCase {
             XCTFail("the read transport must never carry a mutation")
         } catch {}
         XCTAssertEqual(wire.requests.count, 3)
+    }
+
+    func testProductionGatesLeaseEntryPeekAndRunnersAndAdmitGuestEntry() async throws {
+        let centre = RoamSearchArea(coordinate: RoamCoordinate(latitude: 30, longitude: 120)!, label: "Selected area")
+        let url = try XCTUnwrap(URL(string: Self.base))
+        let signedEntry = try RoamEntryNearbyRoute.request(baseURL: url, area: centre, token: Self.token)
+        let publicEntry = try RoamEntryNearbyRoute.publicRequest(baseURL: url, area: centre)
+        let runners = try AuthRequestBuilder.makeFormRequest(url: url.appendingPathComponent(RoamNearbyPlayersReadRoute.path),
+            fields: ["lat": String(centre.coordinate.latitude), "lng": String(centre.coordinate.longitude), "radius": "3000"],
+            token: Self.token, boundary: "synthetic")
+        let selection = ManualMapAreaSelection(); selection.select(centre)
+        let guest = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: nil, role: nil, token: nil, viewerRevision: 1)
+        let off = Wire()
+        let offRoot = try composition(gates: false, wire: off)
+        XCTAssertNil(offRoot.roamEntryNearbyReadAccess(try context(offRoot)))
+        XCTAssertNil(offRoot.roamNearbyPlayersReadAccess(try context(offRoot)))
+        let offTransport = offRoot.transport().scopedForManualMap(selection)
+        offTransport.current = { self.viewer }
+        _ = try? await offTransport.send(signedEntry)
+        offTransport.current = { guest }
+        _ = try? await offTransport.send(publicEntry)
+        XCTAssertTrue(off.requests.isEmpty)
+        let wire = Wire()
+        let root = try composition(gates: true, wire: wire)
+        let player = try context(root)
+        XCTAssertEqual(try XCTUnwrap(root.roamEntryNearbyReadAccess(player)).endpoints.paths, [RoamEntryNearbyRoute.path])
+        XCTAssertEqual(try XCTUnwrap(root.roamNearbyPlayersReadAccess(player)).endpoints.paths, [RoamNearbyPlayersReadRoute.path])
+        let transport = root.transport().scopedForManualMap(selection)
+        transport.current = { self.viewer }
+        _ = try await transport.send(signedEntry)
+        _ = try await transport.send(runners)
+        transport.current = { guest }
+        _ = try await transport.send(publicEntry)
+        var authedGuest = publicEntry
+        authedGuest.setValue(Self.token, forHTTPHeaderField: "Authorization")
+        do { _ = try await transport.send(authedGuest); XCTFail("guest entry must not carry Authorization") } catch {}
+        do { _ = try await transport.send(runners); XCTFail("nearby runners stay signed in") } catch {}
+        XCTAssertEqual(wire.requests.count, 3)
+        XCTAssertNil(wire.requests[2].value(forHTTPHeaderField: "Authorization"))
+        XCTAssertEqual(wire.requests[2].url, publicEntry.url)
     }
 }

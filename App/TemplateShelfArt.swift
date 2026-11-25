@@ -83,6 +83,34 @@ enum TemplateShelfArt {
         default: return nil
         }
     }
+
+    /// MP `utils/template-art.js` INTERACTION_ICON_BY_TITLE (same table as `pages/template/index.js:24-43`): the registered
+    /// interaction plays and life-backup G0-G6 map by title to `/images/interaction-templates/*.svg`. MP `templateArt` uses it
+    /// where a play has no cover of its own (template-intro covers, search results).
+    static func interactionIcon(_ title: String?) -> Image? {
+        switch (title ?? "").trimmingCharacters(in: .whitespacesAndNewlines) {
+        case "今晚的暗号": return MPAsset.BannerCover.merchantSecretCode // MP: utils/template-art.js:7 (merchant-secret-code.svg)
+        case "老板的秘密题": return MPAsset.BannerCover.merchantSecretQuestion // MP: utils/template-art.js:8 (merchant-secret-question.svg)
+        case "拍下这一刻": return MPAsset.BannerCover.merchantPhotoMoment // MP: utils/template-art.js:9 (merchant-photo-moment.svg)
+        case "收集这枚风味印章": return MPAsset.BannerCover.merchantFlavorStamp // MP: utils/template-art.js:10 (merchant-flavor-stamp.svg)
+        case "新品盲测局": return MPAsset.BannerCover.merchantBlindTest // MP: utils/template-art.js:11 (merchant-blind-test.svg)
+        case "今日搭配任务": return MPAsset.BannerCover.merchantStyleMission // MP: utils/template-art.js:12 (merchant-style-mission.svg)
+        case "集合点亮": return MPAsset.BannerCover.clubGather // MP: utils/template-art.js:13 (club-gather.svg)
+        case "小队竞速点亮": return MPAsset.BannerCover.clubTeamRace // MP: utils/template-art.js:14 (club-team-race.svg)
+        case "街角谜题": return MPAsset.BannerCover.clubStreetPuzzle // MP: utils/template-art.js:15 (club-street-puzzle.svg)
+        case "城市取景任务": return MPAsset.BannerCover.clubCityCamera // MP: utils/template-art.js:16 (club-city-camera.svg)
+        case "城市接力棒": return MPAsset.BannerCover.clubRelay // MP: utils/template-art.js:17 (club-relay.svg)
+        case "今日角色任务": return MPAsset.BannerCover.clubRoleMission // MP: utils/template-art.js:18 (club-role-mission.svg)
+        case "G0｜30秒生活掉线测试": return MPAsset.BannerCover.lifeOutageTest // MP: utils/template-art.js:20 (life-outage-test.svg)
+        case "G1｜现在出状况，你先选什么": return MPAsset.BannerCover.lifeWhatFirst // MP: utils/template-art.js:21 (life-what-first.svg)
+        case "G2｜我的底线三选一": return MPAsset.BannerCover.lifeBottomLine // MP: utils/template-art.js:22 (life-bottom-line.svg)
+        case "G3｜营业时间拼图": return MPAsset.BannerCover.lifeHoursPuzzle // MP: utils/template-art.js:23 (life-hours-puzzle.svg)
+        case "G4｜去之前准备什么": return MPAsset.BannerCover.lifePrepChecklist // MP: utils/template-art.js:24 (life-prep-checklist.svg)
+        case "G5｜值不值得现在处理": return MPAsset.BannerCover.lifeWorthNow // MP: utils/template-art.js:25 (life-worth-now.svg)
+        case "G6｜首选失效怎么办": return MPAsset.BannerCover.lifeFirstChoiceOffline // MP: utils/template-art.js:26 (life-first-choice-offline.svg)
+        default: return nil
+        }
+    }
 }
 
 /// Hero shelf card over a bundled MP cover: the photo fills the card, with the same bottom scrim and text as `CYImageCard`.

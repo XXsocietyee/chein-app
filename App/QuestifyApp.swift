@@ -471,6 +471,7 @@ struct SessionRootView: View {
             send: { request in try await session.runtimeHTTPTransport.send(request) }
         ))
         .environment(\.challengePOIPhotoUploader, { session.makeChallengePOIPhotoUploader(poiID: $0) })
+        .environment(\.playerContentImageUploader, session.makePlayerContentImageUploader())
         .environment(\.roamShareSnapshotPublisher, { session.makeRoamShareSnapshotPublisher() })
         .environment(\.externalGameSession, ExternalGameSessionRead.bridge(session))
         .modifier(MPParityPassEnvironment(session: session))
@@ -516,6 +517,7 @@ struct SessionRootView: View {
             return management.operations.map { ($0, management.governance) }
         })
         .environment(\.playerGapService, session.playerGapService)
+        .environment(\.playRoamGapService, session.playRoamGapService)
         // r8 A2-03b: 发消息 opens the chat in place from every SocialPublicProfileView host (square, club, activity…).
         .environment(\.socialConversationDestination, session.socialConversationDestination)
         .environment(\.analyticsEventClient, session.analyticsEventClient)

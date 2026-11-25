@@ -320,7 +320,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let roamSessionFactReadAccess: @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess?
     let roamNearbyEventsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess?
     let roamNearbyPlayersReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess?
-    /// Roam home 附近活动 peek and passport/private read tools. No reviewed default exists; nil keeps them unavailable, and writes remain strictly independent.
+    /// 附近活动 peek. China production gates issue the signed-in read. A public guest GET is admitted with no account. Writes stay off.
     let roamEntryNearbyReadAccess: @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess?
     let roamReceivedStampReadAccess: @MainActor (RuntimeDependencyContext) -> RoamReceivedStampReadAccess?
     let roamPassportHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportHistoryReadAccess?
@@ -536,8 +536,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.walletHistoryReadApproval = walletHistoryReadApproval ?? (productionGatesEnabled ? { [gates] in gates.walletHistory($0) } : { _ in nil })
         self.roamSessionFactReadAccess = roamSessionFactReadAccess
         self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
-        self.roamNearbyPlayersReadAccess = roamNearbyPlayersReadAccess
-        self.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
+        self.roamNearbyPlayersReadAccess = { [gates] context in roamNearbyPlayersReadAccess(context) ?? (productionGatesEnabled ? gates.roamNearbyPlayers(context) : nil) }
+        self.roamEntryNearbyReadAccess = { [gates] context in roamEntryNearbyReadAccess(context) ?? (productionGatesEnabled ? gates.roamEntryNearby(context) : nil) }
         self.roamReceivedStampReadAccess = roamReceivedStampReadAccess
         self.roamPassportHistoryReadAccess = { [gates] context in
             roamPassportHistoryReadAccess(context) ?? (productionGatesEnabled ? gates.roamPassportHistory(context) : nil)
@@ -3071,18 +3071,16 @@ extension KeychainTokenStore: AppTokenStorage {}
                 return fresh === selected && fresh.matches(context)
             }
         } else if entryNearby != nil {
-            guard captured.isSignedInContentViewer, let snapshot = entryNearbyArea,
-                  let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
-            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
-            guard let selected = roamEntryNearbyReadAccess(context), selected.matches(context),
-                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
-                    accountID: account, path: RoamEntryNearbyRoute.path) else { throw APIError.notConfigured }
-            readApprovalStillValid = { [roamEntryNearbyReadAccess, manualMapSelection] in
-                guard manualMapSelection?.snapshot == snapshot,
-                      let fresh = roamEntryNearbyReadAccess(context) else { return false }
-                return fresh === selected && fresh.matches(context)
+            guard let snapshot = entryNearbyArea else { throw APIError.notConfigured }
+            let guestEntryRead = deployment.productionGatesEnabled && deployment.regional.market == .china && captured.accountID == nil && captured.isPublicTemplateViewer && request.value(forHTTPHeaderField: "Authorization") == nil
+            if guestEntryRead { readApprovalStillValid = { [manualMapSelection] in manualMapSelection?.snapshot == snapshot } } else {
+                guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token, let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
+                let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+                guard let selected = roamEntryNearbyReadAccess(context), selected.matches(context), selected.endpoints.allows(configuration: api, namespace: session.namespace, accountID: account, path: RoamEntryNearbyRoute.path) else { throw APIError.notConfigured }
+                readApprovalStillValid = { [roamEntryNearbyReadAccess, manualMapSelection] in
+                    guard manualMapSelection?.snapshot == snapshot, let fresh = roamEntryNearbyReadAccess(context) else { return false }
+                    return fresh === selected && fresh.matches(context)
+                }
             }
         } else if receivedStamp != nil {
             guard captured.isSignedInContentViewer,

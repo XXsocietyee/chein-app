@@ -42,7 +42,11 @@ struct SquareXcxPostCard: View {
                 HStack(spacing: 6) {
                     if let name = post.nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name).cyText(.cardTitle).cyWrapText() }
                     else { Text("square.xcx.defaultName").cyText(.cardTitle).cyWrapText() }
-                    if post.verified { Image(systemName: "checkmark.seal.fill").foregroundStyle(.tint).accessibilityLabel(Text("square.verified")) }
+                    if post.verified {
+                        // MP: components/cy/post-card/index.wxml:25 (icon_rz.png, .post-card__verified 24rpx)
+                        MPAsset.FeatureIcon.iconRz.resizable().scaledToFit().frame(width: 12, height: 12)
+                            .accessibilityLabel(Text("square.verified"))
+                    }
                     Spacer(minLength: 4)
                     SquareXcxRelativeTime(createTime: post.createTime, now: now).cyText(.meta).foregroundStyle(.secondary).lineLimit(1).fixedSize()
                 }
