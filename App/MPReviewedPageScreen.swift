@@ -188,7 +188,8 @@ import SwiftUI
             if let reader = session.officialRouteReader, let id = positiveID(query["id"]) { OfficialRouteDetailView(reader: reader, routeID: String(id)) } else { unavailable }
         case "pages/play/poi-challenge/index":
             // PLAYPOI-2: the challenge reads its node by poiId.
-            if let id = positiveID(query["poiId"]) { ChallengePOIHostView(poiID: id, reader: session.roamReader) } else { unavailable }
+            // PLAYPOI-r7 #14: `photo=` (nearby spot camera, already uploaded) prefills the photo step.
+            if let id = positiveID(query["poiId"]) { ChallengePOIHostView(poiID: id, reader: session.roamReader, photoURL: query["photo"]) } else { unavailable }
         case "subpackageRoam/poi-detail/index":
             // r8 A4-01 (MP mylike.js:435 `poi-detail?poiId=`): the city node detail by poiId (`id` is the canonical link key).
             if let id = positiveID(query["poiId"] ?? query["id"]) { RoamPOIDetailHost(poiID: id, name: query["name"]) } else { unavailable }
@@ -765,7 +766,17 @@ import SwiftUI
                     .environment(\.socialConversationDestination, session.socialConversationDestination) // A2-03 发消息
             } else { unavailable }
         case "subpackageRoam/history/index":
-            RoamHistoryView(reader: session.roamExperienceReader, toolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader)
+            if session.account == nil {
+                // r7 history #1: MP history/index.wxml cy-access-gate kind="login" — 登录后查看 + 登录, no list for guests.
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.history.signedOut",
+                             messageIdentifier: "roam.history.signedOut",
+                             actionTitle: openSignIn == nil ? nil : "auth.signIn",
+                             actionIdentifier: "roam.history.signIn", actionStyle: .primary, action: openSignIn)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .cyPageTitle("roam.experience.history")
+            } else {
+                RoamHistoryView(reader: session.roamExperienceReader, toolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader)
+            }
         case "subpackageRoam/nearby/index":
             SessionRoamNearbyTeamsView(onSignIn: openSignIn).environmentObject(session)
         case "subpackageRoam/my-teams/index":
@@ -875,11 +886,12 @@ import SwiftUI
 
     private var roam: some View {
         RoamBrowserView(reader: session.roamReader, nearbyEventsReader: session.roamNearbyEventsReader, nearbyPlayersReader: session.roamNearbyPlayersReader,
-                        onChooseArea: {}, onOpenAccount: {}, experienceReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader,
+                        onChooseArea: {}, onOpenAccount: { openSignIn?() }, experienceReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader,
                         tileMemoryReader: session.roamTileMemoryReader, sessionFactReader: session.roamSessionFactReader,
                         cityDestination: { AnyView(SessionCityPlayerView().environmentObject(session)) },
                         territoryDestination: { AnyView(SessionRoamTerritoryView().environmentObject(session)) },
-                        nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environmentObject(session)) },
+                        // r7 residual P2: the reviewed roam host hands 登录 to its team pages too (RNEAR-5).
+                        nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(onSignIn: openSignIn).environmentObject(session)) },
                         stampDestination: { AnyView(SessionRoamStampCameraView().environmentObject(session)) },
                         liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) },
                         posterDestination: { AnyView(SessionRoamPosterView(node: $0).environmentObject(session)) },
@@ -899,8 +911,8 @@ import SwiftUI
                         officialRouteReader: session.officialRouteReader, mediaScope: session.platformConsumers.scope,
                         makeExternalMaps: session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader,
                         entryTeams: { await session.roamEntryTeams(area: $0) },
-                        myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1).environmentObject(session)) },
-                        nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0).environmentObject(session)) },
+                        myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: openSignIn).environmentObject(session)) },
+                        nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: openSignIn).environmentObject(session)) },
                         toolsReader: session.roamPassportToolsReader, passportToolsReader: session.roamPassportToolsReader,
                         privateToolsReader: session.roamPrivateToolsReader,
                         anniversaryRouteDestination: { topicID in

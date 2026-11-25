@@ -189364,6 +189364,23 @@
         }
       }
     },
+    "playx.poi.claimedAgain": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finishing again won't award it twice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再完成一次不会重复发放"
+          }
+        }
+      }
+    },
     "playx.poi.alreadyDone": {
       "extractionState": "manual",
       "localizations": {
@@ -224154,6 +224171,125 @@
         }
       }
     },
+    "roam.cityGuide.category.landmark": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cultural landmarks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文化地标"
+          }
+        }
+      }
+    },
+    "roam.cityGuide.category.park": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公园绿地"
+          }
+        }
+      }
+    },
+    "roam.cityGuide.category.shop": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended shops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推荐店铺"
+          }
+        }
+      }
+    },
+    "roam.cityGuide.category.street": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden-gem streets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宝藏街道"
+          }
+        }
+      }
+    },
+    "roam.cityGuide.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This place can't be opened right now. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个地点暂时打不开，请重试"
+          }
+        }
+      }
+    },
+    "roam.cityGuide.tab.default": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City picks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本城推荐"
+          }
+        }
+      }
+    },
+    "roam.cityGuide.tab.inCity %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %lld picks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %lld 处推荐"
+          }
+        }
+      }
+    },
     "roam.cityOrientation": {
       "extractionState": "manual",
       "localizations": {
@@ -227356,6 +227492,23 @@
         }
       }
     },
+    "roam.history.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to view"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看"
+          }
+        }
+      }
+    },
     "roam.history.trips": {
       "extractionState": "manual",
       "localizations": {
@@ -230109,6 +230262,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "仅汇总已有数据；缺失或无法安全汇总的项目不计作零。"
+          }
+        }
+      }
+    },
+    "roam.passport.play.routes.count %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld routes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条路线"
           }
         }
       }

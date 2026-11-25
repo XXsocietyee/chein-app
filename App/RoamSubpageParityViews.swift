@@ -239,8 +239,8 @@ struct RoamShareLinkDormantNotice: View {
                     CYSkeleton().accessibilityLabel(Text("roamSub.w208.shared.loading"))
                         .accessibilityIdentifier("roamSub.w208.shared.loading")
                 case .error?:
+                    // MP session shared error: 这条足迹无法打开 + 重试, no sub line.
                     CYEmptyState(systemImage: "wifi.exclamationmark", "roamSub.w208.shared.errorTitle",
-                                 detail: "roamSub.w208.shared.errorHint",
                                  actionTitle: "roamSub.w208.shared.retry", actionIdentifier: "roamSub.w208.shared.retry",
                                  action: { Task { await load() } })
                         .accessibilityIdentifier("roamSub.w208.shared.error")
@@ -346,8 +346,8 @@ struct RoamShareLinkDormantNotice: View {
 struct RoamPOIUnavailableView: View {
     var onBack: (() -> Void)? = nil
     var body: some View {
+        // MP scene-roam-poi-detail `unavailable`: 节点未开放或已下线 + 返回地图, no sub line.
         CYEmptyState(systemImage: "mappin.slash", "roamSub.w208.poi.unavailable",
-                     detail: "roamSub.w208.poi.unavailableHint",
                      actionTitle: onBack == nil ? nil : "roamSub.w208.poi.backToMap", action: onBack)
             .accessibilityIdentifier("roamSub.w208.poi.unavailable")
     }
@@ -357,8 +357,8 @@ struct RoamPOIUnavailableView: View {
 struct RoamPOIMissingView: View {
     var onBack: (() -> Void)? = nil
     var body: some View {
+        // MP scene-roam-poi-detail `empty`: missing-param (info glyph), 找不到这个节点 + 返回地图, no sub line.
         CYEmptyState(systemImage: "info.circle", "roamSub.w208.poi.missing",
-                     detail: "roamSub.w208.poi.missingHint",
                      actionTitle: onBack == nil ? nil : "roamSub.w208.poi.backToMap", action: onBack)
             .accessibilityIdentifier("roamSub.w208.poi.missing")
     }
@@ -485,6 +485,7 @@ struct RoamPOIMissingView: View {
     private var plainControls: Bool { reduceMotion || voiceOver }
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            RoamStampPrinterView(torn: slip.got && torn)
             if !slip.got {
                 VStack(alignment: .leading, spacing: 6) {
                     if let reason = slip.reason { Text(verbatim: reason).cyText(.cardTitle) }
@@ -532,8 +533,8 @@ struct RoamPOIMissingView: View {
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("roamSub.w208.stamp.serialLabel").cyText(.caption).foregroundStyle(.secondary)
+                    // MP .sgslip__od-r: 签号 + the number only.
                     Text(verbatim: slip.serial).cyText(.sectionTitle, monospacedDigit: true).accessibilityIdentifier("roamSub.w208.stamp.serial")
-                    Text("roamSub.w208.stamp.serialHint").cyText(.caption)
                 }
             }
             Divider()
@@ -582,6 +583,30 @@ struct RoamPOIMissingView: View {
 /// `citynode-code` title (node name, default 据点). 出示给商家扫码,即可领取优惠券 sits under the code in VerificationCodeView.
 /// Exchanged stamp photo on the city-stamp print slip (mini-program `sgslip__photo`).
 /// Reuses the album card's remote-image rule; strings are existing keys.
+/// MP citystamp `.sgprinter`: brushed-silver body (`printer-body.jpg`) with the paper slot (`printer-slot.jpg`);
+/// after the tear a stub of paper stays in the slot. Sizes are the MP rpx values at 750 rpx = 375 pt. Decoration only.
+struct RoamStampPrinterView: View {
+    let torn: Bool
+    var body: some View {
+        ZStack(alignment: .top) {
+            MPAsset.Other.printerBody.resizable().scaledToFill()
+                .frame(maxWidth: .infinity).frame(height: 63.5).clipped()
+            MPAsset.Other.printerSlot.resizable().scaledToFill()
+                .frame(maxWidth: .infinity).frame(height: 14.5).clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
+                .padding(.horizontal, 15.5).padding(.top, 24)
+            if torn {
+                Rectangle().fill(Color.white).frame(height: 6.5)
+                    .padding(.horizontal, 19).padding(.top, 31.5)
+            }
+        }
+        .frame(height: 63.5)
+        .clipShape(RoundedRectangle(cornerRadius: 12.5, style: .continuous))
+        .shadow(color: .black.opacity(0.45), radius: 14, y: 12)
+        .accessibilityHidden(true)
+    }
+}
+
 struct RoamStampSlipPhotoView: View {
     let pictureURL: String?
     var body: some View {

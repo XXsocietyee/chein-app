@@ -272,7 +272,8 @@ enum JourneyLandingPhase: Equatable {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         JourneyLandingView(phase: binding.phase, onRetry: { binding.load() }, onSelectMode: { binding.selectMode($0) }, onPrimary: { binding.primary() },
-                           onBrowse: onBrowse ?? (rootTabSwitch.isAvailable ? { dismiss(); rootTabSwitch(.home) } : nil))
+                           // JLAND-10: MP 先逛逛 = switchTab home; without a root tab switch it still closes the landing.
+                           onBrowse: onBrowse ?? (rootTabSwitch.isAvailable ? { dismiss(); rootTabSwitch(.home) } : { dismiss() }))
             .task { binding.load() }
             // JLAND-r7-1: account switch re-reads stay here (landing onShow after the sign-in sheet closes).
             .onChange(of: PlayerJourneySignInBridge.shared.presented) { was, now in if was && !now { binding.load() } }

@@ -174,8 +174,9 @@ import SwiftUI
         .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: CYRadius.sheet, bottomTrailingRadius: CYRadius.sheet, style: .continuous))
         .accessibilityHidden(true)
     }
+    /// MP `.mp-hero__im` renders only when the store has an image; no default art, just the hero ground.
     private var heroPlaceholder: some View {
-        Image(systemName: "mappin.circle").accessibilityHidden(true).font(.largeTitle).foregroundStyle(CYColor.textPlaceholder)
+        Color.clear.accessibilityHidden(true)
     }
     private func header(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -214,23 +215,26 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text("playStoreDay.section.proof", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
-            step(1, done: node.arrived, title: L("playStoreDay.step.scan.title"), detail: L("playStoreDay.step.scan.detail"), id: "scan")
+            // MP .mp-proof: three titles; only step 2 has a sub line, the store's photoDesc once arrived.
+            step(1, done: node.arrived, title: L("playStoreDay.step.scan.title"), detail: nil, id: "scan")
             step(2, done: node.selfReported, title: L("playStoreDay.step.photo.title"),
-                 detail: node.arrived ? (node.photoDescription ?? L("playStoreDay.step.photo.default")) : L("playStoreDay.step.photo.locked"), id: "photo")
-            step(3, done: node.done, title: L("playStoreDay.step.verify.title"), detail: L("playStoreDay.step.verify.detail"), id: "verify")
+                 detail: node.arrived ? node.photoDescription : nil, id: "photo")
+            step(3, done: node.done, title: L("playStoreDay.step.verify.title"), detail: nil, id: "verify")
             if node.arrived, let rule = node.rule {
                 Text(verbatim: rule).cyText(.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("storeDayPage.rule")
             }
         }
     }
     /// One bordered card per step with a numbered badge; done steps use primary ink, pending ones tertiary.
-    private func step(_ index: Int, done: Bool, title: String, detail: String, id: String) -> some View {
+    private func step(_ index: Int, done: Bool, title: String, detail: String?, id: String) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             Image(systemName: done ? "checkmark.circle.fill" : "\(index).circle").font(.title3)
                 .foregroundStyle(done ? CYColor.brand : CYColor.textTertiary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: title).cyText(.label).foregroundStyle(done ? CYColor.textPrimary : CYColor.textTertiary)
-                Text(verbatim: detail).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                if let detail, !detail.isEmpty {
+                    Text(verbatim: detail).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                }
             }
             Spacer(minLength: 0)
         }
