@@ -46,6 +46,8 @@ struct PassMembershipContent: Equatable {
     var buyBlock: PassBuyBlock?
     /// Plan code → server `validDays`, for the 有效期 fact of the selected plan.
     var validDays: [String: Int] = [:]
+    /// MKT-4-6: month price for the footer label (platform-pass.js:138 `开通通行证 ¥X` / `续买30天 ¥X`).
+    var buyPrice: String? = nil
     /// MKT-4-4: active-pass card facts. Nil / false leaves the fact off the card.
     var planLabel: String? = nil
     var teammate = false
@@ -135,19 +137,15 @@ struct PassMembershipView: View {
         }
         .safeAreaInset(edge: .bottom) {
             MPBottomBar {
-                if content.active {
-                    // Active footer is always 去主题库 (pp__foot); without a library binding it stays read-only, never a buy label.
-                    if let onOpenLibrary {
-                        CYPillButton("mp.member.toLibrary", action: onOpenLibrary).accessibilityIdentifier("membership.toLibrary")
-                    }
-                } else {
-                    buyLabel(content).cyText(.bodyMedium).foregroundStyle(CYColor.textTertiary)
-                        .frame(maxWidth: .infinity, minHeight: 56)
-                        .background(CYColor.bgElevated, in: Capsule())
-                        .accessibilityAddTraits(.isStaticText)
-                        .accessibilityIdentifier("membership.buy")
-                    MPGatedNote(text: Text("mp.gate.purchase"), identifier: "membership.purchaseOff")
-                }
+                // MKT-4-6: membership/index.wxml:62-65 `pp__foot` is one pill for both states, labelled by
+                // platform-pass.js:138 (开通通行证 ¥X, or 续买30天 ¥X when active). 去主题库 stays on the library row.
+                // Paying is money, so the pill stays disabled with the gate note until "money on".
+                buyLabel(content).cyText(.bodyMedium).foregroundStyle(CYColor.textTertiary)
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .background(CYColor.bgElevated, in: Capsule())
+                    .accessibilityAddTraits(.isStaticText)
+                    .accessibilityIdentifier("membership.buy")
+                MPGatedNote(text: Text("mp.gate.purchase"), identifier: "membership.purchaseOff")
             }
         }
     }
@@ -186,9 +184,13 @@ struct PassMembershipView: View {
 
     private func buyLabel(_ content: PassMembershipContent) -> Text {
         switch content.buyBlock {
-        case .notOnSale: Text("mp.member.buy.notOnSale")
-        case .deviceUnavailable: Text("mp.member.buy.device")
-        case nil: content.active ? Text("mp.member.buy.renew") : Text("mp.member.buy.open")
+        case .notOnSale: return Text("mp.member.buy.notOnSale")
+        case .deviceUnavailable: return Text("mp.member.buy.device")
+        case nil:
+            if let price = content.buyPrice {
+                return content.active ? Text("mp.member.buy.renew.price \(price)") : Text("mp.member.buy.open.price \(price)")
+            }
+            return content.active ? Text("mp.member.buy.renew") : Text("mp.member.buy.open")
         }
     }
 

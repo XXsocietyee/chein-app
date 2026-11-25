@@ -2080,7 +2080,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未到使用日期"
+            "value": "还没到可用时间"
           }
         }
       }
@@ -2224,7 +2224,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "截止日期"
+            "value": "有效期至"
           }
         }
       }
@@ -2477,13 +2477,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "My coupons"
+            "value": "Coupons"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我的优惠券"
+            "value": "优惠券"
           }
         }
       }
@@ -49780,7 +49780,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券已过期"
+            "value": "该券已过期"
           }
         }
       }
@@ -49865,7 +49865,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券已失效"
+            "value": "该券已失效"
           }
         }
       }
@@ -49893,13 +49893,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in again before showing this coupon."
+            "value": "Your sign-in expired. Open this page again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请重新登录后出示此优惠券。"
+            "value": "登录已过期，请重新进入"
           }
         }
       }
@@ -49961,13 +49961,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redemption status is temporarily delayed. It will be checked again."
+            "value": "Redemption status hasn't updated yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销状态暂时更新延迟，稍后会再次检查。"
+            "value": "核销状态暂未更新"
           }
         }
       }
@@ -50029,13 +50029,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The code could not be displayed. Refresh it before presenting."
+            "value": "QR code didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "券码暂时无法显示，请更新后再出示。"
+            "value": "二维码未加载"
           }
         }
       }
@@ -50086,7 +50086,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券出示码暂未开放"
+            "value": "优惠券出示码暂不可用"
           }
         }
       }
@@ -50103,7 +50103,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券出示码暂未开放，请联系管理员"
+            "value": "优惠券出示码暂不可用，请联系管理员"
           }
         }
       }
@@ -50120,7 +50120,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "出示券码"
+            "value": "出示核销码"
           }
         }
       }
@@ -50154,7 +50154,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券码"
+            "value": "优惠券出示"
           }
         }
       }
@@ -50165,13 +50165,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This coupon is no longer available."
+            "value": "This coupon was revoked or does not exist"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此优惠券已不可用。"
+            "value": "优惠券已撤销或不存在"
           }
         }
       }
@@ -50205,7 +50205,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此优惠券尚未到可使用时间。"
+            "value": "还没到可用时间"
           }
         }
       }
@@ -51276,7 +51276,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "库存"
+            "value": "库存数"
           }
         }
       }
@@ -51361,7 +51361,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认停发"
+            "value": "停发该券"
           }
         }
       }
@@ -51627,13 +51627,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopping distribution cannot be undone. New claims and issuance stop; already claimed coupons remain usable and redeemable."
+            "value": "After you stop it, no one can claim it. Coupons already claimed still work."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "停发不可撤销。停发后不能再被领取、发放；已领到的券照常可用、可核销"
+            "value": "停发后不可领取，已领券仍可用"
           }
         }
       }
@@ -51729,13 +51729,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupons"
+            "value": "Published coupons"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券"
+            "value": "我发布的优惠券"
           }
         }
       }
@@ -134871,7 +134871,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前设备暂不可开通"
+            "value": "当前设备暂不支持开通"
           }
         }
       }
@@ -134916,13 +134916,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Renew the pass"
+            "value": "Renew for 30 days"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "续期通行证"
+            "value": "续买30天"
           }
         }
       }
@@ -138384,13 +138384,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Until %@ · every price is ¥0"
+            "value": "Until %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "到 %@ · 价格都是 ¥0"
+            "value": "到 %@"
           }
         }
       }
@@ -308270,6 +308270,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "兑换码暂不可用"
+          }
+        }
+      }
+    },
+    "mp.member.plan.launchPrice %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Launch price %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首发价 %@"
+          }
+        }
+      }
+    },
+    "mp.member.buy.open.price %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the pass %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开通通行证 %@"
+          }
+        }
+      }
+    },
+    "mp.member.buy.renew.price %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renew for 30 days %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "续买30天 %@"
           }
         }
       }

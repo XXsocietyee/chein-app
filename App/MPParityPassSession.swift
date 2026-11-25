@@ -35,18 +35,32 @@ extension MPParityBindings {
             let day = MPParityChinaClock.dotDay(overview.holding.coverageEnd ?? overview.holding.validTo)
             return .activeUntil(day.isEmpty ? MPText.unknown : day)
         }
-        let prices = overview.plans.map { yuanFen($0.priceFen) }.filter { !$0.isEmpty }
+        // MKT-4-1: passes/index.js:84 `planSide` joins the passView card prices (month only, 首发价 ¥X).
+        let prices = saleablePlans(overview).map { planPriceText($0) }.filter { !$0.isEmpty }
         if !prices.isEmpty { return .plans(prices.joined(separator: " · ")) }
         if let count = overview.libraryCount { return .themeCount(count) }
         return .none
     }
 
+    /// MKT-4-1: platform-pass.js:101-108 `passView` sells the month plan only (owner 2026-11-13); other plans are not shown.
+    static func saleablePlans(_ overview: PlatformPassOverview) -> [PlatformPassPlan] {
+        overview.plans.filter { $0.code == "MONTH" }
+    }
+
+    /// platform-pass.js:84-86 `planCard`: the month price reads 首发价 ¥X (OR-047).
+    static func planPriceText(_ plan: PlatformPassPlan) -> String {
+        let price = yuanFen(plan.priceFen)
+        guard plan.code == "MONTH", !price.isEmpty else { return price }
+        return appLocalized("mp.member.plan.launchPrice \(price)", locale: .current)
+    }
+
     static func membershipContent(_ overview: PlatformPassOverview) -> PassMembershipContent {
+        let saleable = saleablePlans(overview)
         // platform-pass.js `bestCode`: 最划算 only when there is more than one plan to compare.
-        let bestIndex = overview.plans.count > 1 ? overview.plans.enumerated().min { lhs, rhs in
+        let bestIndex = saleable.count > 1 ? saleable.enumerated().min { lhs, rhs in
             pricePerDay(lhs.element) < pricePerDay(rhs.element)
         }?.offset : nil
-        let plans = overview.plans.enumerated().map { index, plan in
+        let plans = saleable.enumerated().map { index, plan in
             planCard(plan, best: index == bestIndex)
         }
         let active = overview.holding.active
@@ -62,8 +76,9 @@ extension MPParityBindings {
             plans: plans,
             selectedPlan: plans.first { $0.best }?.code ?? plans.first?.code,
             buyBlock: block,
-            validDays: Dictionary(overview.plans.compactMap { plan in plan.validDays.map { (plan.code, $0) } },
+            validDays: Dictionary(saleable.compactMap { plan in plan.validDays.map { (plan.code, $0) } },
                                   uniquingKeysWith: { first, _ in first }),
+            buyPrice: saleable.first.map { yuanFen($0.priceFen) }.flatMap { $0.isEmpty ? nil : $0 },
             planLabel: active ? overview.holding.planLabel : nil,
             teammate: active && overview.holding.teammateBenefit,
             expiring: active && overview.holding.expiring,
@@ -198,9 +213,12 @@ extension MPParityBindings {
     }
 
     private static func planCard(_ plan: PlatformPassPlan, best: Bool) -> PassPlanCard {
-        let price = yuanFen(plan.priceFen)
+        let price = planPriceText(plan)
         let line: PassPlanCard.Line
-        if let days = plan.validDays, days >= 300 {
+        if plan.code == "MONTH" {
+            // platform-pass.js:79-80: the month line is always 30天·不自动续费.
+            line = .month
+        } else if let days = plan.validDays, days >= 300 {
             let monthly = Double(plan.priceFen) / 100 / (Double(days) / 30)
             line = .year(monthlyText: yuan(monthly))
         } else if plan.validDays == 30 {

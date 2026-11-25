@@ -746,5 +746,56 @@
         }
       }
     }
+  },
+  "mp.member.plan.launchPrice %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Launch price %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "首发价 %@"
+        }
+      }
+    }
+  },
+  "mp.member.buy.open.price %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open the pass %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "开通通行证 %@"
+        }
+      }
+    }
+  },
+  "mp.member.buy.renew.price %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Renew for 30 days %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "续买30天 %@"
+        }
+      }
+    }
   }
 }
