@@ -2,7 +2,7 @@
 
 This is the live state of the chengyin-app go-live push and the exact steps to continue it. It is updated on every hourly and half-hourly check. If Claude (the coordinator) is out of credit, anyone (a person, Cursor, Gemini or another Claude) can pick up from here.
 
-**Last updated:** 2026-11-25 06:53 UTC by Claude (coordinator).
+**Last updated:** 2026-11-25 07:22 UTC by Claude (coordinator).
 
 ---
 
@@ -11,7 +11,7 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 | Item | Value |
 |---|---|
 | Product | Native SwiftUI iOS app with full mini-program (MP) parity. Repo `liboyang42-cpu/chengyin-app` (PUBLIC), branches `ui/*`. |
-| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`d9115273d`** (adds k7e-fixes-2, cov3-e, cov4-tests-1/3/4, Gemini's 67 MP images). |
+| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`dd3622219`** (adds first pushes of fix/r9-account-publish, -club-a, -member, -mp-image-wiring, -play-roam, -player-content, and cursor/r9-play-roam). |
 | MP source | `liboyang42-cpu/hengyin`, folder `chengyinhub-xcx` (the mini-program). |
 | Parity (**r9 audit**, 06:40 UTC) | member 91% (P0 2) · account-publish 91% (P0 2) · merchant 86% (P0 23) · club 88% (P0 9) · player-content 95% (P0 4) · play-roam 98.6% (P0 0). Reports: `origin/audit/parity-r9-<area>:docs/audit/parity-r9/<area>.md`. |
 | Acceptance | Runner `fanning-air-5`, branch `ci/acceptance`. Baselines Core 27, AppUnit 71, contract 1. K7e on 6afe54b4a failed on **infrastructure** (GitHub SSL during git fetch, sim 405 already-booted, POSIX 3 terminate), not code; Cursor is hardening the workflow. CHECK on ebf6c160c queued (run 45557373770). |
@@ -39,6 +39,7 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 - **Merged:** A1, A2-a, A2-c, q9c-composition, r8-merchant-coop, r8-play-roam, r8-club, r8-account-publish, r8-member.
 - **Merged in `6afe54b4a`:** a2-contract-b/d, r8-player-content, r8-wire. a3 goes to `ci/acceptance`.
 - **Merged in `08792c15b`:** cov3-c, cov3-d. **Running:** K7e CHECK (run 45550995140, queued behind 45545406477), r8-wire-2, cov3-a/b, cov3-tests-1..4; then cov3-e (checker: forwarded-url/ternary rows count as matched-indirect).
+- **07:20:** r9-play-roam merged; acceptance-hardening reviewed OK, Cursor to fast-forward `ci/acceptance`.
 - **Batch posted 06:52 (base `d9115273d`):** the r9 'Cursor Core' rows: `cursor/r9-merchant-a`/`-b`, `r9-club`, `r9-player-content`, `r9-member`, `r9-account-publish`, `r9-play-roam`; acceptance-hardening; CHECK on d9115273d.
 - **Merged by 06:24:** k7e-fixes, ratchet-1, cov4-tests-2. **Running:** cov3-e, cov4-tests-1/3/4, CHECK 45557373770, acceptance-hardening (on `ci/acceptance`).
 - **Batch posted 05:50 (base `ebf6c160c`):** K7e, cov3-e (checker indirect-match rule), cov4-tests-1..4 (remaining ~250 missing tests by area), ratchet-1 (AppSession −300 lines), r9-prep (per-area checker table).
@@ -46,7 +47,7 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 
 **Claude cloud routines** (claude.ai/code/routines):
 - r9 audits finished (06:20–06:40).
-- **Fix round r9 started 06:58** (brief `fix-r9.md`), 9 routines: `fix/r9-merchant-coop-a` (P0 + first-half P1), `fix/r9-merchant-coop-b` (rest), `fix/r9-club-a` / `-b`, `fix/r9-player-content`, `fix/r9-member`, `fix/r9-account-publish`, `fix/r9-play-roam`, and `fix/r9-mp-image-wiring` (wire the 111 unused MPAssets). Merge them as they push; then run r10 audits.
+- **Fix round r9 started 06:58** (brief `fix-r9.md`), 9 routines: `fix/r9-merchant-coop-a` (P0 + first-half P1), `fix/r9-merchant-coop-b` (rest), `fix/r9-club-a` / `-b`, `fix/r9-player-content`, `fix/r9-member`, `fix/r9-account-publish`, `fix/r9-play-roam`, and `fix/r9-mp-image-wiring` (wire the 111 unused MPAssets). Merge them as they push (first pushes merged in dd3622219); then run r10 audits.
 
 **Gemini:** first push merged (67 MP images, `d9115273d`). Relaunched 06:20 via `orca agent launch --agent antigravity` in DES-ag3 on `gemini/mp-assets-r9` (MP images byte-identical: map every MP image to MPAsset, receipt `docs/release/receipts/gemini-mp-assets-r9.md`). No local builds.
 
