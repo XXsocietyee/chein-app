@@ -19,6 +19,10 @@ import SwiftUI
     @State private var failure: ClubGovernanceFailure?
     @State private var loading = false
     @State private var generation: UInt64 = 0
+    /// CLB-event-ops-02 (MP event-ops wxml:26-113): 本场 cancel status and the roster total, read inline on the hub.
+    /// Best effort: a failed read leaves the plain rows, which still open the full pages.
+    @State private var occurrenceStatus: ClubGovernanceValue?
+    @State private var rosterTotal: Int?
     private var key: Key { .init(identity: identity, authorization: access.authorizationGeneration, reader: ObjectIdentifier(access), scope: scope) }
     private var accessScope: ClubGovernanceScope { .init(clubID: scope.clubID, activityID: scope.activityID) }
     private var eventScope: ClubGovernanceScope { .init(clubID: scope.clubID, topicID: scope.topicID, activityID: scope.activityID) }
@@ -95,6 +99,9 @@ import SwiftUI
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("clubOpsEvent.roster.hidden")
                 }
+                if let occurrenceStatus, ClubOpsEventCancellation.state(occurrenceStatus, activityID: scope.activityID) != nil {
+                    ClubOpsEventOccurrenceStatusRows(value: occurrenceStatus, activityID: scope.activityID)
+                }
                 push(.occurrenceStatus, eventScope) {
                     // CLB-event-ops-07: the consequence lives in the confirm only (MP 1121), not on the row.
                     CYListRow("club.gov.action.cancelOccurrence", trailing: .none) { CYRowIcon(systemImage: "calendar.badge.minus") }
@@ -106,7 +113,9 @@ import SwiftUI
         case .roster:
             Section {
                 push(.roster, eventScope) {
-                    CYListRow(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.section.roster", table: "ClubOpsEvent", locale: locale)), trailing: .none) {
+                    // CLB-event-ops-02 (MP wxml:72): 本场名册 · N 人 once the roster read is in (registered + arrived + noShow).
+                    CYListRow(verbatim: rosterTotal.map { String(localized: LocalizedStringResource("clubOpsEvent.roster.title \($0)", table: "ClubOpsEvent", locale: locale)) }
+                              ?? String(localized: LocalizedStringResource("clubOpsEvent.section.roster", table: "ClubOpsEvent", locale: locale)), trailing: .none) {
                         CYRowIcon(systemImage: "person.crop.rectangle.stack")
                     }
                 }
@@ -159,6 +168,19 @@ import SwiftUI
                 throw ClubGovernanceFailure.malformed
             }
             model = ClubOpsEventAccess(permissions: permissions, scope: eventScope); loadedKey = expected
+            occurrenceStatus = nil; rosterTotal = nil
+            if (scope.activityID ?? 0) > 0, let model {
+                if model.sections.contains(.occurrence),
+                   let status = try? await access.read(.occurrenceStatus, scope: eventScope, options: [:], check: check) {
+                    guard revision == generation, expected == key else { return }
+                    occurrenceStatus = status.value
+                }
+                if model.canCheckin, let roster = try? await access.read(.roster, scope: eventScope, options: [:], check: check) {
+                    guard revision == generation, expected == key else { return }
+                    let buckets = ["registered", "arrived", "noShow"].map { roster.value[$0].array }
+                    if buckets.allSatisfy({ $0 != nil }) { rosterTotal = buckets.reduce(0) { $0 + ($1?.count ?? 0) } }
+                }
+            }
         } catch {
             guard revision == generation, expected == key else { return }
             if !(error is CancellationError) { failure = error as? ClubGovernanceFailure ?? .malformed }
