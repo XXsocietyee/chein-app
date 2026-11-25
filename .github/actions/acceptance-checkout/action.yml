@@ -1,0 +1,46 @@
+name: Acceptance checkout
+description: Check out the workflow ref, retrying git fetch and checkout 3 times with backoff.
+inputs:
+  persist-credentials:
+    description: Leave the GitHub token in the local git config.
+    required: false
+    default: "false"
+  ref:
+    description: Ref to check out. Empty uses the commit that triggered the workflow.
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      id: try1
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      continue-on-error: true
+      with:
+        persist-credentials: ${{ inputs.persist-credentials == 'true' }}
+        ref: ${{ inputs.ref != '' && inputs.ref || github.sha }}
+        fetch-depth: 1
+    - name: Back off before checkout retry
+      if: steps.try1.outcome == 'failure'
+      shell: bash
+      run: sleep 10
+    - name: Checkout retry
+      id: try2
+      if: steps.try1.outcome == 'failure'
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      continue-on-error: true
+      with:
+        persist-credentials: ${{ inputs.persist-credentials == 'true' }}
+        ref: ${{ inputs.ref != '' && inputs.ref || github.sha }}
+        fetch-depth: 1
+    - name: Back off before checkout retry
+      if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+      shell: bash
+      run: sleep 20
+    - name: Checkout retry
+      if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        persist-credentials: ${{ inputs.persist-credentials == 'true' }}
+        ref: ${{ inputs.ref != '' && inputs.ref || github.sha }}
+        fetch-depth: 1

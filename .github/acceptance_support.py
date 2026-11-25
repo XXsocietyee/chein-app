@@ -18,6 +18,11 @@ device type. UDIDs are not hardcoded.
 The screenshot step retries a failed simulator boot once. Lane2, W2,
 screenshots, and ui-smoke take one shared lock so two lanes do not boot or
 launch at the same time.
+
+Before each AppUnit shard, and before screenshots, that lane's phone is shut
+down, booted, and waited on with ``bootstatus -b``. Shutting down a phone that
+is already shut down is success. ``found nothing to terminate`` is success.
+Checkout retries ``git fetch`` and ``git checkout`` three times with backoff.
 """
 import argparse
 import fcntl
@@ -555,14 +560,103 @@ def simulator_use_lock(path=None):
         os.close(fd)
 
 
-def run_with_simulator_lock(argv):
-    """Run a lane or ui-smoke command while holding the simulator lock."""
+def split_lock_command(argv):
+    """Optional ``--prepare-from <destination>`` then the locked command."""
+    destination = None
+    if argv[:1] == ["--prepare-from"]:
+        if len(argv) < 2 or argv[1] in ("", "--"):
+            raise SystemExit("simulator-lock --prepare-from needs a destination file")
+        destination = Path(argv[1])
+        argv = argv[2:]
     if argv[:1] == ["--"]:
         argv = argv[1:]
     if not argv:
         raise SystemExit("simulator-lock needs a command")
+    return destination, argv
+
+
+def run_with_simulator_lock(argv):
+    """Run a lane or ui-smoke command while holding the simulator lock.
+
+    ``--prepare-from`` shuts that destination down, boots it, and waits for
+    ``bootstatus -b`` before the command. The lock covers both.
+    """
+    destination, command = split_lock_command(argv)
     with simulator_use_lock():
-        return subprocess.call(argv)
+        if destination is not None:
+            udid = udid_from_destination(destination.read_text(errors="replace"))
+            if not prepare_simulator(udid):
+                return 1
+        return subprocess.call(command)
+
+
+GIT_RETRY_DELAYS = (10, 20)
+
+
+def retry_git_fetch_checkout(fetch_argv, checkout_argv, run=None, sleep=None):
+    """Run fetch then checkout. Retry the pair 3 times with backoff."""
+    run = run or (lambda argv: subprocess.run(argv, text=True, check=False).returncode)
+    sleep = sleep or time.sleep
+    for attempt in range(1, 4):
+        fetch_code = run(list(fetch_argv))
+        checkout_code = run(list(checkout_argv)) if fetch_code == 0 else None
+        if fetch_code == 0 and checkout_code == 0:
+            print(f"git fetch and checkout succeeded on attempt {attempt}", flush=True)
+            return 0
+        failed = fetch_code if fetch_code != 0 else checkout_code
+        print(f"git fetch or checkout failed on attempt {attempt} (exit {failed})", flush=True)
+        if attempt == 3:
+            return failed or 1
+        delay = GIT_RETRY_DELAYS[attempt - 1]
+        print(f"waiting {delay}s before retrying git fetch and checkout", flush=True)
+        sleep(delay)
+    return 1
+
+
+def git_fetch_and_checkout(ref, remote="origin", run=None, sleep=None):
+    if remote != "origin" or not re.fullmatch(r"refs/heads/[A-Za-z0-9._/-]+", ref or "") or ".." in ref:
+        raise SystemExit(f"refusing git retry for {remote} {ref}")
+    return retry_git_fetch_checkout(
+        ["git", "fetch", remote, ref],
+        ["git", "checkout", "--detach", "FETCH_HEAD"],
+        run=run,
+        sleep=sleep,
+    )
+
+
+def materialize_shard_status(shards, root=None):
+    """Write shard status and failure files when a lane stops before collect.
+
+    A finished collect is left as-is. A missing pair means the job timed out
+    or the shard never started, so the upload still has both files.
+    """
+    root = Path(root) if root is not None else Path(".")
+    for shard in shards:
+        if shard not in (0, 1, 2, 3):
+            raise SystemExit(f"shard {shard} is outside 0..3")
+        failures = root / f"appunit-{shard}-failures.txt"
+        status = root / f"appunit-{shard}-status.txt"
+        if (
+            failures.is_file()
+            and status.is_file()
+            and failures.stat().st_size > 0
+            and status.stat().st_size > 0
+        ):
+            print(f"acceptance: shard {shard} status already recorded")
+            continue
+        log = root / f"appunit-{shard}.log"
+        exit_path = root / f"appunit-{shard}-exit.txt"
+        if log.is_file() and exit_path.is_file():
+            collect(log, exit_path, failures, status)
+            continue
+        names = failures_from_log(log) if log.is_file() else []
+        write_names(failures, names)
+        status.write_text("timed-out\n")
+        print(
+            f"acceptance: shard {shard} timed out before a finished status "
+            f"({len(set(names))} names in the partial log)"
+        )
+    return 0
 
 
 def process_text(completed):
@@ -580,7 +674,7 @@ def retryable_simulator_failure(text):
     """CoreSimulator 405 and NSPOSIX 3 or 60 are boot or launch timeouts.
 
     405 while the phone is already Booted is not a timeout. POSIX 3 from
-    terminate when nothing is running is not a timeout.
+    terminate when nothing is running is success, not a timeout.
     """
     if not text:
         return False
@@ -624,8 +718,57 @@ def note_boot_retry():
     print("retrying simulator boot once", flush=True)
 
 
+def terminate_is_success(result, text):
+    """``simctl terminate`` exits 3 with this message when the app is not running."""
+    if "found nothing to terminate" in (text or ""):
+        return True
+    return result is not None and result.returncode == 0
+
+
+def shutdown_is_success(result, text):
+    """A phone that is already shut down is a successful shutdown."""
+    if result is not None and result.returncode == 0:
+        return True
+    return "current state: Shutdown" in (text or "")
+
+
 def shutdown_simulator(udid):
-    run_simctl(["xcrun", "simctl", "shutdown", udid])
+    result, text = run_simctl(["xcrun", "simctl", "shutdown", udid], echo=False)
+    if shutdown_is_success(result, text):
+        if "current state: Shutdown" in (text or ""):
+            print("simulator already shut down", flush=True)
+        elif text.strip():
+            print(text, flush=True)
+        return True
+    if text.strip():
+        print(text, flush=True)
+    print("simulator shutdown failed", flush=True)
+    return False
+
+
+def prepare_simulator(udid):
+    """Shut one lane phone down, boot it, and wait for ``bootstatus -b``.
+
+    This is a single attempt. Screenshot capture still has its own one boot retry.
+    """
+    if not shutdown_simulator(udid):
+        return False
+    boot, text = run_simctl(["xcrun", "simctl", "boot", udid])
+    if boot is None:
+        print("simulator boot timed out", flush=True)
+        return False
+    if boot.returncode != 0 and "current state: Booted" not in (text or ""):
+        print("simulator boot failed", flush=True)
+        return False
+    status, _text = run_simctl(
+        ["xcrun", "simctl", "bootstatus", udid, "-b"],
+        timeout=BOOT_STATUS_TIMEOUT,
+    )
+    if status is None or status.returncode != 0:
+        print("simulator bootstatus failed", flush=True)
+        return False
+    print(f"simulator {udid} is booted", flush=True)
+    return True
 
 
 def boot_simulator_once(udid):
@@ -687,11 +830,24 @@ def take_screenshot(udid, png):
 
 def capture_route(udid, bundle, route, png, handle, can_reboot):
     args = fixture_launch_args(route)
-    run_simctl(["xcrun", "simctl", "terminate", udid, bundle])
+    terminated, term_text = run_simctl(["xcrun", "simctl", "terminate", udid, bundle], echo=False)
+    if terminate_is_success(terminated, term_text):
+        if "found nothing to terminate" in (term_text or ""):
+            print("simulator terminate found nothing to terminate", flush=True)
+    else:
+        if term_text.strip():
+            print(term_text, flush=True)
+        print("simulator terminate failed", flush=True)
     launch, launch_text = run_simctl(
         ["xcrun", "simctl", "launch", "--terminate-running-process", udid, bundle, *args],
         echo=False,
     )
+    if launch is not None and launch.returncode != 0 and terminate_is_success(launch, launch_text):
+        print("simulator launch found nothing to terminate; launching again", flush=True)
+        launch, launch_text = run_simctl(
+            ["xcrun", "simctl", "launch", udid, bundle, *args],
+            echo=False,
+        )
     code = "timeout" if launch is None else launch.returncode
     stdout = "" if launch is None else (launch.stdout or "")
     stderr = "" if launch is None else (launch.stderr or "")
@@ -747,6 +903,7 @@ def _capture_screenshots_locked(destination_file, shots, derived, routes):
         return 1
     bundle = bundle_identifier(app)
     state = {"retried": False}
+    prepare_simulator(udid)
     if not boot_simulator(udid, state):
         return 1
     installed, result, text = install_app(udid, app)
@@ -799,6 +956,19 @@ def check_simulator_retry(root):
     assert retryable_simulator_failure(missing)
     assert not retryable_simulator_failure(already)
     assert not retryable_simulator_failure(nothing)
+    assert terminate_is_success(subprocess.CompletedProcess(["simctl", "terminate"], 3, "", nothing), nothing)
+    assert not terminate_is_success(
+        subprocess.CompletedProcess(["simctl", "terminate"], 3, "", missing),
+        missing,
+    )
+    assert shutdown_is_success(
+        subprocess.CompletedProcess(["simctl", "shutdown"], 1, "", "current state: Shutdown\n"),
+        "current state: Shutdown\n",
+    )
+    assert not shutdown_is_success(
+        subprocess.CompletedProcess(["simctl", "shutdown"], 1, "", "current state: Creating\n"),
+        "current state: Creating\n",
+    )
     assert should_reboot("timeout")
     assert not should_reboot("The application failed to launch.")
 
@@ -883,6 +1053,100 @@ def check_simulator_retry(root):
     assert first.returncode == 0, first_out
     assert second.returncode == 0, second_out
     assert log.read_text().splitlines() == ["enter a", "leave a", "enter b", "leave b"]
+    check_prepare_git_and_timeout(root)
+
+
+def check_prepare_git_and_timeout(root):
+    """One shutdown-boot-bootstatus, git retry, and timeout status files."""
+    global run_process
+    real = run_process
+    calls = []
+
+    def fake_already_down(argv, timeout=None):
+        calls.append(list(argv))
+        if argv[1:3] == ["simctl", "shutdown"]:
+            return subprocess.CompletedProcess(argv, 1, "", "Unable to shutdown device in current state: Shutdown\n")
+        return subprocess.CompletedProcess(argv, 0, "", "")
+
+    def fake_shutdown_busy(argv, timeout=None):
+        calls.append(list(argv))
+        return subprocess.CompletedProcess(argv, 1, "", "Unable to shutdown device in current state: Creating\n")
+
+    try:
+        run_process = fake_already_down
+        assert prepare_simulator("PHONE") is True
+        assert [item[1:3] for item in calls] == [
+            ["simctl", "shutdown"],
+            ["simctl", "boot"],
+            ["simctl", "bootstatus"],
+        ]
+        assert calls[2][3:] == ["PHONE", "-b"]
+        calls.clear()
+        run_process = fake_shutdown_busy
+        assert prepare_simulator("PHONE") is False
+        assert [item[1:3] for item in calls] == [["simctl", "shutdown"]]
+    finally:
+        run_process = real
+
+    destination, command = split_lock_command(
+        ["--prepare-from", "simulator-destination.txt", "--", "xcodebuild", "test"]
+    )
+    assert destination == Path("simulator-destination.txt")
+    assert command == ["xcodebuild", "test"]
+    bare_destination, bare_command = split_lock_command(["--", "xcodebuild"])
+    assert bare_destination is None and bare_command == ["xcodebuild"]
+    try:
+        split_lock_command(["--prepare-from", "--", "xcodebuild"])
+        raise AssertionError("prepare-from needs a destination file")
+    except SystemExit as error:
+        assert "destination" in str(error)
+
+    calls = []
+    sleeps = []
+
+    def fail_fetch_twice(argv):
+        calls.append(list(argv))
+        if argv[1] == "fetch" and sum(item[1] == "fetch" for item in calls) < 3:
+            return 128
+        return 0
+
+    assert git_fetch_and_checkout("refs/heads/ci/acceptance", run=fail_fetch_twice, sleep=sleeps.append) == 0
+    assert sleeps == [10, 20]
+    assert sum(item[1] == "fetch" for item in calls) == 3
+    assert sum(item[1] == "checkout" for item in calls) == 1
+    assert calls[0] == ["git", "fetch", "origin", "refs/heads/ci/acceptance"]
+    calls.clear()
+    sleeps.clear()
+
+    def fail_checkout_once(argv):
+        calls.append(list(argv))
+        if argv[1] == "checkout" and sum(item[1] == "checkout" for item in calls) == 1:
+            return 1
+        return 0
+
+    assert git_fetch_and_checkout("refs/heads/ci/acceptance", run=fail_checkout_once, sleep=sleeps.append) == 0
+    assert sleeps == [10]
+    assert sum(item[1] == "fetch" for item in calls) == 2
+    assert sum(item[1] == "checkout" for item in calls) == 2
+    try:
+        git_fetch_and_checkout("refs/heads/../main", run=lambda argv: 0, sleep=lambda _seconds: None)
+        raise AssertionError("a ref that escapes heads must not be fetched")
+    except SystemExit as error:
+        assert "refusing" in str(error)
+
+    log = root / "appunit-0.log"
+    log.write_text("Test Case '-[QuestifyAppUnitTests.Foo testBar]' failed (0.1 seconds).\n")
+    assert materialize_shard_status([0], root) == 0
+    assert (root / "appunit-0-status.txt").read_text() == "timed-out\n"
+    assert (root / "appunit-0-failures.txt").read_text() == "QuestifyAppUnitTests.Foo/testBar\n"
+    (root / "appunit-0-status.txt").write_text("ran\n")
+    (root / "appunit-0-failures.txt").write_text("kept\n")
+    assert materialize_shard_status([0], root) == 0
+    assert (root / "appunit-0-status.txt").read_text() == "ran\n"
+    assert (root / "appunit-0-failures.txt").read_text() == "kept\n"
+    assert materialize_shard_status([1], root) == 0
+    assert (root / "appunit-1-status.txt").read_text() == "timed-out\n"
+    assert (root / "appunit-1-failures.txt").read_text() == "\n"
 
 
 def self_check():
@@ -1192,6 +1456,22 @@ def workflow_contract():
         raise SystemExit("only the commit job may write contents")
     if "HEAD:refs/heads/ci/acceptance" not in jobs:
         raise SystemExit("record must push baselines to ci/acceptance")
+    record = job_block(text, "record-baselines")
+    if "git-retry --ref refs/heads/ci/acceptance" not in record:
+        raise SystemExit("record must retry git fetch and checkout")
+    if "\n          git fetch origin refs/heads/ci/acceptance\n" in record:
+        raise SystemExit("record must not fetch ci/acceptance only once")
+    checkout_action = Path(".github/actions/acceptance-checkout/action.yml")
+    action = checkout_action.read_text()
+    pin = "actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
+    if action.count(pin) != 3 or "sleep 10" not in action or "sleep 20" not in action:
+        raise SystemExit("checkout must retry git fetch and checkout 3 times with backoff")
+    if text.count("./.github/actions/acceptance-checkout") != 12:
+        raise SystemExit("every acceptance job must retry checkout")
+    if "actions/checkout@" in text:
+        raise SystemExit("checkout retries belong in the acceptance checkout action")
+    if text.count("persist-credentials: 'false'") != 11 or text.count("persist-credentials: 'true'") != 1:
+        raise SystemExit("checkout credentials must stay read-only except for record")
     if KNOWN_CONTRACT_FAILURE not in support:
         raise SystemExit("known contract failure id drifted")
     groups = (
@@ -1229,6 +1509,15 @@ def workflow_contract():
             raise SystemExit(f"{lane} must not compile or share a cache path")
         if body.count("simulator-lock --") != 1:
             raise SystemExit(f"{lane} must take the simulator lock around boot and launch")
+        if "simulator-lock --prepare-from simulator-destination.txt --" not in body:
+            raise SystemExit(f"{lane} must shut down and boot its simulator before each shard")
+        shard_args = " ".join(f"--shard {shard}" for shard in LANE_SHARDS[lane])
+        marker = f"materialize-shard-status {shard_args}"
+        if marker not in body:
+            raise SystemExit(f"{lane} must record shard status for a timed-out job")
+        window = body[max(0, body.find(marker) - 240):body.find(marker)]
+        if "if: always()" not in window:
+            raise SystemExit(f"{lane} must write shard status even when the job times out")
     if "group: acceptance-lane2-" in w2 or "group: acceptance-w2-" in lane2:
         raise SystemExit("the two lanes must not share a concurrency group")
     debug = job_block(text, "debug-build")
@@ -1247,6 +1536,9 @@ def workflow_contract():
         raise SystemExit("screenshots must hold the simulator lock while booting and launching")
     if "retrying simulator boot once" not in selection:
         raise SystemExit("screenshots must retry the simulator boot once")
+    locked_fn = selection.split("def _capture_screenshots_locked", 1)[1].split("\ndef ", 1)[0]
+    if "prepare_simulator(udid)" not in locked_fn or "boot_simulator(udid, state)" not in locked_fn:
+        raise SystemExit("screenshots must shut down and boot, and keep the one boot retry")
     if selection.count("/private/tmp/chengyin-acceptance-simulator.lock") != 1:
         raise SystemExit("simulator boot and launch must share one lock")
     ui = job_block(text, "ui-smoke")
@@ -1333,6 +1625,13 @@ def main(argv):
     contract = sub.add_parser("record-contract")
     contract.add_argument("--baseline", type=Path, required=True)
 
+    retry = sub.add_parser("git-retry")
+    retry.add_argument("--ref", required=True)
+    retry.add_argument("--remote", default="origin")
+
+    shards = sub.add_parser("materialize-shard-status")
+    shards.add_argument("--shard", type=int, action="append", required=True)
+
     sub.add_parser("self-check")
 
     args = parser.parse_args(argv)
@@ -1373,6 +1672,10 @@ def main(argv):
         return 0
     if args.cmd == "record-contract":
         return record_known_contract_failure(args.baseline)
+    if args.cmd == "git-retry":
+        return git_fetch_and_checkout(args.ref, args.remote)
+    if args.cmd == "materialize-shard-status":
+        return materialize_shard_status(args.shard)
     if args.cmd == "self-check":
         return self_check()
     raise SystemExit(f"unknown command {args.cmd}")

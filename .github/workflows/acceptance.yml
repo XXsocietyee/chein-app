@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Acceptance mode
         run: echo "ACCEPTANCE_MODE=$ACCEPTANCE_MODE ref=$GITHUB_REF"
       - name: Check mode requires baseline files
@@ -40,9 +40,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Acceptance mode
         run: echo "ACCEPTANCE_MODE=$ACCEPTANCE_MODE ref=$GITHUB_REF"
       - name: Scaffold
@@ -64,9 +64,9 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Simulator destination
@@ -97,9 +97,9 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Core package tests
@@ -144,9 +144,9 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Restore DerivedData
@@ -164,13 +164,16 @@ jobs:
             python3 -B .github/acceptance_support.py only-testing --shard "$shard" > "only-testing-${shard}.args"
             set +e
             set -o pipefail
-            python3 -B .github/acceptance_support.py simulator-lock -- xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
+            python3 -B .github/acceptance_support.py simulator-lock --prepare-from simulator-destination.txt -- xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
             code="${PIPESTATUS[0]}"
             set -e
             echo "$code" > "appunit-${shard}-exit.txt"
             python3 -B .github/acceptance_support.py collect --log "appunit-${shard}.log" --exit "appunit-${shard}-exit.txt" --failures-out "appunit-${shard}-failures.txt" --status-out "appunit-${shard}-status.txt" || fail=1
           done
           exit "$fail"
+      - name: Record AppUnit shard status
+        if: always()
+        run: python3 -B .github/acceptance_support.py materialize-shard-status --shard 0 --shard 1
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -215,9 +218,9 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Restore DerivedData
@@ -235,13 +238,16 @@ jobs:
             python3 -B .github/acceptance_support.py only-testing --shard "$shard" > "only-testing-${shard}.args"
             set +e
             set -o pipefail
-            python3 -B .github/acceptance_support.py simulator-lock -- xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
+            python3 -B .github/acceptance_support.py simulator-lock --prepare-from simulator-destination.txt -- xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
             code="${PIPESTATUS[0]}"
             set -e
             echo "$code" > "appunit-${shard}-exit.txt"
             python3 -B .github/acceptance_support.py collect --log "appunit-${shard}.log" --exit "appunit-${shard}-exit.txt" --failures-out "appunit-${shard}-failures.txt" --status-out "appunit-${shard}-status.txt" || fail=1
           done
           exit "$fail"
+      - name: Record AppUnit shard status
+        if: always()
+        run: python3 -B .github/acceptance_support.py materialize-shard-status --shard 2 --shard 3
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -283,9 +289,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - uses: actions/download-artifact@v4
         with:
           pattern: appunit-failures-*
@@ -319,9 +325,9 @@ jobs:
     outputs:
       needed: ${{ steps.plan.outputs.needed }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Look for DEBUG fixture routes
         id: plan
         run: |
@@ -336,9 +342,9 @@ jobs:
     outputs:
       needed: ${{ steps.plan.outputs.needed }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Look for Accept XCUITests
         id: plan
         run: |
@@ -356,9 +362,9 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Restore DerivedData
@@ -383,9 +389,9 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
-          persist-credentials: false
+          persist-credentials: 'false'
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Restore DerivedData
@@ -421,11 +427,10 @@ jobs:
       contents: write
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/acceptance-checkout
         with:
           ref: ci/acceptance
-          persist-credentials: true
-          fetch-depth: 1
+          persist-credentials: 'true'
       - name: Acceptance mode
         run: echo "ACCEPTANCE_MODE=$ACCEPTANCE_MODE ref=$GITHUB_REF"
       - uses: actions/download-artifact@v4
@@ -447,8 +452,7 @@ jobs:
             *) echo "origin is not liboyang42-cpu/chengyin-app"; exit 1 ;;
           esac
           unset url
-          git fetch origin refs/heads/ci/acceptance
-          git checkout --detach FETCH_HEAD
+          python3 -B .github/acceptance_support.py git-retry --ref refs/heads/ci/acceptance
           mkdir -p docs/release/baselines
           cp recorded-core/baseline-core.txt docs/release/baselines/core.txt
           cp recorded-appunit/baseline-appunit.txt docs/release/baselines/appunit.txt
