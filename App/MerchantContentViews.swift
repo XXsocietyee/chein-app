@@ -156,7 +156,7 @@ struct MerchantContentBoundary: View {
             MerchantContentRows(service: service, model: model, rows: s.value["applications"].array ?? [], kind: .cityApplication)
             MerchantContentRows(service: service, model: model, rows: s.value["nodes"].array ?? [], kind: .city)
         case .registration(let id):
-            MerchantContentFields(value: s.value, names: ["topicName", "nodeName", "chapterName", "status", "auditStatus", "reason", "addressName", "address", "activityDesc", "limitNum", "startDate", "endDate", "cooperateDate"])
+            MerchantContentFields(value: s.value, names: ["topicName", "nodeName", "chapterName", "status", "auditStatus", "reason", "addressName", "address", "activityDesc", "limitNum", "startDate", "endDate", "cooperateDate"], registrationStatus: true)
             if MerchantRegistrationEditEligibility.allows(status: s.value["status"].integer, auditStatus: s.value["auditStatus"].integer) {
                 NavigationLink("merchant.content.edit") { MerchantContentEditView(service: service, query: query, kind: .registrationEdit(id)) }.accessibilityIdentifier("merchant.content.edit")
             }
@@ -234,18 +234,34 @@ struct MerchantContentBoundary: View {
 struct MerchantContentFields: View {
     let value: MerchantContentValue
     let names: [String]
+    /// `status` is a registration (承接报名) status here, so it reads with the MP words; elsewhere it stays raw.
+    var registrationStatus = false
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             ForEach(names, id: \.self) { name in
                 if let text = value[name].display, !text.isEmpty {
-                    LabeledContent(LocalizedStringKey("merchant.content.field." + name)) { Text(verbatim: text).textSelection(.enabled) }
+                    // R7-PC-B2-5: MP merchantinfo enum copy (termsModeLabel, registration status) instead of raw wire values.
+                    let copy = MerchantContentEnumCopy.key(field: name, raw: text, registrationStatus: registrationStatus)
+                    LabeledContent(LocalizedStringKey("merchant.content.field." + name)) {
+                        if let copy { Text(LocalizedStringKey(copy)) } else { Text(verbatim: text).textSelection(.enabled) }
+                    }
                         .accessibilityElement(children: .combine)
                         .accessibilityLabel(Text(LocalizedStringKey("merchant.content.field." + name)))
-                        .accessibilityValue(Text(verbatim: text))
+                        .accessibilityValue(copy.map { Text(LocalizedStringKey($0)) } ?? Text(verbatim: text))
                         .accessibilityIdentifier("merchant.content.readField." + name)
                 }
             }
         }.font(.subheadline)
+    }
+}
+/// MP merchantinfo.js:59-63 `termsModeLabel` and :2424-2425 registration status words. Unknown values keep the raw text.
+enum MerchantContentEnumCopy {
+    static func key(field: String, raw: String, registrationStatus: Bool) -> String? {
+        switch (field, raw) {
+        case ("termsMode", "PERK"), ("termsMode", "REVSHARE"), ("termsMode", "TRAFFIC"): return "merchant.content.enum.termsMode." + raw
+        case ("status", "0"), ("status", "1"), ("status", "2"): return registrationStatus ? "merchant.content.enum.status." + raw : nil
+        default: return nil
+        }
     }
 }
 @MainActor private struct MerchantContentRegistrationFilters: View {
@@ -480,7 +496,7 @@ struct MerchantContentFields: View {
         }
         if value["join"].object != nil {
             Text("merchant.content.joining").font(.headline)
-            MerchantContentFields(value: value["join"]["registration"], names: ["addressName", "status", "auditStatus"])
+            MerchantContentFields(value: value["join"]["registration"], names: ["addressName", "status", "auditStatus"], registrationStatus: true)
             if !readOnly { NavigationLink("merchant.content.registrations") { MerchantContentDocumentView(service: service, query: .registrations(filter: 0)) } }
             // R7-PC-B2-2, MP merchantinfo.js:3092-3104: 联系主办 = `coop/contact {id: hostInviteId}` → the returned chat. It goes
             // through the reviewed coop preview (`coopFlowPreviewWrite` + `coopConversationDestination`), never a raw write.

@@ -118,6 +118,108 @@
       }
     }
   },
+  "merchant.content.enum.status.0": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pending review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待审核"
+        }
+      }
+    }
+  },
+  "merchant.content.enum.status.1": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Approved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已通过"
+        }
+      }
+    }
+  },
+  "merchant.content.enum.status.2": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rejected"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已驳回"
+        }
+      }
+    }
+  },
+  "merchant.content.enum.termsMode.PERK": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Perk hosting"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "权益承接"
+        }
+      }
+    }
+  },
+  "merchant.content.enum.termsMode.REVSHARE": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Paid hosting"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "计酬承接"
+        }
+      }
+    }
+  },
+  "merchant.content.enum.termsMode.TRAFFIC": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Traffic hosting"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "引流承接"
+        }
+      }
+    }
+  },
   "merchantApply.location.placeholder": {
     "extractionState": "manual",
     "localizations": {
