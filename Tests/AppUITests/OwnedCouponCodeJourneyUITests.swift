@@ -33,30 +33,17 @@ final class OwnedCouponCodeJourneyUITests: XCTestCase {
         }
         XCTAssertTrue(detailArrived, detailDiagnostic)
         XCTAssertTrue(app.staticTexts["Sample weekend benefit"].waitForExistence(timeout: 5)); assertIssues(0)
+        // fix-r9 MKT-9-2: MP coupon-qr requests the code on show (index.js:58-85), no 出示 confirm.
         tap("couponCode.open")
-        XCTAssertTrue(app.buttons["couponCode.review"].waitForExistence(timeout: 5)); assertIssues(0)
-        XCTAssertFalse(app.images["couponCode.qr"].exists)
-        tap("couponCode.review")
-        let confirm = app.sheets.buttons["Show code"]
-        XCTAssertTrue(confirm.waitForExistence(timeout: 5)); assertIssues(0)
-        let sheet = app.sheets.firstMatch
-        if app.popovers.firstMatch.exists {
-            dismissFixtureConfirmationPopover(in: app)
-        } else {
-            app.sheets.buttons["Cancel"].tap()
-        }
-        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: sheet)
-        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
-        XCTAssertFalse(app.images["couponCode.qr"].exists); assertIssues(0)
-        tap("couponCode.review"); XCTAssertTrue(confirm.waitForExistence(timeout: 5)); confirm.tap()
         XCTAssertTrue(app.images["couponCode.qr"].waitForExistence(timeout: 5)); assertIssues(1)
+        XCTAssertFalse(app.buttons["couponCode.review"].exists)
         XCTAssertTrue(app.staticTexts["Offline current merchant terms"].exists)
         app.navigationBars.buttons.firstMatch.tap()
         XCTAssertTrue(app.navigationBars["Coupon details"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.images["couponCode.qr"].exists); assertIssues(1)
         tap("couponCode.open")
-        XCTAssertTrue(app.buttons["couponCode.review"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.images["couponCode.qr"].exists); assertIssues(1)
-        attachFixtureScreenshot(self, app: app, name: "Owned coupon reopened with fresh review and no retained code")
+        XCTAssertTrue(app.images["couponCode.qr"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["couponCode.review"].exists)
+        attachFixtureScreenshot(self, app: app, name: "Owned coupon reopened issues a fresh code")
     }
 }

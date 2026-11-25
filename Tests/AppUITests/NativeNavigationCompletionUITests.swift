@@ -15,15 +15,11 @@ final class NativeNavigationCompletionUITests: XCTestCase {
         XCTAssertTrue(app.buttons["nativeNav.error.home"].exists)
         XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'GoException'")).firstMatch.exists)
     }
+    /// fix-r9 MKT-9-2: MP coupon-qr issues the code on show (index.js:58-85); there is no confirm step.
     func testCouponReviewPrecedesSyntheticQRCode() {
         let app = launch("coupon")
-        let review = app.buttons["couponCode.review"]
-        XCTAssertTrue(review.waitForExistence(timeout: 5)); XCTAssertFalse(app.images["couponCode.qr"].exists)
-        review.tap()
-        let confirm = app.sheets.buttons["Show code"]
-        XCTAssertTrue(confirm.waitForExistence(timeout: 5)); XCTAssertFalse(app.images["couponCode.qr"].exists)
-        confirm.tap()
         XCTAssertTrue(app.images["couponCode.qr"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["couponCode.review"].exists)
         XCTAssertTrue(app.staticTexts["Synthetic coupon"].exists)
     }
     func testPlayerScanManualInputIsExplicitAndCancellable() {
