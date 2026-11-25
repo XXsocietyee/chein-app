@@ -167,7 +167,6 @@ import SwiftUI
                 let current = model.presentation ?? model.beginPresentation(owner: key)
                 if let current, model.accepts(current, currentOwner: key) { retirePendingOrder() }
                 await model.refresh(presentation: current, currentOwner: key) { await load(presentation: $0) }
-                await loadCompanions()
             }
             .onAppear { isVisible = true; refreshOnActive = false; pendingOrderEntry.appear(); replacePresentation() }
             .onDisappear { isVisible = false; model.endPresentation(); pendingOrderEntry.disappear() }
@@ -186,7 +185,6 @@ import SwiftUI
             .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy); focusRegistration(proxy) }
             .onChange(of: model.isLoading) { _, loading in if !loading { focusRegistration(proxy) } }
             .task { await followFocusedRegistration() }
-            .task(id: reader.isAuthenticated) { await loadCompanions() }
         }
         }
     }
@@ -265,6 +263,7 @@ import SwiftUI
     }
     private func schedule(_ permit: TicketWalletReadPresentation?) {
         if let permit, model.accepts(permit, currentOwner: key) { retirePendingOrder() }
+        else { companions = [] }
         model.schedule(presentation: permit, currentOwner: key) { await load(presentation: $0) }
     }
     /// R8-MEM-21-1: companion cards on the wallet. A failed read shows no error and no entry code.
@@ -287,6 +286,9 @@ import SwiftUI
         let provider = pendingOrderProvider
         // MP F13: the wallet holds usable tickets only, in walletOrder (PLY-21-1). Unpaid ones live in 我的订单.
         await model.load(presentation: presentation, currentOwner: { key }) { try await reader.ticketWallet().walletUsable }
+        if !Task.isCancelled, model.accepts(presentation, currentOwner: key), captured == key {
+            await loadCompanions()
+        }
         if !Task.isCancelled, model.accepts(presentation, currentOwner: key), captured == key,
            let provider, provider.owner == pendingOrderProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured) != nil {
