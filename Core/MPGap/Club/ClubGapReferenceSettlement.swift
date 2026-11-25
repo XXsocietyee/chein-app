@@ -38,6 +38,11 @@ public enum FEReferenceSettlementRole: String, Sendable {
     case merchant
 }
 
+/// Settle and dispute stay off. List and export reads are not on this switch.
+public enum FEReferenceSettlementMoneyWrite {
+    public static let enabled = false
+}
+
 public enum FEReferenceSettlementCopy {
     public static let sectionTitle = "自由探索结算（参考）"
     public static let markSettled = "标记已结清"
@@ -55,20 +60,21 @@ public struct ClubFEReferenceSettlementClient {
         self.transport = transport
     }
 
-    public func list(role: FEReferenceSettlementRole, token: String) async throws -> [FEReferenceSettlementItem] {
+    public func list(role: FEReferenceSettlementRole, from: String? = nil, to: String? = nil, token: String) async throws -> [FEReferenceSettlementItem] {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         let path = role == .payer ? "api/fe/reference-settlement/payer" : "api/fe/reference-settlement/merchant"
         return try await MPGapHTTP.getJSON(
             configuration: configuration,
             transport: transport,
             path: path,
+            queryItems: Self.query(from: from, to: to),
             token: token
         )
     }
 
-    /// Money write: withheld unless `allowsMoneyWrite` is explicitly enabled (TEST-only).
+    /// Money write: withheld unless the caller asked and the default-off flag is on.
     public func markSettled(ids: [Int], voucherNo: String? = nil, token: String, allowsMoneyWrite: Bool) async throws -> Bool {
-        guard allowsMoneyWrite else { return false }
+        guard allowsMoneyWrite, FEReferenceSettlementMoneyWrite.enabled else { return false }
         let validIDs = ids.filter { $0 > 0 }
         guard !validIDs.isEmpty else { throw APIError.invalidRequest }
         var body: [String: Any] = ["ids": validIDs]
@@ -83,5 +89,29 @@ public struct ClubFEReferenceSettlementClient {
             token: token
         )
         return true
+    }
+
+    /// Money write. Body is `{id, note}`. Sends nothing while the flag is off.
+    public func dispute(id: Int, note: String, token: String, allowsMoneyWrite: Bool) async throws -> Bool {
+        guard allowsMoneyWrite, FEReferenceSettlementMoneyWrite.enabled else { return false }
+        let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard id > 0, !trimmed.isEmpty else { throw APIError.invalidRequest }
+        try await MPGapHTTP.postAction(
+            configuration: configuration,
+            transport: transport,
+            path: "api/fe/reference-settlement/dispute",
+            body: ["id": id, "note": trimmed],
+            token: token
+        )
+        return true
+    }
+
+    static func query(from: String?, to: String?) -> [URLQueryItem] {
+        var items: [URLQueryItem] = []
+        let start = from?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let end = to?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !start.isEmpty { items.append(URLQueryItem(name: "from", value: start)) }
+        if !end.isEmpty { items.append(URLQueryItem(name: "to", value: end)) }
+        return items
     }
 }

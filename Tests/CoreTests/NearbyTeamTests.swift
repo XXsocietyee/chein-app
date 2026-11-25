@@ -10,6 +10,20 @@ import XCTest
         let fake = NearbyTeamFakeTransport(steps: steps)
         return (.init(service: .init(fake: fake), session: session, locks: .init()), fake)
     }
+    func testLeaderApplicantCountUsesTheExistingPostAndUnreadOnFailure() throws {
+        let team = try decode(#"{"id":3,"status":0,"leaderMemberId":9}"#, as: OwnedTeam.self)
+        XCTAssertTrue(NearbyLeaderApplicantFact.asks(team: team, viewerAccountID: 9))
+        XCTAssertFalse(NearbyLeaderApplicantFact.asks(team: team, viewerAccountID: 8))
+        let full = try decode(#"{"id":3,"status":1,"leaderMemberId":9}"#, as: OwnedTeam.self)
+        XCTAssertFalse(NearbyLeaderApplicantFact.asks(team: full, viewerAccountID: 9))
+        XCTAssertEqual(NearbyLeaderApplicantFact.interpret(nil), .unread)
+        XCTAssertEqual(NearbyLeaderApplicantFact.unread.suffix, " · 申请数没读到")
+        XCTAssertEqual(NearbyLeaderApplicantFact.count(0).suffix, "")
+        XCTAssertEqual(NearbyLeaderApplicantFact.count(2).suffix, " · 2 条入队申请")
+        let request = try NearbyTeamRequest.applications(.init(3))
+        XCTAssertEqual(request.method, "POST")
+        XCTAssertEqual(request.path, "/api/team/applications")
+    }
     func testExactNearbyQueryAndRadii() throws {
         let request = try NearbyTeamRequest.nearby(context)
         XCTAssertEqual(request.method, "GET"); XCTAssertEqual(request.path, "/api/team/nearby")

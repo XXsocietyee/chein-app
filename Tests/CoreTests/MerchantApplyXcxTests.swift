@@ -53,6 +53,7 @@ final class MerchantApplyXcxTests: XCTestCase {
 }
 
 /// W5b: without the offline harness and without a registration grant, merchantapply writes stay gated.
+/// MP-first (owner 2026-11-25): the default approval now opens them (MP merchantapply/index.js:673); this pin uses `.closed`.
 @MainActor final class MerchantApplyWriteGateTests: XCTestCase {
     private struct DeadTransport: HTTPTransport {
         func send(_ request: URLRequest) async throws -> (Data, Int) { throw APIError.notConfigured }
@@ -60,7 +61,7 @@ final class MerchantApplyXcxTests: XCTestCase {
     func testRegistrationCreateAndUpdateAreNotPermittedOnTheDisabledService() throws {
         let session = try MerchantContentSession(accountID: 5, epoch: 1, storageScope: "cn", token: "token")
         let service = MerchantContentService(configuration: nil, transport: DeadTransport(), currentSession: { session },
-                                             journal: MerchantContentMemoryPendingStorage())
+                                             journal: MerchantContentMemoryPendingStorage(), writeApproval: { .closed })
         XCTAssertFalse(service.permitsWrites)
         var draft = MerchantRegistrationContentDraft()
         draft.addressName = "Synthetic shop"; draft.address = "Synthetic street"; draft.activityDesc = "Room for 6"

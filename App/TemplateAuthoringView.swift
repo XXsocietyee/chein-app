@@ -540,7 +540,8 @@ extension EnvironmentValues {
                 }
             } header: {
                 // CF-44: a 16:9 cover with the title over its bottom edge.
-                TemplateAuthoringCoverHeader(imageURL: model.draft.imgUrl, title: $model.draft.title, editable: model.canEdit)
+                TemplateAuthoringCoverHeader(imageURL: model.draft.imgUrl, title: $model.draft.title, editable: model.canEdit,
+                                             defaultCover: TemplateInteractionDefaultCover.image(title: model.draft.title, advanced: model.draft.advanced))
             }
             .id(EditorOutlineSection.info.anchor)
             Section("templateAuthor.basics") {
@@ -928,5 +929,31 @@ enum TemplateBasicClearField {
             .onAppear { controller.appear(sceneIsActive: scenePhase == .active) }
             .onDisappear { controller.disappear() }
             .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
+    }
+}
+
+/// Round 4 image parity: MP `utils/template-display.js` `gameTemplateCover`. The seven built-in interaction games
+/// default to their `/images/interaction-templates/*.svg` art, matched by the original title first and then by the
+/// first enabled mechanic section (so a renamed adoption keeps its art). Anything else has no default cover.
+enum TemplateInteractionDefaultCover {
+    private static let byTitle: [String: String] = [
+        "闭眼味觉师": "blindTaste", "沉默点单": "silentOrder", "便利店调酒师": "diyName", "治愈音乐角": "musicCorner",
+        "午夜电台": "timeWindow", "低碳行动": "steps", "今日城市签": "dailySign"
+    ]
+    private static let sectionOrder = ["blindTaste", "silentOrder", "diyName", "musicCorner", "timeWindow", "steps", "dailySign"]
+
+    static func image(title: String, advanced: TemplateAdvancedDraft) -> Image? {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let section = byTitle[trimmed] ?? sectionOrder.first { advanced.enabled($0) }
+        switch section {
+        case "blindTaste": return MPAsset.BannerCover.blindTaste
+        case "silentOrder": return MPAsset.BannerCover.silentOrder
+        case "diyName": return MPAsset.BannerCover.diyDrink
+        case "musicCorner": return MPAsset.BannerCover.musicCorner
+        case "timeWindow": return MPAsset.BannerCover.midnightRadio
+        case "steps": return MPAsset.BannerCover.lowCarbon
+        case "dailySign": return MPAsset.BannerCover.dailyCitySign
+        default: return nil
+        }
     }
 }

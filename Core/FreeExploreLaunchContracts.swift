@@ -4,7 +4,7 @@ import CryptoKit
 public enum FreeExploreLaunchFailure: Error, Equatable {
     case invalid, malformed, staleSession, disabled, busy, pendingConflict
     case storageUnavailable, outcomeUnknown, cancellationQuoteUnavailable
-    case response(status: Int, code: Int, businessCode: String?)
+    case response(status: Int, code: Int, businessCode: String?, message: String?)
 }
 
 /// Java Longs must never pass through Double (including persisted recovery IDs).
@@ -51,6 +51,16 @@ public struct FreeExploreLaunchCatalog: Decodable, Equatable {
             public let offerId: FreeExploreLaunchID
             public let merchantName: String?
             public let validEnd: String?
+            /// `store.available === true`. A missing key is false. The row still shows.
+            public let available: Bool
+            private enum CodingKeys: String, CodingKey { case offerId, merchantName, validEnd, available }
+            public init(from decoder: Decoder) throws {
+                let c = try decoder.container(keyedBy: CodingKeys.self)
+                offerId = try c.decode(FreeExploreLaunchID.self, forKey: .offerId)
+                merchantName = try c.decodeIfPresent(String.self, forKey: .merchantName)
+                validEnd = try c.decodeIfPresent(String.self, forKey: .validEnd)
+                available = (try? c.decode(Bool.self, forKey: .available)) == true
+            }
         }
         public let chapterId: FreeExploreLaunchID
         public let name: String?

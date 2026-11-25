@@ -324,6 +324,40 @@
         }
       }
     },
+    "merchant.business.applyFilter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看结果"
+          }
+        }
+      }
+    },
+    "merchant.business.refund": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款售后"
+          }
+        }
+      }
+    },
     "merchant.campaigns.channel.coupon": {
       "extractionState": "manual",
       "localizations": {
@@ -834,6 +868,91 @@
         }
       }
     },
+    "merchant.customerFilters.button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "筛选"
+          }
+        }
+      }
+    },
+    "merchant.customerFilters.buttonCount %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter · %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "筛选 · %lld"
+          }
+        }
+      }
+    },
+    "merchant.customerFilters.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "merchant.customerFilters.reset": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置"
+          }
+        }
+      }
+    },
+    "merchant.customerFilters.sheetTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter customers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "筛选客户"
+          }
+        }
+      }
+    },
     "merchant.customers.updating": {
       "extractionState": "manual",
       "localizations": {
@@ -864,6 +983,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前身份不能查看退款售后"
+          }
+        }
+      }
+    },
+    "merchant.gate.aftercare.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load after-sales requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售后列表加载失败"
           }
         }
       }
@@ -942,13 +1078,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This settlement batch doesn't exist or is no longer visible"
+            "value": "Settlement batch not visible"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条结算批次不存在或已不可见"
+            "value": "结算批次不可见"
           }
         }
       }
@@ -1017,6 +1153,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前身份不能查看客户"
+          }
+        }
+      }
+    },
+    "merchant.gate.customers.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the customer list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客户名单加载失败"
           }
         }
       }
@@ -1225,6 +1378,23 @@
         }
       }
     },
+    "merchant.gate.refund.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load this refund request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款售后加载失败"
+          }
+        }
+      }
+    },
     "merchant.gate.reload": {
       "extractionState": "manual",
       "localizations": {
@@ -1255,6 +1425,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前身份不能管理口碑"
+          }
+        }
+      }
+    },
+    "merchant.gate.reviews.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load reviews"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评价加载失败"
           }
         }
       }
@@ -1306,6 +1493,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前身份不能查看核销记录"
+          }
+        }
+      }
+    },
+    "merchant.gate.verifyRecords.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load redemption records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销记录加载失败"
+          }
+        }
+      }
+    },
+    "merchant.home.dashboardFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revenue didn’t update"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收入没更新成功"
+          }
+        }
+      }
+    },
+    "merchant.home.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account can’t view the workbench"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看经营台"
+          }
+        }
+      }
+    },
+    "merchant.home.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the merchant workbench"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家工作台加载失败"
+          }
+        }
+      }
+    },
+    "merchant.home.projectsFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load projects and to-dos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目和待办加载失败"
+          }
+        }
+      }
+    },
+    "merchant.home.reloadPart": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload this section"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载此部分"
+          }
+        }
+      }
+    },
+    "merchant.home.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to view the workbench"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看经营台"
           }
         }
       }
@@ -1531,6 +1837,40 @@
         }
       }
     },
+    "merchant.ledger.title.redemptions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redemptions & refunds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销与退款"
+          }
+        }
+      }
+    },
+    "merchant.ledger.title.settlement": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算"
+          }
+        }
+      }
+    },
     "merchant.list.end": {
       "extractionState": "manual",
       "localizations": {
@@ -1561,6 +1901,142 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在加载更多…"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.checking": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking for an existing application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查已有申请"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.openMerchant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open workbench"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入经营台"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.reapply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reapply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新申请"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.stateUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can’t confirm the application status right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法确认申请状态"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.statusTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核状态"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.submittedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交成功"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant onboarding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家入驻"
+          }
+        }
+      }
+    },
+    "merchant.predict.backToWorkbench": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to workbench"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回工作台"
           }
         }
       }

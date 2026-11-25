@@ -54,6 +54,8 @@ import Foundation
     public private(set) var phase: Phase = .checking
     public private(set) var screen: Screen = .home
     public private(set) var saved = StoreCharacterProfile.empty
+    /// GET `api/merchant/npc/review`. Empty when the reader has no review transport or the receipt says nothing.
+    public private(set) var reviewText = ""
     public private(set) var home = StoreCharacterProfile.empty
     public private(set) var selection: StoreCharacterAvatar = .preset(StoreCharacterAvatar.defaultPresetID)
     private var avatarBaseline = "px1:" + StoreCharacterAvatar.defaultPresetID
@@ -109,7 +111,7 @@ import Foundation
     // MARK: Load
     public func load() async {
         generation += 1; let stamp = generation, scope = reader.scope
-        phase = .checking; changed()
+        reviewText = ""; phase = .checking; changed()
         guard reader.isAuthenticated else { phase = .login; changed(); return }
         let decision: StoreCharacterAccessDecision
         do { decision = StoreCharacterAccessDecision.decide(try await reader.access()) }
@@ -124,7 +126,9 @@ import Foundation
         do {
             let profile = try await reader.profile()
             guard current(stamp, scope) else { return }
-            saved = profile; home = profile; restoreAvatar(); phase = .ready; changed()
+            let receipt = await reader.npcReviewText()
+            guard current(stamp, scope) else { return }
+            saved = profile; reviewText = receipt; home = profile; restoreAvatar(); phase = .ready; changed()
         } catch {
             guard current(stamp, scope) else { return }
             switch StoreCharacterAccessDecision.decide(error: error) {

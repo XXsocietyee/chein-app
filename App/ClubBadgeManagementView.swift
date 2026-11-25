@@ -113,7 +113,8 @@ import SwiftUI
             }
         }
         if flow.screenState == .empty {
-            CYEmptyState(systemImage: "medal", "empty", tableName: "ClubBadge")
+            // Round 4 image parity: MP cy-state-shell kind="empty" → the MP two-layer empty art.
+            ClubMPEmptyState(title: Text("empty", tableName: "ClubBadge"))
         }
         if !flow.badges.isEmpty {
             // CLB-badges-06: MP 全部勋章 · N 枚 header.
@@ -197,7 +198,8 @@ import SwiftUI
                         model.perform { await $0.retryMembers() }
                     }
                 case .empty:
-                    CYEmptyState(systemImage: "person.2", "membersEmpty", tableName: "ClubBadge")
+                    // Round 4 image parity: MP 暂无成员 is cy-state-shell kind="empty" (two-layer art).
+                    ClubMPEmptyState(title: Text("membersEmpty", tableName: "ClubBadge"))
                 case .ready, .closed:
                     ForEach(flow.members) { member in
                         let name = member.trimmedNickname ?? "—"

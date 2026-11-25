@@ -29,7 +29,7 @@ public struct ReportAppealSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: Text(verbatim: sheetTitle), style: .player, onClose: onClose)
+            CYSheetHeader(title: Text(sheetTitle), style: .player, onClose: onClose)
             Form {
                 switch phase {
                 case .form:
@@ -53,7 +53,7 @@ public struct ReportAppealSheetView: View {
                     }
                     Section {
                         Button("reportAppeal.next", action: onToConfirm)
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.cyPrimary)
                             .frame(maxWidth: .infinity)
                             .disabled(!ReportAppealValidator.isValid(reason))
                     }
@@ -67,7 +67,7 @@ public struct ReportAppealSheetView: View {
                     }
                     Section {
                         Button("reportAppeal.confirmSubmit", action: onSubmit)
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.cyPrimary)
                             .frame(maxWidth: .infinity)
                         Button("reportAppeal.backToEdit", action: onBackToForm)
                             .frame(maxWidth: .infinity)
@@ -90,7 +90,7 @@ public struct ReportAppealSheetView: View {
                         Text("reportAppeal.okDetail")
                             .cyText(.body)
                         Button("common.done", action: onClose)
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.cyPrimary)
                             .frame(maxWidth: .infinity)
                     }
 
@@ -99,7 +99,7 @@ public struct ReportAppealSheetView: View {
                         Text(message)
                             .cyText(.body)
                         Button("common.done", action: onClose)
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.cyPrimary)
                             .frame(maxWidth: .infinity)
                     }
 
@@ -108,7 +108,7 @@ public struct ReportAppealSheetView: View {
                         Text("reportAppeal.unknownNotice")
                             .cyText(.body)
                         Button("reportAppeal.retry", action: onSubmit)
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.cyPrimary)
                             .frame(maxWidth: .infinity)
                         Button("reportAppeal.checkLater", action: onClose)
                             .frame(maxWidth: .infinity)
@@ -119,12 +119,12 @@ public struct ReportAppealSheetView: View {
         .presentationDetents([.medium, .large])
     }
 
-    private var sheetTitle: String {
+    private var sheetTitle: LocalizedStringKey {
         switch phase {
-        case .ok: return "申诉已受理"
-        case .fail: return "申诉没有提交成功"
-        case .unknown: return "还没确认申诉是否提交"
-        case .form, .confirm, .busy: return "提交申诉"
+        case .ok: return "reportAppeal.title.ok"
+        case .fail: return "reportAppeal.title.fail"
+        case .unknown: return "reportAppeal.title.unknown"
+        case .form, .confirm, .busy: return "reportAppeal.title.form"
         }
     }
 }

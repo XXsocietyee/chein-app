@@ -20,6 +20,8 @@ extension EnvironmentValues {
 /// CLB-apply-01: MP apply done state → 「创建我的俱乐部」 (apply/index.wxml:184-186, js:461).
 @MainActor struct ClubCreateMyClubLink: View {
     let identity: ClubReadIdentity?
+    /// Round 4 copy: the payout-receiver empty state says 创建俱乐部 (MP wxml:11); apply keeps 创建我的俱乐部.
+    var titleKey: LocalizedStringKey = "club.host.done.create"
     @Environment(\.clubOperationsFactory) private var factory
     var body: some View {
         if let context = factory() {
@@ -27,7 +29,7 @@ extension EnvironmentValues {
                 ClubOperationsWorkspaceView(target: .create, identity: identity, access: context.operations.access,
                                             coordinator: context.operations.coordinator, hostApplication: context.governance)
             } label: {
-                Text("club.host.done.create")
+                Text(titleKey)
             }
             .buttonStyle(CYPillButtonStyle(style: .primary))
             .accessibilityIdentifier("club.host.done.create")

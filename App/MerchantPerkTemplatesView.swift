@@ -95,8 +95,9 @@ import SwiftUI
             .accessibilityIdentifier("merchant.perks.permission")
         case .failed:
             // MC7-21-4: MP title 权益加载失败 above the reason.
-            CYErrorStateView(title: "merchant.perks.failed.title", message: "merchant.perks.failed.detail",
-                             retryTitle: "action.retry", onRetry: { Task { await model.load() } })
+            // MC8-21-1: MP cy-error icon="empty-state" → the shared MP empty art above the title.
+            CYStateLayout(kind: .failure, title: Text("merchant.perks.failed.title"), detail: Text("merchant.perks.failed.detail"),
+                          primary: (title: "action.retry", action: { Task { await model.load() } }), emptyIllustration: .generic)
             .cyDomainPageBackground()
             .themeDomain(.merchant)
             .accessibilityIdentifier("merchant.perks.failed")
@@ -106,7 +107,8 @@ import SwiftUI
                 if model.refreshing { Section { ProgressView("merchant.perks.refreshing").cyText(.meta) } }
                 if model.rows.isEmpty {
                     Section {
-                        CYEmptyStateView(systemImage: "gift", title: "merchant.perks.empty")
+                        // Image parity: MP cy-empty kind="empty" → the shared MP empty art (MPAsset.EmptyState via "tray").
+                        CYEmptyState(systemImage: "tray", "merchant.perks.empty")
                             .accessibilityIdentifier("merchant.perks.empty")
                     }
                     .listRowBackground(Color.clear)

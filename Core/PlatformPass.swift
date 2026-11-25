@@ -14,6 +14,36 @@ public struct PlatformPass: @unchecked Sendable {
     public static let miniProgramCommit = "1c80c5aea8f721ca8575e6108048495b100f5576"
     public static let moneyEnabled = false
 
+    /// TEST-only switch for cancel, confirm, and refund-apply. Nil (the default) sends nothing.
+    /// Pay, gift claim, payout, and withdrawal do not read this switch.
+    public enum OrderWriteKind: String, Sendable {
+        case cancel, confirm, refundApply
+    }
+#if DEBUG || TEST
+    nonisolated(unsafe) public static var orderWriteTestDerivation: (@Sendable (OrderWriteKind) -> Bool)?
+#endif
+    public static func orderWriteEnabled(_ kind: OrderWriteKind) -> Bool {
+#if DEBUG || TEST
+        orderWriteTestDerivation?(kind) == true
+#else
+        false
+#endif
+    }
+    /// China production admits cancel, confirm, and refund-apply only while the matching
+    /// TEST derivation is on. Release is always false, so those POSTs stay refused.
+    public static func admitsTestOrderWrite(_ path: String) -> Bool {
+        guard let kind = orderWriteKind(path) else { return false }
+        return orderWriteEnabled(kind)
+    }
+    public static func orderWriteKind(_ path: String) -> OrderWriteKind? {
+        let key = ChinaReviewedRouteCapability.normalized(path)
+        guard key.hasPrefix("/api/platform-pass/orders/") else { return nil }
+        if key.hasSuffix("/cancel") { return .cancel }
+        if key.hasSuffix("/confirm") { return .confirm }
+        if key.hasSuffix("/refund-apply") { return .refundApply }
+        return nil
+    }
+
     public static let overviewPath = "api/platform-pass"
     public static let libraryPath = "api/platform-pass/library"
     public static let productListPath = "api/marketing/product/list"
@@ -273,10 +303,41 @@ public struct PlatformPass: @unchecked Sendable {
         throw PlatformPassWriteRefusal.unreachable
     }
 
-    /// Refund apply. Compiled, never sends.
+    /// Refund apply. The synchronous entry stays unreachable. `moneyEnabled` stays false.
     public func refundApplyPassOrder(orderNo: String, reason: String, token: String) throws -> Never {
         _ = (orderNo, reason, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderRefundApplyPath(orderNo: orderNo))
         throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Sends cancel only when `orderWriteEnabled(.cancel)` is true. Otherwise throws and sends nothing.
+    public func sendCancelPassOrder(orderNo: String, token: String) async throws -> PlatformPassSubscriptionOrder {
+        try await sendOrderWrite(.cancel) {
+            try Self.passOrderCancelRequest(baseURL: configuration.baseURL, orderNo: orderNo, token: token)
+        }
+    }
+
+    /// Sends confirm only when `orderWriteEnabled(.confirm)` is true. Otherwise throws and sends nothing.
+    public func sendConfirmPassOrder(orderNo: String, token: String) async throws -> PlatformPassSubscriptionOrder {
+        try await sendOrderWrite(.confirm) {
+            try Self.passOrderConfirmRequest(baseURL: configuration.baseURL, orderNo: orderNo, token: token)
+        }
+    }
+
+    /// Sends refund-apply only when `orderWriteEnabled(.refundApply)` is true. Otherwise throws and sends nothing.
+    public func sendRefundApplyPassOrder(orderNo: String, reason: String, token: String) async throws -> PlatformPassSubscriptionOrder {
+        try await sendOrderWrite(.refundApply) {
+            try Self.passOrderRefundApplyRequest(baseURL: configuration.baseURL, orderNo: orderNo, reason: reason, token: token)
+        }
+    }
+
+    private func sendOrderWrite(_ kind: OrderWriteKind, request: () throws -> URLRequest) async throws -> PlatformPassSubscriptionOrder {
+        guard Self.orderWriteEnabled(kind) else { throw PlatformPassWriteRefusal.unreachable }
+        let built = try request()
+        try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(built)
+        let (data, status) = try await transport.send(built)
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        return try Self.decodeOrderEnvelope(data)
     }
 
     private static func passOrderJSON(baseURL: URL, path: String, orderNo: String, token: String, body: [String: String]) throws -> URLRequest {

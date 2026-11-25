@@ -15,8 +15,8 @@ public enum ChinaReviewedRouteMark: String, Equatable, Sendable {
     case missing
 }
 
-/// P2 play-runtime gates. Reviewed, and default off. They live outside `marks` and
-/// `wiredPatterns` so this package does not change `callSiteCount` (995) or
+/// P2 play-runtime gates. Story lock stays off. Visit-config follows the mini-program.
+/// They live outside `marks` and `wiredPatterns` so this package does not change `callSiteCount` (995) or
 /// `wiredPatternCount` (679). Other packages add their own rows later.
 public enum PlayRuntimePortRouteGate {
     /// Missing `storyLocked` counts as locked only after this is turned on.
@@ -31,10 +31,10 @@ public enum PlayRuntimePortRouteGate {
         #endif
         return storyLockMissingCountsAsLocked
     }
-    /// `GET /api/topic/free-explore/visit-config`. Reviewed (`live-in-production`), default off.
-    public static let freeExploreVisitConfigRead = false
-    /// `POST /api/topic/free-explore/visit-config`. Reviewed, write default off.
-    public static let freeExploreVisitConfigWrite = false
+    /// `GET /api/topic/free-explore/visit-config`. The mini-program reads this for 到访方式.
+    public static let freeExploreVisitConfigRead = true
+    /// `POST /api/topic/free-explore/visit-config`. Same JSON body the mini-program saves.
+    public static let freeExploreVisitConfigWrite = true
     public static let visitConfigPath = "/api/topic/free-explore/visit-config"
     public static let visitConfigMark = ChinaReviewedRouteMark.liveInProduction
 }
@@ -71,6 +71,7 @@ public enum ChinaReviewedRouteCapability {
         if TestHostOnlyRouteAdmission.admits(key) { return true }
         if let kind = moneyAreaOwnerGrant[key], ReleaseMoneyWriteSwitch.isEnabled(kind) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
+        if let claimPhone = seatClaimPhoneGrantKey(key), playerJourneyOwnerGrant.contains(claimPhone) { return true }
         // Owner approval of the non-money player writes: the CITY board (gaps A). Member game
         // points only; no CITY route moves money.
         if CityGameProductionLease.paths.contains(key) { return true }
@@ -104,6 +105,7 @@ public enum ChinaReviewedRouteCapability {
         }
         if wp06PartialPagesOwnerGrant.contains(key) { return true }
         if ownerDecisionGuardGrant.contains(key) { return true }
+        if feReferenceSettlementReadGrant.contains(key) { return true }
         if popupCloseOwnerGrant.contains(key) { return true }
         // Owner 2026-11-24: platform-pass order reads are on for players. Not a money write.
         if isPlatformPassOrderPath(key) { return true }
@@ -169,7 +171,7 @@ public enum ChinaReviewedRouteCapability {
     public static let moneyAreaOwnerGrant: [String: ReleaseMoneyWriteKind] = [
         // Owner 2026-11-14: receiver status and the merchant payout-account read are status reads, admitted
         // unconditionally through `ownerDecisionGuardGrant`; only the writes stay behind the payout switch.
-        "/api/club/settlement/mine": .payout,
+        // r8 CLB-settlement-05: `POST api/club/settlement/mine` body `{}` is a read, same grant, not a payout write.
         "/api/club/personal-receiver/bind": .payout, "/api/club/personal-receiver/unbind": .payout,
         "/api/club-direct-merchant/club": .payout, "/api/club-direct-merchant/merchant": .payout,
         "/api/registration/payment-readiness": .payment, "/api/registration/pay": .payment, "/api/registration/pay/app": .payment,
@@ -275,7 +277,8 @@ public enum ChinaReviewedRouteCapability {
         "/api/topic/state-keys/named",
         "/api/topic/invite-chapters",
         "/api/topic/chapter/supply-terms",
-        "/api/topic/host-qrcode"
+        "/api/topic/host-qrcode",
+        "/api/topic/free-explore/visit-config"
     ]
 
     /// `PUT /api/topic/state-keys/{stateKey}` names a key such as `clue.door`, not a numeric id.
@@ -394,8 +397,13 @@ public enum ChinaReviewedRouteCapability {
         "/api/referral/landing/gift",
         "/api/play/seat-invitations/invite",
         "/api/play/seat-invitations/claim",
+        "/api/play/seat-invitations/claim-phone",
+        "/api/play/seat-invitations/mine",
         "/api/play/seat-invitations/{}",
         "/api/play/seat-invitations/{}/cancel",
+        "/api/play/seat-invitations/transfer-phone",
+        "/api/play/seat-invitations/claim-phone/{}",
+        "/api/play/seat-invitations/mine",
         "/api/public-catalog/city/list",
         "/api/public-catalog/list",
         "/api/public-catalog/filters",
@@ -439,6 +447,7 @@ public enum ChinaReviewedRouteCapability {
         "/api/video-bounty/submission/{}/attribution",
         "/api/video-bounty/campaign/{}/attribution",
         "/api/channel/redeem",
+        "/api/channel/redeem/status",
         "/api/content-landing/info",
         "/api/content-landing/save",
         "/api/content-landing/translation/save"
@@ -590,7 +599,17 @@ public enum ChinaReviewedRouteCapability {
     public static let ownerDecisionGuardGrant: Set<String> = [
         "/api/club/personal-receiver/status",
         "/api/club/personal-receiver/unbind",
-        "/api/merchant/payout-account"
+        "/api/merchant/payout-account",
+        // r8 CLB-settlement-05: personal/mine list. Still POST {}. Not a payout, withdraw, or bind.
+        "/api/club/settlement/mine"
+    ]
+
+    /// r8 CLB-G17. Reference-settlement reads. Settle and dispute stay off this set.
+    public static let feReferenceSettlementReadGrant: Set<String> = [
+        "/api/fe/reference-settlement/payer",
+        "/api/fe/reference-settlement/merchant",
+        "/api/fe/reference-settlement/payer/export",
+        "/api/fe/reference-settlement/merchant/export"
     ]
 
     /// Owner correction 2026-11-13. Merchant-gap reads and the writes that stay behind
@@ -726,12 +745,16 @@ public enum ChinaReviewedRouteCapability {
     }
 
     /// POST (or any non-read) to the platform-pass order path. The GET stays a player read.
+    /// Cancel, confirm, and refund-apply stay refused unless a TEST derivation for that
+    /// kind is on. Pay and every other write stay refused. Release has no derivation.
     public static func isPlatformPassOrderWrite(_ request: URLRequest) -> Bool {
         guard let url = request.url else { return false }
         let key = normalized(relativePath(url).map { "/" + $0 } ?? url.path)
         guard isPlatformPassOrderPath(key) else { return false }
         let method = request.httpMethod?.uppercased() ?? "GET"
-        return method != "GET" && method != "HEAD"
+        if method == "GET" || method == "HEAD" { return false }
+        if PlatformPass.admitsTestOrderWrite(key) { return false }
+        return true
     }
 
     /// Password login, bank withdrawal, and virtual goods stay off even when the route is live.
@@ -774,6 +797,16 @@ public enum ChinaReviewedRouteCapability {
         guard let baseURL else { return false }
         if targetsChinaProduction(baseURL) { return admitsChinaProductionCall(path) }
         return true
+    }
+
+    /// Claim-phone tokens are not all digits, so `normalized` leaves them in place.
+    /// Fold any single token segment onto the granted `claim-phone/{}` pattern.
+    private static func seatClaimPhoneGrantKey(_ key: String) -> String? {
+        let prefix = "/api/play/seat-invitations/claim-phone/"
+        guard key.hasPrefix(prefix) else { return nil }
+        let token = String(key.dropFirst(prefix.count))
+        guard !token.isEmpty, !token.contains("/") else { return nil }
+        return prefix + "{}"
     }
 
     public static func literalKey(_ path: String) -> String {

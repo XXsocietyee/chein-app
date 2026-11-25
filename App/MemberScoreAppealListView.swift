@@ -79,7 +79,7 @@ func playerFactOrDash(_ raw: String?) -> String {
                     .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                 }
                 if flow.loaded && flow.rows.isEmpty {
-                    CYEmptyState(systemImage: "text.bubble", LocalizedStringKey("score.mine.empty." + filter.rawValue), tableName: "MemberScoreAppealList")
+                    CYEmptyState(systemImage: "tray", LocalizedStringKey("score.mine.empty." + filter.rawValue), tableName: "MemberScoreAppealList")
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
                 }

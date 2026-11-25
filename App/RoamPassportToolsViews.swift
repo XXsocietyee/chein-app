@@ -261,6 +261,8 @@ struct RoamAnniversaryReadIntent {
                                 _ = navigation.open(target, memory: item, currentRows: state.rows, owner: reader?.identity)
                             } label: { Text("roam.tools.anniversary.openRoute") }
                                 .disabled(state.isLoading)
+                                // MP aria-label 查看当前路线 {title}.
+                                .accessibilityLabel(Text("roam.tools.anniversary.openRoute.a11y \(anniversaryTitle(item.title))"))
                                 .accessibilityIdentifier("roam.tools.anniversary.openRoute")
                         }
                     case .invalidTopicID, .noDestination:
@@ -276,6 +278,7 @@ struct RoamAnniversaryReadIntent {
             }
             if unavailableError == nil, let page = state.page, page.hasMore, !state.isLoading, state.error == nil {
                 Button("roam.tools.loadMore") { enqueue(more) }
+                    .accessibilityLabel(Text("roam.tools.anniversary.more.a11y"))
                     .accessibilityIdentifier("roam.tools.anniversary.more")
             }
         }.cyGroupedSurface()
@@ -508,7 +511,7 @@ struct RoamAnniversaryReadIntent {
         let owner = RoamPassportToolsPageOwner(reader)
         let _ = RoamHostedScopeTracker.shared.observePassport(reader)
         RoamMonthlyRecapContent(reader: reader, routeDestination: routeDestination).id(owner)
-            .font(Theme.Font.body)
+            .cyText(.body)   // TRECAP-3 residue
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
@@ -716,6 +719,7 @@ struct RoamAnniversaryReadIntent {
                 }
                 if page.hasMore, !loading {
                     Button("roam.tools.recap.nextPage") { lifetime.run(reader) { await $0.nextPage() } }
+                        .accessibilityLabel(Text("roam.tools.recap.nextPage.a11y"))
                         .accessibilityIdentifier("roam.tools.recap.more")
                 }
             }

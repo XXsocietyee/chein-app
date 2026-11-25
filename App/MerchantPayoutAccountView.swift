@@ -47,7 +47,7 @@ import UIKit
         case .loading:
             Section { CYSkeleton(variant: .formSection) }.accessibilityIdentifier("payoutAccount.loading")
         case .empty:
-            Section { CYEmptyState(systemImage: "building.columns", "payoutAccount.none", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.none") }
+            Section { CYEmptyState(systemImage: "tray", "payoutAccount.none", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.none") }
         case .failed(let issue):
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -61,9 +61,9 @@ import UIKit
         case .ready(let account):
             switch account.pageState {
             case .unavailable:
-                Section { CYEmptyState(systemImage: "lock", "payoutAccount.unavailable", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.unavailable") }
+                Section { CYEmptyState(systemImage: "tray", "payoutAccount.unavailable", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.unavailable") }
             case .none:
-                Section { CYEmptyState(systemImage: "building.columns", "payoutAccount.none", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.none") }
+                Section { CYEmptyState(systemImage: "tray", "payoutAccount.none", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.none") }
             case .ready:
                 ready(account)
             }

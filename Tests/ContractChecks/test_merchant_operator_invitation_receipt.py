@@ -122,7 +122,9 @@ class OperatorInvitationReceiptContracts(unittest.TestCase):
             self.assertIn(text,self.app)
         self.assertIn('.id(invitation.id)',(ROOT/'App/MerchantBusinessViews.swift').read_text())
     def test_code_is_memory_only_without_route_clipboard_sharing_or_new_grants(self):
-        for text in ['UserDefaults','FileManager','URLSession','UIPasteboard','ShareLink','UIActivityViewController','openURL','https://','requestAccess','HMAC<','Keychain','JSONDecoder']:
+        # MP-first (owner 2026-11-25, MC8-29-6): the MP shares the invite, so one ShareLink is allowed; nothing persists it.
+        self.assertEqual(self.app.count('ShareLink('), 1)
+        for text in ['UserDefaults','FileManager','URLSession','UIPasteboard','UIActivityViewController','openURL','https://','requestAccess','HMAC<','Keychain','JSONDecoder']:
             self.assertNotIn(text,self.app+self.core)
         self.assertNotRegex(self.app+self.core,r'\bprint\s*\(')
         self.assertNotIn('.execute(',self.app);self.assertNotIn('.prepare(',self.app)

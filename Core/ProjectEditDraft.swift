@@ -60,7 +60,11 @@ public struct ProjectEditNode: Identifiable, Codable, Equatable {
     }
 }
 public struct ProjectEditBlock: Identifiable, Codable, Equatable {
-    public enum Kind: String, Codable, CaseIterable, Hashable { case text, node, image, audio, dream, mood, thought, voice, odd, reveal }
+    public enum Kind: String, Codable, CaseIterable, Hashable {
+        case text, node, image, audio, dream, mood, thought, voice, odd, reveal
+        /// Mini-program pro-editor story blocks: gallery, branch, dialogue `line`, and `divider`.
+        case gallery, branch, line, divider
+    }
     public var id = UUID().uuidString
     public var kind: Kind
     public var content = ""
@@ -309,5 +313,38 @@ public enum ProjectEditValidation {
             if draft.product == .city { need(!ticket.meetingPoint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "meeting\(ticket.id)", "meeting") }
         }
         return issues
+    }
+}
+
+/// MP `fabu/index.js` `_ticketMissing`: date keys, ticket keys, and the three identity cells.
+public struct ProjectEditTicketGap: Equatable, Sendable {
+    public var dates: Int
+    public var tickets: Int
+    public var identity: Int
+    public var total: Int { dates + tickets + identity }
+    public var summary: String? { total > 0 ? "* 还有 \(total) 项未填" : nil }
+    public static func count(errorKeys: [String], identityRequired: Bool, identityRegistered: Bool, realName: String, idCard: String, consented: Bool) -> Self {
+        let dates = errorKeys.filter { $0 == "startDate" || $0 == "endDate" || $0 == "recruitDeadline" }.count
+        let tickets = errorKeys.filter { $0.hasPrefix("ticket") }.count
+        let identity = identityRequired && !identityRegistered
+            ? [realName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, idCard.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !consented].filter { $0 }.count
+            : 0
+        return .init(dates: dates, tickets: tickets, identity: identity)
+    }
+}
+
+/// MP `requestModeSwitch`: a local copy that changes product type. Merchant scope does not switch. Nothing is posted.
+public enum ProjectEditModeCopy {
+    public static let confirmTitle = "复制为新草稿？"
+    public static let confirmBody = "当前草稿会保留不变；将复制一份并切换主题模式。"
+    public static let confirmAction = "复制并切换"
+    public static func copied(_ draft: ProjectEditDraft, product: ProjectEditProduct) -> ProjectEditDraft? {
+        guard draft.owner != .merchant, draft.product != product else { return nil }
+        var copy = draft
+        copy.product = product
+        for index in copy.tickets.indices {
+            copy.tickets[index].localMetadata["mode"] = .number(Decimal(product.rawValue))
+        }
+        return copy
     }
 }

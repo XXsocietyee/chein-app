@@ -210,6 +210,48 @@ public enum ClubOpsEventTopicNames {
         }
         return result
     }
+
+    public static let onlinePaymentNotice = "这个主题暂不能在线收款，玩家无法在线报名付费场次"
+
+    /// Event-topic facts the series form reads: ticket count and the offline-payment notice.
+    public static func facts(_ snapshot: ClubGovernanceSnapshot?, clubID: Int?) -> [ClubOpsEventTopicFact] {
+        guard let snapshot, snapshot.operation == .eventTopics, let clubID, clubID > 0,
+              snapshot.scope.clubID == clubID, let rows = snapshot.value.array else { return [] }
+        var result: [ClubOpsEventTopicFact] = []
+        var seen = Set<Int>()
+        for row in rows {
+            guard let id = row["id"].int, id > 0, seen.insert(id).inserted else { continue }
+            let name = row["name"].string?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let count = sessionTicketCount(row)
+            let price = row.object?["sessionPrice"] == nil ? nil : row["sessionPrice"].number
+            let blocked = row["onlinePaymentAvailable"] == .bool(false)
+            let notice = blocked && (price ?? 0) > 0 ? onlinePaymentNotice : ""
+            result.append(.init(id: id, name: name?.isEmpty == false ? name : nil, sessionTicketCount: count, paymentNotice: notice))
+        }
+        return result
+    }
+
+    /// Series-create `windowWarning`, kept only while the selected topic is still the submitted one.
+    public static func windowWarning(receipt: ClubGovernanceValue, submittedTopicID: Int, selectedTopicID: Int) -> String {
+        guard selectedTopicID == submittedTopicID, let warning = receipt["windowWarning"].string else { return "" }
+        return warning
+    }
+
+    private static func sessionTicketCount(_ row: ClubGovernanceValue) -> Int {
+        guard let raw = row.object?["sessionTicketCount"] else { return 1 }
+        if raw == .null { return 0 }
+        if let whole = raw.int { return whole }
+        if let number = raw.number, number.isFinite, number == number.rounded(), let whole = Int(exactly: number) { return whole }
+        return 1
+    }
+}
+
+public struct ClubOpsEventTopicFact: Equatable, Identifiable {
+    public let id: Int
+    public let name: String?
+    public let sessionTicketCount: Int
+    public let paymentNotice: String
+    public var showsCapacity: Bool { ClubEventOpsFormRules.showsCapacity(sessionTicketCount: sessionTicketCount) }
 }
 
 /// Mini handleSeriesConflict (系列已被更新，正在刷新): only a definite 409 on updateSeries re-reads the series.

@@ -187,4 +187,50 @@ final class G2OpsGapTests: XCTestCase {
         let phone = try await remClient.bindPhone(code: "wx-code", token: validToken)
         XCTAssertEqual(phone, "138****0000")
     }
+
+    func testReferenceSettlementReadsSendTheRangeAndMoneyWritesSendNothing() async throws {
+        for path in ChinaReviewedRouteCapability.feReferenceSettlementReadGrant {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
+        }
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/fe/reference-settlement/settle"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/fe/reference-settlement/dispute"))
+        XCTAssertFalse(FEReferenceSettlementMoneyWrite.enabled)
+        let transport = StubTransport { _ in (Data(#"{"code":200,"data":[]}"#.utf8), 200) }
+        let client = ClubFEReferenceSettlementClient(configuration: baseConfig, transport: transport)
+        _ = try await client.list(role: .payer, from: "2026-11-01", to: "2026-11-24", token: validToken)
+        let listed = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(listed.httpMethod, "GET")
+        XCTAssertTrue(listed.url?.path.hasSuffix("api/fe/reference-settlement/payer") == true)
+        XCTAssertTrue(listed.url?.query?.contains("from=2026-11-01") == true)
+        XCTAssertTrue(listed.url?.query?.contains("to=2026-11-24") == true)
+        let settled = try await client.markSettled(ids: [42], token: validToken, allowsMoneyWrite: true)
+        let disputed = try await client.dispute(id: 7, note: "没收到", token: validToken, allowsMoneyWrite: true)
+        XCTAssertFalse(settled)
+        XCTAssertFalse(disputed)
+        XCTAssertEqual(transport.requests.count, 1)
+    }
+
+    func testClubScanSendsTheMiniProgramBodyAndDropsInvalidCodes() async throws {
+        XCTAssertEqual(ClubScanRoute.resolve("v1.x.group_1").readyPath, "api/verify/groupcode/redeem")
+        XCTAssertEqual(ClubScanRoute.resolve("v1.x.activity").readyPath, "api/registration/scan_dynamic_code")
+        XCTAssertEqual(ClubScanRoute.resolve("cq1.a.b.c").readyPath, "api/coupon/verification")
+        XCTAssertEqual(ClubScanRoute.resolve(#"{"type":"topic","code":"T1"}"#).readyBody?["type"], "topic")
+        if case .invalid(let message, let path, _) = ClubScanRoute.resolve("v1.x.citynode_1") {
+            XCTAssertEqual(path, "/pages/merchant/citynode/index")
+            XCTAssertFalse(message.isEmpty)
+        } else { XCTFail("city node scan must not post") }
+        let transport = StubTransport { _ in (Data(#"{"code":200}"#.utf8), 200) }
+        let client = ClubScanClient(configuration: baseConfig, transport: transport)
+        XCTAssertFalse(try await client.submit("not-a-code", token: validToken, canGovern: true, canManageActivities: false))
+        XCTAssertTrue(transport.requests.isEmpty)
+        XCTAssertFalse(try await client.submit("v1.x.group_1", token: validToken, canGovern: false, canManageActivities: false))
+        XCTAssertTrue(transport.requests.isEmpty)
+        XCTAssertTrue(try await client.submit("v1.x.group_1", token: validToken, canGovern: true, canManageActivities: false))
+        let sent = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(sent.httpMethod, "POST")
+        XCTAssertTrue(sent.url?.path.hasSuffix("api/verify/groupcode/redeem") == true)
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(sent.httpBody)) as? [String: Any])
+        XCTAssertEqual(body["code"] as? String, "v1.x.group_1")
+        XCTAssertEqual(body.count, 1)
+    }
 }

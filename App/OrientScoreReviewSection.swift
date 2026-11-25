@@ -95,7 +95,7 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
                 .accessibilityIdentifier("orientScore.review.missing")
                 if canDispute {
                     Button { sheet = OrientScoreReviewSheetTarget(kind: .dispute, entryID: nil) } label: {
-                        Text("orientScore.review.dispute").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        Text("orientScore.review.disputeEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.cySecondary(fullWidth: true))
                     .disabled(busy)

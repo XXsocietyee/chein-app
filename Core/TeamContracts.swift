@@ -52,17 +52,20 @@ public struct TeamMember: Decodable, Equatable, Identifiable {
     /// False on invitation previews: the source strips member ids for non-members (j4 F10).
     /// Such rows carry a negative local index as `id` and can never be a write target.
     public let identified: Bool
+    /// MP `m.avatar`. Nil when the server omits it. An empty string stays empty.
+    public let memberAvatar: String?
     public var isCaptain: Bool { role == 1 }
-    enum CodingKeys: String, CodingKey { case memberId, memberName, role }
+    enum CodingKeys: String, CodingKey { case memberId, memberName, role, avatar }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let id = try c.teamInt(.memberId)
         guard id == nil || id! > 0 else { throw TeamFailure.invalidContract }
         self.id = id ?? 0; identified = id != nil
         name = try c.decodeIfPresent(String.self, forKey: .memberName) ?? ""; role = try c.teamInt(.role)
+        memberAvatar = try c.decodeIfPresent(String.self, forKey: .avatar)
     }
     fileprivate init(preview: TeamMember, index: Int) {
-        id = -(index + 1); name = preview.name; role = preview.role; identified = false
+        id = -(index + 1); name = preview.name; role = preview.role; identified = false; memberAvatar = preview.memberAvatar
     }
 }
 public struct TeamDetail: Decodable, Equatable {

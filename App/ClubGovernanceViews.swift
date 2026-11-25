@@ -209,6 +209,9 @@ struct ClubGovernanceReadView: View {
     @State private var customerTopic: ClubCustomerHistoryTopicRoute?
     @State private var leaderboardMember: ClubLeaderboardMemberRoute?
     @State private var feedClub: ClubFeedClubRoute?
+    /// CLB-topic-detail-07 (MP CU-C-79, wxml:684-700): 去选一场 opens a 选择场次 sheet; the picked session opens its event ops.
+    @State private var sessionPickerVisible = false
+    @State private var pickedSession: ClubGovernanceScope?
     /// CLB-topic-detail-04: /api/club/crm/topic-manage-stats read beside the topic overview (MP loadManageStats).
     @State private var topicStats: ClubGovernanceValue?
     @State private var feedMediaScope = UUID()
@@ -653,6 +656,12 @@ struct ClubGovernanceReadView: View {
                 if let message = failure.message {
                     Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("club.story.answer.reason")
                 }
+            } else if case .checkin = operation, let failure, failure != .signedOut {
+                // Round 4 (CLB-checkin-detail-03): a failed read clears the snapshot, so the MP full-page states
+                // (核销记录不可见 / the server sentence + 返回 / 核销凭证加载失败 + 重新加载) are drawn here, not the generic block.
+                ClubCheckinRailView(rail: .init(railStep: .null, statusCode: .null),
+                                    stateKind: ClubCheckinRail.stateKind(for: failure) ?? .error,
+                                    onReload: loading ? nil : { Task { await load() } }, reason: failure.message)
             } else if let failure, let copy = ClubOpsFailureCopy(operation: operation, failure: failure) {
                 ClubOpsFailureSection(copy: copy, reason: failureReason(failure)) { Task { await load() } }
             } else if let failure, let copy = ClubOpsPageFailureCopy(operation: operation, failure: failure) {
@@ -731,8 +740,13 @@ struct ClubGovernanceReadView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .safeAreaInset(edge: .bottom) { topicPrimaryFooter }
+        .sheet(isPresented: $sessionPickerVisible) { topicSessionPicker }
+        .navigationDestination(item: $pickedSession) { target in
+            ClubOpsEventView(scope: target, identity: identity, access: access, coordinator: coordinator)
+        }
         .cyGroupedSurface()
-        .cyPageTitle(String.LocalizationValue(stringLiteral: "club.gov." + operation.rawValue))
+        // Round 4 copy: MP customer-detail bar title is 客户 (wxml:8); the member action sheet keeps 客户详情.
+        .cyPageTitle(String.LocalizationValue(stringLiteral: operation == .customer ? "clubR3b.customer.title" : "club.gov." + operation.rawValue))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
         // CLB-r7-D-02 (fix-r3-club-b): MP customers onShow re-reads the list, so a tag/remark saved on the
         // customer page shows when the owner comes back.
@@ -1302,7 +1316,8 @@ struct ClubGovernanceReadView: View {
         let source = roleManagementSource
         let settingsSource = topicSettingsSource
         let bansSource = banRemovalSource
-        return Button(LocalizedStringKey("club.gov.action." + operation.rawValue)) {
+        // Round 4 copy: MP customer-detail button reads 编辑 (wxml:96); 编辑标签与备注 stays its VoiceOver label and the editor title.
+        return Button(LocalizedStringKey(operation == .saveCustomer ? "clubR3b.customer.edit" : "club.gov.action." + operation.rawValue)) {
             if operation == .updateSeries, self.operation == .seriesDetail {
                 seriesUpdateReturn.open(seriesUpdateSource, visible: seriesHostVisible, active: scenePhase == .active)
             } else if operation == .createSeries, self.operation == .eventTopics {
@@ -1656,7 +1671,7 @@ struct ClubGovernanceReadView: View {
             if let detail = customerPage.detail ?? (try? ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID)) {
                 ClubOpsCustomerDetailContent(detail: detail, page: customerPage, topicAction: { record in
                     customerTopicRoute(record.source).map { target in (id: target.topicID, open: { selectCustomerTopic(target) }) }
-                }, editButton: detail.canEdit ? AnyView(edit(.saveCustomer, seed: ["remark": value["remark"], "tags": value["tags"]])) : nil)
+                }, editButton: detail.canEdit ? AnyView(edit(.saveCustomer, seed: ["remark": value["remark"], "tags": value["tags"]]).accessibilityLabel(Text("club.gov.action.saveCustomer"))) : nil)
             } else if !customerPage.hidden, let metrics = customerPage.metrics {
                 Section {
                     ClubOpsCustomerMetricTile(value: metrics.arrived, label: "clubOps.customer.arrived")
@@ -1783,6 +1798,46 @@ struct ClubGovernanceReadView: View {
             }
         }
     }
+    /// CLB-topic-detail-07 (MP topic-detail wxml:684-700): 选择场次, one row per session (when over who); a pick closes
+    /// the sheet and opens that session's event ops (MP event-ops?activityId=).
+    @ViewBuilder private var topicSessionPicker: some View {
+        let sessions = (snapshot?.value["activityList"].array ?? []).filter { $0["id"].int != nil }
+        NavigationStack {
+            List(Array(sessions.enumerated()), id: \.offset) { _, row in
+                if let id = row["id"].int {
+                    let when = ClubGroupCodePort.formatStart(date: row["startDate"].string, time: row["startTime"].string)
+                    let who = row["name"].string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    Button {
+                        sessionPickerVisible = false
+                        pickedSession = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
+                    } label: {
+                        HStack(spacing: CYSpacing.sm) {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                if !when.isEmpty { Text(verbatim: when).cyText(.bodyMedium).monospacedDigit() }
+                                if !who.isEmpty { Text(verbatim: who).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                                if when.isEmpty && who.isEmpty { Text("club.gov.eventID \(id)") }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                        }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("club.topic.sessionPicker.a11y \(when.isEmpty ? who : when)"))
+                    .accessibilityIdentifier("club.topic.sessionPicker.\(id)")
+                }
+            }
+            .navigationTitle(Text("club.topic.sessionPicker.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.close") { sessionPickerVisible = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
     private func topicPrimaryPlan(state: ClubTopicDetailPort.State, stats: ClubGovernanceValue, sessions: [ClubGovernanceValue]) -> ClubTopicDetailPort.Primary {
         let single = sessions.count == 1 ? sessions[0]["id"].int : nil
         return ClubTopicDetailPort.primary(state: state, directorActive: false, canDirect: stats["canDirect"] == .bool(true),
@@ -1800,6 +1855,10 @@ struct ClubGovernanceReadView: View {
             switch plan {
             case .none:
                 EmptyView()
+            case .chooseSession where sessions.compactMap({ $0["id"].int }).count > 1:
+                // CLB-topic-detail-07: several sessions → pick one first (MP sessionPick sheet), then its event ops.
+                Button { sessionPickerVisible = true } label: { Text("club.topic.primary.chooseSession") }
+                    .buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
             case .chooseSession, .openSession:
                 NavigationLink { ClubOpsEventView(scope: opsScope, identity: identity, access: access, coordinator: coordinator) } label: {
                     Text(plan == .chooseSession ? "club.topic.primary.chooseSession" : "club.topic.primary.openSession")
@@ -1853,6 +1912,8 @@ struct ClubGovernanceReadView: View {
                         }
                     }.accessibilityIdentifier("club.gov.customer.topic.\(target.topicID)")
                 } else if let target = leaderboardMemberRoute(row) {
+                    // Round 4 image parity (MP detail wxml:323 `item.avatar || d_profile.png`): the member's avatar.
+                    ClubMPAvatar(url: QuestifyCardArtwork.safeURL(row["avatar"].string), name: row["nickname"].string ?? "", size: .sm)
                     ClubGovernanceFactRows(value: row, fields: ClubGovernanceFactRows.summaryFields, showUnknown: true)
                     Button { selectLeaderboardMember(target) } label: {
                         Label("social.profile", systemImage: "person.crop.circle")

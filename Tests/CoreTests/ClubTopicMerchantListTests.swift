@@ -33,10 +33,16 @@ final class ClubTopicMerchantListTests: XCTestCase {
         XCTAssertEqual(row.merchantName, "商家"); XCTAssertEqual(row.initial, "商"); XCTAssertNil(row.stationName)
         XCTAssertNil(try project([node(2, fields: ["merchantName": .null])]).rows.first?.initial)
     }
-    func testRawContactAndMaskedContactDoNotEnterPresentation() throws {
-        let value = try project([node(1, fields: ["phone": .string("PRIVATE_PHONE"), "phoneText": .string("MASKED_PHONE"), "mobile": .string("PRIVATE_MOBILE"), "contact": .object(["phone": .string("NESTED_PHONE")])])])
+    func testConfirmedMerchantPhoneIsCopyableAndOtherContactFieldsStayOut() throws {
+        let value = try project([node(1, fields: ["phone": .string("13800138000"), "phoneText": .string("MASKED_PHONE"), "mobile": .string("PRIVATE_MOBILE"), "contact": .object(["phone": .string("NESTED_PHONE")])])])
+        let row = try XCTUnwrap(value.rows.first)
+        XCTAssertEqual(row.phone, "13800138000")
+        XCTAssertEqual(row.contactText, "138****8000")
         let text = String(reflecting: value)
-        for marker in ["PRIVATE_PHONE", "MASKED_PHONE", "PRIVATE_MOBILE", "NESTED_PHONE"] { XCTAssertFalse(text.contains(marker)) }
+        for marker in ["MASKED_PHONE", "PRIVATE_MOBILE", "NESTED_PHONE"] { XCTAssertFalse(text.contains(marker)) }
+        let missing = try XCTUnwrap(project([node(2)]).rows.first)
+        XCTAssertNil(missing.phone)
+        XCTAssertEqual(missing.contactText, "未确认，暂无联系方式")
     }
     func testMissingOrMalformedNodesCannotBecomeEmptySuccess() throws {
         for nodes: ClubGovernanceValue in [.null, .string("bad"), .array([.null])] {

@@ -55,6 +55,31 @@ public enum NearbyTeamBridge {
     }
     public static func activeCount(_ rows: [NearbyTeamOwnedRow]) -> Int { rows.filter { row in if case .application(let application) = row { return application.status == .pending }; return true }.count }
 }
+
+/// j4 F4: pending join count for a recruiting team the viewer leads.
+/// The read is the existing `POST /api/team/applications` JSON `{teamId}`. There is no GET.
+/// A failed or non-array read is unread (申请数没读到). Zero draws no suffix.
+public enum NearbyLeaderApplicantFact: Equatable, Sendable {
+    case count(Int)
+    case unread
+
+    public static func asks(team: OwnedTeam, viewerAccountID: Int?) -> Bool {
+        team.status == .recruiting && viewerAccountID != nil && (viewerAccountID ?? 0) > 0 && team.leaderMemberID == viewerAccountID
+    }
+
+    public static func interpret(_ rows: [NearbyApplicant]?) -> Self {
+        guard let rows else { return .unread }
+        return .count(rows.count)
+    }
+
+    public var suffix: String {
+        switch self {
+        case .count(let n) where n > 0: return " · \(n) 条入队申请"
+        case .count: return ""
+        case .unread: return " · 申请数没读到"
+        }
+    }
+}
 public struct NearbyMyTeamGroup: Equatable, Identifiable {
     public enum Kind: String, CaseIterable { case leading, approved, pending, rejected
         public var titleKey: String { "nearby.mine.group.\(rawValue)" }

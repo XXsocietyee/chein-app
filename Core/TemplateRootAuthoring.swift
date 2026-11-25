@@ -86,6 +86,18 @@ extension TemplateAdvancedDraft {
         }
         set("roleViews", "enabled", .bool(enabled))
     }
+    /// MP 「状态不好时松一点」: `when sys.hp LTE 3` and one relax path such as `+2`.
+    public mutating func setLowHPRelax(path: String, delta: String) {
+        let when = TemplateAuthorCondition().normalized
+        let row: TemplateAuthoringJSON = .object(["when": .object(when), "relax": .object([path: .string(delta)])])
+        var variants = rootVariants.filter { item in
+            let condition = item.object?["when"]?.object
+            return !(condition?["var"]?.string == "sys.hp" && condition?["op"]?.string == "LTE" && condition?["value"]?.integer == 3)
+        }
+        guard variants.count < 16 else { return }
+        variants.append(row)
+        value["variants"] = .array(variants)
+    }
     public mutating func appendRootVariant() {
         var variants = rootVariants; guard variants.count < 16 else { return }
         variants.append(.object(["when": .object(TemplateAuthorCondition().value), "relax": .object([:])]))

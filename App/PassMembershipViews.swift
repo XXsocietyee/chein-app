@@ -634,7 +634,10 @@ struct PassKeyFrames: View {
     let accountKey: String?
     var isMerchant = false
     @Environment(\.mpParity) private var bindings
+    @Environment(\.dismiss) private var dismiss
     @AppStorage("pass_reveal_seen_v1") private var seenAccount = ""
+    /// B-PR-03: set once 开始 / 跳过 has left for membership or the library (MP `wx.redirectTo`).
+    @State private var redirected = false
     @QuestifyReduceMotion private var reduceMotion
     @State private var step = 0
     @State private var full = false
@@ -644,14 +647,16 @@ struct PassKeyFrames: View {
     @State private var introStart: Date?
     @State private var idleStart = Date()
 
-    /// 1 shards in, 2 key fused, 4 gradient, 5 eyebrow, 6 title, 7 line, 8 button. "Skip" shows at 600 ms.
-    private static let schedule: [(step: Int, ms: UInt64)] = [(1, 60), (2, 900), (4, 1500), (5, 1800), (6, 1950), (7, 2150), (8, 2450)]
+    /// Round 4: the MP DOM timeline (reveal/index.js `TL`): 4 gradient 3000, 5 eyebrow 3400, 6 title 3550,
+    /// 7 line 3750, 8 button 4050 ms. "Skip" shows at 600 ms and goes away when the intro frames end (MP `idleOn`).
+    private static let schedule: [(step: Int, ms: UInt64)] = [(4, 3000), (5, 3400), (6, 3550), (7, 3750), (8, 4050)]
     private static let skipAt: UInt64 = 600
 
     var body: some View {
         Group {
             if isMerchant {
-                CYEmptyState(systemImage: "key", "mp.member.merchant", messageIdentifier: "passReveal.merchant").frame(maxHeight: .infinity)
+                // Round 4 image parity: MP `cy-empty kind="empty"` draws the two-layer empty art (empty_state_bg + figure).
+                CYEmptyState(systemImage: "tray", "mp.member.merchant", messageIdentifier: "passReveal.merchant").frame(maxHeight: .infinity)
             } else {
                 stage
             }
@@ -659,15 +664,22 @@ struct PassKeyFrames: View {
         .background(CYNight.ink0.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if full && skipVisible && step < 8 {
+            if full && skipVisible {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("mp.reveal.skip") { finish() }.accessibilityIdentifier("passReveal.skip")
+                    // Round 4 flow (reveal/index.js `onSkip` → `_go`): 跳过 leaves the reveal for the same page as the
+                    // CTA (membership, or the library after a paid order). With no destination bound it ends the intro.
+                    Button("mp.reveal.skip") { skip() }.accessibilityIdentifier("passReveal.skip")
                 }
             }
         }
         // B-PR-06-r7: the MP stage runs behind a transparent nav bar.
         .toolbarBackground(.hidden, for: .navigationBar)
         .mpParityRouteDestination($route)
+        // B-PR-03 (MP `_go` uses redirectTo): the reveal is an interstitial, so coming back from the page it opened
+        // closes it too and lands on the page underneath, instead of replaying the reveal.
+        .onChange(of: route) { _, next in
+            if redirected && next == nil { dismiss() }
+        }
         .onAppear(perform: start)
         .onDisappear { timeline?.cancel() }
     }
@@ -752,7 +764,10 @@ struct PassKeyFrames: View {
         timeline = Task { @MainActor in
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: Self.skipAt * 1_000_000)
-                if !Task.isCancelled { skipVisible = true }
+                if Task.isCancelled || introStart == nil { return }
+                skipVisible = true
+                try? await Task.sleep(nanoseconds: UInt64(PassKeyFrames.introDuration * 1000 - Double(Self.skipAt)) * 1_000_000)
+                if !Task.isCancelled { skipVisible = false }
             }
             var elapsed: UInt64 = 0
             for item in Self.schedule {
@@ -764,17 +779,23 @@ struct PassKeyFrames: View {
         }
     }
 
+    private func skip() {
+        let bound = paid == nil ? bindings.membership != nil : bindings.passLibrary != nil
+        if bound { go() } else { finish() }
+    }
+
     private func finish() {
         timeline?.cancel()
+        skipVisible = false
         if introStart != nil { introStart = nil; idleStart = Date() }
         withAnimation(CYMotion.resolve(.easeOut(duration: 0.3), reduceMotion: reduceMotion)) { step = 8 }
     }
 
     private func go() {
         if paid != nil {
-            if bindings.passLibrary != nil { route = .library(kind: .all) }
+            if bindings.passLibrary != nil { redirected = true; route = .library(kind: .all) }
         } else if bindings.membership != nil {
-            route = .membership
+            redirected = true; route = .membership
         }
     }
 }

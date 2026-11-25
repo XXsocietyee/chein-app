@@ -50,14 +50,27 @@ public struct MerchantBusinessProductionApproval {
     public let endpoints: OperationEndpointApproval
     public let grants: Set<MerchantBusinessActionGrant>
     public let reviewedPolicyVersion: String
+    /// True only for the injected China approval that delegates to `MerchantCoopLiveWrites.admits`.
+    /// Not a second action list. Explicit grants stay narrow.
+    public let usesLiveCatalog: Bool
     public init(market: RegionalMarket, endpoints: OperationEndpointApproval, grants: Set<MerchantBusinessActionGrant>, reviewedPolicyVersion: String) throws {
         guard !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.invalidConfiguration }
         self.market = market; self.endpoints = endpoints; self.grants = grants; self.reviewedPolicyVersion = reviewedPolicyVersion
+        self.usesLiveCatalog = false
+    }
+    /// Injected China approval. Membership is `MerchantCoopLiveWrites.admits` (review report and `saveSku` stay off).
+    public init(mpFirstMarket market: RegionalMarket, endpoints: OperationEndpointApproval) throws {
+        self.market = market; self.endpoints = endpoints; self.grants = []
+        self.reviewedPolicyVersion = MerchantCoopLiveWrites.policyVersion; self.usesLiveCatalog = true
     }
     public func permits(_ mutation: MerchantBusinessMutation, merchantID: Int, context: RuntimeDependencyContext) -> Bool {
         guard market == .china, context.market == market, endpoints.baseURL == context.baseURL,
               endpoints.accountID == context.session.accountID, endpoints.namespace == context.session.namespace,
-              let descriptor = try? mutation.request(requestID: "grant-validation"), endpoints.paths.contains(descriptor.path) else { return false }
+              let descriptor = try? mutation.request(requestID: "grant-validation") else { return false }
+        if usesLiveCatalog, merchantID > 0, MerchantCoopLiveWrites.admits(mutation) {
+            return descriptor.path.hasPrefix("api/merchant/") && !descriptor.path.contains("..")
+        }
+        guard endpoints.paths.contains(descriptor.path) else { return false }
         return grants.contains { $0.merchantID == merchantID && $0.action == mutation.action && $0.target == mutation.productionTarget }
     }
 }
@@ -116,6 +129,58 @@ public struct MerchantBusinessProductionApproval {
     }
 
 }
+/// Non-money merchant cooperation writes the mini-program already sends.
+/// Pay, refund execution, payout, withdrawal, paid orders, review reports, and `saveSku` stay off.
+public enum MerchantCoopLiveWrites {
+    public static let policyVersion = "r8-merchant-coop"
+    /// City-node claim, cancel, offline, and save. Poster codes and station commands stay off.
+    public static let cityNode = true
+    public static let operationsPaths: Set<String> = [
+        "api/merchant/business-status/update",
+        "api/merchant/decor/save",
+        "api/merchant/npc/save",
+        "api/merchant/coop-profile/save",
+    ]
+
+    public static func admits(_ mutation: MerchantBusinessMutation) -> Bool {
+        switch mutation.action {
+        case .saveSku, .reviewReport: return false
+        case .addNote, .hideNote, .assignTag, .removeTag, .batchTag,
+             .aftercareAgree, .aftercareReject, .aftercareEvidence,
+             .reviewReply, .reviewUpdate, .reviewDelete,
+             .inviteOperator, .operatorRole, .removeOperator, .revokeInvite:
+            return true
+        }
+    }
+
+    /// Used only when composition injected no business approval. An explicit grant is never widened.
+    public static func businessApproval(mutation: MerchantBusinessMutation, merchantID: Int, context: RuntimeDependencyContext?) -> MerchantBusinessProductionApproval? {
+        guard let context, context.market == .china, admits(mutation), merchantID > 0,
+              let descriptor = try? mutation.request(requestID: "grant-validation"),
+              let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID, paths: [descriptor.path]),
+              let grant = try? MerchantBusinessActionGrant(merchantID: merchantID, mutation: mutation) else { return nil }
+        return try? MerchantBusinessProductionApproval(market: .china, endpoints: endpoints, grants: [grant], reviewedPolicyVersion: policyVersion)
+    }
+
+    /// Invite accept only. Campaigns, exports, broadcasts, and device privacy grants stay off.
+    public static func admitsAccept(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool {
+        guard merchantID > 0, case .acceptInvitation = command else { return false }
+        return true
+    }
+
+    public static func engagementApproval(command: MerchantEngagementCommand, merchantID: Int, context: RuntimeDependencyContext?) -> MerchantEngagementProductionApproval? {
+        guard let context, context.market == .china, merchantID > 0, case .acceptInvitation = command,
+              let descriptor = try? command.request(requestID: "grant-validation"),
+              let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID, paths: [descriptor.path]),
+              let grant = try? MerchantEngagementActionGrant(merchantID: merchantID, command: command) else { return nil }
+        return try? MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [grant], reviewedPolicyVersion: policyVersion)
+    }
+
+    public static func supplementsOperations(_ path: String, approval: OperationEndpointApproval, configuration: APIConfiguration, namespace: String, accountID: Int) -> Bool {
+        operationsPaths.contains(path) && approval.baseURL == configuration.baseURL && approval.namespace == namespace && approval.accountID == accountID
+    }
+}
+
 @MainActor public struct MerchantBusinessProductionFactory {
     private let api: APIConfiguration
     private let approval: MerchantBusinessProductionApproval?
@@ -131,8 +196,9 @@ public struct MerchantBusinessProductionApproval {
         var copy = self; copy.beforeForward = barrier; return copy
     }
     public func service(for mutation: MerchantBusinessMutation, merchantID: Int) -> MerchantBusinessService? {
-        guard let approval, let captured = current(), api.baseURL == captured.baseURL, approval.permits(mutation, merchantID: merchantID, context: captured) else { return nil }
-        let scoped = MerchantBusinessProductionTransport(configuration: api, approval: approval, captured: captured, mutation: mutation, merchantID: merchantID, transport: transport, current: current, beforeForward: beforeForward)
+        let issued = approval ?? MerchantCoopLiveWrites.businessApproval(mutation: mutation, merchantID: merchantID, context: current())
+        guard let issued, let captured = current(), api.baseURL == captured.baseURL, issued.permits(mutation, merchantID: merchantID, context: captured) else { return nil }
+        let scoped = MerchantBusinessProductionTransport(configuration: api, approval: issued, captured: captured, mutation: mutation, merchantID: merchantID, transport: transport, current: current, beforeForward: beforeForward)
         return MerchantBusinessService(productionConfiguration: api, productionTransport: scoped)
     }
 }

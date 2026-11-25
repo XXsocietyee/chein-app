@@ -66,10 +66,12 @@ private let publishingPlayer = #"{"code":200,"data":{"role":"player"}}"#
         XCTAssertEqual(body["tickets"]?.array?.first?.object?["totalStock"], .number(2))
     }
     func testActivityMissingPriceIsNotFree() { var d = draft(); d.tickets[0].price = ""; XCTAssertThrowsError(try d.wire()); d.tickets[0].price = "0"; XCTAssertNoThrow(try d.wire()) }
-    func testActivityDateAndTicketWindowValidation() {
+    func testActivityDateAndTicketWindowValidation() throws {
         var d = draft(); d.end = d.start; XCTAssertThrowsError(try d.wire())
-        d = draft(); d.tickets[0].start = "2030-05-01 09:59:59"; XCTAssertThrowsError(try d.wire())
-        d = draft(); d.tickets[0].end = "2030-05-01 12:00:01"; XCTAssertThrowsError(try d.wire())
+        d = draft(); d.tickets[0].start = "2030-05-01 09:59:59"; d.tickets[0].end = "2030-05-01 12:00:01"
+        let body = try d.wire()
+        XCTAssertEqual(body["tickets"]?.array?.first?.object?["startTime"], .string("2030-05-01 10:00:00"))
+        XCTAssertEqual(body["tickets"]?.array?.first?.object?["endTime"], .string("2030-05-01 12:00:00"))
         d = draft(); d.tickets[0].stock = "0"; XCTAssertThrowsError(try d.wire())
         d = draft(); d.start = "2030-02-30 10:00:00"; XCTAssertThrowsError(try d.wire())
     }

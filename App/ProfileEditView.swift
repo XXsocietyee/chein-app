@@ -109,12 +109,17 @@ final class ProfileEditModel: ObservableObject {
                               [rhs.nickname, rhs.introduction, rhs.avatar, rhs.wechat, rhs.casePics, rhs.tagIds])
             .allSatisfy { $0.0.utf8.elementsEqual($0.1.utf8) }
     }
+    /// Row text is the committed profile. An unchanged draft shows the loaded shown name
+    /// (non-blank name, otherwise nickname). A local sheet confirm replaces that row.
     var displayedName: String {
+        let loaded = coordinator.snapshot?.nickname ?? ""
+        if !draft.name.utf8.elementsEqual(loaded.utf8) { return draft.name }
         let shown = contractShownName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return shown.isEmpty ? draft.name : shown
     }
     var displayedIntroduction: String {
-        if !draft.introduction.isEmpty { return draft.introduction }
+        let loaded = coordinator.snapshot?.introduction ?? ""
+        if !draft.introduction.utf8.elementsEqual(loaded.utf8) { return draft.introduction }
         return contractIntroduction ?? draft.introduction
     }
     private var hasUnsavedDraft: Bool {
