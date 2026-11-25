@@ -438,6 +438,12 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     }
                 }
             }
+            // MC8-01-1 / MC8-01-6: 项目 cards (first open projects, 待核销, 全部 N).
+            MerchantWorkbenchProjectCards(reader: reader, access: access, reloadKey: childReturnRevision) {
+                AnyView(MerchantProjectsView(reader: reader, contentService: contentService)
+                    .onDisappear(perform: onChildReturn)
+                    .cyPushedChrome(domain: .merchant))
+            }
             if showsRecordLinks && (access.allows(.orders) || access.allows(.projects)) {
                 Section("merchant.records") {
                     if access.allows(.orders) {
