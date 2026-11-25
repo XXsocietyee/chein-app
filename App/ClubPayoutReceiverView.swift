@@ -250,6 +250,8 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     let clubID: Int
     var personal = false
     @State private var state: PayoutPageState<ClubSettlementSummaryView> = .loading
+    @State private var fundsAvailability: ClubOwnerFundsAvailability = .unknown
+    @State private var complaintWaiting = false
     var body: some View {
         // CLB-settlement-03 (fix-r3-club-b): the club view (`?clubId=` without personal=1) is the same page as
         // 管理 → 俱乐部结算, so it renders that one implementation (summary card, sessions, ledger, funds, topic rows).
@@ -293,6 +295,11 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     @ViewBuilder private func ready(_ summary: ClubSettlementSummaryView) -> some View {
         if !summary.personal { ClubDirectLedgerSection(scope: .club(clubID: clubID, topicID: nil)) }
         else { ClubFEReferenceSettlementHost() } // CLB-G17: MP shows the payer reference block on the personal view too.
+        // CLB-r9-settlement-01 (MP settlement wxml:13): cy-funds-stages for the owner or the personal view.
+        if summary.isOwner || summary.personal {
+            ClubPersonalFundsStagesSection(context: session.clubOwnerFundsContext(),
+                                           availability: $fundsAvailability, complaintWaiting: $complaintWaiting)
+        }
         if summary.isOwner { ClubPayoutReceiverLink(clubID: clubID) }
         if summary.isEmpty {
             Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver"), messageIdentifier: "clubSettlement.empty") }
