@@ -38,7 +38,8 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
             if !reader.isConfigured {
                 merchantGate(systemImage: "network.slash", message: "auth.notConfigured")
             } else if !reader.isSignedIn {
-                merchantGate(systemImage: "person.crop.circle.badge.exclamationmark", message: "merchant.signIn", signIn: openSignIn)
+                // MP index.wxml:12 cy-empty title="登录后查看经营台" cta="登录".
+                merchantGate(systemImage: "person.crop.circle.badge.exclamationmark", message: "merchant.home.signIn", signIn: openSignIn)
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
                     MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, childReturnRevision: childReturnRevision, refreshAccess: reload, dashboard: dashboard, todo: todo, events: events, onChildReturn: { childReturned() })
@@ -95,12 +96,17 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     CYHeroHeader("merchant.title")
                     // Native restyle R3: the system unavailable state, one prominent action.
+                    // MP index.wxml:16 当前身份不能查看经营台 + 申请入驻; :21-24 商家工作台加载失败 + reason + 重新加载.
                     ContentUnavailableView {
-                        Label(LocalizedStringKey(error), systemImage: error == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
+                        Label(LocalizedStringKey(error == "merchant.access.denied" ? "merchant.home.denied"
+                                                 : (error == "auth.expired" ? error : "merchant.home.loadFailed")),
+                              systemImage: error == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
                             .accessibilityIdentifier("merchant.access.error")
+                    } description: {
+                        if error != "merchant.access.denied" && error != "auth.expired" { Text(LocalizedStringKey(error)) }
                     } actions: {
                         if error != "merchant.access.denied" && error != "auth.expired" {
-                            Button("action.retry") { Task { await reload() } }
+                            Button("merchant.gate.reload") { Task { await reload() } }
                                 .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("merchant.access.retry")
                         } else if error == "merchant.access.denied", let openApplication {
@@ -109,7 +115,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                                 .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("merchant.access.apply")
                         } else if error == "auth.expired", let openSignIn {
-                            Button("merchant.gate.signIn", action: openSignIn)
+                            Button("auth.signIn", action: openSignIn)
                                 .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("merchant.access.signIn")
                         }
@@ -215,7 +221,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 Label(message, systemImage: systemImage)
             } actions: {
                 if let signIn {
-                    Button("merchant.gate.signIn", action: signIn)
+                    Button("auth.signIn", action: signIn)
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("merchant.gate.signIn")
                 }
@@ -372,7 +378,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         }
                     }
                     if access.canReadDashboard {
-                        MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
+                        // MP index.wxml:82-85 收入没更新成功 + 重新加载此部分.
+                        MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } },
+                                             failureTitle: "merchant.home.dashboardFailed", retryTitle: "merchant.home.reloadPart") { value in
                             // HANDOFF-R1 MR-20 (owner Q-C): the hero is today — 今日核销 · 今日收入 · 待处理.
                             // The cumulative 累计收入 moved to 账本 (MerchantLedgerSettlementOverview).
                             MerchantR1TodayCard(today: .make(revenue7d: value.revenue7d, pendingOrders: value.pendingOrders))
@@ -414,7 +422,8 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 predictionReader: predictionReader)
             if access.isOwner || access.canReadAftercare {
                 Section("merchant.todo") {
-                    MerchantSectionState(model: todo, retry: { Task { await loadTodo() } }) { value in
+                    MerchantSectionState(model: todo, retry: { Task { await loadTodo() } },
+                                         failureTitle: "merchant.home.projectsFailed") { value in
                         if !value.hasPendingWork {
                             CYEmptyState(systemImage: "checkmark.circle", "merchant.todo.empty")
                         }
@@ -816,19 +825,25 @@ struct MerchantSectionState<Value, Content: View>: View {
     @ObservedObject var model: MerchantLoadModel<Value>
     let retry: () -> Void
     let content: (Value) -> Content
-    init(model: MerchantLoadModel<Value>, retry: @escaping () -> Void, @ViewBuilder content: @escaping (Value) -> Content) {
+    /// MP section-specific inline error title (cy-inline-error title=…); nil keeps the server reason only.
+    var failureTitle: LocalizedStringKey? = nil
+    var retryTitle: LocalizedStringKey = "action.retry"
+    init(model: MerchantLoadModel<Value>, retry: @escaping () -> Void,
+         failureTitle: LocalizedStringKey? = nil, retryTitle: LocalizedStringKey = "action.retry",
+         @ViewBuilder content: @escaping (Value) -> Content) {
         self.model = model; self.retry = retry; self.content = content
+        self.failureTitle = failureTitle; self.retryTitle = retryTitle
     }
     var body: some View {
         if let value = model.value {
             if model.isLoading { ProgressView("merchant.refreshing").cyText(.meta) }
             if let error = model.errorKey {
                 Text("merchant.stale").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                MerchantInlineFailure(errorKey: error, retry: retry)
+                MerchantInlineFailure(errorKey: error, retry: retry, title: failureTitle, retryTitle: retryTitle)
             }
             content(value)
         } else if let error = model.errorKey {
-            MerchantInlineFailure(errorKey: error, retry: retry)
+            MerchantInlineFailure(errorKey: error, retry: retry, title: failureTitle, retryTitle: retryTitle)
         } else { CYSkeleton(variant: .merchantMetric) }
     }
 }
@@ -866,13 +881,21 @@ private struct MerchantQuickCircleAction: View {
 struct MerchantInlineFailure: View {
     let errorKey: String
     let retry: () -> Void
+    var title: LocalizedStringKey? = nil
+    var retryTitle: LocalizedStringKey = "action.retry"
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(LocalizedStringKey(errorKey))
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+            if let title, errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
+                Text(title)
+                    .cyText(.label)
+                    .foregroundStyle(CYColor.textPrimary)
+            } else {
+                Text(LocalizedStringKey(errorKey))
+                    .cyText(.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+            }
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                Button("action.retry", action: retry)
+                Button(retryTitle, action: retry)
                     .buttonStyle(.bordered)
                     .frame(minHeight: CYSpacing.minTouchTarget)
             }
