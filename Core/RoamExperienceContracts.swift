@@ -184,8 +184,10 @@ public enum RoamExperienceCapabilities {
     public static let location = false
     public static let presence = false
     public static let settlement = false
-    public static let mediaUpload = false
-    public static let stampExchange = false
+    /// Owner 2026-11-25 MP-first rule: the MP uploads, creates and exchanges stamps
+    /// (subpackageP3/pages/stamp-camera/index/index.js:350-391; subpackageRoam/citystamp/index.js:255-300).
+    public static let mediaUpload = true
+    public static let stampExchange = true
     public static let voucherIssue = false
     public static let redemption = false
     public static let legacyHangout = false

@@ -109,8 +109,8 @@ final class RoamExperienceContractTests: XCTestCase {
         XCTAssertFalse(RoamExperienceMath.isValidTile("INVALID"))
         XCTAssertFalse(RoamExperienceCapabilities.location); XCTAssertFalse(RoamExperienceCapabilities.presence)
         XCTAssertFalse(RoamExperienceCapabilities.settlement); XCTAssertFalse(RoamExperienceCapabilities.voucherIssue)
-        XCTAssertFalse(RoamExperienceCapabilities.redemption); XCTAssertFalse(RoamExperienceCapabilities.mediaUpload)
-        XCTAssertFalse(RoamExperienceCapabilities.stampExchange); XCTAssertFalse(RoamExperienceCapabilities.legacyHangout)
+        XCTAssertFalse(RoamExperienceCapabilities.redemption); XCTAssertTrue(RoamExperienceCapabilities.mediaUpload) // MP-first 11-25
+        XCTAssertTrue(RoamExperienceCapabilities.stampExchange); XCTAssertFalse(RoamExperienceCapabilities.legacyHangout)
     }
     func testRouteSketchRequiresTwoTrackPointsAndIncludesPOIBounds() throws {
         let rows = try decode([RoamHistoryRecord].self, RoamExperienceSyntheticFixtures.history)

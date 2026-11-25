@@ -32,8 +32,11 @@ class RoamExperienceSourceTests(unittest.TestCase):
 
     def test_capabilities_stay_hard_off(self):
         text = self.read('Core/RoamExperienceContracts.swift')
-        for key in ['location', 'presence', 'settlement', 'mediaUpload', 'stampExchange', 'voucherIssue', 'redemption', 'legacyHangout']:
+        for key in ['location', 'presence', 'settlement', 'voucherIssue', 'redemption', 'legacyHangout']:
             self.assertIn('static let ' + key + ' = false', text)
+        # MP-first (owner 2026-11-25): stamp upload/create/exchange are what the MP does.
+        for key in ['mediaUpload', 'stampExchange']:
+            self.assertIn('static let ' + key + ' = true', text)
 
     def test_history_is_scope_bound_atomic_and_not_plaintext(self):
         store = self.read('Core/RoamHistoryStore.swift')
