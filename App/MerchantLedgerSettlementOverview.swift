@@ -124,8 +124,11 @@ import UIKit
         _redemptions = StateObject(wrappedValue: MerchantLedgerRedemptionsModel(reader: reader, topicID: topicID))
         _ledgerView = State(initialValue: initialView)
     }
-    /// MC7-06-2 (ledger/index.wxml:11): a denied overview read replaces the page with the no-permission state.
-    private var accessDenied: Bool { model.state.section(.overview).failureKey == MerchantBusinessFailure.denied.key }
+    /// MC7-06-2 (ledger/index.wxml:11): a denied overview read means no finance access.
+    private var financeDenied: Bool { model.state.section(.overview).failureKey == MerchantBusinessFailure.denied.key }
+    /// MC8-06-1 (ledger/index.js:230-243): a verifier (verify:record:read without finance:read) still gets the 核销
+    /// segment with amounts redacted; the no-permission state replaces the page only when that read is denied too.
+    private var accessDenied: Bool { financeDenied && redemptions.phase == .failed(MerchantBusinessFailure.denied.key) }
     var body: some View {
         let cover = Binding<MerchantLedgerBatchCover?>(get: { model.state.cover }, set: { model.childPopped($0 == nil ? model.state.cover : nil) })
         Group {
@@ -138,6 +141,10 @@ import UIKit
             }
             // HANDOFF-R1 MR-21 / MR-20: one 账本 — the cumulative total from the workbench, the overview,
             // then a 核销 · 结算 switcher instead of two stacked lists.
+            if financeDenied {
+                // MC8-06-1: verifier view — no hero, overview or 结算 segment; only the redemption ledger.
+                MerchantLedgerRedemptionsSections(model: redemptions, journal: journal)
+            } else {
             if let cumulative = cumulativeRevenue {
                 Section { MerchantR1CumulativeRow(raw: cumulative) }
             }
@@ -160,6 +167,7 @@ import UIKit
                 section(.entries)
                 section(.batches)
             }
+            }
         }
         .animation(.easeOut(duration: 0.18), value: ledgerView)
         .refreshable { model.loadAll(); await redemptions.reload() }
@@ -174,7 +182,7 @@ import UIKit
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
         // MP ledger/index.js:82 cy-page-title: 核销与退款 (view=redemptions) / 结算 (view=settlement).
-        .navigationTitle(Text(ledgerView == .redemptions ? "merchant.ledger.title.redemptions" : "merchant.ledger.title.settlement"))
+        .navigationTitle(Text(ledgerView == .redemptions || financeDenied ? "merchant.ledger.title.redemptions" : "merchant.ledger.title.settlement"))
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: cover) { item in
             MerchantLedgerBatchDetailView(reader: reader, batchID: item.batchID, owner: item.owner,

@@ -1,6 +1,40 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "merchant.ledger.linkExpired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link expired"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "链接已失效"
+          }
+        }
+      }
+    },
+    "merchant.ledger.linkExpired.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the ledger from the merchant workbench."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请从经营台进入账本"
+          }
+        }
+      }
+    },
     "merchantCoop.nearby.topic.chapters %@": {
       "extractionState": "manual",
       "localizations": {

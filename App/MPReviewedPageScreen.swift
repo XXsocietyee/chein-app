@@ -418,9 +418,20 @@ import SwiftUI
                     .cyPushedChrome()
             } else { unavailable }
         case "pages/merchant/ledger/index":
-            MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
-                                             topicID: MerchantFinanceRoute.normalize(query)?.topicID)
-                .cyPushedChrome(domain: .merchant)
+            // MC8-06-2 (ledger/index.js:64-82): `view` picks the segment (settlement → 结算). A rejected ledger link shows
+            // 链接已失效 instead of guessing. `view=messages` (project messages by ownerType/ownerId) has no native
+            // by-owner read here, so it opens the 核销 segment (for Cursor: a project-events read by owner).
+            if let route = MerchantFinanceRoute.normalize(query) {
+                MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                                 topicID: route.topicID,
+                                                 initialView: route.view == .settlement ? .settlements : .redemptions)
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                ContentUnavailableView("merchant.ledger.linkExpired", systemImage: "link.badge.plus",
+                                       description: Text("merchant.ledger.linkExpired.detail"))
+                    .accessibilityIdentifier("merchant.ledger.linkExpired")
+                    .cyPushedChrome(domain: .merchant)
+            }
         case "pages/merchant/ledger/order-detail/index":
             if let record = MerchantOrderDetailLink.record(query) {
                 MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,

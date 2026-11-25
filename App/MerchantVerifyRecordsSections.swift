@@ -58,7 +58,9 @@ struct MerchantVerifyRecordsSections: View {
     var body: some View {
         let all = rows
         let groups = MerchantVerifyRecordsParity.groups(all, bucket: bucket)
-        MerchantDeskManualCodeRow()
+        // MC8-04-1: the manual-code block is not in the verify-records list any more. Its client is built `gate: .off`
+        // (QuestifyApp), so it was a dead control in production; manual entry belongs on the workbench 更多 · 手输码
+        // row once the gate is ruled on (MC8-01-3, owner decision). `MerchantDeskManualCodeRow` stays for that re-home.
         Section {
             CYTabs(items: MerchantVerifyRecordsParity.Bucket.allCases.map { item in
                 let count = all.filter { $0.bucket == item }.count
