@@ -177,7 +177,7 @@ class ContractCoverageTests(unittest.TestCase):
                 "pages/scan.js:14\tCovRoutes.assigned\tMISSING",
                 "pages/scan.js:15\tMISSING\tMISSING",
                 "pages/scan.js:16\tMISSING\tMISSING",
-                "pages/scan.js:17\tMISSING\tMISSING",
+                "pages/scan.js:17\tINDIRECT\tMISSING",
                 "pages/scan.js:18\tMISSING\tMISSING",
                 "pages/scan.js:19\tCovRoutes.afterSpread\tMISSING",
                 "pages/scan.js:20\tCovRoutes.reqPath\tMISSING",
@@ -276,8 +276,111 @@ class ContractCoverageTests(unittest.TestCase):
                 "pages/body.js:10\tBodyRoutes.assignOpen\tBodyPinTests.testAssignOpenPinsPathAndMethod",
                 "pages/body.js:11\tBodyRoutes.assignLit\tMISSING",
                 "pages/body.js:12\tBodyRoutes.spread\tBodyPinTests.testSpreadPinsPathAndMethod",
-                "pages/body.js:13\tMISSING\tMISSING",
+                "pages/body.js:13\tINDIRECT\tMISSING",
             ])
+
+    def test_indirect_forwarders_and_core_ternaries_leave_the_other_shapes_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            mp = os.path.join(tmp, "xcx")
+            write(os.path.join(mp, "pages/indirect.js"), """
+                sendRequest({ url, method: 'POST', data });
+                sendRequest({ url: url, method: 'GET' });
+                sendRequest(requestJson);
+                sendRequest(_request);
+                request(options.url, 'POST', data);
+                sendRequest({ url: config.url, method: 'POST' });
+                sendRequest({ url, method, data, hideLoading: true, ...(opts || {}) });
+                sendRequest(Object.assign({}, options, { url }));
+                sendRequest({ url: kind === 'payer' ? '/api/fe/payer' : '/api/fe/merchant', method: 'GET' });
+                sendRequest({ url: club ? '/api/coop/summary' : (finance ? '/api/coop/finance' : '/api/coop/mybiz'), method: 'POST' });
+                sendRequest(opts);
+                sendRequest(options);
+                sendRequest(request);
+                sendRequest(Object.assign({}, options, { hideLoading: true }));
+                sendRequest(Object.assign({}, { url }, options));
+                sendRequest(Object.assign({ url: '/api/maybe' }, extra));
+                sendRequest({ url: siteBaseUrl + '/api/login/code', method: 'POST' });
+                sendRequest({ url: (kind === 'payer' ? '/api/fe/payer' : '/api/fe/merchant') + '/export', method: 'GET' });
+                request('/api/play/theme/state', 'GET', { topicId: old.topicId, ...(old.activityId ? { activityId: old.activityId } : {}) });
+                sendRequest({ url: kept ? '/api/fe/payer' : otherPath, method: 'GET' });
+                sendRequest({ url: mode === 'a' ? '/api/fe/payer' : '/api/not-in-core', method: 'GET' });
+                sendRequest({ url: dynamicUrl, method: 'POST' });
+                sendRequest({ ...(opts || {}), success });
+            """)
+            write(os.path.join(tmp, "Core", "Routes.swift"), """
+                public enum IndirectRoutes {
+                    public static let payer = "api/fe/payer"
+                    public static let merchant = "api/fe/merchant"
+                    public static let summary = "api/coop/summary"
+                    public static let finance = "api/coop/finance"
+                    public static let mybiz = "api/coop/mybiz"
+                    public static let state = "api/play/theme/state"
+                    public static let login = "api/login/code"
+                }
+            """)
+            result = subprocess.run(
+                ["python3", TOOL, "--mp-root", mp, "--core", os.path.join(tmp, "Core"),
+                 "--tests", os.path.join(tmp, "Tests")],
+                check=False, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            body = [line for line in result.stdout.splitlines() if line.startswith("pages/")]
+            self.assertEqual(body, [
+                "pages/indirect.js:1\tINDIRECT\tMISSING",
+                "pages/indirect.js:2\tINDIRECT\tMISSING",
+                "pages/indirect.js:3\tINDIRECT\tMISSING",
+                "pages/indirect.js:4\tINDIRECT\tMISSING",
+                "pages/indirect.js:5\tINDIRECT\tMISSING",
+                "pages/indirect.js:6\tINDIRECT\tMISSING",
+                "pages/indirect.js:7\tINDIRECT\tMISSING",
+                "pages/indirect.js:8\tINDIRECT\tMISSING",
+                "pages/indirect.js:9\tINDIRECT\tMISSING",
+                "pages/indirect.js:10\tINDIRECT\tMISSING",
+                "pages/indirect.js:11\tMISSING\tMISSING",
+                "pages/indirect.js:12\tMISSING\tMISSING",
+                "pages/indirect.js:13\tMISSING\tMISSING",
+                "pages/indirect.js:14\tMISSING\tMISSING",
+                "pages/indirect.js:15\tMISSING\tMISSING",
+                "pages/indirect.js:16\tMISSING\tMISSING",
+                "pages/indirect.js:17\tMISSING\tMISSING",
+                "pages/indirect.js:18\tMISSING\tMISSING",
+                "pages/indirect.js:19\tMISSING\tMISSING",
+                "pages/indirect.js:20\tMISSING\tMISSING",
+                "pages/indirect.js:21\tMISSING\tMISSING",
+                "pages/indirect.js:22\tMISSING\tMISSING",
+                "pages/indirect.js:23\tMISSING\tMISSING",
+            ])
+            self.assertIn(
+                "total 23 matched 0 missing_endpoint 13 missing_test 23 matched_indirect 10",
+                result.stdout)
+
+    def test_indirect_allowlist_is_file_line_and_a_short_reason(self):
+        path = os.path.join(ROOT, "tools", "mp_contract_indirect_allowlist.txt")
+        rows = []
+        with open(path, encoding="utf-8") as handle:
+            for raw in handle:
+                line = raw.strip()
+                if not line or line.startswith("#"):
+                    continue
+                where, reason = line.split("\t")
+                self.assertRegex(where, r"^.+\.js:\d+$")
+                if reason.startswith("forwards "):
+                    forwarded = reason[len("forwards "):]
+                    self.assertTrue(
+                        forwarded in ("url", "requestJson", "_request") or forwarded.endswith(".url"),
+                        reason)
+                else:
+                    self.assertTrue(reason.startswith("ternary api/"), reason)
+                    self.assertNotIn("+", reason)
+                    self.assertGreaterEqual(reason.count("api/"), 2)
+                rows.append(where)
+        self.assertEqual(len(rows), len(set(rows)))
+        self.assertEqual(len(rows), 66)
+        previous = ("", 0)
+        for where in rows:
+            path, line = where.rsplit(":", 1)
+            current = (path, int(line))
+            self.assertLess(previous, current)
+            previous = current
 
 
 if __name__ == "__main__":
