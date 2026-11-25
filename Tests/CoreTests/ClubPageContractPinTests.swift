@@ -34,7 +34,7 @@ final class ClubPageContractPinTests: XCTestCase {
     }
 
     /// `pages/club/detail/index.js:3237` posts `api/user/follow/action` with `follow_member_id` and `follow`.
-    func testClubDetailFollowPinsMemberIdAndFollow() throws {
+    @MainActor func testClubDetailFollowPinsMemberIdAndFollow() throws {
         let write = try XCTUnwrap(SquareFollowWrite.commentFollow(memberID: 42, inFlight: false))
         XCTAssertEqual(SquareFollowWrite.path, "api/user/follow/action")
         XCTAssertEqual(write.fields["follow_member_id"], "42")
@@ -67,7 +67,7 @@ final class ClubPageContractPinTests: XCTestCase {
     }
 
     /// `pages/club/topic-detail/plan-fallback.js:30` gets `api/game/session/shared/control` with `activityId`.
-    func testPlanFallbackSharedControlPinsGetActivityId() throws {
+    @MainActor func testPlanFallbackSharedControlPinsGetActivityId() throws {
         XCTAssertTrue(PlayerGapService.parityBPaths.contains("api/game/session/shared/control"))
         let service = PlayerGapService(baseURL: example, accountID: 8, token: { self.token }, transport: Cov2IdleTransport())
         let request = try service.makeRequest("api/game/session/shared/control", method: "GET", query: ["activityId": "91"])
