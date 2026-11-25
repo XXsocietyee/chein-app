@@ -79,6 +79,8 @@ struct RoamBrowserView: View {
     @State private var introTeamsLive: Int?
     @State private var confirmingUnsavedExit = false
     @State private var roamToastMessage: String?
+    /// ROAM-13: the 本城推荐 card being resolved to its server place (MP `onEntryCityPlaceTap`).
+    @State private var cityGuideOpen: RoamCityGuideOpen?
     /// Map-first layout: map fills the screen, the segmented tabs / search / lists live in the bottom sheet.
     /// DEBUG screenshots can start expanded with `--design-detent medium|large`; Release always starts collapsed.
     private static var initialDetent: CYPanelDetent {
@@ -251,6 +253,7 @@ struct RoamBrowserView: View {
             .onChange(of: placeFilter) { _, _ in selected = nil }
             .onChange(of: eventFilter) { _, _ in selected = nil }
             .onChange(of: retentionScope) { _, scope in retainedRead.retainOnly(scope: scope) }
+            .task(id: cityGuideOpen) { await resolveCityGuidePlace() }
             .sheet(item: $selected) { item in
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDetailDestination(for: item), playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
                     .cyDomainSheet(detents: [.half, .full])
@@ -411,7 +414,11 @@ struct RoamBrowserView: View {
         }
         if let entryReader {
             RoamEntryPeekView(reader: entryReader, teams: entryTeams, onSignIn: onOpenAccount, onOpenMap: nearbyTeamsDestination,
-                onChooseArea: onChooseArea, onBeginRead: { entryCard = nil }, onOpenSelection: { entryCard = $0 }, onCount: { peekCount = $0 }, onTeamsLive: { introTeamsLive = $0 }, onOpen: { _ in })
+                onChooseArea: onChooseArea, onBeginRead: { entryCard = nil }, onOpenSelection: { entryCard = $0 }, onCount: { peekCount = $0 }, onTeamsLive: { introTeamsLive = $0 },
+                cityStrip: RoamCityGuideStrip.resolve(latitude: entryReader.searchArea?.coordinate.latitude, longitude: entryReader.searchArea?.coordinate.longitude),
+                cityPlaces: loadedPlaces,
+                onOpenCityPlace: { cityGuideOpen = RoamCityGuideOpen(place: $0) },
+                onOpen: { _ in })
         }
     }
     private func startDestination() -> AnyView {
@@ -603,6 +610,28 @@ struct RoamBrowserView: View {
               !loading, issue == nil, snapshot == visibleItems,
               visibleItems.contains(item) else { return }
         selected = item
+    }
+    private var loadedPlaces: [RoamPlace] {
+        items.compactMap { if case .place(let place) = $0 { return place } else { return nil } }
+    }
+    /// MP `readStripPlace`: a loaded place with the exact seed tag first, then a wide public read
+    /// (MP radius 100 km, Core cap 20 km) matched by the same tag, never by name. Failure = MP toast 这个地点暂时打不开，请重试.
+    /// The app reads at the current search area (the MP reads at the catalog city centre).
+    private func resolveCityGuidePlace() async {
+        guard let request = cityGuideOpen else { return }
+        defer { if cityGuideOpen == request { cityGuideOpen = nil } }
+        if let row = loadedPlaces.first(where: { $0.carriesCityGuideSeed(request.place.seed) }) {
+            selected = .place(row); return
+        }
+        let area = reader.searchArea
+        // Core caps `/api/roam/pois` at 20 km (RoamService.validate); the MP asks for 100 km.
+        let rows = try? await reader.roamPlaces(radiusM: 20_000)
+        guard !Task.isCancelled, cityGuideOpen == request, reader.searchArea == area else { return }
+        if let row = rows?.first(where: { $0.carriesCityGuideSeed(request.place.seed) }) {
+            selected = .place(row)
+        } else {
+            roamToastMessage = appLocalized("roam.cityGuide.openFailed", locale: locale)
+        }
     }
     private func startLoad() {
         selected = nil; loadedKey = nil; generation += 1

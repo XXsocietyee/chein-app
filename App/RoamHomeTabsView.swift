@@ -129,28 +129,42 @@ struct RoamHomeTabPicker: View {
     var onCount: ((Int?) -> Void)? = nil
     /// ROAM-13: team count of the last successful team read at this centre (nil = not read / failed).
     var onTeamsLive: ((Int?) -> Void)? = nil
+    /// ROAM-13 本城推荐 (MP `entryCityStrip`): nil hides the second tab.
+    var cityStrip: RoamCityGuideStrip? = nil
+    /// Places of the current map read; a matching seed tag gives a city card its cover.
+    var cityPlaces: [RoamPlace] = []
+    var onOpenCityPlace: ((RoamCityGuidePlace) -> Void)? = nil
     let onOpen: (RoamEntryActivityCard) -> Void
     @State private var model = RoamNearbyEventsEntryState()
+    /// MP `entryStripTab` ('near' | 'city').
+    @State private var showsCityTab = false
     @State private var retryTask: Task<Void, Never>?
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("roam.w208.entry.title").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+            HStack(spacing: 16) {
+                if let cityStrip, onOpenCityPlace != nil {
+                    stripTab("roam.w208.entry.title", on: !showsCityTab, identifier: "roam.home.peek.tab.near") { showsCityTab = false }
+                    stripTab(cityTabLabel(cityStrip), on: showsCityTab, identifier: "roam.home.peek.tab.city") { showsCityTab = true }
+                } else {
+                    Text("roam.w208.entry.title").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+                }
                 Spacer()
                 Button("action.retry", systemImage: "arrow.clockwise", action: refresh)
 
                 .disabled(RoamNearbyEventsEntryScope(reader: reader) == nil)
                 .accessibilityIdentifier("roam.home.peek.refresh")
             }
-            if reader.isSignedIn, reader.isConfigured, reader.searchArea == nil {
+            if showsCityTab, let cityStrip, let onOpenCityPlace {
+                RoamCityGuideCards(strip: cityStrip, places: cityPlaces, onOpen: onOpenCityPlace)
+            } else if reader.isSignedIn, reader.isConfigured, reader.searchArea == nil {
                 RoamStatusView(issue: .areaRequired)
                     .accessibilityIdentifier("roam.home.peek.areaRequired")
                 if let onChooseArea { Button("roam.area.title", action: onChooseArea) }
             } else { content }
-            if model.visibleTeamState(reader: reader) == .loading {
+            if !showsCityTab, model.visibleTeamState(reader: reader) == .loading {
                 ProgressView { Text("roam.nearbyEvents.teamsLoading", tableName: "RoamNearbyEvents") }
                     .accessibilityIdentifier("roam.home.peek.teamsLoading")
-            } else if model.visibleTeamState(reader: reader) == .failed {
+            } else if !showsCityTab, model.visibleTeamState(reader: reader) == .failed {
                 VStack(alignment: .leading, spacing: 6) {
                     Label { Text("roam.nearbyEvents.teamsFailed", tableName: "RoamNearbyEvents") } icon: { Image(systemName: "exclamationmark.triangle") }
                         .cyText(.meta).foregroundStyle(.secondary)
@@ -165,6 +179,23 @@ struct RoamHomeTabPicker: View {
         .onDisappear { retryTask?.cancel(); retryTask = nil; model.cancel() }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("roam.home.peek")
+    }
+    /// MP `entryCityLabel`: `<城市> · N 处推荐` when the map faces a catalog city, else 本城推荐.
+    private func cityTabLabel(_ strip: RoamCityGuideStrip) -> Text {
+        strip.inCity ? Text("roam.cityGuide.tab.inCity \(strip.city.name) \(strip.items.count)") : Text("roam.cityGuide.tab.default")
+    }
+    private func stripTab(_ title: LocalizedStringKey, on: Bool, identifier: String, action: @escaping () -> Void) -> some View {
+        stripTab(Text(title), on: on, identifier: identifier, action: action)
+    }
+    private func stripTab(_ title: Text, on: Bool, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            title.cyText(.cardTitle).foregroundStyle(on ? CYColor.textPrimary : CYColor.textSecondary)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(on ? [.isSelected, .isHeader] : .isHeader)
+        .accessibilityIdentifier(identifier)
     }
     private var loadedCount: Int? {
         if case .loaded(let cards) = model.visibleState(reader: reader) { return cards.count }
