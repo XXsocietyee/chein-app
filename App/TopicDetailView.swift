@@ -442,6 +442,8 @@ struct TopicDetailView: View {
             }
             let lineup = TopicXcxFacts.lineup(value)
             if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup, publicMerchant: publicMerchant) } }
+            // RTEAMS-1: 组队 card under the brands (hidden unless this topic has teams near its first stop).
+            TopicTeamsCard(topic: value)
             // 开局前准备 (`GET api/play/setup`): hidden when neither prep items nor a play window are set.
             // R7-PC-B1-20: MP shows 开局前准备 only to a viewer who has joined (`is_join == 1 && prep.show`).
             if value.isSignUp {
