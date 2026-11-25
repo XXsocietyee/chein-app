@@ -61,6 +61,12 @@ enum RoamDeviceFixGCJ {
     /// RPOI-3: the signed-in owner. Empty skips the journal so a check-in with no account still reports the location failure.
     var ownerID: String?
     @Published private(set) var pending: RoamPendingCheckInRecord?
+    /// MP 本地存储异常: the journal could not be read or written, so no check-in is sent.
+    @Published private(set) var storageFailed = false
+    /// MP toast 已确认当前已完成 / 已确认当前待核销 after a read settled the attempt; the value is `needRedeem`.
+    @Published private(set) var pendingRecovered: Bool?
+    /// MP `pendingStatusText` after a node read that left the attempt open: true = 尚未显示完成或待核销.
+    @Published private(set) var pendingNotShown: Bool?
     private let journal = RoamPendingCheckInDefaults()
     private var nextReverify = false
     private var token = 0
@@ -68,10 +74,12 @@ enum RoamDeviceFixGCJ {
     func reset() {
         favoriteOverride = nil; completedOverride = nil; needRedeemOverride = nil
         favoritePhase = .idle; checkInPhase = .idle; checkInSuccess = nil; pending = nil; nextReverify = false; token += 1
+        storageFailed = false; pendingRecovered = nil; pendingNotShown = nil
     }
 
     func adopt(ownerID: String?, poiID: Int) {
         self.ownerID = ownerID.flatMap { JourneyLoopSource.isID($0) ? $0 : nil }
+        storageFailed = false
         refreshPending(poiID: poiID)
     }
 
@@ -80,10 +88,19 @@ enum RoamDeviceFixGCJ {
 
     func refreshPending(poiID: Int) { pending = stored(poiID: poiID) }
 
-    /// 查询当前状态: a completed node drops the attempt. An open node leaves the record.
-    func noteReloaded(poiID: Int, completed: Bool) {
-        if completed, let record = stored(poiID: poiID), record.poiID == String(poiID), let slot = slot(poiID: poiID) {
-            _ = try? RoamPendingCheckInJournal.clear(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID, attemptID: record.attemptID)
+    /// 查询当前状态 (MP `_load` with a pending record): a read whose completed / needRedeem disagree settles the
+    /// attempt (已确认当前已完成 / 待核销); otherwise the record stays with the MP status line.
+    func noteReloaded(poiID: Int, completed: Bool, needRedeem: Bool = false) {
+        pendingRecovered = nil; pendingNotShown = nil
+        if let record = stored(poiID: poiID), record.poiID == String(poiID), let slot = slot(poiID: poiID) {
+            if completed != needRedeem {
+                do {
+                    _ = try RoamPendingCheckInJournal.clear(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID, attemptID: record.attemptID)
+                    pendingRecovered = needRedeem
+                } catch { storageFailed = true }
+            } else {
+                pendingNotShown = !completed && !needRedeem
+            }
         }
         refreshPending(poiID: poiID)
     }
@@ -146,13 +163,16 @@ enum RoamDeviceFixGCJ {
 
     private func stored(poiID: Int) -> RoamPendingCheckInRecord? {
         guard let slot = slot(poiID: poiID) else { return nil }
-        return try? RoamPendingCheckInJournal.read(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID)
+        do { return try RoamPendingCheckInJournal.read(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID) }
+        catch { storageFailed = true; return nil }
     }
 
     /// A fresh begin needs an empty slot. Re-verify reuses the same attempt. No owner means no journal.
     private func openAttempt(poiID: Int, reverify: Bool) -> Opened {
         guard let slot = slot(poiID: poiID) else { return .skipped }
-        let existing = try? RoamPendingCheckInJournal.read(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID)
+        let existing: RoamPendingCheckInRecord?
+        do { existing = try RoamPendingCheckInJournal.read(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID) }
+        catch { storageFailed = true; return .blocked }
         let attemptID: String
         if reverify {
             guard let existing else { return .blocked }
@@ -166,7 +186,8 @@ enum RoamDeviceFixGCJ {
         do {
             _ = try RoamPendingCheckInJournal.begin(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID,
                                                     attemptID: attemptID, reverify: reverify)
-        } catch { return .blocked }
+        } catch { storageFailed = true; return .blocked }
+        storageFailed = false; pendingRecovered = nil
         return .begun(slot, attemptID: attemptID, unknownBefore: unknownBefore, fresh: !reverify)
     }
 
@@ -241,6 +262,8 @@ struct RoamPOIActionRows: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.challengePOIPhotoUploader) private var makePhotoUploader
     @Environment(\.locale) private var locale
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.dismiss) private var dismiss
     @State private var answerPrompt = false
     @State private var answerText = ""
     @State private var choiceSheet = false
@@ -267,7 +290,9 @@ struct RoamPOIActionRows: View {
         if case .failed(let failure) = model.favoritePhase {
             failureRow(failure, retry: { model.toggleFavorite(poiID: node.poiId, current: favorited, actions: actions) })
         }
-        if node.isPublished && !completed {
+        // RPOI-3: while an attempt is pending (or storage is broken) the MP only offers 查询 / 重新现场核验.
+        if (model.pending != nil || model.storageFailed) && !completed { pendingRows }
+        if node.isPublished && !completed && model.pending == nil && !model.storageFailed {
             Button { startCheckIn() } label: {
                 HStack {
                     Label(LocalizedStringKey(needRedeem ? "roam.poi.action.checkIn.redeem" : "roam.poi.action.checkIn"), systemImage: "mappin.and.ellipse")
@@ -278,14 +303,9 @@ struct RoamPOIActionRows: View {
             .accessibilityIdentifier("roam.poi.checkin")
             Text("roam.poi.checkIn.footer").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
-        if model.pending != nil {
-            Text("roam.poi.pending").cyText(.body).foregroundStyle(.secondary)
-                .accessibilityIdentifier("roam.poi.pending")
-            Button("查询当前状态") { onReload() }.frame(minHeight: 44)
-                .accessibilityIdentifier("roam.poi.pending.query")
-            Button("重新现场核验") { model.armReverify(); startCheckIn() }.frame(minHeight: 44)
-                .disabled(model.checkInPhase == .working)
-                .accessibilityIdentifier("roam.poi.pending.reverify")
+        if let redeem = model.pendingRecovered {
+            Label(LocalizedStringKey(redeem ? "roam.poi.pending.recoveredRedeem" : "roam.poi.pending.recoveredDone"), systemImage: "checkmark.seal.fill")
+                .foregroundStyle(.green).accessibilityIdentifier("roam.poi.pending.recovered")
         }
         if case .failed(let failure) = model.checkInPhase {
             failureRow(failure, retry: { model.checkIn(poiID: node.poiId, evidence: model.lastEvidence, actions: actions) })
@@ -351,6 +371,29 @@ struct RoamPOIActionRows: View {
         model.checkIn(poiID: node.poiId, evidence: evidence, actions: actions)
     }
 
+    /// RPOI-3 pending card: MP 打卡结果待确认 / 本地存储异常, the status line from the last read, 查询当前状态 and 重新现场核验.
+    @ViewBuilder private var pendingRows: some View {
+        let storage = model.storageFailed
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            Label(LocalizedStringKey(storage ? "roam.poi.pending.storageTitle" : "roam.poi.pending.title"), systemImage: "clock.badge.questionmark")
+                .cyText(.bodyMedium)
+            Text(LocalizedStringKey(storage ? "roam.poi.pending.storageMessage" : "roam.poi.pending.message")).cyText(.bodyCompact).foregroundStyle(.secondary)
+            if !storage, let notShown = model.pendingNotShown {
+                Text(LocalizedStringKey(notShown ? "roam.poi.pending.notShown" : "roam.poi.pending.unresolved")).cyText(.bodyCompact).foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .combine).accessibilityIdentifier("roam.poi.pending")
+        Button("roam.poi.pending.query") { onReload() }
+            .frame(minHeight: 44)
+            .accessibilityIdentifier("roam.poi.pending.query")
+        if !storage && node.isPublished {
+            Button("roam.poi.pending.reverify") { model.armReverify(); startCheckIn() }
+                .frame(minHeight: 44)
+                .disabled(model.checkInPhase == .working)
+                .accessibilityIdentifier("roam.poi.pending.reverify")
+        }
+    }
+
     @ViewBuilder private func failureRow(_ failure: RoamPOIActionModel.Failure, retry: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             switch failure {
@@ -368,6 +411,12 @@ struct RoamPOIActionRows: View {
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .signIn:
                 Label("roam.poi.signIn", systemImage: "person.crop.circle.badge.exclamationmark").cyText(.body)
+                // poi-detail #20: 登录 closes the place sheet, then opens 我的 (only where the root tab switch exists).
+                if rootTabSwitch.isAvailable {
+                    Button("auth.signIn") { dismiss(); rootTabSwitch(.mine) }
+                        .frame(minHeight: 44)
+                        .accessibilityIdentifier("roam.poi.signIn.action")
+                }
             case .network:
                 Label("roam.poi.action.failed", systemImage: "wifi.exclamationmark").cyText(.body)
                 Button("action.retry", action: retry).frame(minHeight: 44)
