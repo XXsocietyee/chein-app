@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This club has not arranged a route yet."
+            "value": "No route yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这个团还没有排出路线。"
+            "value": "暂无路线"
           }
         }
       }
@@ -92,7 +92,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这一章还没有站点"
+            "value": "这一章还没有节点"
           }
         }
       }
@@ -406,13 +406,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Address not provided"
+            "value": "No address"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂未提供地址"
+            "value": "未填写地址"
           }
         }
       }
@@ -454,13 +454,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading story and gameplay…"
+            "value": "Loading story and gameplay"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载剧情与玩法…"
+            "value": "正在加载剧情与玩法"
           }
         }
       }
@@ -502,13 +502,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answers are visible only to the club for judging on site whether players pass. Players never see this section."
+            "value": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "答案只对俱乐部开放，用于现场判定玩家能否通过。玩家端看不到这一段。"
+            "value": "答案只给主办方和这一站的接待方看，用于现场判定玩家能否通过。玩家端看不到这一段。"
           }
         }
       }
@@ -557,6 +557,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "答案没取到"
+          }
+        }
+      }
+    },
+    "club.story.walkMinutes %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lldmin 步行"
           }
         }
       }

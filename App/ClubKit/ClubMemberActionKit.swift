@@ -22,11 +22,14 @@ enum ClubMemberAction: String, CaseIterable, Identifiable, Sendable {
     }
 
     /// The menu order: what a viewer may do, with the destructive action always last.
-    static func menu(canGovern: Bool, targetIsOwner: Bool, targetIsAdmin: Bool) -> [ClubMemberAction] {
+    /// CLB-r7-A-07 (MP detail wxml:779, js:2451-2454): 临时封禁 needs `canGovernMembers` (owner or co-owner with
+    /// club:member:manage); a legacy administrator is refused by the server, so the row is not offered.
+    static func menu(canGovern: Bool, targetIsOwner: Bool, targetIsAdmin: Bool, canTempBan: Bool = true) -> [ClubMemberAction] {
         var actions: [ClubMemberAction] = [.report]
         guard canGovern, !targetIsOwner else { return actions }
         if !targetIsAdmin { actions.append(.makeAdmin) }
-        actions.append(contentsOf: [.tempBan, .remove])
+        if canTempBan { actions.append(.tempBan) }
+        actions.append(.remove)
         return actions
     }
 }

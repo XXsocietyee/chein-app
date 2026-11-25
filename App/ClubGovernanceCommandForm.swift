@@ -98,6 +98,8 @@ import SwiftUI
     /// CLB-apply-02 (MP apply wxml:36-43): the intro already showed on the host-status page, so the form opens at step 1.
     @State private var applyStep = 1
     @State private var applyBlocked = false
+    /// CLB-roles-04: the missing-field line under 分配, cleared on the next tap that passes.
+    @State private var directHint: String?
     private var generation: UInt64 { presentation.generation }
     private var presentationContext: ClubGovernanceFormLifecycle.Context {
         .init(identity: identity, access: access, coordinator: coordinator, operation: route.operation,
@@ -276,9 +278,55 @@ import SwiftUI
                         }
                     }
                 }
+            } else if let failure, route.operation == .issueGroupCode {
+                // CLB-r8-group-code-02 (fix-r8-club): MP club-game-code-sheet error state (wxml:15-19): the server
+                // sentence or 团码暂时没能生成，请稍后重试, and 重试 inside the code card.
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        if let message = failure.message { Text(verbatim: message).cyText(.body).foregroundStyle(CYColor.textPrimary) }
+                        else { Text("clubR8b.groupCode.failed").cyText(.body).foregroundStyle(CYColor.textPrimary) }
+                        if !locked {
+                            Button("clubR8b.retry") { Task { await reissueGroupCode() } }
+                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                                .disabled(busy || identity == nil)
+                                .accessibilityIdentifier("club.gov.groupCode.retry")
+                        }
+                    }
+                    .accessibilityIdentifier("club.gov.formError")
+                }
+            } else if let failure, route.operation == .hostApply {
+                // CLB-r8-apply-01 (fix-r8-club): MP apply wxml:157 cy-inline-error 提交没有完成 + submitError + 重试.
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Label { Text("clubR8b.apply.submitFailed") } icon: { Image(systemName: "exclamationmark.circle") }
+                            .cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("club.gov.formError")
+                        if let message = failure.message { Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                        else { Text(LocalizedStringKey(failure.localizationKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                        if !locked {
+                            Button("clubR8b.retry") {
+                                Task {
+                                    if let pending = review { await confirm(pending) }
+                                    else { await prepare(); if let pending = review { await confirm(pending) } }
+                                }
+                            }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                            .disabled(busy || identity == nil || !hostMaterialsReady)
+                            .accessibilityIdentifier("club.player.apply.retrySubmit")
+                        }
+                    }
+                }
             } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
-            if busy { ProgressView() }
-            if let review {
+            if busy, route.operation == .issueGroupCode, groupCode == nil {
+                // CLB-r8-group-code-01 (fix-r8-club): MP sheet state loading shows a 生成中 placeholder in the code slot.
+                Section {
+                    Text("clubR8b.groupCode.generating").cyText(.body).foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity, minHeight: 200)
+                        .background(RoundedRectangle(cornerRadius: CYRadius.md).fill(CYColor.bgSurfaceSubtle))
+                        .accessibilityIdentifier("club.gov.groupCode.generating")
+                }
+            } else if busy { ProgressView() }
+            if let review, !(Self.directOperations.contains(route.operation) && consequenceReview?.id == review.id) {
                 Section {
                     ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "durationDays" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true, localizesEnums: true)
                     if route.operation == .createSeries, review.command.fields["defaultLeadMemberId"] == .null {
@@ -353,6 +401,24 @@ import SwiftUI
                     .frame(maxWidth: .infinity)
                     .listRowBackground(Color.clear)
                     .disabled(busy || locked || identity == nil || !groupCodeCanIssue)
+                    .accessibilityIdentifier("club.gov.prepare")
+                } else if Self.directOperations.contains(route.operation) {
+                    // CLB-governance-03 / CLB-roles-04 (fix-r8-club): MP governance and roles act on one tap (governance
+                    // js:435-452, roles js:400-415). Heavy commands still stop once on the consequence sheet (MC-33);
+                    // 分配 stays tappable and names the missing field instead of greying out.
+                    if let directHint {
+                        Text(LocalizedStringKey(directHint)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("club.gov.directHint")
+                    }
+                    Button(LocalizedStringKey("club.gov.action." + route.operation.rawValue)) {
+                        if let missing = directMissingField { directHint = missing; return }
+                        directHint = nil
+                        Task { await submitDirectly() }
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .disabled(busy || locked || identity == nil)
                     .accessibilityIdentifier("club.gov.prepare")
                 } else if route.operation != .hostApply {
                 // CLB-notify-01 (fix-r3-club-b): MP 预览受众 before the send, not a generic 下一步.
@@ -716,6 +782,16 @@ import SwiftUI
     /// Issuing a group code sends `{activityId}`. A topic-only link never reaches this submit.
     private var groupCodeCanIssue: Bool {
         route.operation != .issueGroupCode || (route.scope.activityID ?? 0) > 0
+    }
+    /// CLB-governance-03 / CLB-roles-04 (fix-r8-club): commands the MP sends without a fact-review step.
+    private static let directOperations: Set<ClubGovernanceMutation> = [.ban, .unban, .transferOwner, .report, .appeal, .assignRole]
+    /// 分配 names what is still missing (MP 先选择一位成员 / 先选择一个角色); other direct commands rely on their own validation.
+    private var directMissingField: String? {
+        guard route.operation == .assignRole else { return nil }
+        if (draft.text["targetMemberId"] ?? "").trimmingCharacters(in: .whitespaces).isEmpty { return "clubR8b.roles.pickMember" }
+        if (draft.text["roleCode"] ?? "").trimmingCharacters(in: .whitespaces).isEmpty { return "clubR8b.roles.pickRole" }
+        if !roleAssignmentReady { return "clubR8b.roles.notReady" }
+        return nil
     }
     /// One-tap submit for commands whose MP page has no review step (customer 保存, group code 出示).
     private func submitDirectly() async {

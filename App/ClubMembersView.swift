@@ -215,7 +215,8 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             // HANDOFF-R1 MC-20: one "⋯" menu per member row (举报 · 设为管理员 · 临时封禁 · 移除, 移除 last in red).
             // Organiser actions open the member's governance page, where each command is confirmed.
             let canGovern = directory.club.canGovern && matchesGovernance(reader.clubIdentity) && member.memberId > 0
-            ClubMemberActionMenu(actions: ClubMemberAction.menu(canGovern: canGovern, targetIsOwner: member.isOwner, targetIsAdmin: member.isAdmin),
+            ClubMemberActionMenu(actions: ClubMemberAction.menu(canGovern: canGovern, targetIsOwner: member.isOwner, targetIsAdmin: member.isAdmin,
+                                                               canTempBan: directory.club.isOwner),
                                  memberName: target.displayName,
                                  reportIdentifier: "club.memberReport.open.\(member.memberId)") { action in
                 if action == .report {

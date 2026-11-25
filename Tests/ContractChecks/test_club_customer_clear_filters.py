@@ -55,7 +55,8 @@ class ClubCustomerClearFiltersContracts(unittest.TestCase):
     def test_normal_customer_inputs_keep_all_four_filters_and_explicit_search(self):
         controls = span(self.source, "if operation == .customers {\n                Section {", "if operation == .topicCustomers")
         self.assertIn('["all", "repeat", "new", "remark"]', controls)
-        self.assertIn('Picker("club.gov.filter", selection: customerFilterBinding)', controls)
+        # CLB-customers-07 (fix-r8-club): MP chip row; each chip writes through the same binding.
+        self.assertIn('customerFilterBinding.wrappedValue = value', controls)
         self.assertIn('TextField("club.gov.keyword", text: customerKeywordBinding)', controls)
         self.assertIn(".onSubmit { loadCustomersNow() }", controls)
         # The separate Search button was removed in the restyle; search stays explicit via the keyboard submit action.

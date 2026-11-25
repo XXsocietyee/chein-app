@@ -299,7 +299,9 @@ import SwiftUI
         case "pages/club/edit/index":
             if let id = clubQueryID(query) { clubOperations(.club(id)) } else { unavailable }
         case "pages/club/badges/index":
-            if let id = clubQueryID(query), let host = badgeHost(id) { ClubBadgeManagementView(host: host).id(host.id) } else { unavailable }
+            // CLB-r8-badges-01 (fix-r8-club): no clubId is the MP missing-param shell (链接已失效 + 返回).
+            if let id = clubQueryID(query), let host = badgeHost(id) { ClubBadgeManagementView(host: host).id(host.id) }
+            else if clubQueryID(query) == nil { MemberMissingLinkState(identifier: "club.badges.missing") } else { unavailable }
         case "pages/club/customers/index":
             clubRead(.customers, .init(clubID: clubQueryID(query)), needsClub: true)
         case "pages/club/customer-detail/index":
@@ -348,7 +350,9 @@ import SwiftUI
                                                access: g.access, coordinator: g.coordinator, opensStoryOnLoad: true)
                     }
                 } else {
+                    // CLB-G13: with `activityId` the topic page carries the director block (session-owned host).
                     clubRead(.topicOverview, scope, needsClub: false)
+                        .environment(\.clubTopicDirectorHost, scope.activityID == nil ? nil : session.clubTopicDirectorHost)
                 }
             } else { unavailable }
         case "pages/club/governance/index":
@@ -372,7 +376,8 @@ import SwiftUI
                 case .appeal:
                     clubRead(.cases, .init(clubID: route.clubID), needsClub: true)
                 }
-            case .failure: unavailable
+            // CLB-r8-governance-01 (fix-r8-club): MP governance wxml:11 missing-param 链接已失效 + 返回.
+            case .failure: MemberMissingLinkState(identifier: "club.governance.missing")
             }
         case "pages/club/roles/index":
             // CLB-roles-02: the event tools put 「活动名 · 开始时间」 in `activityLabel`; the picker shows it (or 未命名).
@@ -832,7 +837,9 @@ import SwiftUI
     }
 
     @ViewBuilder private func clubRead(_ operation: ClubGovernanceRead, _ scope: ClubGovernanceScope, needsClub: Bool) -> some View {
-        if needsClub && scope.clubID == nil { unavailable } else {
+        // CLB-r8-roles-01 (fix-r8-club): a club page link without its clubId is the MP missing-param state
+        // (roles wxml:11 链接已失效 + 返回), not the generic unavailable placeholder.
+        if needsClub && scope.clubID == nil { MemberMissingLinkState(identifier: "club.\(operation.rawValue).missing") } else {
             clubGovernance { g in ClubGovernanceReadView(operation: operation, scope: scope, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
         }
     }
