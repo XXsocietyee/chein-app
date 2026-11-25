@@ -356,7 +356,7 @@ New Swift file: `App/MerchantMPLinkScreens.swift` (`SessionMerchantMarketingLink
 | aftercare detail · evidence preview | `evidencePreviewUrl` | **left**: MC7-17-3, Core has no evidence URLs |
 | apply 行业类型 sheet · tag icons | `tag-library` icons | `MPAsset.FeatureIcon.*` (round 2) |
 
-### 3 · Copy (MP text, fragment `docs/port/strings/fix-r3-merchant-coop-a.json`, now 125 keys, en + zh-Hans)
+### 3 · Copy (MP text, fragment `docs/port/strings/fix-r3-merchant-coop-a.json`, now 126 keys, en + zh-Hans)
 
 Method: a script collected every Chinese literal from the 18 half-a MP pages (wxml/js/json) and compared it with the effective zh-Hans value (catalogs + all fragments) of every key referenced from `App/Merchant*.swift`. Near-misses (same text after removing punctuation) and missing titles / CTAs / empty / error / toast strings were then checked by hand.
 
@@ -377,6 +377,7 @@ Method: a script collected every Chinese literal from the 18 half-a MP pages (wx
 | `merchant.onboarding.openMerchant` | 进入商家中心 | 进入经营台 | apply/index.wxml:304 |
 | `merchant.onboarding.reapply` | 修改并重新申请 | 重新申请 | apply/index.wxml:304 |
 | `merchant.onboarding.stateUnavailable` | 暂时无法确认申请状态。 | 暂时无法确认申请状态 | apply/index.wxml |
+| `merchant.onboarding.checking` | 正在查询申请… | 正在检查已有申请 | apply/index.wxml:50 |
 | `merchant.predict.backToWorkbench` (new) | (no action) | 返回工作台 | predict/index.wxml:18 |
 | `merchant.customerFilters.*` (new) | — | 筛选 / 筛选 · n / 筛选客户 / 取消 / 重置 / 查看结果 | customer/index.wxml:16-17,132-178 |
 

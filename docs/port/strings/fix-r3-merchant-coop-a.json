@@ -1905,6 +1905,23 @@
         }
       }
     },
+    "merchant.onboarding.checking": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking for an existing application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查已有申请"
+          }
+        }
+      }
+    },
     "merchant.onboarding.openMerchant": {
       "extractionState": "manual",
       "localizations": {
