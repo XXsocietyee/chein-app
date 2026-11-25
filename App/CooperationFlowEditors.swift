@@ -7,6 +7,7 @@ struct CoopFlowRequestPreview: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.coopInviteOutcomeUnknown) private var reportUnknownOutcome
     @Environment(\.coopInviteSent) private var reportInviteSent
+    @Environment(\.topicEditorDestination) private var topicEditor
     @Environment(\.coopConversationDestination) private var conversationDestination
     @State private var openedConversation: Int?
     private let review: CoopFlowRequestReviewContext?
@@ -43,6 +44,14 @@ struct CoopFlowRequestPreview: View {
                     if case .failed(let message) = outcome {
                         Group { if let message { Text(verbatim: message) } else { Text("coopflow.submit.failed") } }
                             .cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    }
+                    // MC7-31-9 (MP coop/invite wxml:157 `goEditTopic`): a rejected send offers the topic editor
+                    // (`pages/publish/fabu/index?id=&scope=`), so the owner can fix price/content and send again.
+                    if case .failed = outcome, case .invite(let draft) = operation, let topicEditor {
+                        NavigationLink { topicEditor(draft.topicID, draft.scope) } label: {
+                            Text("merchantCoop.invite.editTopic").cyText(.meta)
+                        }
+                        .accessibilityIdentifier("coopflow.submit.editTopic")
                     }
                 } else {
                     // Gated, not removed: production keeps merchant writes closed (ReviewedAreaSwitch).

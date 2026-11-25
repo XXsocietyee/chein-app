@@ -594,6 +594,23 @@
       }
     }
   },
+  "merchantCoop.invite.editTopic": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Topic terms not set up? Edit the topic (price / content)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "主题条款没配好？去编辑主题(票价/内容)"
+        }
+      }
+    }
+  },
   "merchantCoop.invite.missing": {
     "extractionState": "manual",
     "localizations": {
