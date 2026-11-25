@@ -1,6 +1,40 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "objects.pile.drop": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let them fall"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让它们落下来"
+          }
+        }
+      }
+    },
+    "objects.pile.gatherOne": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gather into a ball"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "聚成一团"
+          }
+        }
+      }
+    },
     "roam.w208.intro.live %lld": {
       "extractionState": "manual",
       "localizations": {

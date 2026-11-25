@@ -8,21 +8,28 @@ import UIKit
 @MainActor struct ObjectBadgeTileArtwork: View {
     let url: String
     let locked: Bool
+    var body: some View {
+        BoundedMediaThumbnail(url: url) { MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit() }
+            .saturation(locked ? 0 : 1)
+            .opacity(locked ? 0.55 : 1)
+            .accessibilityHidden(true)
+    }
+}
+
+/// Small decorative image read through the environment `objectCardMedia` loader only. Until the bytes arrive, or when the
+/// loader is absent, the URL is not https, the policy refuses it or decoding fails, the placeholder stays.
+@MainActor struct BoundedMediaThumbnail<Placeholder: View>: View {
+    let url: String
+    @ViewBuilder var placeholder: () -> Placeholder
     @Environment(\.objectCardMedia) private var media
     @State private var image: UIImage?
     @State private var loadedURL: String?
 
     var body: some View {
         Group {
-            if let image, loadedURL == url {
-                Image(uiImage: image).resizable().scaledToFit()
-            } else {
-                MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit()
-            }
+            if let image, loadedURL == url { Image(uiImage: image).resizable().scaledToFit() }
+            else { placeholder() }
         }
-        .saturation(locked ? 0 : 1)
-        .opacity(locked ? 0.55 : 1)
-        .accessibilityHidden(true)
         .task(id: url) { await load() }
     }
 
@@ -42,7 +49,7 @@ import UIKit
                   let decoded = UIImage(data: data), requested == url else { return }
             image = decoded; loadedURL = requested
         } catch {
-            // Cancelled, refused by the media policy or failed: keep the MP default art.
+            // Cancelled, refused by the media policy or failed: keep the placeholder.
         }
     }
 }
