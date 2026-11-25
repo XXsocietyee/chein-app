@@ -205,6 +205,16 @@ final class ClubOperationsServiceTests: XCTestCase {
         XCTAssertNil(try ClubOperationsService.decodeReceipt(command: command, data: Data(#"{"code":200}"#.utf8), status: 200).clubID)
         XCTAssertEqual(try ClubOperationsService.decodeReceipt(command: command, data: Data(#"{"code":200,"data":{"clubId":82}}"#.utf8), status: 200).clubID, 82)
     }
+    /// CLB-create-02: MP create/index.js:415 `Number(res.data.status) === 0` → 已重新提交，等待审核.
+    func testCreateReceiptCarriesPendingReviewStatus() throws {
+        let command = ClubOperationsCommand.create(opsCreateDraft())
+        func decode(_ json: String) throws -> ClubOperationsReceipt { try ClubOperationsService.decodeReceipt(command: command, data: Data(json.utf8), status: 200) }
+        XCTAssertEqual(try decode(#"{"code":200,"data":{"clubId":82,"status":0}}"#).pendingReview, true)
+        XCTAssertEqual(try decode(#"{"code":200,"data":{"clubId":82,"status":"0"}}"#).pendingReview, true)
+        XCTAssertEqual(try decode(#"{"code":200,"data":{"clubId":82,"status":1}}"#).pendingReview, false)
+        XCTAssertNil(try decode(#"{"code":200,"data":{"clubId":82}}"#).pendingReview)
+        XCTAssertEqual(try decode(#"{"code":200,"data":{"clubId":82,"status":"x"}}"#).clubID, 82)
+    }
     @MainActor func testProductionPerformIsHardOffBeforeAllNetworkCalls() async throws {
         let t = OperationsTransport(), access = ClubOperationsSessionAccess(service: try service(t), currentSession: { try? .init(accountID: 701, epoch: 1, token: "synthetic-token") })
         do { _ = try await access.perform(.create(opsCreateDraft()), target: .create, expectedIdentity: opsIdentity); XCTFail() }

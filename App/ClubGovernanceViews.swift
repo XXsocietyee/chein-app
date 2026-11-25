@@ -188,6 +188,7 @@ struct ClubGovernanceReadView: View {
     @StateObject private var attendanceReads = ClubAttendanceRosterRead()
     @StateObject private var roleManagementReturn = ClubRoleManagementReturn()
     @StateObject private var roleReads = ClubRoleListRead()
+    @State private var listRefreshToast: LocalizedStringKey?
     @StateObject private var topicSettingsReturn = ClubTopicSettingsReturn()
     @StateObject private var topicSettingsReads = ClubTopicSettingsRead()
     @StateObject private var banRemovalReturn = ClubBanRemovalReturn()
@@ -344,6 +345,7 @@ struct ClubGovernanceReadView: View {
                     access: access, coordinator: coordinator, didDismiss: finishRoleManagementReturn).id(item.id)
             }
         }
+        .cyToast(message: $listRefreshToast)
         .onAppear {
             if operation == .roles {
                 roleManagementReturn.appear()
@@ -1164,7 +1166,9 @@ struct ClubGovernanceReadView: View {
             await load()
         }
     }
-    @MainActor private func load() async {
+    /// CLB-r7-C-03 (MP roles/index.js:266-272): the re-read after a role action keeps the list on failure and only
+    /// toasts 列表没刷新成功，下拉重试; first loads and pull-to-refresh still show the full error.
+    @MainActor private func load(keepingOnFailure: Bool = false) async {
         let cancellationTicket = occurrenceCancellationReturn.readback
         let cancellationCurrent = {
             operation != .occurrenceStatus || (seriesHostVisible && scenePhase == .active &&
@@ -1189,6 +1193,7 @@ struct ClubGovernanceReadView: View {
         if operation == .customers { customerKeywordDebounce.cancel() }
         generation &+= 1; let revision = generation; let expected = identity; let context = readContext
         let customerQuery = customerFilters
+        let kept = keepingOnFailure && failure == nil && snapshotContext == context ? snapshot : nil
         snapshot = nil; failure = nil; loading = true
         snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()
         leaderboardMember = nil
@@ -1230,7 +1235,12 @@ struct ClubGovernanceReadView: View {
         } catch {
             guard cancellationCurrent(), revision == generation else { return }
             guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), banReadIsCurrent(banAttachment), settlementReadIsCurrent(settlementAttachment), access.identity == expected, !Task.isCancelled else { return }
-            failure = error as? ClubGovernanceFailure ?? .malformed
+            if let kept, !(error is CancellationError) {
+                snapshotContext = context; snapshotGeneration = revision; snapshot = kept
+                listRefreshToast = "club.roles.refreshFailedToast"
+            } else {
+                failure = error as? ClubGovernanceFailure ?? .malformed
+            }
         }
         if revision == generation { loading = false }
     }

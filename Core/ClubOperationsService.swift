@@ -83,7 +83,7 @@ public struct ClubOperationsService {
             let id = result?.data?.clubId ?? result?.data?.id
             // Source acknowledges creation even when no ID is returned. Never invent one.
             if let id, id <= 0 { throw ClubActionWriteError.outcomeUnknown(.malformedResponse) }
-            return .init(clubID: id, message: envelope?.msg)
+            return .init(clubID: id, message: envelope?.msg, pendingReview: result?.data?.status.map { $0 == 0 })
         case .openSetting(let setting, _, _):
             guard let values = try? JSONDecoder().decode(SettingEnvelope.self, from: data),
                   let value = values.data.value(setting), [0, 1].contains(value) else {
@@ -148,7 +148,20 @@ public struct ClubOperationsService {
     }
     private struct CreateEnvelope: Decodable {
         let data: Created?
-        struct Created: Decodable { let id: Int?; let clubId: Int? }
+        struct Created: Decodable {
+            let id: Int?; let clubId: Int?
+            /// MP create/index.js:415 `Number(res.data.status) === 0` → 已重新提交，等待审核. Number or numeric string.
+            let status: Int?
+            private enum CodingKeys: String, CodingKey { case id, clubId, status }
+            init(from decoder: Decoder) throws {
+                let c = try decoder.container(keyedBy: CodingKeys.self)
+                id = try c.decodeIfPresent(Int.self, forKey: .id)
+                clubId = try c.decodeIfPresent(Int.self, forKey: .clubId)
+                if let n = try? c.decodeIfPresent(Int.self, forKey: .status) { status = n }
+                else if let t = try? c.decodeIfPresent(String.self, forKey: .status) { status = Int(t.trimmingCharacters(in: .whitespaces)) }
+                else { status = nil }
+            }
+        }
     }
     private struct OwnedEnvelope: Decodable { let data: Owned; struct Owned: Decodable { let owned: [ClubRecord] } }
     private struct SettingEnvelope: Decodable {

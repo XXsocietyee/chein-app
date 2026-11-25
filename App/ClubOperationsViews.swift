@@ -563,6 +563,10 @@ struct ClubOperationsWorkspaceView: View {
             }
         }
     }
+    private var createPendingReview: Bool {
+        if case .acknowledged(let receipt) = state { return receipt.pendingReview == true }
+        return false
+    }
     private var shouldShowPostCreateManagementClosure: Bool {
         if case .acknowledged = state { return true }
         if case .notSent = state { return true }
@@ -571,7 +575,8 @@ struct ClubOperationsWorkspaceView: View {
     @ViewBuilder private var postCreateManagementClosure: some View {
         let flow = createToManageFlow
         // CLB-create-02 (MP create wxml:29-31): 俱乐部已创建, then 名称 · 城市; semantic type, no raw headline.
-        Text(LocalizedStringKey(Self.createStatusKey(flow.blockReason)))
+        // CLB-create-02 (MP create wxml:30, js:415): a resubmission (status 0) reads 已重新提交，等待审核.
+        Text(LocalizedStringKey(flow.blockReason == nil && createPendingReview ? "club.ops.createdStatus.resubmitted" : Self.createStatusKey(flow.blockReason)))
             .cyText(flow.canEnterManagement ? .cardTitle : .body)
             .foregroundStyle(flow.canEnterManagement ? .primary : .secondary)
             .accessibilityIdentifier("clubCreateManage.status")

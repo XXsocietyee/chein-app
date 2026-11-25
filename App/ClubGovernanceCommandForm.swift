@@ -451,6 +451,11 @@ import SwiftUI
                         NavigationLink { ClubGovernanceReadView(operation: .notificationStatus, scope: .init(clubID: route.scope.clubID, activityID: route.scope.activityID, campaignID: id), identity: identity, access: access, coordinator: coordinator) } label: { Text("club.gov.notificationStatus") }
                     }
                     ForEach(Array((receipt["failedSessions"].array ?? []).enumerated()), id: \.offset) { _, value in Text(verbatim: value.string ?? "") }
+                    // CLB-apply-11 (MP apply/index.js:415, wxml:177): 主理人 comes from the submitted draft, not a status read.
+                    if route.operation == .hostApply, let leader = draft.text["leaderName"]?.trimmingCharacters(in: .whitespacesAndNewlines), !leader.isEmpty {
+                        LabeledContent("club.host.done.leaderLabel") { Text(verbatim: leader) }
+                            .accessibilityIdentifier("club.host.receipt.leader")
+                    }
                 }
                 if route.operation == .hostApply { Section { ClubCreateMyClubLink(identity: identity) }.listRowBackground(Color.clear) }
             }

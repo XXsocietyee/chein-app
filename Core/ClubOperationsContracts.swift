@@ -191,8 +191,10 @@ public struct ClubOperationsReceipt: Equatable {
     public let clubID: Int?
     public let message: String?
     public let settingValue: Bool?
-    public init(clubID: Int? = nil, message: String? = nil, settingValue: Bool? = nil) {
-        self.clubID = clubID; self.message = message; self.settingValue = settingValue
+    /// Create only: the server answered `status == 0` (a resubmission waiting for review; MP create/index.js:415).
+    public let pendingReview: Bool?
+    public init(clubID: Int? = nil, message: String? = nil, settingValue: Bool? = nil, pendingReview: Bool? = nil) {
+        self.clubID = clubID; self.message = message; self.settingValue = settingValue; self.pendingReview = pendingReview
     }
 }
 public enum ClubOperationsWriteAvailability: Equatable, Sendable { case unverified, approved, syntheticOnly }
