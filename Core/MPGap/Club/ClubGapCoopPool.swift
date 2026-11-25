@@ -101,3 +101,32 @@ public struct ClubEditionsEmptyReasonClient {
         )
     }
 }
+
+/// CLB-G04 thin Core hook (MP `pages/club/detail/index.js:3826-3840`): 申请带队 posts
+/// `{ topicId, clubId, message }` as JSON to `/api/coop/pool/apply`. An application only states intent; the merchant
+/// answers with a formal invite, so this is not money.
+public struct ClubCoopPoolApplyClient {
+    private let configuration: APIConfiguration
+    private let transport: any HTTPTransport
+
+    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+        self.configuration = configuration
+        self.transport = transport
+    }
+
+    public func apply(topicID: Int, clubID: Int, message: String, token: String) async throws {
+        guard topicID > 0, clubID > 0, message.count <= 500 else { throw APIError.invalidRequest }
+        try await MPGapHTTP.postAction(
+            configuration: configuration,
+            transport: transport,
+            path: "api/coop/pool/apply",
+            body: ["topicId": topicID, "clubId": clubID, "message": message],
+            token: token
+        )
+    }
+
+    /// MP `decoratePool` (`utils/coop-invite-view.js:185`): open, declined and withdrawn rows can apply (again).
+    public static func canApply(state: String?) -> Bool {
+        ["open", "declined", "withdrawn"].contains(state ?? "")
+    }
+}

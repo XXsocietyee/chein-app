@@ -132,7 +132,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 // CLB-G04 (MP js:3780-3847): 可对接的活动 + 我的合作, owner only.
                 if tab == .manage, club.isOwner, let session = reader as? AppSession {
-                    ClubCoopPoolMount(session: session, model: r8Mounts, reloadKey: r8Key(club, tab: tab)) { r8Route = $0 }
+                    ClubCoopPoolMount(session: session, model: r8Mounts, reloadKey: r8Key(club, tab: tab), clubID: club.id) { r8Route = $0 }
                 }
                 if tab == .posts, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
                     Section {

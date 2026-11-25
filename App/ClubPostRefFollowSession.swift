@@ -37,4 +37,21 @@ import SwiftUI
             }
         }
     }
+
+    /// CLB-G04: 申请带队 (`/api/coop/pool/apply`). Nil when the route is not offered here.
+    var clubCoopPoolApply: ((_ topicID: Int, _ clubID: Int, _ message: String) async throws -> Void)? {
+        guard regionalConfiguration?.showsRoute("/api/coop/pool/apply") == true else { return nil }
+        return { [weak self] topicID, clubID, message in
+            guard let self, let token = self.token, AuthRequestBuilder.isValidToken(token),
+                  let configuration = self.regionalConfiguration?.apiConfiguration else { throw APIError.unauthorized }
+            let stamp = self.sessionRevision
+            let client = ClubCoopPoolApplyClient(configuration: configuration, transport: self.runtimeHTTPTransport)
+            do {
+                try await client.apply(topicID: topicID, clubID: clubID, message: message, token: token)
+            } catch {
+                if error as? APIError == .unauthorized { self.expireIfMatching(error: error, stamp: stamp, credential: token) }
+                throw error
+            }
+        }
+    }
 }

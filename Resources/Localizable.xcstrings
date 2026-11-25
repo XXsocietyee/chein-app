@@ -311996,6 +311996,57 @@
           }
         }
       }
+    },
+    "club.coopPool.applied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied. Check it under Sent in Collaboration invites."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已申请，可在协作邀请「我发出的」查看"
+          }
+        }
+      }
+    },
+    "club.coopPool.applyFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请失败"
+          }
+        }
+      }
+    },
+    "club.coopPool.applyUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application result pending. Refreshed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请结果待确认，已刷新"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
