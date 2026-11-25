@@ -610,11 +610,18 @@ struct RoamToolUnavailableView: View {
     /// MP `cy-roam-photo` 3D icons for 历史 / 印章 / 目标 (`subpackageRoam/assets/icons`); other tiles keep a symbol (MP cy-icon).
     @ViewBuilder private func tileArt(_ tile: RoamPassportHome.Tile) -> some View {
         switch tile {
-        case .history: MPAsset.FeatureIcon.history.resizable().scaledToFit().frame(width: 36, height: 36)
-        case .stamp: MPAsset.FeatureIcon.stamp.resizable().scaledToFit().frame(width: 36, height: 36)
+        // ROAM-8b (MP pages/roam/index.wxml:186-205): newest track / stamp photo when the passport read has one.
+        case .history:
+            RoamPassportTileThumbnail(source: passportThumbnail(tile)) { MPAsset.FeatureIcon.history.resizable().scaledToFit() }
+        case .stamp:
+            RoamPassportTileThumbnail(source: passportThumbnail(tile)) { MPAsset.FeatureIcon.stamp.resizable().scaledToFit() }
         case .goals: MPAsset.FeatureIcon.goals.resizable().scaledToFit().frame(width: 36, height: 36)
         default: Image(systemName: tile.symbol).accessibilityHidden(true).foregroundStyle(.tint).frame(width: 36)
         }
+    }
+    private func passportThumbnail(_ tile: RoamPassportHome.Tile) -> String {
+        guard case .success(let value)? = currentHome else { return "" }
+        return tile == .history ? value.latestTrackThumbnail : value.latestStampImage
     }
     /// A tile is listed only when it opens something; goals and capsule need the owner-only tools reader
     /// (capability absent => hidden, per the pages/roam/index page-ready note).
