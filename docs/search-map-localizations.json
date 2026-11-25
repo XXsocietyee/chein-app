@@ -586,5 +586,9 @@
   "searchMap.template.previewOnly": {
     "en": "Not open yet",
     "zh-Hans": "暂未开放"
+  },
+  "searchMap.emptySubmit": {
+    "en": "Enter a keyword or choose a category",
+    "zh-Hans": "请输入关键词或选择类别"
   }
 }

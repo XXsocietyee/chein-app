@@ -27,6 +27,8 @@ import SwiftUI
     @State private var templateResults: GlobalTemplateSearchResults?
     @Environment(\.globalTemplateSearch) private var templateLanes
     @State private var filter = GlobalSearchQuery()
+    /// R7-PC-A3-2: MP search2 `navigateToSearchList` toast (pages/search2/index.js:130, 250).
+    @State private var emptySearchToast: LocalizedStringKey?
     @State private var categoryRecovery = SearchMapCategoryRecovery()
     @State private var categoryPresentationID = UUID()
     @State private var filterPresentationID = UUID()
@@ -165,6 +167,7 @@ import SwiftUI
             case .shops: MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)
             }
         }
+        .cyToast(message: $emptySearchToast)
         .sheet(isPresented: $showsFilters) {
             let presentationID = filterPresentationID
             let context = categoryRecovery.context(for: categoryOwner)
@@ -613,7 +616,13 @@ import SwiftUI
     private func search() async {
         let query = filter
         guard isVisible else { return }
-        guard reader.isConfigured, query.canSearch else { return }
+        guard reader.isConfigured else { return }
+        guard query.canSearch else {
+            // MP: no keyword, category, date or narrowed price → toast('请输入关键词或选择类别').
+            let narrowedPrice = (query.minimumPrice ?? 0) > 0 || (query.maximumPrice.map { $0 < 1000 } ?? false)
+            if query.startDate == nil, query.endDate == nil, !narrowedPrice { emptySearchToast = "searchMap.emptySubmit" }
+            return
+        }
         let captured = resultContext
         let ticket = retainedResults.begin(in: captured)
         phase = .loading

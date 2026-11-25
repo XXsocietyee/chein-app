@@ -192,6 +192,22 @@
           }
         }
       }
+    },
+    "searchMap.emptySubmit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a keyword or choose a category"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入关键词或选择类别"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
