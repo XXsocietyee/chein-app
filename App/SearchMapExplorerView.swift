@@ -307,7 +307,7 @@ import SwiftUI
             Button { showsFilters = true } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease") }
                 .buttonStyle(.cySecondary(fullWidth: false)).frame(minHeight: 44).accessibilityIdentifier("searchMap.filters")
             Picker("searchMap.sort", selection: $sortType) {
-                Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
+                Text("searchMap.nearest").tag(1) // R7-PC-A5-3: MP searchmap sort_type 最近 only; 最热 removed (pages/searchmap/index.js:281)
             }.pickerStyle(.menu).frame(minHeight: 44).accessibilityIdentifier("searchMap.sortPicker")
         }
     }
