@@ -217,3 +217,34 @@ enum ProjectEditCastConfig {
         }
     }
 }
+
+// MARK: - A4-01 据点 → place detail (MP pages/mylike/mylike.wxml:43, mylike.js:435 → subpackageRoam/poi-detail)
+
+/// Opens the same `RoamItemDetailView` the map uses for a place, seeded by `poiId` only. The detail view reads
+/// `roamNodeDetail(id:)` itself; the seed carries no coordinate, so nothing is invented before that read lands.
+@MainActor struct RoamPOIDetailHost: View {
+    @EnvironmentObject private var session: AppSession
+    let poiID: Int
+    var name: String?
+
+    var body: some View {
+        if let place = Self.seed(poiID: poiID, name: name) {
+            RoamItemDetailView(item: .place(place), reader: session.roamReader,
+                               mediaScope: session.platformConsumers.scope, makeExternalMaps: session.platformConsumers.mapsFactory,
+                               stampDestination: { AnyView(SessionRoamStampCameraView()) },
+                               posterDestination: { AnyView(SessionRoamPosterView(node: $0)) },
+                               eventDestination: { AnyView(RoamNearbyEventsDetailHost(target: $0, session: session)) },
+                               couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader))
+        } else {
+            RoamStatusView(issue: .notConfigured)
+        }
+    }
+
+    /// `RoamPlace` is decode-only; build the seed the same way the list read does (`id`, `name`, `type` 1 = city node).
+    static func seed(poiID: Int, name: String?) -> RoamPlace? {
+        guard poiID > 0 else { return nil }
+        let object: [String: Any] = ["id": poiID, "name": name ?? "", "type": 1]
+        guard let data = try? JSONSerialization.data(withJSONObject: object) else { return nil }
+        return try? JSONDecoder().decode(RoamPlace.self, from: data)
+    }
+}

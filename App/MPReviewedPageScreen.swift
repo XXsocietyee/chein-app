@@ -185,6 +185,9 @@ import SwiftUI
         case "pages/play/poi-challenge/index":
             // PLAYPOI-2: the challenge reads its node by poiId.
             if let id = positiveID(query["poiId"]) { ChallengePOIHostView(poiID: id, reader: session.roamReader) } else { unavailable }
+        case "subpackageRoam/poi-detail/index":
+            // r8 A4-01 (MP mylike.js:435 `poi-detail?poiId=`): the city node detail by poiId (`id` is the canonical link key).
+            if let id = positiveID(query["poiId"] ?? query["id"]) { RoamPOIDetailHost(poiID: id, name: query["name"]) } else { unavailable }
         case "subpackageRoam/citynode-code/index":
             RoamCityVoucherCodeView(poiID: positiveID(query["poiId"]), name: query["name"])
         case "subpackageP3/pages/stamp-album/index/index":

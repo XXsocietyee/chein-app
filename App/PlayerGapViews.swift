@@ -379,7 +379,11 @@ struct CityFavoriteNodesSection: View {
                 if let nodes {
                     if nodes.isEmpty { Text("playerGap.cityFavorites.empty").cyText(.body).foregroundStyle(CYColor.textTertiary) }
                     ForEach(nodes) { node in
-                        row(node)
+                        // r8 A4-01 (MP mylike.wxml:43 bindtap goNode → subpackageRoam/poi-detail?poiId=): the row opens the place.
+                        NavigationLink {
+                            MPReviewedPageScreen(page: "subpackageRoam/poi-detail/index", query: ["poiId": String(node.id), "name": node.name])
+                        } label: { row(node) }
+                            .accessibilityHint(Text("fixr8.favorites.node.openHint"))
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button("playerGap.cityFavorites.remove", role: .destructive) { pendingRemoval = node }
                                     .disabled(removing != nil)
