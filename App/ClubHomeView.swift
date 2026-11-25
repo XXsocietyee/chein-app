@@ -132,7 +132,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     if let governance = management?.governance {
                         ClubGovernanceHomeEntries(feedContext: .init(viewerRevision: management?.viewerRevision ?? governance.viewerRevision,
                             readerIdentity: ObjectIdentifier(reader), destination: { id in
-                                AnyView(ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, publicRoster: publicRoster))
+                                // CLB-detail-34: the feed opens the same full club page as the list rows (:187).
+                                AnyView(ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator,
+                                                       management: management, community: community, publicRoster: publicRoster))
                             }), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
                     }
                     NavigationLink {
