@@ -1,99 +1,95 @@
 import SwiftUI
 
-/// `ROAM-9`: In-session roam `更多` tools sheet (`附近正在走的人`, fog toggle, map style,
-/// reduce motion, presence sharing, clear local cache).
-public struct RoamSessionToolsSheetView: View {
-    public let runners: [RoamNearbyRunner]
-    @Binding public var fogEnabled: Bool
-    @Binding public var mapStyle: RoamMapStyleOption
-    @Binding public var reduceMotionOverride: Bool
-    @Binding public var presenceSharing: Bool
+/// `ROAM-9a/9b`: in-session roam 更多 tools (MP pages/roam/index.wxml roam-settings scene), as a system `Form` sheet.
+/// - 附近正在走的人: rows from `POST /api/roam/nearby-runners` (pages/roam/index.js:2827-2842). There is no greet
+///   request in the MP, so there is no greet button.
+/// - 迷雾: `RoamFogPreference` (`roam_fog_off`, stored true = fog off).
+/// - 地图样式: `FreeMapKind` (`cy_map_kind`: 白 / 黑 / 纸本 / 2077), not the MapKit standard / satellite picker.
+/// - 减少动态效果: `PlayReducedMotionPreference` (writes `play_reduced_motion` and legacy `roam_reduced_motion`,
+///   pages/roam/index.js:880).
+struct RoamSessionToolsSheetView: View {
+    let runners: [RoamNearbyRunner]
+    /// MP `presenceVisible`: runners are read only while the walker shares presence.
+    let presenceEnabled: Bool
+    @Binding var fogOn: Bool
+    @Binding var mapKind: FreeMapKind
+    @Binding var reduceMotion: Bool
+    var onOpenLocationSettings: (() -> Void)? = nil
+    @Environment(\.dismiss) private var dismiss
 
-    public var onGreetRunner: (RoamNearbyRunner) -> Void = { _ in }
-    public var onOpenLocationSettings: () -> Void = {}
-    public var onClearLocalCache: () -> Void = {}
-    public var onClose: () -> Void = {}
-
-    @State private var showClearConfirm = false
-
-    public init(
-        runners: [RoamNearbyRunner] = [],
-        fogEnabled: Binding<Bool> = .constant(true),
-        mapStyle: Binding<RoamMapStyleOption> = .constant(.standard),
-        reduceMotionOverride: Binding<Bool> = .constant(false),
-        presenceSharing: Binding<Bool> = .constant(false),
-        onGreetRunner: @escaping (RoamNearbyRunner) -> Void = { _ in },
-        onOpenLocationSettings: @escaping () -> Void = {},
-        onClearLocalCache: @escaping () -> Void = {},
-        onClose: @escaping () -> Void = {}
-    ) {
-        self.runners = runners
-        self._fogEnabled = fogEnabled
-        self._mapStyle = mapStyle
-        self._reduceMotionOverride = reduceMotionOverride
-        self._presenceSharing = presenceSharing
-        self.onGreetRunner = onGreetRunner
-        self.onOpenLocationSettings = onOpenLocationSettings
-        self.onClearLocalCache = onClearLocalCache
-        self.onClose = onClose
-    }
-
-    public var body: some View {
-        VStack(spacing: 0) {
-            CYSheetHeader(title: Text("roamTools.title"), style: .player, onClose: onClose)
+    var body: some View {
+        NavigationStack {
             Form {
-                if !runners.isEmpty {
-                    Section("roamTools.runners.section") {
-                        ForEach(runners) { runner in
-                            HStack {
-                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    Text(runner.nickname)
-                                        .cyText(.bodyMedium)
-                                    if let dist = runner.distanceMeters {
-                                        Text("距离约 \(dist) 米")
-                                            .cyText(.meta, monospacedDigit: true)
-                                            .foregroundStyle(CYColor.textSecondary)
-                                    }
-                                }
-                                Spacer()
-                                Button(runner.greeted ? "roamTools.runners.greeted" : "roamTools.runners.greet") {
-                                    onGreetRunner(runner)
-                                }
-                                .buttonStyle(.bordered)
-                                .disabled(runner.greeted)
-                            }
-                        }
+                Section {
+                    if !presenceEnabled {
+                        Text("roamTools.runners.needPresence").foregroundStyle(.secondary)
+                    } else if runners.isEmpty {
+                        Text("roamTools.runners.empty").foregroundStyle(.secondary)
+                            .accessibilityIdentifier("roamTools.runners.empty")
+                    } else {
+                        ForEach(runners) { runner in runnerRow(runner) }
                     }
+                } header: {
+                    Text("roamTools.runners.section")
                 }
 
                 Section("roamTools.map.section") {
-                    Toggle("roamTools.fog", isOn: $fogEnabled)
-                    Picker("roamTools.mapStyle", selection: $mapStyle) {
-                        ForEach(RoamMapStyleOption.allCases) { opt in
-                            Text(opt.title).tag(opt)
+                    Toggle("roamTools.fog", isOn: $fogOn)
+                        .accessibilityIdentifier("roamTools.fog")
+                    Picker("roamTools.mapStyle", selection: $mapKind) {
+                        ForEach(FreeMapKind.allCases, id: \.self) { kind in
+                            Text(LocalizedStringKey("roamTools.mapKind." + kind.rawValue)).tag(kind)
                         }
                     }
-                    Toggle("roamTools.reduceMotion", isOn: $reduceMotionOverride)
-                    Toggle("roamTools.presenceSharing", isOn: $presenceSharing)
+                    .accessibilityIdentifier("roamTools.mapKind")
+                    Toggle("roamTools.reduceMotion", isOn: $reduceMotion)
+                        .accessibilityIdentifier("roamTools.reduceMotion")
                 }
 
-                Section("roamTools.permissions.section") {
-                    Button("roamTools.locationSettings", action: onOpenLocationSettings)
-                }
-
-                Section {
-                    Button("roamTools.clearCache", role: .destructive) {
-                        showClearConfirm = true
+                if let onOpenLocationSettings {
+                    Section("roamTools.permissions.section") {
+                        Button("roamTools.locationSettings", action: onOpenLocationSettings)
                     }
+                }
+            }
+            .navigationTitle(Text("roamTools.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("action.done") { dismiss() }
                 }
             }
         }
         .presentationDetents([.medium, .large])
-        .confirmationDialog("roamTools.clearCache.confirmTitle", isPresented: $showClearConfirm, titleVisibility: .visible) {
-            Button("roamTools.clearCache.confirmAction", role: .destructive, action: onClearLocalCache)
-            Button("common.cancel", role: .cancel) {}
-        } message: {
-            Text("roamTools.clearCache.confirmMessage")
+        .accessibilityIdentifier("roamTools.sheet")
+    }
+
+    /// MP f-multi card row: initial / avatar, nickname, walking time and own 地盘 %.
+    private func runnerRow(_ runner: RoamNearbyRunner) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            ZStack {
+                Circle().fill(CYColor.brandSoft)
+                Text(verbatim: runner.initial).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                if let avatar = runner.avatarURL {
+                    BoundedMediaThumbnail(url: avatar) { Color.clear }.clipShape(Circle())
+                }
+            }
+            .frame(width: 36, height: 36)
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(verbatim: runner.nickname).cyText(.bodyMedium)
+                HStack(spacing: CYSpacing.sm) {
+                    if !runner.elapsedLabel.isEmpty {
+                        Text(verbatim: runner.elapsedLabel).cyText(.meta, monospacedDigit: true)
+                    }
+                    if let explore = runner.explorePercent {
+                        Text("roamTools.runners.explore \(explore)").cyText(.meta, monospacedDigit: true)
+                    }
+                }
+                .foregroundStyle(CYColor.textSecondary)
+            }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("roamTools.runner.\(runner.id)")
     }
 }

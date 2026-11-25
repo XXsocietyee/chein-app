@@ -266,6 +266,29 @@ struct PlayerJourneySignInSheet: ViewModifier {
         Task { await invite() }
     }
 
+    /// JSEAT-r8-1b, MP subpackageJourney/pages/seats/index.js:169-179: netFail / `fail` / 5xx → 结果还没确认;
+    /// a finished non-OK → `res.msg || 转赠失败`; OK → close and re-read (the sheet's `onDone` calls `load()`).
+    var transferSeat: ((Int, String, String) async -> JourneySeatTransferOutcome)? {
+        { [weak self] seatNo, name, phone in
+            guard let self else { return .failed(nil) }
+            return await self.transfer(seatNo: seatNo, name: name, phone: phone)
+        }
+    }
+
+    private func transfer(seatNo: Int, name: String, phone: String) async -> JourneySeatTransferOutcome {
+        guard let session = token(), AuthRequestBuilder.isValidToken(session) else { return .failed(nil) }
+        do {
+            let envelope = try await source.seatTransferPhone(registrationID: registrationID, seatNo: seatNo, name: name,
+                                                              phone: phone, token: session)
+            if envelope.unconfirmed { return .unconfirmed }
+            return envelope.ok ? .sent : .failed(envelope.message)
+        } catch is JourneyRefusal {
+            return .failed(nil)
+        } catch {
+            return .unconfirmed
+        }
+    }
+
     func cancelInvitation(_ id: String) {
         Task { await cancel(id) }
     }
