@@ -143,7 +143,7 @@ struct RoamHomeTabPicker: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 16) {
                 if let cityStrip, onOpenCityPlace != nil {
-                    stripTab("roam.w208.entry.title", on: !showsCityTab, identifier: "roam.home.peek.tab.near") { showsCityTab = false }
+                    stripTab(Text("roam.w208.entry.title"), on: !showsCityTab, identifier: "roam.home.peek.tab.near") { showsCityTab = false }
                     stripTab(cityTabLabel(cityStrip), on: showsCityTab, identifier: "roam.home.peek.tab.city") { showsCityTab = true }
                 } else {
                     Text("roam.w208.entry.title").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
@@ -184,9 +184,6 @@ struct RoamHomeTabPicker: View {
     private func cityTabLabel(_ strip: RoamCityGuideStrip) -> Text {
         strip.inCity ? Text("roam.cityGuide.tab.inCity \(strip.city.name) \(strip.items.count)") : Text("roam.cityGuide.tab.default")
     }
-    private func stripTab(_ title: LocalizedStringKey, on: Bool, identifier: String, action: @escaping () -> Void) -> some View {
-        stripTab(Text(title), on: on, identifier: identifier, action: action)
-    }
     private func stripTab(_ title: Text, on: Bool, identifier: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             title.cyText(.cardTitle).foregroundStyle(on ? CYColor.textPrimary : CYColor.textSecondary)
@@ -194,7 +191,8 @@ struct RoamHomeTabPicker: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(on ? [.isSelected, .isHeader] : .isHeader)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityAddTraits(on ? .isSelected : [])
         .accessibilityIdentifier(identifier)
     }
     private var loadedCount: Int? {

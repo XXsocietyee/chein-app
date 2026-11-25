@@ -318,3 +318,29 @@ Kept on purpose: `playCompat.refused.next` says "更新 App" where the MP says "
 - Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), base 4ef0a2840 vs branch: 223 vs 224 failures+errors. The one new row is `test_localization_key_catalog_contract` for `playx.poi.claimedAgain`: the test reads `Resources/*.xcstrings` only, and the key is in this branch's fragment. **It clears when the integrator merges `docs/port/strings/fix-r3-play-roam-a.json`** (same path as earlier rounds' new keys). `test_w2_19_playMerchant` passes after the PlayStoreDay table regeneration.
 - `tools/check_typography_lint.py`: PASS. `tools/check_a11y_lint.py`: 1 finding, pre-existing club line (see §5).
 - New Swift files: none.
+
+## Round 5 (2026-11-25)
+
+Brief: scheduled round 5 (`COORDINATOR-HANDOVER.md` §4/§8, `owner-decisions-1124.md` MP-first, `fix-r3-round4.md`) and `audit/parity-r8-play-roam:docs/audit/parity-r8/play-roam.md` §3 (Claude App rows, half a pages).
+
+### Step 1 · merge `origin/ui/combined-r7` (f95850a46)
+- Conflicts (2), both sides kept:
+  - `App/MPReviewedPageScreen.swift`: poi-challenge keeps the round-4 `photo=` prefill (`ChallengePOIHostView(photoURL:)`) **and** adds combined's `subpackageRoam/poi-detail/index` case (`RoamPOIDetailHost`).
+  - `App/RoamBrowserView.swift`: keeps the MP three-ticket intro (官方路线 stays the 漫游护照 play card, MP roam/index.js:799) **and** passes combined's `teamsLive: introTeamsLive` (ROAM-13 live line, fix-r8).
+- Catalog keys that were used but missing (check_scaffold / check_catalog_coverage): `roam.history.signedOut` 登录后查看, `playx.poi.claimedAgain` 再完成一次不会重复发放 (MP poi-challenge/index.js:191), `roam.passport.play.routes.count %lld` %lld 条路线 (MP roam/index.js:799).
+- `check_scaffold.py`: PASS structural checks. No conflict markers; no duplicate type names.
+
+### Step 2 · rows
+| id | status | what | files |
+|---|---|---|---|
+| ROAM-13 (city strip) | **fixed** | MP 本城推荐 tab on the 附近活动 peek (pages/roam/index.wxml:144-160, index.js:5852-5895, subpackageRoam/utils/roam-city-guide.js). Tabs 附近活动 \| `<城市> · N 处推荐` (map within 60 km of a catalog centre) or 本城推荐 (default = first catalog city). Cards: name, category label (MP `CATEGORY_LABELS`), reason; cover from a loaded place carrying the seed tag `roam:seed:v1:<id>`, else `homeRouteCityPlaceholder`. Tap: loaded place with the exact seed tag, else a wide `/api/roam/pois` read matched by the same tag (never by name), then the existing place sheet; failure = MP toast 这个地点暂时打不开，请重试. Catalog ported App-side from `subpackageRoam/data/roam-city-catalog.js` (11 cities, 33 places), so the Cursor Core catalog request in `fix-r8-play-roam.md` item 2 is no longer needed. Parked `RoamCityStripTabView` stays unmounted (its model and hard-coded copy are not the MP's). | `App/RoamCityGuide.swift` (new), `App/RoamCityGuideCatalog.swift` (new, generated), `App/RoamHomeTabsView.swift` (`RoamEntryPeekView` tabs), `App/RoamBrowserView.swift` (`cityGuideOpen` task), strings fragment |
+| PLAY-r8-1 | verified | L01-039 share switch starts off (`App/PlayerGapViews.swift:210`, fix-r8). L01-032: the app's station rows show name / address only, never story text (`App/PlayExperienceView.swift:300-330`), so nothing leaks. L01-014: `SessionPlayRuntimeView` is `.id(session.sessionRevision)`, so a sign-in re-reads the page (an account switch re-reads instead of the MP's go-home). L02-059 copy equals MP `fe-story-visit.js:37` (已解锁 %lld / %lld 章, 已过期，不能再解锁). | — |
+| RHIST-2, RNEAR-2, RTEAMS-1, ROAM-13 live line | done by fix-r8-play-roam | Checked on the merged tree; not touched. | — |
+
+### Deviations / requests
+- ROAM-13 wide read: the MP reads at the catalog city centre with radius 100 km; `RoamService.validate` caps radius at 20 km and `RoamReading.roamPlaces` reads only at the current search area. The app reads 20 km around the search area. **Cursor:** allow a 100 km places read at an explicit centre if the default-city case must open.
+- a11y lint is 1 on the merged tree: `App/ObjectBadgeTileArtwork.swift:30` (fix-r8 BWALL-2, not half a). Left for its owner.
+
+### Verification (round 5, cloud, no compiler)
+- `python3 tools/check_scaffold.py`: PASS structural checks. `python3 tools/generate_project.py` run for the 2 new files (+24 pbxproj lines only).
+- Grepped before use: `RoamPlace.type/tags/coverImage`, `RoamReading.roamPlaces(radiusM:)`, `RoamSearchArea.coordinate`, `RoamMapItem.place`, `CYImageCard(title:meta:imageURL:style:)`, `.fallbackArtwork(_:)`, `MPAsset.BannerCover.homeRouteCityPlaceholder`, `appLocalized(_:locale:)`, `roamToastMessage`, `CYColor.textPrimary/textSecondary`. New type names (`RoamCityGuideCity`, `RoamCityGuidePlace`, `RoamCityGuideStrip`, `RoamCityGuideOpen`, `RoamCityGuideCards`, `RoamCityGuideCatalog`) were unused before.
