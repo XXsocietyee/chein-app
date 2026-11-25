@@ -163,7 +163,7 @@ import SwiftUI
         // Destructive row: its own section, red, with the consequence stated underneath.
         Section {
             Button(role: .destructive) { selected = .cancellation } label: {
-                Label { Text(LocalizedStringKey(ComplianceDestination.cancellation.title)).foregroundStyle(CYColor.dangerText) }
+                Label { Text("settings.deregister.row").foregroundStyle(CYColor.dangerText) } // MP shezhi.wxml:34 账号注销
                     icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcUserRoundX) }
                     .environment(\.settingsTileTint, SettingsTint.red)
                     .frame(maxWidth: .infinity, alignment: .leading)

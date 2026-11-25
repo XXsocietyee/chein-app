@@ -113,7 +113,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                     .accessibilityIdentifier("accountCollection.favorites.recommendNote")
                 }
                 if model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
-                    CYEmptyState(systemImage: "heart", "accountCollection.favorites.empty", detail: "accountCollection.favorites.emptyHint", messageIdentifier: "accountCollection.favorites.empty", kind: .favorites)
+                    CYEmptyState(systemImage: "tray", "accountCollection.favorites.empty", messageIdentifier: "accountCollection.favorites.empty", kind: .favorites)
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }
                 ForEach(Array(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }.enumerated()), id: \.element.id) { index, topic in
@@ -286,7 +286,7 @@ private struct AccountCollectionFavoriteCard: View {
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)
             } else {
                 if model.state.visibleRows(scope: key.scope).isEmpty {
-                    CYEmptyState(systemImage: "bookmark", "member.favorites.postsEmpty", tableName: "MemberProfile", messageIdentifier: "accountCollection.posts.empty", kind: .favorites)
+                    CYEmptyState(systemImage: "tray", "member.favorites.postsEmpty", tableName: "MemberProfile", messageIdentifier: "accountCollection.posts.empty", kind: .favorites)
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }
                 ForEach(model.state.visibleRows(scope: key.scope)) { post in

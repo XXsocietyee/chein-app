@@ -115,9 +115,9 @@ struct ProfileParticipantsView: View {
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             if let coordinator, coordinator.canPrepare, reader.identity != nil {
                                 // Direct list entry only opens the existing review/confirm flows; nothing is written here.
-                                Button("participant.form.delete", role: .destructive) { deleting = ParticipantRowTarget(id: card.id) }
+                                Button("participant.list.deleteShort", role: .destructive) { deleting = ParticipantRowTarget(id: card.id) } // MP address.wxml 删除
                                     .accessibilityIdentifier("participant.list.delete.\(card.id)")
-                                Button("participant.form.edit") { editing = ParticipantRowTarget(id: card.id) }
+                                Button("participant.list.editShort") { editing = ParticipantRowTarget(id: card.id) } // MP address.wxml 编辑
                                     .tint(CYColor.infoText).accessibilityIdentifier("participant.list.edit.\(card.id)")
                             }
                         }
