@@ -7,7 +7,10 @@ class CreatorContentContracts(unittest.TestCase):
         self.reader=(ROOT/'Core/CreatorContentReading.swift').read_text()
         self.ui=(ROOT/'App/CreatorContentViews.swift').read_text()
     def test_only_audited_read_routes(self):
-        self.assertEqual(set(re.findall(r'"(api/[^\"]+)"',self.service)), {'api/project/my','api/creator/center'})
+        # myproject/index.js:322 /api/project/my; :368 /api/registration/merchant/list; :375 /api/merchant/chapter-application/mine
+        # (subpackageA/utils/merchant-join-projects.js:1-4). Merchant scope appends accepted joins; other scopes do not.
+        self.assertEqual(set(re.findall(r'"(api/[^\"]+)"',self.service)), {
+            'api/project/my','api/creator/center','api/registration/merchant/list','api/merchant/chapter-application/mine'})
     def test_fixed_source_page(self):
         for pair in ['"pageNum": "1"','"pageSize": "200"','"ownerType": query.ownerType']:
             self.assertIn(pair,self.service)
