@@ -472,6 +472,7 @@ struct SessionRootView: View {
         ))
         .environment(\.challengePOIPhotoUploader, { session.makeChallengePOIPhotoUploader(poiID: $0) })
         .environment(\.playerContentImageUploader, session.makePlayerContentImageUploader())
+        .environment(\.topicRouteGapService, { session.makeTopicRouteGapService() })
         .environment(\.roamShareSnapshotPublisher, { session.makeRoamShareSnapshotPublisher() })
         .environment(\.externalGameSession, ExternalGameSessionRead.bridge(session))
         .modifier(MPParityPassEnvironment(session: session))
