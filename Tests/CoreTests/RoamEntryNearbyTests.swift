@@ -31,6 +31,9 @@ private final class EntryRecordingTransport: HTTPTransport {
         XCTAssertEqual(Dictionary(uniqueKeysWithValues: (parts.queryItems ?? []).map { ($0.name, $0.value ?? "") }), ["lat": "31.2", "lng": "121.4", "radius": "3000"])
         XCTAssertEqual(request.value(forHTTPHeaderField: "Accept"), "application/json")
         XCTAssertThrowsError(try RoamEntryNearbyRoute.request(baseURL: base, area: area, token: ""))
+        let publicWire = try RoamEntryNearbyRoute.publicRequest(baseURL: base, area: area)
+        XCTAssertEqual(publicWire.url, request.url)
+        XCTAssertNil(publicWire.value(forHTTPHeaderField: "Authorization"))
     }
 
     func testDecodeKeepsActivityAndTopicDropsHangoutAndMapsServerFields() throws {
@@ -117,6 +120,19 @@ private final class EntryRecordingTransport: HTTPTransport {
         XCTAssertEqual(rows, [])
         XCTAssertEqual(transport.requests.count, 1)
         access.revoke(); XCTAssertFalse(approved.isConfigured)
+        let guestTransport = EntryRecordingTransport(String(decoding: envelope(""), as: UTF8.self))
+        let guest = RoamEntryNearbyReader(configuration: try APIConfiguration(baseURL: base), transport: guestTransport,
+            current: { nil }, viewerRevision: { 0 }, area: { selection.snapshot }, access: { _ in nil })
+        XCTAssertTrue(guest.allowsPublicEntry); XCTAssertFalse(guest.isSignedIn); XCTAssertTrue(guest.isConfigured)
+        XCTAssertEqual(try await guest.entryNearby(), [])
+        XCTAssertEqual(guestTransport.requests.count, 1)
+        XCTAssertNil(guestTransport.requests[0].value(forHTTPHeaderField: "Authorization"))
+        XCTAssertEqual(guestTransport.requests[0].httpMethod, "GET")
+        let bare = RoamEntryNearbyReader(configuration: nil, transport: guestTransport, current: { nil },
+            viewerRevision: { 0 }, area: { selection.snapshot }, access: { _ in nil })
+        XCTAssertFalse(bare.allowsPublicEntry)
+        do { _ = try await bare.entryNearby(); XCTFail() } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+        XCTAssertEqual(guestTransport.requests.count, 1)
     }
 
     func testFixtureScenariosAndPassportTilesAndRecoveryBanner() async throws {

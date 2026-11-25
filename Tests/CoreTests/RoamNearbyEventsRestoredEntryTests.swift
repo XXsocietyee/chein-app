@@ -213,7 +213,7 @@ import XCTest
         }
     }
     @MainActor private final class Reader: RoamEntryNearbyReading {
-        var isConfigured = true, isSignedIn = true
+        var isConfigured = true, isSignedIn = true, allowsPublicEntry = false
         let isOfflineExample = true
         var readKey = "synthetic-account-1-area-1-approval-1"
         var searchArea: RoamSearchArea? = .init(coordinate: RoamCoordinate(latitude: 30, longitude: 120)!, label: "Selected")

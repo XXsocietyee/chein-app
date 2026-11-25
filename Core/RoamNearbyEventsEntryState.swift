@@ -7,7 +7,7 @@ public struct RoamNearbyEventsEntryScope: Equatable {
     public let readKey: String
     public let area: RoamSearchArea
     @MainActor public init?(reader: any RoamEntryNearbyReading) {
-        guard reader.isSignedIn, reader.isConfigured, let area = reader.searchArea else { return nil }
+        guard (reader.isSignedIn || reader.allowsPublicEntry), reader.isConfigured, let area = reader.searchArea else { return nil }
         readerID = ObjectIdentifier(reader); readKey = reader.readKey; self.area = area
     }
 }
@@ -39,7 +39,7 @@ public enum RoamNearbyEventsTeamReadState: Equatable {
     public init() {}
 
     public func visibleState(reader: any RoamEntryNearbyReading) -> RoamEntryPeekState {
-        guard reader.isSignedIn else { return .login }
+        guard reader.isSignedIn || reader.allowsPublicEntry else { return .login }
         guard reader.isConfigured, reader.searchArea != nil else { return .unavailable }
         guard loadedScope == RoamNearbyEventsEntryScope(reader: reader) else { return .loading }
         return state

@@ -156,7 +156,7 @@ struct RoamHomeTabPicker: View {
             }
             if showsCityTab, let cityStrip, let onOpenCityPlace {
                 RoamCityGuideCards(strip: cityStrip, places: cityPlaces, onOpen: onOpenCityPlace)
-            } else if reader.isSignedIn, reader.isConfigured, reader.searchArea == nil {
+            } else if (reader.isSignedIn || reader.allowsPublicEntry), reader.isConfigured, reader.searchArea == nil {
                 RoamStatusView(issue: .areaRequired)
                     .accessibilityIdentifier("roam.home.peek.areaRequired")
                 if let onChooseArea { Button("roam.area.title", action: onChooseArea) }

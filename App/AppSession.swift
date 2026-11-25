@@ -6346,7 +6346,7 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, current) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
-    /// Roam home 附近活动 peek: separate approval, manual roam centre, no default grant.
+    /// Roam home 附近活动 peek. Signed-in reads use the production lease; a guest with a deployment reads the public GET.
     lazy var roamEntryNearbyReader = RoamEntryNearbyReader(configuration: regionalConfiguration?.apiConfiguration,
         transport: compositionTransport.scopedForManualMap(roamMapSelection),
         current: { [weak self] in self?.currentRuntimeDependencyContext },
