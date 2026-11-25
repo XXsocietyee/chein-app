@@ -311404,6 +311404,70 @@
           }
         }
       }
+    },
+    "registration.hostReservation.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host booking"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主持预约"
+          }
+        }
+      }
+    },
+    "registration.hostReservation.status": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态"
+          }
+        }
+      }
+    },
+    "registration.hostReservation.payBy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay by"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "付款截止"
+          }
+        }
+      }
+    },
+    "registration.hostReservation.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销申请"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
