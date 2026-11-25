@@ -6,7 +6,10 @@ import SwiftUI
 /// Embedded under the inbox's own title, so it does not call `cyHeroScreen` (that would clear the parent bar).
 @MainActor struct IMCoopInviteStripView: View {
     let reader: any CooperationReading
-    @State private var direction: CooperationDirection = .received
+    @State private var pickedDirection: CooperationDirection = .received
+    /// R7-PC-D8-1: the message center's 收件箱 / 发件箱 tab fixes the direction and hides the strip's own picker.
+    @Environment(\.imCoopInviteDirection) private var fixedDirection
+    private var direction: CooperationDirection { fixedDirection ?? pickedDirection }
     @State private var phase: Phase = .loading
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
@@ -42,13 +45,15 @@ import SwiftUI
                 .accessibilityAddTraits(.isHeader)
             if direction == .received { IMInviteReminderToggle() }
             Spacer(minLength: CYSpacing.sm)
-            Picker(copy("邀请方向", "Invite direction"), selection: $direction) {
-                Text(verbatim: copy("收到", "Received")).tag(CooperationDirection.received)
-                Text(verbatim: copy("发出", "Sent")).tag(CooperationDirection.sent)
+            if fixedDirection == nil {
+                Picker(copy("邀请方向", "Invite direction"), selection: $pickedDirection) {
+                    Text(verbatim: copy("收到", "Received")).tag(CooperationDirection.received)
+                    Text(verbatim: copy("发出", "Sent")).tag(CooperationDirection.sent)
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 220)
+                .accessibilityIdentifier("im.coopStrip.direction")
             }
-            .pickerStyle(.segmented)
-            .frame(maxWidth: 220)
-            .accessibilityIdentifier("im.coopStrip.direction")
         }
     }
 
@@ -66,7 +71,7 @@ import SwiftUI
             CYStateLayout(
                 kind: .inbox,
                 title: Text(verbatim: direction == .received ? copy("还没有收到合作邀请", "No invites received yet")
-                                                             : copy("还没有发出的合作邀请", "No invites sent yet")),
+                                                             : copy("还没有发出的邀请", "No invites sent yet")), // MP im/list/index.wxml:106
                 artSize: 88
             )
             .accessibilityIdentifier("im.coopStrip.empty")
@@ -217,7 +222,14 @@ import SwiftUI
 private struct IMCoopInviteStripKey: EnvironmentKey {
     static let defaultValue: (@MainActor () -> AnyView)? = nil
 }
+private struct IMCoopInviteDirectionKey: EnvironmentKey {
+    static var defaultValue: CooperationDirection? { nil }
+}
 extension EnvironmentValues {
+    var imCoopInviteDirection: CooperationDirection? {
+        get { self[IMCoopInviteDirectionKey.self] }
+        set { self[IMCoopInviteDirectionKey.self] = newValue }
+    }
     var imCoopInviteStrip: (@MainActor () -> AnyView)? {
         get { self[IMCoopInviteStripKey.self] }
         set { self[IMCoopInviteStripKey.self] = newValue }

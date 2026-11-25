@@ -24,7 +24,7 @@ import SwiftUI
 }
 
 private struct CommunityMemberReportContextKey: EnvironmentKey {
-    static let defaultValue: CommunityMemberReportContext? = nil
+    static var defaultValue: CommunityMemberReportContext? { nil }
 }
 
 extension EnvironmentValues {
