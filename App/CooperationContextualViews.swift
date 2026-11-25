@@ -161,6 +161,11 @@ import SwiftUI
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var requests = Load.loading
     @State private var requestRows: [CoopFlowJSON] = []
+    @State private var requestCursor: String?
+    @State private var requestsHaveMore = false
+    @State private var loadingMoreRequests = false
+    /// MC8-31-6: 查看已发出邀请 → 协作列表 · 我发出的 when the list pushed this page (MP `checkUnknownInvites`).
+    @Environment(\.coopInviteSent) private var showSentInvites
     @State private var stations = Load.idle
     @State private var stationRows: [CoopFlowJSON] = []
     private enum Load: Equatable { case idle, loading, empty, failed, ready }
@@ -213,6 +218,20 @@ import SwiftUI
                 ForEach(Array(requestRows.enumerated()), id: \.offset) { _, row in
                     valueLine(stateLine(row["state"].text), style: .bodyMedium, color: CYColor.textPrimary)
                 }
+                if requestsHaveMore {
+                    Button { Task { await loadMoreRequests() } } label: {
+                        HStack { Text("merchantCoop.invite.requests.more"); if loadingMoreRequests { Spacer(); ProgressView() } }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .disabled(loadingMoreRequests)
+                    .accessibilityIdentifier("cooperation.invite.requests.more")
+                }
+            }
+            if let showSentInvites {
+                Button { showSentInvites() } label: {
+                    Text("merchantCoop.invite.viewSent").frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityIdentifier("cooperation.invite.viewSent")
             }
         }
     }
@@ -246,13 +265,33 @@ import SwiftUI
     }
     private func loadRequests() async {
         guard reader.session != nil else { requests = .idle; return }
-        requests = .loading
+        requests = .loading; requestCursor = nil; requestsHaveMore = false
         do {
             let page = try await reader.read(.inviteRequests(before: nil, limit: 20))
             let rows = page["rows"].rows ?? []
             requestRows = rows
+            acceptCursor(page, before: nil)
             requests = rows.isEmpty ? .empty : .ready
         } catch { requests = .failed }
+    }
+    /// MC8-31-6 (coop-invite-request.js:66-73): `nextCursor` pages older requests; an inconsistent cursor stops paging.
+    private func acceptCursor(_ page: CoopFlowJSON, before: String?) {
+        let next = page["nextCursor"].text ?? page["nextCursor"].integer.map(String.init)
+        let more = page["hasMore"].flag == true
+        if more, let next, CoopFlowRead.validInviteCursor(next), before.map({ next.count < $0.count || (next.count == $0.count && next < $0) }) ?? true {
+            requestCursor = next; requestsHaveMore = true
+        } else { requestCursor = nil; requestsHaveMore = false }
+    }
+    private func loadMoreRequests() async {
+        guard reader.session != nil, requestsHaveMore, !loadingMoreRequests, let before = requestCursor else { return }
+        loadingMoreRequests = true
+        defer { loadingMoreRequests = false }
+        do {
+            let page = try await reader.read(.inviteRequests(before: before, limit: 20))
+            let rows = page["rows"].rows ?? []
+            requestRows += rows
+            acceptCursor(page, before: before)
+        } catch { requestsHaveMore = false; requests = .failed }
     }
     private func loadStations() async {
         guard kind == .merchant, let topicID, topicID > 0, !merchantMemberIDs.isEmpty, reader.session != nil else {
@@ -456,7 +495,9 @@ import SwiftUI
                 NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) }
                     .environment(\.coopInviteOutcomeUnknown, { sendOutcomeUnknown = true })
                     // flows-g2 108: only a one-target send leaves the page; with several drafts the others stay sendable.
-                    .environment(\.coopInviteSent, editing.count == 1 ? inviteSent.map { sent in { showEditor = false; sent() } } : nil)
+                    // MC8-31-7: a several-target batch ends on one summary, whose 完成 does the same (the editor sends each
+                    // draft through its own reviewed preview and only calls this once every draft is sent).
+                    .environment(\.coopInviteSent, inviteSent.map { sent in { showEditor = false; sent() } })
                     .cyDomainSheet(detents: [.half, .full])
             }
     }
@@ -530,6 +571,11 @@ import SwiftUI
     @State private var fee = ""
     @State private var discard = false
     @FocusState private var typing: Bool
+    /// MC8-31-7 (coop/invite index.js:952-959): with several recipients each draft keeps its own reviewed submit,
+    /// and the page shows one result summary after the last one is sent, then ends on 我发出的.
+    @Environment(\.coopInviteSent) private var finishSend
+    @State private var presentedDraft: Int?
+    @State private var sentDrafts: Set<Int> = []
     private var drafts: [CoopFlowInvitation]? {
         CoopFlowBatchInvite.drafts(contexts: contexts, message: message, defaultMessage: defaultMessage,
                                    fixed: fixed, fee: fee, currentSession: reader.session)
@@ -574,15 +620,45 @@ import SwiftUI
             if let drafts {
                 NavigationLink {
                     List {
+                        if drafts.count > 1, sentDrafts.count == drafts.count {
+                            Section {
+                                Label("merchantCoop.invite.batchSent \(drafts.count)", systemImage: "checkmark.circle.fill")
+                                    .foregroundStyle(CYColor.successText)
+                                    .accessibilityIdentifier("cooperation.invite.batchSent")
+                                Button("coopflow.submit.done") { if let finishSend { finishSend() } else { dismiss() } }
+                                    .frame(minHeight: CYSpacing.minTouchTarget)
+                                    .accessibilityIdentifier("cooperation.invite.batchDone")
+                            }
+                        }
                         Text("context.coop.individualReviews")
                         ForEach(Array(drafts.enumerated()), id: \.offset) { index, draft in
                             let name = contexts[index].recipientName.trimmingCharacters(in: .whitespacesAndNewlines)
-                            NavigationLink { CoopFlowRequestPreview(operation: .invite(draft)) } label: {
-                                Text(verbatim: name.isEmpty ? "—" : name)
+                            if drafts.count == 1 {
+                                NavigationLink { CoopFlowRequestPreview(operation: .invite(draft)) } label: {
+                                    Text(verbatim: name.isEmpty ? "—" : name)
+                                }
+                            } else {
+                                Button { presentedDraft = index } label: {
+                                    HStack {
+                                        Text(verbatim: name.isEmpty ? "—" : name).foregroundStyle(CYColor.textPrimary)
+                                        Spacer()
+                                        if sentDrafts.contains(index) {
+                                            CYStatusChip("coopflow.submit.sent", tone: .neutral, systemImage: "checkmark")
+                                        }
+                                    }
+                                    .frame(minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .disabled(sentDrafts.contains(index))
                             }
                         }
                         CoopFlowSafetyNotice()
                     }.navigationTitle("coopflow.reviewAction").navigationBarTitleDisplayMode(.inline)
+                    .navigationDestination(item: $presentedDraft) { index in
+                        if index < drafts.count {
+                            CoopFlowRequestPreview(operation: .invite(drafts[index]))
+                                .environment(\.coopInviteSent, { sentDrafts.insert(index); presentedDraft = nil })
+                        }
+                    }
                 } label: {
                     Text("coopflow.reviewAction").frame(maxWidth: .infinity)
                 }

@@ -52,6 +52,44 @@ struct CoopInviteCountdownText: View {
     }
 }
 
+/// MC8-33-8 (components/cy/merchant-card/index.wxml:4,7,15,21): the MP venue-card images. The nearby row has no
+/// cover or logo yet (Core request), so the MP defaults show: `default-cover.png` with the `citylink.svg` brand mark,
+/// the pin before the address and the chevron at the end.
+struct NearbyMerchantCardChrome<Content: View>: View {
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 56
+    @ViewBuilder let content: () -> Content
+    var body: some View {
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            ZStack(alignment: .topLeading) {
+                MPAsset.BannerCover.defaultCover.resizable().scaledToFill()
+                    .frame(width: side, height: side)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .accessibilityHidden(true)
+                MPAsset.FeatureIcon.citylink.resizable().scaledToFit()
+                    .frame(width: side * 0.36, height: side * 0.36)
+                    .padding(CYSpacing.xxs)
+                    .accessibilityHidden(true)
+            }
+            content().frame(maxWidth: .infinity, alignment: .leading)
+            MPAsset.FeatureIcon.chevron.resizable().scaledToFit()
+                .frame(width: 14, height: 14)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+struct NearbyMerchantAddressLine: View {
+    let address: String
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xxs) {
+            MPAsset.FeatureIcon.pin.resizable().scaledToFit()
+                .frame(width: 12, height: 12)
+                .accessibilityHidden(true)
+            Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        }
+    }
+}
+
 /// MC8-30-4 / MC8-30-5: coop/list 回邀约 (received application → club, type 1) and 发邀约 (confirmed registration →
 /// merchant, type 0) open the new-invitation page with the recipient and topic fixed.
 struct CoopListInvitePreset: Equatable {

@@ -184,13 +184,16 @@ extension EnvironmentValues {
     }
     private func card(_ row: NearbyMerchantRow) -> some View {
         // Mini `cy-merchant-card variant="venue"`: name, then address and distance as quiet meta.
+        // MC8-33-8: the MP card images (default cover + citylink brand, pin, chevron) via NearbyMerchantCardChrome.
+        NearbyMerchantCardChrome {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: row.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            if let address = row.address { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            if let address = row.address { NearbyMerchantAddressLine(address: address) }
             if let member = row.memberID, let text = invitable.first(where: { $0.memberID == member })?.chapterText {
                 NearbyMerchantChapterLine(text: text)
             }
             if let distance = NearbyMerchantPage.distanceText(row.distance) { Text(verbatim: distance).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
+        }
         }
     }
 }

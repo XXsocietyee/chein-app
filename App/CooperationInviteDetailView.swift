@@ -82,6 +82,12 @@ import UIKit
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                     .accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
                 }
+                // MC8-32-3 (invite-detail wxml:42-56): the pending invite's validity under the hero.
+                if let countdown = CoopInviteCountdown.value(status: row.status, expire: row.expireTime) {
+                    CoopInviteCountdownText(value: countdown).cyText(.meta)
+                        .foregroundStyle(countdown == .expired ? CYColor.warningText : CYColor.textSecondary)
+                        .accessibilityIdentifier("cooperation.detail.countdown")
+                }
                 if let topic = row.topicId {
                     CooperationTopicReference(id: topic)
                     CooperationProjectNavigationLink(topicID: topic, invite: key, destination: topicDestination, openedTopic: $openedTopic)
