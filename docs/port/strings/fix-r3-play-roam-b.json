@@ -237,23 +237,6 @@
       }
     }
   },
-  "roam.goals.cancelMessage": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Progress stops counting and the goal can't be restored. This can't be undone."
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "取消后不再统计进度，也不能恢复。此操作不可撤销。"
-        }
-      }
-    }
-  },
   "objects.flip": {
     "extractionState": "manual",
     "localizations": {
@@ -458,74 +441,6 @@
       }
     }
   },
-  "roam.export.sourceChanged": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "The source changed and the parts read are incomplete. Prepare again."
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "来源已变化，已有部分不完整，请重新准备"
-        }
-      }
-    }
-  },
-  "roam.goals.retryOriginal": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Retry the original request"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "以原操作重试"
-        }
-      }
-    }
-  },
-  "objects.login": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Sign in to view your collection"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "登录后查看自己的册子"
-        }
-      }
-    }
-  },
-  "objects.failed": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Could not open your collection"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "藏品册无法打开"
-        }
-      }
-    }
-  },
   "badgeWall.state.signIn": {
     "extractionState": "manual",
     "localizations": {
@@ -556,23 +471,6 @@
         "stringUnit": {
           "state": "translated",
           "value": "勋章数据没有到达"
-        }
-      }
-    }
-  },
-  "stampAlbum.denied": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "This account cannot view this album."
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "当前身份不能查看"
         }
       }
     }
