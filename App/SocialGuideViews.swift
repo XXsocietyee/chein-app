@@ -22,7 +22,7 @@ import SwiftUI
                     // PlayGuideInformationListPage keeps only usable rows; an all-unusable list is the empty phase.
                     let rows = decoded.filter(\.isUsable)
                     if rows.isEmpty {
-                        CYEmptyState(systemImage: "doc.text", "guideXcx.docsEmpty", messageIdentifier: "social.guide.docsEmpty")
+                        CYEmptyState(systemImage: "tray", "guideXcx.docsEmpty", messageIdentifier: "social.guide.docsEmpty")
                             .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                     }
                     ForEach(rows) { row in

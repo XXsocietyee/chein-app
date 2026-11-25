@@ -14,6 +14,14 @@ import SwiftUI
     @State private var canPublish = false
     private var query: OfficialEventBrowseQuery { .sourceList(bucket: bucket, keyword: keyword) }
     private var privateList: Bool { query.isPrivate }
+    /// Round 4 copy (MP activity/list/index.wxml:32-33): the 我的 tab says 登录后查看我的活动 / 当前身份不能查看这些活动.
+    private static func mineIssueLabel(_ issue: OfficialScreenIssue) -> LocalizedStringKey? {
+        switch issue {
+        case .unauthorized: return "official.mine.signInRequired"
+        case .forbidden, .noPublisherPermission: return "official.mine.forbidden"
+        default: return nil
+        }
+    }
     /// R7-PC-C3-1: no own NavigationStack. The deep link pushes this into the caller's stack; the 首页 sheet wraps it.
     var body: some View {
         Group {
@@ -45,6 +53,7 @@ import SwiftUI
                     .accessibilityIdentifier("official.filter")
                 }.padding(.horizontal)
                 OfficialReadScreen(reader: reader, isPrivate: privateList, requestID: privateList ? "mine" : "public", onLogin: onLogin,
+                                   issueLabel: privateList ? Self.mineIssueLabel : nil,
                                    load: { if privateList { return try await reader.myEvents() }; return try await reader.events(city: nil) }) { rows in
                     eventList(rows)
                 }

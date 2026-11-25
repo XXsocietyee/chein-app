@@ -753,7 +753,7 @@ private struct ChatHistoryEmpty: View {
     let hint: LocalizedStringKey
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
-            CYEmptyState(systemImage: "bubble.left.and.bubble.right", "messaging.history.empty")
+            CYEmptyState(systemImage: "tray", "messaging.history.empty")
             Text(hint)
                 .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)

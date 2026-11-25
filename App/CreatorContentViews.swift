@@ -33,14 +33,27 @@ private struct CreatorContentIssueView: View {
     /// R7-PC-D1-7: page copy for the signed-out state (MP myproject `登录后查看我的项目`), plus its 登录 action.
     var loginTitleKey: String? = nil
     var onLogin: (() -> Void)? = nil
+    /// Round 4 copy (MP myproject/index.wxml:22-23): 当前身份不能查看这些项目 for a denied read (no retry),
+    /// 项目加载失败 as the title of a failed read with the reason underneath.
+    var deniedTitleKey: String? = nil
+    var failureTitleKey: String? = nil
     let retry: () -> Void
+    private var isDenied: Bool { issue == .unavailable && deniedTitleKey != nil }
     var body: some View {
         VStack(spacing: CYSpacing.md) {
-            Image(systemName: issue == .login ? "person.crop.circle" : "exclamationmark.circle")
+            Image(systemName: issue == .login || isDenied ? "lock" : "exclamationmark.circle")
                 .font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             Group {
-                if case .server(let text) = issue { Text(verbatim: text) }
-                else if issue == .login, let loginTitleKey { Text(LocalizedStringKey(loginTitleKey)) }
+                if issue == .login, let loginTitleKey { Text(LocalizedStringKey(loginTitleKey)) }
+                else if isDenied, let deniedTitleKey { Text(LocalizedStringKey(deniedTitleKey)) }
+                else if issue != .notConfigured, let failureTitleKey {
+                    VStack(spacing: CYSpacing.xs) {
+                        Text(LocalizedStringKey(failureTitleKey)).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        if case .server(let text) = issue { Text(verbatim: text) }
+                        else { Text(LocalizedStringKey(issue.localizationKey)) }
+                    }.accessibilityElement(children: .combine)
+                }
+                else if case .server(let text) = issue { Text(verbatim: text) }
                 else { Text(LocalizedStringKey(issue.localizationKey)) }
             }.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 .accessibilityIdentifier("creatorContent.issue")
@@ -48,7 +61,7 @@ private struct CreatorContentIssueView: View {
                 CYPillButton("auth.signIn", style: .primary, fullWidth: false, action: onLogin)
                     .accessibilityIdentifier("projects.signInAction")
             }
-            if issue != .login && issue != .notConfigured {
+            if issue != .login && issue != .notConfigured && !isDenied {
                 CYPillButton("creatorContent.retry", style: .secondary, fullWidth: false, action: retry)
                     .accessibilityIdentifier("creatorContent.retry")
             }
@@ -179,7 +192,8 @@ private struct CreatorContentIssueView: View {
     }
     private func issue(_ value: CreatorContentIssue) -> some View {
         CreatorContentIssueView(issue: value, loginTitleKey: "myProject.signInRequired",
-                                onLogin: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil) { Task { await refresh() } }
+                                onLogin: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil,
+                                deniedTitleKey: "myProject.accessDenied", failureTitleKey: "myProject.loadFailed") { Task { await refresh() } }
     }
     /// Mini-program myproject row: cover tile, title (state top-right), hairline, then the stats footer.
     private func card(_ project: CreatorContentProject) -> some View {

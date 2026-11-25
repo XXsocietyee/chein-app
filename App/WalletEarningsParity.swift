@@ -21,10 +21,14 @@ struct WalletEarningsEmptyNote: View {
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("member.wallet.noEarnings", tableName: "MemberProfile").cyText(.cardTitle)
-                Text("member.wallet.noEarningsHint", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(.secondary)
-            }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.earnings.empty")
+            // Round 4 image parity: MP `cy-empty kind="empty"` (scene-asset-earnings/index.wxml:22) draws
+            // `images/empty_state_bg.svg` + `empty_state_figure.svg`; the shared illustration is decorative.
+            CYEmptyIllustration(kind: .generic, size: 96)
+                .frame(maxWidth: .infinity)
+            // Round 4 copy: MP has the title only (还没有收益, no sub line).
+            Text("member.wallet.noEarnings", tableName: "MemberProfile").cyText(.cardTitle)
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("wallet.earnings.empty")
             if rootTabSwitch.isAvailable {
                 CYPillButton("wallet.earnings.goPublish", style: .secondary, fullWidth: false) { rootTabSwitch(.publish) }
                     .accessibilityIdentifier("wallet.earnings.goPublish")

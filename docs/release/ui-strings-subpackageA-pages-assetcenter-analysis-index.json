@@ -55,7 +55,7 @@
     {
       "key": "wallet.analysis.login",
       "en": "Sign in to see your analysis",
-      "zh-Hans": "登录后查看分析",
+      "zh-Hans": "登录后查看",
       "table": "WalletIncomeAnalysis"
     },
     {

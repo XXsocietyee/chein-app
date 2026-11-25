@@ -101,10 +101,16 @@ extension WalletScreen where Value == WithdrawalBalance {
     var unavailable = false
     /// FIN-18-3: the points ledger says 积分明细加载失败 (MP points-history/index.wxml:11).
     var failedKey = "wallet.failed"
+    /// Round 4 copy (MP scene-asset-earnings:7, scene-asset-income-detail:41): page wording for the signed-out and
+    /// no-permission states. nil keeps the shared 登录后可查看 / 暂时无法显示.
+    var loginKey: String? = nil
+    var deniedKey: String? = nil
     var retry: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? "wallet.login" : reader.isConfigured && !unavailable ? failedKey : "wallet.unavailable")).accessibilityIdentifier("wallet.issue")
+            Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? (loginKey ?? "wallet.login")
+                : reader.isConfigured && !unavailable ? failedKey
+                : reader.isConfigured ? (deniedKey ?? "wallet.unavailable") : "wallet.unavailable")).accessibilityIdentifier("wallet.issue")
             if reader.isConfigured && reader.scope != nil && !requiresLogin && !unavailable {
                 CYPillButton("wallet.retry", style: .secondary, fullWidth: false, action: retry)
             }
@@ -175,7 +181,8 @@ enum WalletPayoutCapability {
                         if value.balance.value == 0 { WalletEarningsEmptyNote() }
                     } else {
                         WalletIssueView(reader: reader, requiresLogin: earnings.requiresLogin,
-                            unavailable: earnings.unavailable) { Task { await loadEarnings() } }
+                            unavailable: earnings.unavailable, failedKey: "wallet.earnings.loadFailed",
+                            loginKey: "wallet.earnings.signInRequired", deniedKey: "wallet.earnings.denied") { Task { await loadEarnings() } }
                     }
                 }.accessibilityIdentifier("wallet.earnings.overview")
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -532,7 +539,7 @@ extension EnvironmentValues {
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
                     if income || points {
-                        CYEmptyState(systemImage: "list.bullet", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
+                        CYEmptyState(systemImage: income ? "tray" : "list.bullet", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
                             .accessibilityIdentifier("wallet.ledger.empty")
                     } else {
                         Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points))).accessibilityIdentifier("wallet.ledger.empty")
@@ -569,7 +576,9 @@ extension EnvironmentValues {
             }
             if model.pager.failed || !reader.isConfigured || reader.scope == nil {
                 WalletIssueView(reader: reader, requiresLogin: model.pager.requiresLogin, unavailable: model.pager.unavailable,
-                                failedKey: points ? "wallet.points.failed" : "wallet.failed") { Task { await model.load(reader, kind: kind) } }
+                                failedKey: points ? "wallet.points.failed" : income ? "wallet.income.loadFailed" : "wallet.failed",
+                                loginKey: income ? "wallet.income.signInRequired" : nil,
+                                deniedKey: income ? "wallet.income.denied" : nil) { Task { await model.load(reader, kind: kind) } }
             }
             if model.pager.isLoading {
                 if income { CYSkeleton().accessibilityLabel(Text("wallet.loading")) }

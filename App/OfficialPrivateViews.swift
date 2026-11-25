@@ -22,7 +22,7 @@ import SwiftUI
             List {
                 // PC-C-5-3: the current MP inbox has only the page title (drawn by the bar); the stale oi-hero preamble is gone.
                 if page == .empty {
-                    CYEmptyState(systemImage: "envelope.open", "official.inbox.empty", detail: "official.inbox.emptyDetail")
+                    CYEmptyState(systemImage: "tray", "official.inbox.empty")
                         .accessibilityIdentifier("official.inbox" + ".empty")
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
@@ -92,7 +92,9 @@ import SwiftUI
     var onLogin: (() -> Void)? = nil
     @Environment(\.cyPalette) private var palette
     var body: some View {
-        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "published", onLogin: onLogin, load: { try await reader.myPublished() }) { value in
+        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "published", onLogin: onLogin,
+                           issueLabel: { $0 == .failed ? "official.published.loadFailed" : nil },
+                           load: { try await reader.myPublished() }) { value in
             List {
                 if let actions {
                     Section {

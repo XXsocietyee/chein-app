@@ -16,6 +16,23 @@
       }
     }
   },
+  "messaging.accessDenied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This conversation can't be opened"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这个会话无法打开"
+        }
+      }
+    }
+  },
   "messaging.day.earlier": {
     "extractionState": "manual",
     "localizations": {
@@ -84,6 +101,23 @@
       }
     }
   },
+  "myProject.accessDenied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your current role can't view these projects"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看这些项目"
+        }
+      }
+    }
+  },
   "myProject.address.open %@": {
     "extractionState": "manual",
     "localizations": {
@@ -97,6 +131,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "在地图中打开 %@"
+        }
+      }
+    }
+  },
+  "myProject.loadFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Projects didn't load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "项目加载失败"
         }
       }
     }
@@ -169,6 +220,40 @@
       }
     }
   },
+  "official.mine.forbidden": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your current role can't view these events"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看这些活动"
+        }
+      }
+    }
+  },
+  "official.mine.signInRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to see your events"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看我的活动"
+        }
+      }
+    }
+  },
   "official.organizer.counter %lld %lld": {
     "extractionState": "manual",
     "localizations": {
@@ -199,6 +284,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "主办控制台"
+        }
+      }
+    }
+  },
+  "official.published.loadFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Publishing history didn't load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "发布记录加载失败"
         }
       }
     }
@@ -284,6 +386,125 @@
         "stringUnit": {
           "state": "translated",
           "value": "暂无可用票"
+        }
+      }
+    }
+  },
+  "registration.form.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Checkout"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结算"
+        }
+      }
+    }
+  },
+  "wallet.earnings.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your current role can't view earnings"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看收益"
+        }
+      }
+    }
+  },
+  "wallet.earnings.loadFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Earnings didn't load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "收益加载失败"
+        }
+      }
+    }
+  },
+  "wallet.earnings.signInRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to see your earnings"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看账户收益"
+        }
+      }
+    }
+  },
+  "wallet.income.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your current role can't view income details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看收益明细"
+        }
+      }
+    }
+  },
+  "wallet.income.loadFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Income details didn't load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "收益明细加载失败"
+        }
+      }
+    }
+  },
+  "wallet.income.signInRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to see income details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看收益明细"
         }
       }
     }

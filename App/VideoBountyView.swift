@@ -248,7 +248,7 @@ struct VideoBountyView: View {
     @ViewBuilder private var submissions: some View {
         MPLoadSwitch(load: state.submissions, errorTitle: "mp.common.readFailed", identifier: "videoBounty.submissions", onRetry: onLoad) { rows in
             if rows.isEmpty {
-                CYEmptyState(systemImage: "film", "mp.vb.empty.submissions", messageIdentifier: "videoBounty.submissions.empty")
+                CYEmptyState(systemImage: "tray", "mp.vb.empty.submissions", messageIdentifier: "videoBounty.submissions.empty")
             } else {
                 MPRows(items: rows) { row in submissionRow(row) }
             }
@@ -303,7 +303,7 @@ struct VideoBountyView: View {
     @ViewBuilder private var accruals: some View {
         MPLoadSwitch(load: state.accruals, errorTitle: "mp.common.readFailed", identifier: "videoBounty.accruals", onRetry: onLoad) { rows in
             if rows.isEmpty {
-                CYEmptyState(systemImage: "doc.text", "mp.vb.empty.accruals", messageIdentifier: "videoBounty.accruals.empty")
+                CYEmptyState(systemImage: "tray", "mp.vb.empty.accruals", messageIdentifier: "videoBounty.accruals.empty")
             } else {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     MPRows(items: rows) { row in
