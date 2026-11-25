@@ -1145,7 +1145,7 @@ private struct ClubOperationsProfileForm: View {
         Section {
             ForEach(Array(ClubOperationsCatalog.types.enumerated()), id: \.element) { index, value in
                 ClubR1OptionCard(title: Text(LocalizedStringKey("club.ops.value." + value)),
-                                 subtitle: clubR1("create.kind.\(index).sub", formLocale),
+                                 subtitle: nil, // CLB-r7-C-04 MP-first: create/index.js:40 + wxml:68 show the type name only
                                  systemImage: ClubR1CreateSymbols.type(index),
                                  isSelected: draft.clubType == value) {
                     draft.clubType = draft.clubType == value ? "" : value
