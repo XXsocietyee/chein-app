@@ -462,11 +462,23 @@ struct MessagingHistoryView: View {
             } else { earlierPhase = .failed(failure, retry: nil) }
         }
     }
-    /// R7-PC-D9-1 (MP im/chat: `api/im/read` after the first page). Runs only when the ordinary-read grant is on
-    /// (`.imRead`, default off, so `canReviewOrdinaryRead` is false) and the row reports unread messages. It goes through
+    /// R7-PC-D9-1 (MP im/chat: `api/im/read` after the first page). With the reviewed ordinary-read grant on
+    /// (`canReviewOrdinaryRead`) and the row reporting unread messages, it goes through
     /// the coordinator's own review → confirm, so the frozen cursor, journal and recovery are the explicit path's.
     private func markReadAfterFirstPage(_ request: UInt64, _ identity: MessagingReadIdentity?, source: ObjectIdentifier) {
         guard let owner = expanded?.coordinator(conversationID), owner.isCurrent else { return }
+        // MP-first (chat/index.js:861-867 `markRead`): without the reviewed read-receipt/read-state reads, the chat still
+        // posts the MP's plain `api/im/read` once the first page is on screen. The server decides; failures stay silent
+        // like the MP (`hideLoading`, no toast).
+        if !owner.canReviewOrdinaryRead {
+            guard conversation?.unread != 0, let writer = owner.writer as? IMExpandedWriter, writer.canWriteInboxConversationRead else { return }
+            let id = conversationID
+            Task {
+                guard isCurrent(request, identity, source: source) else { return }
+                try? await writer.markInboxConversationRead(conversationID: id)
+            }
+            return
+        }
         let policy = IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted(imReadGranted: owner.canReviewOrdinaryRead)
         guard policy.shouldAutoMarkRead(unreadCount: conversation?.unread), owner.reviewOrdinaryRead() else { return }
         Task { await owner.confirm(stillAuthorized: { isCurrent(request, identity, source: source) }) }

@@ -6435,7 +6435,7 @@ final class AppSession: ObservableObject {
         let captured = factory.captured
         let service = IMExpandedService(configuration: configuration, transport: factory.client(features),
             approvedMediaOrigins: factory.configuration.imMediaOrigins, writesEnabled: true,
-            enabledPaths: Set(factory.routes(features).map(\.path)))
+            enabledPaths: Set(factory.routes(features).map(\.path)), inboxConversationReadEnabled: true) // MP-first R7-PC-D9-1: MP posts api/im/read
         let writer = IMExpandedWriter(service: service, session: { [weak self] in
             guard let self, self.currentRuntimeDependencyContext == captured else { return nil }; return self.currentIMExpandedSession
         }, onUnauthorized: { [weak self] snapshot in
