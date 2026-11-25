@@ -322,7 +322,9 @@ struct MerchantCoopCenterRouteCard: View {
     @Environment(\.locale) private var locale
     /// MC7-27-2: the whole card opens the route's chapters (MP coop-center/index.wxml:27-28); 看详情 stays as a label.
     var body: some View {
-        if let topicID = route.topicID {
+        // MC8-27-1: MP `openTopic` → pages/topic/merchantinfo?id= (the app's chapter-application view with 申请承接);
+        // a numeric route id still opens it when the server sent the id as a string.
+        if let topicID = route.topicID ?? Int(route.id).flatMap({ $0 > 0 ? $0 : nil }) {
             NavigationLink {
                 MerchantContentDocumentView(service: content, query: .chapters(topicID: topicID))
             } label: { card }

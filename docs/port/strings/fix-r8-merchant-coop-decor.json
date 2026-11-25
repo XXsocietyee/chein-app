@@ -170,6 +170,74 @@
           }
         }
       }
+    },
+    "merchantCoop.gameNode.scan.camera": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫码核验"
+          }
+        }
+      }
+    },
+    "merchantCoop.gameNode.scan.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the player's verification code, or type it below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描玩家的核验码，或在下方输入"
+          }
+        }
+      }
+    },
+    "merchantCoop.gameNode.scan.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter or scan the verification code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入或扫描核验码"
+          }
+        }
+      }
+    },
+    "merchantCoop.npc.voice.openMicSettings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on the microphone in Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去设置开启麦克风"
+          }
+        }
+      }
     }
   }
 }
