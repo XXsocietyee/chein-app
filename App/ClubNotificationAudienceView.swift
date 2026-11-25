@@ -165,7 +165,10 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                 }
             }
             if isCurrent(), permit != nil, let failure = model.failure, failure != .forbidden {
-                Label(LocalizedStringKey(failure.localizationKey), systemImage: "exclamationmark.triangle")
+                // CLB-notify-04 (fix-r8-club): MP notify wxml:16-17 says 网络连接失败 or 通知工具暂时不可用
+                // (ClubOpsNetworkFailureClassifier), not the generic governance failure line.
+                Label(LocalizedStringKey(ClubOpsNetworkFailureClassifier.kind(failure) == .network ? "clubR8b.notify.networkFailed" : "clubR8b.notify.unavailable"),
+                      systemImage: "exclamationmark.triangle")
                     .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)

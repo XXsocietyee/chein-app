@@ -4,6 +4,8 @@ import SwiftUI
     @StateObject private var model: ClubBadgeHostModel
     @State private var visible = false
     @State private var creating = false
+    /// CLB-r8-badges-02 (fix-r8-club): the last mutation was 创建勋章, so a failed outcome reads 勋章没有创建成功.
+    @State private var lastWasCreate = false
     @State private var pendingReview: ClubBadgeGrantReview?
     @State private var draft = ClubBadgeCreateDraft()
     @Environment(\.scenePhase) private var scenePhase
@@ -254,6 +256,7 @@ import SwiftUI
                     },
                     onConfirm: {
                         pendingReview = nil
+                        lastWasCreate = false
                         model.perform { await $0.confirmGrant(review) }
                     }
                 )
@@ -281,6 +284,19 @@ import SwiftUI
                     model.perform { await $0.refresh() }
                 }
             }
+        case .needsReview where lastWasCreate:
+            // MP badges js:264,282: 勋章没有创建成功, or the server's own sentence when it gave one.
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text("clubR8b.badges.createFailed")
+                    .cyText(.body, weight: .semibold)
+                    .foregroundStyle(palette.textPrimary)
+                if let message = model.flow?.operationMessage, !message.isEmpty {
+                    Text(verbatim: message).cyText(.meta).foregroundStyle(palette.textSecondary)
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("club.badges.createFailed")
         case .needsReview:
             Text("actionNeedsReview", tableName: "ClubBadge")
                 .cyText(.body)
@@ -342,7 +358,7 @@ import SwiftUI
                 )
                 VStack(spacing: CYSpacing.sm) {
                     CYPillButton("confirmCreate", tableName: "ClubBadge") {
-                        let submitted = draft; creating = false
+                        let submitted = draft; creating = false; lastWasCreate = true
                         model.perform { await $0.create(submitted) }
                     }
                     .disabled(draft.validation != nil || model.flow?.canCreate != true)
