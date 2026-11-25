@@ -91,11 +91,10 @@ struct SearchMapAllResultsSheet: View {
                             .accessibilityIdentifier("searchMap.w208.sheet.activity.\(row.id)")
                         // R7-PC-A5-5 (r8): the address is also a visible tap target, not long-press only.
                         if let placeURL = SearchMapPlaceLink.url(for: row) {
-                            Button { openURL(placeURL) } label: {
+                            Link(destination: placeURL) {
                                 Label("accountCollection.coupon.openInMaps", systemImage: "map")
                                     .cyText(.label).frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                             }
-                            .buttonStyle(.borderless)
                             .accessibilityIdentifier("searchMap.w208.sheet.openInMaps.\(row.id)")
                         }
                     }

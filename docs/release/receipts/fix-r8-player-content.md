@@ -1,16 +1,16 @@
 # Receipt: fix/r8-player-content (Claude App, r8 audit rows)
 
-- **Branch:** `fix/r8-player-content`, from `origin/ui/combined-r7` @ f5f3006d7 (re-merged before each push; r7 did not move).
+- **Branch:** `fix/r8-player-content`, from `origin/ui/combined-r7` @ f5f3006d7. Round 5 merged `origin/ui/combined-r7` @ f95850a46 (merge 7b04ef72f) and re-merges it before each push.
 - **Queue:** `origin/audit/parity-r8-player-content:docs/audit/parity-r8/player-content.md` plus the A–D group files. Only "Claude App" rows were taken.
-- **Strings:** `docs/port/strings/fix-r8-player-content.json` (xcstrings shape, en + zh-Hans). Until the integrator merges it, `tools/check_scaffold.py` reports 3 keys that are not yet in the catalog (`merchant.content.contactHost`, `im.composer.plus`, `discovery.templateDetail.readonly`). Base r7 passes that check, so this is the merge step, not a code fault.
-- **For the integrator:** the fragment also **overrides 4 existing catalog values**. The r3-b fragment never landed for the first two. Merge with "fragment wins":
-  - `official.bucket.upcoming` → 即将上线 (R7-PC-C3-3)
-  - `official.detail` → 活动详情 (R7-PC-C4-5)
-  - `searchMap.categoryFailed` → 类别加载失败 (R7-PC-A3-5)
-  - `searchMap.citySearch` → 在地图上找 (R7-PC-A3-5)
+- **Strings:** `docs/port/strings/fix-r8-player-content.json`. Round 5 wrapped it in the xcstrings shape (`{sourceLanguage, strings, version}`) and merged its 21 missing keys into `Resources/Localizable.xcstrings`, so `check_scaffold.py` prints `PASS structural checks` on this branch. The unused `context.review.star %lld` key was dropped, because combined-r7's star row uses `context.review.starLabel %lld`.
+  - Catalog values that differed: `searchMap.categoryFailed` → 类别加载失败 and `searchMap.citySearch` → 在地图上找 now follow the MP (`pages/search2/index.wxml:65,90`). They are written to the catalog and to `docs/search-map-localizations.json`, which `test_search_map_contracts` compares against.
+  - `official.bucket.upcoming` and `official.detail` keep the catalog's reviewed values (即将 / 官方活动详情). The MP gives no clear source for the old override, so the fragment now matches the catalog.
+- **Round 5 merge conflicts:**
+  - `ContextualReviewComposer`: kept combined-r7's MP star row and the 评价路线 topic copy, plus this branch's 300-character cap.
+  - `TopicDetailView`: kept the 收藏 toggle and the poster cover/subtitle arguments, in the declared parameter order.
 - **No compiler here.** Every API used was grepped on r7 first.
 - **Contract checks:** a local script ran every `Tests/ContractChecks` file that names a changed file, on r7 and on this branch, and compared the failure sets.
-  - Result: no new failures.
+  - Result: no new failures. Round 5 re-ran the 95 checks that name a changed App file, on combined-r7 @ f95850a46 and on this branch. Still no new failures.
   - The hash pins I touched were re-pinned with a comment naming the row: `test_merchant_station_submission_import` (EDITOR_BASE_SHA), `test_activity_publishing_wizard` (PREFIX_SHA only), `test_activity_registration_parity_w2_06`, `test_topic_template_name_search`, `test_social_guide_templates` (destination binding assertion), `test_official_detail_parity_w2_06`, `test_official_preference_ui_regressions`, and the `official.price` identifier entry in `docs/release/ui-strings-pages-activity-official-detail-index.json` (`test_cb212_official_detail_page_ready`).
   - `check_typography_lint.py`: PASS.
 
@@ -47,6 +47,8 @@
 | R7-PC-B1-22 | P2 | 分享卡片 (`TopicSharePosterCardView`) sheet beside the ShareLink. | App/TopicXcxSections.swift, App/TopicDetailView.swift |
 | R7-PC-B1-18 | P2 (part) | The MP `routeNote` sentence (in order / N 站 / 步行约 N 公里; free explore: N 家). | App/TopicXcxSections.swift |
 | R7-PC-B4-6 | P2 | Pricing `scope=MERCHANT` comes from the link or the owner sale route and feeds the preview input and confirm. | App/PublisherLifecycleViews.swift, App/TopicXcxSections.swift, App/TopicDetailView.swift, App/MPReviewedPageScreen.swift |
+| R7-PC-A1-4 | P2 | (round 5) The stream card's 地点 row is its own visible button below the card (`HomeFeedPlaceLinkRow`, brand tint + pin, 44 pt), opening the place in Maps (MP index.wxml:219-239 `onAddressTap`). Long-press and the VoiceOver action stay. A nested button inside the card label could not take the tap. | App/HomeFeedView.swift |
+| R7-PC-A5-5 (fix) | P2 | (round 5) The visible 在地图中打开 is a `Link`, not `openURL(` in a Search file. That `openURL(` call broke `test_search_map_contracts.test_no_location_permission_or_provider_actions`. | App/SearchMapResultsCapsule.swift |
 | R7-PC-D2-1 | P2 | The guide template detail / catalog is pushed, not a sheet. | App/SocialGuideTemplateSection.swift (+ re-pin) |
 
 ## Left open (with reason)
@@ -62,7 +64,6 @@
 - **R7-PC-C5-2:** per-card busy text needs an observable `OfficialActionCoordinator.state` (it is a plain class).
 - **R7-PC-B1-13:** the session picker selects activities. `TopicSessionSelectionFlow` has no ticket preselect.
 - **R7-PC-A1-1:** there is no session relocate hook (clearing `roamArea` does not re-run location).
-- **R7-PC-A1-4:** 地点 sits inside the card's Button label. A separate tap target needs a card restructure (long-press and the VoiceOver action exist).
 - **R7-PC-A1-7:** no public share URL for 首页 yet.
 - **R7-PC-A2-6:** horizontal rails per shelf group are a layout restyle; it is left for the restyle lane.
 - **R8-PC-B6-1:** deleting `PublicCatalogView` also drops `Tests/AppUnitTests/PublicCatalogViewsTests.swift`. Leave that to the coordinator with a compiler.
