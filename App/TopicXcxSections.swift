@@ -496,12 +496,18 @@ struct TopicXcxToolbarActions: View {
 }
 
 private struct TopicPricingDestinationKey: EnvironmentKey { static let defaultValue: ((Int) -> AnyView)? = nil }
+private struct TopicPricingScopeKey: EnvironmentKey { static let defaultValue: String? = nil }
 private struct TopicEditorDestinationKey: EnvironmentKey { static let defaultValue: ((Int, String?) -> AnyView)? = nil }
 extension EnvironmentValues {
     /// Owner-only final-price page (source `pages/topic/pricing`); nil hides the entry.
     var topicPricingDestination: ((Int) -> AnyView)? {
         get { self[TopicPricingDestinationKey.self] }
         set { self[TopicPricingDestinationKey.self] = newValue }
+    }
+    /// R7-PC-B4-6 (MP topic index.js:1178 `&scope=MERCHANT`): the owner sale route's scope for the pricing page.
+    var topicPricingScope: String? {
+        get { self[TopicPricingScopeKey.self] }
+        set { self[TopicPricingScopeKey.self] = newValue }
     }
     /// Owner lifecycle-2 free explore opens `pages/publish/fabu/index`. Nil hides the entry. This does not grant pricing.
     var topicEditorDestination: ((Int, String?) -> AnyView)? {

@@ -18,11 +18,9 @@ final class OfficialEventFlowTests: XCTestCase {
         XCTAssertTrue(element.exists, app.debugDescription, file: file, line: line)
         XCTAssertTrue(element.isHittable, app.debugDescription, file: file, line: line)
     }
-    private func expectUnspecifiedPrice() {
-        let price = app.descendants(matching: .any)["official.price"].firstMatch
-        reveal(price)
-        XCTAssertEqual(price.label, "Price")
-        XCTAssertEqual(price.value as? String, "Price not available")
+    /// R7-PC-C4-3: the MP official detail has no price row.
+    private func expectNoPriceRow() {
+        XCTAssertFalse(app.descendants(matching: .any)["official.price"].exists)
     }
     private func select(_ title: String) {
         let chips = app.descendants(matching: .any)["official.filter"].firstMatch
@@ -36,7 +34,7 @@ final class OfficialEventFlowTests: XCTestCase {
         let first = app.buttons["official.event.71"]
         XCTAssertTrue(first.waitForExistence(timeout: 10)); first.tap()
         XCTAssertTrue(app.navigationBars["Official event details"].waitForExistence(timeout: 5))
-        expectUnspecifiedPrice()
+        expectNoPriceRow()
         XCTAssertFalse(app.buttons["Sign up"].exists)
         app.navigationBars["Official event details"].buttons.firstMatch.tap()
         XCTAssertTrue(first.waitForExistence(timeout: 5)); first.tap()
@@ -104,7 +102,7 @@ final class OfficialEventFlowTests: XCTestCase {
     func testUnknownFactsDoNotBecomeFreeOrAvailable() {
         launch("unknown", destination: "detail")
         XCTAssertTrue(app.staticTexts["Status not provided"].waitForExistence(timeout: 10))
-        expectUnspecifiedPrice()
+        expectNoPriceRow()
         reveal(app.staticTexts["No rewards yet"])
         XCTAssertFalse(app.staticTexts["Free"].exists)
     }

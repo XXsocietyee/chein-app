@@ -43,7 +43,8 @@ class GuideTemplateContracts(unittest.TestCase):
         self.assertIn('permit.generation == generation, permit.key == ReaderKey(reader), !Task.isCancelled',self.s)
         self.assertIn('let retryPermit = model.reloadPermit(reader: reader)',self.s)
         self.assertIn('if selection?.id == id { selection = nil }',self.s)
-        self.assertIn('model.closeDestination(id: destination.id)',self.s)
+        # R7-PC-D2-1 (r8 re-pin): the detail is pushed; the back button clears the selection through the binding.
+        self.assertIn('.navigationDestination(item: Binding(get: { scenePhase == .active ? model.destination(reader: reader) : nil },',self.s)
         self.assertIn('let id = presented?.id { model.closeDestination(id: id)',self.s)
     def test_scene_scope_departure_and_sheet_cover_are_separate(self):
         self.assertIn('.task(id: loadKey)',self.s)

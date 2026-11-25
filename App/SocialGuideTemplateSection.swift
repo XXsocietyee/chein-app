@@ -32,11 +32,13 @@ enum SocialGuideTemplateRows {
         let key: ReaderKey
         let rows: [DiscoveryPlayTemplate]
     }
-    struct Destination: Identifiable {
+    struct Destination: Identifiable, Hashable {
         enum Target: Equatable { case detail(Int), catalog }
         let id = UUID()
         let key: ReaderKey
         let target: Target
+        nonisolated static func == (lhs: Destination, rhs: Destination) -> Bool { lhs.id == rhs.id }
+        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }
     enum Phase: Equatable { case idle, loading, ready, failed, unavailable }
     @Published private(set) var phase = Phase.idle
@@ -200,18 +202,16 @@ enum SocialGuideTemplateRows {
         .onDisappear {
             if model.selection == nil { model.invalidate() } else { model.suspend() }
         }
-        .sheet(item: Binding(get: { scenePhase == .active ? model.destination(reader: reader) : nil },
-                             set: { if $0 == nil, let id = presented?.id { model.closeDestination(id: id) } })) { destination in
-            NavigationStack {
-                Group {
-                    if scenePhase == .active, model.destination(reader: reader)?.id == destination.id {
-                        switch destination.target {
-                        case .detail(let id): DiscoveryTemplateDetailView(id: id, reader: reader)
-                        case .catalog: DiscoveryTemplateBrowserView(reader: reader)
-                        }
-                    } else { Text("social.guideTemplates.unavailable") }
-                }
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.closeDestination(id: destination.id) } } }
+        // R7-PC-D2-1 (MP infomation.js:163-172 navigateTo): the template detail / catalog is pushed, not a sheet.
+        .navigationDestination(item: Binding(get: { scenePhase == .active ? model.destination(reader: reader) : nil },
+                                             set: { if $0 == nil, let id = presented?.id { model.closeDestination(id: id) } })) { destination in
+            Group {
+                if scenePhase == .active, model.destination(reader: reader)?.id == destination.id {
+                    switch destination.target {
+                    case .detail(let id): DiscoveryTemplateDetailView(id: id, reader: reader)
+                    case .catalog: DiscoveryTemplateBrowserView(reader: reader)
+                    }
+                } else { Text("social.guideTemplates.unavailable") }
             }
         }
     }

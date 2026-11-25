@@ -584,7 +584,10 @@ struct TopicDetailView: View {
         }
         .sheet(isPresented: $showsPricing, onDismiss: { barSheetOrigin = nil }) {
             if let pricingDestination {
-                NavigationStack { pricingDestination(value.id) }
+                NavigationStack {
+                    pricingDestination(value.id)
+                        .environment(\.topicPricingScope, { () -> String? in if case .pricing(let scope) = TopicXcxFacts.ownerSaleRoute(value) { return scope }; return nil }())
+                }
                     .modifier(TopicBarHeroDestination(sheet: .pricing, origin: barSheetOrigin, namespace: barHero))
                     .cyPlayerSheetGlass()
                     .cyDomainSheet(detents: [.half, .full])

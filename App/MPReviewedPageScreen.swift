@@ -244,7 +244,7 @@ import SwiftUI
         case "pages/topic/pricing/index":
             // PC-B-4-3: MP pricing reads `topicId || id`; the partner page is reached from the pricing lineup.
             if let topicID = reviewedID(query, key: "topicId") ?? reviewedID(query), let context = session.publisherLifecycleContext {
-                PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)
+                PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator, scope: query["scope"])
                     .environment(\.pricingChapterProjectDestination, { topicID in
                     AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
                 })
