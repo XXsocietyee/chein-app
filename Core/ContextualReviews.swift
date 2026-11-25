@@ -15,6 +15,9 @@ public struct ContextualReviewDraft: Equatable {
     /// PG-006: one submission intent for comment/add (`request_id`). The coordinator stamps it once per
     /// draft and reuses it when the same draft is sent again, so the server keeps a single row.
     public var requestID: String?
+    /// fix-r9 R7-PC-B1-7 / R7-PC-C1-6 (thin App mount hook): uploaded review photo URLs (≤9). MP sends them as
+    /// `img_arr: uploadImages.join(';')` (pages/topic/index/index.js:1256; scene-play-activity-detail/index.js:644).
+    public var imageURLs: [String] = []
     public init(rating: Int = 0, contents: String = "", requestID: String? = nil) {
         self.rating = rating; self.contents = contents; self.requestID = requestID
     }
@@ -22,7 +25,7 @@ public struct ContextualReviewDraft: Equatable {
     public func fields(target: ContextualReviewTarget) throws -> [String: String] {
         guard isValid, target.ownerID > 0 else { throw APIError.invalidRequest }
         var fields = ["owner_type": String(target.ownerType), "owner_id": String(target.ownerID),
-                      "rating": String(rating), "contents": contents.trimmingCharacters(in: .whitespacesAndNewlines), "reply_id": "0", "img_arr": ""]
+                      "rating": String(rating), "contents": contents.trimmingCharacters(in: .whitespacesAndNewlines), "reply_id": "0", "img_arr": imageURLs.prefix(9).joined(separator: ";")]
         if let requestID {
             guard Self.isValidRequestID(requestID) else { throw APIError.invalidRequest }
             fields["request_id"] = requestID
