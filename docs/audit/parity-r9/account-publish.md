@@ -36,7 +36,7 @@ Brief: `origin/design/handoff-r2:docs/briefs/audit-parity-r9.md`. Rule: `owner-d
 | 20 | pages/square/detail/index | SquareDetailView | 21/22 | **21/22 (95%)** | 0 |
 | 21 | pages/team/detail/index | TeamDetailView | 17.5/20 | **19.5/20 (98%)** | +2 |
 | 22 | pages/team/join/index | TeamDetailView (invitation) + TeamInvitationEntryView | 12.5/13 | **12.5/13 (96%)** | 0 |
-| | **Area** | | **329.5/384 (86%)** | **350/384 (91%)** | **+20.5 (+5 pts)** |
+| | **Area** | | **329.5/384 (86%)** | **348.5/384 (91%)** | **+19 (+5 pts)** |
 
 - **By group:**
   - A, member & profile: 116 → 127.5 /146 (79% → 87%).
