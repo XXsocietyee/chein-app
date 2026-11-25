@@ -65,6 +65,12 @@ public enum PlayerContentMPContract {
     public static let pricingPreviewPath = "api/topic/pricing/preview"
     public static let pricingConfirmPath = "api/topic/pricing/confirm"
 
+    /// `subpackageB/pages/im/chat/index.js` audit detail. GET, no body.
+    /// One path segment: `/api/audit/${auditTaskId}/detail`.
+    public static func auditTaskDetailPath(auditTaskID: String) -> String {
+        "api/audit/\(auditTaskID)/detail"
+    }
+
     /// `pages/topic/index/index.js` product list. `topicID` is omitted on the limit-only reads.
     public static func productList(baseURL: URL, topicID: Int?, limit: Int) throws -> URLRequest {
         var query = [(String, String)]()
