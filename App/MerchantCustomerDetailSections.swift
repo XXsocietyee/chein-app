@@ -66,8 +66,14 @@ import SwiftUI
                 }
                 Section("merchant.customerDetail.participation") {
                     if detail.participation.isEmpty {
-                        Text("merchant.customerDetail.participationEmpty").foregroundStyle(CYColor.textTertiary)
-                            .accessibilityIdentifier("merchant.customerDetail.participationEmpty")
+                        // MP cy-empty kind="empty" title="暂无参与记录" (customer/detail/index.wxml:73): art + title.
+                        VStack(spacing: CYSpacing.xs) {
+                            CYEmptyIllustration(kind: .generic, size: 72)
+                            Text("merchant.customerDetail.participationEmpty").foregroundStyle(CYColor.textTertiary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("merchant.customerDetail.participationEmpty")
                     }
                     ForEach(detail.participation) { group in
                         VStack(alignment: .leading, spacing: 8) {

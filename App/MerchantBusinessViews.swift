@@ -566,7 +566,7 @@ import SwiftUI
                     }
                 } else if query != .operators, query != .verificationRecords, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     if case .aftercare(let bucket, _) = query {
-                        CYEmptyState(systemImage: "arrow.uturn.backward.circle", LocalizedStringKey(MerchantOpsCopy.text(MerchantAftercareParity.emptyKey(bucket.rawValue))))
+                        CYEmptyState(systemImage: "tray", LocalizedStringKey(MerchantOpsCopy.text(MerchantAftercareParity.emptyKey(bucket.rawValue))))
                             .listRowBackground(Color.clear)
                             .accessibilityIdentifier("merchant.business.empty")
                     } else {

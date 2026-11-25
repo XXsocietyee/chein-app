@@ -173,7 +173,9 @@ import UIKit
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .navigationTitle(Text("merchant.business.overview")).navigationBarTitleDisplayMode(.inline)
+        // MP ledger/index.js:82 cy-page-title: 核销与退款 (view=redemptions) / 结算 (view=settlement).
+        .navigationTitle(Text(ledgerView == .redemptions ? "merchant.ledger.title.redemptions" : "merchant.ledger.title.settlement"))
+        .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: cover) { item in
             MerchantLedgerBatchDetailView(reader: reader, batchID: item.batchID, owner: item.owner,
                 onDenied: { model.batchDenied(item) }, onReturn: { model.childPopped(item) })
@@ -249,7 +251,7 @@ import UIKit
             case .entries:
                 let entryRows = model.accumulated[.entries] ?? snapshot.document.rows
                 if entryRows.isEmpty {
-                    CYEmptyState(systemImage: "list.bullet.rectangle", LocalizedStringKey("merchant.ledgerSettlement.emptyEntries"), tableName: "MerchantLedgerSettlement")
+                    CYEmptyState(systemImage: "tray", LocalizedStringKey("merchant.ledgerSettlement.emptyEntries"), tableName: "MerchantLedgerSettlement")
                 }
                 rows(.entries, entryRows)
                 appendFooter(id, slot, hasRows: !entryRows.isEmpty)
@@ -413,7 +415,8 @@ enum MerchantBatchMissingRecord {
             if slot.failureKey != nil, model.missingRecord {
                 Section {
                     ContentUnavailableView {
-                        Label("merchant.gate.batch.missingRecord", systemImage: "doc.questionmark")
+                        // MP batch-detail cy-empty kind="empty" title="结算批次不可见": the MP empty art.
+                        Label { Text("merchant.gate.batch.missingRecord") } icon: { CYEmptyIllustration(kind: .generic) }
                     } actions: {
                         Button { dismiss() } label: {
                             Text("merchant.gate.batch.backToList").frame(minHeight: CYSpacing.minTouchTarget)

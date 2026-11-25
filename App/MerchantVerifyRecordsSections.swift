@@ -71,8 +71,8 @@ struct MerchantVerifyRecordsSections: View {
         }
         if groups.isEmpty {
             Section {
-                CYEmptyStateView(systemImage: "checkmark.seal",
-                                 title: bucket == .verified ? "merchant.verifyRecords.empty.VERIFIED" : "merchant.verifyRecords.empty.REVERSED")
+                CYEmptyState(systemImage: "tray",
+                             bucket == .verified ? "merchant.verifyRecords.empty.VERIFIED" : "merchant.verifyRecords.empty.REVERSED")
                     .frame(maxWidth: .infinity)
                     .listRowBackground(Color.clear)
                     .accessibilityIdentifier("merchant.verifyRecords.empty")
