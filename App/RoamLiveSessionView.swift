@@ -59,7 +59,17 @@ import QuestifyCore
     @StateObject private var model: RoamLiveViewModel
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    /// ROAM-9b: the system setting, or the MP in-roam 减少动态效果 (`PlayReducedMotionPreference`, pages/roam/index.js:880).
+    private var reduceMotion: Bool { _ = playReducedMotion; return systemReduceMotion || PlayReducedMotionPreference.isEnabled(in: .standard) }
+    @AppStorage(PlayReducedMotionPreference.storageKey) private var playReducedMotion = false
+    /// ROAM-9b: MP `roam_fog_off` (stored true = fog layer off) and `cy_map_kind`.
+    @AppStorage(RoamFogPreference.storageKey) private var fogOff = false
+    @AppStorage(FreeMapKind.storageKey) private var mapKindRaw = FreeMapKind.black.rawValue
+    @State private var showTools = false
+    /// ROAM-9a: MP `_runners` (pages/roam/index.js:2827-2842); a failed read keeps the previous rows.
+    @Environment(\.playRoamGapService) private var roamGap
+    @State private var runners: [RoamNearbyRunner] = []
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     /// Location-purpose consent is asked once, on the first GO, by the inline card; the stored answer seeds this state and
@@ -116,17 +126,56 @@ import QuestifyCore
                 Button { showRules = true } label: { Label("roam.live.rules", systemImage: "info.circle") }
                     .accessibilityIdentifier("roam.live.rules")
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showTools = true } label: { Label("roamTools.title", systemImage: "slider.horizontal.3") }
+                    .accessibilityIdentifier("roam.live.tools")
+            }
         }
+        .sheet(isPresented: $showTools) {
+            RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled,
+                                      fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding)
+        }
+        .task(id: runnersReadKey) { await readRunners() }
         .cyPageTitle("roam.experience.live")
+    }
+    private var fogOnBinding: Binding<Bool> {
+        Binding(get: { !fogOff }, set: { fogOff = RoamFogPreference.setFogOff(!$0, in: .standard) })
+    }
+    private var mapKindBinding: Binding<FreeMapKind> {
+        Binding(get: { FreeMapKind(rawValue: mapKindRaw) ?? .black },
+                set: { kind in _ = FreeMapKind.save(kind, in: .standard); mapKindRaw = kind.rawValue })
+    }
+    private var reducedMotionBinding: Binding<Bool> {
+        Binding(get: { _ = playReducedMotion; return PlayReducedMotionPreference.isEnabled(in: .standard) },
+                set: { on in PlayReducedMotionPreference.set(on, in: .standard); playReducedMotion = on })
+    }
+    /// MP `_fetchRunners` runs only while `presenceVisible` and walking; off clears the rows (`_clearNearbyRunners`).
+    private var runnersReadKey: Bool { owner.presenceEnabled && owner.phase == .active && roamGap != nil }
+    private func readRunners() async {
+        guard runnersReadKey, let roamGap else { runners = []; return }
+        while !Task.isCancelled {
+            // MP sends the GCJ-02 player point with radius ROAM_POI_RADIUS_M (3000), at most every RUNNERS_MS (45 s).
+            if let fix = owner.lastFix, let point = try? RuntimeLocationProjection.gcj02(fix) {
+                let reply = await roamGap.fetchNearbyRunners(latitude: point.coordinate.latitude,
+                                                             longitude: point.coordinate.longitude, radius: 3000)
+                guard !Task.isCancelled else { return }
+                // Not ok: keep the previous batch. Ok with no one: an empty batch still lands.
+                if case .ok(let data, _) = reply {
+                    if case .array(let rows) = data { runners = RoamNearbyRunner.normalized(rows) } else { runners = [] }
+                }
+            }
+            try? await Task.sleep(nanoseconds: 45_000_000_000)
+        }
     }
     /// Map ground (static fog backdrop when the live reveal is off).
     @ViewBuilder private var liveMapGround: some View {
         if PersonalFogFeature.liveRevealEnabled, let fogMap {
             RoamFogMapView(area: fogMap.area, items: fogMap.items, fillsHeight: true, fog: fogMap.presentation,
-                           reveal: fogMap.reveal, onBaked: fogMap.onBaked, onSelect: { _ in })
+                           reveal: fogMap.reveal, enabled: PersonalFogFeature.liveRevealEnabled && !fogOff,
+                           onBaked: fogMap.onBaked, onSelect: { _ in })
                 .ignoresSafeArea()
         } else {
-            ZStack { CYMapPlaceholder(fog: false); fogEdge.ignoresSafeArea() }
+            ZStack { CYMapPlaceholder(fog: false); if !fogOff { fogEdge.ignoresSafeArea() } }
         }
     }
     private var sessionList: some View {

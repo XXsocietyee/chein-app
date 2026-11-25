@@ -16,7 +16,11 @@ final class EntryUsageConsentFlowTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Privacy protection"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["authEntry.gate.lead"].exists)
         let agree = app.buttons["authEntry.gate.agree"]
-        XCTAssertTrue(agree.exists); XCTAssertTrue(agree.isEnabled)
+        // r9 B-PV-04: MP privacy/index.wxml:10, :22 — 同意 stays disabled until 我已阅读并同意 is checked.
+        XCTAssertTrue(agree.exists); XCTAssertFalse(agree.isEnabled)
+        let checkbox = app.buttons["authEntry.gate.checkbox"]
+        XCTAssertTrue(checkbox.exists); checkbox.tap()
+        XCTAssertTrue(agree.isEnabled)
         let decline = app.buttons["authEntry.gate.decline"]
         if !decline.isHittable { app.swipeUp() }
         decline.tap()
@@ -48,6 +52,10 @@ final class EntryUsageConsentFlowTests: XCTestCase {
         app.buttons["Close"].firstMatch.tap()
         let agree = app.buttons["authEntry.gate.agree"]
         XCTAssertTrue(agree.waitForExistence(timeout: 5))
+        XCTAssertFalse(agree.isEnabled)
+        let checkbox = app.buttons["authEntry.gate.checkbox"]
+        if !checkbox.isHittable { app.swipeUp() }
+        checkbox.tap()
         XCTAssertTrue(agree.isEnabled)
         if !agree.isHittable { app.swipeUp() }
         agree.tap()

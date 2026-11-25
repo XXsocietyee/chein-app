@@ -62,6 +62,12 @@ public enum RoamEntryNearbyRoute {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         return request
     }
+    /// Guest peek. `pages/roam/index.js` `_loadEntryMap` reads this GET with no session (2026-11-14 public play).
+    public static func publicRequest(baseURL: URL, area: RoamSearchArea) throws -> URLRequest {
+        var outbound = try request(baseURL: baseURL, area: area, token: "public-entry")
+        outbound.setValue(nil, forHTTPHeaderField: "Authorization")
+        return outbound
+    }
     /// Strict envelope: `code` 200, `data.items` a list of at most 200 rows, echoed radius, unique visible ids.
     public static func decode(_ data: Data, status: Int) throws -> [RoamEntryActivity] {
         if status == 401 { throw APIError.unauthorized }
@@ -229,6 +235,8 @@ public enum RoamEntryPeekState: Equatable {
 @MainActor public protocol RoamEntryNearbyReading: AnyObject {
     var isConfigured: Bool { get }
     var isSignedIn: Bool { get }
+    /// A deployment with no account may read the public entry peek. Login-only fixtures stay false.
+    var allowsPublicEntry: Bool { get }
     var isOfflineExample: Bool { get }
     var searchArea: RoamSearchArea? { get }
     /// Changes whenever account, approval or area change; views key their reads on it.
@@ -278,7 +286,8 @@ public enum RoamEntryPeekState: Equatable {
               deployment?.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8) == true else { return nil }
         return access
     }
-    public var isConfigured: Bool { currentAccess != nil }
+    public var allowsPublicEntry: Bool { current() == nil && deployment != nil }
+    public var isConfigured: Bool { currentAccess != nil || allowsPublicEntry }
     public var isSignedIn: Bool { current() != nil }
     public var isOfflineExample: Bool { false }
     public var searchArea: RoamSearchArea? { area()?.area }
@@ -288,7 +297,7 @@ public enum RoamEntryPeekState: Equatable {
     }
     public func entryNearby() async throws -> [RoamEntryActivity] {
         try Task.checkCancellation()
-        guard let context = current() else { throw APIError.unauthorized }
+        guard let context = current() else { return try await publicEntry() }
         guard let selected = currentAccess, let deployment else { throw APIError.notConfigured }
         guard let snapshot = area() else { throw RoamReadFailure.searchAreaRequired }
         let viewer = viewerRevision()
@@ -308,6 +317,21 @@ public enum RoamEntryPeekState: Equatable {
             throw error
         }
     }
+    private func publicEntry() async throws -> [RoamEntryActivity] {
+        guard let deployment else { throw APIError.notConfigured }
+        guard let snapshot = area() else { throw RoamReadFailure.searchAreaRequired }
+        func stillGuest() -> Bool { !Task.isCancelled && current() == nil && area() == snapshot }
+        let outbound = try RoamEntryNearbyRoute.publicRequest(baseURL: deployment, area: snapshot.area)
+        guard stillGuest() else { throw CancellationError() }
+        do {
+            let (data, status) = try await transport.send(outbound)
+            guard stillGuest() else { throw CancellationError() }
+            return try RoamEntryNearbyRoute.decode(data, status: status)
+        } catch {
+            guard stillGuest() else { throw CancellationError() }
+            throw error
+        }
+    }
 }
 
 #if DEBUG
@@ -318,6 +342,7 @@ public enum RoamEntryPeekState: Equatable {
     public init(scenario: Scenario = .content) { self.scenario = scenario }
     public var isConfigured: Bool { true }
     public var isSignedIn: Bool { scenario != .login }
+    public var allowsPublicEntry: Bool { false }
     public var isOfflineExample: Bool { true }
     public var searchArea: RoamSearchArea? { RoamCoordinate(latitude: 31.2304, longitude: 121.4737).map { RoamSearchArea(coordinate: $0, label: "Synthetic area") } }
     public var readKey: String { scenario.rawValue }

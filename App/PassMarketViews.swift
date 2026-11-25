@@ -885,6 +885,8 @@ enum PassGiftClaimPhase: Equatable {
     case failed(reason: String)
     /// Network loss: same request id resent on the next tap.
     case unknown
+    /// MP `MISSING_LINK_CODES` (`market/gift/index.js:10,119`): cy-empty 链接已失效 · 返回.
+    case missing
 }
 
 struct PassGiftClaimState: Equatable {
@@ -892,7 +894,7 @@ struct PassGiftClaimState: Equatable {
     var claiming = false
 }
 
-/// Logic stub for Cursor: `/api/marketing/product/gifts/claim` with a stable request id. Claim stays gated OFF here.
+/// `/api/marketing/product/gifts/claim` with a stable request id (`market/gift/index.js:101-123`). Not money: MP-first.
 @MainActor protocol PassGiftClaimBinding: AnyObject, Observable {
     var state: PassGiftClaimState { get }
     func claim()
@@ -904,6 +906,14 @@ struct PassGiftClaimState: Equatable {
     @State private var orderID: String?
     @Environment(\.mpParity) private var bindings
     var body: some View {
+        if binding.state.phase == .missing {
+            MemberMissingLinkState(title: "mp.gift.linkInvalid", identifier: "passGift.missing")
+        } else {
+            claimView
+        }
+    }
+
+    private var claimView: some View {
         // Mini-program goOrder: the claimed registration's order detail when the server returned one, else 礼品 tab.
         PassGiftClaimView(state: binding.state, onClaim: { binding.claim() }, onOpenGifts: {
             if case .claimed(let id?) = binding.state.phase, bindings.orderDetail != nil { orderID = id } else { route = .passes(tab: .gifts) }
@@ -920,6 +930,7 @@ struct PassGiftClaimView: View {
     @State private var popped = false
     @State private var glowing = false
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dismiss) private var dismiss
 
     private var failedReason: String? { if case .failed(let reason) = state.phase { return reason } else { return nil } }
     private var claimed: Bool { if case .claimed = state.phase { return true } else { return false } }
@@ -956,15 +967,21 @@ struct PassGiftClaimView: View {
             .accessibilityIdentifier("passGift.status")
             Spacer()
             if failedReason == nil {
+                // MP gf__bar: 领取 / 查看 / 还在确认结果 (`market/gift/index.wxml:21-27`). MKT-3-1: no app-only gate.
                 MPBottomBar {
                     if state.phase == .unknown { Text("mp.gift.unknown").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     if claimed {
                         CYPillButton("mp.gift.view", action: onOpenGifts).accessibilityIdentifier("passGift.view")
-                    } else if MPCommerceGate.claimsEnabled {
-                        CYMorphButton("mp.gift.claim", state: state.claiming ? .working : .idle, action: onClaim).identifier("passGift.claim")
                     } else {
-                        MPGatedNote(text: Text("mp.gate.claim"), identifier: "passGift.claimOff")
+                        CYMorphButton("mp.gift.claim", state: state.claiming ? .working : .idle, action: onClaim).identifier("passGift.claim")
                     }
+                }
+            } else {
+                // MP failed bar: secondary 返回 (`market/gift/index.wxml:18-20`).
+                MPBottomBar {
+                    Button { dismiss() } label: { Text("action.back") }
+                        .buttonStyle(.cySecondary(fullWidth: true))
+                        .accessibilityIdentifier("passGift.back")
                 }
             }
         }

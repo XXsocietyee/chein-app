@@ -115,7 +115,19 @@ import Combine
                 cardLayout {
                     ForEach(Array(examples.rows.enumerated()),id:\.offset) { index, item in
                         VStack(alignment:.leading,spacing:CYSpacing.s1_5) {
-                            DiscoveryArtwork(source:item.imgUrl,height:150)
+                            Group {
+                                // MP: pages/publish/template-intro/index.js:117 `it.imgUrl || templateArt(it)`: no cover of its own →
+                                // the play's interaction-templates art (utils/template-art.js), aspect-filled like the canvas circle.
+                                if (item.imgUrl ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                                   let art = TemplateShelfArt.interactionIcon(item.title) {
+                                    art.resizable().scaledToFill()
+                                        .frame(height: 150).frame(maxWidth: .infinity)
+                                        .clipped()
+                                        .accessibilityHidden(true)
+                                } else {
+                                    DiscoveryArtwork(source:item.imgUrl,height:150)
+                                }
+                            }
                                 .frame(maxWidth:.infinity)
                                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                             Text(verbatim:examples.categoryName(at:index))
