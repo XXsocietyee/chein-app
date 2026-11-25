@@ -50,16 +50,45 @@ public struct MerchantBusinessProductionApproval {
     public let endpoints: OperationEndpointApproval
     public let grants: Set<MerchantBusinessActionGrant>
     public let reviewedPolicyVersion: String
+    /// Owner 2026-11-25 MP-first rule: actions the mini-program sends from its merchant pages. For these the
+    /// server's own merchant permission check decides, so no per-target grant is needed. Empty for reviewed grants.
+    public let mpFirstActions: Set<MerchantBusinessAction>
     public init(market: RegionalMarket, endpoints: OperationEndpointApproval, grants: Set<MerchantBusinessActionGrant>, reviewedPolicyVersion: String) throws {
         guard !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.invalidConfiguration }
         self.market = market; self.endpoints = endpoints; self.grants = grants; self.reviewedPolicyVersion = reviewedPolicyVersion
+        self.mpFirstActions = []
+    }
+    /// MP-first approval: the same endpoint, method and body as the MP pages listed on `MerchantBusinessAction.mpFirst`.
+    /// `endpoints` pins the base URL, namespace and account; the path must stay under `api/merchant/`.
+    public init(mpFirstMarket market: RegionalMarket, endpoints: OperationEndpointApproval,
+                actions: Set<MerchantBusinessAction> = MerchantBusinessAction.mpFirst) throws {
+        self.market = market; self.endpoints = endpoints; self.grants = []
+        self.reviewedPolicyVersion = "mp-first-2026-11-25"; self.mpFirstActions = actions
     }
     public func permits(_ mutation: MerchantBusinessMutation, merchantID: Int, context: RuntimeDependencyContext) -> Bool {
         guard market == .china, context.market == market, endpoints.baseURL == context.baseURL,
               endpoints.accountID == context.session.accountID, endpoints.namespace == context.session.namespace,
-              let descriptor = try? mutation.request(requestID: "grant-validation"), endpoints.paths.contains(descriptor.path) else { return false }
+              let descriptor = try? mutation.request(requestID: "grant-validation") else { return false }
+        if merchantID > 0, mpFirstActions.contains(mutation.action) {
+            return descriptor.path.hasPrefix("api/merchant/") && !descriptor.path.contains("..")
+        }
+        guard endpoints.paths.contains(descriptor.path) else { return false }
         return grants.contains { $0.merchantID == merchantID && $0.action == mutation.action && $0.target == mutation.productionTarget }
     }
+}
+
+public extension MerchantBusinessAction {
+    /// Every merchant business write the MP sends (owner 2026-11-25 MP-first rule). None of them moves money:
+    /// aftercare agree/reject/evidence is the store's opinion; the platform processes any refund
+    /// (pages/merchant/aftercare/detail/index.js:288, toast 意见已提交，等待平台处理).
+    /// - crm notes/tags/batch: pages/merchant/customer/detail/index.js:178,230,262,300; customer/index.js:716
+    /// - reviews reply/update/delete/report: pages/merchant/reviews/index.js:555-620
+    /// - operators invite/role/remove/revoke: pages/merchant/team/index.js:570,626,718
+    /// `saveSku` is not on an MP page and stays on the reviewed grant.
+    static let mpFirst: Set<MerchantBusinessAction> = [
+        .addNote, .hideNote, .assignTag, .removeTag, .batchTag, .aftercareAgree, .aftercareReject, .aftercareEvidence,
+        .reviewReply, .reviewUpdate, .reviewDelete, .reviewReport, .inviteOperator, .operatorRole, .removeOperator, .revokeInvite
+    ]
 }
 
 @MainActor public final class MerchantBusinessProductionTransport: HTTPTransport {

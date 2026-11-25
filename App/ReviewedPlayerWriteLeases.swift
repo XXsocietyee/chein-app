@@ -1412,6 +1412,8 @@ enum ReviewedPlayerReadRoute {
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             couponCodeApproval: couponCodeApproval,
+            merchantBusinessApproval: MPFirstMerchantApprovals.business(context),
+            merchantEngagementApproval: MPFirstMerchantApprovals.engagement(context),
             orderLifecycleConfiguration: orderConfiguration,
             nonCashRewardApproved: rewardPledge, nonCashRewardClaimApproved: rewardPledge,
             nonCashRewardPreviewApproved: rewardPledge, nonCashRewardRedeemApproved: rewardPledge,
