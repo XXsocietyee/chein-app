@@ -12,17 +12,34 @@ import SwiftUI
     @State private var revision = 0
     @State private var confirmDiscard = false
     @FocusState private var typing: Bool
+    /// MP topic / activity review textarea maxlength (300); Core still accepts up to 500.
+    static let maximumContents = 300
     private var state: ContextualReviewState { let _ = revision; return owner?.state ?? .idle }
     var body: some View {
         Form {
             Section("context.review.rating") {
-                Picker("context.review.rating", selection: $draft.rating) {
-                    Text("context.review.chooseRating").tag(0)
-                    ForEach(1...5, id: \.self) { Text(verbatim: String($0)).tag($0) }
-                }.accessibilityIdentifier("context.review.rating")
+                // R7-PC-B1-7 / R7-PC-C1-6: MP 5-star row (pages/topic/images/icon_star2 = chosen, icon_star1 = empty)
+                // in place of the numeric Picker; the text cap is the MP 300.
+                HStack(spacing: CYSpacing.sm) {
+                    ForEach(1...5, id: \.self) { star in
+                        Button { draft.rating = star } label: {
+                            (star <= draft.rating ? MPAsset.FeatureIcon.iconStar2 : MPAsset.FeatureIcon.iconStar1)
+                                .resizable().scaledToFit().frame(width: 28, height: 28)
+                                .frame(minWidth: 44, minHeight: 44)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("context.review.star \(star)"))
+                        .accessibilityAddTraits(star == draft.rating ? .isSelected : [])
+                    }
+                }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("context.review.rating")
                 TextField("context.review.contents", text: $draft.contents, axis: .vertical)
                     .lineLimit(4...10).focused($typing).accessibilityIdentifier("context.review.contents")
-                Text(verbatim: "\(draft.contents.utf16.count)/500").cyText(.meta)
+                    .onChange(of: draft.contents) { _, value in
+                        if value.count > Self.maximumContents { draft.contents = String(value.prefix(Self.maximumContents)) }
+                    }
+                Text(verbatim: "\(draft.contents.count)/\(Self.maximumContents)").cyText(.meta)
             }.disabled(busy || state == .unknown || state == .acknowledged)
             if owner?.writer.isConfigured != true { Section { Text("context.review.disabled") } }
             Section {

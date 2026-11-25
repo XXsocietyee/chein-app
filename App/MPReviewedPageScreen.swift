@@ -208,6 +208,7 @@ import SwiftUI
             // a bare id = browsing that topic's chapters from the brand square.
             if let topicID = reviewedID(query, key: "topicId") {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID)
+                    .merchantProjectHostDestinations(session: session)
                     .cyPushedChrome()
             } else if let id = reviewedID(query) {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: id))
@@ -220,7 +221,8 @@ import SwiftUI
                 MerchantContentEditView(service: session.merchantContentService, query: .registration(id: registrationID), kind: .registrationEdit(registrationID))
                     .cyPushedChrome()
             } else if let topicID = reviewedID(query, key: "topicId"), let nodeID = reviewedID(query, key: "nodeId") {
-                MerchantContentEditView(service: session.merchantContentService, query: .chapters(topicID: topicID), kind: .registrationCreate(topicID: topicID, nodeID: nodeID))
+                MerchantContentEditView(service: session.merchantContentService, query: .chapters(topicID: topicID), kind: .registrationCreate(topicID: topicID, nodeID: nodeID),
+                                        applyTarget: merchantApplyTarget(query))
                     .cyPushedChrome()
             } else if let topicID = reviewedID(query, key: "topicId") {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: topicID))
@@ -897,6 +899,18 @@ private func queryID(_ query: [String: String], _ key: String) -> Int? {
     guard let text = query[key], text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
           let value = Int(text), value > 0, String(value) == text else { return nil }
     return value
+}
+
+/// R7-PC-B3-3, MP merchantapply index.wxml:61-64: 承接标的 = nodeName, then "topicName · chapterName". Only the names the link carries.
+private func merchantApplyTarget(_ query: [String: String]) -> [String]? {
+    func clean(_ key: String) -> String? {
+        guard let raw = query[key]?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else { return nil }
+        return String(raw.prefix(80))
+    }
+    let node = clean("nodeName"), topic = clean("topicName"), chapter = clean("chapterName")
+    let route = [topic, chapter].compactMap { $0 }.joined(separator: " · ")
+    let lines = [node, route.isEmpty ? nil : route].compactMap { $0 }
+    return lines.isEmpty ? nil : lines
 }
 
 private func reviewedID(_ query: [String: String], key: String = "id") -> Int? {

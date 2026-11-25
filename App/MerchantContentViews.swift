@@ -418,10 +418,19 @@ struct MerchantContentFields: View {
             if snapshot.value["registered"].flag == true { Text("merchant.content.alreadyRegistered") }
             else {
                 if snapshot.value["registered"].flag == nil { Text("merchant.content.registrationUnknown") }
-                let nodes = (snapshot.value["topic"]["chaptersList"].array ?? []).flatMap { $0["nodes"].array ?? [] }
+                let chapters = snapshot.value["topic"]["chaptersList"].array ?? []
+                let nodes = chapters.flatMap { $0["nodes"].array ?? [] }
+                // R7-PC-B3-3: the 承接标的 lines (stop, then route · chapter), as the MP passes nodeName/topicName/chapterName.
+                let chapterNames: [Int: String] = Dictionary(chapters.flatMap { chapter in
+                    (chapter["nodes"].array ?? []).compactMap { node in node["id"].integer.map { ($0, chapter["name"].text ?? "") } }
+                }, uniquingKeysWith: { first, _ in first })
+                let routeName = snapshot.value["topic"]["name"].text ?? ""
                 ForEach(Array(nodes.enumerated()), id: \.offset) { _, node in
                     if let id = node["id"].integer, id > 0 {
-                        NavigationLink { MerchantContentEditView(service: service, query: snapshot.query, kind: .registrationCreate(topicID: topicID, nodeID: id)) } label: {
+                        let route = [routeName, chapterNames[id] ?? ""].filter { !$0.isEmpty }.joined(separator: " · ")
+                        let target = [node["name"].text ?? "", route].filter { !$0.isEmpty }
+                        NavigationLink { MerchantContentEditView(service: service, query: snapshot.query, kind: .registrationCreate(topicID: topicID, nodeID: id),
+                                                                 applyTarget: target.isEmpty ? nil : target) } label: {
                             VStack(alignment: .leading) { Text(verbatim: node["name"].text ?? "—"); Text("merchant.content.register").font(.caption) }
                         }
                     }
