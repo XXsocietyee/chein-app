@@ -49,7 +49,7 @@ struct MerchantCityNodeInlineError: View {
 /// Native counterpart of mini `pages/merchant/citynode/index` (成为节点).
 @MainActor struct MerchantCityNodeHubView: View {
     private struct Poster: Identifiable, Equatable {
-        enum Phase: Equatable { case loading, ready(MerchantCityNodePosterCode), failed(String) }
+        enum Phase: Equatable { case loading, ready(MerchantCityNodePosterCode), codeText(String, name: String?), failed(String) }
         let id = UUID()
         let poiID: Int
         var phase: Phase
@@ -498,7 +498,13 @@ struct MerchantCityNodeInlineError: View {
         Task {
             guard !Task.isCancelled, posterReadAllowed(poiID: poiID, ticket: ticket) else { return }
             let phase: Poster.Phase
-            do { phase = .ready(try MerchantCityNodePosterCode(try await reader.cityPosterCode(poiID: poiID))) }
+            do {
+                let data = try await reader.cityPosterCode(poiID: poiID)
+                if let code = try? MerchantCityNodePosterCode(data) { phase = .ready(code) }
+                // MC7-24-6: MP code-text.js `pickCode` — no usable image but a server `code` is still 出码成功, shown as text.
+                else if let text = Self.posterCodeText(data) { phase = .codeText(text, name: MerchantCityNodeScalar.text(data["nodeName"])) }
+                else { throw MerchantContentFailure.malformed }
+            }
             catch is URLError { phase = .failed(MerchantCityNodeCopy.string("merchantCityNode.poster.network")) }
             catch { phase = .failed(MerchantCityNodeCopy.string("merchantCityNode.poster.failedSub")) }
             guard !Task.isCancelled, poster?.poiID == poiID, posterReadAllowed(poiID: poiID, ticket: ticket) else { return }
@@ -506,6 +512,11 @@ struct MerchantCityNodeInlineError: View {
         }
     }
     private func retirePoster() { posterReads.retire(); poster = nil }
+    private static func posterCodeText(_ data: MerchantContentValue) -> String? {
+        if let number = data["code"].integer { return String(number) }
+        let text = (data["code"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.isEmpty ? nil : text
+    }
     private func posterReadAllowed(poiID: Int, ticket: UUID? = nil) -> Bool {
         guard let source = c.snapshot else { return false }
         return posterReads.allows(ticket ?? posterReads.ticket, owner: ObjectIdentifier(service),
@@ -535,6 +546,18 @@ struct MerchantCityNodeInlineError: View {
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("cityNodeHub.poster.save")
                         MerchantCityNodeCopy.text("merchantCityNode.poster.hintPrint").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    case .codeText(let text, let name):
+                        // MP cy-code-text: monospaced, selectable code + 二维码暂时不可用，可长按复制验证码.
+                        Text(verbatim: text).font(.system(.title, design: .monospaced).weight(.semibold)).textSelection(.enabled)
+                            .frame(maxWidth: .infinity, minHeight: 120)
+                            .accessibilityLabel(Text("merchantCoop.cityNode.poster.codeText.a11y \(text)"))
+                            .accessibilityIdentifier("cityNodeHub.poster.codeText")
+                        if let name { Text(verbatim: name).cyText(.cardTitle) }
+                        Button { LocalPasteboard.copy(text) } label: {
+                            Label("merchantCoop.cityNode.poster.copyCode", systemImage: "doc.on.doc").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.poster.copyCode")
+                        Text("merchantCoop.cityNode.poster.codeText.hint").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     case .failed(let message):
                         VStack(spacing: 10) {
                             MerchantCityNodeCopy.text("merchantCityNode.poster.failedTitle").cyText(.cardTitle)

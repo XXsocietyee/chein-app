@@ -248,6 +248,16 @@ import SwiftUI
                                                    primary: nil, identifier: "cooperation.list.withdraw.\(row.topicId)") { rowAction = .init(operation: $0) }
                             }
                         }
+                        // MC7-30-12 (MP coop/list wxml:257-259): the club answered this application with an invite (status 3),
+                        // which lands in 收到的 — one tap switches the segment there.
+                        if direction == .sent, row.status == 3 {
+                            Button { self.direction = .received } label: {
+                                Text("merchantCoop.list.apply.goReceived").frame(minHeight: CYSpacing.minTouchTarget)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityLabel(Text("merchantCoop.list.apply.goReceived.a11y"))
+                            .accessibilityIdentifier("cooperation.list.apply.goReceived.\(row.topicId)")
+                        }
                         if let linked = replied?.linkedInviteID {
                             NavigationLink { CooperationInviteDetailView(key: CooperationInviteKey(id: linked, direction: .sent), reader: reader, peerReader: peerReader)
                                 .environment(\.cooperationProjectDestination, topicDestination) } label: {

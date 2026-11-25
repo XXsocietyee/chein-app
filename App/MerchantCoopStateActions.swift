@@ -151,6 +151,17 @@ extension EnvironmentValues {
     }
 }
 
+/// MC7-19-10: MP decor brand card row 口碑 (`goReviews` → `pages/merchant/reviews/index?mode=manage`). Nil hides the row.
+private struct MerchantReviewsDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    var merchantReviewsDestination: (@MainActor () -> AnyView)? {
+        get { self[MerchantReviewsDestinationKey.self] }
+        set { self[MerchantReviewsDestinationKey.self] = newValue }
+    }
+}
+
 /// MC7-32-5: opens the IM conversation `coop/contact` returned (MP invite-detail index.js:435-460 navigates to the chat).
 /// Nil keeps the preview ending on 已提交.
 private struct CoopConversationDestinationKey: EnvironmentKey {

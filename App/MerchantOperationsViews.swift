@@ -5,6 +5,7 @@ struct MerchantOperationsHomeView: View {
     @Environment(\.cityMerchantOperationsFactory) private var cityMerchantFactory
     /// Source decor brand card row 常备权益 (`pages/merchant/decor/perks`). Nil hides it.
     @Environment(\.merchantPerkTemplatesDestination) private var perkTemplatesDestination
+    @Environment(\.merchantReviewsDestination) private var reviewsDestination
     let reader: any MerchantOperationsReading
     var destinationFactory: ((MerchantOperationsDestination, MerchantOperationsAccess) -> AnyView)? = nil
     @State private var access: MerchantOperationsAccess?
@@ -57,7 +58,10 @@ struct MerchantOperationsHomeView: View {
                 ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
                     let visible = group.destinations.filter { access.allows($0) }
                     let perks = index == Self.perksGroupIndex && access.identity.active ? perkTemplatesDestination : nil
-                    if !visible.isEmpty || perks != nil {
+                    // MC7-19-10: MP shows 口碑 for MARKETING_READ. access/me does not decode that grant yet (Core request),
+                    // so only the owner, who always holds it, sees the row; the reviews page re-checks on read.
+                    let reviews = index == Self.perksGroupIndex && access.identity.isOwner ? reviewsDestination : nil
+                    if !visible.isEmpty || perks != nil || reviews != nil {
                         Section(group.titleKey) {
                             ForEach(visible) { destination in
                                 NavigationLink {
@@ -68,6 +72,12 @@ struct MerchantOperationsHomeView: View {
                                     Label(LocalizedStringKey(destination.titleKey), systemImage: symbol(destination))
                                 }
                                 .accessibilityIdentifier("merchant.operations.entry." + destination.id)
+                            }
+                            if let reviews {
+                                NavigationLink { reviews() } label: {
+                                    Label("merchantCoop.decor.reviews", systemImage: "star.bubble")
+                                }
+                                .accessibilityIdentifier("merchant.operations.entry.reviews")
                             }
                             if let perks {
                                 NavigationLink { perks() } label: {

@@ -186,6 +186,74 @@
       }
     }
   },
+  "merchantCoop.cityNode.create.viewOnMap": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View the store address on the map"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在地图中查看店址"
+        }
+      }
+    }
+  },
+  "merchantCoop.cityNode.poster.codeText.a11y %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Verification code %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "验证码 %@，长按复制"
+        }
+      }
+    }
+  },
+  "merchantCoop.cityNode.poster.codeText.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The QR code is unavailable right now. Copy the verification code instead."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "二维码暂时不可用，可长按复制验证码"
+        }
+      }
+    }
+  },
+  "merchantCoop.cityNode.poster.copyCode": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制验证码"
+        }
+      }
+    }
+  },
   "merchantCoop.cityNode.poster.save": {
     "extractionState": "manual",
     "localizations": {
@@ -318,6 +386,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "去商家入驻"
+        }
+      }
+    }
+  },
+  "merchantCoop.decor.reviews": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reviews"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "口碑"
         }
       }
     }
@@ -488,6 +573,40 @@
         "stringUnit": {
           "state": "translated",
           "value": "登录后发起协作邀请"
+        }
+      }
+    }
+  },
+  "merchantCoop.list.apply.goReceived": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm in Received"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去收到的确认"
+        }
+      }
+    }
+  },
+  "merchantCoop.list.apply.goReceived.a11y": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Go to Received to confirm the merchant's invitation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去收到的确认商家回的邀约"
         }
       }
     }
