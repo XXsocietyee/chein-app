@@ -371,3 +371,14 @@ Each round-2 commit (`5be7191a3`, `6d471bc22`, `f5b96cf93`, `505f1174c`, `d2400b
 - **Cursor:** `HomeFeedItem` distance / rating; pricing read `tickets` + sale / settlement / fee fields; import `icon_one/two/team.svg`;
   re-record the `MerchantContentEditor.swift` pin so the merchantapply nav titles, discard copy and 查看承接进度 can land.
 - **Gemini:** a real place picker plus an upload client for `MerchantApplyPickerGapView` before it is mounted.
+
+### Local gates (round 4, cloud, no compiler)
+- `tools/contract_ratchet.py`: **branch 223 failing, base `ui/combined-r7` 222**. The one extra row is
+  `test_localization_key_catalog_contract…test_no_looked_up_key_is_missing_from_every_catalog`, for 7 round-4 keys that exist only in
+  `docs/port/strings/fix-r3-player-content-a.json` (`context.review.topicContents`, `context.review.topicTitle`,
+  `discovery.templateTab.inbox`, `discovery.topicPreview.loading`, `topic.favorite.add`, `topic.favorite.remove`, `topic.share.mp`).
+  **Coordinator:** it clears when the fragment is merged into `Resources/Localizable.xcstrings`, as the round-3 keys were.
+  `Localizable.xcstrings` was not edited here, to avoid conflicts with the other 11 branches.
+- An earlier round-4 edit to `App/MerchantContentEditor.swift` added a hash-pin failure (`test_merchant_station_submission_import`).
+  It was reverted, and that test is back to the base's single failure.
+- `check_a11y_lint.py`: only the base row in ClubWorkbenchKit. `check_typography_lint.py`: PASS.
