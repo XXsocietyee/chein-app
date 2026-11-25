@@ -22,7 +22,25 @@ import SwiftUI
     @Published private var active = false
     private var generation = UUID(), topicRun: UUID?, targetRun: UUID?
     private var session: CoopFlowSession?
+    /// MC8-31-1: route presets (`type` / `toId` / `topicId`). They survive reloads; the matching rows are chosen once loaded.
+    private(set) var presetTopicID: Int?
+    private(set) var presetTargetID: Int?
     init(reader: any CoopFlowReading, operationScope: String?) { self.reader = reader; self.operationScope = operationScope; session = reader.session }
+    /// Call before the first appear. `kind` follows MP `type` (0 merchant, 1 club).
+    func applyRoutePreset(kind: CoopFlowTargetKind?, targetID: Int?, topicID: Int?) {
+        if let kind { self.kind = kind }
+        presetTargetID = targetID.flatMap { $0 > 0 ? $0 : nil }
+        presetTopicID = topicID.flatMap { $0 > 0 ? $0 : nil }
+    }
+    /// The route topic once it is among the loaded owned topics.
+    var lockedTopic: CoopFlowOwnedTopic? { presetTopicID == nil ? nil : topic }
+    /// The route target once it is in the loaded directory.
+    var lockedTarget: CoopFlowTargetCandidate? {
+        guard let presetTargetID, isCurrent else { return nil }
+        return candidates.first { $0.recipient.id == presetTargetID }
+    }
+    /// MC8-31-3: topics loaded without error and none can be linked.
+    var topicsLoadedEmpty: Bool { isCurrent && topicsReady && !topicsBusy && !topicsFailed && topics.isEmpty }
     var permit: Permit { .init(id: generation, session: session, kind: kind) }
     var isCurrent: Bool { visible && active && session != nil && session == reader.session }
     var busy: Bool { topicsBusy || targetsBusy }
@@ -97,6 +115,7 @@ import SwiftUI
             var seen = Set((append ? topics : []).map(\.id))
             topics = (append ? topics : []) + parsed.filter { seen.insert($0.id).inserted }
             if let id = topicID, !topics.contains(where: { $0.id == id }) { topicID = nil }
+            if topicID == nil, let preset = presetTopicID, topics.contains(where: { $0.id == preset }) { topicID = preset }
             topicsReady = true; failedPage = nil; hasMore = rows.count == 20; page = requested + 1
         } catch {
             guard accepts(value), topicRun == run else { return }
@@ -121,6 +140,7 @@ import SwiftUI
             candidates = parsed
             memberCounts = Dictionary(uniqueKeysWithValues: directory.rows.compactMap { row in row.memberCount.map { (row.id, $0) } })
             selected.formIntersection(Set(parsed.map(\.id))); targetsReady = true
+            if let preset = presetTargetID, let target = parsed.first(where: { $0.recipient.id == preset }) { selected = [target.id] }
         } catch {
             guard accepts(value), targetRun == run else { return }
             targetsFailed = true
@@ -254,6 +274,12 @@ import SwiftUI
 @MainActor struct CoopFlowNewInvitationView: View {
     let reader: any CoopFlowReading
     let operationScope: String?
+    /// MC8-31-1: MP `type` (0 merchant, 1 club). Nil keeps the page default.
+    var initialType: Int? = nil
+    /// MC8-31-4: a fixed recipient (coop/list 回邀约 / 发邀约, or `toId`). The picker is skipped.
+    var lockedTarget: CoopInviteLockedTarget? = nil
+    /// MC8-31-2: a fixed topic (`topicId`).
+    var initialTopicID: Int? = nil
     private struct Identity: Hashable { let reader: ObjectIdentifier; let scope: String? }
     var body: some View {
         if reader.session == nil {
@@ -264,7 +290,8 @@ import SwiftUI
             }
             .cyMiniListScreen().navigationTitle("context.coop.new").navigationBarTitleDisplayMode(.inline)
         } else {
-            CoopInvitationReadContent(reader: reader, operationScope: operationScope)
+            CoopInvitationReadContent(reader: reader, operationScope: operationScope, initialType: lockedTarget?.type ?? initialType,
+                                      lockedTarget: lockedTarget, initialTopicID: initialTopicID)
                 .id(Identity(reader: ObjectIdentifier(reader), scope: operationScope))
         }
     }
@@ -280,9 +307,26 @@ import SwiftUI
     @Environment(\.coopInviteSent) private var inviteSent
     @Environment(\.cooperationNearbyDestination) private var nearbyDestination
     @Environment(\.scenePhase) private var scenePhase
-    init(reader: any CoopFlowReading, operationScope: String?) {
+    @Environment(\.coopTopicPublishDestination) private var topicPublishDestination
+    @Environment(\.locale) private var locale
+    @State private var publishingTopic = false
+    private let lockedTargetPreset: CoopInviteLockedTarget?
+    private let initialTopicID: Int?
+    init(reader: any CoopFlowReading, operationScope: String?, initialType: Int? = nil,
+         lockedTarget: CoopInviteLockedTarget? = nil, initialTopicID: Int? = nil) {
         self.reader = reader; self.operationScope = operationScope
-        _model = StateObject(wrappedValue: .init(reader: reader, operationScope: operationScope))
+        self.lockedTargetPreset = lockedTarget; self.initialTopicID = initialTopicID
+        let model = CoopInvitationReadModel(reader: reader, operationScope: operationScope)
+        model.applyRoutePreset(kind: initialType.flatMap(CoopFlowTargetKind.init(rawValue:)),
+                               targetID: lockedTarget?.toID, topicID: initialTopicID)
+        _model = StateObject(wrappedValue: model)
+    }
+    /// MP fallback names when the route target is not in the loaded directory (该俱乐部 / 该商家).
+    private var lockedTargetTitle: String? {
+        guard let preset = lockedTargetPreset else { return nil }
+        if let found = model.lockedTarget { return found.name }
+        if !preset.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return preset.name }
+        return appLocalized(preset.type == CoopFlowTargetKind.club.rawValue ? "merchantCoop.invite.lockedClub" : "merchantCoop.invite.lockedMerchant", locale: locale)
     }
     private var filtered: [CoopFlowTargetCandidate] {
         guard model.isCurrent else { return [] }
@@ -298,18 +342,37 @@ import SwiftUI
             }
             Section("context.coop.topic") {
                 if model.topicsFailed { Button("action.retry") { Task { await model.retryTopics(permit) } }.disabled(model.topicsBusy) }
+                if let locked = model.lockedTopic {
+                    CoopInviteLockedRow(title: locked.name, detail: "merchantCoop.invite.lockedTopicScope", identifier: "cooperation.invite.lockedTopic")
+                } else if model.topicsLoadedEmpty {
+                    // MC8-31-3 (wxml:46): 还没有可关联的主题 + 先发布主题.
+                    CYEmptyState("merchantCoop.invite.noTopics",
+                                 actionTitle: topicPublishDestination == nil ? nil : "merchantCoop.invite.publishTopic",
+                                 actionIdentifier: "cooperation.invite.publishTopic",
+                                 action: { publishingTopic = true })
+                } else {
                 Picker("context.coop.topic", selection: Binding(get: { model.isCurrent ? model.topicID : nil }, set: { model.chooseTopic($0, permit: permit) })) {
                     Text("context.coop.chooseTopic").tag(Optional<Int>.none)
                     ForEach(model.isCurrent ? model.topics : []) { row in
                         Text(verbatim: [row.name, row.startDate, row.address].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).tag(Optional(row.id))
                     }
                 }.disabled(model.topicsBusy)
+                }
                 // Mini `.card-hint--warn`: topic not in its recruiting window.
                 if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("context.coop.closed").cyText(.meta).foregroundStyle(CYColor.warningText) }
-                if model.hasMore, !model.topics.isEmpty { Button("context.picker.more") { Task { await model.more(permit) } }.disabled(model.topicsBusy || model.topicsFailed) }
+                if model.lockedTopic == nil, model.hasMore, !model.topics.isEmpty { Button("context.picker.more") { Task { await model.more(permit) } }.disabled(model.topicsBusy || model.topicsFailed) }
             }
             // Source order: ① 关联主题, ③ 邀请对象 (club / merchant switch inside it); terms follow in the editor.
             Section("context.coop.targets") {
+              if let lockedTargetTitle {
+                // MC8-31-4: 已选定，发送前不可更换.
+                CoopInviteLockedRow(title: lockedTargetTitle, detail: "merchantCoop.invite.lockedTargetHint", identifier: "cooperation.invite.lockedTarget")
+                if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
+                if model.targetsFailed { CYPillButton("action.retry", style: .secondary) { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
+                if !model.busy, !model.targetsFailed, model.lockedTarget == nil {
+                    Text("merchantCoop.invite.lockedTargetMissing").cyText(.meta).foregroundStyle(CYColor.warningText)
+                }
+              } else {
                 Picker("context.coop.kind", selection: Binding(get: { model.kind }, set: { value in
                     guard let next = model.changeKind(value, permit: permit) else { return }
                     editing = []; showEditor = false; search = ""
@@ -357,6 +420,7 @@ import SwiftUI
                         .accessibilityAddTraits(model.selected.contains(candidate.id) ? .isSelected : [])
                         .accessibilityIdentifier("context.coop.target.\(candidate.id)")
                 }
+              }
             }
             CoopInviteReceiptSections(reader: reader, kind: model.kind, topicID: model.topic?.id, merchantMemberIDs: model.candidates.filter { model.selected.contains($0.id) && $0.kind == .merchant }.map(\.recipient.id),
                                       showsRequests: sendOutcomeUnknown)
@@ -385,6 +449,9 @@ import SwiftUI
                 if phase == .active { let value = model.permit; Task { await model.loadInitial(value) } }
             }
             .onDisappear { model.disappear() }
+            .navigationDestination(isPresented: $publishingTopic) {
+                if let topicPublishDestination { topicPublishDestination(operationScope) }
+            }
             .sheet(isPresented: $showEditor) {
                 NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) }
                     .environment(\.coopInviteOutcomeUnknown, { sendOutcomeUnknown = true })

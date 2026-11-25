@@ -492,10 +492,18 @@ import SwiftUI
                 .cyPushedChrome(domain: .merchant)
         // MC7-30-2: coop list opens on the linked tab. The topic-only scope (CooperationInboxTopicFilter) is not seeded yet.
         case "pages/coop/list/index":
+            // MC8-30-1: `topicId` seeds the topic filter; `scope=MERCHANT` is forwarded as the operation scope.
+            let listLink = CoopListLink(query)
             CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
                                    peerReader: session.cooperationFlowReader,
-                                   initialDirection: CoopListLink(query).tab == "sent" ? .sent : .received,
-                                   topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) })
+                                   operationScope: listLink.merchantScope ? "MERCHANT" : nil,
+                                   initialDirection: listLink.tab == "sent" ? .sent : .received,
+                                   topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
+                                   initialTopicID: listLink.topicID)
+                .environment(\.cooperationTopicNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session, topic: $0)) })
+                .environment(\.coopTopicPublishDestination, { scope in
+                    AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: scope.map { ["scope": $0] } ?? [:]).environmentObject(session))
+                })
                 .id(session.cooperationReader.scope)
         // MC7-32-7: invite-detail `inviteId` + `box`.
         case "pages/coop/invite-detail/index":
@@ -503,11 +511,20 @@ import SwiftUI
             if let inviteID = link.inviteID {
                 CooperationInviteDetailView(key: CooperationInviteKey(id: inviteID, direction: link.box == "sent" ? .sent : .received),
                                             reader: session.cooperationReader, peerReader: session.cooperationFlowReader)
+                    // MC8-32-1/-4: 进入项目 and 主题详情 are links on the deep-link entry too.
+                    .environment(\.cooperationProjectDestination, { AnyView(SessionTopicDetailView(id: $0, session: session)) })
                     .cyPushedChrome(domain: .merchant)
             } else { unavailable }
-        // MC7-31-10: the new-invitation page. The `type` / `toId` / `topicId` presets are not applied yet.
+        // MC7-31-10 / MC8-31-1: the new-invitation page with the `type` / `toId` / `topicId` presets applied.
         case "pages/coop/invite/index":
-            CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: nil)
+            let inviteLink = CoopInviteLink(query)
+            CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: nil,
+                                      initialType: inviteLink?.type,
+                                      lockedTarget: inviteLink.flatMap { link in link.toID.map { CoopInviteLockedTarget(type: link.type, toID: $0, name: "") } },
+                                      initialTopicID: inviteLink?.topicID)
+                .environment(\.coopTopicPublishDestination, { scope in
+                    AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: scope.map { ["scope": $0] } ?? [:]).environmentObject(session))
+                })
                 .cyPushedChrome(domain: .merchant)
         // flows-g2 (round 3): merchant decor / city-node / game-node MP paths (query-free in MiniProgramPageLink).
         // decor opens 品牌中心 with the same factory and perks / city-node destinations as the merchant tab.

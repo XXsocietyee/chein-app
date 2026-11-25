@@ -7,6 +7,8 @@ import SwiftUI
     let direction: CooperationDirection
     var operationScope: String? = nil
     var topicFilter: CoopTopicFilterSeed = .init()
+    /// MC8-30-7: the topic screen for a chapter-application row (MP rows navigate to topic/merchantinfo).
+    var topicDestination: ((Int) -> AnyView)? = nil
     @State private var rows: [CoopChapterApplication] = []
     @State private var failed = false
     @State private var loading = false
@@ -25,6 +27,19 @@ import SwiftUI
                         }.accessibilityIdentifier("cooperation.list.chapter.failed")
                     }
                     ForEach(visible) { row in
+                        if let topic = row.topicID, topic > 0, let topicDestination {
+                            NavigationLink { topicDestination(topic) } label: { chapterRow(row) }
+                                .accessibilityIdentifier("cooperation.list.chapter.open.\(row.id)")
+                        } else {
+                            chapterRow(row)
+                        }
+                    }
+                }
+            }
+        }
+        .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0):\(refresh)") { await load() }
+    }
+    private func chapterRow(_ row: CoopChapterApplication) -> some View {
                         // Mini `.inv` (chapter variant): status line, title, "chapter · merchant", secondary action label.
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             Text(LocalizedStringKey("cooperation.list.chapter.status." + row.status.rawValue)).cyText(.label).foregroundStyle(CYColor.textTertiary)
@@ -32,14 +47,9 @@ import SwiftUI
                             if let chapter = row.chapterName {
                                 Text(verbatim: row.leg == .owner && row.merchantName != nil ? chapter + " · " + (row.merchantName ?? "") : chapter).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
-                            // MC7-30-3: the row has no destination here, so no info-coloured action label that reads as a link.
+                            // MC7-30-3 / MC8-30-7: the whole row is the link when the host supplies the topic screen.
                         }.padding(.vertical, CYSpacing.xs).accessibilityElement(children: .combine)
                             .accessibilityIdentifier("cooperation.list.chapter.\(row.id)")
-                    }
-                }
-            }
-        }
-        .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0):\(refresh)") { await load() }
     }
     private func load() async {
         rows = []; failed = false; loadedSession = nil
@@ -130,6 +140,11 @@ struct CooperationInviteCardDetails: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if let name = invite.topicName { Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
             CooperationInvitePartyText(view: view).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+            // MC8-30-8: MP `.inv-sub` countdown (pending invites only).
+            if let countdown = CoopInviteCountdown.value(status: invite.status, expire: invite.expireTime) {
+                CoopInviteCountdownText(value: countdown).cyText(.meta)
+                    .foregroundStyle(countdown == .expired ? CYColor.warningText : CYColor.textTertiary)
+            }
             if let party = invite.viewerPartyName {
                 Text(verbatim: party).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .accessibilityLabel(Text(LocalizedStringKey(view.direction == .received ? "cooperation.detail.receivingClub" : "cooperation.detail.sendingClub")) + Text(verbatim: " " + party))
@@ -152,6 +167,12 @@ struct CooperationInviteCardDetails: View {
                 .padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.warningSoft))
             }
+            // MC8-30-8: MP `.inv-msg` — the invite message under the terms.
+            if let message = invite.message?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty {
+                Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            // MC8-30-6: the hint stays as the MP `.inv-terms` line; 再邀别人 is the row under the card when the host can open 找商家.
             if view.direction == .sent && invite.status == 2 { Text("cooperation.list.sent.declinedHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             if invite.status == 0 && view.direction == .received && !invite.legacyReadonly && !view.decisionReady {
                 Label("cooperation.list.incomplete", systemImage: "exclamationmark.triangle").cyText(.meta).foregroundStyle(CYColor.warningText)
