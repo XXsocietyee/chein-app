@@ -102,3 +102,15 @@ Work in the worktree `/Users/fanning/orca/workspaces/native-ios/DES-ag6` on `ui/
 3. Keep the Mac awake (`caffeinate -dims`) so builds and acceptance keep running.
 4. "Money on": not yet.
 5. TestFlight: when acceptance is green.
+
+---
+
+## 7. Cursor live status (maintained by Cursor)
+
+**Rule for both editors:** edit only your own section (Claude: §1–§6; Cursor: §7). Before every edit: `git pull --rebase origin design/handoff-r2`. Commit small and push right away. On a push conflict, rebase again; never force-push.
+
+| Lane | Branch | Base | Status | SHA | Notes |
+|---|---|---|---|---|---|
+| (Cursor fills this in) | | | | | |
+
+**Acceptance (Cursor owns):** latest CHECK run, its SHA, and the new Core/AppUnit/contract failures by name.
