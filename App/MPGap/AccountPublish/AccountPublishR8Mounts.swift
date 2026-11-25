@@ -271,3 +271,100 @@ enum ProjectEditCastConfig {
         }
     }
 }
+
+// MARK: - C-F7 画面风格 (MP fabu topic-detail-sheet.wxml:79-88, look-sheet.wxml, theme-look-editor.js, utils/publish/theme-look.js)
+
+/// MP `formData.look`: a JSON string sent as `payload.look`. The app keeps it in `ProjectEditDraft.preserved["look"]`
+/// (the payload carries it once Core lists `look` in `topicCarryOver`). Keys the app does not edit (map, times, textFx,
+/// transition) are kept; a style change resets that style's params to the MP defaults, as `normalizeLook` does.
+enum ProjectEditLook {
+    static let key = "look"
+    struct Style { let value: String; let labelKey: String; let params: [String: String] }
+    static let styles: [Style] = [
+        .init(value: "STARDUST", labelKey: "fixr8.look.style.stardust", params: ["density": "NORMAL", "drift": "SLOW", "tone": "WHITE"]),
+        .init(value: "PAPER", labelKey: "fixr8.look.style.paper", params: ["paper": "KRAFT", "grain": "MEDIUM", "stamp": "VERIFIED"]),
+        .init(value: "SURVIVAL", labelKey: "fixr8.look.style.survival", params: ["climate": "RAIN", "volatility": "SHIFTING", "edge": "HP"]),
+        .init(value: "CYBER", labelKey: "fixr8.look.style.cyber", params: ["neon": "YELLOW_CYAN", "current": "MID", "glitch": "TRANSITION"])
+    ]
+    static let palettes: [(value: String, labelKey: String)] = [
+        ("DEFAULT", "fixr8.look.palette.default"), ("BLUE", "fixr8.look.palette.blue"), ("RED", "fixr8.look.palette.red"),
+        ("YELLOW", "fixr8.look.palette.yellow"), ("WHITE", "fixr8.look.palette.white")
+    ]
+    static let fonts: [(value: String, labelKey: String)] = [
+        ("HAND", "fixr8.look.font.hand"), ("SONG", "fixr8.look.font.song"), ("KAI", "fixr8.look.font.kai"),
+        ("HEI", "fixr8.look.font.hei"), ("BOLD", "fixr8.look.font.bold")
+    ]
+
+    static func object(_ preserved: [String: ProjectEditJSON]) -> [String: ProjectEditJSON] {
+        switch preserved[key] {
+        case .object(let object): return object
+        case .string(let raw):
+            guard let data = raw.data(using: .utf8),
+                  let decoded = try? JSONDecoder().decode(ProjectEditJSON.self, from: data) else { return [:] }
+            return decoded.object ?? [:]
+        default: return [:]
+        }
+    }
+
+    static func style(_ preserved: [String: ProjectEditJSON]) -> String {
+        let raw = (object(preserved)["style"]?.text ?? "").uppercased()
+        return styles.contains { $0.value == raw } ? raw : "STARDUST"
+    }
+    static func palette(_ preserved: [String: ProjectEditJSON]) -> String {
+        let raw = (object(preserved)["palette"]?.text ?? "").uppercased()
+        return palettes.contains { $0.value == raw } ? raw : ""
+    }
+    static func font(_ preserved: [String: ProjectEditJSON]) -> String {
+        let raw = (object(preserved)["storyFont"]?.text ?? "").uppercased()
+        return fonts.contains { $0.value == raw } ? raw : "HAND"
+    }
+
+    static func update(_ preserved: inout [String: ProjectEditJSON], style newStyle: String? = nil, palette: String? = nil, font: String? = nil) {
+        var look = object(preserved)
+        let current = style(preserved)
+        if look["style"] == nil { look["style"] = .string(current) }
+        if look["transition"] == nil { look["transition"] = .string("AUTO") }
+        if look["storyFont"] == nil { look["storyFont"] = .string("HAND") }
+        if look["params"]?.object == nil || (newStyle != nil && newStyle != current) {
+            let target = newStyle ?? current
+            let defaults = styles.first { $0.value == target }?.params ?? [:]
+            look["params"] = .object(defaults.mapValues { .string($0) })
+        }
+        if let newStyle { look["style"] = .string(newStyle) }
+        if let palette { if palette.isEmpty { look["palette"] = nil } else { look["palette"] = .string(palette) } }
+        if let font { look["storyFont"] = .string(font) }
+        guard let data = try? JSONEncoder().encode(ProjectEditJSON.object(look)),
+              let text = String(data: data, encoding: .utf8) else { return }
+        preserved[key] = .string(text)
+    }
+}
+
+/// 画面风格 row on the fabu editor: style, 主题配色 (unset keeps each chapter's own colours) and 故事字体.
+@MainActor struct ProjectEditLookHost: View {
+    @Binding var preserved: [String: ProjectEditJSON]
+    let readOnly: Bool
+
+    var body: some View {
+        Section {
+            Picker(selection: Binding(get: { ProjectEditLook.style(preserved) },
+                                      set: { ProjectEditLook.update(&preserved, style: $0) })) {
+                ForEach(ProjectEditLook.styles, id: \.value) { Text(LocalizedStringKey($0.labelKey)).tag($0.value) }
+            } label: { Text("fixr8.look.style") }
+            .accessibilityIdentifier("projectEdit.look.style")
+            Picker(selection: Binding(get: { ProjectEditLook.palette(preserved) },
+                                      set: { ProjectEditLook.update(&preserved, palette: $0) })) {
+                Text("fixr8.look.palette.chapter").tag("")
+                ForEach(ProjectEditLook.palettes, id: \.value) { Text(LocalizedStringKey($0.labelKey)).tag($0.value) }
+            } label: { Text("fixr8.look.palette") }
+            .accessibilityIdentifier("projectEdit.look.palette")
+            Picker(selection: Binding(get: { ProjectEditLook.font(preserved) },
+                                      set: { ProjectEditLook.update(&preserved, font: $0) })) {
+                ForEach(ProjectEditLook.fonts, id: \.value) { Text(LocalizedStringKey($0.labelKey)).tag($0.value) }
+            } label: { Text("fixr8.look.font") }
+            .accessibilityIdentifier("projectEdit.look.font")
+        } header: {
+            Text("fixr8.look.title").cyText(.sectionTitle)
+        }
+        .disabled(readOnly)
+    }
+}
