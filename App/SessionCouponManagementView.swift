@@ -17,7 +17,9 @@ extension EnvironmentValues {
     var scope: CouponPublishListScope = .merchant
     var body: some View {
         CouponManagementView(coordinator: session.couponManagementCoordinator,
-                             sessionKey: session.couponManagementSession, isSourceVisible: true, scope: scope)
+                             sessionKey: session.couponManagementSession, isSourceVisible: true, scope: scope,
+                             isMerchantMember: session.account?.role == "merchant",
+                             loadSummary: { [session] in await session.merchantCouponSummary() })
             .id(session.couponManagementSession)
     }
 }

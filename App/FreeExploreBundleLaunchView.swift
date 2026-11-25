@@ -17,6 +17,11 @@ import SwiftUI
     private func storeName(_ id: FreeExploreLaunchID) -> String {
         model.catalog?.items.lazy.flatMap(\.stores).first(where: { $0.offerId == id })?.merchantName ?? "—"
     }
+    /// MP `featureOff`: the read failed with `businessCode == "BUNDLE_LEDGER_OFF"` (free-explore/index.js:97).
+    private var ledgerOff: Bool {
+        if case .response(_, _, let businessCode)? = model.failure { return businessCode == "BUNDLE_LEDGER_OFF" }
+        return false
+    }
     /// Menu-picker row inside a card: label left, current choice right, 48pt tall.
     private func choice<P: View>(_ label: Text, selected: String?, @ViewBuilder picker: () -> P) -> some View {
         HStack {
@@ -62,8 +67,11 @@ import SwiftUI
                     .accessibilityIdentifier("freeBundle.empty")
             case .error(.load):
                 CYNoteBanner(text: text("error"), symbol: "exclamationmark.triangle", tone: .warning).accessibilityIdentifier("freeBundle.error")
-                CYPillButton(LocalizedStringKey("retry"), style: .tertiary, tableName: table) { Task { await model.load() } }
-                    .disabled(model.busy).accessibilityIdentifier("freeBundle.reload")
+                // R7-MEM-7-2 (MP R11 F-7): with the bundle ledger switched off a refresh cannot change anything, so 刷新 is hidden.
+                if !ledgerOff {
+                    CYPillButton(LocalizedStringKey("retry"), style: .tertiary, tableName: table) { Task { await model.load() } }
+                        .disabled(model.busy).accessibilityIdentifier("freeBundle.reload")
+                }
             case .unknown:
                 if model.state == .outcomeUnknown {
                     CYInfoCard(title: text("unknown"), symbol: "clock.badge.questionmark") {
