@@ -274,7 +274,7 @@ struct PassMarketView: View {
                     .accessibilityIdentifier("passMarket.member")
             }
             if content.products.isEmpty && state.member == nil {
-                CYEmptyState(systemImage: "ticket", "mp.pass.empty.shop", messageIdentifier: "passMarket.shop.empty")
+                CYEmptyState(systemImage: "tray", "mp.pass.empty.shop", messageIdentifier: "passMarket.shop.empty")
             }
             ForEach(Array(content.products.enumerated()), id: \.element.id) { index, product in
                 Group {
@@ -299,11 +299,8 @@ struct PassMarketView: View {
     }
 
     private func memberCard(_ side: PassMemberEntrySide) -> some View {
+        // MP `mk-member` is text only (通行证 + side line) with a chevron; no emblem.
         HStack(spacing: CYSpacing.md) {
-            Image(systemName: "key.fill").cyText(.cardTitle).foregroundStyle(CYNight.lanternHot)
-                .frame(width: 44, height: 44)
-                .background { Circle().fill(CYNight.glow(radius: 22)) }
-                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text("mp.pass.member").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 switch side {
@@ -324,7 +321,7 @@ struct PassMarketView: View {
     @ViewBuilder private func orders(_ content: PassMarketContent) -> some View {
         let rows = content.orders
         if rows.isEmpty && content.passOrders.isEmpty {
-            CYEmptyState(systemImage: "doc.text", "mp.pass.empty.orders", messageIdentifier: "passMarket.orders.empty")
+            CYEmptyState(systemImage: "tray", "mp.pass.empty.orders", messageIdentifier: "passMarket.orders.empty")
         } else {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if !content.passOrders.isEmpty { passOrders(content.passOrders) }
@@ -373,7 +370,7 @@ struct PassMarketView: View {
 
     @ViewBuilder private func gifts(_ content: PassMarketContent) -> some View {
         if content.giftsBought.isEmpty && content.giftsReceived.isEmpty {
-            CYEmptyState(systemImage: "gift", "mp.pass.empty.gifts", messageIdentifier: "passMarket.gifts.empty")
+            CYEmptyState(systemImage: "tray", "mp.pass.empty.gifts", messageIdentifier: "passMarket.gifts.empty")
         } else {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if !content.giftsBought.isEmpty {
@@ -787,6 +784,27 @@ struct PassGiftReadySheet: View {
     }
 }
 
+/// MP `cy-pass-object` seal (`po__seal` / `po__ring` / `po__mark`): a gold disc with an inner ring and the brand
+/// mark `/images/cy_logo_mark.png` toned dark gold (`sepia … brightness(.35)`), here the catalog image as a template.
+struct PassSealMark: View {
+    var body: some View {
+        ZStack {
+            Circle().fill(RadialGradient(colors: [CYNight.lanternHot, CYNight.lantern, CYNight.ember],
+                                         center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: 30))
+            Circle().strokeBorder(CYNight.ember.opacity(0.6), lineWidth: 1.5).padding(5)
+            MPAsset.BrandLogo.cyLogoMark
+                .resizable()
+                .renderingMode(.template)
+                .scaledToFit()
+                .foregroundStyle(CYNight.ember)
+                .accessibilityHidden(true)
+                .padding(12)
+        }
+        .frame(width: 48, height: 48)
+        .accessibilityHidden(true)
+    }
+}
+
 /// r3-pass hero: a lantern-gold city pass that assembles from shards on appear (cross-fade under Reduce Motion).
 struct PassTicketHero: View {
     let face: String
@@ -817,7 +835,7 @@ struct PassTicketHero: View {
                         .animation(reduceMotion ? CYMotion.reduced : .spring(response: 0.55, dampingFraction: 0.72).delay(Double(index) * 0.04), value: assembled)
                 }
                 VStack(spacing: CYSpacing.xs) {
-                    Image(systemName: "key.fill").cyText(.sectionTitle)
+                    PassSealMark()
                     Text(verbatim: face).cyText(.cardTitle).lineLimit(2).multilineTextAlignment(.center)
                 }
                 .foregroundStyle(CYNight.ink0)

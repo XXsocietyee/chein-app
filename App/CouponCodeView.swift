@@ -103,8 +103,9 @@ extension EnvironmentValues {
                 if let token = model.displayToken { CouponLocalQRImage(token: token) }
                 else if let bytes = model.imageBytes, let image = UIImage(data: bytes) {
                     Image(uiImage: image).resizable().interpolation(.none).scaledToFit().frame(width: 240, height: 240)
+                        .overlay { CouponQRLogoMark() }
                         .padding(24).background(.white).accessibilityLabel("couponCode.image")
-                } else { Text("couponCode.renderFailed") }
+                } else { CouponQRRenderFailed() }
                 // Source: 二维码 Ns 后自动刷新 under the code. Page model countdown: hidden or unknown is an em dash, a displayed 0 stays 0.
                 Group {
                     if model.remainingText == "—" {
@@ -212,7 +213,8 @@ extension CouponCodeView {
 @MainActor private struct CouponLocalQRImage: View {
     let token: String
     private var image: UIImage? {
-        let filter = CIFilter.qrCodeGenerator(); filter.message = Data(token.utf8); filter.correctionLevel = "M"
+        // "H": the MP voucher covers the centre with the brand mark, so keep the highest error correction.
+        let filter = CIFilter.qrCodeGenerator(); filter.message = Data(token.utf8); filter.correctionLevel = "H"
         guard let output = filter.outputImage,
               let cg = CIContext(options: [.cacheIntermediates: false]).createCGImage(output, from: output.extent) else { return nil }
         return UIImage(cgImage: cg)
@@ -220,7 +222,39 @@ extension CouponCodeView {
     var body: some View {
         if let image {
             Image(uiImage: image).resizable().interpolation(.none).scaledToFit().frame(width: 240, height: 240)
+                .overlay { CouponQRLogoMark() }
                 .padding(24).background(.white).accessibilityLabel("couponCode.image").accessibilityIdentifier("couponCode.qr")
-        } else { Text("couponCode.renderFailed") }
+        } else { CouponQRRenderFailed() }
+    }
+}
+
+/// MP `cy-qr-voucher` centre mark (`qr__logo`, 96 rpx white disc, 56 rpx `/images/cy_logo_mark.png` with
+/// `filter: brightness(0)`): the same catalog image as a black template, so it keeps its alpha outline.
+private struct CouponQRLogoMark: View {
+    var body: some View {
+        MPAsset.BrandLogo.cyLogoMark
+            .resizable()
+            .renderingMode(.template)
+            .scaledToFit()
+            .foregroundStyle(Color.black)
+            .accessibilityHidden(true)
+            .frame(width: 28, height: 28)
+            .frame(width: 48, height: 48)
+            .background(Circle().fill(Color.white))
+    }
+}
+
+/// MP `qr__error`: `/images/no_data.svg` above 二维码未加载.
+private struct CouponQRRenderFailed: View {
+    var body: some View {
+        VStack(spacing: CYSpacing.sm) {
+            MPAsset.EmptyState.noData
+                .resizable()
+                .scaledToFit()
+                .accessibilityHidden(true)
+                .frame(width: 64, height: 64)
+            Text("couponCode.renderFailed").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+        }
+        .accessibilityElement(children: .combine)
     }
 }

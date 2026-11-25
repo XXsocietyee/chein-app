@@ -28,7 +28,7 @@ import SwiftUI
                     .accessibilityIdentifier(facts.readOnlyIdentifier ?? "invoice.titlesReadOnly")
             }
             if facts.phase == .empty, model.overview != nil {
-                CYEmptyState(systemImage: "person.text.rectangle", "noTitles", tableName: "InvoiceLaunchUI")
+                CYEmptyState(systemImage: "tray", "noTitles", tableName: "InvoiceLaunchUI")
                     .frame(maxWidth: .infinity).listRowBackground(Color.clear)
             }
             // R7-MEM-14-1: the shared state section already states an unresolved save with its 查询结果 row.

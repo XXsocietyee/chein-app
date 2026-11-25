@@ -72,7 +72,7 @@ import SwiftUI
                     if model.working || model.core.loading { CYSkeleton(variant: .row) }
                     // A failed read is an error notice above, not an empty list.
                     else if model.core.rows.isEmpty, model.core.issue == nil {
-                        CYEmptyState(systemImage: "ticket", "couponManagement.empty")
+                        CYEmptyState(systemImage: "tray", "couponManagement.empty")
                             .listRowBackground(Color.clear)
                     }
                     ForEach(model.core.rows) { row in

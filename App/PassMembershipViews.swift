@@ -99,9 +99,9 @@ struct PassMembershipView: View {
             case .failed:
                 CYErrorState("mp.common.loadFailed", onRetry: onRetry).frame(maxHeight: .infinity).accessibilityIdentifier("membership.error")
             case .merchant:
-                CYEmptyState(systemImage: "key", "mp.member.merchant", messageIdentifier: "membership.merchant").frame(maxHeight: .infinity)
+                CYEmptyState(systemImage: "tray", "mp.member.merchant", messageIdentifier: "membership.merchant").frame(maxHeight: .infinity)
             case .notEnabled:
-                CYEmptyState(systemImage: "key", "mp.member.off", messageIdentifier: "membership.off").frame(maxHeight: .infinity)
+                CYEmptyState(systemImage: "tray", "mp.member.off", messageIdentifier: "membership.off").frame(maxHeight: .infinity)
             case .ready(let content):
                 ready(content)
             }
@@ -428,7 +428,7 @@ struct PassLibraryView: View {
                     case .off:
                         CYEmptyState(systemImage: "key", "mp.member.off", messageIdentifier: "passLibrary.off")
                     case .ready(let cards) where cards.isEmpty:
-                        CYEmptyState(systemImage: "map", "mp.library.empty", messageIdentifier: "passLibrary.empty")
+                        CYEmptyState(systemImage: "tray", "mp.library.empty", messageIdentifier: "passLibrary.empty")
                     case .ready(let cards):
                         LazyVStack(spacing: CYSpacing.md) {
                             ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in

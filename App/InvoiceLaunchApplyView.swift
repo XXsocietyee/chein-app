@@ -290,7 +290,7 @@ struct InvoiceLaunchApplyGroup: Identifiable {
         CYSheetContainer(title: MemberPopupCopy.table("chooseTitleSheet", table: "InvoiceLaunchUI", locale: locale), onClose: { choosingTitle = false }) {
             VStack(spacing: CYSpacing.sm) {
                 if (model.overview?.titles ?? []).isEmpty {
-                    CYEmptyState(systemImage: "person.text.rectangle", "noTitles", tableName: "InvoiceLaunchUI")
+                    CYEmptyState(systemImage: "tray", "noTitles", tableName: "InvoiceLaunchUI")
                 }
                 ForEach(model.overview?.titles ?? [], id: \.id) { candidate in
                     Button {

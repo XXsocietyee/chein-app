@@ -58,18 +58,18 @@ import SwiftUI
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
                             CYEmptyState(
-                                systemImage: "ticket",
+                                systemImage: "tray",
                                 "accountCollection.coupons.empty",
                                 messageIdentifier: "accountCollection.coupons.empty",
-                                kind: .orders
+                                kind: .generic
                             )
                             .listRowBackground(Color.clear)
                         } else {
                             CYEmptyState(
-                                systemImage: "line.3.horizontal.decrease.circle",
+                                systemImage: "tray",
                                 "accountCollection.coupons.filteredEmpty",
                                 messageIdentifier: "accountCollection.coupons.filteredEmpty",
-                                kind: .search
+                                kind: .generic
                             )
                             .listRowBackground(Color.clear)
                         }
