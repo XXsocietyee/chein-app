@@ -1,0 +1,81 @@
+#if canImport(QuestifyCore)
+import Foundation
+import XCTest
+@testable import QuestifyCore
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
+/// MP-first rule (owner 2026-11-25), rows R7-PC-B2-1 / R7-PC-B3-1: every merchant-content write the mini
+/// program sends from `pages/topic/merchantinfo` and `pages/topic/merchantapply` is open by default on the
+/// real transport; the server decides. City node / NPC / station commands keep their own gates.
+private final class MPFirstNoNetworkTransport: HTTPTransport {
+    func send(_ request: URLRequest) async throws -> (Data, Int) { throw URLError(.notConnectedToInternet) }
+}
+
+@MainActor final class MerchantContentMPFirstApprovalTests: XCTestCase {
+    private func service(_ approval: MerchantContentWriteApproval) throws -> MerchantContentService {
+        let session = try MerchantContentSession(accountID: 1, epoch: 1, storageScope: "test-realm", token: "synthetic-token")
+        return MerchantContentService(configuration: try APIConfiguration(baseURL: URL(string: "https://merchant-info.example")!),
+                                      transport: MPFirstNoNetworkTransport(), currentSession: { session },
+                                      journal: MerchantContentMemoryPendingStorage(), writeApproval: { approval })
+    }
+    private func draft() -> MerchantRegistrationContentDraft {
+        var d = MerchantRegistrationContentDraft()
+        d.addressName = "Synthetic shop"; d.address = "Synthetic road 1"; d.activityDesc = "Synthetic desc"; d.picUrl = "https://img.example/a.png"
+        return d
+    }
+
+    func test_mp_first_defaults_open_every_merchantinfo_and_merchantapply_write() throws {
+        let a = MerchantContentWriteApproval()
+        XCTAssertTrue(a.chapterInvite && a.chapterRespond && a.chapterApply && a.chapterWithdraw)
+        XCTAssertTrue(a.register && a.updateRegistration && a.cancelRegistration)
+        XCTAssertTrue(a.submitNode && a.auditApplication && a.auditNode && a.reviewCircle)
+        let s = try service(.init())
+        let open: [MerchantContentCommand] = [
+            .apply(chapterID: 7, message: ""), .withdraw(applicationID: 3),
+            .register(topicID: 70, nodeID: 9, draft: draft(), cooperateDate: ""),
+            .updateRegistration(id: 5, topicID: 70, draft: draft()), .cancelRegistration(id: 5),
+            .submitNode(chapterID: 7, draft: MerchantChapterContentDraft()),
+            .auditApplication(id: 3, approve: true, reason: ""), .auditNode(nodeID: 9, approve: true, reason: ""),
+            .reviewCircle(topicID: 70, scope: "MERCHANT"),
+        ]
+        for command in open { XCTAssertTrue(s.permits(command), command.key) }
+        // Not this approval's rows: city node / NPC stay on their own gates.
+        XCTAssertFalse(s.permits(.claim(poiID: 1)))
+        XCTAssertFalse(s.permits(.saveNPC(nodeID: 9, name: "n", avatar: "a", greeting: "g")))
+        let closed = try service(.closed)
+        for command in open { XCTAssertFalse(closed.permits(command), command.key) }
+    }
+
+    /// The protocol requirement lets `any MerchantContentServing` callers (review confirm button) see the real approval.
+    func test_existential_caller_reaches_real_approval() throws {
+        let s: any MerchantContentServing = try service(.init())
+        XCTAssertTrue(s.permits(.register(topicID: 70, nodeID: 9, draft: draft(), cooperateDate: "")))
+    }
+
+    /// MP merchantapply/index.js:651-673: POST JSON create / update.
+    func test_register_and_update_request_shape_matches_merchantapply() throws {
+        let create = try MerchantContentCommand.register(topicID: 70, nodeID: 9, draft: draft(), cooperateDate: "周末").request()
+        XCTAssertEqual(create.path, "api/registration/merchant/create")
+        guard case .json(let c) = create.body else { return XCTFail("create must be JSON") }
+        XCTAssertEqual(c["topicId"], .integer(70)); XCTAssertEqual(c["nodeId"], .integer(9)); XCTAssertEqual(c["mode"], .integer(1))
+        XCTAssertEqual(c["cooperateDate"], .string("周末"))
+        for key in ["address", "addressName", "picUrl", "latitude", "longitude", "limitNum", "activityDesc"] { XCTAssertNotNil(c[key], key) }
+        let update = try MerchantContentCommand.updateRegistration(id: 5, topicID: 70, draft: draft()).request()
+        XCTAssertEqual(update.path, "api/registration/merchant/update")
+        guard case .json(let u) = update.body else { return XCTFail("update must be JSON") }
+        XCTAssertEqual(u["id"], .integer(5)); XCTAssertEqual(u["topicId"], .integer(70))
+    }
+
+    /// MP merchantinfo.js:4859 form `{id}`; :3227 JSON `{topicId, scope}`.
+    func test_cancel_and_circle_review_request_shape_matches_merchantinfo() throws {
+        let cancel = try MerchantContentCommand.cancelRegistration(id: 5).request()
+        XCTAssertEqual(cancel.path, "api/registration/merchant/cancel")
+        XCTAssertEqual(cancel.body, .form(["id": "5"]))
+        let review = try MerchantContentCommand.reviewCircle(topicID: 70, scope: "MERCHANT").request()
+        XCTAssertEqual(review.path, "api/circle-theme/instance/review")
+        XCTAssertEqual(review.body, .json(["topicId": .integer(70), "scope": .string("MERCHANT")]))
+    }
+}
+#endif
