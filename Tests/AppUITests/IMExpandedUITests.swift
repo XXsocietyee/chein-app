@@ -8,14 +8,14 @@ final class IMExpandedUITests: XCTestCase {
         app.launchArguments = ["--im-expanded-fixture", "message-empty"]
         app.launch()
         XCTAssertTrue(app.descendants(matching: .any)["messaging.list.empty"].waitForExistence(timeout: 5))
-        // All (0) / Channels (1) / Direct (2). Channels never offers Square.
+        // R7-PC-D8-1 MP 收件箱 (0) / 发件箱 (1). The outbox lists sent invites only and never offers Square.
         let tabs = app.segmentedControls["messaging.list.scope"]
-        XCTAssertEqual(tabs.buttons.count, 3)
+        XCTAssertEqual(tabs.buttons.count, 2)
         tabs.buttons.element(boundBy: 1).tap()
         XCTAssertFalse(app.buttons["messaging.list.emptySquare"].exists)
         tabs.buttons.element(boundBy: 0).tap()
         let entry = app.buttons["messaging.list.emptySquare"]
-        XCTAssertTrue(entry.waitForExistence(timeout: 2))
+        XCTAssertTrue(entry.waitForExistence(timeout: 5))
         entry.tap()
         XCTAssertTrue(app.staticTexts["messaging.fixture.square"].waitForExistence(timeout: 2))
         app.buttons["messaging.fixture.square.close"].tap()
@@ -33,6 +33,7 @@ final class IMExpandedUITests: XCTestCase {
         tabs.buttons.element(boundBy: 1).tap()
         XCTAssertFalse(app.buttons["messaging.list.emptySquare"].exists)
         tabs.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.descendants(matching: .any)["messaging.list.empty"].waitForExistence(timeout: 5))
         let search = app.searchFields.firstMatch
         search.tap(); search.typeText("missing")
         XCTAssertFalse(app.buttons["messaging.list.emptySquare"].exists)

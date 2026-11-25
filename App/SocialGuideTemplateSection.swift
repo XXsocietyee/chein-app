@@ -130,7 +130,7 @@ enum SocialGuideTemplateRows {
             else if scenePhase == .active, let snapshot = model.visibleSnapshot(reader: reader) {
                 if snapshot.rows.isEmpty {
                     // Mini-program empty: 还没有上架的现成玩法 with 去发布广场 (the template square).
-                    CYEmptyState(systemImage: "square.grid.2x2", "social.guideTemplates.empty",
+                    CYEmptyState(systemImage: "tray", "social.guideTemplates.empty",
                                  messageIdentifier: "social.guideTemplates.empty",
                                  actionTitle: "social.guideTemplates.toSquare", action: {
                                      guard scenePhase == .active else { return }

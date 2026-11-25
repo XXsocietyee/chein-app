@@ -238,7 +238,7 @@ struct MessagingHistoryView: View {
                 let createPoll: (() -> Void)? = canCreatePoll && !showsComposer ? { showingPollComposer = true } : nil
                 if currentHistoryReady, let owner = expanded?.safetyCoordinator?(conversationID), owner.isCurrent {
                     IMChatMoreMenu(owner: owner, conversation: conversation, blockedByMe: pageBlockedByMe,
-                                   messages: history.messages, createPoll: createPoll) { safety = .init(owner: owner) }
+                                   messages: history.messages, accountID: loadedIdentity?.accountID ?? 0, createPoll: createPoll) { safety = .init(owner: owner) }
                 } else if let createPoll {
                     Button("poll.create", systemImage: "chart.bar.xaxis", action: createPoll)
                         .accessibilityIdentifier("poll.createEntry")
@@ -473,11 +473,23 @@ struct MessagingHistoryView: View {
             } else { earlierPhase = .failed(failure, retry: nil) }
         }
     }
-    /// R7-PC-D9-1 (MP im/chat: `api/im/read` after the first page). Runs only when the ordinary-read grant is on
-    /// (`.imRead`, default off, so `canReviewOrdinaryRead` is false) and the row reports unread messages. It goes through
+    /// R7-PC-D9-1 (MP im/chat: `api/im/read` after the first page). With the reviewed ordinary-read grant on
+    /// (`canReviewOrdinaryRead`) and the row reporting unread messages, it goes through
     /// the coordinator's own review → confirm, so the frozen cursor, journal and recovery are the explicit path's.
     private func markReadAfterFirstPage(_ request: UInt64, _ identity: MessagingReadIdentity?, source: ObjectIdentifier) {
         guard let owner = expanded?.coordinator(conversationID), owner.isCurrent else { return }
+        // MP-first (chat/index.js:861-867 `markRead`): without the reviewed read-receipt/read-state reads, the chat still
+        // posts the MP's plain `api/im/read` once the first page is on screen. The server decides; failures stay silent
+        // like the MP (`hideLoading`, no toast).
+        if !owner.canReviewOrdinaryRead {
+            guard conversation?.unread != 0, let writer = owner.writer as? IMExpandedWriter, writer.canWriteInboxConversationRead else { return }
+            let id = conversationID
+            Task {
+                guard isCurrent(request, identity, source: source) else { return }
+                try? await writer.markInboxConversationRead(conversationID: id)
+            }
+            return
+        }
         let policy = IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted(imReadGranted: owner.canReviewOrdinaryRead)
         guard policy.shouldAutoMarkRead(unreadCount: conversation?.unread), owner.reviewOrdinaryRead() else { return }
         Task { await owner.confirm(stillAuthorized: { isCurrent(request, identity, source: source) }) }
@@ -588,18 +600,25 @@ private struct MessagingBubble: View {
     let conversation: MessagingConversation?
     let blockedByMe: Bool?
     let messages: [MessagingMessage]
+    /// R8-PC-D9-1: the viewer, so 举报对方 can pick the peer like MP `doReportPeer` (index.js:961-968).
+    var accountID: Int = 0
     var createPoll: (() -> Void)? = nil
     let present: () -> Void
     @Environment(\.locale) private var locale
     @State private var showMoreSheet = false
     @State private var pendingSelection: Choice?
     @State private var peerReportClosed = false
+    @State private var peerReportMemberID = 0
+    @State private var showPeerReport = false
+    @Environment(\.communityMemberReportContext) private var memberReportContext
     /// R8-PC-D9-1: 举报对方 is only offered when a live `CommunityMemberReportClient` (writesEnabled) is on the
-    /// session. None is today, so the row stays hidden instead of a dead-end 「举报对方暂未开放」 alert.
+    /// session, so the row is never a dead-end 「举报对方暂未开放」 alert. The app root injects
+    /// `communityMemberReportContext` (writes on, MP-first: the MP mounts `<cy-report-sheet target-type="MEMBER">`
+    /// for every signed-in member, `subpackageB/pages/im/chat/index.wxml:250`), which turns it on.
     var peerReportWritesEnabled: Bool = false
 
     private var offersPeerReport: Bool {
-        peerReportWritesEnabled && IMSafetyMenu.offersPeerReport(conversation: conversation)
+        (peerReportWritesEnabled || memberReportContext != nil) && IMSafetyMenu.offersPeerReport(conversation: conversation)
     }
 
     private enum Choice: Hashable {
@@ -622,8 +641,12 @@ private struct MessagingBubble: View {
             }
             .accessibilityLabel(Text("im.chat.more"))
             .accessibilityIdentifier("im.chat.more")
-            .alert(Text("im.chat.more.reportPeerClosed"), isPresented: $peerReportClosed) {
+            .alert(Text("im.reportPeer.noPeerMessage"), isPresented: $peerReportClosed) {
                 Button("d7.channelChat.ok", role: .cancel) {}
+            }
+            .sheet(isPresented: $showPeerReport) {
+                CommunityMemberReportSheet(memberID: peerReportMemberID)
+                    .cyDomainSheet(detents: [.half, .full])
             }
             .sheet(isPresented: $showMoreSheet, onDismiss: performPendingSelection) {
                 CYOptionSheet(
@@ -682,8 +705,14 @@ private struct MessagingBubble: View {
         case .safety(let item):
             select(item)
         case .peerReport:
-            // CommunityMemberReportClient.writesEnabled stays false, so submit remains notConfigured.
-            peerReportClosed = true
+            // MP `doReportPeer`: the peer is the sender of the latest message that is not mine; none → toast
+            // 对方还没发过消息，暂不能举报. Then the shared MEMBER report sheet (index.wxml:250).
+            if let peer = messages.last(where: { ($0.senderID ?? 0) > 0 && $0.senderID != accountID })?.senderID {
+                peerReportMemberID = peer
+                showPeerReport = true
+            } else {
+                peerReportClosed = true
+            }
         }
     }
 
@@ -771,7 +800,7 @@ private struct ChatHistoryEmpty: View {
     let hint: LocalizedStringKey
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
-            CYEmptyState(systemImage: "bubble.left.and.bubble.right", "messaging.history.empty")
+            CYEmptyState(systemImage: "tray", "messaging.history.empty")
             Text(hint)
                 .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)

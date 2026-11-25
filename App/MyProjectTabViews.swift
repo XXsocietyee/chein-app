@@ -94,13 +94,11 @@ enum MyProjectAddressLink {
             let canPublishActivity = entry?.canPublishActivity == true && !merchantScopeAccess.isBrowseOnly
             let keys = MyProjectListPresentation.emptyKeys(for: tab, canPublishActivity: canPublishActivity)
             VStack(spacing: CYSpacing.md) {
-                CYStateArt(kind: .projects)
+                // Round 4 image parity: MP `cy-empty kind="empty"` (myproject/index.wxml:59) = empty_state_bg + figure.
+                CYStateArt(kind: .generic)
                 Text(LocalizedStringKey(keys.title)).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .multilineTextAlignment(.center)
-                if let detail = keys.detail {
-                    Text(LocalizedStringKey(detail)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                        .multilineTextAlignment(.center)
-                }
+                // Round 4 copy: MP TYPE_EMPTY (myproject/index.js:50-54) has `sub: ''` on every tab, so no detail line.
                 if !merchantScopeAccess.isBrowseOnly, let entry, let cta = MyProjectListPresentation.emptyCTAKey(for: tab, canPublishActivity: canPublishActivity) {
                     NavigationLink { entry.make() } label: { Text(LocalizedStringKey(cta)) }
                         .buttonStyle(.cyPrimary(fullWidth: false))
@@ -112,7 +110,7 @@ enum MyProjectAddressLink {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("myProject.empty." + type)
         } else {
-            CYEmptyState(systemImage: "folder", "creatorContent.empty", kind: .projects)
+            CYEmptyState(systemImage: "tray", "creatorContent.empty")
         }
     }
 }

@@ -22,7 +22,7 @@ import SwiftUI
             List {
                 // PC-C-5-3: the current MP inbox has only the page title (drawn by the bar); the stale oi-hero preamble is gone.
                 if page == .empty {
-                    CYEmptyState(systemImage: "envelope.open", "official.inbox.empty", detail: "official.inbox.emptyDetail")
+                    CYEmptyState(systemImage: "tray", "official.inbox.empty")
                         .accessibilityIdentifier("official.inbox" + ".empty")
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
@@ -92,7 +92,9 @@ import SwiftUI
     var onLogin: (() -> Void)? = nil
     @Environment(\.cyPalette) private var palette
     var body: some View {
-        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "published", onLogin: onLogin, load: { try await reader.myPublished() }) { value in
+        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "published", onLogin: onLogin,
+                           issueLabel: { $0 == .failed ? "official.published.loadFailed" : nil },
+                           load: { try await reader.myPublished() }) { value in
             List {
                 // R7-PC-C6-1 MP-first: the MP has no 发起 / 官方通知 editor here (pages/activity/list/index.wxml:77-80,
                 // ruling 2026-09-03: official events are uploaded from the Web admin), so 我发布的 is read-only.
@@ -308,7 +310,8 @@ private extension Decimal {
         Task {
             do {
                 let stats = try await reader.broadcastStats(id: id)
-                // R8-PC-C6-1: a scope change mid-read drops the result but never leaves the row stuck on 正在读取复盘….
+                // R8-PC-C6-1 (MP official-mine/index.js:150-178 drops a stale reply): the row goes back to idle,
+                // so it is not left disabled on 正在读取复盘….
                 guard reader.scope == scope else { phase = .idle; return }
                 if stats.summaryLine != nil || OfficialBroadcastStatsText.counts(stats) != nil || stats.canRecoverInapp {
                     phase = .loaded(stats)

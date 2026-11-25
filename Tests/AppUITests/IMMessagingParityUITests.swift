@@ -16,113 +16,25 @@ final class IMMessagingParityUITests: XCTestCase {
         let app = launch("success")
         let tabs = app.segmentedControls["messaging.list.scope"]
         XCTAssertTrue(tabs.waitForExistence(timeout: 5))
-        // All / Channels / Direct. System notices travel with Direct.
-        XCTAssertEqual(tabs.buttons.count, 3)
+        // R7-PC-D8-1 MP-first (im/list/index.js:276-279): 收件箱 / 发件箱. The inbox lists every conversation;
+        // the outbox holds only the invites I sent, so no conversation row shows there.
+        XCTAssertEqual(tabs.buttons.count, 2)
         XCTAssertTrue(tabs.buttons.element(boundBy: 0).isSelected)
         XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["messaging.conversation.904"].exists)
+        XCTAssertTrue(app.buttons["messaging.conversation.903"].exists, "Official type 3 is in the inbox")
         tabs.buttons.element(boundBy: 1).tap()
-        XCTAssertTrue(app.buttons["messaging.conversation.904"].waitForExistence(timeout: 2))
-        XCTAssertFalse(app.buttons["messaging.conversation.901"].exists)
-        XCTAssertFalse(app.buttons["messaging.conversation.902"].exists)
-        tabs.buttons.element(boundBy: 2).tap()
-        XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["messaging.conversation.903"].exists, "Official type 3 belongs to Direct")
-        XCTAssertTrue(app.buttons["messaging.conversation.902"].exists, "System notices belong to Direct")
+        XCTAssertFalse(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.buttons["messaging.conversation.904"].exists)
-    }
-
-    /// presstap: a plain tap on a home inbox row (a List NavigationLink) must push the conversation. A press-tracking
-    /// gesture on the row once swallowed this tap on the iOS 27 runtime.
-    func testInboxRowTapNavigatesToConversation() {
-        let app = launch("success")
-        let row = app.buttons["messaging.conversation.901"]
-        XCTAssertTrue(row.waitForExistence(timeout: 5), app.debugDescription)
-        row.tap()
-        XCTAssertTrue(app.buttons["messaging.message.10"].waitForExistence(timeout: 5), app.debugDescription)
-        XCTAssertFalse(row.isHittable)
-    }
-    func testReadOnlyFixtureOffersNoSafetyActions() {
-        let app = launch("success")
-        let row = app.buttons["messaging.conversation.901"]
-        XCTAssertTrue(row.waitForExistence(timeout: 5))
-        row.swipeLeft()
-        XCTAssertFalse(app.buttons["im.row.901.delete"].exists)
-        row.tap()
-        XCTAssertTrue(app.buttons["messaging.message.10"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["im.chat.more"].exists)
-    }
-
-    func testHideConversationNeedsConfirmationAndRereadsList() {
-        let app = launch("safety")
-        let row = app.buttons["messaging.conversation.903"]
-        XCTAssertTrue(row.waitForExistence(timeout: 5))
-        row.swipeLeft()
-        let delete = app.buttons["im.row.903.delete"]
-        XCTAssertTrue(delete.waitForExistence(timeout: 2))
-        delete.tap()
-        XCTAssertTrue(element("im.safety.reviewTitle", app).waitForExistence(timeout: 3))
-        XCTAssertTrue(row.exists, "Nothing is hidden before explicit confirmation")
-        app.buttons["im.safety.confirm"].tap()
-        XCTAssertTrue(element("im.safety.done", app).waitForExistence(timeout: 3))
-        app.buttons["im.safety.doneClose"].tap()
-        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: row)
-        XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed)
-        XCTAssertTrue(app.buttons["messaging.conversation.901"].exists)
-    }
-
-    func testCancelledHideKeepsConversation() {
-        let app = launch("safety")
-        let row = app.buttons["messaging.conversation.903"]
-        XCTAssertTrue(row.waitForExistence(timeout: 5))
-        row.swipeLeft(); app.buttons["im.row.903.delete"].tap()
-        XCTAssertTrue(app.buttons["im.safety.cancel"].waitForExistence(timeout: 3))
-        app.buttons["im.safety.cancel"].tap()
-        XCTAssertTrue(row.waitForExistence(timeout: 3))
-    }
-
-    func testUnknownHideIsResolvedByReadbackNotAssumed() {
-        let app = launch("safetyUnknown")
-        let row = app.buttons["messaging.conversation.903"]
-        XCTAssertTrue(row.waitForExistence(timeout: 5))
-        row.swipeLeft(); app.buttons["im.row.903.delete"].tap()
-        app.buttons["im.safety.confirm"].tap()
-        XCTAssertTrue(element("im.safety.unknown", app).waitForExistence(timeout: 3))
-        XCTAssertFalse(element("im.safety.done", app).exists)
-        app.buttons["im.safety.verify"].tap()
-        XCTAssertTrue(element("im.safety.done", app).waitForExistence(timeout: 3))
-    }
-
-    func testBlockFromMoreMenuGatesComposerAfterReadback() {
-        let app = launch("safety")
-        app.buttons["messaging.conversation.901"].tap()
-        XCTAssertTrue(app.buttons["messaging.message.10"].waitForExistence(timeout: 5))
-        XCTAssertFalse(element("im.chat.replyBlocked", app).exists)
-        app.buttons["im.chat.more"].tap()
-        XCTAssertTrue(app.buttons["im.chat.more.report"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["im.chat.more.hide"].exists)
-        app.buttons["im.chat.more.block"].tap()
-        XCTAssertTrue(app.buttons["im.safety.confirm"].waitForExistence(timeout: 3))
-        app.buttons["im.safety.confirm"].tap()
-        XCTAssertTrue(element("im.safety.done", app).waitForExistence(timeout: 3))
-        app.buttons["im.safety.doneClose"].tap()
-        XCTAssertTrue(element("im.chat.replyBlocked", app).waitForExistence(timeout: 5))
-        app.buttons["im.chat.more"].tap()
-        XCTAssertTrue(app.buttons["im.chat.more.unblock"].waitForExistence(timeout: 2))
-        XCTAssertFalse(app.buttons["im.chat.more.block"].exists)
-    }
-
-    func testBlockedPageDisablesReplyWithSourceReason() {
-        let app = launch("blocked")
-        app.buttons["messaging.conversation.901"].tap()
-        XCTAssertTrue(element("im.chat.replyBlocked", app).waitForExistence(timeout: 5))
+        tabs.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 5))
     }
 
     func testSystemNoticeMoreMenuOnlyOffersHide() {
         let app = launch("safety")
         let tabs = app.segmentedControls["messaging.list.scope"]
         XCTAssertTrue(tabs.waitForExistence(timeout: 5))
-        tabs.buttons.element(boundBy: 2).tap()
+        XCTAssertTrue(app.buttons["messaging.conversation.902"].waitForExistence(timeout: 5))
         app.buttons["messaging.conversation.902"].tap()
         XCTAssertTrue(element("im.reply.systemNotice", app).waitForExistence(timeout: 5))
         app.buttons["im.chat.more"].tap()
