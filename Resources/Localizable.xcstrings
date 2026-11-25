@@ -11802,7 +11802,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "角色卡加载失败，请稍后重试"
+            "value": "角色卡暂时无法读取"
           }
         }
       }
@@ -11819,7 +11819,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无权查看该角色卡"
+            "value": "无权查看角色卡"
           }
         }
       }
@@ -159976,7 +159976,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已退款"
+            "value": "退款成功"
           }
         }
       }
@@ -160737,7 +160737,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申诉待处理"
+            "value": "申诉处理中"
           }
         }
       }
@@ -161536,7 +161536,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已提交，等待服务器处理"
+            "value": "已提交复核，请等待处理"
           }
         }
       }
@@ -161570,7 +161570,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "—"
+            "value": "操作结果待确认，请勿重复提交"
           }
         }
       }
@@ -174039,7 +174039,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务暂时不可用，请稍后再试"
+            "value": "服务暂不可用，请稍后重试"
           }
         }
       }
@@ -196588,7 +196588,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "联系方式（可选）"
+            "value": "联系方式"
           }
         }
       }
@@ -196621,7 +196621,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "手机号/微信（可选，便于客服联系）"
+            "value": "手机号/微信（可选）"
           }
         }
       }
@@ -196669,7 +196669,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "投诉类型（可选）"
+            "value": "投诉类型"
           }
         }
       }
@@ -197244,7 +197244,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "网络异常，无法确认是否已收到，不会自动重发。"
+            "value": "网络异常，请重试"
           }
         }
       }
@@ -197295,7 +197295,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交中…"
+            "value": "处理中"
           }
         }
       }
@@ -197312,7 +197312,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录状态已失效，请重新进入。"
+            "value": "登录状态已失效，请重新进入"
           }
         }
       }
@@ -197377,7 +197377,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "活动"
+            "value": "未命名活动"
           }
         }
       }
@@ -197425,7 +197425,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请填写至少 5 个字的投诉内容。"
+            "value": "请填写至少 5 字的投诉内容"
           }
         }
       }
@@ -197441,7 +197441,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请选择当前列表中的活动。"
+            "value": "请选择投诉的活动"
           }
         }
       }
@@ -197505,7 +197505,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看处理进展"
+            "value": "当前身份不能查看处理进展"
           }
         }
       }
@@ -198891,7 +198891,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看邀请记录"
+            "value": "当前身份不能查看邀请记录"
           }
         }
       }
@@ -198955,7 +198955,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "邀请记录没加载出来"
+            "value": "邀请记录加载失败"
           }
         }
       }
@@ -199848,7 +199848,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前筛选暂无订单。"
+            "value": "当前筛选暂无订单"
           }
         }
       }
@@ -200593,7 +200593,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退款已受理"
+            "value": "退款成功"
           }
         }
       }
@@ -244588,7 +244588,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已加入 · 奖励待同步"
+            "value": "已加入 · 奖励发放中"
           }
         }
       }
