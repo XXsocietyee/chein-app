@@ -360,9 +360,23 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             } header: { Text("clubSettlement.topics", tableName: "PayoutReceiver") }
         }
         Section {
+            // CLB-settlement-06 (MP settlement wxml:43-49): 联系平台客服提现 is disabled unless the funds stages read a
+            // positive withdrawable amount. No write is sent either way; withdrawal is a support hand-off.
             NavigationLink { WithdrawalSupportContactView() } label: { Text("clubSettlement.withdrawSupport", tableName: "PayoutReceiver") }
+                .disabled(!fundsAvailability.allowsWithdraw)
                 .accessibilityIdentifier("clubSettlement.withdrawSupport")
-        } footer: { Text("clubSettlement.withdrawSupportHint", tableName: "PayoutReceiver") }
+        } footer: {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                if fundsAvailability == .zero && complaintWaiting {
+                    // MP wxml:48 客诉期结束后可提现.
+                    Text("clubSettlement.withdraw.complaintWaiting").accessibilityIdentifier("clubSettlement.withdraw.complaintWaiting")
+                } else if fundsAvailability == .unknown && !summary.isOwner && !summary.personal {
+                    // MP wxml:49 仅主理人可发起提现.
+                    Text("clubOps.settlement.withdraw.ownerOnly", tableName: "ClubOpsCustomer")
+                }
+                Text("clubSettlement.withdrawSupportHint", tableName: "PayoutReceiver")
+            }
+        }
     }
 
     private func load() async {

@@ -311282,6 +311282,23 @@
           }
         }
       }
+    },
+    "clubSettlement.withdraw.complaintWaiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can withdraw after the complaint period ends"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客诉期结束后可提现"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
