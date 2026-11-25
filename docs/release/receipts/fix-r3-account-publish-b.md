@@ -366,3 +366,11 @@ Not done: **fabu** (about 2,000 lines of wxml), plus the temp editor's game-modu
 - `SquareIssueView(error:retry:title:)`: the new `title` var (default nil) comes after `retry`. Existing trailing-closure calls still bind to `retry`.
 - `TemplateAuthoringCoverHeader(…, defaultCover:)` and `TemplateInteractionDefaultCover` (uses the public `TemplateAdvancedDraft.enabled(_:)`).
 - `TeamDetailSeatStrip`: `ForEach(Array(members.enumerated()), id: \.offset)` inside the file-private `FlowSeats` layout.
+
+### Checks run in the cloud (round 4)
+
+- `contract_ratchet.py --check`: this branch fails 223 (new 39). `origin/ui/combined-r7` `4ef0a2840` fails 222 (new 38), and the two name sets are identical except for one test. That test is `test_localization_key_catalog_contract`, which fails only because `fixr3.team.seat.captain` is still only in this branch's string fragment, as the fragment rule requires. It passes once the coordinator merges `docs/port/strings/fix-r3-account-publish-b.json`.
+- Touched-file suites: `test_team_*`, `test_square_*`, `test_settings_native`, `test_native_ui_accessibility_semantics`, `test_pages_agreement_index`, `test_accessibility_identifier_boundaries`, `test_activity_publishing_wizard` and `test_bk_backend_sync`. Every failing test name is identical to the base, so these changes add no failures.
+- `check_typography_lint.py`: PASS.
+- `check_appsession_ratchet.py`: PASS.
+- `check_a11y_lint.py`: 1 finding, which is already on the base (see section 5).
