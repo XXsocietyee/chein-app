@@ -634,7 +634,10 @@ struct PassKeyFrames: View {
     let accountKey: String?
     var isMerchant = false
     @Environment(\.mpParity) private var bindings
+    @Environment(\.dismiss) private var dismiss
     @AppStorage("pass_reveal_seen_v1") private var seenAccount = ""
+    /// B-PR-03: set once 开始 / 跳过 has left for membership or the library (MP `wx.redirectTo`).
+    @State private var redirected = false
     @QuestifyReduceMotion private var reduceMotion
     @State private var step = 0
     @State private var full = false
@@ -672,6 +675,11 @@ struct PassKeyFrames: View {
         // B-PR-06-r7: the MP stage runs behind a transparent nav bar.
         .toolbarBackground(.hidden, for: .navigationBar)
         .mpParityRouteDestination($route)
+        // B-PR-03 (MP `_go` uses redirectTo): the reveal is an interstitial, so coming back from the page it opened
+        // closes it too and lands on the page underneath, instead of replaying the reveal.
+        .onChange(of: route) { _, next in
+            if redirected && next == nil { dismiss() }
+        }
         .onAppear(perform: start)
         .onDisappear { timeline?.cancel() }
     }
@@ -785,9 +793,9 @@ struct PassKeyFrames: View {
 
     private func go() {
         if paid != nil {
-            if bindings.passLibrary != nil { route = .library(kind: .all) }
+            if bindings.passLibrary != nil { redirected = true; route = .library(kind: .all) }
         } else if bindings.membership != nil {
-            route = .membership
+            redirected = true; route = .membership
         }
     }
 }

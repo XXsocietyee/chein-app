@@ -80,10 +80,8 @@ import SwiftUI
                             } else if let viewer = actions?.identity.accountID, viewer == post.memberID {
                                 CreativeSquareAuthorDeleteSection(signedIn: reader.isSignedIn, highlightedPostID: post.id, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
                             }
-                            if let accountReader, post.memberID > 0 {
-                                NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }
-                                    .accessibilityIdentifier("social.viewAuthor")
-                            }
+                            // Round 4 flow (MP square/detail goUserInfoClcik): the author's page opens from the avatar menu
+                            // (访问个人主页); the MP has no separate 查看作者主页 row.
                         }.cyMiniCardRow()
                     } blockedPlaceholder: {
                         Section {
