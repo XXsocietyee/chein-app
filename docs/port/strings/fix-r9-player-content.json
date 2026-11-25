@@ -1,0 +1,86 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "merchantApply.location.mapHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the map or search to place the pin"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点按地图或搜索地点来放置定位"
+          }
+        }
+      }
+    },
+    "merchantApply.location.pinned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin placed. Check the address below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已放置定位，请确认下方地址"
+          }
+        }
+      }
+    },
+    "merchantApply.location.results": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Places"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索结果"
+          }
+        }
+      }
+    },
+    "merchantApply.location.noResults": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No places found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到相关地点"
+          }
+        }
+      }
+    },
+    "merchantApply.location.searchPrompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search for a place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索地点"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
