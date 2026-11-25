@@ -8,7 +8,7 @@
 - **Strings** (xcstrings-shaped, en + zh-Hans, MP text):
   - `docs/port/strings/fix-r8-merchant-coop.json` (59 keys)
   - `docs/port/strings/fix-r8-merchant-coop-coop.json` (20 keys)
-  - `docs/port/strings/fix-r8-merchant-coop-decor.json` (15 keys)
+  - `docs/port/strings/fix-r8-merchant-coop-decor.json` (14 keys)
 - **Money:** no money write is reachable. Deposit create / refund-retry are not mounted (see Left).
 
 ## Checks
