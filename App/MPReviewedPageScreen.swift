@@ -345,8 +345,10 @@ import SwiftUI
                 // CLB-governance-11 (MP governance js:197-228): report opens the report form seeded with its target and
                 // label; manage opens 成员治理 (the ban list and member actions); appeal opens the cases.
                 switch route.mode {
-                case .manage:
+                case .manage(let focusMemberID):
+                    // CLB-G16: `memberId` preselects that member (listed first, marked).
                     clubRead(.bans, .init(clubID: route.clubID), needsClub: true)
+                        .environment(\.clubFocusMemberID, focusMemberID)
                 case .report(let type, let targetID, let label):
                     clubGovernance { g in
                         ClubGovernanceCommandForm(route: .init(operation: .report, scope: .init(clubID: route.clubID),
@@ -363,6 +365,7 @@ import SwiftUI
             // CLB-roles-02: the event tools put 「活动名 · 开始时间」 in `activityLabel`; the picker shows it (or 未命名).
             clubRead(.roles, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
                 .environment(\.clubRoleActivityLabel, ClubRoleActivityLabel.entry(query["activityLabel"]))
+                .environment(\.clubFocusMemberID, queryID(query, "memberId"))
         case "pages/topic/catalog/index":
             // A canonical id is the topic screen. Every other catalog link, including a non-canonical id, is home.
             if let link = MiniProgramPageLink(path: page, query: query), case .topic(let id) = link.catalogDestination {
