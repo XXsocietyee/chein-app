@@ -73,7 +73,7 @@ struct E1CoverArt: View {
                 if let symbolPoint {
                     let glyphSize = max(16, min(g.size.width, g.size.height) * 0.3)
                     Image(systemName: symbol)
-                        .accessibilityHidden(true).resizable()
+                        .resizable().accessibilityHidden(true)
                         .scaledToFit()
                         .fontWeight(.light)
                         .foregroundStyle(.white.opacity(0.4))

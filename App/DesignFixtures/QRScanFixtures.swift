@@ -35,7 +35,7 @@ struct QRScanFixture: View {
                 Spacer(minLength: CYSpacing.xxl)
                 CYScanStage(state: shown, card: card, onDone: {}) {
                     LinearGradient(colors: [Color.black.opacity(0.9), CYColor.bgSurface], startPoint: .top, endPoint: .bottom)
-                        .overlay { Image(systemName: "qrcode").accessibilityHidden(true).resizable().scaledToFit().padding(56).foregroundStyle(CYColor.textTertiary) }
+                        .overlay { Image(systemName: "qrcode").resizable().accessibilityHidden(true).scaledToFit().padding(56).foregroundStyle(CYColor.textTertiary) }
                 }
                 .frame(minHeight: 260)
                 if case .failure(let failure) = shown {

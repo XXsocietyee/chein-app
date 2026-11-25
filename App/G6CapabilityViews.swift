@@ -326,7 +326,7 @@ private struct G6Avatar: View {
     }
 
     private var placeholder: some View {
-        Image(systemName: "person.crop.circle.fill").accessibilityHidden(true).resizable().scaledToFit().foregroundStyle(CYColor.textTertiary)
+        Image(systemName: "person.crop.circle.fill").resizable().accessibilityHidden(true).scaledToFit().foregroundStyle(CYColor.textTertiary)
     }
 }
 
