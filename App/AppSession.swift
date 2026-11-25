@@ -990,7 +990,7 @@ final class AppSession: ObservableObject {
                 guard let self else { throw ClubCommunityFailure.unavailable }
                 return try await self.communityEvidence(clubID: clubID, post: post, comment: comment)
             },
-            postImagePicker: makeClubPostImagePickerContext(), loadPostRefs: clubPostRefLoader,
+            postImagePicker: makeClubPostImagePickerContext(), loadPostRefs: clubPostRefLoader, followAuthor: clubFollowAuthorAction,
             feedSourceScope: { [weak self] in self?.currentClubFeedSourceScope },
             feedSourceDestination: { [weak self] clubID, captured in
                 guard let self, clubID > 0, self.currentClubFeedSourceScope == captured else { return nil }

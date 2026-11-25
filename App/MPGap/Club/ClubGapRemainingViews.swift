@@ -146,23 +146,20 @@ public struct ClubGapActivityAndScanActions: View {
     }
 }
 
-/// Mount hook for `ClubCommunityViews` (post header) — `CLB-G10`:
-/// Inline follow-author pill button.
-public struct ClubGapFollowAuthorButton: View {
-    public let isFollowing: Bool
-    public let isBusy: Bool
-    public let onToggle: () -> Void
+/// `CLB-G10`: follow-author pill on club post cards (MP `components/cy/post-card/index.wxml:15-17`). The MP only
+/// follows from the card; after a tap it shows the done state and stays disabled.
+struct ClubGapFollowAuthorButton: View {
+    let isFollowing: Bool
+    let onFollow: () -> Void
 
-    public init(isFollowing: Bool, isBusy: Bool = false, onToggle: @escaping () -> Void) {
-        self.isFollowing = isFollowing
-        self.isBusy = isBusy
-        self.onToggle = onToggle
-    }
-
-    public var body: some View {
-        Button(isFollowing ? "已关注" : "关注", action: onToggle)
-            .buttonStyle(CYPillButtonStyle(style: isFollowing ? .secondary : .primary, fullWidth: false, compact: true))
-            .disabled(isBusy)
+    var body: some View {
+        Button(action: onFollow) {
+            Label(isFollowing ? "social.following" : "social.editor.follow",
+                  systemImage: isFollowing ? "checkmark" : "plus")
+        }
+        .buttonStyle(CYPillButtonStyle(style: isFollowing ? .secondary : .primary, fullWidth: false, compact: true))
+        .disabled(isFollowing)
+        .accessibilityIdentifier("club.community.follow")
     }
 }
 

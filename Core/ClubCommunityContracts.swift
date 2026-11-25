@@ -17,6 +17,10 @@ public struct ClubCommunityPost: Equatable, Identifiable {
     public let isTopicTemplate: Bool
     /// Activity feed block. Empty when this club post has no activity, so the tile stays text and images.
     public let activityCard: SquareStravaCard
+    /// CLB-G10: MP `isFollowTheUser` (cy-post-card shows 「+」 only when it is 0). Nil when the read did not say.
+    public let followsAuthor: Bool?
+    /// MP `onFollowPost` sends `row.memberId` (`pages/club/detail/index.js:3227`); falls back to `authorMemberId`.
+    public let followMemberID: Int?
     public var hasContent: Bool { !content.isEmpty || !images.isEmpty || (!sportName.isEmpty && (refType == 1 || !sportCover.isEmpty)) }
     public var navigableTopicID: Int? { guard let id = sportTopicID, id > 0 else { return nil }; return id }
     public init(json: [String: Any]) throws {
@@ -35,6 +39,8 @@ public struct ClubCommunityPost: Equatable, Identifiable {
         let linkedType = (json["dataType"] as? Int) ?? (refType == 1 ? 1 : 0)
         let linkedID = (json["dataId"] as? Int) ?? refID
         activityCard = SquareStravaCard.decode(json: json, dataType: linkedType, dataID: linkedID)
+        followsAuthor = json["isFollowTheUser"].map { CCWire.bool($0) }
+        followMemberID = ((json["memberId"] as? Int) ?? authorMemberID).flatMap { $0 > 0 ? $0 : nil }
     }
 }
 public struct ClubCommunityComment: Equatable, Identifiable {

@@ -22,4 +22,19 @@ import SwiftUI
         }
     }
 
+    var clubFollowAuthorAction: ((Int) async throws -> Void)? {
+        guard regionalConfiguration?.showsRoute("/api/user/follow/action") == true else { return nil }
+        return { [weak self] memberID in
+            guard let self, let token = self.token, AuthRequestBuilder.isValidToken(token),
+                  let configuration = self.regionalConfiguration?.apiConfiguration else { throw APIError.unauthorized }
+            let stamp = self.sessionRevision
+            let client = ClubRemainingGapClient(configuration: configuration, transport: self.runtimeHTTPTransport)
+            do {
+                try await client.toggleFollowAuthor(targetUserID: memberID, follow: true, token: token)
+            } catch {
+                if error as? APIError == .unauthorized { self.expireIfMatching(error: error, stamp: stamp, credential: token) }
+                throw error
+            }
+        }
+    }
 }
