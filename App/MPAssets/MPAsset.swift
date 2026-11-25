@@ -140,6 +140,10 @@ enum MPAsset {
         static var citylink: Image { Image("images_cards_citylink") }
         /// `images/cards/clock.svg`
         static var clock: Image { Image("images_cards_clock") }
+        /// `pages/square/images/close2.png`
+        static var close2: Image { Image("pages_square_images_close2") }
+        /// `pages/square/images/close3.png`
+        static var close3: Image { Image("pages_square_images_close3") }
         /// `pages/templatedetail/art/cat/cloth.png`
         static var cloth: Image { Image("pages_templatedetail_art_cat_cloth") }
         /// `subpackageP3/images/cat/clothing.png`
@@ -158,6 +162,12 @@ enum MPAsset {
         static var culture: Image { Image("pages_templatedetail_art_cat_culture") }
         /// `pages/merchant/images/tags/cup-soda.svg`
         static var cupSoda: Image { Image("pages_merchant_images_tags_cup_soda") }
+        /// `subpackageP3/images/cat/daily.png`
+        static var daily: Image { Image("subpackagep3_images_cat_daily") }
+        /// `pages/templatedetail/art/props/daily-city-sign.png`
+        static var dailyCitySign: Image { Image("pages_templatedetail_art_props_daily_city_sign") }
+        /// `pages/gerenziliao/images/d_bianji2.png`
+        static var dBianji2: Image { Image("pages_gerenziliao_images_d_bianji2") }
         /// `pages/address/images/d_close.png`
         static var dClose: Image { Image("pages_address_images_d_close") }
         /// `subpackageMember/images/d_cyinfo1.png`
@@ -166,6 +176,12 @@ enum MPAsset {
         static var dCyinfo2: Image { Image("subpackagemember_images_d_cyinfo2") }
         /// `subpackageMember/images/d_cyinfo4.png`
         static var dCyinfo4: Image { Image("subpackagemember_images_d_cyinfo4") }
+        /// `pages/templatedetail/art/props/detail-observation.png`
+        static var detailObservation: Image { Image("pages_templatedetail_art_props_detail_observation") }
+        /// `pages/club/images/tags/dices.svg`
+        static var dices: Image { Image("pages_club_images_tags_dices") }
+        /// `pages/templatedetail/art/props/diy-drink.png`
+        static var diyDrink: Image { Image("pages_templatedetail_art_props_diy_drink") }
         /// `pages/publish/images/d_mbico1.png`
         static var dMbico1: Image { Image("pages_publish_images_d_mbico1") }
         /// `pages/publish/images/d_mbico2.png`
@@ -174,22 +190,14 @@ enum MPAsset {
         static var dOrderIcon: Image { Image("subpackagemember_images_d_ordericon") }
         /// `subpackageMember/images/d_orderIcon2.png`
         static var dOrderIcon2: Image { Image("subpackagemember_images_d_ordericon2") }
-        /// `pages/gerenziliao/images/d_sctb.png`
-        static var dSctb: Image { Image("pages_gerenziliao_images_d_sctb") }
-        /// `pages/topic/images/d_weihao.png`
-        static var dWeihao: Image { Image("pages_topic_images_d_weihao") }
-        /// `subpackageP3/images/cat/daily.png`
-        static var daily: Image { Image("subpackagep3_images_cat_daily") }
-        /// `pages/templatedetail/art/props/daily-city-sign.png`
-        static var dailyCitySign: Image { Image("pages_templatedetail_art_props_daily_city_sign") }
-        /// `pages/templatedetail/art/props/detail-observation.png`
-        static var detailObservation: Image { Image("pages_templatedetail_art_props_detail_observation") }
-        /// `pages/club/images/tags/dices.svg`
-        static var dices: Image { Image("pages_club_images_tags_dices") }
-        /// `pages/templatedetail/art/props/diy-drink.png`
-        static var diyDrink: Image { Image("pages_templatedetail_art_props_diy_drink") }
         /// `pages/club/images/tags/drama.svg`
         static var drama: Image { Image("pages_club_images_tags_drama") }
+        /// `pages/gerenziliao/images/d_sctb.png`
+        static var dSctb: Image { Image("pages_gerenziliao_images_d_sctb") }
+        /// `pages/topic/images/d_star_h.png`
+        static var dStarH: Image { Image("pages_topic_images_d_star_h") }
+        /// `pages/topic/images/d_weihao.png`
+        static var dWeihao: Image { Image("pages_topic_images_d_weihao") }
         /// `subpackageP3/images/cat/electronics.png`
         static var electronics: Image { Image("subpackagep3_images_cat_electronics") }
         /// `images/publish-quick/explore.png`
@@ -226,8 +234,14 @@ enum MPAsset {
         static var history: Image { Image("subpackageroam_assets_icons_history") }
         /// `pages/shezhi/images/icon_agreement.svg`
         static var iconAgreement: Image { Image("pages_shezhi_images_icon_agreement") }
+        /// `subpackageP3/images/icon_back.png`
+        static var iconBack: Image { Image("subpackagep3_images_icon_back") }
         /// `images/icon_bell.svg`
         static var iconBell: Image { Image("images_icon_bell") }
+        /// `pages/merchant/images/icon_bell_alert.svg`
+        static var iconBellAlert: Image { Image("pages_merchant_images_icon_bell_alert") }
+        /// `pages/merchant/images/icon_bell_muted.svg`
+        static var iconBellMuted: Image { Image("pages_merchant_images_icon_bell_muted") }
         /// `pages/topic/images/icon_bm.svg`
         static var iconBm: Image { Image("pages_topic_images_icon_bm") }
         /// `pages/topic/images/icon_bm_on.svg`
@@ -252,14 +266,24 @@ enum MPAsset {
         static var iconCreatorSpark: Image { Image("pages_topic_images_icon_creator_spark") }
         /// `pages/publish/images/icon_date3.png`
         static var iconDate3: Image { Image("pages_publish_images_icon_date3") }
+        /// `subpackageMember/images/icon_del.png`
+        static var iconDel: Image { Image("subpackagemember_images_icon_del") }
+        /// `pages/shezhi/images/icon_deregister.svg`
+        static var iconDeregister: Image { Image("pages_shezhi_images_icon_deregister") }
+        /// `pages/square/images/icon_dot.png`
+        static var iconDot: Image { Image("pages_square_images_icon_dot") }
         /// `pages/shezhi/images/icon_flag_blue.svg`
         static var iconFlagBlue: Image { Image("pages_shezhi_images_icon_flag_blue") }
+        /// `pages/shezhi/images/icon_globe.svg`
+        static var iconGlobe: Image { Image("pages_shezhi_images_icon_globe") }
         /// `subpackageMember/signup/icon_go.svg`
         static var iconGo: Image { Image("subpackagemember_signup_icon_go") }
         /// `pages/shezhi/images/icon_headset.svg`
         static var iconHeadset: Image { Image("pages_shezhi_images_icon_headset") }
         /// `pages/shezhi/images/icon_heart.svg`
         static var iconHeart: Image { Image("pages_shezhi_images_icon_heart") }
+        /// `pages/shezhi/images/icon_info_circle.svg`
+        static var iconInfoCircle: Image { Image("pages_shezhi_images_icon_info_circle") }
         /// `pages/square/images/icon_jia.png`
         static var iconJia: Image { Image("pages_square_images_icon_jia") }
         /// `pages/shezhi/images/icon_lc_compass.svg`
@@ -286,6 +310,8 @@ enum MPAsset {
         static var iconLcUserRoundX: Image { Image("pages_shezhi_images_icon_lc_user_round_x") }
         /// `pages/shezhi/images/icon_logout.svg`
         static var iconLogout: Image { Image("pages_shezhi_images_icon_logout") }
+        /// `pages/topic/images/icon_lp.png`
+        static var iconLp: Image { Image("pages_topic_images_icon_lp") }
         /// `images/index-figma/icon-member.png`
         static var iconMember: Image { Image("images_index_figma_icon_member") }
         /// `subpackageMember/images/icon_pen.svg`
@@ -322,6 +348,10 @@ enum MPAsset {
         static var iconShare: Image { Image("images_icon_share") }
         /// `images/icon_shop.svg`
         static var iconShop: Image { Image("images_icon_shop") }
+        /// `images/icon_sjt.png`
+        static var iconSjt: Image { Image("images_icon_sjt") }
+        /// `images/icon_sjt_h.png`
+        static var iconSjtH: Image { Image("images_icon_sjt_h") }
         /// `images/index-figma/icon-star.png`
         static var iconStar: Image { Image("images_index_figma_icon_star") }
         /// `pages/topic/images/icon_star1.png`
@@ -344,8 +374,44 @@ enum MPAsset {
         static var iconUp: Image { Image("pages_mylike_images_icon_up") }
         /// `images/index-figma/icon-viewers.png`
         static var iconViewers: Image { Image("images_index_figma_icon_viewers") }
+        /// `pages/merchant/images/icon_wallet.svg`
+        static var iconWallet: Image { Image("pages_merchant_images_icon_wallet") }
+        /// `pages/topic/images/icon_wl.png`
+        static var iconWl: Image { Image("pages_topic_images_icon_wl") }
+        /// `images/icon_xjt.png`
+        static var iconXjt: Image { Image("images_icon_xjt") }
+        /// `images/icon_xjt_h.png`
+        static var iconXjtH: Image { Image("images_icon_xjt_h") }
+        /// `images/d_orderIcon.png`
+        static var imagesDOrderIcon: Image { Image("images_d_ordericon") }
+        /// `images/d_orderIcon2.png`
+        static var imagesDOrderIcon2: Image { Image("images_d_ordericon2") }
+        /// `images/icon_jia.png`
+        static var imagesIconJia: Image { Image("images_icon_jia") }
+        /// `images/icon_pen.svg`
+        static var imagesIconPen: Image { Image("images_icon_pen") }
+        /// `images/icon_qa_person.svg`
+        static var imagesIconQaPerson: Image { Image("images_icon_qa_person") }
+        /// `images/icon_search.svg`
+        static var imagesIconSearch: Image { Image("images_icon_search") }
+        /// `images/icon_set.png`
+        static var imagesIconSet: Image { Image("images_icon_set") }
+        /// `images/icon_star.png`
+        static var imagesIconStar: Image { Image("images_icon_star") }
+        /// `images/merchant/reviews/icon-star-filled.svg`
+        static var imagesMerchantReviewsIconStarFilled: Image { Image("images_merchant_reviews_icon_star_filled") }
+        /// `images/merchant/reviews/icon-star-muted.svg`
+        static var imagesMerchantReviewsIconStarMuted: Image { Image("images_merchant_reviews_icon_star_muted") }
+        /// `images/merchant/reviews/icon-star-small.svg`
+        static var imagesMerchantReviewsIconStarSmall: Image { Image("images_merchant_reviews_icon_star_small") }
         /// `images/publish-quick/interaction.png`
         static var interaction: Image { Image("images_publish_quick_interaction") }
+        /// `images/roam/intro-map.svg`
+        static var introMap: Image { Image("images_roam_intro_map") }
+        /// `images/roam/intro-roam.svg`
+        static var introRoam: Image { Image("images_roam_intro_roam") }
+        /// `images/roam/intro-team.svg`
+        static var introTeam: Image { Image("images_roam_intro_team") }
         /// `images/roam/intro-ticket-map.svg`
         static var introTicketMap: Image { Image("images_roam_intro_ticket_map") }
         /// `images/roam/intro-ticket-route.svg`
@@ -468,6 +534,8 @@ enum MPAsset {
         static var subpackageMemberImagesDClose: Image { Image("subpackagemember_images_d_close") }
         /// `subpackageMember/images/icon_qa_person.svg`
         static var subpackageMemberImagesIconQaPerson: Image { Image("subpackagemember_images_icon_qa_person") }
+        /// `subpackageMember/images/icon_send.png`
+        static var subpackagememberImagesIconSend: Image { Image("subpackagemember_images_icon_send") }
         /// `subpackageMember/images/icon_star.png`
         static var subpackageMemberImagesIconStar: Image { Image("subpackagemember_images_icon_star") }
         /// `subpackageMember/images/tags/baby.svg`
@@ -643,6 +711,8 @@ enum MPAsset {
     enum BadgeMedal {
         /// `subpackageP3/assets/badge-demo.png`
         static var badgeDemo: Image { Image("subpackagep3_assets_badge_demo") }
+        /// `pages/play/images/frames/glass-badge.webp`
+        static var glassBadge: Image { Image("pages_play_images_frames_glass_badge") }
         /// `pages/play/components/medal-screen/gl_book.svg`
         static var glBook: Image { Image("pages_play_components_medal_screen_gl_book") }
         /// `pages/play/components/medal-screen/gl_clock.svg`
@@ -657,8 +727,6 @@ enum MPAsset {
         static var glTrophy: Image { Image("pages_play_components_medal_screen_gl_trophy") }
         /// `pages/play/components/medal-screen/gl_walk.svg`
         static var glWalk: Image { Image("pages_play_components_medal_screen_gl_walk") }
-        /// `pages/play/images/frames/glass-badge.webp`
-        static var glassBadge: Image { Image("pages_play_images_frames_glass_badge") }
         /// `subpackageP3/assets/gold-matcap.png`
         static var goldMatcap: Image { Image("subpackagep3_assets_gold_matcap") }
         /// `subpackageMember/images/group2.png`
@@ -669,6 +737,14 @@ enum MPAsset {
         static var group4: Image { Image("subpackagemember_images_group4") }
         /// `subpackageMember/images/group5.png`
         static var group5: Image { Image("subpackagemember_images_group5") }
+        /// `images/group2.png`
+        static var imagesGroup2: Image { Image("images_group2") }
+        /// `images/group3.png`
+        static var imagesGroup3: Image { Image("images_group3") }
+        /// `images/group4.png`
+        static var imagesGroup4: Image { Image("images_group4") }
+        /// `images/group5.png`
+        static var imagesGroup5: Image { Image("images_group5") }
         /// `subpackageJourney/images/laurel.svg`
         static var laurel: Image { Image("subpackagejourney_images_laurel") }
         /// `subpackageP3/images/album-intro/medal.png`
@@ -704,12 +780,16 @@ enum MPAsset {
     }
 
     enum EmptyState {
+        /// `images/d_yhqon.png`
+        static var dYhqon: Image { Image("images_d_yhqon") }
         /// `images/empty_state_bg.svg`
         static var emptyStateBg: Image { Image("images_empty_state_bg") }
         /// `images/empty_state_figure.svg`
         static var emptyStateFigure: Image { Image("images_empty_state_figure") }
         /// `subpackageMember/images/icon_ticket_empty.svg`
         static var iconTicketEmpty: Image { Image("subpackagemember_images_icon_ticket_empty") }
+        /// `images/icon_ticket_empty.svg`
+        static var imagesIconTicketEmpty: Image { Image("images_icon_ticket_empty") }
         /// `images/no_data.svg`
         static var noData: Image { Image("images_no_data") }
     }
@@ -745,8 +825,16 @@ enum MPAsset {
         static var coffeePersonality: Image { Image("pages_templatedetail_art_covers_game_coffee_personality") }
         /// `images/cover-route.svg`
         static var coverRoute: Image { Image("images_cover_route") }
+        /// `images/interaction-templates/daily-city-sign.svg`
+        static var dailyCitySign: Image { Image("images_interaction_templates_daily_city_sign") }
+        /// `images/cards/default-cover.png`
+        static var defaultCover: Image { Image("images_cards_default_cover") }
+        /// `pages/templatedetail/art/covers/game/detail-observation.jpg`
+        static var detailObservation: Image { Image("pages_templatedetail_art_covers_game_detail_observation") }
         /// `pages/club/images/d_frametu.jpg`
         static var dFrametu: Image { Image("pages_club_images_d_frametu") }
+        /// `images/interaction-templates/diy-drink.svg`
+        static var diyDrink: Image { Image("images_interaction_templates_diy_drink") }
         /// `pages/play/images/d_topic1.png`
         static var dTopic1: Image { Image("pages_play_images_d_topic1") }
         /// `pages/play/images/d_topic2.png`
@@ -755,14 +843,6 @@ enum MPAsset {
         static var dTopic4: Image { Image("pages_play_images_d_topic4") }
         /// `pages/play/images/d_topic5.png`
         static var dTopic5: Image { Image("pages_play_images_d_topic5") }
-        /// `images/interaction-templates/daily-city-sign.svg`
-        static var dailyCitySign: Image { Image("images_interaction_templates_daily_city_sign") }
-        /// `images/cards/default-cover.png`
-        static var defaultCover: Image { Image("images_cards_default_cover") }
-        /// `pages/templatedetail/art/covers/game/detail-observation.jpg`
-        static var detailObservation: Image { Image("pages_templatedetail_art_covers_game_detail_observation") }
-        /// `images/interaction-templates/diy-drink.svg`
-        static var diyDrink: Image { Image("images_interaction_templates_diy_drink") }
         /// `subpackageRoam/assets/photos/event.webp`
         static var event: Image { Image("subpackageroam_assets_photos_event") }
         /// `pages/templatedetail/art/covers/topic/fe-coffee.jpg`
@@ -789,6 +869,8 @@ enum MPAsset {
         static var gather: Image { Image("pages_templatedetail_art_covers_game_gather") }
         /// `pages/templatedetail/art/covers/topic/heat-escape.jpg`
         static var heatEscape: Image { Image("pages_templatedetail_art_covers_topic_heat_escape") }
+        /// `images/home-banner-2.jpg`
+        static var homeBanner2: Image { Image("images_home_banner_2") }
         /// `images/home-banner-club.jpg`
         static var homeBannerClub: Image { Image("images_home_banner_club") }
         /// `images/home-banner-friends.jpg`
@@ -797,6 +879,14 @@ enum MPAsset {
         static var homeBannerMerchant: Image { Image("images_home_banner_merchant") }
         /// `images/home-route-city-placeholder.jpg`
         static var homeRouteCityPlaceholder: Image { Image("images_home_route_city_placeholder") }
+        /// `images/home-route-free-placeholder.jpg`
+        static var homeRouteFreePlaceholder: Image { Image("images_home_route_free_placeholder") }
+        /// `images/d_frametu.jpg`
+        static var imagesDFrametu: Image { Image("images_d_frametu") }
+        /// `images/mer1.jpg`
+        static var imagesMer1: Image { Image("images_mer1") }
+        /// `images/route_free_cover.png`
+        static var imagesRouteFreeCover: Image { Image("images_route_free_cover") }
         /// `pages/templatedetail/art/covers/topic/life-backup.jpg`
         static var lifeBackup: Image { Image("pages_templatedetail_art_covers_topic_life_backup") }
         /// `images/interaction-templates/life-bottom-line.svg`
@@ -920,10 +1010,10 @@ enum MPAsset {
     }
 
     enum MapMarker {
+        /// `pages/searchmap/images/d_location.png`
+        static var dLocation: Image { Image("pages_searchmap_images_d_location") }
         /// `pages/searchmap/images/d_location2.png`
         static var dLocation2: Image { Image("pages_searchmap_images_d_location2") }
-        /// `images/d_smapicon.png`
-        static var dSmapicon: Image { Image("images_d_smapicon") }
         /// `images/roam/pin/dot-cluster.png`
         static var dotCluster: Image { Image("images_roam_pin_dot_cluster") }
         /// `images/roam/pin/dot-landmark.png`
@@ -938,10 +1028,18 @@ enum MPAsset {
         static var dotStreet: Image { Image("images_roam_pin_dot_street") }
         /// `images/roam/pin/dot-unknown.png`
         static var dotUnknown: Image { Image("images_roam_pin_dot_unknown") }
+        /// `images/d_smapicon.png`
+        static var dSmapicon: Image { Image("images_d_smapicon") }
+        /// `pages/topic/images/icon_map2.png`
+        static var iconMap2: Image { Image("pages_topic_images_icon_map2") }
         /// `images/icon_map4.png`
         static var iconMap4: Image { Image("images_icon_map4") }
+        /// `pages/square/images/icon_map5.png`
+        static var iconMap5: Image { Image("pages_square_images_icon_map5") }
         /// `pages/searchmap/images/icon_map6.png`
         static var iconMap6: Image { Image("pages_searchmap_images_icon_map6") }
+        /// `images/d_location2.png`
+        static var imagesDLocation2: Image { Image("images_d_location2") }
         /// `pages/publish/images/map-pin.png`
         static var mapPin: Image { Image("pages_publish_images_map_pin") }
         /// `pages/searchmap/images/d_smapicon.png`
@@ -976,14 +1074,42 @@ enum MPAsset {
     enum Other {
         /// `pages/topic/images/merchant-guide/clock.svg`
         static var clock: Image { Image("pages_topic_images_merchant_guide_clock") }
+        /// `pages/topic/images/d_baifx.png`
+        static var dBaifx: Image { Image("pages_topic_images_d_baifx") }
+        /// `pages/topic/images/d_bmtk1.png`
+        static var dBmtk1: Image { Image("pages_topic_images_d_bmtk1") }
+        /// `pages/topic/images/d_bmtk2.png`
+        static var dBmtk2: Image { Image("pages_topic_images_d_bmtk2") }
+        /// `pages/topic/images/d_bmtk3.png`
+        static var dBmtk3: Image { Image("pages_topic_images_d_bmtk3") }
+        /// `pages/topic/images/d_bmtk4.png`
+        static var dBmtk4: Image { Image("pages_topic_images_d_bmtk4") }
+        /// `pages/topic/images/d_bmtk5.png`
+        static var dBmtk5: Image { Image("pages_topic_images_d_bmtk5") }
+        /// `pages/topic/images/d_bmtk6.png`
+        static var dBmtk6: Image { Image("pages_topic_images_d_bmtk6") }
         /// `pages/gerenziliao/images/del.png`
         static var del: Image { Image("pages_gerenziliao_images_del") }
+        /// `subpackageMember/images/d_subtraction.png`
+        static var dSubtraction: Image { Image("subpackagemember_images_d_subtraction") }
+        /// `subpackageMember/images/d_yhqadd1.png`
+        static var dYhqadd1: Image { Image("subpackagemember_images_d_yhqadd1") }
+        /// `subpackageMember/images/d_yhqadd2.png`
+        static var dYhqadd2: Image { Image("subpackagemember_images_d_yhqadd2") }
         /// `subpackageMember/images/figma-invite-qr.png`
         static var figmaInviteQr: Image { Image("subpackagemember_images_figma_invite_qr") }
         /// `subpackageMember/images/frames/glass-key.webp`
         static var glassKey: Image { Image("subpackagemember_images_frames_glass_key") }
         /// `pages/play/images/frames/glass-success.webp`
         static var glassSuccess: Image { Image("pages_play_images_frames_glass_success") }
+        /// `pages/topic/images/icon_line.jpg`
+        static var iconLine: Image { Image("pages_topic_images_icon_line") }
+        /// `images/del.png`
+        static var imagesDel: Image { Image("images_del") }
+        /// `images/figma-invite-qr.png`
+        static var imagesFigmaInviteQr: Image { Image("images_figma_invite_qr") }
+        /// `images/nav_msg.svg`
+        static var imagesNavMsg: Image { Image("images_nav_msg") }
         /// `subpackagePass/frames/key-idle-0.webp`
         static var keyIdle0: Image { Image("subpackagepass_frames_key_idle_0") }
         /// `subpackagePass/frames/key-idle-1.webp`
@@ -1040,10 +1166,16 @@ enum MPAsset {
         static var location: Image { Image("pages_topic_images_merchant_guide_location") }
         /// `subpackageRoam/citystamp/mailbox.png`
         static var mailbox: Image { Image("subpackageroam_citystamp_mailbox") }
+        /// `pages/play/images/mascot-cat.svg`
+        static var mascotCat: Image { Image("pages_play_images_mascot_cat") }
+        /// `pages/play/images/mascot-cat-blind.svg`
+        static var mascotCatBlind: Image { Image("pages_play_images_mascot_cat_blind") }
         /// `pages/merchant/images/nav_msg.svg`
         static var navMsg: Image { Image("pages_merchant_images_nav_msg") }
         /// `pages/play/assets/pack-foil.png`
         static var packFoil: Image { Image("pages_play_assets_pack_foil") }
+        /// `pages/play/components/playkit-scan/ar/reticle.png`
+        static var pagesPlayComponentsPlaykitScanArReticle: Image { Image("pages_play_components_playkit_scan_ar_reticle") }
         /// `pages/topic/images/merchant-guide/people.svg`
         static var people: Image { Image("pages_topic_images_merchant_guide_people") }
         /// `subpackageRoam/citystamp/printer-body.jpg`
@@ -1054,5 +1186,7 @@ enum MPAsset {
         static var reticle: Image { Image("pages_playkit_components_playkit_scan_ar_reticle") }
         /// `pages/topic/images/xjt.png`
         static var xjt: Image { Image("pages_topic_images_xjt") }
+        /// `pages/topic/images/yjt2.png`
+        static var yjt2: Image { Image("pages_topic_images_yjt2") }
     }
 }
