@@ -311,3 +311,10 @@ Kept on purpose: `playCompat.refused.next` says "更新 App" where the MP says "
 10. Core still has no live-session preferences (BGM, 旁白 autoplay, reduce-motion override, fog, map style): request 8 stands; until then the PLAY-6 / ROAM-9 sheets stay unmounted.
 11. `OfficialRouteFormat.distance` prints `km` in Chinese; the app maps it to `公里` locally (`OfficialRouteMeta`). A locale-aware Core formatter would remove that.
 12. Integrator: `docs/port/strings/gap-g1-copy.json` (Gemini) was never merged into `Resources/Localizable.xcstrings`; my fragment carries the 15 play-roam rows, the other 6 belong to other areas.
+
+### Verification (round 4, cloud, no compiler)
+
+- APIs grepped on the branch before use: `CYStateLayout(kind:title:detail:primary:…emptyIllustration:)` (memberwise, used the same way in `CYStates.swift`), `CYImageCard.fallbackArtwork(_:)`, `E1CoverArt(seed:symbol:imageURL:debugLabel:fallbackImage:fallbackFills:)`, `OfficialRouteReader.list`, `OfficialRouteFormat.distance/duration`, `ChallengePOICoordinator.node / uploadedPhotoUrl / confirmPhotoUploaded(_:)`, `QuestifyCardArtwork.safeURL(_:)`, `MPAsset.BrandLogo.cyLogoMark`, `MPAsset.BannerCover.{routeCityCover,homeRouteCityPlaceholder}`, `MPAsset.BadgeMedal.micKey`, `MPAsset.Other.{printerBody,printerSlot}`, `MPAsset.AvatarDefault.dProfile`, `MPAsset.FeatureIcon.goals`, `AppSession.account`, `openSignIn`. New type names (`VerificationQRCentreLogo`, `OfficialRouteMeta`, `RoamStampPrinterView`) grepped: unused before.
+- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), base 4ef0a2840 vs branch: 223 vs 224 failures+errors. The one new row is `test_localization_key_catalog_contract` for `playx.poi.claimedAgain`: the test reads `Resources/*.xcstrings` only, and the key is in this branch's fragment. **It clears when the integrator merges `docs/port/strings/fix-r3-play-roam-a.json`** (same path as earlier rounds' new keys). `test_w2_19_playMerchant` passes after the PlayStoreDay table regeneration.
+- `tools/check_typography_lint.py`: PASS. `tools/check_a11y_lint.py`: 1 finding, pre-existing club line (see §5).
+- New Swift files: none.
