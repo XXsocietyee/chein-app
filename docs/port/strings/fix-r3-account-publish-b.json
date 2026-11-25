@@ -441,6 +441,23 @@
       }
     }
   },
+  "settingsNative.legal.effectiveDate": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Effective date:"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生效日期："
+        }
+      }
+    }
+  },
   "team.disband": {
     "extractionState": "manual",
     "localizations": {
