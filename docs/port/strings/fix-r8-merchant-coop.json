@@ -698,6 +698,23 @@
         }
       }
     },
+    "merchantR8.aftercare.contactSupport": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact platform support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系平台客服"
+          }
+        }
+      }
+    },
     "merchantR8.batch.voucherLabel": {
       "extractionState": "manual",
       "localizations": {
