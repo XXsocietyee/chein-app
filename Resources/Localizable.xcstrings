@@ -312376,6 +312376,40 @@
           }
         }
       }
+    },
+    "official.leaderboard": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event Leaderboard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赛事榜单"
+          }
+        }
+      }
+    },
+    "official.broadcast.summary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Broadcast summary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播报摘要"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

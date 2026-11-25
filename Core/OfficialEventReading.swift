@@ -44,7 +44,7 @@ public struct OfficialReadContext: Equatable {
 }
 public extension OfficialEventReading {
     var invalidationSignal: OfficialReadInvalidationSignal? { nil }
-    /// Mocks keep compiling. The session reader forwards to `OfficialEventService.recoverBroadcast(id:token:)`.
+    /// The read surface does not send a recover write. Mocks may override; the default sends nothing.
     func recoverBroadcast(id: String) async throws { throw APIError.notConfigured }
 }
 @MainActor public final class OfficialSessionReader: OfficialEventReading {
@@ -84,7 +84,6 @@ public extension OfficialEventReading {
     }
     public func myPublished() async throws -> OfficialPublished { try await privateRead { try await $0.myPublished(token: $1) } }
     public func broadcastStats(id: Int) async throws -> OfficialBroadcastStats { try await privateRead { try await $0.broadcastStats(id: id, token: $1) } }
-    public func recoverBroadcast(id: String) async throws { try await privateRead { try await $0.recoverBroadcast(id: id, token: $1) } }
     private func privateRead<T>(_ operation: (OfficialEventService, String) async throws -> T) async throws -> T {
         guard isAuthenticated else { throw APIError.unauthorized }
         return try await read { service, token in

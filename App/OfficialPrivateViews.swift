@@ -172,8 +172,6 @@ import SwiftUI
     let reader: any OfficialEventReading
     var onLogin: (() -> Void)? = nil
     @State private var reload = 0
-    @State private var confirmingRecover = false
-    @State private var recoverNote: String?
     var body: some View {
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "stats.\(id).\(reload)", onLogin: onLogin, load: { try await reader.broadcastStats(id: id) }) { stats in
             List {
@@ -200,33 +198,10 @@ import SwiftUI
                         }
                     }
                 }
-                if stats.canRecoverInapp {
-                    Section {
-                        Button("official.broadcast.recover") { confirmingRecover = true }
-                            .accessibilityIdentifier("official.broadcast.recover")
-                        if let recoverNote { Text(verbatim: recoverNote).foregroundStyle(CYColor.dangerText) }
-                    }
-                }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
             }.accessibilityIdentifier("official.stats.content")
         }
-        .confirmationDialog("official.broadcast.recover", isPresented: $confirmingRecover, titleVisibility: .visible) {
-            Button("official.broadcast.recover") { Task { await recover() } }
-            Button("action.cancel", role: .cancel) {}
-        } message: {
-            Text("official.broadcast.recover.body")
-        }
         .appNavigationTitle("official.stats").navigationBarTitleDisplayMode(.inline)
-    }
-    private func recover() async {
-        do {
-            try await reader.recoverBroadcast(id: String(id))
-            recoverNote = nil
-            reload += 1
-        } catch is CancellationError {
-        } catch {
-            recoverNote = OfficialBroadcastStats.failureLine(serverMessage: OfficialBroadcastStats.serverNote(error))
-        }
     }
 }
 
@@ -259,8 +234,6 @@ private extension Decimal {
     @ViewBuilder let label: () -> Content
     private enum Phase: Equatable { case idle, loading, loaded(OfficialBroadcastStats), failed(String?) }
     @State private var phase: Phase = .idle
-    @State private var confirmingRecover = false
-    @State private var recovering = false
     @Environment(\.cyPalette) private var palette
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -288,23 +261,12 @@ private extension Decimal {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(phase == .loading || recovering)
+            .disabled(phase == .loading)
             .accessibilityHint(Text("official.published.statsHint"))
-            if case .loaded(let stats) = phase, stats.canRecoverInapp {
-                Button("official.broadcast.recover") { confirmingRecover = true }
-                    .disabled(recovering)
-                    .accessibilityIdentifier("official.broadcast.recover.\(id)")
-            }
-        }
-        .confirmationDialog("official.broadcast.recover", isPresented: $confirmingRecover, titleVisibility: .visible) {
-            Button("official.broadcast.recover") { Task { await recover() } }
-            Button("action.cancel", role: .cancel) {}
-        } message: {
-            Text("official.broadcast.recover.body")
         }
     }
     private func load() {
-        guard phase != .loading, !recovering else { return }
+        guard phase != .loading else { return }
         phase = .loading
         let scope = reader.scope
         Task {
@@ -321,23 +283,6 @@ private extension Decimal {
             } catch {
                 phase = reader.scope == scope ? .failed(OfficialBroadcastStats.failureLine(serverMessage: OfficialBroadcastStats.serverNote(error))) : .idle
             }
-        }
-    }
-    /// Confirm, then `recoverBroadcast(id:token:)` through the reader, then re-read stats.
-    private func recover() async {
-        recovering = true
-        defer { recovering = false }
-        let scope = reader.scope
-        do {
-            try await reader.recoverBroadcast(id: String(id))
-            guard reader.scope == scope else { phase = .idle; return }
-            let stats = try await reader.broadcastStats(id: id)
-            guard reader.scope == scope else { phase = .idle; return }
-            phase = .loaded(stats)
-        } catch is CancellationError {
-            phase = .idle
-        } catch {
-            phase = reader.scope == scope ? .failed(OfficialBroadcastStats.failureLine(serverMessage: OfficialBroadcastStats.serverNote(error))) : .idle
         }
     }
 }
