@@ -46,3 +46,59 @@ struct R9PublicShareButton: View {
         }
     }
 }
+
+// MARK: - A2-02b / A2-10 merchant subject (MP components cy/profile index.js:900-970 public-home probe,
+// index.wxml:578-582 发起合作 bar, :2277-2283 onCoopInvite → coop/invite type=0 toId=memberId)
+
+/// Probes `api/merchant/public-home` by the viewed member id (Core `SocialPublicProfile.merchantHomeTarget` shape).
+/// A public merchant record swaps the page to `PublicMerchantHomeView`; anything else keeps the member profile.
+/// A signed-in visitor (not the merchant themself) gets the bottom 发起合作 bar, which opens the coop invite with
+/// type 0 and the merchant's member id; that page owns the publisher-topic check (MP `canInviteCoop`).
+@MainActor struct R9MerchantAwareProfileHost<Profile: View>: View {
+    @ObservedObject var session: AppSession
+    let memberID: Int
+    @ViewBuilder let profile: () -> Profile
+    @State private var isMerchant = false
+    @State private var opensCoopInvite = false
+
+    private var showsCoopBar: Bool {
+        guard isMerchant, let viewer = session.account?.id else { return false }
+        return viewer != memberID
+    }
+
+    var body: some View {
+        Group {
+            if isMerchant, let owner = PublicMerchantOwnerID(memberID) {
+                PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext)
+            } else {
+                profile()
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if showsCoopBar {
+                SocialPublicProfileGapCoopBar { opensCoopInvite = true }
+                    .background(CYColor.bgPage)
+                    .accessibilityIdentifier("profile.merchant.coopInvite")
+            }
+        }
+        .navigationDestination(isPresented: $opensCoopInvite) {
+            MPReviewedPageScreen(page: "pages/coop/invite/index", query: ["type": "0", "toId": String(memberID)])
+                .environmentObject(session)
+        }
+        .task(id: memberID) { await probe() }
+    }
+
+    private func probe() async {
+        isMerchant = false
+        guard let owner = PublicMerchantOwnerID(memberID) else { return }
+        let reader = session.publicMerchantHomeContext.reader
+        guard reader.isConfigured else { return }
+        do {
+            _ = try await reader.home(.ownerMemberID(owner))
+            guard !Task.isCancelled else { return }
+            isMerchant = true
+        } catch {
+            isMerchant = false
+        }
+    }
+}

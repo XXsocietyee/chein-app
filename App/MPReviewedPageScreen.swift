@@ -780,9 +780,12 @@ import SwiftUI
         case "pages/userinfo/userinfo":
             // A2-01: MP share links use `userId`; `id` is the older key. `tab` picks the first tab (A2-06).
             if let id = positiveID(query["userId"]) ?? reviewedID(query) {
-                SocialPublicProfileView(memberID: id, reader: session.socialAccountReader, squareReader: session.squareReader,
-                                        actions: session.socialActionCoordinator, initialTab: query["tab"])
-                    .environment(\.socialConversationDestination, session.socialConversationDestination) // A2-03 发消息
+                // r9 A2-02b / A2-10: a merchant subject swaps to the public merchant home (+ 发起合作 for visitors).
+                R9MerchantAwareProfileHost(session: session, memberID: id) {
+                    SocialPublicProfileView(memberID: id, reader: session.socialAccountReader, squareReader: session.squareReader,
+                                            actions: session.socialActionCoordinator, initialTab: query["tab"])
+                        .environment(\.socialConversationDestination, session.socialConversationDestination) // A2-03 发消息
+                }
             } else { unavailable }
         case "subpackageRoam/history/index":
             if session.account == nil {
