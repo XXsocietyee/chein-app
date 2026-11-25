@@ -256,7 +256,6 @@ import SwiftUI
                 // Mini isPermissionDenial: terminal state with an exit, not a retry.
                 Section {
                     Label("club.gov.groupCode.noPermission", systemImage: "lock").accessibilityIdentifier("club.gov.groupCode.noPermission")
-                    Text("club.gov.groupCode.noPermission.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
                     Button("club.gov.groupCode.backToClub") { dismiss() }.accessibilityIdentifier("club.gov.groupCode.back")
                 }
             } else if let failure, route.operation == .saveCustomer {
