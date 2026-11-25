@@ -311180,6 +311180,40 @@
           }
         }
       }
+    },
+    "nearby.mine.pendingApplications %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld join requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条入队申请"
+          }
+        }
+      }
+    },
+    "nearby.mine.pendingUnread": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read join requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请数没读到"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
