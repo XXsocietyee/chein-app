@@ -164844,13 +164844,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add participant information"
+            "value": "Participant information"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增参与人信息"
+            "value": "参与人信息"
           }
         }
       }
@@ -164946,13 +164946,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit participant"
+            "value": "Participant information"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "编辑参与人"
+            "value": "参与人信息"
           }
         }
       }
@@ -165184,13 +165184,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save participant"
+            "value": "Save participant information"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存参与人"
+            "value": "保存参与人信息"
           }
         }
       }
@@ -198852,13 +198852,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Back to my profile"
+            "value": "Back"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "回到我的主页"
+            "value": "返回"
           }
         }
       }
@@ -244422,13 +244422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interests"
+            "value": "Interest tags"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "兴趣"
+            "value": "兴趣标签"
           }
         }
       }
