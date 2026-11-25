@@ -710,7 +710,13 @@ enum ReviewedPlayerReadRoute {
         "api/activity/delete", "api/topic/delete", "api/template/delete", "api/template/updateLibraryStatus",
         // Popup parity closure: beta topic graduation, club transfer, and attendance commands (non-money).
         "api/topic/beta/graduate", "api/topic/transfer-to-club", "api/club/my"
-    ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths)
+    ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths).union(publisherLifecyclePaths)
+    /// MP-first (owner 2026-11-25, R7-PC-B4-1 / R7-PC-B1-2): pages/topic/pricing preview + confirm (a final-price save that moves
+    /// the topic to PRICING for sale review, not a payment) and the publisher reads it needs. Cancel-with-refund stays off.
+    static let publisherLifecyclePaths: Set<String> = [
+        "api/topic/pricing/preview", "api/topic/pricing/confirm", "api/topic/xp-budget",
+        "api/topic/cancel_preview", "api/activity/cancel_preview", "api/club/detail", "api/merchant/public-detail"
+    ]
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
     static func isPlayGrantPath(_ relative: String) -> Bool {
@@ -1429,7 +1435,7 @@ enum ReviewedPlayerReadRoute {
         let key = contextKey(context)
         if let existing = playConfigurationByContext[key] { return existing }
         let configuration = RuntimeDependencyConfiguration(market: .china, endpoints: endpoints, play: Self.playCapabilities,
-            playReadApprovalID: UUID())
+            publisherReads: true, playReadApprovalID: UUID())
         playConfigurationByContext[key] = configuration
         return configuration
     }
