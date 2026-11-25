@@ -653,7 +653,7 @@ struct ClubGovernanceReadView: View {
                 if let message = failure.message {
                     Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("club.story.answer.reason")
                 }
-            } else if operation == .checkin, let failure, failure != .signedOut {
+            } else if case .checkin = operation, let failure, failure != .signedOut {
                 // Round 4 (CLB-checkin-detail-03): a failed read clears the snapshot, so the MP full-page states
                 // (核销记录不可见 / the server sentence + 返回 / 核销凭证加载失败 + 重新加载) are drawn here, not the generic block.
                 ClubCheckinRailView(rail: .init(railStep: .null, statusCode: .null),

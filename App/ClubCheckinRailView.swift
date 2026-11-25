@@ -21,7 +21,7 @@ struct ClubCheckinRailView: View {
                     systemImage: stateKind == .error ? "exclamationmark.triangle" : (stateKind == .denied ? "lock" : "doc.text"),
                     LocalizedStringKey(stateKind == .missing ? (shownReason ?? stateCopy(stateKind)) : stateCopy(stateKind)),
                     detailVerbatim: stateKind == .missing ? nil
-                        : (shownReason ?? (stateKind == .denied ? String(localized: "clubR3b.checkin.deniedReason", locale: locale) : nil)),
+                        : (shownReason ?? (stateKind == .denied ? appLocalized("clubR3b.checkin.deniedReason", locale: locale) : nil)),
                     messageIdentifier: "club.checkin.rail.stateTitle",
                     actionTitle: stateKind == .error && onReload != nil ? "clubR3b.checkin.reload" : "clubR3b.checkin.back",
                     actionIdentifier: "club.checkin.state.action",
@@ -165,7 +165,7 @@ struct ClubCheckinDetailRows: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 // CLB-checkin-detail-07: MP topic is label-bold; body-medium is the closest step on the scale.
-                Text(verbatim: text("topicName") ?? String(localized: "clubR3b.checkin.untitledTopic", locale: locale))
+                Text(verbatim: text("topicName") ?? appLocalized("clubR3b.checkin.untitledTopic", locale: locale))
                     .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)

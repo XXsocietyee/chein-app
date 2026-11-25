@@ -22,6 +22,7 @@ struct ClubGroupCodeSessionStep: View {
         case failed(String)
         case sessions([ClubManagedDirectorSession])
     }
+    @Environment(\.locale) private var locale
     @State private var phase: Phase = .loading
     @State private var pickedID: Int?
     @State private var attempt = 0
@@ -74,7 +75,7 @@ struct ClubGroupCodeSessionStep: View {
             let value = try await access.read(.topicOverview, scope: .init(clubID: clubID, topicID: topicID), options: [:]).value
             guard !Task.isCancelled else { return }
             guard let rows = value["activityList"].array else {
-                phase = .failed(String(localized: "clubR3b.groupCode.sessionsFailed")); return
+                phase = .failed(appLocalized("clubR3b.groupCode.sessionsFailed", locale: locale)); return
             }
             if rows.isEmpty { phase = .sessions([]); return }
             // MP listGroupCodeActivities: self-host shells are not led sessions; only positive ids can issue.
@@ -83,15 +84,15 @@ struct ClubGroupCodeSessionStep: View {
                 return ClubManagedDirectorSession(id: id, title: ClubGroupCodePort.sessionLabel(
                     id: id, name: row["name"].string, startDate: row["startDate"].string, startTime: row["startTime"].string))
             }
-            phase = sessions.isEmpty ? .failed(String(localized: "clubR3b.groupCode.noIssuable")) : .sessions(sessions)
+            phase = sessions.isEmpty ? .failed(appLocalized("clubR3b.groupCode.noIssuable", locale: locale)) : .sessions(sessions)
         } catch {
             guard !Task.isCancelled else { return }
             if ClubOpsNetworkFailureClassifier.classify(error) == .network {
-                phase = .failed(String(localized: "clubR3b.groupCode.network"))
+                phase = .failed(appLocalized("clubR3b.groupCode.network", locale: locale))
             } else if let message = (error as? ClubGovernanceFailure)?.message?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty {
                 phase = .failed(message)
             } else {
-                phase = .failed(String(localized: "clubR3b.groupCode.sessionsFailed"))
+                phase = .failed(appLocalized("clubR3b.groupCode.sessionsFailed", locale: locale))
             }
         }
     }
