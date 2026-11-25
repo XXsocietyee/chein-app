@@ -206,3 +206,69 @@ There is no compiler in the cloud. Every API used was grepped on the base. The c
   - Result: **39 failing on r7, 39 on the branch, the same set, 0 new.**
   - Not covered: the rest of `Tests/ContractChecks/`. A full-directory run was started, then stopped because r7 had moved under it.
 - No compiler in the cloud. Every API used was grepped on the merged tree. The coordinator compiles.
+
+---
+
+# Round 3 (2026-11-24 evening)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round3.md` (plus `wave-x10.md`, `fix-r3-round2.md`, `owner-decisions-1124.md`).
+- **Sync:** `git merge origin/ui/combined-r7` @ b0ac0108d. It fast-forwarded: r7 already contained this branch's round 2 (6e8125bc8).
+- **Strings:** no new keys this round. Every key used was already in `Localizable.xcstrings` or `docs/port/strings/fix-r3-merchant-coop-b.json`.
+
+## Round 3 · re-applied
+I checked each round-2 commit hunk by hunk against the new base (`git diff <c>^ <c>`, then compared the result with HEAD). None of this branch's files were on the brief's "restored whole to Cursor's side" list. Two overlaps had still produced a **second implementation**, and one merge hunk had dropped part of my change:
+
+| id | what the merge left | re-applied on Cursor's wiring | files |
+|---|---|---|---|
+| MC7-30-6 | There were two station-accept paths. My `CoopSupplyStationAcceptView` was reached first. Cursor's `CoopFlowHandleEditor(supplyStationID:supplyStationName:flowReader:)` was unreachable for a station invite. Cursor's path also had no outcome UI and only toasted failures. The footer showed a third station-name row, which reused the a11y id `cooperation.detail.supplyStation` of the 合作条款 row. | Every accept now goes through Cursor's `handle(.accept)` → `CoopFlowHandleEditor`. In the editor: <br>• the 核销据点 row (name, or 据点 #id) and the MP lock note; <br>• the send prefers the TEST-only gated `coopFlowPreviewWrite.stationAccept()` (`merchantWrites` + per-op `.handle` approval + `ReleaseMoneyWriteSwitch`) and otherwise uses Cursor's `flowReader.acceptSupplyStation`, which is dormant in production; <br>• outcome rows: sent + 完成, unknown, the server message on failure, and a disabled button + 暂不可提交 when neither sender exists. <br>`CoopSupplyStationAcceptView.swift` is deleted. The duplicate footer name row is removed; the name stays in 合作条款. | CooperationFlowEditors.swift, CooperationInviteActionSections.swift, (deleted) CoopSupplyStationAcceptView.swift |
+| MC7-35-1 | There were two club settlement-detail screens and two `case "pages/coop/settlement-detail/index"` in `MPReviewedPageScreen`. Cursor's `CoopSettlementDetailRoute` came first, so my case and `CoopClubSettlementDetailView` were dead. Cursor's `CoopClubSettlementScreen` had no retry, no back action, hard-coded zh labels, and matched `topicId` OR `id` regardless of the link. | Kept Cursor's route and `CoopClubSettlementScreen`, and moved my effect into it: <br>• MP `recordKey` matching (`MerchantSettlementDetailLink.recordKey`, passed by the route); <br>• missing → 结算记录不可见 + 返回; <br>• failed (with the server message) → 重试; <br>• pull to refresh; <br>• localized `merchantCoop.settlement.*` labels; <br>• merchant domain chrome. <br>My duplicate case, the `settlementMissing` helper and `CoopClubSettlementDetailView.swift` are deleted. | CoopSettlementDetailView.swift, MPReviewedPageScreen.swift, (deleted) CoopClubSettlementDetailView.swift |
+| MC7-26-4 | The merge added an always-on `ForEach(c.readyFieldIssues)` list above 确认准备完成 and dropped my `readyAttempted = true`. My per-field errors therefore never showed, and the same issues showed unconditionally as a second list. | `readyAttempted = true` is restored on tap. The duplicate list is removed. Errors show under each field only after the tap (MP `cy-inline-error`). | MerchantGameNodeView.swift |
+| (a11y) | `.accessibilityHidden(true)` was doubled on three StoreCharacter state glyphs (my round-2 hunk + the same restyle fix). | The duplicates are removed. | MerchantStoreCharacterView.swift |
+
+Every other round-2 hunk (MC7-19-2, 24-1/25-1, 24-4, 23-1, 27-1, 31-2, 32-1, 32-3, 32-5, 34-3, 32-7, 30-2, 31-10, 29-12, 29-7, owner #9, the ai-npc intro and the MP default avatars) is present on the base unchanged.
+
+The project was regenerated (`tools/generate_project.py`) for the two deleted files and the one new file.
+
+## Round 3 · new
+| id | what | files |
+|---|---|---|
+| flows-g2 (Claude edges, half b) | Deep links that used to land on 该页面暂未开放 now open the native screens: <br>• `pages/merchant/decor/index` → 品牌中心, with the session factory, the perks destination and the city-node hub (as on the merchant tab); <br>• `decor/gallery`, `decor/coop-setting` and `decor/ai-npc` → new `MerchantDecorLinkedPage`, which reads `access()` and opens the page only when `allows(...)` is true, and otherwise shows the decor hub states (登录 / 去商家入驻 / 当前身份不能装修店铺 / 品牌中心加载失败 + 重试); <br>• `decor/perks` → `MerchantPerkTemplatesHost` (executor only where merchant writes are open); <br>• `merchant/citynode` → hub; <br>• `citynode/create` → create; <br>• `merchant/game-node` → the 选择场次 entry list, or the station when `activityId` is present. <br>This closes the half-b flows-g2 rows: citynode 130/131/134, decor 150–170 (not 163 reviews, which is half a), merchant/index 183/186, marketing 207 and shezhi 280. Rows 76/114 (settlement-detail) were already routed. | MPReviewedPageScreen.swift, MerchantDecorLinkedPage.swift (new) |
+
+The MP `redirectTo /pages/merchant/decor/index` after a sub-page save (rows 150, 152, 155, 170) is a native pop back to 品牌中心, which already happens.
+
+## Round 3 · checked, nothing to do
+- `review/r7-rev-{a,b,c}`: still no Claude rows for merchant-coop.
+- `docs/mp-assets/mapping.md`: there are no new rows on half-b pages. The template-detail shelf tabs, leaderboard memojis and member-journey icons are other areas. The merchant rows on `MerchantBusinessViews.swift` are half-a pages (reviews, customer).
+- `audit/parity-r7-merchant-coop`: every Claude P1 for pages 19–35 is either closed in rounds 1–3 or listed below.
+
+## Round 3 · still left
+- **Core (`cursor/core-merchant-coop`), new this round:**
+  - `MiniProgramPageLink` needs rules for `pages/merchant/game-node/index` (`activityId`) and `pages/merchant/decor/index` (`view`). Both are still query-free, so those keys are rejected; the App case already reads `activityId`.
+  - The router has a duplicate `case "pages/merchant/ledger/order-detail/index"` (half a / Cursor). The first case wins, so the MC7-07-2 `recordType` branch is dead. Not touched here.
+- **Core, unchanged from rounds 1–2:**
+  - MC7-19-4 (`businessLicense` on the decor profile);
+  - MC7-23-3 (base URL);
+  - MC7-23-4 (`personality` enum);
+  - MC7-27-3 / 28-7 (link rules);
+  - MC7-28-6;
+  - MC7-29-4: the `invite/preview` path constant exists, but there is no reader on `MerchantEngagementReading`;
+  - MC7-33-3;
+  - MC7-33-6: `NearbyMerchantRow` still has no venue fields;
+  - target `logo`;
+  - invite presets.
+- **MC7-23-5 清除声音:** Core now has `Adapt2MerchantNPCVoiceResetClient` (gate default off). It is not wired because every ai-npc write is still closed under MC7-23-1 (owner endpoint review). It should be wired together with that grant.
+- **Owner/gate:** MC7-23-1, 24-1, 25-1, 26-1, 29-3 and 29-8 (→ 29-9, 29-10). The interim hide-behind-notice is in place.
+- **Reverted pins:** MC7-29-6 and MC7-34-1 (unchanged).
+- **Gemini:** MC7-33-1, 33-4 and 33-5.
+- **Club F-agent:** MC7-28-3.
+- **a11y lint on r7:** 17 new findings, all in files outside this half. The only merchant one is the Gemini file `MPGap/MerchantCoop/MerchantGapAIInsightViews.swift:146`. None are in files changed here.
+
+## Round 3 checks
+- **ContractChecks**, base vs branch:
+  - Re-apply commit: 1 failing on both, the same set. Scope: modules referencing the changed editors, game-node and StoreCharacter.
+  - Routes/settlement commit: 19 failing on both, the same set, 0 new. Scope: 75 modules referencing `MPReviewedPageScreen`, settlement, `MerchantOperationsHomeView`, the project or the generator.
+  - This is not a full-directory run.
+- `tools/check_typography_lint.py`: **PASS**.
+- `tools/check_a11y_lint.py`: no finding in any file changed here. The 17 new findings are on the r7 base in other areas' files.
+- **Fixture routes:** no new design fixtures exist for the new deep links, so `docs/port/accept/f-merchant-coop-b.txt` is unchanged. The deep links can be exercised with the MP page paths listed above.
+- No compiler in the cloud. Every API used was grepped on the merged tree (`MerchantOperationsReading.access()`, `MerchantOperationsAccess.allows`, `AppSession.merchantOperationsDestination` / `merchantCityNodeHub()` / `merchantGameNodeService`, `MerchantPerkTemplatesHost`, `MerchantCityNodeCreateView(service:placeSearch:)`, `MerchantGameNodeEntryView(service:topicID:)`, `SessionMerchantGameNodeView`, `MerchantSettlementDetailLink.recordKey`, `CoopFlowPreviewWriteFactory.stationAccept`).

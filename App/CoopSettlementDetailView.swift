@@ -210,7 +210,8 @@ import SwiftUI
             case .ledger: existing(.mybiz, link.recordID)
             case .club:
                 if let clubID = link.clubID {
-                    CoopClubSettlementScreen(reader: reader, clubID: clubID, recordID: link.recordID, personal: link.personal)
+                    CoopClubSettlementScreen(reader: reader, clubID: clubID, recordID: link.recordID, personal: link.personal,
+                                             recordKey: link.recordKey)
                 } else { missing }
             }
         } else { missing }
@@ -232,81 +233,99 @@ import SwiftUI
     }
 }
 
-/// One club settlement row. Amounts stay the server strings from `CoopClubSettlementDetail`. This read does not withdraw.
+/// One club settlement row (MC7-35-1 / MP `pages/coop/settlement-detail?source=club`): `POST api/club/settlement/summary`
+/// (`CoopFlowRead.clubSettlementSummary`), rendered as the MP `buildClubSettlementDetail`. Amounts stay the server
+/// strings from `CoopClubSettlementDetail`; nothing is computed here, and this read does not withdraw.
+/// Round 3: the F-agent states (missing + 返回, failed + 重试, pull to refresh) and localized labels live here now;
+/// the separate `CoopClubSettlementDetailView` is gone.
 @MainActor struct CoopClubSettlementScreen: View {
     let reader: any CoopFlowReading
     let clubID: Int
     let recordID: String
     /// True only when the screen query is `personal=1`.
     let personal: Bool
-    @State private var detail: CoopClubSettlementDetail?
+    /// `MerchantSettlementDetailLink.recordKey`: `id` when the link named a club row id, else `topicId` (MP onLoad).
+    var recordKey: String = "topicId"
+    private enum Phase: Equatable { case loading, ready(CoopClubSettlementDetail), missing, failed(String?) }
     @State private var phase: Phase = .loading
-    private enum Phase { case loading, ready, missing, failed }
+    @State private var attempt = 0
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        List {
-            switch phase {
-            case .loading:
-                CYSkeleton(variant: .detail).accessibilityIdentifier("cooperation.settlement.club.loading")
-            case .missing:
-                Text(verbatim: MerchantSettlementDetailLink.missing).cyText(.body)
-                    .accessibilityIdentifier("cooperation.settlement.club.missing")
-            case .failed:
-                Text("cooperation.settlement.staleError").cyText(.body)
-                    .accessibilityIdentifier("cooperation.settlement.club.failed")
-            case .ready:
-                if let detail { content(detail) }
+        content
+            .navigationTitle(Text("merchantCoop.settlement.title")).navigationBarTitleDisplayMode(.inline)
+            .cyDomainScreen(.merchant)
+            .task(id: "\(clubID)|\(recordID)|\(personal)|\(attempt)") { await load() }
+            .refreshable { await load() }
+            .accessibilityIdentifier("cooperation.settlement.club.\(clubID)")
+    }
+
+    @ViewBuilder private var content: some View {
+        switch phase {
+        case .loading:
+            CYSkeleton(variant: .detail).padding(CYSpacing.pageHorizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .accessibilityIdentifier("cooperation.settlement.club.loading")
+        case .missing:
+            MerchantCoopActionState(systemImage: "doc.text.magnifyingglass", title: "merchantCoop.settlement.missing",
+                                    actionTitle: "merchantCoop.settlement.back", action: { dismiss() },
+                                    identifier: "cooperation.settlement.club.missing")
+        case .failed(let message):
+            MerchantCoopActionState(systemImage: "exclamationmark.triangle", title: "merchantCoop.settlement.failed",
+                                    message: message.map { LocalizedStringKey(stringLiteral: $0) },
+                                    actionTitle: "action.retry", action: { attempt += 1 },
+                                    identifier: "cooperation.settlement.club.failed")
+        case .ready(let detail):
+            List {
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: detail.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text("merchantCoop.settlement.clubPerspective").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text(verbatim: detail.amountLabel).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text(verbatim: detail.amountText).cyText(.display, monospacedDigit: true).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: detail.statusText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("cooperation.settlement.club.hero")
+                }
+                Section {
+                    line("merchantCoop.settlement.lineType", detail.lineTypeText)
+                    line("merchantCoop.settlement.original", detail.originalAmountText)
+                    line("merchantCoop.settlement.adjustment", detail.executedAdjustmentText)
+                    line("merchantCoop.settlement.net", detail.netAmountText).fontWeight(.semibold)
+                }
+                Section {
+                    line("merchantCoop.settlement.arrived", detail.arrivedText)
+                    line("merchantCoop.settlement.paid", detail.paidText)
+                }
             }
-        }
-        .cyGroupedSurface()
-        .navigationTitle("cooperation.settlement.title")
-        .navigationBarTitleDisplayMode(.inline)
-        .task(id: "\(clubID)|\(recordID)|\(personal)") { await load() }
-        .accessibilityIdentifier("cooperation.settlement.club.\(clubID)")
-    }
-
-    @ViewBuilder private func content(_ detail: CoopClubSettlementDetail) -> some View {
-        Section {
-            Text(verbatim: detail.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            Text(verbatim: detail.statusText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            line(detail.amountLabel, detail.amountText)
-            if !detail.lineTypeText.isEmpty { line("分成", detail.lineTypeText) }
-            line("原金额", detail.originalAmountText)
-            line("已执行调整", detail.executedAdjustmentText)
-            line("净额", detail.netAmountText)
-            line("已到账", detail.arrivedText)
-            line("已支付", detail.paidText)
+            .cyGroupedSurface()
+            .accessibilityIdentifier("cooperation.settlement.club.detail")
         }
     }
 
-    private func line(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            Text(verbatim: value).cyText(.body).foregroundStyle(CYColor.textPrimary)
+    @ViewBuilder private func line(_ label: LocalizedStringKey, _ value: String) -> some View {
+        if !value.isEmpty {
+            LabeledContent { Text(verbatim: value).monospacedDigit() } label: { Text(label) }
         }
     }
 
     private func load() async {
-        phase = .loading
-        detail = nil
+        if case .ready = phase {} else { phase = .loading }
         do {
             let value = try await reader.read(.clubSettlementSummary(clubID: clubID, personal: personal))
-            guard let wanted = Self.positive(recordID) else { phase = .missing; return }
             let match = (value["topics"].rows ?? []).first { row in
-                row["topicId"].integer == wanted || row["id"].integer == wanted
+                let raw = row[recordKey]
+                return (raw.integer.map(String.init) ?? raw.text) == recordID
             }
-            if let match, let built = CoopClubSettlementDetail.resolve(match) {
-                detail = built
-                phase = .ready
-            } else { phase = .missing }
+            guard let match else { phase = .missing; return }
+            guard let detail = CoopClubSettlementDetail.resolve(match) else { phase = .failed(nil); return }
+            phase = .ready(detail)
+        } catch CoopFlowFailure.server(_, let message) {
+            phase = .failed(message)
         } catch {
-            phase = .failed
+            phase = .failed(nil)
         }
-    }
-
-    private static func positive(_ raw: String) -> Int? {
-        guard let id = Int(raw), id > 0, String(id) == raw else { return nil }
-        return id
     }
 }
 
