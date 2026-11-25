@@ -19,7 +19,7 @@ import SwiftUI
     }
     /// MP `featureOff`: the read failed with `businessCode == "BUNDLE_LEDGER_OFF"` (free-explore/index.js:97).
     private var ledgerOff: Bool {
-        if case .response(_, _, let businessCode)? = model.failure { return businessCode == "BUNDLE_LEDGER_OFF" }
+        if case .response(_, _, let businessCode, _)? = model.failure { return businessCode == "BUNDLE_LEDGER_OFF" }
         return false
     }
     /// Menu-picker row inside a card: label left, current choice right, 48pt tall.

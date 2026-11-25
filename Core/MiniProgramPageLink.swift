@@ -26,14 +26,14 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         var pages: [String: Rule] = [
             "subpackageA/pages/video-bounty/index": .init(allowed: ["campaignKey", "topicId"], required: [], ids: ["topicId"]),
             "subpackageMember/market/passes/index": .init(allowed: ["tab"], required: [], ids: []),
-            "subpackageMember/market/pass/index": .init(allowed: ["id"], required: ["id"], ids: []),
-            "subpackageMember/market/gift/index": .init(allowed: ["token"], required: [], ids: []),
+            "subpackageMember/market/pass/index": .init(allowed: ["id"], required: [], ids: []),
+            "subpackageMember/market/gift/index": .init(allowed: ["token", "mode"], required: [], ids: []),
             "subpackageMember/market/membership/index": .init(allowed: [], required: [], ids: []),
             "subpackageMember/market/library/index": .init(allowed: ["kind"], required: [], ids: []),
-            "subpackageMember/market/pass-order/index": .init(allowed: ["orderNo"], required: ["orderNo"], ids: []),
+            "subpackageMember/market/pass-order/index": .init(allowed: ["orderNo"], required: [], ids: []),
             "subpackageMember/free-explore/index": .init(allowed: ["registrationId", "topicId", "requestId"], required: [],
                                                          ids: ["registrationId", "topicId"]),
-            "subpackageMember/invoice-detail/index": .init(allowed: ["id"], required: ["id"], ids: ["id"]),
+            "subpackageMember/invoice-detail/index": .init(allowed: ["id"], required: [], ids: ["id"]),
             "subpackageMember/signup/index": .init(allowed: ["focusId", "topicId", "arrive"], required: [], ids: ["focusId", "topicId"]),
             "subpackageMember/mycanyuinfo/mycanyuinfo": .init(allowed: ["id"], required: ["id"], ids: ["id"]),
             "subpackageMember/character/index": .init(allowed: ["topicId"], required: ["topicId"], ids: ["topicId"]),
@@ -55,6 +55,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         let identified = Rule(allowed: ["id"], required: ["id"], ids: ["id"])
         let optionalID = Rule(allowed: ["id"], required: [], ids: ["id"])
         for page in openPages { pages[page] = open }
+        // `coupon/coupon` is in openPages, which drops `scope`. The mini-program sends
+        // scope=MERCHANT or omits it. The value is not a closed set.
+        pages["subpackageMember/coupon/coupon"] = .init(allowed: ["scope"], required: [], ids: [])
         for page in identifiedPages { pages[page] = identified }
         for page in optionalIDPages { pages[page] = optionalID }
         // Club pages (CLB-*-01 parity r1): the keys each MP page reads in onLoad. `clubId` and `id` are both

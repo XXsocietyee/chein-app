@@ -117,7 +117,7 @@ import SwiftUI
             let catalog = try await service.catalog(topicID: topic)
             guard !Task.isCancelled else { return }
             phase = .ready(catalog)
-        } catch FreeExploreLaunchFailure.response(_, _, let businessCode) {
+        } catch FreeExploreLaunchFailure.response(_, _, let businessCode, _) {
             guard !Task.isCancelled else { return }
             phase = .failed(ledgerOff: businessCode == "BUNDLE_LEDGER_OFF")
         } catch {

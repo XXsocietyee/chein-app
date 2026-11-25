@@ -139,7 +139,7 @@ public enum BundleAppealState: Equatable {
         case FreeExploreLaunchFailure.disabled:
             // Nothing was sent. Release the lock so a later attempt (once available) starts clean.
             try? store.clear(); state = .unavailable
-        case FreeExploreLaunchFailure.response(_, _, let code):
+        case FreeExploreLaunchFailure.response(_, _, let code, _):
             if code == "LOGIN_REQUIRED" { state = .loginRequired; return } // keep the pending command
             // Definite business refusal: the server did not record the appeal.
             do { try store.clear(); state = .blocked(serverCode: code) } catch { state = .storageFailed }
