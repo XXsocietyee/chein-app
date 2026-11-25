@@ -2,7 +2,7 @@
 
 This is the live state of the chengyin-app go-live push and the exact steps to continue it. It is updated on every hourly and half-hourly check. If Claude (the coordinator) is out of credit, anyone (a person, Cursor, Gemini or another Claude) can pick up from here.
 
-**Last updated:** 2026-11-25 03:48 UTC by Claude (coordinator).
+**Last updated:** 2026-11-25 04:10 UTC by Claude (coordinator).
 
 ---
 
@@ -11,7 +11,7 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 | Item | Value |
 |---|---|
 | Product | Native SwiftUI iOS app with full mini-program (MP) parity. Repo `liboyang42-cpu/chengyin-app` (PUBLIC), branches `ui/*`. |
-| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`b7771abb4`** (+ cursor/r8-member, A1 Core test compile fix). |
+| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`f95850a46`** (adds Cursor's rebased r8 merchant-coop / play-roam / club / account-publish, q9c-composition, A2 a + c, 28 string keys). |
 | MP source | `liboyang42-cpu/hengyin`, folder `chengyinhub-xcx` (the mini-program). |
 | Parity (r8 audit, 01:55 UTC) | member 85% · account-publish 86% · merchant 77% · club 77% · player-content 91% · play-roam 98%. Reports: `origin/audit/parity-r8-<area>:docs/audit/parity-r8/<area>.md`. |
 | Acceptance | Runs on the self-hosted runner `fanning-air-5` (owner's Mac), branch `ci/acceptance`. Baselines: Core 27, AppUnit 71, contract 1. The last CHECK (on `0e1cf578a`) found **37 new contract failures + 2 Core test compile errors**; Cursor round 7 fixes them. |
@@ -34,13 +34,10 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 
 ## 3. Who is working on what (as of last update)
 
-**Cursor round 7** (posted 03:47 UTC):
-- **A1:** Core test compile fixes.
-- **A2:** the 37 contract failures.
-- **A3:** screenshot step retry.
-- **K7e:** CHECK on the next SHA.
-- **r8-wire:** App call sites.
-- **Pending:** rebase `cursor/r8-{merchant-coop,play-roam,club,player-content,account-publish}` and `cursor/q9c-composition` onto `b5b9d9003` (they conflict with `fix/r8-mp-first`).
+**Cursor round 7** (re-posted 04:10 UTC with SHA `f95850a46`):
+- **Merged:** A1, A2-a, A2-c, q9c-composition, r8-merchant-coop, r8-play-roam, r8-club, r8-account-publish, r8-member.
+- **To rebase onto `f95850a46`:** `cursor/r8-player-content`, `cursor/a2-contract-b`, `cursor/a2-contract-d`.
+- **Next:** K7e CHECK on `f95850a46`; r8-wire (App call sites); A3 screenshot retry.
 
 **Claude cloud routines** (claude.ai/code/routines):
 - 12 × `cloud FIX r3 R4 · <area> a|b`: branches `fix/r3-<area>-<a|b>`; flows, images, copy.
@@ -65,7 +62,7 @@ Work in the worktree `/Users/fanning/orca/workspaces/native-ios/DES-ag6` on `ui/
    - **Interpolated `LocalizedStringKey("a.\(x)")`:** use concatenation.
    - **A missing catalog key:** add it via a fragment.
    - **A raw hex colour in App/:** use a design token; if it's payload data, build the string without a literal `#`.
-   - **Glue-file ratchet** (`tools/check_appsession_ratchet.py`): AppSession 8171, AppCompositionRoot 4184. Raise it temporarily only, and assign the extraction to Cursor.
+   - **Glue-file ratchet** (`tools/check_appsession_ratchet.py`): AppSession 8171, AppCompositionRoot 4177 (q9c lowered it). Raise it temporarily only, and assign the extraction to Cursor.
 5. **Build:** XcodeBuildMCP `build_sim`. Session defaults:
    - projectPath `DES-ag6/Questify.xcodeproj`, scheme `Questify`, simulator `2337B386-AC5F-4417-B8B8-012A8DB888BD`;
    - extraArgs `OTHER_SWIFT_FLAGS=$(inherited) -disable-sandbox`, `ARCHS=arm64`, `ONLY_ACTIVE_ARCH=YES`.
@@ -102,6 +99,34 @@ Work in the worktree `/Users/fanning/orca/workspaces/native-ios/DES-ag6` on `ui/
 3. Keep the Mac awake (`caffeinate -dims`) so builds and acceptance keep running.
 4. "Money on": not yet.
 5. TestFlight: when acceptance is green.
+
+## 8. Plan to complete the entire app
+
+The finish line: every MP feature works in the app the way it does in the MP (non-money parity 100% in all 6 areas), acceptance is green, and an internal TestFlight build is out. Money stays TEST-only until the owner says "money on". The phases overlap; a later phase starts as soon as its input exists.
+
+| Phase | Goal | Who | Exit criteria | Estimate |
+|---|---|---|---|---|
+| **A. Acceptance green** | Fix the 37 contract failures and 2 Core compile errors from the last CHECK. | Cursor (A2 b/d, A3, K7e); coordinator merges. | K7e CHECK on the tip shows Core ≤ 27, AppUnit ≤ 71, contract ≤ 1 failures (the baselines), screenshot step passes. | ~2–3 h |
+| **B. Close the r8 queues** | Fix every open r8 P0/P1 row. | Claude routines: 12 × F round 4 (`fix/r3-*`), 6 × `fix/r8-<area>`, `fix/r8-mp-first`. Cursor: Core rows + `r8-wire`. | Each r8 report row is marked fixed with a SHA; the 5 conflicting Claude branches are re-merged onto the tip. | ~4–6 h |
+| **C. Contract coverage** | Every MP request the app needs has an endpoint and a test. Now: 1038 total, 423 matched, 130 missing endpoint, 611 missing test. | Cursor (Core endpoints + tests); Claude routines (cov lanes per area); Gemini after its quota reset (~05:50 UTC) on test-only lanes. | Missing endpoint = 0 (or cited "MP-only, not used"); missing test < 200, then 0 for P0 flows. | ~6–8 h, parallel with B |
+| **D. r9 re-audit + fix rounds** | Measure again and close what is left. | 6 Claude audit routines (`audit/parity-r9-<area>`), then one fix routine per area per round. | Every area at 100% non-money parity; no P0/P1 rows open. Repeat audit → fix until true (expect 1–2 rounds). | ~6–8 h |
+| **E. Release** | Ship to testers. | Coordinator + owner. | Acceptance green on the release SHA → internal TestFlight (owner OK'd "TestFlight when green"). Then: archive chengyin-ios after the other developer freezes it; "money on" only when the owner says so. | ~1 h after D |
+
+**Total:** about 90% in every area ~8 h from 04:00 UTC; ~100% non-money parity ~18 h from 04:00 UTC, if the Mac stays awake and Cursor stays loaded.
+
+**How each round runs (repeat until done):**
+1. Each worker branches from the posted tip SHA and pushes its own branch (never the integration branch).
+2. The coordinator merges one branch at a time (§4), runs the gate and build, pushes `ui/combined-r7`, and posts the new SHA in the Cursor thread.
+3. Cursor runs the K7e CHECK on the new SHA and lists new failures in §7; failures go back to the branch owner.
+4. When a routine finishes, start the next round for it with "continue on your branch from <SHA>" (each routine is one session).
+
+**Bottlenecks and what we do about them:**
+- **Serial integration** (one coordinator, 5–14 min builds): merge in batches of 3–5 clean branches; send conflicts back instead of hand-merging.
+- **The Mac sleeping** (builds and the only acceptance runner stop): owner runs `caffeinate -dims`; registering runner-2 (§6.2) removes the single point.
+- **Cursor missing thread posts:** re-post the full task list in one message at every :07 / :37 check.
+- **Coordinator out of credit:** anyone can continue from this doc. Cursor can take the merge loop (§4) on `ui/combined-r7` if the owner allows it; until then, workers keep pushing their branches and they are merged when the coordinator is back.
+
+**If you pick this up cold:** read §1 (tip), §3 (who does what), §7 (Cursor's lanes and acceptance), then run the loop in §4 starting with the phase in this table whose exit criteria are not met yet.
 
 ---
 
