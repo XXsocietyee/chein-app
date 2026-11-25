@@ -919,7 +919,7 @@ import SwiftUI
                 } else if model.coordinator.snapshot?.scope != .whitelist {
                     Button("fixr8.fabu.addPrologue", systemImage: "book.pages") {
                         var chapter = ProjectEditChapter()
-                        chapter.name = String(localized: "fixr8.fabu.prologueName")
+                        chapter.name = String(localized: "fixr8.fabu.prologueName", table: "Localizable")
                         chapter.preserved["opening"] = .bool(true)
                         chapter.blocks = []
                         model.draft.chapters.insert(chapter, at: 0)

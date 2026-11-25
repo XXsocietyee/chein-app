@@ -3,7 +3,7 @@
 - **Branch:** `fix/r8-account-publish`, from `origin/ui/combined-r7` @ `f5f3006d7`. `ui/combined-r7` was merged again before every push; it had no new commits during this run.
 - **Queue:** `origin/audit/parity-r8-account-publish:docs/audit/parity-r8/account-publish.md`. Brief: `docs/briefs/fix-r8.md` on `design/handoff-r2`.
 - **Layer:** App only. No Core types changed and no type redeclared. New App code is in one file, `App/MPGap/AccountPublish/AccountPublishR8Mounts.swift`, which `tools/generate_project.py` already covers through its `App/MPGap/**` glob. The coordinator still has to regenerate the project so the target picks up the new file.
-- **Strings:** 69 new keys in `docs/port/strings/fix-r8-account-publish.json`, in xcstrings shape with en and zh-Hans. They are all `fixr8.*` and none clashes with an existing catalog key. The 5 A-COPY-r8 overrides went straight into `Resources/Localizable.xcstrings`, because that row exists only because a fragment never reached the catalog.
+- **Strings:** 69 new `fixr8.*` keys (en + zh-Hans) in `docs/port/strings/fix-r8-account-publish.json`. They are also inserted, in sorted position, into `Resources/Localizable.xcstrings`, so `test_localization_key_catalog_contract` stays green; no key clashes. The 5 A-COPY-r8 overrides went straight into the catalog too.
 - **Safety:**
   - No money path was touched.
   - No new gate was added.
@@ -79,4 +79,4 @@
   - `CYEmptyState` inits, `CYLoadingState`, `CYStateKind.failure`, `NearbyApplicant`.
   - `AccountPublishContractLane` `send` / `userInfo` / `baseURL` / `token`, and `AccountPublishMPContract` `ownClubPostsRequest` / `ownClubPosts` / `deregisterPrecheckRequest` / `activityOwner` / `settingsAccess` / `homeAccount`.
   - `RoamItemDetailView.init`, `SquareCloudComposerView`, `PublicContentShareLink.l5Post`, `MPAsset.AvatarDefault.dProfile`, `MPAsset.FeatureIcon.iconPen`, `ProjectEditJSON` accessors.
-- `Tests/ContractChecks`: compared with the base, see the note below.
+- `Tests/ContractChecks` (all 826 files, `python3 -m unittest discover`): this branch fails exactly the same 222 tests as the `ui/combined-r7` base, with no new failures. Two new failures from the first run (catalog keys, and a bare `String(localized:)`) are fixed.
