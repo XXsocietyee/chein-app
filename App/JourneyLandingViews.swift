@@ -728,10 +728,11 @@ struct JourneySeatsView: View {
             // polish-d-r1: every seat reserves the 房主 badge's overhang, so the badge never sits on the label and
             // all labels stay on one baseline.
             .padding(.bottom, CYSpacing.md)
+            // JSEAT-11: only the expired circle dims; its 已过期 label keeps textSecondary contrast.
+            .opacity(circle.kind == .expired ? 0.45 : 1)
             Text(circle.kind.label).cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }
         .frame(minWidth: CYSpacing.minTouchTarget)
-        .opacity(circle.kind == .expired ? 0.45 : 1)
     }
 
     private func openInvite(_ content: JourneySeatsContent) {
@@ -805,7 +806,8 @@ private struct JourneyInviteSheet: View {
             Button("action.close") { dismiss() }.frame(minHeight: CYSpacing.minTouchTarget)
         }
         .padding(CYSpacing.pageHorizontal)
-        .cySheet(detents: [.medium])
+        // JSEAT-10: large Dynamic Type can grow the card past half height.
+        .cySheet(detents: [.medium, .large])
         .cyPlayerSheetGlass()
     }
 }
@@ -948,7 +950,7 @@ struct JourneyPromoView: View {
             }
         }
         if !content.hasRecords {
-            CYEmptyState(systemImage: "doc.text", "mp.promo.empty", messageIdentifier: "journeyPromo.empty")
+            CYEmptyState(systemImage: "tray", "mp.promo.empty", messageIdentifier: "journeyPromo.empty")
         }
     }
 }
