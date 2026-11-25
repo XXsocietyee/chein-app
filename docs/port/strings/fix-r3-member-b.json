@@ -67,6 +67,23 @@
       }
     }
   },
+  "orientScore.board.mine": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Me"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本人"
+        }
+      }
+    }
+  },
   "orientScore.board.notReached": {
     "extractionState": "manual",
     "localizations": {
@@ -101,6 +118,23 @@
       }
     }
   },
+  "orientScore.board.player": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Player"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "参赛玩家"
+        }
+      }
+    }
+  },
   "orientScore.board.reached": {
     "extractionState": "manual",
     "localizations": {
@@ -114,6 +148,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "已到结局"
+        }
+      }
+    }
+  },
+  "orientScore.pendingReview %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld tasks still under review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还有 %lld 项任务在审核"
         }
       }
     }
@@ -250,6 +301,74 @@
         "stringUnit": {
           "state": "translated",
           "value": "申诉已提交"
+        }
+      }
+    }
+  },
+  "reportAppeal.title.fail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal not submitted"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉没有提交成功"
+        }
+      }
+    }
+  },
+  "reportAppeal.title.form": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submit appeal"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交申诉"
+        }
+      }
+    }
+  },
+  "reportAppeal.title.ok": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal accepted"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉已受理"
+        }
+      }
+    }
+  },
+  "reportAppeal.title.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal status not confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没确认申诉是否提交"
         }
       }
     }
