@@ -339,6 +339,10 @@ struct DiscoveryTopicTemplatePreview: View {
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var tab: TemplateDetailTab = .details
     @State private var openingExpanded = false
+    /// Stop-pill prop art follows Dynamic Type with the caption beside it (MP `cap-card__pill-img`).
+    @ScaledMetric(relativeTo: .caption) private var stopMark: CGFloat = 16
+    /// The stop index is a label, so it grows with the label style instead of staying a fixed 32-point disc.
+    @ScaledMetric(relativeTo: .label) private var stopIndex: CGFloat = 32
     /// R7-PC-A8-2 (MP topic-detail js:281 `previewNode`): a node image opens the full-screen gallery over all node images.
     @State private var nodeGallery: NodeGallerySelection?
     private struct NodeGallerySelection: Identifiable { let id = UUID(); let snapshot: MediaGallerySnapshot }
@@ -588,18 +592,12 @@ struct DiscoveryTopicTemplatePreview: View {
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }
-    /// 能力: one summary chip line, then each stop (grouped by chapter for multi-chapter / FREE_EXPLORE routes)
-    /// with its play, teaser and duration; an empty state when there are none.
+    /// 能力: the stat cards, then each stop (grouped by chapter) with its play pill, what the player does,
+    /// and about-minutes. The old summary chips duplicated those cards (MP topic-detail capabilities, 2026-11-14).
     @ViewBuilder private func topicCapabilities(_ item: PublicTopicTemplateDetail) -> some View {
         let free = item.mode == "FREE_EXPLORE"
         let stops = Self.numberedStops(item.chapters, freeExplore: free)
         Section {
-            TemplateChipFlow(spacing: CYSpacing.sm) {
-                ForEach(topicSummary(item, stopCount: stops.count), id: \.self) { chip in
-                    Text(verbatim: chip).modifier(TemplateChipStyle())
-                }
-            }
-            .accessibilityIdentifier("discovery.topicDetail.summary")
             // R7-PC-A8-1 (r1 PC-A-8-3): MP `xb-stat` cards — 节点 / 玩法 / 总时长.
             HStack(alignment: .top) {
                 topicStat(Text(verbatim: String(stops.count)), label: "discovery.templateDetail.stat.nodes")
@@ -634,33 +632,64 @@ struct DiscoveryTopicTemplatePreview: View {
             canViewEvidence: item.viewerIsPublisher || (scope == "MERCHANT" && item.viewerIsMerchant)
         )
     }
+    /// R7-PC-A8-1b: MP `cap-card` (topic-detail index.wxml:131-140, index.js `buildStopGroups`).
+    /// The play pill is shelf art or the play symbol plus `gameTitle` (else `game`). Minutes are `约 N 分钟`.
     private func stopRow(_ stop: NumberedStop) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             Text(verbatim: String(stop.number)).cyText(.label, monospacedDigit: true)
-                .frame(width: 32, height: 32).background(CYNight.ink0, in: Circle())
+                .foregroundStyle(palette.textPrimary)
+                .frame(width: stopIndex, height: stopIndex)
+                .background(palette.bgElevated, in: Circle())
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 if let name = stop.name { Text(verbatim: name).cyText(.label).cyWrapText() }
-                if let play = stop.interactionType {
-                    Text(verbatim: play).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                if let game = stop.game {
+                    HStack(spacing: CYSpacing.xxs) {
+                        if let art = TemplateShelfArt.gameProp(game) {
+                            art.resizable().scaledToFit()
+                                .frame(width: stopMark, height: stopMark)
+                                .accessibilityHidden(true)
+                        } else {
+                            Image(systemName: "play")
+                                .imageScale(.small)
+                                .foregroundStyle(palette.textSecondary)
+                                .accessibilityHidden(true)
+                        }
+                        Text(verbatim: game).cyText(.caption).foregroundStyle(palette.textSecondary).cyWrapText()
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number).game")
+                } else if let play = stop.interactionType {
+                    Text(verbatim: play).cyText(.caption).foregroundStyle(palette.textSecondary)
                 }
                 if let teaser = stop.hookTeaser {
                     Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textSecondary)
+                }
+                if let minutes = stop.duration {
+                    HStack(spacing: CYSpacing.xxs) {
+                        Image(systemName: "clock")
+                            .imageScale(.small)
+                            .foregroundStyle(palette.textSecondary)
+                            .accessibilityHidden(true)
+                        Text("topic.chapterCard.minutes \(minutes)")
+                            .cyText(.caption)
+                            .foregroundStyle(palette.textSecondary)
+                            .monospacedDigit()
+                    }
+                    .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number).duration")
                 }
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number)")
     }
-    private func topicSummary(_ item: PublicTopicTemplateDetail, stopCount: Int) -> [String] {
-        let free = item.mode == "FREE_EXPLORE"
-        var chips = [free ? appLocalized("u10.template.summary.free", locale: locale) : appLocalized("u10.template.summary.city", locale: locale)]
-        if free { chips.append(appLocalized("u10.template.summary.multiDay", locale: locale)) }
-        if !item.games.isEmpty { chips.append(appLocalized("u10.template.summary.games \(item.games.count)", locale: locale)) }
-        if stopCount > 0 { chips.append(appLocalized("u10.template.summary.stops \(stopCount)", locale: locale)) }
-        return chips
-    }
     private struct NumberedStop {
-        let number: Int; let chapterID: Int; let name: String?; let interactionType: String?; let hookTeaser: String?
+        let number: Int
+        let chapterID: Int
+        let name: String?
+        let interactionType: String?
+        let hookTeaser: String?
+        let game: String?
+        let duration: Int?
     }
     private static func numberedStops(_ chapters: [PublicTemplateChapter], freeExplore: Bool = false) -> [NumberedStop] {
         func clean(_ value: String?) -> String? {
@@ -672,12 +701,13 @@ struct DiscoveryTopicTemplatePreview: View {
             if chapter.nodes.isEmpty, freeExplore {
                 let guide = clean(TopicXcxFacts.chapterGuide(description: chapter.description))
                 out.append(.init(number: out.count + 1, chapterID: chapter.id, name: clean(chapter.name),
-                                 interactionType: nil, hookTeaser: guide ?? clean(chapter.description)))
+                                 interactionType: nil, hookTeaser: guide ?? clean(chapter.description), game: nil, duration: nil))
                 continue
             }
             for node in chapter.nodes {
                 out.append(.init(number: out.count + 1, chapterID: chapter.id, name: clean(node.name),
-                                 interactionType: clean(node.interactionType), hookTeaser: clean(node.hookTeaser)))
+                                 interactionType: clean(node.interactionType), hookTeaser: clean(node.hookTeaser),
+                                 game: clean(node.game), duration: node.duration))
             }
         }
         return out

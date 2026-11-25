@@ -84,6 +84,39 @@ enum TemplateShelfArt {
         }
     }
 
+    /// `art.js` `gameArt(title).prop`: the public topic stop pill uses the bundled prop, not the server `gameIcon`.
+    /// An unknown title stays nil so the row draws the play symbol, the same branch as the mini-program.
+    static func gameProp(_ title: String?) -> Image? {
+        switch (title ?? "").trimmingCharacters(in: .whitespacesAndNewlines) {
+        case "今晚的暗号": return MPAsset.FeatureIcon.secretCode
+        case "老板的秘密题": return MPAsset.FeatureIcon.secretQuestion
+        case "拍下这一刻": return MPAsset.FeatureIcon.photoMoment
+        case "收集这枚风味印章": return MPAsset.FeatureIcon.flavorStamp
+        case "新品盲测局": return MPAsset.FeatureIcon.blindTest
+        case "今日搭配任务": return MPAsset.FeatureIcon.styleMission
+        case "集合点亮": return MPAsset.FeatureIcon.gather
+        case "小队竞速点亮": return MPAsset.FeatureIcon.teamRace
+        case "街角谜题": return MPAsset.FeatureIcon.streetPuzzle
+        case "城市取景任务": return MPAsset.FeatureIcon.cityCamera
+        case "城市接力棒": return MPAsset.FeatureIcon.relay
+        case "今日角色任务": return MPAsset.FeatureIcon.roleMission
+        case "招牌菜限时盲猜": return MPAsset.FeatureIcon.signatureDish
+        case "咖啡风味人格": return MPAsset.FeatureIcon.coffeePersonality
+        case "分支故事接力": return MPAsset.FeatureIcon.branchStory
+        case "细节观察挑战": return MPAsset.FeatureIcon.detailObservation
+        case "一桌任务宾果": return MPAsset.FeatureIcon.tableBingo
+        case "小队能量接力": return MPAsset.FeatureIcon.teamEnergy
+        case "闭眼味觉师": return MPAsset.FeatureIcon.blindTaste
+        case "沉默点单": return MPAsset.FeatureIcon.silentOrder
+        case "便利店调酒师": return MPAsset.FeatureIcon.diyDrink
+        case "治愈音乐角": return MPAsset.FeatureIcon.musicCorner
+        case "午夜电台": return MPAsset.FeatureIcon.midnightRadio
+        case "低碳行动": return MPAsset.FeatureIcon.lowCarbon
+        case "今日城市签": return MPAsset.FeatureIcon.dailyCitySign
+        default: return nil
+        }
+    }
+
     /// MP `utils/template-art.js` INTERACTION_ICON_BY_TITLE (same table as `pages/template/index.js:24-43`): the registered
     /// interaction plays and life-backup G0-G6 map by title to `/images/interaction-templates/*.svg`. MP `templateArt` uses it
     /// where a play has no cover of its own (template-intro covers, search results).

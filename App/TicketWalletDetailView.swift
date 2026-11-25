@@ -177,19 +177,20 @@ import SwiftUI
         let provider = playProvider
         await model.load(presentation: presentation, currentOwner: { key }) { try await reader.ticketDetail(id: id) }
         if !Task.isCancelled, model.accepts(presentation, currentOwner: key),
+           model.value(owner: captured)?.id == id, captured == key,
+           let ticket = model.value(owner: captured), !ticket.hasGame,
+           ticket.status == .ready, ticket.clearedFlag != true, !ticket.isWalletLocked {
+            presenting = true
+        }
+        if !Task.isCancelled, model.accepts(presentation, currentOwner: key),
+           let provider, provider.owner == playProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured)?.id == id, captured == key {
-            if let ticket = model.value(owner: captured), !ticket.hasGame,
-               ticket.status == .ready, ticket.clearedFlag != true, !ticket.isWalletLocked {
-                presenting = true
-            }
-            if let provider, provider.owner == playProvider?.owner, provider.matches(reader: reader) {
-                playReadOwner = provider.owner
-                if autoStartsPlay, !didAutoStart, let ticket = model.value(owner: captured), ticket.hasGame,
-                   playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: provider) {
-                    didAutoStart = true
-                    playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: provider,
-                                       presentationID: playEntry.presentationID)
-                }
+            playReadOwner = provider.owner
+            if autoStartsPlay, !didAutoStart, let ticket = model.value(owner: captured), ticket.hasGame,
+               playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: provider) {
+                didAutoStart = true
+                playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: provider,
+                                   presentationID: playEntry.presentationID)
             }
         }
     }
@@ -257,8 +258,8 @@ struct TicketWalletPlayProvider {
     /// Explicit current registration facts only. No lane, title, product name or numeric-ID guessing.
     static func entry(ticket: TicketWalletTicket, requestedID: Int) -> ParticipationPlayEntry? {
         // R7-MEM-21-2: a wallet-locked ticket has no play entry (MP index.js:371-374).
-        guard requestedID > 0, ticket.id == requestedID, !ticket.isWalletLocked, ticket.registrationStatus == 2,
-              let ownerID = ticket.ownerID, ownerID > 0 else { return nil }
+        guard requestedID > 0, ticket.id == requestedID, ticket.registrationStatus == 2,
+              !ticket.isWalletLocked, let ownerID = ticket.ownerID, ownerID > 0 else { return nil }
         let scope: PlaySessionScope
         switch ticket.ownerType {
         case 1:
