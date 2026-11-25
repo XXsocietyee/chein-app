@@ -324,6 +324,23 @@
         }
       }
     },
+    "merchant.business.applyFilter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看结果"
+          }
+        }
+      }
+    },
     "merchant.business.refund": {
       "extractionState": "manual",
       "localizations": {
@@ -932,23 +949,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "筛选客户"
-          }
-        }
-      }
-    },
-    "merchant.customerFilters.view": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show results"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看结果"
           }
         }
       }

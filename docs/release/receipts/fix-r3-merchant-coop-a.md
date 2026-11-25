@@ -379,7 +379,7 @@ Method: a script collected every Chinese literal from the 18 half-a MP pages (wx
 | `merchant.onboarding.stateUnavailable` | 暂时无法确认申请状态。 | 暂时无法确认申请状态 | apply/index.wxml |
 | `merchant.onboarding.checking` | 正在查询申请… | 正在检查已有申请 | apply/index.wxml:50 |
 | `merchant.predict.backToWorkbench` (new) | (no action) | 返回工作台 | predict/index.wxml:18 |
-| `merchant.customerFilters.*` (new) | — | 筛选 / 筛选 · n / 筛选客户 / 取消 / 重置 / 查看结果 | customer/index.wxml:16-17,132-178 |
+| `merchant.customerFilters.*` (new) | — | 筛选 / 筛选 · n / 筛选客户 / 取消 / 重置; `merchant.business.applyFilter` 应用筛选 → 查看结果 | customer/index.wxml:16-17,132-178 |
 
 Checked and already equal: page titles 核销记录, 套票预约, 核销详情, 收款账户, 触达记录, 客户, 退款售后, 对公结算, 预测待答, 口碑; the gate titles from rounds 1–3; `gap-g2-copy.json` covers 正在加载更多…, 11位手机号 and 正在更新营销数据.
 

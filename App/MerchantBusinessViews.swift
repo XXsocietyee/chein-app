@@ -938,12 +938,12 @@ import SwiftUI
                             }
                             }
                             Section {
-                                Button {
+                                // The picker never applies by itself; this footer button applies and closes (MP 查看结果).
+                                Button("merchant.business.applyFilter") {
                                     applyCustomerFilter()
                                     expansion.wrappedValue = false
-                                } label: {
-                                    Text("merchant.customerFilters.view").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                                 }
+                                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                                 .buttonStyle(.borderedProminent)
                                 .listRowBackground(Color.clear)
                                 .accessibilityIdentifier("merchant.business.customers.applyFilters")
