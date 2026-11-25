@@ -401,6 +401,22 @@
         }
       }
     },
+    "playx.poi.claimedAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completing it again will not award it twice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再完成一次不会重复发放"
+          }
+        }
+      }
+    },
     "playx.poi.completed": {
       "localizations": {
         "en": {
@@ -461,6 +477,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "这次没有记录到轨迹"
+          }
+        }
+      }
+    },
+    "roam.history.signedOut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to view"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看"
           }
         }
       }
