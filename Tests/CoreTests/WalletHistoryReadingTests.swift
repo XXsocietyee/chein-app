@@ -53,4 +53,14 @@ import FoundationNetworking
         stages.httpBody = Data("{}".utf8); XCTAssertNotNil(WalletHistoryReadRoute(request: stages, baseURL: base, accountID: 7))
         for body in ["{ }", "{\"member_id\":7}", "[]", "null"] { stages.httpBody = Data(body.utf8); XCTAssertNil(WalletHistoryReadRoute(request: stages, baseURL: base, accountID: 7)) }
     }
+    func testWithdrawalHistoryPageBodyIsAdmitted() throws {
+        var paged = URLRequest(url: base.appendingPathComponent("api/withdrawal/list"))
+        paged.httpMethod = "POST"
+        paged.setValue("application/json", forHTTPHeaderField: "Accept")
+        paged.setValue("application/x-www-form-urlencoded;", forHTTPHeaderField: "Content-Type")
+        paged.httpBody = Data("pageNum=2&pageSize=10".utf8)
+        XCTAssertEqual(WalletHistoryReadRoute(request: paged, baseURL: base, accountID: 7)?.path, "api/withdrawal/list")
+        paged.httpBody = Data("pageNum=2&pageSize=20".utf8)
+        XCTAssertNil(WalletHistoryReadRoute(request: paged, baseURL: base, accountID: 7))
+    }
 }

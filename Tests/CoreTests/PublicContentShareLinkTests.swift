@@ -92,4 +92,15 @@ final class PublicContentShareLinkTests: XCTestCase {
         XCTAssertNil(PublicContentShareLink.topicTemplateCopyText(id: 0))
         XCTAssertNil(PublicContentShareLink.topicTemplate(id: 0))
     }
+
+    func testMemberInviteSharePathUsesTheIndexQueryAndNoInventedHost() throws {
+        let link = try XCTUnwrap(MemberInviteShareLink(userID: "42"))
+        XCTAssertEqual(link.path, "/pages/index/index?inviter=42")
+        XCTAssertNil(link.httpsURL())
+        XCTAssertNil(MemberInviteShareLink(userID: "0"))
+        XCTAssertNil(MemberInviteShareLink(userID: ""))
+        let hosted = link.httpsURL(verifiedOrigins: ["https://example.test"])
+        XCTAssertEqual(hosted?.absoluteString, "https://example.test/pages/index/index?inviter=42")
+        XCTAssertNil(link.httpsURL(verifiedOrigins: ["https://example.test", "https://other.test"]))
+    }
 }

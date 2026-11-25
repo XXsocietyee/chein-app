@@ -306,8 +306,14 @@ import XCTest
         receipt.setValue(player.session.token, forHTTPHeaderField: "Authorization")
         _ = try await transport.send(receipt)
         XCTAssertEqual(recorder.paths.last, "api/orient/scoring/receipt")
-        await assertClosed { try await transport.send(self.formRequest(base.appendingPathComponent("api/orient/scoring/session/9/sync"), "idempotencyKey=score-key-01&sessionId=9", token: player.session.token)) }
-        await assertClosed { try await transport.send(self.formRequest(base.appendingPathComponent("api/orient/scoring/session/9/settle"), "idempotencyKey=score-key-01&sessionId=9", token: player.session.token)) }
+        _ = try await transport.send(self.formRequest(base.appendingPathComponent("api/orient/scoring/session/9/sync"), "idempotencyKey=score-key-01&sessionId=9", token: player.session.token))
+        XCTAssertEqual(recorder.paths.last, "api/orient/scoring/session/9/sync")
+        _ = try await transport.send(self.formRequest(base.appendingPathComponent("api/orient/scoring/session/9/settle"), "idempotencyKey=score-key-01&sessionId=9", token: player.session.token))
+        XCTAssertEqual(recorder.paths.last, "api/orient/scoring/session/9/settle")
+        _ = try await transport.send(self.formRequest(base.appendingPathComponent("api/orient/scoring/session/9/recovery"), "kind=SYNC", token: player.session.token))
+        XCTAssertEqual(recorder.paths.last, "api/orient/scoring/session/9/recovery")
+        await assertClosed { try await transport.send(self.formRequest(base.appendingPathComponent("api/orient/scoring/session/9/sync"), "amount=1&idempotencyKey=score-key-01&sessionId=9", token: player.session.token)) }
+        await assertClosed { try await transport.send(self.formRequest(base.appendingPathComponent("api/orient/scoring/session/9/recovery"), "kind=PAY", token: player.session.token)) }
 
         let gatesOnly = try ReviewedAppDeployment(market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
             approvedBaseURLs: [.china: [ReviewedMarketLaunch.chinaProductionBaseURL]],

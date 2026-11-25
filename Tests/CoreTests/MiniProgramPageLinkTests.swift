@@ -258,4 +258,11 @@ final class MiniProgramPageLinkTests: XCTestCase {
         let link = MiniProgramPageLink(path: "/subpackageA/pages/video-bounty/index", query: ["campaignKey": "", "topicId": ""])
         XCTAssertEqual(link?.query, [:])
     }
+
+    func testRetiredMyTemplateOpensMyPublished() {
+        let link = MiniProgramPageLink(path: "subpackageMember/mytemplate/mytemplate", query: ["id": "3"])
+        XCTAssertEqual(link?.page, "pages/activity/official-mine/index")
+        XCTAssertEqual(link?.query, [:])
+        XCTAssertFalse(MiniProgramPageLink.reviewedPages.keys.contains("subpackageMember/mytemplate/mytemplate"))
+    }
 }
