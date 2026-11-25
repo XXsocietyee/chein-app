@@ -286,7 +286,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         let method = "POST"
         let fields = ["id", "scope"]
         XCTAssertEqual(merchant, "api/topic/info-to-merchant")
-        XCTAssertEqual(SquareL5Logic.topicPath, player)
+        XCTAssertEqual(SquareRouteMap.topicPath, player)
         XCTAssertEqual(method, "POST")
         XCTAssertEqual(fields, ["id", "scope"])
     }

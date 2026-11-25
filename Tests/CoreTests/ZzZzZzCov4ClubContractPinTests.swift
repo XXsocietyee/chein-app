@@ -252,8 +252,8 @@ final class ZzZzZzCov4ClubContractPinTests: XCTestCase {
         let host = ClubNodeAnswerCall(clubID: nil, topicID: 4, nodeID: 2, scope: "my")
         XCTAssertEqual(club?.path, "api/club/topic-node-answer")
         XCTAssertEqual(host?.path, "api/topic/host-node-answer")
-        XCTAssertEqual(Set(club?.fields.keys ?? []), Set(["clubId", "topicId", "nodeId"]))
-        XCTAssertEqual(Set(host?.fields.keys ?? []), Set(["topicId", "nodeId", "scope"]))
+        XCTAssertEqual(Set((club?.fields ?? [:]).keys), Set(["clubId", "topicId", "nodeId"]))
+        XCTAssertEqual(Set((host?.fields ?? [:]).keys), Set(["topicId", "nodeId", "scope"]))
         XCTAssertNil(club?.fields["scope"])
         XCTAssertNil(host?.fields["clubId"])
     }
