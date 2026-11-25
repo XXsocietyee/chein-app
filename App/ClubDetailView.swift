@@ -338,7 +338,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 .frame(minHeight: CYSpacing.minTouchTarget)
                             }
                             .accessibilityIdentifier("club.detail.leaderboard.sort")
-                            ClubInlineLeaderboardRows(model: r8Leaderboard) {
+                            ClubInlineLeaderboardRows(model: r8Leaderboard, club: club, identity: reader.clubIdentity, governance: governance) {
                                 Task { await loadInlineLeaderboard(club: club, governance: governance, force: true) }
                             }
                             NavigationLink {
