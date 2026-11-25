@@ -213,6 +213,8 @@ struct ClubGovernanceReadView: View {
     @State private var topicStats: ClubGovernanceValue?
     /// CLB-G12: the reviewed MP page the topic 更多 menu opens.
     @State private var topicMoreRoute: ClubTopicMoreRoute?
+    /// CLB-topic-detail-05: the half sheet a topic round action opened.
+    @State private var topicQuickSheet: ClubTopicQuickSheet?
     @State private var feedMediaScope = UUID()
     private var readContext: ClubGovernanceReadContext {
         .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : (operation == .topicOverview ? storyTemplates.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision)),
@@ -1517,7 +1519,17 @@ struct ClubGovernanceReadView: View {
                             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                 }.accessibilityElement(children: .combine)
-                ClubGovernanceFactRows(value: value, fields: ["playModeText"])
+                // CLB-topic-detail-08 residual (MP wxml:57-59, js:740-747 buildChips): playModeText, then 本场 N 人 only when
+                // the page is bound to one session (an activityId) and the stats count is positive.
+                let headcount = stats["sessionHeadcount"].int ?? 0
+                let playMode = value["playModeText"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if !playMode.isEmpty || (scope.activityID != nil && headcount > 0) {
+                    HStack(spacing: CYSpacing.sm) {
+                        if !playMode.isEmpty { CYStatusChip(verbatim: playMode, tone: .neutral) }
+                        if scope.activityID != nil, headcount > 0 { CYStatusChip("club.topic.chip.sessionHeadcount \(headcount)", tone: .neutral) }
+                    }
+                    .accessibilityIdentifier("club.topic.chips")
+                }
             }
             .task(id: snapshotGeneration) {
                 guard scope.clubID != nil, scope.topicID != nil else { topicStats = nil; return }
@@ -1544,19 +1556,59 @@ struct ClubGovernanceReadView: View {
                 }
             }
             .navigationDestination(item: $topicMoreRoute) { route in MPReviewedPageScreen(page: route.page, query: route.query) }
+            // CLB-topic-detail-05 (MP wxml:63-80): 商家 · 报名参与者 · 团码 · 更多 as round actions that open half sheets.
+            // 商家 goes to the merchantinfo recruit layer when the stats grant canReviewChapterApplications (MP ROUND4).
+            Section {
+                ClubTopicQuickActionRow(items: [
+                    .init(id: "merchant", titleKey: "club.gov.recruit", systemImage: "storefront") {
+                        if let topicID = scope.topicID, stats["canReviewChapterApplications"] == .bool(true) {
+                            topicMoreRoute = .init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB", "open": "merchant"])
+                        } else { topicQuickSheet = .merchants }
+                    },
+                    .init(id: "customer", titleKey: "club.gov.topicCustomers", systemImage: "person.2") { topicQuickSheet = .customers },
+                    .init(id: "groupcode", titleKey: "club.topic.quick.groupCode", systemImage: "qrcode") {
+                        guard let topicID = scope.topicID else { return }
+                        var query = ["topicId": String(topicID)]
+                        if let clubID = scope.clubID { query["clubId"] = String(clubID) }
+                        if let activityID = scope.activityID { query["activityId"] = String(activityID) }
+                        topicMoreRoute = .init(page: "pages/club/group-code/index", query: query)
+                    },
+                    .init(id: "more", titleKey: "club.topic.quick.more", systemImage: "ellipsis") { topicQuickSheet = .more },
+                ])
+            }
+            .sheet(item: $topicQuickSheet) { sheet in
+                NavigationStack {
+                    Group {
+                        switch sheet {
+                        case .merchants:
+                            ClubGovernanceReadView(operation: .recruit, scope: scope, identity: identity, access: access, coordinator: coordinator)
+                        case .customers:
+                            ClubGovernanceReadView(operation: .topicCustomers, scope: scope, identity: identity, access: access, coordinator: coordinator)
+                        case .more:
+                            List { Section { link(.topicStats); link(.topicSettings); enrollmentLink(focusTopicID: scope.topicID) } }
+                                .cyPageTitle("club.topic.quick.more")
+                        }
+                    }
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { topicQuickSheet = nil } } }
+                }
+                .cyDomainSheet(detents: [.half, .full])
+            }
             // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`;
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
             if ClubTopicDetailPort.showsVerify(topicDisplay, canViewVerify: stats["canViewVerify"].bool) {
                 ClubTopicVerifySummarySection(metrics: ClubTopicDetailPort.verifyMetrics(
                     pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int))
             }
-            Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
                 Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(CYColor.dangerText) }
             }
+            // CLB-r8-topic-detail-01 (MP wxml:106-125): the 主题 card (cover when present, name, 「N 章 · N 站 · 玩法」, the
+            // 剧情已写 chip, 打开剧情与玩法) is the story entry.
             Section {
-                NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
-            }
+                NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: {
+                    ClubTopicStoryCard(value: value, nodeCount: stats["nodeCount"].int)
+                }.accessibilityIdentifier("club.gov.openStory")
+            } header: { Text("club.topic.card.title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil) }
             Section("club.topic.upcoming") {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
@@ -1581,6 +1633,11 @@ struct ClubGovernanceReadView: View {
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                     if !when.isEmpty { Text(verbatim: when).cyText(.bodyMedium).monospacedDigit() }
                                     if !who.isEmpty { Text(verbatim: who).cyText(when.isEmpty ? .bodyMedium : .meta).foregroundStyle(when.isEmpty ? CYColor.textPrimary : CYColor.textSecondary) }
+                                    // CLB-r8-topic-detail-02 (MP wxml:142-148, js:783-785): the eta line is the session's addressName;
+                                    // the kind chip stays out because the server sends no session kind (MP kindText '').
+                                    if let eta = row["addressName"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !eta.isEmpty {
+                                        Text(verbatim: eta).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                    }
                                     if when.isEmpty && who.isEmpty { Text("club.gov.eventID \(id)") }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1753,7 +1810,13 @@ struct ClubGovernanceReadView: View {
             if operation == .topicCustomers {
                 ClubGovernanceFactRows(value: value, fields: ["soldCount", "pendingCount", "verifiedCount"], showUnknown: true)
                 ForEach(Array((value["sessions"].array ?? []).enumerated()), id: \.offset) { _, session in
-                ClubGovernanceFactRows(value: session, fields: ["timeText", "name"]); dataRows(session["rows"].array ?? [])
+                ClubGovernanceFactRows(value: session, fields: ["timeText", "name"])
+                // CLB-topic-detail-10: MP cli-row (avatar initial, masked phone, 拨号 when callable, status chip).
+                let rows = session["rows"].array ?? []
+                if rows.isEmpty { CYEmptyState(systemImage: "tray", "club.gov.empty") }
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    ClubTopicCustomerRow(row: row, sessionTime: session["timeText"].string)
+                }
             } }
             if operation == .checkin, let clubID = scope.clubID, let registrationID = scope.registrationID,
                let target = try? ClubOwnerRefundTarget(clubID: clubID, registrationID: registrationID) {
