@@ -403,7 +403,8 @@ private struct RoamStampAlbumPage: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(palette.bgElevated)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .accessibilityLabel(Text("roam.experience.sampleArt"))
+            // SALBUM-8: 示例插图 only for the offline example; a real stamp is its photo.
+            .accessibilityLabel(offline ? Text("roam.experience.sampleArt") : Text("roam.experience.stampImage"))
             LinearGradient(colors: [.clear, .black.opacity(0.68)], startPoint: .center, endPoint: .bottom)
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                 .allowsHitTesting(false)
@@ -459,7 +460,7 @@ struct RoamStampCard: View {
                 if offline { CYCoverArt(seed: String(stamp.id), symbol: "building.2.crop.circle.fill", cornerRadius: CYRadius.md).frame(height: 112) }
                 else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl).frame(maxHeight: 112).clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)) }
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo").cyText(.meta) }
-            }.accessibilityLabel(Text("roam.experience.sampleArt"))
+            }.accessibilityLabel(offline ? Text("roam.experience.sampleArt") : Text("roam.experience.stampImage"))
             if let caption = stamp.caption, !caption.isEmpty {
                 Text(verbatim: caption).cyText(.bodyMedium).foregroundStyle(palette.textPrimary).lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.leading)
             }
@@ -481,7 +482,7 @@ struct RoamStampCard: View {
                         Text("roam.experience.cityStamp").cyText(.meta).bold()
                     }
                     Spacer()
-                    Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).font(.caption.monospaced())
+                    Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).cyText(.caption, monospacedDigit: true)
                 }
                 if offline {
                     ZStack {

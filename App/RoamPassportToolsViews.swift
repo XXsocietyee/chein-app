@@ -511,7 +511,7 @@ struct RoamAnniversaryReadIntent {
         let owner = RoamPassportToolsPageOwner(reader)
         let _ = RoamHostedScopeTracker.shared.observePassport(reader)
         RoamMonthlyRecapContent(reader: reader, routeDestination: routeDestination).id(owner)
-            .font(Theme.Font.body)
+            .cyText(.body)   // TRECAP-3 residue
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))

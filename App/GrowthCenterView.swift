@@ -379,7 +379,7 @@ struct GrowthNewlyLitBadges: View {
     let names: [String]
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("growth.badges.newlyLit").font(.headline)
+            Text("growth.badges.newlyLit").cyText(.bodyMedium, weight: .semibold)
             Text(verbatim: names.formatted(.list(type: .and))).fixedSize(horizontal: false, vertical: true)
         }.accessibilityElement(children: .combine)
     }
