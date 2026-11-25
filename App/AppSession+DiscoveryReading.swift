@@ -143,6 +143,9 @@ extension AppSession: DiscoveryReading, MerchantReading {
     func merchantEvents(access:MerchantAccess) async throws -> [MerchantEvent] { try await readMerchant(access:access) { try await $0.events(access:access,token:$1) } }
     func merchantOrders(access:MerchantAccess,filter:MerchantOrderFilter) async throws -> [MerchantOrder] { try await readMerchant(access:access) { try await $0.orders(access:access,filter:filter,token:$1) } }
     func merchantProjects(access:MerchantAccess) async throws -> MerchantProjectPage { try await readMerchant(access:access) { try await $0.projects(access:access,token:$1) } }
+    func merchantUpcomingRuns(access:MerchantAccess) async throws -> [MerchantUpcomingRun] {
+        try await readMerchant(access:access) { try await $0.upcomingRuns(access:access, token:$1) }
+    }
 }
 
 extension AppSession: ClubReading {

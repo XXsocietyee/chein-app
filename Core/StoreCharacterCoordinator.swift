@@ -364,6 +364,14 @@ import Foundation
         guard voiceConsent else { voiceIssue = .consentRequired; changed(); return }
         recording = syntheticRecording; voiceIssue = nil; changed()
     }
+    /// A real recorder hands in an uploaded clip. Confirm then posts `npc/voice/enroll` with that URL.
+    public func acceptRecordedSample(_ sample: StoreCharacterRecordedSample) {
+        guard !voiceBusy, voice?.status != .pending, !voiceUnknown else { return }
+        guard voiceConsent else { voiceIssue = .consentRequired; changed(); return }
+        recording = sample
+        voiceIssue = nil
+        changed()
+    }
     public func resetRecording() {
         guard !voiceBusy, !voiceUnknown else { return }
         recording = nil; voiceIssue = nil; preparedVoice = nil

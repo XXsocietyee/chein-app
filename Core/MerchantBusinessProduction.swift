@@ -58,7 +58,7 @@ public struct MerchantBusinessProductionApproval {
         self.market = market; self.endpoints = endpoints; self.grants = grants; self.reviewedPolicyVersion = reviewedPolicyVersion
         self.usesLiveCatalog = false
     }
-    /// Injected China approval. Membership is `MerchantCoopLiveWrites.admits` (review report and `saveSku` stay off).
+    /// Injected China approval. Membership is `MerchantCoopLiveWrites.admits` (`saveSku` stays off; review report is on).
     public init(mpFirstMarket market: RegionalMarket, endpoints: OperationEndpointApproval) throws {
         self.market = market; self.endpoints = endpoints; self.grants = []
         self.reviewedPolicyVersion = MerchantCoopLiveWrites.policyVersion; self.usesLiveCatalog = true
@@ -130,7 +130,8 @@ public struct MerchantBusinessProductionApproval {
 
 }
 /// Non-money merchant cooperation writes the mini-program already sends.
-/// Pay, refund execution, payout, withdrawal, paid orders, review reports, and `saveSku` stay off.
+/// Pay, refund execution, payout, withdrawal, paid orders, and `saveSku` stay off.
+/// Review reports are admitted (MC9-13-1).
 public enum MerchantCoopLiveWrites {
     public static let policyVersion = "r8-merchant-coop"
     /// City-node claim, cancel, offline, and save. Poster codes and station commands stay off.
@@ -144,7 +145,8 @@ public enum MerchantCoopLiveWrites {
 
     public static func admits(_ mutation: MerchantBusinessMutation) -> Bool {
         switch mutation.action {
-        case .saveSku, .reviewReport: return false
+        case .saveSku: return false
+        case .reviewReport: return true
         case .addNote, .hideNote, .assignTag, .removeTag, .batchTag,
              .aftercareAgree, .aftercareReject, .aftercareEvidence,
              .reviewReply, .reviewUpdate, .reviewDelete,
@@ -162,17 +164,20 @@ public enum MerchantCoopLiveWrites {
         return try? MerchantBusinessProductionApproval(market: .china, endpoints: endpoints, grants: [grant], reviewedPolicyVersion: policyVersion)
     }
 
-    /// Invite accept only. Campaigns, exports, broadcasts, and device privacy grants stay off.
+    /// Invite accept. `merchantID` 0 is the inactive access/me case (MC9-29-1). Campaigns stay off.
     public static func admitsAccept(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool {
-        guard merchantID > 0, case .acceptInvitation = command else { return false }
+        guard merchantID >= 0, case .acceptInvitation = command else { return false }
         return true
     }
 
     public static func engagementApproval(command: MerchantEngagementCommand, merchantID: Int, context: RuntimeDependencyContext?) -> MerchantEngagementProductionApproval? {
-        guard let context, context.market == .china, merchantID > 0, case .acceptInvitation = command,
+        guard let context, context.market == .china, merchantID >= 0, case .acceptInvitation = command,
               let descriptor = try? command.request(requestID: "grant-validation"),
-              let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID, paths: [descriptor.path]),
-              let grant = try? MerchantEngagementActionGrant(merchantID: merchantID, command: command) else { return nil }
+              let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID, paths: [descriptor.path]) else { return nil }
+        if merchantID == 0 {
+            return try? MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [], reviewedPolicyVersion: policyVersion)
+        }
+        guard let grant = try? MerchantEngagementActionGrant(merchantID: merchantID, command: command) else { return nil }
         return try? MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [grant], reviewedPolicyVersion: policyVersion)
     }
 

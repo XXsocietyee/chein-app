@@ -35,7 +35,7 @@ import FoundationNetworking
         let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), transport: wire, current: { c })
         XCTAssertNotNil(factory.service(for: try mutation(), merchantID: 11))
         let report = MerchantBusinessMutation.review(id: try .init(9), version: 1, action: .report, content: "not sent")
-        XCTAssertNil(factory.service(for: report, merchantID: 11))
+        XCTAssertNotNil(factory.service(for: report, merchantID: 11))
         let sku = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2,
             originalPrice: nil, pic: nil, bookable: false, slotMinutes: 60, capacityPerSlot: 0, ruleVersion: 4)
         XCTAssertNil(factory.service(for: sku, merchantID: 11))

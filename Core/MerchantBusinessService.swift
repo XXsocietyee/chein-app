@@ -148,6 +148,13 @@ public struct MerchantBusinessService {
         let body = try await envelope(try query.request(), token: token, transport: readTransport)
         return try Self.unwrap(body)
     }
+    /// pages/merchant/aftercare/detail/index.js loadDetail, recordType MANUAL_CASE. Read only.
+    public func manualCaseDetail(id: Int, access: MerchantBusinessAccess, token: String) async throws -> MerchantAftercareManualDetail {
+        guard id > 0 else { throw MerchantBusinessFailure.invalid }
+        try access.require(["merchant:aftercare:read"])
+        let body = try await envelope(.query("api/merchant/aftercare/manual-case-detail", ["manualCaseId": String(id)]), token: token, transport: readTransport)
+        return try MerchantAftercareManualDetail(requestedID: id, payload: Self.unwrap(body))
+    }
     public func document(_ query: MerchantBusinessQuery, access: MerchantBusinessAccess, token: String) async throws -> MerchantBusinessDocument {
         try access.require(query.permissions)
         let body = try await envelope(query.request(), token: token, transport: readTransport)

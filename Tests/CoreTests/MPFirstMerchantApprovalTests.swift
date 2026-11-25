@@ -73,7 +73,7 @@ import XCTest
             XCTAssertFalse(approval.permits(mutation, merchantID: 0, context: context), "\(mutation.action)")
         }
         let report = MerchantBusinessMutation.review(id: try MerchantBusinessReviewID(81), version: 2, action: .report, content: "广告")
-        XCTAssertFalse(approval.permits(report, merchantID: 9, context: context))
+        XCTAssertTrue(approval.permits(report, merchantID: 9, context: context))
         let sku = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2,
             originalPrice: nil, pic: nil, bookable: false, slotMinutes: 60, capacityPerSlot: 0, ruleVersion: 4)
         XCTAssertFalse(approval.permits(sku, merchantID: 9, context: context))
@@ -96,7 +96,7 @@ import XCTest
         let open = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: nil, transport: MPFirstNoWire(), current: { context })
         XCTAssertNotNil(open.service(for: .inviteOperator(role: "MERCHANT_MANAGER"), merchantID: 9))
         let report = MerchantBusinessMutation.review(id: try MerchantBusinessReviewID(81), version: 2, action: .report, content: "广告")
-        XCTAssertNil(open.service(for: report, merchantID: 9))
+        XCTAssertNotNil(open.service(for: report, merchantID: 9))
     }
 
     /// pages/merchant/team/index.js:806-818: POST api/merchant/operators/invite/accept {token, requestId}.
@@ -110,12 +110,52 @@ import XCTest
                                                       paths: [MerchantEngagementProductionApproval.acceptInvitationPath])
         let open = try MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [],
                                                             reviewedPolicyVersion: MerchantCoopLiveWrites.policyVersion)
-        XCTAssertFalse(open.permits(command, merchantID: 0, context: try context()))
+        XCTAssertTrue(open.permits(command, merchantID: 0, context: try context()))
         XCTAssertTrue(open.permits(command, merchantID: 9, context: try context()))
         XCTAssertFalse(open.permits(command, merchantID: 9, context: try context(account: 8)))
         let other = try OperationEndpointApproval(baseURL: url, namespace: "merchant-cn", accountID: 7, paths: ["api/merchant/crm/segments"])
         let closed = try MerchantEngagementProductionApproval(market: .china, endpoints: other, grants: [], reviewedPolicyVersion: "reviewed")
         XCTAssertFalse(closed.permits(command, merchantID: 9, context: try context()))
+    }
+
+    /// MC9-30-2: non-money coop writes reach the production catalog. Deposit create and refund retry stay money-blocked.
+    func testCoopNonMoneyPathsAdmitAndDepositMoneyStaysBlocked() {
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        let open = [
+            "/api/coop/handle", "/api/coop/invite", "/api/coop/pool/decline", "/api/coop/pool/withdraw",
+            "/api/coop/candidates/confirm", "/api/coop/candidates/reject", "/api/coop/contact",
+            "/api/coop/perks/attach", "/api/coop/review/save",
+            "/api/coop/perk-template/save", "/api/coop/perk-template/delete", "/api/coop/deposit/status"
+        ]
+        for path in open {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
+            XCTAssertNil(ReleaseMoneyWriteSwitch.kind(for: path), path)
+        }
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/coop/deposit/create"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/coop/deposit/create/app"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/coop/deposit/refund/retry"))
+        XCTAssertEqual(ReleaseMoneyWriteSwitch.kind(for: "/api/coop/deposit/create"), .payment)
+        XCTAssertEqual(ReleaseMoneyWriteSwitch.kind(for: "/api/coop/deposit/refund/retry"), .refund)
+    }
+
+    /// MC9-14-1 / MC9-14-9 / MC9-17-1: the empty-grant MP-first catalog admits contact, CRM writes, and evidence upload.
+    func testMPFirstEngagementCatalogAdmitsContactCRMAndEvidence() throws {
+        let paths = [
+            MerchantEngagementProductionApproval.acceptInvitationPath,
+            MerchantEngagementProductionApproval.customerCatalogPath,
+            "api/merchant/crm/segments", "api/merchant/crm/exports", "api/common/uploadOSS"
+        ]
+        let endpoints = try OperationEndpointApproval(baseURL: url, namespace: "merchant-cn", accountID: 7, paths: paths)
+        let open = try MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [],
+                                                            reviewedPolicyVersion: MerchantCoopLiveWrites.policyVersion)
+        let context = try context()
+        XCTAssertTrue(open.permits(.contact(try .init(61001), .copy), merchantID: 9, context: context))
+        XCTAssertTrue(open.permits(.saveSegment(name: "常客", filter: .init()), merchantID: 9, context: context))
+        XCTAssertFalse(open.permits(.saveSegment(name: "常客", filter: .init()), merchantID: 0, context: context))
+        let campaign = MerchantEngagementCommand.broadcast(try .init(audience: .init(filter: .init(), scope: .all, groups: []), content: "hello"))
+        XCTAssertFalse(open.permits(campaign, merchantID: 9, context: context))
+        XCTAssertTrue(open.permitsDevice(.selectEvidence(try MerchantRefundID(62001)), merchantID: 9, context: context))
+        XCTAssertFalse(open.permitsDevice(.contact(try .init(61001), .copy), merchantID: 9, context: context))
     }
 }
 

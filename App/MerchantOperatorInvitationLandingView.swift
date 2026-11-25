@@ -1,5 +1,14 @@
 import SwiftUI
 
+/// Inactive access/me has no merchant id. Accept still posts `{token, requestId}` (MC9-29-1).
+enum MerchantInvitationAcceptGate {
+    static func allows(_ command: MerchantEngagementCommand, merchantID: Int?, reader: any MerchantEngagementReading) -> Bool {
+        if let merchantID, merchantID > 0 { return reader.canExecute(command, merchantID: merchantID) }
+        guard case .acceptInvitation = command else { return false }
+        return reader.canExecute(command, merchantID: 0)
+    }
+}
+
 @MainActor struct MerchantOperatorInvitationLandingView: View {
     let invitation: MerchantOperatorAcceptance
     let reader: any MerchantEngagementReading
@@ -27,7 +36,7 @@ import SwiftUI
         }.cyPageTitle("merchant.engagement.invitation")
         .sheet(item: Binding(get: { model.coordinator.review }, set: { if $0 == nil { model.cancel() } })) { review in
             Group {
-                MerchantEngagementReviewView(review: review, enabled: reader.canExecute(review.command, merchantID: review.proof.access.merchantID ?? 0), synthetic: reader.isSyntheticEnabled, busy: model.coordinator.busy, cancel: model.cancel) {
+                MerchantEngagementReviewView(review: review, enabled: MerchantInvitationAcceptGate.allows(review.command, merchantID: review.proof.access.merchantID, reader: reader), synthetic: reader.isSyntheticEnabled, busy: model.coordinator.busy, cancel: model.cancel) {
                     Task { await model.confirm(review); if let result = model.coordinator.receipt, case .invitationAccepted = result { consumed = true } }
                 }
             }

@@ -18,7 +18,7 @@ class MPFirstPlayerContentPins(unittest.TestCase):
         self.assertIn('case .cancelRegistration: return writeApproval().cancel', content)
         self.assertIn('default: return false', content)
         self.assertIn('chapterWithdraw: Bool = false', content)
-        self.assertNotIn('MerchantCoopLiveWrites.cityNode', content)
+        self.assertIn('MerchantCoopLiveWrites.cityNode', content)
         self.assertNotIn('writeApproval().cityNode', content)
         self.assertNotIn('writeApproval().submitNode', content)
         self.assertNotIn('writeApproval().cancelRegistration', content)
