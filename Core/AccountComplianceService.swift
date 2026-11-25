@@ -75,6 +75,13 @@ import FoundationNetworking
     public func unresolved(_ operation: String, session: ComplianceSession) throws -> CompliancePendingOperation? {
         try check(session); return try journal.pending(scope: session.journalScope, operation: operation)
     }
+    private func contractRequest(_ build: (String) throws -> URLRequest, session: ComplianceSession) throws -> URLRequest {
+        try check(session)
+        guard let credential = token(), AuthRequestBuilder.isValidToken(credential) else { throw ComplianceFailure.staleSession }
+        var request = try build(credential)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        return request
+    }
     private func request(_ path: String, method: String = "POST", body: [String: Any]? = nil,
                          form: [String: String]? = nil, session: ComplianceSession) throws -> URLRequest {
         try check(session)
@@ -336,7 +343,11 @@ import FoundationNetworking
     }
     public func status(session: ComplianceSession) async throws -> ComplianceDeregistration {
         if let client = deregistrationOriginal() { return try await client.status(session: session) }
-        var decoded = try decode(await read("/api/user/deregister/status", method: "GET", session: session), as: ComplianceDeregistration.self)
+        guard readsEnabled else { throw ComplianceFailure.unavailable }
+        let outgoing = try contractRequest({
+            try AccountPublishMPContract.deregisterStatusRequest(baseURL: self.configuration.baseURL, token: $0)
+        }, session: session)
+        var decoded = try decode(await send(outgoing, session: session), as: ComplianceDeregistration.self)
         if authoritativeMerchantID() != nil, decoded.status == "WAITING", !(decoded.executeAfter ?? "").isEmpty { decoded.legacyPendingOverride = true }
         return decoded
     }
@@ -384,7 +395,10 @@ import FoundationNetworking
     /// Deregister SMS reads the signed-in member's phone. Empty `phone` is unbound and returns nil.
     public func boundPhone(session: ComplianceSession) async throws -> DeregistrationBoundPhone? {
         guard readsEnabled else { throw ComplianceFailure.unavailable }
-        let data = try await send(request("/api/user/info", form: ["member_id": String(session.accountID)], session: session), session: session)
+        let outgoing = try contractRequest({
+            try AccountPublishMPContract.userInfoRequest(baseURL: self.configuration.baseURL, memberID: String(session.accountID), token: $0)
+        }, session: session)
+        let data = try await send(outgoing, session: session)
         guard let object = data as? [String: Any] else { throw ComplianceFailure.malformed }
         let phone = (object["phone"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !phone.isEmpty else { return nil }
@@ -392,7 +406,11 @@ import FoundationNetworking
     }
     public func precheck(session: ComplianceSession) async throws -> ComplianceDeregistration {
         if let client = deregistrationOriginal() { return try await client.precheck(session: session) }
-        return try decode(await read("/api/user/deregister/precheck", session: session), as: ComplianceDeregistration.self)
+        guard readsEnabled else { throw ComplianceFailure.unavailable }
+        let outgoing = try contractRequest({
+            try AccountPublishMPContract.deregisterPrecheckRequest(baseURL: self.configuration.baseURL, token: $0)
+        }, session: session)
+        return try decode(await send(outgoing, session: session), as: ComplianceDeregistration.self)
     }
     public func apply(smscode: String, requestID: String, session: ComplianceSession, impact: AccountDeregistrationImpact? = nil, whileCurrent: () -> Bool = { true }) async throws -> ComplianceDeregistration {
         if let client = deregistrationOriginal() {
@@ -435,7 +453,10 @@ import FoundationNetworking
             guard impact.valid(for: session.accountID), impact.confirmable else { throw ComplianceFailure.invalidInput }
         }
         guard legalApproved(.cancellation, session) else { throw ComplianceFailure.unavailable }
-        let request = try request("/api/user/deregister/apply", form: ["smscode": AuthChannelInput.code(smscode), "requestId": requestID], session: session)
+        let code = try AuthChannelInput.code(smscode)
+        let request = try contractRequest({
+            try AccountPublishMPContract.deregisterApplyRequest(baseURL: self.configuration.baseURL, requestID: requestID, smsCode: code, token: $0)
+        }, session: session)
         try start("deregister", requestID: requestID, session: session); defer { busy = false }
         var result = try decode(await write(request, operation: "deregister", session: session), as: ComplianceDeregistration.self)
         if authoritativeMerchantID() != nil, result.status == "WAITING", !(result.executeAfter ?? "").isEmpty { result.legacyPendingOverride = true }
@@ -457,7 +478,9 @@ import FoundationNetworking
         guard whileCurrent() else { throw ComplianceFailure.staleSession }
         guard before.pending else { throw ComplianceFailure.invalidInput }
         guard try unresolved("deregister", session: session) == pending else { throw ComplianceFailure.unresolved }
-        let request = try request("/api/user/deregister/cancel", session: session)
+        let request = try contractRequest({
+            try AccountPublishMPContract.deregisterCancelRequest(baseURL: self.configuration.baseURL, token: $0)
+        }, session: session)
         try beginDeregistrationCancelPending("deregisterCancel", requestID: UUID().uuidString, session: session)
         guard let cancellation = try unresolved("deregisterCancel", session: session) else { throw ComplianceFailure.unresolved }
         let data = try await writeDeregistrationCancel(request, operation: "deregisterCancel", session: session, whileCurrent: whileCurrent, expectedIntent: cancellation)

@@ -188,6 +188,97 @@ class ContractCoverageTests(unittest.TestCase):
                 "pages/scan.js:26\tCovRoutes.afterRegex\tMISSING",
             ])
 
+    def test_json_body_stringify_and_forwarded_data_pin_without_parsed_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            mp = os.path.join(tmp, "xcx")
+            write(os.path.join(mp, "pages/body.js"), """
+                function request(url, method, data) { return url; }
+                subscribe.request(['coopStatus']);
+                require("./subscribe.js").request(['refund']);
+                request('/api/json-body', 'POST', jsonBody({ note: 'n' }));
+                request('/api/stringified', 'PUT', JSON.stringify({ k: 1 }));
+                request('/api/forwarded', 'POST', data);
+                request('/api/literal-open', 'POST', { note: 'n', id: 1 });
+                request('/api/no-data', 'DELETE');
+                request('/api/method-gap', 'PATCH');
+                sendRequest({ url: '/api/assign-open', method: 'POST', data: Object.assign({}, payload, { z: 1 }) });
+                sendRequest({ url: '/api/assign-lit', method: 'POST', data: Object.assign({}, { a: 1 }, { b: 2 }) });
+                sendRequest({ url: '/api/spread', method: 'GET', data: { ...extra, z: 1 } });
+                request(url, 'POST', data);
+            """)
+            write(os.path.join(tmp, "Core", "Routes.swift"), """
+                public enum BodyRoutes {
+                    public static let jsonBody = "api/json-body"
+                    public static let stringified = "api/stringified"
+                    public static let forwarded = "api/forwarded"
+                    public static let literalOpen = "api/literal-open"
+                    public static let noData = "api/no-data"
+                    public static let methodGap = "api/method-gap"
+                    public static let assignOpen = "api/assign-open"
+                    public static let assignLit = "api/assign-lit"
+                    public static let spread = "api/spread"
+                }
+            """)
+            write(os.path.join(tmp, "Tests", "BodyPinTests.swift"), """
+                final class BodyPinTests: XCTestCase {
+                    func testJsonBodyPinsPathAndMethod() {
+                        XCTAssertEqual(path, "/api/json-body")
+                        XCTAssertEqual(method, "POST")
+                    }
+                    func testStringifiedPinsPathAndMethod() {
+                        XCTAssertEqual(path, "api/stringified")
+                        XCTAssertEqual(method, "PUT")
+                    }
+                    func testForwardedDataPinsPathAndMethod() {
+                        XCTAssertEqual(path, "/api/forwarded")
+                        XCTAssertEqual(method, "POST")
+                    }
+                    func testLiteralOpenMissesId() {
+                        XCTAssertEqual(path, "/api/literal-open")
+                        XCTAssertEqual(method, "POST")
+                        XCTAssertEqual(kept, "note")
+                    }
+                    func testNoDataPinsPathAndMethod() {
+                        XCTAssertEqual(path, "/api/no-data")
+                        XCTAssertEqual(method, "DELETE")
+                    }
+                    func testMethodGapHasPathOnly() {
+                        XCTAssertEqual(path, "/api/method-gap")
+                    }
+                    func testAssignOpenPinsPathAndMethod() {
+                        XCTAssertEqual(path, "/api/assign-open")
+                        XCTAssertEqual(method, "POST")
+                    }
+                    func testAssignLitMissesB() {
+                        XCTAssertEqual(path, "/api/assign-lit")
+                        XCTAssertEqual(method, "POST")
+                        XCTAssertEqual(kept, "a")
+                    }
+                    func testSpreadPinsPathAndMethod() {
+                        XCTAssertEqual(path, "/api/spread")
+                        XCTAssertEqual(method, "GET")
+                    }
+                }
+            """)
+            result = subprocess.run(
+                ["python3", TOOL, "--mp-root", mp, "--core", os.path.join(tmp, "Core"),
+                 "--tests", os.path.join(tmp, "Tests")],
+                check=False, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            body = [line for line in result.stdout.splitlines() if line.startswith("pages/")]
+            self.assertEqual(body, [
+                "pages/body.js:4\tBodyRoutes.jsonBody\tBodyPinTests.testJsonBodyPinsPathAndMethod",
+                "pages/body.js:5\tBodyRoutes.stringified\tBodyPinTests.testStringifiedPinsPathAndMethod",
+                "pages/body.js:6\tBodyRoutes.forwarded\tBodyPinTests.testForwardedDataPinsPathAndMethod",
+                "pages/body.js:7\tBodyRoutes.literalOpen\tMISSING",
+                "pages/body.js:8\tBodyRoutes.noData\tBodyPinTests.testNoDataPinsPathAndMethod",
+                "pages/body.js:9\tBodyRoutes.methodGap\tMISSING",
+                "pages/body.js:10\tBodyRoutes.assignOpen\tBodyPinTests.testAssignOpenPinsPathAndMethod",
+                "pages/body.js:11\tBodyRoutes.assignLit\tMISSING",
+                "pages/body.js:12\tBodyRoutes.spread\tBodyPinTests.testSpreadPinsPathAndMethod",
+                "pages/body.js:13\tMISSING\tMISSING",
+            ])
+
 
 if __name__ == "__main__":
     unittest.main()

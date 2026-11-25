@@ -137,8 +137,9 @@ final class SettingsIdentityApplicationsTests: XCTestCase {
         let request = try XCTUnwrap(transport.requests.first)
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertTrue(request.url?.path.hasSuffix("api/user/info") == true)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), AccountPublishMPContract.formContentType)
         let form = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8)
-        XCTAssertTrue(form?.contains("name=\"member_id\"\r\n\r\n7") == true)
+        XCTAssertEqual(form, "member_id=7")
         transport.status = 403
         transport.body = Data(#"{"code":403,"msg":"denied"}"#.utf8)
         let denied = await client.refresh(memberID: 7, token: "synthetic-token")

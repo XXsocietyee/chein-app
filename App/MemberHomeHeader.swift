@@ -381,6 +381,8 @@ import SwiftUI
                     return
                 }
                 value = decoded
+            } else if let sessionReader = reader as? MemberHomeSessionReader {
+                value = try await sessionReader.contractIdentity()
             } else {
                 value = try await reader.identity()
             }

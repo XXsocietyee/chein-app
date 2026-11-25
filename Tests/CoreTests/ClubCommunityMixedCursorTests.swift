@@ -108,7 +108,7 @@ final class ClubCommunityMixedCursorTests: XCTestCase {
         XCTAssertEqual(body["limit"] as? Int, 20)
         XCTAssertEqual(body["scope"] as? String, "all")
         XCTAssertNil(body["beforeId"])
-        let firstRequest = try service.request(suffix: "feed", fields: ClubCommunityRead.feed(limit: 20, beforeID: nil).fields, session: session)
+        let firstRequest = try AccountPublishMPContract.clubPostFeedRequest(baseURL: base, limit: 20, beforeID: nil, token: nil)
         XCTAssertEqual(try XCTUnwrap(ClubCommunityReadRoute(request: firstRequest, baseURL: base)), .feed(limit: 20, beforeID: nil))
         var bare = URLRequest(url: base.appendingPathComponent(ClubCommunityReadRoute.feedPath))
         bare.httpMethod = "POST"
