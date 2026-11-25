@@ -91,7 +91,8 @@ struct SquarePostContent: View {
                         if let name = post.nickname, !name.isEmpty { Text(verbatim: name).cyText(.cardTitle) }
                         else { Text("square.unknownAuthor").cyText(.cardTitle) }
                         if post.verified {
-                            Image(systemName: "checkmark.seal.fill").foregroundStyle(QuestifyPalette.accent)
+                            // MP: components/cy/post-card/index.wxml:25 (icon_rz.png, .post-card__verified 24rpx)
+                            MPAsset.FeatureIcon.iconRz.resizable().scaledToFit().frame(width: 12, height: 12)
                                 .accessibilityLabel(Text("square.verified"))
                         }
                     }
