@@ -166,14 +166,35 @@ import SwiftUI
                 .disabled(!model.canReserve || unitID == nil || offerID == nil)
                 if !model.canReserve { text("disabled").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
+            // MKT-7-3: every unit with its MP status (`{chapter} · {statusText}`), not only the bookable ones.
+            if !bundle.units.isEmpty {
+                CYInfoCard(title: Text("freeBundle.units.title"), symbol: "square.stack.3d.up") {
+                    ForEach(Array(bundle.units.enumerated()), id: \.element.id) { index, unit in
+                        HStack(spacing: CYSpacing.xs) {
+                            Text(verbatim: chapterName(unit.chapterId) ?? String(localized: "freeBundle.unit.fallback \(index + 1)"))
+                            Text(verbatim: "·")
+                            Self.statusText(unit.status)
+                        }
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("freeBundle.unit.\(unit.id.text)")
+                    }
+                }
+            }
             // MKT-7-6: the order card always shows (order number, 实付金额); an empty list reads 暂无预约记录.
             CYInfoCard(title: text("order"), symbol: "ticket.fill") {
+                // MKT-7-3: MP `支付：{paymentText} · 报名：{registrationText}` under the order number.
+                Text("freeBundle.order.statusLine \(Self.paymentText(order.paymentStatus)) \(Self.registrationText(order.registrationStatus))")
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("freeBundle.order.statusLine")
                 if bundle.reservations.isEmpty {
                     text("reservationsEmpty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("freeBundle.reservations.empty")
                 }
                 ForEach(bundle.reservations, id: \.id) { reservation in
-                    CYListRow(verbatim: reservation.status, meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
+                    // MKT-7-3: MP reservation `statusText` (待使用 / 已取消 / …), never the raw enum.
+                    CYListRow(verbatim: Self.statusString(reservation.status), meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
                 }
                 if let number = order.registrationNo { Text(verbatim: number).cyText(.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled) }
                 LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
@@ -206,5 +227,23 @@ import SwiftUI
                 }
             }
         }
+    }
+
+    /// MP `free-explore-bundle.js` STATES (units and reservations share one table). Unknown is an em dash.
+    private static let knownStatuses: Set<String> = ["AVAILABLE", "RESERVED", "REDEEMED", "FORFEITED", "HELD", "REFUND_PENDING",
+        "REFUNDED", "BOOKED", "CANCELLED", "WAIVED", "LATE_CANCELLED", "NO_SHOW", "FULFILLED", "MERCHANT_EXITED"]
+    static func statusString(_ raw: String) -> String {
+        knownStatuses.contains(raw) ? String(localized: String.LocalizationValue("freeBundle.status." + raw)) : "—"
+    }
+    static func statusText(_ raw: String) -> Text { Text(verbatim: statusString(raw)) }
+    /// MP `paymentText`: 0 待支付 · 1 支付中 · 2 已支付 · 3 支付失败 · 4 已退款, else 支付状态确认中.
+    static func paymentText(_ status: Int?) -> String {
+        guard let status, (0...4).contains(status) else { return String(localized: "freeBundle.payment.unknown") }
+        return String(localized: String.LocalizationValue("freeBundle.payment." + String(status)))
+    }
+    /// MP `registrationText`: 1 待支付 · 2 报名成功 · 3 已取消 · 4 已过期, else 报名状态确认中.
+    static func registrationText(_ status: Int?) -> String {
+        guard let status, (1...4).contains(status) else { return String(localized: "freeBundle.registration.unknown") }
+        return String(localized: String.LocalizationValue("freeBundle.registration." + String(status)))
     }
 }
