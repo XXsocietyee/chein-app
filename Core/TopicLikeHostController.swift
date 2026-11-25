@@ -15,10 +15,14 @@ public enum SquareRevalidationTrigger: Equatable, Sendable {
 
 /// Host adapter bridging `TopicLikeLedger`, `TopicLikeDirection`, and `TopicLikeWriteOutcome`
 /// with `SquareWorkspaceCoordinator.revalidate(postID:lane:)` trigger policies.
-/// Default keeps `likeGrantEnabled == false` and `transport == nil` so no unapproved
-/// network call can fire unless explicitly configured by an authorized host or test.
+/// `likeGrantEnabled` defaults on. A nil transport still sends nothing.
 @MainActor @Observable public final class TopicLikeHostController {
     public typealias RequestBuilder = (Int, TopicLikeDirection, String) throws -> URLRequest
+
+    /// Mini-program like body: `id` then `type` (`1` like, `0` unlike), urlencoded.
+    public static func miniProgramLikeRequest(baseURL: URL, topicID: Int, direction: TopicLikeDirection, token: String) throws -> URLRequest {
+        try PlayerContentMPContract.like(baseURL: baseURL, id: topicID, type: direction.rawValue)
+    }
 
     public let ledger: TopicLikeLedger
     public weak var workspace: SquareWorkspaceCoordinator?
@@ -36,7 +40,7 @@ public enum SquareRevalidationTrigger: Equatable, Sendable {
     public init(
         ledger: TopicLikeLedger? = nil,
         workspace: SquareWorkspaceCoordinator? = nil,
-        likeGrantEnabled: Bool = false,
+        likeGrantEnabled: Bool = true,
         requestBuilder: RequestBuilder? = nil,
         transport: (any HTTPTransport)? = nil,
         currentScope: @escaping () -> TopicLikeScope? = { nil },

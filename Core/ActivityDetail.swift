@@ -93,7 +93,8 @@ public struct ActivityDetail: Decodable, Equatable {
     public let cancelReason: String?
     /// PC-C-1-4 (MP check-1104 j1 F14): a shop-hosted activity names the shop as 主办方, not the creator member.
     public let organizerShopName: String?
-    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList, isSignUp, cancelTime, cancelReason, organizerShopName }
+    public let organizerShopLogo: String?
+    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList, isSignUp, cancelTime, cancelReason, organizerShopName, organizerShopLogo }
     public init(from decoder:Decoder) throws {
         publisherAuthoritySource = try? PublisherActivityAuthoritySource(from: decoder)
         summary=try ActivitySummary(from:decoder)
@@ -107,6 +108,7 @@ public struct ActivityDetail: Decodable, Equatable {
         signUpFlag = flag == 0 || flag == 1 ? flag : nil
         cancelTime=Self.text(c,.cancelTime); cancelReason=Self.text(c,.cancelReason)
         organizerShopName=Self.text(c,.organizerShopName)
+        organizerShopLogo=Self.text(c,.organizerShopLogo)
     }
     private static func text(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
         // Dates may arrive as text or epoch milliseconds; either one is a present cancellation.
@@ -184,6 +186,8 @@ extension Calendar {
 public enum ActivityDetailAccess: Decodable, Equatable {
     case allowed(ActivityDetail)
     case clubRequired(clubID: Int?, message: String?)
+    /// Envelope `errorCode == ACTIVITY_CANCELLED`. `canViewOwnOrders` is true only when the server says so.
+    case cancelled(canViewOwnOrders: Bool)
     enum CodingKeys: String, CodingKey { case gate, clubId, message }
     public init(from decoder:Decoder) throws {
         let c=try decoder.container(keyedBy:CodingKeys.self)

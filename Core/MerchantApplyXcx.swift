@@ -4,6 +4,38 @@ import Foundation
 public enum MerchantApplyXcx {
     /// Source `canSubmit` order of the first missing item.
     public enum Missing: Equatable { case address, dates, description, photos }
+    public struct Failure: Equatable {
+        public let kind: Missing
+        public let message: String
+        public init(kind: Missing, message: String) { self.kind = kind; self.message = message }
+    }
+    /// Every `validateForm` failure, in source order. An empty cooperate date is not an error.
+    /// A set cooperate date must be `HH:mm-HH:mm` with the end after the start.
+    public static func allMissing(address: String, startDay: String?, endDay: String?, cooperateDate: String, description: String, photoCount: Int) -> [Failure] {
+        var failures: [Failure] = []
+        if address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            failures.append(Failure(kind: .address, message: "请选择承接地点"))
+        }
+        if ((try? dateRange(start: startDay, end: endDay)) ?? nil) == nil {
+            failures.append(Failure(kind: .dates, message: "请选择可配合日期"))
+        }
+        let slot = cooperateDate.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !slot.isEmpty, !cooperateSlotIsOrdered(slot) {
+            failures.append(Failure(kind: .dates, message: "请选择完整时段，结束时间必须晚于开始时间"))
+        }
+        if description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            failures.append(Failure(kind: .description, message: "请输入承接说明"))
+        }
+        if photoCount < 1 {
+            failures.append(Failure(kind: .photos, message: "请上传承接图片"))
+        }
+        return failures
+    }
+    static func cooperateSlotIsOrdered(_ value: String) -> Bool {
+        let parts = value.split(separator: "-", omittingEmptySubsequences: false).map(String.init)
+        guard parts.count == 2, parts.allSatisfy(isClock) else { return false }
+        return parts[0] < parts[1]
+    }
     public static func firstMissing(address: String, startDay: String?, endDay: String?, description: String, photoCount: Int) -> Missing? {
         if address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return .address }
         if ((try? dateRange(start: startDay, end: endDay)) ?? nil) == nil { return .dates }
