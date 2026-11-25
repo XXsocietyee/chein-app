@@ -365,7 +365,7 @@ public struct CommunityMemberReportClient {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
 
-    public init(configuration: APIConfiguration, transport: any HTTPTransport, writesEnabled: Bool = false) {
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, writesEnabled: Bool = true) {
         self.configuration = configuration
         self.transport = transport
         self.writesEnabled = writesEnabled

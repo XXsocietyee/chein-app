@@ -82,6 +82,18 @@ public enum PublicContentShareLink {
         return "/pages/talent/list/index?tab=\(tab)"
     }
 
+    /// Mini-program `subpackageA/pages/infomationdetail/infomationdetail?id=` (source spelling).
+    /// Nil while that path is not already parsed. Callers then copy `informationCopyText`.
+    public static func information(id: Int) -> URL? {
+        universalLink(path: "/subpackageA/pages/infomationdetail/infomationdetail", id: id)
+    }
+
+    /// Path text when the information page is not a universal link. Not a URL.
+    public static func informationCopyText(id: Int) -> String? {
+        guard canonicalID(String(id)) != nil, information(id: id) == nil else { return nil }
+        return "/subpackageA/pages/infomationdetail/infomationdetail?id=\(id)"
+    }
+
     /// Path text for a topic template whose route is not a universal link. Not a URL and not a referral.
     public static func topicTemplateCopyText(id: Int) -> String? {
         guard canonicalID(String(id)) != nil, topicTemplate(id: id) == nil else { return nil }

@@ -95,52 +95,40 @@ extension MerchantContentServing {
     /// No topic-publisher read on this reader. Fail closed: a nil proof cannot invite.
     public func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof? { nil }
 }
-/// Real-transport gate for the merchant-content writes the mini program sends from
-/// `pages/topic/merchantinfo` and `pages/topic/merchantapply`. MP-first rule (owner, 2026-11-25):
-/// every one of these defaults ON; the server's own permission checks decide. None is money.
-/// `.closed` exists for tests that pin the no-dispatch path.
+/// Real-transport gate. Chapter invite, respond, apply, and withdraw stay closed.
+/// Node, NPC, registration, audit, and circle review match the mini-program writes and default on.
+/// One flag per gate. `.closed` is the all-off value tests use for the no-dispatch path.
 public struct MerchantContentWriteApproval: Equatable {
     /// `api/merchant/chapter-application/invite` (merchantinfo/host-layers.js:346).
     public let chapterInvite: Bool
     /// `api/merchant/chapter-application/invite/respond` (merchantinfo.js:1653).
     public let chapterRespond: Bool
-    /// Mini `merchantinfo` chapter application (`api/merchant/chapter-application/apply`, merchantinfo.js:1460).
+    /// Mini `merchantinfo` chapter application (`api/merchant/chapter-application/apply`, merchantinfo.js:1460). Default closed.
     public let chapterApply: Bool
-    /// Withdraw a pending application (`api/merchant/chapter-application/withdraw`, merchantinfo.js:1782).
+    /// Withdraw a pending application (`api/merchant/chapter-application/withdraw`, merchantinfo.js:1782). Default closed.
     public let chapterWithdraw: Bool
-    /// `api/registration/merchant/create` (merchantapply/index.js:673).
-    public let register: Bool
-    /// `api/registration/merchant/update` (merchantapply/index.js:673).
-    public let updateRegistration: Bool
-    /// `api/registration/merchant/cancel` (merchantinfo.js:4859).
-    public let cancelRegistration: Bool
-    /// `api/merchant/chapter-node/submit` (merchantinfo.js:1862).
-    public let submitNode: Bool
-    /// `api/merchant/chapter-application/audit` (merchantinfo.js:2284).
-    public let auditApplication: Bool
-    /// `api/merchant/chapter-node/audit` (merchantinfo.js:2343).
-    public let auditNode: Bool
-    /// `api/circle-theme/instance/review` (merchantinfo.js:3227).
-    public let reviewCircle: Bool
-    /// `api/merchant/chapter-node/npc/save`, `npc/voice/enroll`, `npc/voice/reset`
-    /// (pages/topic/components/cy/node-npc-form/index.js:332,518,563).
+    /// `api/merchant/chapter-node/submit` and `api/merchant/chapter-node/audit`.
+    public let node: Bool
+    /// `api/merchant/chapter-node/npc/save`, `npc/voice/enroll`, `npc/voice/reset`.
     public let npc: Bool
-    /// `api/game/session/command` station commands stay off. Not a live write.
-    public let station: Bool
-    public init(chapterInvite: Bool = true, chapterRespond: Bool = true, chapterApply: Bool = true, chapterWithdraw: Bool = true,
-                register: Bool = true, updateRegistration: Bool = true, cancelRegistration: Bool = true,
-                submitNode: Bool = true, auditApplication: Bool = true, auditNode: Bool = true, reviewCircle: Bool = true,
-                npc: Bool = true, station: Bool = false) {
+    /// `api/registration/merchant/cancel`.
+    public let cancel: Bool
+    /// `api/merchant/chapter-application/audit`.
+    public let audit: Bool
+    /// `api/circle-theme/instance/review`.
+    public let circleReview: Bool
+    /// `api/registration/merchant/create`.
+    public let register: Bool
+    /// `api/registration/merchant/update`.
+    public let updateRegistration: Bool
+    public init(chapterInvite: Bool = false, chapterRespond: Bool = false, chapterApply: Bool = false, chapterWithdraw: Bool = false, node: Bool = true, npc: Bool = true, cancel: Bool = true, audit: Bool = true, circleReview: Bool = true, register: Bool = true, updateRegistration: Bool = true) {
         self.chapterInvite = chapterInvite; self.chapterRespond = chapterRespond
         self.chapterApply = chapterApply; self.chapterWithdraw = chapterWithdraw
-        self.register = register; self.updateRegistration = updateRegistration; self.cancelRegistration = cancelRegistration
-        self.submitNode = submitNode; self.auditApplication = auditApplication; self.auditNode = auditNode; self.reviewCircle = reviewCircle
-        self.npc = npc; self.station = station
+        self.node = node; self.npc = npc; self.cancel = cancel; self.audit = audit
+        self.circleReview = circleReview; self.register = register; self.updateRegistration = updateRegistration
     }
-    /// Every write closed. Test-only use; the host default is the MP-first `.init()`.
-    public static let closed = MerchantContentWriteApproval(chapterInvite: false, chapterRespond: false, chapterApply: false, chapterWithdraw: false,
-        register: false, updateRegistration: false, cancelRegistration: false, submitNode: false, auditApplication: false, auditNode: false, reviewCircle: false,
-        npc: false, station: false)
+    /// Every write closed. Test-only use; the host default is `.init()`.
+    public static let closed = MerchantContentWriteApproval(chapterInvite: false, chapterRespond: false, chapterApply: false, chapterWithdraw: false, node: false, npc: false, cancel: false, audit: false, circleReview: false, register: false, updateRegistration: false)
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
@@ -173,16 +161,14 @@ public struct MerchantContentWriteApproval: Equatable {
         case .respondChapterInvitation: return writeApproval().chapterRespond
         case .apply: return writeApproval().chapterApply
         case .withdraw: return writeApproval().chapterWithdraw
+        case .submitNode, .auditNode: return writeApproval().node
+        case .saveNPC, .enrollVoice, .resetVoice: return writeApproval().npc
+        case .cancelRegistration: return writeApproval().cancel
+        case .auditApplication: return writeApproval().audit
+        case .reviewCircle: return writeApproval().circleReview
         case .register: return writeApproval().register
         case .updateRegistration: return writeApproval().updateRegistration
-        case .cancelRegistration: return writeApproval().cancelRegistration
-        case .submitNode: return writeApproval().submitNode
-        case .auditApplication: return writeApproval().auditApplication
-        case .auditNode: return writeApproval().auditNode
-        case .reviewCircle: return writeApproval().reviewCircle
-        case .claim, .cancelClaim, .cityStatus, .place: return MerchantCoopLiveWrites.cityNode
-        case .saveNPC, .enrollVoice, .resetVoice: return writeApproval().npc
-        case .station: return false
+        default: return false
         }
     }
     public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }, writeApproval: @escaping () -> MerchantContentWriteApproval = { .init() }) {

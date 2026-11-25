@@ -22,8 +22,13 @@ class MapVisualFoundationTests(unittest.TestCase):
 
     def test_selected_markers_preserve_identity_and_noncolor_cue(self):
         source = self.read('App/SearchMapCanvas.swift')
-        self.assertIn('Image(systemName: symbol)', source)
-        self.assertIn('Image(systemName: "checkmark.circle.fill")', source)
+        # utils/roam-place-map.js:231 iconPath is dot-<cat>.png unselected and pin-<cat>.png selected.
+        # The symbol stays the identity; selection swaps artwork shape, not a checkmark glyph.
+        art = self.read('App/DesignSystem/CYMapChrome.swift')
+        self.assertIn('CYMapMarker(symbol: symbol, kind: kind, selected: selected)', source)
+        self.assertIn('case .landmark: return selected ? MPAsset.MapMarker.pinLandmark : MPAsset.MapMarker.dotLandmark', art)
+        self.assertIn('case .merchant: return selected ? MPAsset.MapMarker.pinMerchant : MPAsset.MapMarker.dotMerchant', art)
+        self.assertNotIn('Image(systemName: "checkmark.circle.fill")', source)
         self.assertIn('lineWidth: selected ? 3', source)
         self.assertIn('contrast == .increased', source)
         self.assertIn('@ScaledMetric(relativeTo: .body)', source)

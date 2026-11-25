@@ -205,9 +205,12 @@ struct NearbyTeamFaces: View {
     let count: Int
     var body: some View {
         HStack(spacing: -8) {
+            // MP my-teams / nearby `avatarsOf`: up to three faces, the MP default /images/d_profile.png.
             ForEach(0..<max(0, min(3, count)), id: \.self) { _ in
-                Image(systemName: "person.crop.circle.fill").font(.title2).foregroundStyle(.secondary)
-                    .background(Circle().fill(Color(.systemBackground)))
+                MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                    .frame(width: 28, height: 28)
+                    .clipShape(Circle())
+                    .overlay(Circle().strokeBorder(Color(.systemBackground), lineWidth: 2))
             }
         }.accessibilityHidden(true)
     }

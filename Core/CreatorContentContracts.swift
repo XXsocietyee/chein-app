@@ -41,6 +41,8 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
     public let endTime: String?
     /// Mini myproject address line (`cms_topic/cms_activity.address_name`); blank means hide the line.
     public let addressName: String?
+    public let latitude: Double?
+    public let longitude: Double?
     /// Co-host activity "待核销 N". Absent is not zero: the mini hides the line when it is not sent.
     public let pendingVerifyCount: Int?
     public var destination: CreatorContentDestination? {
@@ -56,7 +58,7 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
         }
     }
     private enum CodingKeys: String, CodingKey {
-        case id, bizType, title, cover, projectTypeText, state, stateText, publishStatus, signupCount, viewCount, ownerType, clubId, acceptStatus, acceptStatusText, startTime, endTime, addressName, pendingVerifyCount
+        case id, bizType, title, cover, projectTypeText, state, stateText, publishStatus, signupCount, viewCount, ownerType, clubId, acceptStatus, acceptStatusText, startTime, endTime, addressName, pendingVerifyCount, latitude, longitude
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -82,7 +84,18 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
         let rawAddress = (try? c.decodeIfPresent(String.self, forKey: .addressName)) ?? nil
         let address = rawAddress?.trimmingCharacters(in: .whitespacesAndNewlines)
         addressName = address?.isEmpty == false ? address : nil
+        latitude = Self.finite(c, .latitude)
+        longitude = Self.finite(c, .longitude)
         pendingVerifyCount = (try? c.decodeIfPresent(Int.self, forKey: .pendingVerifyCount)) ?? nil
+    }
+
+    private static func finite(_ container: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Double? {
+        if let value = try? container.decode(Double.self, forKey: key), value.isFinite { return value }
+        if let text = try? container.decode(String.self, forKey: key) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let value = Double(trimmed), value.isFinite { return value }
+        }
+        return nil
     }
 
     /// Absent and null are unknown. A present non-integer still fails the row, same as `signupCount`.

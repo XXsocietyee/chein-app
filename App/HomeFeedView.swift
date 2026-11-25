@@ -394,9 +394,13 @@ import UIKit
         }
     }
     private func row(_ item: HomeFeedItem, section: String, style: CYImageCard.Style? = nil) -> some View {
+        // R7-PC-A1-4 (MP index.wxml:219-239 `onAddressTap`): on a stream card the 地点 row is its own visible tap target
+        // below the card button (a button nested in the card label cannot take the tap). Long-press / VoiceOver stay.
+        let placeURL = style == nil ? HomeFeedMapsLink.url(for: item.place) : nil
+        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
         Button { if model.canOpen(reader) { onDestination(item.id) } } label: {
             Group {
-                if let style { HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style, fallback: Self.fallbackCover(section)) } else { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
+                if let style { HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style, fallback: Self.fallbackCover(section)) } else { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone, showsPlace: placeURL == nil) }
             }
             // The tapped card grows into the detail (iOS 18 zoom; iOS 17 keeps the push + entrance). Only the first copy of an item
             // on screen is the source, so duplicates across rails and the stream never fight over one id.
@@ -406,6 +410,11 @@ import UIKit
             .pageTemplateGroupedCard(label: feedCardLabel(item), traits: .isButton)
             .modifier(HomeFeedOpenPlaceInMaps(url: HomeFeedMapsLink.url(for: item.place), openURL: openURL))
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
+            if let placeURL, let place = item.place {
+                HomeFeedPlaceLinkRow(place: place, url: placeURL, openURL: openURL)
+                    .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey).place")
+            }
+        }
     }
     /// One label for the grouped feed card: name, then the price, time, and place lines already on the card.
     private func feedCardLabel(_ item: HomeFeedItem) -> Text {
@@ -512,9 +521,12 @@ struct HomeFeedCard: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
-    init(item: HomeFeedItem, sourceTimeZone: TimeZone? = nil) {
+    /// False when the host draws the 地点 as its own tap target below the card (R7-PC-A1-4).
+    private let showsPlace: Bool
+    init(item: HomeFeedItem, sourceTimeZone: TimeZone? = nil, showsPlace: Bool = true) {
         self.item = item
         self.sourceTimeZone = sourceTimeZone
+        self.showsPlace = showsPlace
     }
     private var typeSymbol: String {
         switch item { case .activity: return "figure.walk"; case .topic: return "map" }
@@ -540,7 +552,7 @@ struct HomeFeedCard: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 priceRow
                 timeRow
-                placeRow
+                if showsPlace { placeRow }
             }
             .accessibilityIdentifier("homeFeed.stream.status")
         }
@@ -810,6 +822,34 @@ enum HomeFeedMapsLink {
         var components = URLComponents(string: "https://maps.apple.com/")
         components?.queryItems = [URLQueryItem(name: "q", value: place)]
         return components?.url
+    }
+}
+
+/// R7-PC-A1-4: the stream card's 地点 line as a visible button (MP `onAddressTap`, open-address.js), laid out like the
+/// card's other status rows, with the place in the brand tint and a pin.
+struct HomeFeedPlaceLinkRow: View {
+    let place: String
+    let url: URL
+    let openURL: OpenURLAction
+    var body: some View {
+        Button { openURL(url) } label: {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                Text("homeFeed.place")
+                    .cyText(.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                Spacer(minLength: CYSpacing.sm)
+                Label(place, systemImage: "mappin.and.ellipse")
+                    .cyText(.bodyCompact)
+                    .foregroundStyle(CYColor.brand)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("accountCollection.coupon.openInMaps"))
+        .accessibilityValue(Text(verbatim: place))
     }
 }
 

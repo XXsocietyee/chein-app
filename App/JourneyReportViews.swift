@@ -811,6 +811,7 @@ extension JourneySettleBinding {
 @MainActor struct JourneySettleHost: View {
     let binding: any JourneySettleBinding
     let scope: JourneyRunScope
+    @EnvironmentObject private var session: AppSession
     @Environment(\.dismiss) private var dismiss
     /// JSETTLE-r7-1: MP `openOffer` navigateTo(offer.url) — membership for the month pass, pass detail for a product.
     @State private var offerRoute: MPParityRoute?
@@ -821,7 +822,12 @@ extension JourneySettleBinding {
                           onRankScope: { binding.selectRankScope($0) }, onRankPeriod: { binding.selectRankPeriod($0) },
                           onSubmitRating: { binding.submitRating(stars: $0, text: $1) }, onDone: { binding.leave(); dismiss() },
                           finishOffer: binding.finishOffer,
-                          onOpenOffer: { offer in offerRoute = offer.kind == .pass ? .membership : .pass(productID: offer.id) })
+                          onOpenOffer: { offer in offerRoute = offer.kind == .pass ? .membership : .pass(productID: offer.id) },
+                          onTrackOffer: { offer, event in
+                              let payload = offer.trackPayload(topicID: scope.topicID)
+                              MiniProgramAnalytics.track(session.analyticsEventClient, event, bizType: payload.bizType, bizID: payload.bizID,
+                                                         pagePath: "subpackageJourney/settle/index", properties: payload.properties)
+                          })
             .mpParityRouteDestination($offerRoute)
             .task { binding.load() }
             // Reload once the shared sign-in sheet closes (MP onShow re-reads after login).
@@ -848,6 +854,8 @@ struct JourneySettleView: View {
     /// JSETTLE-r7-1 (MP settle wxml:32): the 完局优惠卡 under the overview, only when the server has one on sale.
     var finishOffer: JourneyFinishOffer? = nil
     var onOpenOffer: (JourneyFinishOffer) -> Void = { _ in }
+    /// `finish_offer_shown` / `finish_offer_click`. Does not turn `PlayStageAnalyticsGate` on.
+    var onTrackOffer: (JourneyFinishOffer, String) -> Void = { _, _ in }
 
     enum Step: Int, CaseIterable { case overview, rank, rate, share }
     enum ShareKind: String, CaseIterable, Identifiable { case post, story; var id: String { rawValue } }
@@ -1035,7 +1043,11 @@ struct JourneySettleView: View {
             // JSETTLE-r7-1: name and price as the server sent them; purchase stays gated (money TEST-only, owner #12).
             if let offer = finishOffer {
                 JourneyFinishOfferCardView(offer: offer, purchaseGated: !PlatformPass.writesReachable,
-                                           onTapOffer: { onOpenOffer(offer) })
+                                           onAppearTrack: { onTrackOffer(offer, JourneyFinishOfferAnalytics.shown) },
+                                           onTapOffer: {
+                                               onTrackOffer(offer, JourneyFinishOfferAnalytics.click)
+                                               onOpenOffer(offer)
+                                           })
                     .accessibilityIdentifier("journeySettle.finishOffer")
                     .settleRise(overviewOn, 4, skipped: skipped, reduceMotion: reduceMotion)
             }

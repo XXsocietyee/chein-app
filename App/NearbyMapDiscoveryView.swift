@@ -270,8 +270,14 @@ struct NearbyMapDiscoveryRow: View {
         Button(action: open) {
             let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
             layout {
-                if case .place(let place) = item, let cover = place.coverImage, QuestifyCardArtwork.safeURL(cover) != nil {
-                    RoamEntryCover(source: cover).frame(width: 72, height: 72).clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                // MP nearby `.mt-card__cover`: item.img, else /images/home-route-city-placeholder.jpg (places and events).
+                if case .place(let place) = item {
+                    RoamEntryCover(source: place.coverImage.flatMap { QuestifyCardArtwork.safeURL($0) != nil ? $0 : nil },
+                                   fallbackArt: MPAsset.BannerCover.homeRouteCityPlaceholder)
+                        .frame(width: 72, height: 72).clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                } else if case .event = item {
+                    RoamEntryCover(source: nil, fallbackArt: MPAsset.BannerCover.homeRouteCityPlaceholder)
+                        .frame(width: 72, height: 72).clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 }
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     RoamItemRow(item: item, showsCurrentReadStatus: true)

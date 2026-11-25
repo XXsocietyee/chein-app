@@ -10,13 +10,24 @@ public struct TopicTemplatePreviewCard: Identifiable, Equatable, Sendable {
     public let title: String
     public let steps: [String]
     public let footText: String
+    public let footCopy: TopicTemplatePreviewCopy
 
-    public init(id: String, isCover: Bool, title: String, steps: [String], footText: String) {
+    public init(id: String, isCover: Bool, title: String, steps: [String], footText: String, footCopy: TopicTemplatePreviewCopy) {
         self.id = id
         self.isCover = isCover
         self.title = title
         self.steps = steps
         self.footText = footText
+        self.footCopy = footCopy
+    }
+}
+
+public struct TopicTemplatePreviewCopy: Equatable, Sendable {
+    public let key: String
+    public let arguments: [String]
+    public init(key: String, arguments: [String] = []) {
+        self.key = key
+        self.arguments = arguments
     }
 }
 
@@ -30,6 +41,7 @@ public struct TopicTemplatePreviewData: Equatable, Sendable {
     public let isReadonly: Bool
     public let cards: [TopicTemplatePreviewCard]
     public let checks: [String]
+    public let checkCopies: [TopicTemplatePreviewCopy]
 
     public init(
         templateID: Int,
@@ -40,7 +52,8 @@ public struct TopicTemplatePreviewData: Equatable, Sendable {
         isMerchantScope: Bool = false,
         isReadonly: Bool = false,
         cards: [TopicTemplatePreviewCard],
-        checks: [String]
+        checks: [String],
+        checkCopies: [TopicTemplatePreviewCopy] = []
     ) {
         self.templateID = templateID
         self.name = name
@@ -51,6 +64,7 @@ public struct TopicTemplatePreviewData: Equatable, Sendable {
         self.isReadonly = isReadonly
         self.cards = cards
         self.checks = checks
+        self.checkCopies = checkCopies
     }
 
     /// Mirrors MP `pages/templatedetail/topic-preview/index.js:16-54` (`fmtSec`, `buildDeck`, `buildChecks`).
@@ -61,6 +75,15 @@ public struct TopicTemplatePreviewData: Equatable, Sendable {
         let hours = minutes / 60
         let rem = minutes % 60
         return rem > 0 ? "\(hours) 小时\(rem) 分" : "\(hours) 小时"
+    }
+
+    static func durationCopy(_ seconds: Int) -> TopicTemplatePreviewCopy {
+        let minutes = Int((Double(max(0, seconds)) / 60.0).rounded())
+        if minutes < 60 { return TopicTemplatePreviewCopy(key: "topic.template.preview.minutes", arguments: [String(max(0, minutes))]) }
+        let hours = minutes / 60
+        let rem = minutes % 60
+        if rem > 0 { return TopicTemplatePreviewCopy(key: "topic.template.preview.hoursMinutes", arguments: [String(hours), String(rem)]) }
+        return TopicTemplatePreviewCopy(key: "topic.template.preview.hours", arguments: [String(hours)])
     }
 
     public static func fromWire(
@@ -82,12 +105,16 @@ public struct TopicTemplatePreviewData: Equatable, Sendable {
             let title = g["title"].text ?? ""
             let mins = g["duration"].tolerantInteger ?? 0
             let foot = mins > 0 ? "\(mins) 分钟" : totalDur
+            let footCopy = mins > 0
+                ? TopicTemplatePreviewCopy(key: "topic.template.preview.minutes", arguments: [String(mins)])
+                : durationCopy(totalTime)
             return TopicTemplatePreviewCard(
                 id: "game-\(idx)",
                 isCover: false,
                 title: title,
                 steps: [],
-                footText: foot
+                footText: foot,
+                footCopy: footCopy
             )
         }
         let titles = gameCards.map(\.title)
@@ -97,32 +124,60 @@ public struct TopicTemplatePreviewData: Equatable, Sendable {
             isCover: true,
             title: name,
             steps: coverSteps,
-            footText: totalDur
+            footText: totalDur,
+            footCopy: durationCopy(totalTime)
         )
         let cards = [coverCard] + gameCards
 
         let chapters = data["chapters"].array ?? []
         var checks: [String] = []
+        var checkCopies: [TopicTemplatePreviewCopy] = []
         if productType == 1 {
             let nodeCount = chapters.reduce(0) { $0 + ($1["nodeCount"].tolerantInteger ?? 0) }
             let shape = [
                 chapters.isEmpty ? nil : "\(chapters.count) 章节",
                 nodeCount > 0 ? "\(nodeCount) 节点" : nil
             ].compactMap { $0 }.joined(separator: " · ")
-            if !shape.isEmpty { checks.append(shape) }
-            if !totalDur.isEmpty { checks.append("约 \(totalDur)") }
+            if !shape.isEmpty {
+                checks.append(shape)
+                if !chapters.isEmpty && nodeCount > 0 {
+                    checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.chaptersNodes", arguments: [String(chapters.count), String(nodeCount)]))
+                } else if !chapters.isEmpty {
+                    checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.chapters", arguments: [String(chapters.count)]))
+                } else {
+                    checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.nodes", arguments: [String(nodeCount)]))
+                }
+            }
+            if !totalDur.isEmpty {
+                checks.append("约 \(totalDur)")
+                checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.about", arguments: [totalDur]))
+            }
             if let medal = finishMedalName, !medal.isEmpty {
                 checks.append("勋章「\(medal)」")
+                checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.medal", arguments: [medal]))
             }
         } else if gameCards.count <= 1 {
-            if !gameCards.isEmpty { checks.append("1 个玩法") }
-            if !totalDur.isEmpty { checks.append("约 \(totalDur)") }
+            if !gameCards.isEmpty {
+                checks.append("1 个玩法")
+                checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.oneGame"))
+            }
+            if !totalDur.isEmpty {
+                checks.append("约 \(totalDur)")
+                checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.about", arguments: [totalDur]))
+            }
         } else {
             let chapterNames = chapters.compactMap { $0["name"].text?.split(separator: " ").first.map(String.init) }
                 .filter { !$0.isEmpty }
-            if !chapterNames.isEmpty { checks.append(chapterNames.joined(separator: " / ")) }
+            if !chapterNames.isEmpty {
+                checks.append(chapterNames.joined(separator: " / "))
+                checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.chapterNames", arguments: chapterNames))
+            }
             checks.append("\(gameCards.count) 个小玩法")
-            if !totalDur.isEmpty { checks.append("首局约 \(totalDur)") }
+            checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.miniGames", arguments: [String(gameCards.count)]))
+            if !totalDur.isEmpty {
+                checks.append("首局约 \(totalDur)")
+                checkCopies.append(TopicTemplatePreviewCopy(key: "topic.template.preview.firstAbout", arguments: [totalDur]))
+            }
         }
 
         return TopicTemplatePreviewData(
@@ -134,7 +189,8 @@ public struct TopicTemplatePreviewData: Equatable, Sendable {
             isMerchantScope: isMerchantScope,
             isReadonly: isReadonly,
             cards: cards,
-            checks: checks
+            checks: checks,
+            checkCopies: checkCopies
         )
     }
 }

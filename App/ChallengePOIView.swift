@@ -28,18 +28,14 @@ import QuestifyCore
     @Environment(\.cyPalette) private var palette
     @Environment(\.openURL) private var openURL
     @Environment(\.locale) private var locale
-    @State private var showingChoiceSheet = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xl) {
             switch coordinator.state {
             case .loading:
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    // MP poi-challenge loading is the skeleton alone (no line of text); VoiceOver keeps the label.
                     CYSkeleton()
-                    Text("playx.poi.loading")
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel(Text("playx.poi.loading"))
@@ -87,7 +83,7 @@ import QuestifyCore
             let place = node.title.isEmpty ? node.name : node.title
             CYImageCard(
                 verbatim: isRawKey(place) ? "" : place,
-                fallback: "playx.poi.photoStep",
+                fallback: "playx.poi.title",
                 meta: node.description.isEmpty || isRawKey(node.description) ? nil : node.description
             )
             if let dist = coordinator.distanceMeters {
@@ -158,29 +154,8 @@ import QuestifyCore
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                // MP cy-playkit-qa pick mode lists the options inline; no extra 选择答案 sheet.
                 if !node.options.isEmpty {
-                    Button {
-                        showingChoiceSheet = true
-                    } label: {
-                        Text(verbatim: PlayCloseCopy.text("选择答案", "Choose answer", locale))
-                            .cyText(.caption, weight: .semibold)
-                            .foregroundStyle(palette.actionPrimaryBg)
-                    }
-                    .sheet(isPresented: $showingChoiceSheet) {
-                        CYOptionSheet(
-                            title: readable(node.question).isEmpty ? PlayCloseCopy.text("选择答案", "Choose answer", locale) : readable(node.question),
-                            items: Array(node.options.enumerated()).map { idx, opt in
-                                CYOptionSheetItem(id: idx, title: readable(opt))
-                            },
-                            selectedID: coordinator.selectedOptionIndex,
-                            onSelect: { idx in
-                                coordinator.selectedOptionIndex = idx
-                                showingChoiceSheet = false
-                            },
-                            onClose: { showingChoiceSheet = false }
-                        )
-                        .cyDomainSheet(detents: [.half])
-                    }
                     ForEach(Array(node.options.enumerated()), id: \.offset) { idx, option in
                         CYChoiceRow(label: readable(option), selected: coordinator.selectedOptionIndex == idx) {
                             coordinator.selectedOptionIndex = idx
@@ -264,11 +239,13 @@ import QuestifyCore
                     meta: medal.description.isEmpty || isRawKey(medal.description) ? nil : medal.description,
                     imageURL: coverURL
                 )
+                // MP cy-medal-screen: the place cover, else the `mic_key.svg` medal glyph (_finish mic: 'key').
+                .fallbackArtwork(MPAsset.BadgeMedal.micKey)
             }
-            if !coordinator.alreadyClaimed {
-                Text("playx.poi.medalStored").cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            // MP _finish sub: 勋章已放进徽章墙, or 再完成一次不会重复发放 when it was already collected.
+            Text(LocalizedStringKey(coordinator.alreadyClaimed ? "playx.poi.claimedAgain" : "playx.poi.medalStored"))
+                .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
             // MP medal screen: primary 写一张城市签 (citystamp kind=sign), secondary 查看徽章墙.
             if let onWriteCitySlip {
                 CYPillButton("playx.poi.writeCitySlip", style: .primary, systemImage: "signature", action: onWriteCitySlip)
@@ -336,6 +313,8 @@ import QuestifyCore
     let poiID: Int
     var seed: RoamNodeDetail? = nil
     var reader: (any RoamReading)? = nil
+    /// MP `onLoad(q)` `photo=`: a photo the map spot-camera already uploaded; it fills the photo step once.
+    var prefilledPhotoURL: String? = nil
     @Environment(\.playEmergencyLocationProvider) private var locationProvider
     @Environment(\.challengePOIPhotoUploader) private var makePhotoUploader
     @Environment(\.locale) private var locale
@@ -352,8 +331,8 @@ import QuestifyCore
     init(node: RoamNodeDetail, reader: (any RoamReading)? = nil) {
         poiID = node.poiId; seed = node; self.reader = reader
     }
-    init(poiID: Int, reader: (any RoamReading)?) {
-        self.poiID = poiID; self.reader = reader
+    init(poiID: Int, reader: (any RoamReading)?, photoURL: String? = nil) {
+        self.poiID = poiID; self.reader = reader; self.prefilledPhotoURL = photoURL
     }
 
     var body: some View {
@@ -412,7 +391,18 @@ import QuestifyCore
             if let seed { apply(seed, to: model) }
             coordinator = model
             await load(model)
+            applyPrefilledPhoto(to: model)
         }
+    }
+
+    /// Only an absolute https upload, only for an open photo step that has no photo yet; the server still checks
+    /// that the photo belongs to this account (MP 照片未上传成功或不属于当前账号).
+    private func applyPrefilledPhoto(to model: ChallengePOICoordinator) {
+        guard let raw = prefilledPhotoURL?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              let url = URL(string: raw), url.scheme?.lowercased() == "https", url.host != nil, url.user == nil, url.password == nil,
+              let node = model.node, node.photoRequired, !node.completed,
+              model.uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        model.confirmPhotoUploaded(raw)
     }
 
     private func load(_ model: ChallengePOICoordinator) async {

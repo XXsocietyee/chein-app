@@ -202,6 +202,7 @@ public enum MiniProgramPage: String, CaseIterable, Hashable, Sendable {
     case subpackagejourneyPagesReportIndex = "subpackageJourney/pages/report/index"
     case subpackagejourneyPagesSeatsIndex = "subpackageJourney/pages/seats/index"
     case subpackagejourneyPagesSettleIndex = "subpackageJourney/pages/settle/index"
+    case subpackagejourneySettleIndex = "subpackageJourney/settle/index"
     case subpackagememberAppealMineIndex = "subpackageMember/appeal-mine/index"
     case subpackagememberCharacterIndex = "subpackageMember/character/index"
     case subpackagememberComplaintIndex = "subpackageMember/complaint/index"

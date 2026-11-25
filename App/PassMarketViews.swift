@@ -1,3 +1,4 @@
+import CoreFoundation
 import SwiftUI
 
 // Mini-program `subpackageMember/market/passes` (list: on sale / my orders / gifts), `market/pass` (detail + quote),
@@ -144,6 +145,8 @@ struct PassMarketState: Equatable {
     var refreshFailed = false
     /// False for a guest: the on-sale tab still loads; 我的订单 and 礼品 ask to sign in.
     var signedIn = true
+    /// `ChannelRedeemSource.status`. The 兑换码 row is shown only when this is true.
+    var platformCodeEnabled = false
 }
 
 /// Logic stub for Cursor: `/api/marketing/product/list|orders|gifts/bought|gifts/received`, `/api/platform-pass`, `/api/user/info`.
@@ -169,7 +172,8 @@ struct PassMarketState: Equatable {
                        onOpenLibrary: bindings.passLibrary == nil ? nil : { route = .library(kind: .all) },
                        pointsDestination: pointsDestination,
                        onOpenPassOrder: bindings.passOrder == nil ? nil : { route = .passOrder(orderNo: $0) },
-                       onSignIn: { PlayerJourneySignInBridge.shared.request() })
+                       onSignIn: { PlayerJourneySignInBridge.shared.request() },
+                       onOpenPlatformCode: { route = .platformCode })
             // Mini-program onShow: the first appearance loads with a skeleton; coming back (from detail, reveal,
             // membership) refreshes quietly so a list already on screen never flashes back to loading.
             .task {
@@ -193,6 +197,8 @@ struct PassMarketView: View {
     var onOpenPassOrder: ((String) -> Void)? = nil
     /// Guest on 我的订单 / 礼品: `ensureLoginFor('登录后查看自己的订单和礼品')`.
     var onSignIn: (() -> Void)? = nil
+    /// Opens `market/gift?mode=code` when the server says platform codes are on.
+    var onOpenPlatformCode: (() -> Void)? = nil
 
     @State private var tab: PassMarketTab = .shop
     @State private var didSetTab = false
@@ -294,6 +300,13 @@ struct PassMarketView: View {
                 }
                 .buttonStyle(.cyPressable)
                 .accessibilityIdentifier("passMarket.library")
+            }
+            if state.platformCodeEnabled, let onOpenPlatformCode {
+                Button(action: onOpenPlatformCode) {
+                    MPCard { MPRow(title: Text("mp.pass.redeem"), chevron: true) }
+                }
+                .buttonStyle(.cyPressable)
+                .accessibilityIdentifier("passMarket.redeem")
             }
         }
     }
@@ -1135,6 +1148,26 @@ private struct PassOrderRefusedWrites: View {
         guard PlatformPass.moneyEnabled == false, MPParityBindings.moneyEnabled == false else { return }
         guard let session, let client = session.makePlatformPassReader() else { return }
         let token = session.passReadToken() ?? ""
+        let kind: PlatformPass.OrderWriteKind
+        switch write {
+        case .resume: kind = .confirm
+        case .cancel: kind = .cancel
+        case .refund: kind = .refundApply
+        }
+        // MKT-5-3: send only while the TEST derivation for this kind is on. The default throws and sends nothing.
+        if PlatformPass.orderWriteEnabled(kind) {
+            let orderNo = order.orderNo
+            Task {
+                do {
+                    switch kind {
+                    case .confirm: _ = try await client.sendConfirmPassOrder(orderNo: orderNo, token: token)
+                    case .cancel: _ = try await client.sendCancelPassOrder(orderNo: orderNo, token: token)
+                    case .refundApply: _ = try await client.sendRefundApplyPassOrder(orderNo: orderNo, reason: reason, token: token)
+                    }
+                } catch { return }
+            }
+            return
+        }
         do {
             switch write {
             case .resume:
@@ -1161,5 +1194,127 @@ extension EnvironmentValues {
     var passOrderWriteSession: AppSession? {
         get { self[PassOrderWriteSessionKey.self] }
         set { self[PassOrderWriteSessionKey.self] = newValue }
+    }
+}
+
+/// `market/gift?mode=code`. Six results: 无效 / 过期 / 你已兑换 / 他人已兑换 / 不属于此账号 / 暂不可用. 去玩 does not claim a gift.
+@MainActor struct PlatformCodeRedeemPage: View {
+    @EnvironmentObject private var session: AppSession
+    @Environment(\.mpParity) private var bindings
+    @State private var code = ""
+    @State private var codeOn = false
+    @State private var statusReady = false
+    @State private var working = false
+    @State private var titleKey = "platformCode.title"
+    @State private var claimed = false
+    @State private var topicID: Int?
+    @State private var openingLibrary = false
+    @State private var openingTopic = false
+
+    var body: some View {
+        VStack(spacing: CYSpacing.lg) {
+            Text(LocalizedStringKey(titleKey))
+                .cyText(.sheetTitle)
+                .multilineTextAlignment(.center)
+                .accessibilityIdentifier("platformCode.title")
+            if statusReady, codeOn, !claimed {
+                TextField("platformCode.placeholder", text: $code)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .onChange(of: code) { _, value in
+                        if value.count > 64 { code = String(value.prefix(64)) }
+                    }
+                    .accessibilityIdentifier("platformCode.input")
+                CYMorphButton("platformCode.submit", state: working ? .working : .idle) { Task { await redeem() } }
+                    .disabled(working || code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .accessibilityIdentifier("platformCode.submit")
+            }
+            if claimed {
+                CYPillButton("platformCode.play") { play() }
+                    .accessibilityIdentifier("platformCode.play")
+            }
+        }
+        .padding(CYSpacing.pageHorizontal)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(CYColor.bgPage.ignoresSafeArea())
+        .navigationTitle(Text("platformCode.title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await loadStatus() }
+        .navigationDestination(isPresented: $openingLibrary) {
+            if let make = bindings.passLibrary { PassLibraryHost(binding: make(), initialKind: .all) }
+        }
+        .navigationDestination(isPresented: $openingTopic) {
+            if let topicID { SessionTopicDetailView(id: topicID, session: session) }
+        }
+    }
+
+    private func loadStatus() async {
+        guard let token = session.token, AuthRequestBuilder.isValidToken(token),
+              let base = session.currentRuntimeDependencyContext?.baseURL,
+              let configuration = try? APIConfiguration(baseURL: base) else {
+            statusReady = true
+            codeOn = false
+            titleKey = "platformCode.signIn"
+            return
+        }
+        let source = ChannelRedeemSource(configuration: configuration, transport: session.composition.makeTransport())
+        codeOn = (try? await source.status(token: token)) == true
+        statusReady = true
+        if !codeOn { titleKey = "platformCode.unavailable" }
+    }
+
+    private func redeem() async {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard codeOn, !trimmed.isEmpty, trimmed.utf8.count <= 64 else { return }
+        guard let token = session.token, AuthRequestBuilder.isValidToken(token) else {
+            titleKey = "platformCode.signIn"
+            return
+        }
+        guard let base = session.currentRuntimeDependencyContext?.baseURL,
+              let configuration = try? APIConfiguration(baseURL: base) else { return }
+        working = true
+        defer { working = false }
+        let source = ChannelRedeemSource(configuration: configuration, transport: session.composition.makeTransport())
+        do {
+            let envelope = try await source.redeemPlatformCode(code: trimmed, token: token)
+            apply(envelope)
+        } catch {
+            titleKey = "platformCode.unknown"
+        }
+    }
+
+    private func apply(_ envelope: ChannelRedeemEnvelope) {
+        if envelope.ok {
+            claimed = true
+            topicID = Self.singleTopic(envelope.dataJSON)
+            let replayed = Self.replayed(envelope.dataJSON)
+            titleKey = replayed ? "platformCode.replayed" : "platformCode.success"
+            return
+        }
+        claimed = false
+        switch envelope.reasonCode {
+        case "CODE_REQUIRED", "INVALID_CODE": titleKey = "platformCode.invalid"
+        case "CODE_EXPIRED": titleKey = "platformCode.expired"
+        case "ALREADY_REDEEMED_BY_OTHER": titleKey = "platformCode.used"
+        case "SUBJECT_MISMATCH": titleKey = "platformCode.mismatch"
+        default: titleKey = "platformCode.unavailable"
+        }
+    }
+
+    private func play() {
+        if topicID != nil { openingTopic = true } else { openingLibrary = true }
+    }
+
+    private static func replayed(_ data: Data?) -> Bool {
+        guard let data, let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let number = object["replayed"] as? NSNumber else { return false }
+        return CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() && number.boolValue
+    }
+
+    private static func singleTopic(_ data: Data?) -> Int? {
+        guard let data, let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        if let ids = object["topicIds"] as? [Int], ids.count == 1, ids[0] > 0 { return ids[0] }
+        if let ids = object["topicIds"] as? [NSNumber], ids.count == 1, ids[0].intValue > 0 { return ids[0].intValue }
+        return nil
     }
 }

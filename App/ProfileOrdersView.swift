@@ -245,7 +245,8 @@ private struct ProfileOrderRow: View {
     private var content: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             if !typeSize.isAccessibilitySize {
-                OrderCoverTile(systemImage: order.sourceMode == .freeExplore ? "figure.walk" : "map", seed: order.title ?? "")
+                OrderCoverTile(systemImage: order.sourceMode == .freeExplore ? "figure.walk" : "map",
+                               url: QuestifyCardArtwork.safeURL(order.coverURL), seed: order.title ?? "")
             }
             VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
                 // Source moh-head: mode tag on the left, order state on the right.
@@ -435,6 +436,20 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.manualRefund", value: order.manualRefundCaseStatus)
                 }
                 ProfileOrderSourceDetailSections(order: order)
+                ProfileOrderTeamSeatClubSection(order: order)
+                ProfileOrderConsentSection(order: order)
+                if order.settlementView.show {
+                    Section("profile.order.settlement") {
+                        if !order.settlementView.stage.isEmpty {
+                            Text(verbatim: order.settlementView.stage)
+                                .accessibilityIdentifier("profile.order.settlement.stage")
+                        }
+                        ForEach(Array(order.settlementView.rows.enumerated()), id: \.offset) { _, row in
+                            LabeledContent { Text(verbatim: row.value) } label: { Text(verbatim: row.label) }
+                        }
+                    }
+                    .accessibilityIdentifier("profile.order.settlement")
+                }
                 ProfileOrderInvoiceSection(order: order)
                 // FIN-16-1 / FIN-17-1: the MP's only self-service money exit. The lifecycle screen (fresh read +
                 // reviewed confirm sheet) opens when a reviewed writer is mounted for this reader; payment stays gated
@@ -622,9 +637,7 @@ private struct ProfileOrderHeroSection: View {
     var body: some View {
         Section {
             HStack(alignment: .top, spacing: CYSpacing.md) {
-            // Round 4: MP hero image (scene-member-order-detail wxml:21). `ProfileOrder` has no cover field yet,
-            // so the MP fallback `icon_ticket_empty.svg` shows (resolveHeroImage default).
-            OrderCoverTile(size: 72, fallback: MPAsset.EmptyState.iconTicketEmpty)
+            OrderCoverTile(url: QuestifyCardArtwork.safeURL(order.coverURL), size: 72, fallback: MPAsset.EmptyState.iconTicketEmpty)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 // Unknown money is an em dash, never ¥0.
                 Text(verbatim: order.actualPaidAmount.map(ProfileOrderYuan.text) ?? "—")

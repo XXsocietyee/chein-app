@@ -86,7 +86,7 @@ public struct MerchantGameNodeReadyDraft: Equatable {
 public struct MerchantGameNodeReadyField: Equatable {
     public enum Kind: String, Equatable { case capacity, date, timeWindow, checklist }
     public let kind: Kind
-    public var key: String { "merchantGameNode.ready." + kind.rawValue }
+    public var key: String { ["merchantGameNode", "ready", kind.rawValue].joined(separator: ".") }
     public init(_ kind: Kind) { self.kind = kind }
 }
 public struct MerchantGameNodeDeclineDraft: Equatable {

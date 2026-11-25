@@ -95,10 +95,17 @@ class TemplateAuthoringContracts(unittest.TestCase):
     def test_production_hard_off_and_no_live_transport(self):
         service=self.read('Core/TemplateAuthoringService.swift')
         self.assertIn('#if DEBUG',service);self.assertIn('return false',service);self.assertIn('transport: (any TemplateAuthoringTransport)? = nil',service)
+        # GlobalSearchLinksAndTemplates rehomes public search reads
+        # (MP utils/discover-search.js:1, pages/search2/index.js:225-227). That URLRequest
+        # is not a template-authoring transport.
+        search_wire = {'TemplateAuthoringWireRequestBuilder.swift', 'TopicTemplateAdoption.swift', 'GlobalSearchLinksAndTemplates.swift'}
         for folder in ['App','Core']:
             for path in (ROOT/folder).glob('*Template*.swift'):
                 self.assertNotIn('URLSession',path.read_text())
-                if path.name not in {'TemplateAuthoringWireRequestBuilder.swift', 'TopicTemplateAdoption.swift'}: self.assertNotIn('URLRequest(',path.read_text())
+                if path.name not in search_wire: self.assertNotIn('URLRequest(',path.read_text())
+        search=(ROOT/'App/GlobalSearchLinksAndTemplates.swift').read_text()
+        for forbidden in ['/api/template/draft','/api/template/publish','/api/template/delete','/api/template/updateLibraryStatus','TemplateAuthoringHTTPTransport','URLSession']:
+            self.assertNotIn(forbidden, search)
     def test_dormant_wire_builder_is_exact_and_has_no_send(self):
         source=self.source('lib/data/api/template_api.dart')
         native=self.read('Core/TemplateAuthoringWireRequestBuilder.swift')
