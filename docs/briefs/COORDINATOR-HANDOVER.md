@@ -2,7 +2,7 @@
 
 This is the live state of the chengyin-app go-live push and the exact steps to continue it. It is updated on every hourly and half-hourly check. If Claude (the coordinator) is out of credit, anyone (a person, Cursor, Gemini or another Claude) can pick up from here.
 
-**Last updated:** 2026-11-25 03:47 UTC by Claude (coordinator).
+**Last updated:** 2026-11-25 03:48 UTC by Claude (coordinator).
 
 ---
 
@@ -11,7 +11,7 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 | Item | Value |
 |---|---|
 | Product | Native SwiftUI iOS app with full mini-program (MP) parity. Repo `liboyang42-cpu/chengyin-app` (PUBLIC), branches `ui/*`. |
-| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`30672330c`** (includes `cursor/r8-member`). |
+| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`b7771abb4`** (+ cursor/r8-member, A1 Core test compile fix). |
 | MP source | `liboyang42-cpu/hengyin`, folder `chengyinhub-xcx` (the mini-program). |
 | Parity (r8 audit, 01:55 UTC) | member 85% · account-publish 86% · merchant 77% · club 77% · player-content 91% · play-roam 98%. Reports: `origin/audit/parity-r8-<area>:docs/audit/parity-r8/<area>.md`. |
 | Acceptance | Runs on the self-hosted runner `fanning-air-5` (owner's Mac), branch `ci/acceptance`. Baselines: Core 27, AppUnit 71, contract 1. The last CHECK (on `0e1cf578a`) found **37 new contract failures + 2 Core test compile errors**; Cursor round 7 fixes them. |
