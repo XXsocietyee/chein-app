@@ -2,7 +2,7 @@ import SwiftUI
 
 // Mini-program `subpackageMember/market/gift/index?mode=code` (平台兑换码). The entry is one row on 通行证, shown only
 // when `GET /api/channel/redeem/status` says `platformCodeEnabled === true` (`MPParityBindings.passRedeemEnabled`,
-// nil by default, so the row and this page's input stay off until that read is wired).
+// filled by `AppSession.mpParityPassBindings()` from `ChannelRedeemSource.status(token:)`).
 //
 // MP results (gift/index.js CODE_REASON): 兑换码无效 / 兑换码已过期 / 兑换码已被他人使用 / 该兑换码不属于当前账号 /
 // 兑换码暂不可用, success 兑换成功 or 你已兑换过这个码 with 去玩. 去玩 opens the one topic, or the theme library for
@@ -143,13 +143,18 @@ enum PassRedeemCodeOutcome: Equatable {
         }
         let redeemer: ChannelRedeemSource
         if let source, source.code == value { redeemer = source.value } else {
-            redeemer = ChannelRedeemSource(configuration: configuration, transport: session.composition.makeTransport())
+            // MP gift/index.js:70-80: `_reqId = 'code_' + Date.now() + '_' + 8 chars`, kept until the code changes.
+            // Pinning the clock and entropy per code makes `redeemPlatformCode` resend the same request id.
+            let millis = Int64(Date().timeIntervalSince1970 * 1000)
+            let tail = JourneyLoopSource.randomEntropy()
+            redeemer = ChannelRedeemSource(configuration: configuration, transport: session.composition.makeTransport(),
+                                           nowMillis: { millis }, entropy: { tail })
             source = (value, redeemer)
         }
         working = true
         defer { working = false }
         do {
-            let envelope = try await redeemer.redeem(code: value, token: token)
+            let envelope = try await redeemer.redeemPlatformCode(code: value, token: token)
             outcome = PassRedeemCodeOutcome.from(envelope)
             if case .redeemed = outcome { source = nil }
         } catch ChannelRedeemRefusal.invalidRequest {

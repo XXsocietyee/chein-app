@@ -27,7 +27,7 @@ import UIKit
 
     var body: some View {
         Group {
-            if let image, loadedURL == url { Image(uiImage: image).resizable().scaledToFit() }
+            if let image, loadedURL == url { Image(uiImage: image).resizable().scaledToFit().accessibilityHidden(true) }
             else { placeholder() }
         }
         .task(id: url) { await load() }

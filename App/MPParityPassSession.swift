@@ -376,6 +376,14 @@ extension AppSession {
 
     func passReadToken() -> String? { currentRuntimeDependencyContext?.session.token }
 
+    /// MP `market/passes` `loadRedeem` / `market/gift` `loadCodeStatus`: signed-in only; closed, refused or unreadable is false.
+    func loadPassRedeemEnabled() async -> Bool {
+        guard let token = passReadToken(), let base = currentRuntimeDependencyContext?.baseURL,
+              let configuration = try? APIConfiguration(baseURL: base) else { return false }
+        let source = ChannelRedeemSource(configuration: configuration, transport: composition.makeTransport())
+        return (try? await source.status(token: token)) ?? false
+    }
+
     func makePlatformPassReader() -> PlatformPass? {
         guard let base = currentRuntimeDependencyContext?.baseURL,
               let configuration = try? APIConfiguration(baseURL: base) else { return nil }
@@ -387,6 +395,7 @@ extension AppSession {
         var bindings = MPParityBindings.none
         bindings.viewerIsMerchant = { [weak self] in self?.mpViewerIsMerchant ?? false }
         bindings.isSignedIn = { [weak self] in self?.passReadToken() != nil }
+        bindings.passRedeemEnabled = { [weak self] in await self?.loadPassRedeemEnabled() ?? false }
         bindings.revealAccountKey = { [weak self] in self?.account.map { String($0.id) } }
         bindings.passMarket = { [weak self] in MPParityPassMarketModel(session: self) }
         bindings.passDetail = { [weak self] id in MPParityPassDetailModel(session: self, productID: id) }
