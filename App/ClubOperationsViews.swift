@@ -451,6 +451,14 @@ struct ClubOperationsWorkspaceView: View {
                 } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(CYColor.dangerText) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
+                // CLB-G19 (r9, MP edit js:35-39 goGovernance; scene-club-edit wxml:206 alt): 改为转让主理人 next to 解散
+                // opens the governance manage page (pages/club/governance/index?clubId=…), where the transfer lives.
+                NavigationLink {
+                    ClubGovernanceReadView(operation: .bans, scope: .init(clubID: profile.club.id), identity: identity,
+                        access: governance.access, coordinator: governance.coordinator)
+                } label: { Label("改为转让主理人", systemImage: "person.crop.circle.badge.checkmark") }
+                    .disabled(loading || state.locksForm)
+                    .accessibilityIdentifier("club.ops.transferInstead")
             } header: {
                 // CLB-edit-02 (parity r2): MP 危险操作 section with its consequence beside the button.
                 Text("club.ops.danger").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
