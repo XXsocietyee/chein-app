@@ -145,7 +145,7 @@ final class ClubOperationsFlowTests: XCTestCase {
         launch("unknown"); reviewSetting(); tap("club.ops.confirm"); count(1)
         tap("club.ops.readBack"); XCTAssertTrue(reveal("club.ops.outcomeUnknown").exists)
         XCTAssertFalse(element("club.ops.acknowledged").exists); count(1)
-        tap("club.ops.close"); app.buttons["Leave form"].tap(); tap("club.ops.openManage")
+        tap("club.ops.close"); app.buttons["Discard"].tap(); tap("club.ops.openManage")
         XCTAssertTrue(reveal("club.ops.outcomeUnknown").exists); count(1)
         _ = reveal("club.ops.setting.publicVisible")
         let setting = app.buttons["club.ops.setting.publicVisible"].firstMatch
@@ -214,7 +214,7 @@ final class ClubOperationsFlowTests: XCTestCase {
         tap("club.ops.reviewProfile")
         XCTAssertTrue(reveal("club.ops.error").exists); count(0)
         let name = element("club.ops.field.name"); app.swipeDown(); name.tap(); name.typeText("本地社群")
-        tap("club.ops.close"); app.buttons["离开表单"].tap()
+        tap("club.ops.close"); app.buttons["确认放弃"].tap()
         XCTAssertTrue(element("club.ops.fixtureNotice").exists)
     }
     func testAccountSwitchDuringDelayedWriteKeepsOldOutcomeHidden() {

@@ -109,15 +109,15 @@ createSeries|Create event series|创建系列场次
 updateSeries|Edit future occurrences|编辑未来场次
 cancelOccurrence|Cancel this occurrence|取消本场
 correctAttendance|Correct attendance|更正考勤
-ban|Ban member|封禁成员
-unban|Remove club ban|解除俱乐部封禁
+ban|Ban|封禁
+unban|Unban|解封
 transferOwner|Transfer owner|转让主理人
-report|Submit a platform report|提交平台举报
-appeal|Appeal a platform case|提交封禁申诉
+report|State the facts and report to the platform|填写事实并提交平台
+appeal|State your reason and appeal|填写理由并提交申诉
 assignRole|Assign|分配
 revokeRole|Revoke|撤销
 sendNotification|Compose member notification|编写成员通知
-retryNotification|Retry failed recipients|重试失败收件人
+retryNotification|Retry failed only|只重试失败项
 saveTopicSettings|Edit topic settings|修改主题设置
 endTopic|End topic and review refunds|结束主题并审核退款
 chapterRecruit|Change chapter recruitment|修改章节招商
@@ -244,7 +244,7 @@ canDesignRoute|Can design routes|可设计路线
 canDesignTask|Can design tasks|可设计任务
 canNpc|Can perform as NPC|可扮演NPC
 canMerchantCoop|Can coordinate merchants|可对接商家
-hasGuideCert|Holds a guide or travel qualification|持导游/旅游资质
+hasGuideCert|Guide / travel certificate|持导游 / 旅游资质
 registered|Identity registered|已登记实名
 accountRole|Account role|账号身份
 targetMemberId|Target member ID|目标成员编号
