@@ -107,6 +107,13 @@ final class ParticipantFormModel: ObservableObject {
             showConfirmation = true; issue = nil; sync()
         } catch { issue = ParticipantScreenIssue(error) }
     }
+    /// r9 A6-02: MP addressinfo.wxml:49 `saveAddress` saves on tap with no modal, so a prepared save is
+    /// committed straight away by the view; only delete keeps its confirm.
+    var pendingIsSave: Bool {
+        guard let confirmation else { return false }
+        if case .save = confirmation.mutation { return true }
+        return false
+    }
     func cancelConfirmation() {
         if let confirmation { coordinator.cancelConfirmation(confirmation) }
         confirmation = nil; originalCreateRetry = nil; confirmationSummary = ""; showConfirmation = false; sync()
@@ -217,6 +224,21 @@ struct ParticipantFormView: View {
         self.onSaved = onSaved; self.onCreated = onCreated
     }
 
+    /// r9 A6-02: the alert stays only for a non-save (delete) confirmation.
+    private var deleteConfirmationShown: Binding<Bool> {
+        Binding(get: { model.showConfirmation && !model.pendingIsSave },
+                set: { model.showConfirmation = $0 })
+    }
+
+    @MainActor private func commitMutation() async {
+        if await model.confirmMutation() {
+            if let row = model.coordinator.savedParticipant, let identity = model.coordinator.identity { onCreated(row, identity) }
+            savedTick += 1
+            try? await Task.sleep(for: .milliseconds(700))
+            onSaved(); dismiss()
+        }
+    }
+
     var body: some View {
         Group {
             if model.reader.identity == nil || model.coordinator.identity == nil {
@@ -268,7 +290,7 @@ struct ParticipantFormView: View {
                             .textContentType(.telephoneNumber).keyboardType(.phonePad)
                             .multilineTextAlignment(.trailing)
                             .submitLabel(.done).focused($focusedField, equals: .phone)
-                            .onSubmit { focusedField = model.reviewForSave() }
+                            .onSubmit { focusedField = model.reviewForSave(); if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } } }
                             .accessibilityIdentifier("participant.form.phone")
                         } label: { requiredLabel("profile.participants.phone") }
                         // Input errors sit in red under the fields (ui-spec States).
@@ -310,6 +332,8 @@ struct ParticipantFormView: View {
                         CYPillButton(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving"
                             : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check")) {
                             focusedField = model.reviewForSave()
+                            // r9 A6-02: MP addressinfo.wxml:49 saves on tap (progress → success), no confirm.
+                            if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } }
                         }
                         .disabled(!model.canReviewForSave)
                         .accessibilityIdentifier("participant.form.save")
@@ -329,16 +353,9 @@ struct ParticipantFormView: View {
         }
         .interactiveDismissDisabled(model.busy)
         .sensoryFeedback(.success, trigger: savedTick)
-        .alert("participant.form.confirmSave", isPresented: $model.showConfirmation) {
+        .alert("participant.form.confirmSave", isPresented: deleteConfirmationShown) {
             Button("participant.form.save") {
-                Task {
-                    if await model.confirmMutation() {
-                        if let row = model.coordinator.savedParticipant, let identity = model.coordinator.identity { onCreated(row, identity) }
-                        savedTick += 1
-                        try? await Task.sleep(for: .milliseconds(700))
-                        onSaved(); dismiss()
-                    }
-                }
+                Task { await commitMutation() }
             }
             Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
         } message: {
