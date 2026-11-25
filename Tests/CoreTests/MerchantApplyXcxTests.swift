@@ -52,8 +52,7 @@ final class MerchantApplyXcxTests: XCTestCase {
     }
 }
 
-/// W5b: without the offline harness and without a registration grant, merchantapply writes stay gated.
-/// MP-first (owner 2026-11-25): the default approval now opens them (MP merchantapply/index.js:673); this pin uses `.closed`.
+/// Registration create and update are granted by the default approval. Chapter apply stays closed. The offline harness stays off.
 @MainActor final class MerchantApplyWriteGateTests: XCTestCase {
     private struct DeadTransport: HTTPTransport {
         func send(_ request: URLRequest) async throws -> (Data, Int) { throw APIError.notConfigured }
@@ -61,11 +60,13 @@ final class MerchantApplyXcxTests: XCTestCase {
     func testRegistrationCreateAndUpdateAreNotPermittedOnTheDisabledService() throws {
         let session = try MerchantContentSession(accountID: 5, epoch: 1, storageScope: "cn", token: "token")
         let service = MerchantContentService(configuration: nil, transport: DeadTransport(), currentSession: { session },
-                                             journal: MerchantContentMemoryPendingStorage(), writeApproval: { .closed })
+                                             journal: MerchantContentMemoryPendingStorage())
         XCTAssertFalse(service.permitsWrites)
         var draft = MerchantRegistrationContentDraft()
         draft.addressName = "Synthetic shop"; draft.address = "Synthetic street"; draft.activityDesc = "Room for 6"
-        XCTAssertFalse(service.permits(.register(topicID: 3, nodeID: 4, draft: draft, cooperateDate: "")))
-        XCTAssertFalse(service.permits(.updateRegistration(id: 9, topicID: 3, draft: draft)))
+        XCTAssertTrue(service.permits(.register(topicID: 3, nodeID: 4, draft: draft, cooperateDate: "")))
+        XCTAssertTrue(service.permits(.updateRegistration(id: 9, topicID: 3, draft: draft)))
+        XCTAssertFalse(service.permits(.apply(chapterID: 1, message: "")))
+        XCTAssertFalse(service.permits(.withdraw(applicationID: 1)))
     }
 }

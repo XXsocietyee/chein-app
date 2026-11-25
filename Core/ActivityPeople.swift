@@ -5,11 +5,14 @@ import Foundation
 public struct ActivityPerson: Equatable {
     public let memberID: Int?
     public let name: String?
+    public let avatarURL: String?
 
-    fileprivate init(memberID: Int?, name: String?) {
+    fileprivate init(memberID: Int?, name: String?, avatarURL: String?) {
         self.memberID = memberID
         let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.name = trimmed.flatMap { $0.isEmpty ? nil : $0 }
+        let avatar = avatarURL?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.avatarURL = avatar.flatMap { $0.isEmpty ? nil : $0 }
     }
 }
 
@@ -19,7 +22,7 @@ public struct ActivityPeople: Decodable, Equatable {
     /// The roster can be partial. Its length is never treated as the total.
     public let registrationCount: Int?
     private enum Keys: String, CodingKey { case collaboratorsList, registrationList, registrationCount }
-    private enum PersonKeys: String, CodingKey { case memberId, memberRealName, nickname }
+    private enum PersonKeys: String, CodingKey { case memberId, memberRealName, nickname, memberAvatar, avatar }
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: Keys.self)
@@ -45,7 +48,8 @@ public struct ActivityPeople: Decodable, Equatable {
         init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: PersonKeys.self)
             person = ActivityPerson(memberID: ActivityPeople.memberID(values),
-                                    name: try values.decodeIfPresent(String.self, forKey: .memberRealName))
+                                    name: try values.decodeIfPresent(String.self, forKey: .memberRealName),
+                                    avatarURL: (try? values.decodeIfPresent(String.self, forKey: .memberAvatar)) ?? nil)
         }
     }
     private struct Registrant: Decodable {
@@ -53,7 +57,8 @@ public struct ActivityPeople: Decodable, Equatable {
         init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: PersonKeys.self)
             person = ActivityPerson(memberID: ActivityPeople.memberID(values),
-                                    name: try values.decodeIfPresent(String.self, forKey: .nickname))
+                                    name: try values.decodeIfPresent(String.self, forKey: .nickname),
+                                    avatarURL: (try? values.decodeIfPresent(String.self, forKey: .avatar)) ?? nil)
         }
     }
     private static func memberID(_ values: KeyedDecodingContainer<PersonKeys>) -> Int? {
