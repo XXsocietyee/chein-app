@@ -218,6 +218,8 @@ struct ClubGovernanceReadView: View {
     @State private var topicMoreRoute: ClubTopicMoreRoute?
     /// CLB-topic-detail-05: the half sheet a topic round action opened.
     @State private var topicQuickSheet: ClubTopicQuickSheet?
+    /// CLB-r7-C-03 (MP roles/index.js:266-272): a failed reread after a role action keeps the list and toasts.
+    @State private var roleRereadToast: LocalizedStringKey?
     @State private var feedMediaScope = UUID()
     private var readContext: ClubGovernanceReadContext {
         .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : (operation == .topicOverview ? storyTemplates.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision)),
@@ -352,6 +354,7 @@ struct ClubGovernanceReadView: View {
         .onChange(of: roleManagementSource) { _, source in
             roleManagementReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
         }
+        .cyToast(message: $roleRereadToast, tone: .warning)
         .onChange(of: scenePhase) { _, phase in
             if operation == .roles {
                 if phase != .active { roleManagementReturn.retire(); roleReads.retire(); generation &+= 1; loading = false }
@@ -923,7 +926,15 @@ struct ClubGovernanceReadView: View {
             defer { roleManagementReturn.finishRead(ticket) }
             guard roleManagementReturn.isReading(ticket, context: readContext, active: scenePhase == .active),
                   roleManagementSource == ticket.source, !Task.isCancelled else { return }
+            let kept = ticket.source
             await load()
+            // CLB-r7-C-03 (MP roles/index.js:266-272 failWith afterAction): the list that was on screen stays, and
+            // 列表没刷新成功，下拉重试 shows; the first load still lands on the error state.
+            if failure != nil, failure != .signedOut, snapshot == nil, !loading, kept.context == readContext,
+               identity == access.identity, scenePhase == .active {
+                failure = nil; snapshotContext = kept.context; snapshotGeneration = generation; snapshot = kept.snapshot
+                roleRereadToast = "club.roles.rereadFailed"
+            }
         }
     }
     @MainActor private func roleReadIsCurrent(_ attachment: UUID?) -> Bool {

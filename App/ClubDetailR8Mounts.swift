@@ -10,11 +10,37 @@ import SwiftUI
     @Published private(set) var coopPool: ClubCoopPoolLoadState = .idle
     @Published private(set) var memberAvatars: [ClubGapMemberAvatarStrip.AvatarItem] = []
     @Published private(set) var memberTotal = 0
+    /// CLB-r7-A-06: 「N 个团」 beside 报名名册 (every club topic, not the capped project page).
+    @Published private(set) var topicTotal: Int?
+    /// CLB-r7-A-06: 「N 人」 beside 查看客户, or 暂时读不到 when the count read fails (MP js:3591-3601).
+    @Published private(set) var customerCountText: String?
+    private var settingsCountsFor: Int?
     private var projectsKey: String?
     private var poolKey: String?
     private var avatarsKey: String?
     /// MP lists every managed topic; the app reads each topic's sessions up front, so it stops at a page.
     static let maxProjects = 12
+
+    /// CLB-r7-A-06 (MP loadSettingsCounts js:3579-3601): read once per club when 俱乐部设置 opens; a failure clears the
+    /// guard so the next opening asks again. Owner / admin only, as the MP sends it.
+    func loadSettingsCounts(clubID: Int, canSeeCustomers: Bool, access: any ClubGovernanceAccess) async {
+        guard canSeeCustomers, settingsCountsFor != clubID else { return }
+        settingsCountsFor = clubID
+        if topicTotal == nil,
+           let topics = try? await access.read(.topics, scope: .init(clubID: clubID), options: [:]),
+           settingsCountsFor == clubID, !Task.isCancelled {
+            topicTotal = topics.value.array?.count
+        }
+        do {
+            let count = try await access.read(.customerCount, scope: .init(clubID: clubID), options: [:])
+            guard settingsCountsFor == clubID, !Task.isCancelled else { return }
+            if let total = count.value["total"].int, total > 0 { customerCountText = "\(total) 人" }
+        } catch {
+            guard settingsCountsFor == clubID, !Task.isCancelled else { return }
+            settingsCountsFor = nil
+            customerCountText = "暂时读不到"
+        }
+    }
 
     func loadProjects(key: String, clubID: Int, showsDirector: Bool, locale: Locale, access: any ClubGovernanceAccess) async {
         guard projectsKey != key else { return }
@@ -25,6 +51,7 @@ import SwiftUI
                 guard current() else { throw CancellationError() }
             }
             guard current() else { return }
+            topicTotal = topics.value.array?.count
             var items: [ClubManagedProjectDirectorItem] = []
             for row in (topics.value.array ?? []).prefix(Self.maxProjects) {
                 guard let topicID = row["id"].int, topicID > 0 else { continue }

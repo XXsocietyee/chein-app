@@ -95,3 +95,25 @@ App/MPGap/Club/ClubGapManageExtensions.swift, App/ClubCheckinRailView.swift, App
 host only), Resources/Localizable.xcstrings, Resources/*Localizations.fragment.json (overrides),
 tools/build_club_governance_catalog.py, Tests/AppUITests/ClubOperationsFlowTests.swift,
 Tests/AppUnitTests/DesignR1ClubKitTests.swift. The forks' files are listed in their commits.
+
+## Round 5 (2026-11-25)
+
+Merged `origin/ui/combined-r7` f95850a46 (merge commit f6dd969ca). Conflicts: `Resources/Localizable.xcstrings`
+(3-way per-key merge; the r3/r8 club copy overrides and every r7 key kept) and the leaderboard span pin (re-hashed over
+the merged file). Two pins followed our own r8 code: `test_club_ops_governance` (review block now behind the
+direct-command guard) and `docs/community-media-templates/catalogs/ClubCommunity.xcstrings` (synced to the landed MP
+copy for club.community.loading / noComments / commentContent). The contract suite has no new failures against the
+r7 tip (one less: test_club_ops_governance), and `check_scaffold.py` prints PASS structural checks.
+
+| id | sev | status | where |
+|---|---|---|---|
+| CLB-r7-C-03 | P2 | closed | MP roles/index.js:266-272: a failed reread after a role action keeps the list and toasts 列表没刷新成功，下拉重试 (`finishRoleManagementReturn` restores the ticket's snapshot; `.cyToast` on the read view; key `club.roles.rereadFailed`). The first load still shows the error state |
+| CLB-r7-A-06 | P2 | closed | counts in 俱乐部设置: 「N 人」/「暂时读不到」 from `api/club/crm/customers/count` (owner/admin, once per club, retried after a failure; MP js:3579-3601), 「N 个团」 from the club topics read, 「N 已委派」 from access/me `delegatedRoleCount` (MP js:2488). `ClubGapSettingsSheet.clubToolCounts`, `ClubDetailR8MountModel.loadSettingsCounts` |
+| CLB-r7-A-08 | P2 | closed (already on the tip) | `ClubSingleOwnedEntry` (App/MPReviewedPageScreen.swift:292, :1050) from fix/r3-club-b |
+| CLB-group-code-04 | P2 | closed | deep link passes `activityName`/`topicName` (App/MPReviewedPageScreen.swift:322) as the session label; the topic-detail path carries it since round 4 |
+
+Still open for App (needs a compiler pass or a visual check): CLB-topic-detail-05 台账, CLB-topic-detail-10 定向广播,
+CLB-event-ops-02 inline member rows, CLB-detail-14, CLB-event-ops-09. For Cursor: list unchanged (above).
+Files: App/ClubGovernanceViews.swift, App/ClubDetailView.swift, App/ClubDetailR8Mounts.swift,
+App/MPGap/Club/ClubGapManageExtensions.swift, docs/port/strings/fix-r8-club.json, Resources/Localizable.xcstrings,
+Tests/ContractChecks/test_club_leaderboard_member_navigation.py, Tests/ContractChecks/test_club_ops_governance.py.

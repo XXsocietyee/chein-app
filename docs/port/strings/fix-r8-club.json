@@ -238,6 +238,23 @@
           }
         }
       }
+    },
+    "club.roles.rereadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The list didn't refresh. Pull down to retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表没刷新成功，下拉重试"
+          }
+        }
+      }
     }
   }
 }

@@ -35,6 +35,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @StateObject private var r8Mounts = ClubDetailR8MountModel()
     @StateObject private var r8Leaderboard = ClubInlineLeaderboardModel()
     @State private var r8Route: ClubDetailR8Route?
+    /// CLB-r7-A-06 (MP js:2488): access/me delegatedRoleCount, shown as 「N 已委派」 beside 角色与权限.
+    @State private var delegatedRoleCount = 0
     @State private var showsSettings = false
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
@@ -430,7 +432,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                enroll: management?.governance == nil ? nil : { r8Route = .enroll },
                                eventOps: management?.governance == nil ? nil : { r8Route = .eventOps },
                                roles: management?.governance == nil ? nil : { r8Route = .roles })
+                    .clubToolCounts(customers: r8Mounts.customerCountText, topics: r8Mounts.topicTotal,
+                                    delegatedRoles: delegatedRoleCount)
                     .presentationDetents([.medium, .large])
+                    .task {
+                        guard let governance = management?.governance else { return }
+                        await r8Mounts.loadSettingsCounts(clubID: club.id, canSeeCustomers: club.isOwner || club.viewerIsAdmin,
+                                                          access: governance.access)
+                    }
             }
             .navigationDestination(item: $r8Route) { route in
                 ClubDetailR8Destination(route: route, club: club, identity: reader.clubIdentity,
@@ -539,16 +548,19 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     /// `/api/club/access/me` only widens the manage tab; a failed or foreign read revokes
     /// to the legacy owner/admin flags, as `revokeClubAccess` does in the mini-program.
     private func loadManageGrant() async {
-        manageGrant = nil
+        manageGrant = nil; delegatedRoleCount = 0
         guard let governance = management?.governance, reader.clubIdentity.isSignedIn else { return }
         let identity = reader.clubIdentity
         let grant: ClubDetailManageGrant?
+        var delegated = 0
         do {
             let snapshot = try await governance.access.read(.access, scope: .init(clubID: id), options: [:])
             grant = snapshot.permissions.map { ClubDetailManageGrant($0) }
+            delegated = max(0, snapshot.value["delegatedRoleCount"].int ?? 0)
         } catch { grant = nil }
         guard !Task.isCancelled, identity == reader.clubIdentity else { return }
         manageGrant = grant?.clubID == id ? grant : nil
+        delegatedRoleCount = manageGrant == nil ? 0 : delegated
     }
 }
 
