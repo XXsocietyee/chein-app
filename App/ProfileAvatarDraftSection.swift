@@ -290,33 +290,40 @@ import UIKit
     static func dismantleUIViewController(_ controller: UIViewController, coordinator: Coordinator) { coordinator.model?.retireAvatar() }
 }
 
-/// Avatar-specific labels around the existing bounded square-rect and redraw primitives.
+/// r8 A7-02 (MP app.js:617-700 → pages/crop?ratio=1:1&shape=circle): the avatar goes through the shared MiniCropView
+/// (pinch / pan, dimmed mask, circle, 还原). Its source rectangle maps onto the existing square-rect + redraw primitives.
 @MainActor private struct ProfileAvatarCropView: View {
     let draft: MerchantImageCropDraft
     let confirm: (UUID, MerchantImageCropRect) -> Void
     let cancel: () -> Void
-    @State private var horizontal = 0.5
-    @State private var vertical = 0.5
-    @State private var zoom = 1.0
-    private var rect: MerchantImageCropRect? {
-        try? .init(sourceWidth: draft.source.width, sourceHeight: draft.source.height, aspect: .logo,
-                   horizontal: horizontal, vertical: vertical, zoom: zoom)
-    }
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("profile.avatar.crop").cyText(.sheetTitle)
-            Text("image.crop.localOnly").cyText(.meta)
-            if let rect, let preview = try? MerchantImageCropRenderer.preview(draft.source, rect: rect) {
-                Image(uiImage: preview).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel("profile.avatar.preview")
-                Text("image.crop.horizontal")
-                Slider(value: $horizontal, in: 0...1).accessibilityLabel("image.crop.horizontal")
-                Text("image.crop.vertical")
-                Slider(value: $vertical, in: 0...1).accessibilityLabel("image.crop.vertical")
-                Text("image.crop.zoom")
-                Slider(value: $zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
-                Button("image.crop.confirm") { confirm(draft.id, rect) }
-            } else { Text("profile.avatar.failed") }
+        if let image = UIImage(data: draft.source.jpeg) {
+            MiniCropView(images: [image], ratio: "1:1", shape: .circle, onFinish: { results in
+                guard let rect = Self.rect(results.first, source: draft.source) else { cancel(); return }
+                confirm(draft.id, rect)
+            }, onCancel: cancel)
+            .frame(minHeight: 420)
+            .listRowInsets(EdgeInsets())
+            .accessibilityIdentifier("profile.avatar.crop")
+        } else {
+            Text("profile.avatar.failed")
             Button("action.cancel", role: .cancel, action: cancel)
         }
+    }
+
+    /// Inverse of `MerchantImageCropRect(aspect: .logo, horizontal:vertical:zoom:)`; 使用原图 is the centred full square.
+    static func rect(_ result: MiniCropView.Result?, source: RetainedSelectedImage) -> MerchantImageCropRect? {
+        let w = source.width, h = source.height
+        guard case .crop(let picked)? = result else {
+            return try? .init(sourceWidth: w, sourceHeight: h, aspect: .logo)
+        }
+        let available = Double(min(w, h))
+        let side = max(1, min(picked.width, picked.height))
+        let zoom = min(4, max(1, available / side))
+        let units = max(1, Int((available / zoom).rounded(.down)))
+        let travelX = Double(w - units), travelY = Double(h - units)
+        let horizontal = travelX > 0 ? min(1, max(0, picked.x / travelX)) : 0.5
+        let vertical = travelY > 0 ? min(1, max(0, picked.y / travelY)) : 0.5
+        return try? .init(sourceWidth: w, sourceHeight: h, aspect: .logo, horizontal: horizontal, vertical: vertical, zoom: zoom)
     }
 }
