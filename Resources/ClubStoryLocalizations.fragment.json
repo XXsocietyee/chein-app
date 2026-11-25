@@ -560,6 +560,23 @@
           }
         }
       }
+    },
+    "club.story.walkMinutes %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lldmin 步行"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
