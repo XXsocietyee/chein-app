@@ -695,5 +695,39 @@
         }
       }
     }
+  },
+  "templateAuthor.mine.coverInitial": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Play"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩"
+        }
+      }
+    }
+  },
+  "templateAuthor.mine.useNum %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Used %lld times"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld 次引用"
+        }
+      }
+    }
   }
 }

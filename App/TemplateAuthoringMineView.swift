@@ -53,6 +53,9 @@ import SwiftUI
             }
             ForEach(appliedKeyword == keyword ? rows : []) { row in
                 Section {
+                    // PLY-26-4: MP card cover (imgUrl, else the title-initial fallback) with the N 次引用 overlay.
+                    TemplateMineCover(title: row.title, imageURL: QuestifyCardArtwork.safeURL(row.imgUrl), useNum: row.useNum)
+                        .listRowInsets(EdgeInsets())
                     // Mini-program 我的节点玩法 card: title (opens the detail), status and facts, then actions.
                     if let id = MemberPlayTemplateID(rawValue: row.id), memberDetail != nil {
                         Button { selectedMember = id } label: {
@@ -347,5 +350,39 @@ private struct TemplateOwnShelfReadCopy: View {
                 else { Text(action).cyText(.meta) }
             }
         }
+    }
+}
+
+/// PLY-26-4: MP `item-pic` (mytemplate.wxml:18-32 before retirement): gradient + first character of the title, the
+/// https cover on top when it loads, and `{useNum} 次引用` bottom-left. The ★ rating is not decoded yet (Core).
+private struct TemplateMineCover: View {
+    let title: String
+    let imageURL: URL?
+    let useNum: Int?
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            LinearGradient(colors: [CYColor.brandStrong, CYColor.gameAccent], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .overlay {
+                    Text(verbatim: title.first.map(String.init) ?? String(localized: "templateAuthor.mine.coverInitial"))
+                        .cyText(.display, weight: .bold).foregroundStyle(.white.opacity(0.85))
+                }
+            if let imageURL {
+                AsyncImage(url: imageURL) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { Color.clear }
+                }
+            }
+            if let useNum {
+                Text("templateAuthor.mine.useNum \(useNum)")
+                    .cyText(.meta, weight: .semibold, monospacedDigit: true).foregroundStyle(.white)
+                    .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                    .background(.black.opacity(0.45), in: Capsule())
+                    .padding(CYSpacing.sm)
+            }
+        }
+        .frame(maxWidth: .infinity).frame(height: 120)
+        .clipped()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(useNum.map { Text("templateAuthor.mine.useNum \($0)") } ?? Text(verbatim: ""))
+        .accessibilityHidden(useNum == nil)
     }
 }
