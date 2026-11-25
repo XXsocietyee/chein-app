@@ -98,7 +98,8 @@ struct MerchantOperationsEditor: View {
                 profileField("merchant.operations.derivatives", \.derivatives, "derivatives")
                 MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: .derivativeBenefits)
                 profileField("merchant.operations.website", \.website, "website")
-                profileField("merchant.operations.preference", \.preference, "preference")
+                // MC8-19-2: MP 经营类目 multi-select sheet (fixed list + existing custom values), not free text.
+                MerchantPreferenceEntry(model: model)
             }
             // Parity decor P0: 联系电话 / 门店微信 are merchant self-service (MP decor index.wxml:359-390).
             Section("merchant.operations.contact") {

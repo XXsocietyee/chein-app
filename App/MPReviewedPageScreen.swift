@@ -518,6 +518,10 @@ import SwiftUI
                     AnyView(MerchantPerkTemplatesHost(reader: session.cooperationFlowReader, executor: coopFlowWrite?.executor()))
                 })
                 .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+                // MC8-19-1: 看公开主页 previews the store's own public home.
+                .environment(\.merchantPublicHomePreview, { owner in
+                    AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext))
+                })
                 .environment(\.merchantReviewsDestination, {
                     AnyView(MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .reviews(page: 1))
                         .cyPushedChrome(domain: .merchant))
