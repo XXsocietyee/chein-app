@@ -13,9 +13,9 @@ VIEW = ROOT / "App/SquareDetailView.swift"
 LEDGER = ROOT / "Core/MiniProgramPageByPage99DecisionLedgerContract.swift"
 
 # C-S3 (fix-parity2): 动态加载失败 / 这条帖文暂不可用 / 没有找到这条帖文 are now in the catalog (SquareDetailIssueView).
+# Comment failures are in the catalog too (fixr3.square.commentsFailed / moreCommentsFailed),
+# matching pages/square/detail/index.wxml:124 and :172.
 MISSING_COPY = [
-    "评论加载失败",
-    "更多评论加载失败",
     "服务暂时无法提供这条动态",
     "网络异常，请检查连接后重试",
     "正在加载更多评论…",
@@ -44,7 +44,9 @@ MISSING_FIELDS = [
 ]
 
 
-UNRELATED_KEYS = {"ui.cloud05.admission.more", "share.title", "share.entry"}
+# social.portfolio.preview shares the words 查看大图 (cy-profile index.wxml:521).
+# Square detail's own image label (pages/square/detail/index.wxml:95) is still missing.
+UNRELATED_KEYS = {"ui.cloud05.admission.more", "share.title", "share.entry", "social.portfolio.preview"}
 
 
 def catalog_values():
