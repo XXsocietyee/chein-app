@@ -13,16 +13,23 @@ public struct AccountGapOwnProfileComposerRow: View {
 
     public var body: some View {
         Group {
+            // r8 A1-01 (MP cyp wxml:262-275): own-profile prompt that opens the post composer.
             Button(action: onTapCompose) {
-                HStack {
-                    Image(systemName: "square.and.pencil")
-                        .foregroundStyle(CYColor.brand)
-                    Text(verbatim: AccountPublishGapCopy.ownComposerPlaceholder)
+                HStack(spacing: CYSpacing.sm) {
+                    MPAsset.FeatureIcon.iconPen
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .accessibilityHidden(true)
+                    Text("fixr8.profile.composerPlaceholder")
                         .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                     Spacer()
                 }
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
             }
+            .accessibilityIdentifier("profile.ownComposer")
             if let joinDateText, !joinDateText.isEmpty {
                 LabeledContent(AccountPublishGapCopy.joinDatePrefix, value: joinDateText)
                     .cyText(.meta)

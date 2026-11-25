@@ -248,3 +248,26 @@ enum ProjectEditCastConfig {
         return try? JSONDecoder().decode(RoamPlace.self, from: data)
     }
 }
+
+// MARK: - A1-01 own-profile composer (MP cyp wxml:262-275, js:1225-1245)
+
+/// Shown on the 帖文 tab of the viewer's own profile only; opens the same square composer as the square toolbar.
+@MainActor struct OwnProfileComposerHost: View {
+    let actions: SocialActionCoordinator
+    let offline: Bool
+    @State private var composing = false
+
+    var body: some View {
+        Section {
+            AccountGapOwnProfileComposerRow(joinDateText: nil) { composing = true }
+        }
+        .sheet(isPresented: $composing) {
+            SquareCloudComposerView(coordinator: actions, offline: offline,
+                                    joinedHosted: { offline ? .offline : .permission },
+                                    completed: { offline ? .offline : .permission },
+                                    onClose: { composing = false })
+                .id(actions.identity)
+                .cySheet(detents: [.large])
+        }
+    }
+}

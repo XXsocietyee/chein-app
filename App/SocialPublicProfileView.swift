@@ -205,6 +205,10 @@ import SwiftUI
                             ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)
                         }
                     case .posts:
+                        // r8 A1-01: own profile only.
+                        if let actions, actions.identity.accountID == memberID {
+                            OwnProfileComposerHost(actions: actions, offline: reader.isOfflineExample)
+                        }
                         UGCBlockedFilterContainer(memberID: profile.id, authorName: profile.nickname) {
                             ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader,
                                 actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)
