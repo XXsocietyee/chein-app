@@ -209,6 +209,9 @@ struct ClubGovernanceReadView: View {
     @State private var customerTopic: ClubCustomerHistoryTopicRoute?
     @State private var leaderboardMember: ClubLeaderboardMemberRoute?
     @State private var feedClub: ClubFeedClubRoute?
+    /// CLB-topic-detail-07 (MP CU-C-79, wxml:684-700): 去选一场 opens a 选择场次 sheet; the picked session opens its event ops.
+    @State private var sessionPickerVisible = false
+    @State private var pickedSession: ClubGovernanceScope?
     /// CLB-topic-detail-04: /api/club/crm/topic-manage-stats read beside the topic overview (MP loadManageStats).
     @State private var topicStats: ClubGovernanceValue?
     @State private var feedMediaScope = UUID()
@@ -731,6 +734,10 @@ struct ClubGovernanceReadView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .safeAreaInset(edge: .bottom) { topicPrimaryFooter }
+        .sheet(isPresented: $sessionPickerVisible) { topicSessionPicker }
+        .navigationDestination(item: $pickedSession) { target in
+            ClubOpsEventView(scope: target, identity: identity, access: access, coordinator: coordinator)
+        }
         .cyGroupedSurface()
         .cyPageTitle(String.LocalizationValue(stringLiteral: "club.gov." + operation.rawValue))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
@@ -1783,6 +1790,46 @@ struct ClubGovernanceReadView: View {
             }
         }
     }
+    /// CLB-topic-detail-07 (MP topic-detail wxml:684-700): 选择场次, one row per session (when over who); a pick closes
+    /// the sheet and opens that session's event ops (MP event-ops?activityId=).
+    @ViewBuilder private var topicSessionPicker: some View {
+        let sessions = (snapshot?.value["activityList"].array ?? []).filter { $0["id"].int != nil }
+        NavigationStack {
+            List(Array(sessions.enumerated()), id: \.offset) { _, row in
+                if let id = row["id"].int {
+                    let when = ClubGroupCodePort.formatStart(date: row["startDate"].string, time: row["startTime"].string)
+                    let who = row["name"].string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    Button {
+                        sessionPickerVisible = false
+                        pickedSession = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
+                    } label: {
+                        HStack(spacing: CYSpacing.sm) {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                if !when.isEmpty { Text(verbatim: when).cyText(.bodyMedium).monospacedDigit() }
+                                if !who.isEmpty { Text(verbatim: who).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                                if when.isEmpty && who.isEmpty { Text("club.gov.eventID \(id)") }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                        }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("club.topic.sessionPicker.a11y \(when.isEmpty ? who : when)"))
+                    .accessibilityIdentifier("club.topic.sessionPicker.\(id)")
+                }
+            }
+            .navigationTitle(Text("club.topic.sessionPicker.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.close") { sessionPickerVisible = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
     private func topicPrimaryPlan(state: ClubTopicDetailPort.State, stats: ClubGovernanceValue, sessions: [ClubGovernanceValue]) -> ClubTopicDetailPort.Primary {
         let single = sessions.count == 1 ? sessions[0]["id"].int : nil
         return ClubTopicDetailPort.primary(state: state, directorActive: false, canDirect: stats["canDirect"] == .bool(true),
@@ -1800,6 +1847,10 @@ struct ClubGovernanceReadView: View {
             switch plan {
             case .none:
                 EmptyView()
+            case .chooseSession where sessions.compactMap({ $0["id"].int }).count > 1:
+                // CLB-topic-detail-07: several sessions → pick one first (MP sessionPick sheet), then its event ops.
+                Button { sessionPickerVisible = true } label: { Text("club.topic.primary.chooseSession") }
+                    .buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
             case .chooseSession, .openSession:
                 NavigationLink { ClubOpsEventView(scope: opsScope, identity: identity, access: access, coordinator: coordinator) } label: {
                     Text(plan == .chooseSession ? "club.topic.primary.chooseSession" : "club.topic.primary.openSession")

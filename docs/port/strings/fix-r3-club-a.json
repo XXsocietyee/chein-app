@@ -1360,6 +1360,40 @@
           }
         }
       }
+    },
+    "club.topic.sessionPicker.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择场次"
+          }
+        }
+      }
+    },
+    "club.topic.sessionPicker.a11y %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage the %@ session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理%@这一场"
+          }
+        }
+      }
     }
   }
 }
