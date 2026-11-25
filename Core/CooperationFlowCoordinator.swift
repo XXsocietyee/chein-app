@@ -202,7 +202,7 @@ public struct CoopFlowReview: Equatable {
         case .handle(let id, _, _), .contact(let id), .attachPerks(let id, _), .markInviteRead(let id): resource = "invite-\(id)"
         case .apply(let id, _), .withdraw(let id): resource = "pool-topic-\(id)"
         case .decline(let id, _): resource = "application-\(id)"
-        case .confirm(let id), .reject(let id): resource = "registration-\(id)"
+        case .confirm(let id, _), .reject(let id, _): resource = "registration-\(id)"
         case .createTemplate: resource = "template-create"
         case .deleteTemplate(let id): resource = "template-\(id)"
         case .enrollOffer(let fields): resource = "offer-chapter-\(fields["chapterId"]?.integer ?? 0)"

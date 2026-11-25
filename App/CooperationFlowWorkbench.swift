@@ -284,8 +284,8 @@ struct CoopFlowSafetyNotice: View {
                 if row["status"].integer == 0, let id = row["applyId"].integer { preview(.decline(applyID: id, scope: row["scope"].text), label: "coopflow.decline") }
             case .registrations:
                 if row["auditStatus"].integer == 0, let id = row["id"].integer {
-                    preview(.confirm(registrationID: id), label: "coopflow.confirmCandidate")
-                    preview(.reject(registrationID: id), label: "coopflow.rejectCandidate")
+                    preview(.confirm(registrationID: id, scope: nil), label: "coopflow.confirmCandidate")
+                    preview(.reject(registrationID: id, scope: nil), label: "coopflow.rejectCandidate")
                 }
             case .complaintTopics:
                 if let topic = row["topicId"].integer { NavigationLink("coopflow.complaint.prepare") { CoopFlowReasonEditor(topicID: topic) } }

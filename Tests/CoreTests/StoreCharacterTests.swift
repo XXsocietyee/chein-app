@@ -242,4 +242,42 @@ import XCTest
         XCTAssertEqual(status.blockers, [.capabilityDisabled]); XCTAssertFalse(status.canPublish)
         XCTAssertFalse(StoreCharacterAIDraftStatus.publishRouteRegistered)
     }
+    func testResetVoicePostsEmptyObjectWhenEnrollmentIsOn() async throws {
+        let transport = StoreCharacterTestTransport()
+        transport.set(StoreCharacterEndpoint.voiceReset, #"{"code":200}"#)
+        let writer = backend(transport, gates: .mpFirst, scope: { UUID() })
+        XCTAssertTrue(writer.permits(StoreCharacterEndpoint.voiceReset))
+        XCTAssertFalse(backend(transport, gates: saveGates, scope: { UUID() }).permits(StoreCharacterEndpoint.voiceReset))
+        try await writer.resetVoice(requestID: UUID())
+        let sent = try XCTUnwrap(transport.requests.last)
+        XCTAssertEqual(sent.httpMethod, "POST")
+        XCTAssertEqual(sent.url?.path, "/api/merchant/npc/voice/reset")
+        XCTAssertEqual(sent.httpBody, Data(#"{}"#.utf8))
+    }
+    func testOperationsReaderDelegatesVoiceStatusAndReviewText() async throws {
+        let transport = StoreCharacterTestTransport()
+        transport.set(StoreCharacterEndpoint.voiceStatus, #"{"code":200,"voiceStatus":2,"voiceSample":"https://example.com/s.mp3"}"#)
+        transport.set(StoreCharacterEndpoint.review, #"{"code":200,"data":{"hasProfile":true,"review":"PENDING"}}"#)
+        let voice = backend(transport, scope: { UUID() })
+        let host = StoreCharacterVoiceHost()
+        let delegated = StoreCharacterOperationsReader(reader: host, voice: voice)
+        let state = try await delegated.voiceStatus()
+        XCTAssertEqual(state.status, .ready)
+        let reviewLine = await delegated.npcReviewText()
+        XCTAssertEqual(reviewLine, "审核通过前玩家看不到这个形象")
+        let closed = StoreCharacterOperationsReader(reader: host)
+        do { _ = try await closed.voiceStatus(); XCTFail() } catch { XCTAssertEqual(error as? StoreCharacterFailure, .notConfigured) }
+        let emptyReview = await closed.npcReviewText()
+        XCTAssertEqual(emptyReview, "")
+    }
+}
+
+@MainActor private final class StoreCharacterVoiceHost: MerchantOperationsReading {
+    let scope = UUID()
+    let isConfigured = true
+    let isAuthenticated = true
+    let isOfflineExample = false
+    func access() async throws -> MerchantOperationsAccess { throw StoreCharacterFailure.notConfigured }
+    func document(_ destination: MerchantOperationsDestination) async throws -> MerchantOperationsDocument { throw StoreCharacterFailure.notConfigured }
+    func saveExample(_ draft: MerchantOperationsDraft) async throws {}
 }

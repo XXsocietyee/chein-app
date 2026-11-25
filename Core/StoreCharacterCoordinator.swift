@@ -14,6 +14,7 @@ import Foundation
     public enum Notice: Equatable {
         case saved, nameRequired, nameFirst, saveProfileFirst, photoUnavailable, writesDisabled
         case mapPointUnavailable, mapPointFailed(String?), mapPointUnknown, readbackConfirmed, readbackMismatch
+        case voiceCleared
     }
     public enum SaveOrigin: Equatable { case field(StoreCharacterField), avatar }
     public struct SaveConfirmation: Equatable, Identifiable {
@@ -37,6 +38,10 @@ import Foundation
         public let id: UUID
         public let sample: StoreCharacterRecordedSample
         public let consent: StoreCharacterVoiceConsentRecord
+    }
+    /// Destructive confirm for 清除声音. The id is the tap, not a server field.
+    public struct VoiceClearConfirmation: Equatable, Identifiable {
+        public let id: UUID
     }
     public struct MapPointConfirmation: Equatable, Identifiable {
         public let id: UUID
@@ -79,6 +84,7 @@ import Foundation
     public private(set) var voiceConsent = false
     public private(set) var recording: StoreCharacterRecordedSample?
     public private(set) var voiceConfirmation: VoiceConfirmation?
+    public private(set) var voiceClear: VoiceClearConfirmation?
     private var preparedVoice: VoiceConfirmation?
     private var pageVisible = false
     private var active = true
@@ -142,7 +148,7 @@ import Foundation
         await refreshVoice()
     }
     public func invalidate() {
-        active = false; generation += 1; saveConfirmation = nil; voiceConfirmation = nil; mapPointConfirmation = nil
+        active = false; generation += 1; saveConfirmation = nil; voiceConfirmation = nil; voiceClear = nil; mapPointConfirmation = nil
         field = nil; discard = nil; changed()
     }
     public func setPageVisible(_ visible: Bool) { pageVisible = visible; changed() }
@@ -341,7 +347,7 @@ import Foundation
     }
     public func closeVoice() {
         guard !voiceBusy else { return }
-        voiceVisible = false; changed()
+        voiceVisible = false; voiceClear = nil; changed()
     }
     public func refreshVoice() async {
         let stamp = generation, scope = reader.scope
@@ -376,6 +382,33 @@ import Foundation
         guard !voiceBusy, !voiceUnknown else { return }
         recording = nil; voiceIssue = nil; preparedVoice = nil
         voice = .init(status: .none, sample: voice?.sample); changed()
+    }
+    /// Local 重新录音 stays `resetRecording`. 清除声音 asks, then POSTs voice/reset and re-reads status.
+    public func prepareClearVoice() {
+        guard canEnroll, !voiceBusy, !voiceUnknown, (voice?.status == .ready || voice?.status == .failed) else { return }
+        voiceClear = VoiceClearConfirmation(id: UUID()); changed()
+    }
+    public func cancelClearVoice() { voiceClear = nil; changed() }
+    public func confirmClearVoice(_ id: UUID) async {
+        guard let pending = voiceClear, pending.id == id, let writer, canEnroll, !voiceBusy else { return }
+        let stamp = generation, scope = reader.scope
+        voiceClear = nil; voiceBusy = true; voiceIssue = nil; changed()
+        do {
+            try await writer.resetVoice(requestID: pending.id)
+            guard current(stamp, scope) else { return }
+            voiceBusy = false
+        } catch {
+            guard current(stamp, scope) else { return }
+            voiceBusy = false
+            if case .rejected(_, let message)? = error as? StoreCharacterFailure { voiceIssue = .server(message) }
+            else { voiceIssue = .enrollUnknown }
+            changed()
+            return
+        }
+        await refreshVoice()
+        guard current(stamp, scope) else { return }
+        if voice?.status == .none { notice = .voiceCleared }
+        changed()
     }
     public func prepareEnroll() {
         guard let recording, !voiceBusy, voice?.status != .pending, !voiceUnknown else { return }

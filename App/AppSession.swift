@@ -994,10 +994,9 @@ final class AppSession: ObservableObject {
             feedSourceScope: { [weak self] in self?.currentClubFeedSourceScope },
             feedSourceDestination: { [weak self] clubID, captured in
                 guard let self, clubID > 0, self.currentClubFeedSourceScope == captured else { return nil }
-                return AnyView(ClubDetailView(id: clubID, reader: self,
-                    actionCoordinator: self.clubActionCoordinator, management: self.clubManagementContext,
-                    community: self.clubCommunityContext, publicRoster: self.clubPublicRosterReader))
-            }
+                return AnyView(ClubDetailView(id: clubID, reader: self, actionCoordinator: self.clubActionCoordinator, management: self.clubManagementContext, community: self.clubCommunityContext, publicRoster: self.clubPublicRosterReader))
+            },
+            creativeSquareLane: relationCreativeSquareLane()
         )
     }
     private func communityEvidence(clubID: Int, post: ClubCommunityPost?, comment: ClubCommunityComment?) async throws -> ClubCommunityEvidence {

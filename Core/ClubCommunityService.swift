@@ -7,6 +7,65 @@ import FoundationNetworking
 public protocol ClubCommunityOfflineTransport: HTTPTransport {}
 /// Explicit composition-root grant; never supplied by shipped construction or UI state.
 public enum ClubCommunityMutationGrant: Equatable { case disabled, reviewedInjection }
+/// One page of `GET api/v1/community/feeds/LATEST`, the rewrite of `/api/creativesquare/list`
+/// when `is_my` is 0 (`utils/community-post-api.js`). Not the favorites form.
+public struct RelationCreativeSquareLane: Equatable, Sendable {
+    public struct Post: Equatable, Sendable {
+        public let id: Int
+        public let content: String
+        public let nickname: String
+        public let images: String
+        public let createTime: String
+        public let authorMemberID: Int?
+        public init(id: Int, content: String, nickname: String, images: String, createTime: String, authorMemberID: Int?) {
+            self.id = id; self.content = content; self.nickname = nickname; self.images = images
+            self.createTime = createTime; self.authorMemberID = authorMemberID
+        }
+    }
+    public let posts: [Post]
+    public let hasMore: Bool
+    public let nextCursor: Int?
+    public init(posts: [Post], hasMore: Bool, nextCursor: Int?) {
+        self.posts = posts; self.hasMore = hasMore; self.nextCursor = nextCursor
+    }
+}
+
+enum RelationFeedMerger {
+    /// Newest first. A community row is taken only when its time is strictly newer than the club head.
+    /// Club rows keep their relative order. A community id that collides with a club post is dropped.
+    static func merge(club: [ClubCommunityFeedItem], lane: RelationCreativeSquareLane) -> [ClubCommunityFeedItem] {
+        let clubIDs = Set(club.map(\.post.id))
+        var community: [ClubCommunityFeedItem] = []
+        for post in lane.posts {
+            guard post.id > 0, !clubIDs.contains(post.id), community.allSatisfy({ $0.post.id != post.id }) else { continue }
+            var json: [String: Any] = [
+                "id": post.id, "content": post.content, "nickname": post.nickname,
+                "images": post.images, "createTime": post.createTime
+            ]
+            if let author = post.authorMemberID, author > 0 { json["authorMemberId"] = author }
+            guard let parsed = try? ClubCommunityPost(json: json) else { continue }
+            community.append(.creativeSquare(parsed))
+        }
+        var clubIndex = 0
+        var communityIndex = 0
+        var merged: [ClubCommunityFeedItem] = []
+        while clubIndex < club.count || communityIndex < community.count {
+            let communityIsNewer = communityIndex < community.count && (clubIndex >= club.count || newer(community[communityIndex].post.createTime, than: club[clubIndex].post.createTime))
+            if communityIsNewer {
+                merged.append(community[communityIndex]); communityIndex += 1
+            } else {
+                merged.append(club[clubIndex]); clubIndex += 1
+            }
+        }
+        return merged
+    }
+    private static func newer(_ time: String, than other: String) -> Bool {
+        if time.isEmpty { return false }
+        if other.isEmpty { return true }
+        return time > other
+    }
+}
+
 public struct ClubCommunityService {
     private let baseURL: URL
     private let transport: any HTTPTransport
@@ -30,7 +89,7 @@ public struct ClubCommunityService {
         request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
         return request
     }
-    public func read(_ operation: ClubCommunityRead, session: ClubCommunitySession, check: () throws -> Void) async throws -> ClubCommunitySnapshot {
+    public func read(_ operation: ClubCommunityRead, session: ClubCommunitySession, community: RelationCreativeSquareLane? = nil, check: () throws -> Void) async throws -> ClubCommunitySnapshot {
         guard operation.fields.values.allSatisfy({ value in
             if let number = value as? Int { return number > 0 }
             if let text = value as? String { return text == "all" }
@@ -63,9 +122,10 @@ public struct ClubCommunityService {
         case let .feed(_, beforeID):
             guard let object = value as? [String: Any], let count = object["clubCount"] as? Int, count >= 0,
                   let hasMore = object["hasMore"] as? Bool else { throw ClubCommunityFailure.invalid }
-            let items = try CCWire.rows(object).map { try ClubCommunityFeedItem(row: $0, clubID: nil) }
-            guard Set(items.map(\.id)).count == items.count else { throw ClubCommunityFailure.invalid }
-            return try ClubCommunityPostPage.snapshot(items: items, page: nil, clubCount: count, feedHasMore: hasMore, feedRequestedBeforeID: beforeID, feedNextBeforeID: items.last?.pagingID)
+            let clubItems = try CCWire.rows(object).map { try ClubCommunityFeedItem(row: $0, clubID: nil) }
+            guard Set(clubItems.map(\.id)).count == clubItems.count else { throw ClubCommunityFailure.invalid }
+            let items = community.map { RelationFeedMerger.merge(club: clubItems, lane: $0) } ?? clubItems
+            return try ClubCommunityPostPage.snapshot(items: items, page: nil, clubCount: count, feedHasMore: hasMore, feedRequestedBeforeID: beforeID, feedNextBeforeID: clubItems.last?.pagingID, communityLaneIncluded: community != nil, communityHasMore: community?.hasMore == true, communityNextCursor: community?.nextCursor)
         case let .comments(postID, _):
             let comments = try CCWire.rows(value).map(ClubCommunityComment.init)
             guard comments.allSatisfy({ $0.postID == nil || $0.postID == postID }) else { throw ClubCommunityFailure.stale }
@@ -76,7 +136,7 @@ public struct ClubCommunityService {
         }
     }
     /// Discover feed. Body is `{"scope":"all","limit":N}` plus optional `beforeId`. `clubCount` is not required.
-    public func readDiscoverFeed(limit: Int, beforeID: Int?, session: ClubCommunitySession, check: () throws -> Void) async throws -> ClubCommunitySnapshot {
+    public func readDiscoverFeed(limit: Int, beforeID: Int?, session: ClubCommunitySession, community: RelationCreativeSquareLane? = nil, check: () throws -> Void) async throws -> ClubCommunitySnapshot {
         guard session.identity.isSignedIn else { throw ClubCommunityFailure.forbidden }
         let request = try AccountPublishMPContract.clubPostFeedRequest(baseURL: baseURL, limit: limit, beforeID: beforeID, token: session.token)
         try check()
@@ -99,9 +159,11 @@ public struct ClubCommunityService {
             return (try? ClubCommunityPost(json: json)).map(ClubCommunityFeedItem.original)
         }
         guard Set(items.map(\.id)).count == items.count else { throw ClubCommunityFailure.invalid }
+        let shown = community.map { RelationFeedMerger.merge(club: items, lane: $0) } ?? items
         return try ClubCommunityPostPage.snapshot(
-            items: items, page: nil, clubCount: page.clubCount,
-            feedHasMore: page.hasMore == true, feedRequestedBeforeID: beforeID, feedNextBeforeID: items.last?.pagingID)
+            items: shown, page: nil, clubCount: page.clubCount,
+            feedHasMore: page.hasMore == true, feedRequestedBeforeID: beforeID, feedNextBeforeID: items.last?.pagingID,
+            communityLaneIncluded: community != nil, communityHasMore: community?.hasMore == true, communityNextCursor: community?.nextCursor)
     }
     static func decode(_ data: Data, status: Int) throws -> Any {
         guard (200..<300).contains(status), let object = try JSONSerialization.jsonObject(with: data) as? [String: Any], let code = object["code"] as? Int else { throw ClubCommunityFailure.invalid }

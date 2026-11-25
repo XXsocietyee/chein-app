@@ -564,10 +564,11 @@ import SwiftUI
         // MC7-31-10 / MC8-31-1: the new-invitation page with the `type` / `toId` / `topicId` presets applied.
         case "pages/coop/invite/index":
             let inviteLink = CoopInviteLink(query)
-            CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: nil,
+            CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: inviteLink?.scope,
                                       initialType: inviteLink?.type,
-                                      lockedTarget: inviteLink.flatMap { link in link.toID.map { CoopInviteLockedTarget(type: link.type, toID: $0, name: "") } },
-                                      initialTopicID: inviteLink?.topicID)
+                                      lockedTarget: inviteLink.flatMap { link in link.toID.map { CoopInviteLockedTarget(type: link.type, toID: $0, name: link.toName ?? "") } },
+                                      initialTopicID: inviteLink?.topicID,
+                                      originApplyID: inviteLink?.originApplyID)
                 .environment(\.coopTopicPublishDestination, { scope in
                     AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: scope.map { ["scope": $0] } ?? [:]).environmentObject(session))
                 })

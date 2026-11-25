@@ -5,6 +5,8 @@ public struct MerchantOperationsAccess: Decodable, Equatable {
     public let identity: MerchantAccess
     public let profileWrite: Bool
     public let cooperationManage: Bool
+    /// `merchant:marketing:read`. Inactive identities do not inherit it.
+    public let marketingRead: Bool
     private enum CodingKeys: String, CodingKey { case permissions }
     public init(from decoder: Decoder) throws {
         identity = try MerchantAccess(from: decoder)
@@ -12,6 +14,7 @@ public struct MerchantOperationsAccess: Decodable, Equatable {
         let permissions = try c.decodeIfPresent([String].self, forKey: .permissions) ?? []
         profileWrite = identity.active && permissions.contains("merchant:profile:write")
         cooperationManage = identity.active && permissions.contains("merchant:coop:manage")
+        marketingRead = identity.active && permissions.contains("merchant:marketing:read")
     }
     public func allows(_ destination: MerchantOperationsDestination) -> Bool {
         guard identity.active else { return false }
