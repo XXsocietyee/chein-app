@@ -72,6 +72,9 @@ public struct MerchantContentReceipt: Equatable {
     var isConfigured: Bool { get }
     var isAuthenticated: Bool { get }
     var permitsWrites: Bool { get }
+    /// Protocol requirement so `any MerchantContentServing` callers (the review confirm button) reach the
+    /// real service's per-command approval instead of the extension's closed default.
+    func permits(_ command: MerchantContentCommand) -> Bool
     func load(_ query: MerchantContentQuery) async throws -> MerchantContentSnapshot
     func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt
     func pending() throws -> [MerchantContentPendingRecord]
@@ -92,18 +95,55 @@ extension MerchantContentServing {
     /// No topic-publisher read on this reader. Fail closed: a nil proof cannot invite.
     public func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof? { nil }
 }
-/// Real-transport gate for chapter invite and accept/reject. Both default closed.
+/// Real-transport gate for the merchant-content writes the mini program sends from
+/// `pages/topic/merchantinfo` and `pages/topic/merchantapply`. MP-first rule (owner, 2026-11-25):
+/// every one of these defaults ON; the server's own permission checks decide. None is money.
+/// `.closed` exists for tests that pin the no-dispatch path.
 public struct MerchantContentWriteApproval: Equatable {
+    /// `api/merchant/chapter-application/invite` (merchantinfo/host-layers.js:346).
     public let chapterInvite: Bool
+    /// `api/merchant/chapter-application/invite/respond` (merchantinfo.js:1653).
     public let chapterRespond: Bool
-    /// Mini `merchantinfo` chapter application (`api/merchant/chapter-application/apply`). Default closed.
+    /// Mini `merchantinfo` chapter application (`api/merchant/chapter-application/apply`, merchantinfo.js:1460).
     public let chapterApply: Bool
-    /// Withdraw a pending application (`api/merchant/chapter-application/withdraw`). Default closed.
+    /// Withdraw a pending application (`api/merchant/chapter-application/withdraw`, merchantinfo.js:1782).
     public let chapterWithdraw: Bool
-    public init(chapterInvite: Bool = false, chapterRespond: Bool = false, chapterApply: Bool = false, chapterWithdraw: Bool = false) {
+    /// `api/registration/merchant/create` (merchantapply/index.js:673).
+    public let register: Bool
+    /// `api/registration/merchant/update` (merchantapply/index.js:673).
+    public let updateRegistration: Bool
+    /// `api/registration/merchant/cancel` (merchantinfo.js:4859).
+    public let cancelRegistration: Bool
+    /// `api/merchant/chapter-node/submit` (merchantinfo.js:1862).
+    public let submitNode: Bool
+    /// `api/merchant/chapter-application/audit` (merchantinfo.js:2284).
+    public let auditApplication: Bool
+    /// `api/merchant/chapter-node/audit` (merchantinfo.js:2343).
+    public let auditNode: Bool
+    /// `api/circle-theme/instance/review` (merchantinfo.js:3227).
+    public let reviewCircle: Bool
+    /// `api/merchant/city-node/claim`, `claim/cancel`, `offline` (pages/merchant/citynode/index.js:318,360,483)
+    /// and `city-node/save` (citynode/create/index.js:397).
+    public let cityNode: Bool
+    /// `api/merchant/chapter-node/npc/save`, `npc/voice/enroll`, `npc/voice/reset`
+    /// (pages/topic/components/cy/node-npc-form/index.js:332,518,563).
+    public let npc: Bool
+    /// `api/game/session/command` station commands (utils/game-session-client.js:395 from pages/merchant/game-node).
+    public let station: Bool
+    public init(chapterInvite: Bool = true, chapterRespond: Bool = true, chapterApply: Bool = true, chapterWithdraw: Bool = true,
+                register: Bool = true, updateRegistration: Bool = true, cancelRegistration: Bool = true,
+                submitNode: Bool = true, auditApplication: Bool = true, auditNode: Bool = true, reviewCircle: Bool = true,
+                cityNode: Bool = true, npc: Bool = true, station: Bool = true) {
         self.chapterInvite = chapterInvite; self.chapterRespond = chapterRespond
         self.chapterApply = chapterApply; self.chapterWithdraw = chapterWithdraw
+        self.register = register; self.updateRegistration = updateRegistration; self.cancelRegistration = cancelRegistration
+        self.submitNode = submitNode; self.auditApplication = auditApplication; self.auditNode = auditNode; self.reviewCircle = reviewCircle
+        self.cityNode = cityNode; self.npc = npc; self.station = station
     }
+    /// Every write closed. Test-only use; the host default is the MP-first `.init()`.
+    public static let closed = MerchantContentWriteApproval(chapterInvite: false, chapterRespond: false, chapterApply: false, chapterWithdraw: false,
+        register: false, updateRegistration: false, cancelRegistration: false, submitNode: false, auditApplication: false, auditNode: false, reviewCircle: false,
+        cityNode: false, npc: false, station: false)
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
@@ -121,9 +161,13 @@ public struct MerchantContentWriteApproval: Equatable {
     public var scope: UUID { let s = currentSession(); if s != previous { previous = s; stamp = UUID() }; return stamp }
     public var isConfigured: Bool { configuration != nil }
     public var isAuthenticated: Bool { currentSession() != nil }
-    public var permitsWrites: Bool { execution == .injectedOfflineHarness && transport is any MerchantContentOfflineTransport && journal != nil }
-    /// Chapter invite / accept / reject on the real transport when this approval says so.
-    /// Every other command stays on `permitsWrites`. The offline harness is not this path.
+    /// Offline harness: the injected offline transport. Real transport (MP-first, owner 2026-11-25): a configured service
+    /// with a journal whose write approval is not `.closed`; each command still checks `permits(_:)`.
+    public var permitsWrites: Bool {
+        if execution == .injectedOfflineHarness { return transport is any MerchantContentOfflineTransport && journal != nil }
+        return configuration != nil && journal != nil && !(transport is any MerchantContentOfflineTransport) && writeApproval() != .closed
+    }
+    /// Every merchant-content write the MP sends, on the real transport, when this approval says so (MP-first: on). The offline harness is not this path.
     public func permits(_ command: MerchantContentCommand) -> Bool {
         if execution == .injectedOfflineHarness { return permitsWrites }
         guard journal != nil, !(transport is any MerchantContentOfflineTransport) else { return false }
@@ -132,7 +176,16 @@ public struct MerchantContentWriteApproval: Equatable {
         case .respondChapterInvitation: return writeApproval().chapterRespond
         case .apply: return writeApproval().chapterApply
         case .withdraw: return writeApproval().chapterWithdraw
-        default: return false
+        case .register: return writeApproval().register
+        case .updateRegistration: return writeApproval().updateRegistration
+        case .cancelRegistration: return writeApproval().cancelRegistration
+        case .submitNode: return writeApproval().submitNode
+        case .auditApplication: return writeApproval().auditApplication
+        case .auditNode: return writeApproval().auditNode
+        case .reviewCircle: return writeApproval().reviewCircle
+        case .claim, .cancelClaim, .cityStatus, .place: return writeApproval().cityNode
+        case .saveNPC, .enrollVoice, .resetVoice: return writeApproval().npc
+        case .station: return writeApproval().station
         }
     }
     public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }, writeApproval: @escaping () -> MerchantContentWriteApproval = { .init() }) {

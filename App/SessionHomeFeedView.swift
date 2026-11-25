@@ -5,6 +5,8 @@ import SwiftUI
     var onSignIn:(()->Void)? = nil
     var onStartRoam:(()->Void)? = nil
     @State private var router = AppRouter()
+    /// R8-PC-A1-1 MP-first: the 首页 city is a local label only (MP `onManualCityChange`), never the global roam centre.
+    @State private var homeCityLabel: String?
     /// One hero namespace for the Explore stack: feed cards are zoom sources, the pushed detail is the destination.
     @Namespace private var hero
     @State private var activeContinuationScope:PlaySessionScope?=nil
@@ -122,7 +124,7 @@ import SwiftUI
                 viewerNickname: session.account?.nickname,
                 viewerAvatar: session.account?.avatar,
                 viewerIsMerchant: session.account?.role == "merchant",
-                selectedCity: session.roamArea?.label,
+                selectedCity: homeCityLabel ?? session.roamArea?.label,
                 showsHeroBanners: true,
                 continuationCards: continuationCards,
                 continuationReadAvailability: continuationReadAvailability,
@@ -335,11 +337,11 @@ import SwiftUI
             search = HomeInPageSearch(returnFocus: search.returnFocus + 1)
         }
     }
-    /// MP `onManualCityChange` stores only the city name. The app keeps the label and moves the search centre to that
-    /// city when it is one of the supported cities; 全国 keeps the current centre.
+    /// MP `onManualCityChange` (pages/index/index.js:1430-1435): 仅本地展示 — store the city name for the 首页 label only.
+    /// It does not move `session.roamArea` (search map / roam centre). 全国 keeps the current label.
     private func selectHomeCity(_ city: String?, nationwide: Bool) {
-        guard !nationwide, let city, let centre = HomeCityCentre.coordinate(for: city) else { return }
-        session.roamArea = RoamSearchArea(coordinate: centre, label: city)
+        guard !nationwide, let city, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        homeCityLabel = city
     }
     private func handleActionBanner(_ banner: HomeIndexParityPresentation.ActionBanner) {
         switch banner.id {
