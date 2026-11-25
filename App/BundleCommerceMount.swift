@@ -139,7 +139,7 @@ enum BundleCommerceFailure {
             switch failure {
             case .disabled, .staleSession: return .permission
             case .outcomeUnknown: return .unknown
-            case .response(let status, let code, _) where status == 0 && code == 0: return .offline
+            case .response(let status, let code, _, _) where status == 0 && code == 0: return .offline
             default: return .error
             }
         }
