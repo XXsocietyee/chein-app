@@ -311452,6 +311452,40 @@
           }
         }
       }
+    },
+    "fixr9.ap.template.saveGameplay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save gameplay"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存玩法"
+          }
+        }
+      }
+    },
+    "fixr9.ap.template.saveAndBind": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save and attach"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存并绑定"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

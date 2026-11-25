@@ -102,3 +102,23 @@ struct R9PublicShareButton: View {
         }
     }
 }
+
+// MARK: - C-T6b template editor `from` / `scope` (MP pages/publish/temp/index.js:1392-1416,
+// template-intro/index.js:291 `temp/index?scope=MERCHANT`)
+
+extension AppSession {
+    /// MP temp/index.js:1400: `operationScope = options.scope === 'MERCHANT' ? 'MERCHANT' : ''`. Only MERCHANT is
+    /// written, onto both the shelf requests (`coordinator.operationScope`) and the submit payload (`draft.operationScope`,
+    /// which `TemplateAuthoringContract` turns into `scope=MERCHANT`). `from` only changes labels (see `TemplateAuthoringView`).
+    func templateAuthoringEditor(adopting source: DiscoveryPlayTemplate? = nil, from: String?, scope: String?) -> TemplateAuthoringCoordinator {
+        let coordinator = templateAuthoringEditor(adopting: source)
+        guard scope == "MERCHANT" else { return coordinator }
+        coordinator.operationScope = "MERCHANT"
+        if coordinator.draft.operationScope != "MERCHANT" {
+            var draft = coordinator.draft
+            draft.operationScope = "MERCHANT"
+            coordinator.change(draft)
+        }
+        return coordinator
+    }
+}
