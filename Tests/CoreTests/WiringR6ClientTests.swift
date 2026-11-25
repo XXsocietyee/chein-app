@@ -44,8 +44,8 @@ private final class WiringR6Transport: HTTPTransport {
         XCTAssertEqual(request.url?.path, "/prod-api/api/im/read")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-im-token")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded;")
-        XCTAssertEqual(String(decoding: XCTUnwrap(request.httpBody), as: UTF8.self), "conversation_id=12")
-        XCTAssertFalse(String(decoding: XCTUnwrap(request.httpBody), as: UTF8.self).contains("read_to"))
+        XCTAssertEqual(String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self), "conversation_id=12")
+        XCTAssertFalse(String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self).contains("read_to"))
         transport.payload = #"{"code":409,"msg":"未读","errorCode":"CONFLICT"}"#
         transport.requests.removeAll()
         do { try await service.markInboxConversationRead(conversationID: 12, token: "synthetic-im-token"); XCTFail() }
@@ -99,7 +99,7 @@ private final class WiringR6Transport: HTTPTransport {
         let request = try XCTUnwrap(transport.requests.first)
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.url?.path, "/api/club/settlement/summary")
-        XCTAssertNil(URLComponents(url: XCTUnwrap(request.url), resolvingAgainstBaseURL: false)?.query)
+        XCTAssertNil(URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)?.query)
         XCTAssertEqual(request.httpBody, try CoopFlowRead.clubSettlementSummary(clubID: 9, personal: true).body().canonical())
         XCTAssertFalse(transport.requests.contains { $0.url?.path.contains("withdraw") == true })
         let detail = try XCTUnwrap(CoopClubSettlementDetail.resolve(try XCTUnwrap(value["topics"].rows?.first)))
@@ -152,7 +152,7 @@ private final class WiringR6Transport: HTTPTransport {
         XCTAssertEqual(list.httpMethod, "POST")
         XCTAssertEqual(list.url?.path, "/api/merchant/reviews/public")
         XCTAssertEqual(list.value(forHTTPHeaderField: "Authorization"), "synthetic-review-token")
-        let query = Dictionary(uniqueKeysWithValues: (URLComponents(url: XCTUnwrap(list.url), resolvingAgainstBaseURL: false)?.queryItems ?? []).map { ($0.name, $0.value ?? "") })
+        let query = try Dictionary(uniqueKeysWithValues: (URLComponents(url: try XCTUnwrap(list.url), resolvingAgainstBaseURL: false)?.queryItems ?? []).map { ($0.name, $0.value ?? "") })
         XCTAssertEqual(query, ["merchantRowId": "73", "registrationId": "19", "pageNum": "1", "pageSize": "20"])
 
         transport.payload = #"{"code":200,"data":{"reviewId":9,"status":"PENDING_REVIEW","version":0,"replayed":false,"auditTaskId":2}}"#
@@ -162,7 +162,7 @@ private final class WiringR6Transport: HTTPTransport {
         let create = transport.requests[2]
         XCTAssertEqual(create.url?.path, "/api/merchant/reviews/create")
         let body = try JSONSerialization.jsonObject(with: XCTUnwrap(create.httpBody)) as? [String: Any]
-        XCTAssertEqual(Set(body?.keys ?? []), ["merchantRowId", "registrationId", "rating", "content", "imageUrls", "requestId"])
+        XCTAssertEqual(Set(body?.keys.map { $0 } ?? []), ["merchantRowId", "registrationId", "rating", "content", "imageUrls", "requestId"])
         XCTAssertEqual(body?["imageUrls"] as? [String], [])
         XCTAssertEqual(body?["requestId"] as? String, "req-1")
         XCTAssertFalse(transport.requests.contains { $0.url?.path.contains("free-explore/bundle/review") == true })

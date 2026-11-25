@@ -337,7 +337,8 @@ private final class PlayRoamPinTransport: HTTPTransport {
     func testGoalReceiptPinsRequestId() async throws {
         let transport = PlayRoamPinTransport()
         transport.bodies["/api/exploration-goals/receipt"] = PlayRoamPinTransport.activeGoal
-        let goal = try await tools(transport).goalReceipt(requestID: "abcdefghijklmnop", token: "synthetic")
+        let draft = RoamGoalDraft(requestID: "abcdefghijklmnop", metric: .distinctRoutes, target: 3, startDate: "2099-01-01", endDateExclusive: "2099-06-01")
+        let goal = try await tools(transport).goalReceipt(requestID: "abcdefghijklmnop", draft: draft, token: "synthetic")
         XCTAssertEqual(goal.requestID, "abcdefghijklmnop")
         let request = try XCTUnwrap(transport.requests.first)
         XCTAssertEqual(request.httpMethod, "GET")
@@ -398,7 +399,7 @@ private final class PlayRoamPinTransport: HTTPTransport {
         XCTAssertEqual(method, "POST")
         let transport = PlayRoamPinTransport()
         let client = PlatformPass(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!), transport: transport)
-        XCTAssertThrowsError(try client.cancelOrder(orderNo: "orderNo", token: "synthetic")) { error in
+        XCTAssertThrowsError(try client.cancelPassOrder(orderNo: "orderNo", token: "synthetic")) { error in
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)
@@ -411,7 +412,7 @@ private final class PlayRoamPinTransport: HTTPTransport {
         XCTAssertEqual(method, "POST")
         let transport = PlayRoamPinTransport()
         let client = PlatformPass(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!), transport: transport)
-        XCTAssertThrowsError(try client.confirmOrder(orderNo: "orderNo", token: "synthetic")) { error in
+        XCTAssertThrowsError(try client.confirmPassOrder(orderNo: "orderNo", token: "synthetic")) { error in
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)
@@ -428,7 +429,7 @@ private final class PlayRoamPinTransport: HTTPTransport {
         XCTAssertEqual(fields, ["reason"])
         let transport = PlayRoamPinTransport()
         let client = PlatformPass(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!), transport: transport)
-        XCTAssertThrowsError(try client.refundApply(orderNo: "orderNo", reason: "changed my mind", token: "synthetic")) { error in
+        XCTAssertThrowsError(try client.refundApplyPassOrder(orderNo: "orderNo", reason: "changed my mind", token: "synthetic")) { error in
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)

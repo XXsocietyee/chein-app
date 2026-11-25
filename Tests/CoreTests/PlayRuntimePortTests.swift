@@ -93,14 +93,18 @@ final class PlayRuntimePortTests: XCTestCase {
         XCTAssertNil(ChinaReviewedRouteCapability.mark(for: PlayRuntimePortRouteGate.visitConfigPath))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(PlayRuntimePortRouteGate.visitConfigPath))
         let configuration = try APIConfiguration(baseURL: URL(string: "https://fixture.example")!)
-        let held = FreeExplorationVisitConfigService(configuration: configuration, transport: VisitConfigStub(), authorWrites: false, readsEnabled: false, token: { "fixture-token" })
+        let held = await MainActor.run {
+            FreeExplorationVisitConfigService(configuration: configuration, transport: VisitConfigStub(), authorWrites: false, readsEnabled: false, token: { "fixture-token" })
+        }
         do {
             _ = try await held.load(topicID: 9)
             XCTFail("an explicit off read must not send")
         } catch let error as FreeExplorationVisitConfigError {
             XCTAssertEqual(error, .disabled)
         }
-        let service = FreeExplorationVisitConfigService(configuration: configuration, transport: VisitConfigStub(), token: { "fixture-token" })
+        let service = await MainActor.run {
+            FreeExplorationVisitConfigService(configuration: configuration, transport: VisitConfigStub(), token: { "fixture-token" })
+        }
         let rows = try await service.load(topicID: 9)
         XCTAssertEqual(rows, [])
     }

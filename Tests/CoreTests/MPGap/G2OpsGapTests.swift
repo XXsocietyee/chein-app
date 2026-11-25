@@ -221,11 +221,14 @@ final class G2OpsGapTests: XCTestCase {
         } else { XCTFail("city node scan must not post") }
         let transport = StubTransport { _ in (Data(#"{"code":200}"#.utf8), 200) }
         let client = ClubScanClient(configuration: baseConfig, transport: transport)
-        XCTAssertFalse(try await client.submit("not-a-code", token: validToken, canGovern: true, canManageActivities: false))
+        let invalidCodePosted = try await client.submit("not-a-code", token: validToken, canGovern: true, canManageActivities: false)
+        XCTAssertFalse(invalidCodePosted)
         XCTAssertTrue(transport.requests.isEmpty)
-        XCTAssertFalse(try await client.submit("v1.x.group_1", token: validToken, canGovern: false, canManageActivities: false))
+        let unauthorizedPosted = try await client.submit("v1.x.group_1", token: validToken, canGovern: false, canManageActivities: false)
+        XCTAssertFalse(unauthorizedPosted)
         XCTAssertTrue(transport.requests.isEmpty)
-        XCTAssertTrue(try await client.submit("v1.x.group_1", token: validToken, canGovern: true, canManageActivities: false))
+        let governedPosted = try await client.submit("v1.x.group_1", token: validToken, canGovern: true, canManageActivities: false)
+        XCTAssertTrue(governedPosted)
         let sent = try XCTUnwrap(transport.requests.first)
         XCTAssertEqual(sent.httpMethod, "POST")
         XCTAssertTrue(sent.url?.path.hasSuffix("api/verify/groupcode/redeem") == true)
