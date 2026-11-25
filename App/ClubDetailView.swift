@@ -31,6 +31,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var heroScrolledAway = false
     @State private var loadedClubName: String?
     @State private var openedTopicID: Int?
+    /// fix-r8-club: reads and routes for the mounted ClubGap* views (CLB-detail-09, G04, G06, G08, G19).
+    @StateObject private var r8Mounts = ClubDetailR8MountModel()
+    @State private var r8Route: ClubDetailR8Route?
+    @State private var showsSettings = false
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -118,6 +122,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                          ownerStage: ownerStage,
                                          onApprovals: management == nil ? nil : { showsApprovals = true },
                                          onEvents: { selectedTab = tabs.select(.events, from: tab) })
+                }
+                // CLB-detail-09 / CLB-r7-A-04 (MP wxml:452-475): 管理中的项目 with 活动导演台 and 场次工具.
+                if tab == .manage, club.canGovern || canManageActivities(club), management?.governance != nil {
+                    ClubManagedProjectsMount(model: r8Mounts) { r8Route = $0 }
+                }
+                // CLB-G04 (MP js:3780-3847): 可对接的活动 + 我的合作, owner only.
+                if tab == .manage, club.isOwner, let session = reader as? AppSession {
+                    ClubCoopPoolMount(session: session, model: r8Mounts, reloadKey: r8Key(club, tab: tab)) { r8Route = $0 }
                 }
                 if tab == .posts, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
                     Section {
@@ -254,6 +266,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                     if let host = badgeHost(id) { ClubBadgeManagementNavigationEntry(host: host).id(host.id) }
                     Section {
+                        // CLB-G08 (MP wxml:265-280): four member avatars and +N above 查看全部成员.
+                        if club.canSeeMembers, !r8Mounts.memberAvatars.isEmpty {
+                            ClubGapMemberAvatarStrip(avatars: r8Mounts.memberAvatars, totalCount: r8Mounts.memberTotal) { showsMembers = true }
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .accessibilityIdentifier("club.detail.memberStrip")
+                        }
                         if club.canSeeMembers {
                             Button { showsMembers = true } label: {
                                 HStack {
@@ -366,7 +384,30 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .toolbar {
                 // MC-22: share sits in the bar beside the system back (a glass circle on iOS 26+ bars).
                 ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubID: club.id, clubName: club.name) }
+                // CLB-G06 (MP wxml:12-14, 690): the settings gear. The mounted sheet carries the owner rows only
+                // (编辑 / 转让 / 解散), so it shows for the owner; admins keep their rows on 管理 (CLB-r7-A-06 open).
+                if club.isOwner, management?.operations != nil {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { showsSettings = true } label: { Image(systemName: "gearshape") }
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityLabel(Text("clubR8.settings.open"))
+                            .accessibilityIdentifier("club.detail.settings")
+                    }
+                }
             }
+            .sheet(isPresented: $showsSettings) {
+                // CLB-G19: 改为转让主理人 beside 解散 in 危险操作 (owner only, as in the MP).
+                ClubGapSettingsSheet(clubName: club.name, canGovern: true,
+                                     onEditClub: { r8Route = .workspace },
+                                     onTransferOwner: { r8Route = management?.governance == nil ? nil : .transferOwner },
+                                     onDissolveClub: { r8Route = .workspace })
+                    .presentationDetents([.medium, .large])
+            }
+            .navigationDestination(item: $r8Route) { route in
+                ClubDetailR8Destination(route: route, clubID: id, identity: reader.clubIdentity,
+                                        session: reader as? AppSession, management: management)
+            }
+            .task(id: r8Key(club, tab: tab)) { await loadR8Mounts(club: club, tab: tab) }
             .navigationDestination(item: $openedTopicID) { topicID in
                 // CLB-r7-A-01 (MP goTopic js:2957-2966): governors and activity managers open the club topic-detail;
                 // everyone else opens the ordinary topic page.
@@ -442,6 +483,23 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         }
         let raw = ready.memberCountText
         return (raw == ClubDetailPageModel.unknownMark ? raw : (Int(raw).map { ClubMemberCountLocalization.text($0, locale: locale) } ?? raw), raw, ready.showsChannels, ready)
+    }
+
+    private func r8Key(_ club: ClubRecord, tab: ClubDetailTab) -> String {
+        "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)|\(managementRevision)"
+    }
+    private func loadR8Mounts(club: ClubRecord, tab: ClubDetailTab) async {
+        let key = r8Key(club, tab: tab)
+        if tab == .manage, club.canGovern || canManageActivities(club), let governance = management?.governance {
+            await r8Mounts.loadProjects(key: key, clubID: club.id, showsDirector: club.isOwner || club.viewerIsAdmin,
+                                        locale: locale, access: governance.access)
+        }
+        if tab == .manage, club.isOwner, let session = reader as? AppSession {
+            await r8Mounts.loadCoopPool(key: key, reader: session.cooperationReader, locale: locale)
+        }
+        if tab == .overview, club.canSeeMembers {
+            await r8Mounts.loadMemberAvatars(key: key, clubID: club.id, reader: reader)
+        }
     }
 
     /// `/api/club/access/me` only widens the manage tab; a failed or foreign read revokes
