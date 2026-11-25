@@ -22,7 +22,9 @@ import UIKit
     /// SALBUM-1: a metadata-scope album still offers the camera when the host passes its session camera destination
     /// (the camera itself stays behind `stampCameraEnabled`); remote images keep the read-only scope's policy.
     var allowsCapture: Bool { (readOnlyScope == nil && !roamStampIsMetadataOnly(reader)) || (readOnlyScope != nil && stampDestination != nil) }
-    var allowsRemoteImages: Bool { readOnlyScope?.allowsRemoteImages ?? !roamStampIsMetadataOnly(reader) }
+    /// SALBUM-1 (MP-first, owner 2026-11-25): the MP album shows every stamp's `picUrl`
+    /// (subpackageP3/pages/stamp-album/index/index.wxml:19-23), so metadata readers show it too.
+    var allowsRemoteImages: Bool { readOnlyScope?.allowsRemoteImages ?? true }
     @ViewBuilder var captureDestination: some View {
         if allowsCapture {
             if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) }
@@ -594,7 +596,8 @@ final class RoamAlbumPageOwner: ObservableObject {}
         !retired && (!pageOwnerWasBound || pageOwner != nil) && presentationIsCurrent() && base.identity == expected &&
         roamStampMetadataScope(base) == metadataScope
     }
-    var allowsRemoteImages: Bool { !roamStampIsMetadataOnly(base) }
+    /// SALBUM-1 (MP-first): stamp `picUrl` is shown as in the MP album.
+    var allowsRemoteImages: Bool { true }
     var hasPageOwner: Bool { pageOwnerWasBound && pageOwner != nil }
     func bind(to owner: RoamAlbumPageOwner) {
         if pageOwnerWasBound {
