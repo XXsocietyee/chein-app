@@ -94,7 +94,7 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
         spans = [
             # Parity r2 (X1 / X3): this span runs into bodyNavigation, whose hero row and stacked failure sections were
             # replaced by the inline title and one failure block; the customer filter rows inside it are unchanged.
-            ('            if operation == .customers {', '            if operation == .topicCustomers {', 'c2fe2d058a76fb62c78e856c1abcc41e96d74ec0269df730e50d5ef692853d93'),  # fix-r3-club-a: apply guest state (CLB-apply-08) and the answer-sheet loading/failure copy (CLB-topic-story-03, round 3) join this span
+            ('            if operation == .customers {', '            if operation == .topicCustomers {', 'd86a4d827cec3f49acc44ce0ea4acec7dd1ddfe9374ad9e37bbad3a0617dd8eb'),  # fix-r8-club: the customer filter is the MP chip row (CLB-customers-07). fix-r3-club-a: apply guest state (CLB-apply-08) and the answer-sheet loading/failure copy (CLB-topic-story-03, round 3) join this span
             ('    @MainActor private func loadCustomersNow()', '    @MainActor private func load() async {', '1c8613aec8b47f2cb00ed001f56358eeadc4ae42cb5b3c4792150a1efcd8475a'),
             # fix-r3-club-b: this span also holds the notify retry footnote (CLB-notify-09/-10) and the check-in
             # error-phase guard (CLB-checkin-detail-03); the customer rows inside it are unchanged.

@@ -683,9 +683,28 @@ struct ClubGovernanceReadView: View {
             if operation == .customers {
                 Section {
                     // Mini-program club/customers: filter chips, then search (typing already re-reads).
-                    Picker("club.gov.filter", selection: customerFilterBinding) {
-                        ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
-                    }.pickerStyle(.segmented).labelsHidden()
+                    // CLB-customers-07 (MP customers wxml:15-23): a scrolling chip row, not a segmented control.
+                    ScrollView(.horizontal) {
+                        HStack(spacing: CYSpacing.sm) {
+                            ForEach(["all", "repeat", "new", "remark"], id: \.self) { value in
+                                let selected = customerFilterBinding.wrappedValue == value
+                                Button { customerFilterBinding.wrappedValue = value } label: {
+                                    Text(LocalizedStringKey("club.gov.filter." + value))
+                                        .cyText(.label)
+                                        .foregroundStyle(selected ? CYColor.textInverse : CYColor.textPrimary)
+                                        .padding(.horizontal, CYSpacing.md)
+                                        .frame(minHeight: CYSpacing.minTouchTarget)
+                                        .background(Capsule().fill(selected ? CYColor.textPrimary : CYColor.bgRaised))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityAddTraits(selected ? .isSelected : [])
+                                .accessibilityIdentifier("club.gov.customers.filter." + value)
+                            }
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityLabel(Text("club.gov.filter"))
                     HStack {
                         Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                         TextField("club.gov.keyword", text: customerKeywordBinding)
@@ -742,7 +761,9 @@ struct ClubGovernanceReadView: View {
         // customer page shows when the owner comes back.
         .onAppear { rereadCustomersOnReturn() }
         .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in
-            NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) }
+            NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator)
+                // CLB-group-code-04 (MP group-code wxml:38-39): the topic-detail 出示团码 carries its session label.
+                .environment(\.clubRoleActivityLabel, groupCodeSessionLabel(route)) }
                 .cyDomainSheet(detents: [.full])
         }
         .background {
@@ -1256,6 +1277,27 @@ struct ClubGovernanceReadView: View {
         guard customerTopic == nil, current(target) else { return }
         customerTopic = target
     }
+    /// CLB-group-code-04: the 「活动名 · 开始时间」 label of the topic session an 出示团码 route targets, from the loaded topic.
+    private func groupCodeSessionLabel(_ route: ClubGovernanceFormRoute) -> String? {
+        guard route.operation == .issueGroupCode, operation == .topicOverview, let id = route.scope.activityID,
+              let row = (snapshot?.value["activityList"].array ?? []).first(where: { $0["id"].int == id }),
+              let name = row["name"].string else { return nil }
+        return ClubGroupCodePort.sessionLabel(id: id, name: name, startDate: row["startDate"].string, startTime: row["startTime"].string)
+    }
+    /// CLB-notify-01: in-app 通知 entries open the composer (ClubGovernanceCommandForm .sendNotification) directly, like the
+    /// MP notify link (MPReviewedPageScreen), instead of a counts page with a second step.
+    private func notifyComposerLink(_ target: ClubGovernanceScope) -> some View {
+        NavigationLink {
+            ClubGovernanceCommandForm(route: .init(operation: .sendNotification, scope: .init(clubID: target.clubID, activityID: target.activityID)),
+                                      identity: identity, access: access, coordinator: coordinator)
+        } label: {
+            CYListRow(LocalizedStringKey("club.gov." + ClubGovernanceRead.audienceCounts.rawValue), trailing: .chevron,
+                      verbatimMeta: operation == .access ? Self.subline(.audienceCounts) : nil) {
+                CYRowIcon(systemImage: Self.symbol(.audienceCounts))
+            }
+        }
+        .accessibilityIdentifier("club.gov.route." + ClubGovernanceRead.audienceCounts.rawValue)
+    }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
         NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: {
             CYListRow(LocalizedStringKey("club.gov." + target.rawValue), trailing: .chevron, verbatimMeta: operation == .access ? Self.subline(target) : nil) {
@@ -1364,6 +1406,9 @@ struct ClubGovernanceReadView: View {
                 ForEach([ClubGovernanceRead.roles, .bans, .cases, .audienceCounts, .dissolutionBlockers], id: \.rawValue) { read in
                     if read == .bans {
                         if snapshot.permissions?.canGovernMembers == true { link(read) }
+                    } else if read == .audienceCounts {
+                        // CLB-notify-01 (MP notify wxml:44-114): the workspace entry opens the one composer, as the MP link does.
+                        if snapshot.permissions?.allows(read.permission, scope: scope) == true { notifyComposerLink(scope) }
                     } else if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                 }
                 if snapshot.permissions?.permissions.contains("club:member:manage") == true,
@@ -2002,8 +2047,14 @@ struct ClubGovernanceEventView: View {
                 // Original role approval and journal own exactly club + optional activity.
                 let target = operation == .roles ? ClubGovernanceScope(clubID: scope.clubID, activityID: scope.activityID) : scope
                 NavigationLink {
-                    ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator)
-                        .environment(\.clubRoleActivityLabel, activityLabel)
+                    if operation == .audienceCounts {
+                        // CLB-notify-01: 通知本场成员 opens the composer for this session (MP notify?clubId&activityId).
+                        ClubGovernanceCommandForm(route: .init(operation: .sendNotification, scope: .init(clubID: scope.clubID, activityID: scope.activityID)),
+                                                  identity: identity, access: access, coordinator: coordinator)
+                    } else {
+                        ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator)
+                            .environment(\.clubRoleActivityLabel, activityLabel)
+                    }
                 } label: {
                     CYListRow(LocalizedStringKey("club.gov." + operation.rawValue), trailing: .chevron) { CYRowIcon(systemImage: "calendar") }
                 }
