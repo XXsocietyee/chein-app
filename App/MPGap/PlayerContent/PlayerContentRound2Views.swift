@@ -96,7 +96,7 @@ public struct ContextualReviewStarAndPhotoComposerView: View {
 }
 
 /// `PC-B-3-2` / `PC-B-3-3`: Merchant application address/map picker, photo upload, & success card
-/// (write stays owner-gated behind `MerchantContentWriteApproval`).
+/// (write goes through `MerchantContentWriteApproval`, MP-first default on).
 public struct MerchantApplySuccessSummaryView: View {
     public let shopName: String
     public let topicTitle: String

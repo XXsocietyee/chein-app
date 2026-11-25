@@ -26,7 +26,10 @@ class RuntimeDependencyWiringTests(unittest.TestCase):
             self.assertIn(value, core)
         self.assertIn('enabled: accepted?.play ?? []', core)
         self.assertIn('PublisherLifecycleGrants(reads:', core)
-        for mutation in ['pricing:', 'cancellationRefunds:', 'ownership:', 'graduation:', 'creatorApplication:']:
+        # MP-first (owner 2026-11-25, R7-PC-B4-1 / R7-PC-B1-2): pricing confirm (price-config save), ownership and graduation
+        # are MP writes and now ride the publisher grant. Refunds (money) and creator applications stay absent.
+        self.assertIn('PublisherLifecycleGrants(reads: endpoints, pricing: endpoints, ownership: endpoints, graduation: endpoints)', core)
+        for mutation in ['cancellationRefunds:', 'creatorApplication:']:
             self.assertNotIn(mutation, core)
     def test_factories_mount_production_clients_instead_of_fixtures(self):
         app = self.read('App/AppSession.swift')

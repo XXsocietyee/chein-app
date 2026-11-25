@@ -64,6 +64,14 @@ import SwiftUI
         }
         .navigationTitle("merchant.publicHome.title")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // MC8-03-2: share the canonical public home once it is loaded (real name, memberId).
+            if let home, loadedKey == key, failure == nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    MerchantPublicHomeShareButton(memberID: home.memberId, storeName: home.name)
+                }
+            }
+        }
         .cyDomainPageBackground()
         .themeDomain(.merchant)
         .tint(CYDomainPalette(.merchant).brand)

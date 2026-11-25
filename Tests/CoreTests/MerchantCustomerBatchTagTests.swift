@@ -46,7 +46,7 @@ final class MerchantCustomerBatchTagTests: XCTestCase {
         let object = try JSONDecoder().decode(MerchantBusinessValue.self, from: XCTUnwrap(request.httpBody)).object
         XCTAssertEqual(object?["customerMemberIds"], .array([.number(61001), .number(61002)]))
         XCTAssertEqual(object?["tagName"], .string("VIP"))
-        XCTAssertEqual(object?["tagColor"], .string("#2E6D5A"))
+        XCTAssertNil(object?["tagColor"])
         XCTAssertEqual(object?["requestId"], .string("batch-tag-1"))
     }
 }

@@ -160,6 +160,8 @@ struct TeamInviteQRSection: View {
                     AsyncImage(url: qr) { $0.resizable().scaledToFit() } placeholder: { ProgressView() }
                         .frame(maxWidth: 180, maxHeight: 180)
                         .accessibilityLabel(Text("playerGap.teamQR.image"))
+                    // r8 C-D11-r7 (MP team/detail 邀请卡 保存图片): in-page notice, then add to Photos.
+                    TeamInviteImageSaveRow(imageURL: qr)
                     codeLine(code)
                 case .code(let code)?:
                     codeLine(code)
@@ -205,9 +207,11 @@ struct TeamTrailSection: View {
     var done: () -> Int = { 0 }
     @State private var model: TeamTrailModel?
     @State private var recorder = TeamTrailForegroundRecorder()
-    @State private var share = true
+    /// PLAY-r8-1 (MP AUDIT-1122 L01-039): the share switch starts off; only the player's own choice turns it on.
+    @State private var share = false
 
-    private var recording: Bool { scenePhase == .active && model?.canRun == true }
+    /// L01-039: never upload for a player who has not decided, even when the server's default says share.
+    private var recording: Bool { scenePhase == .active && model?.canRun == true && model?.needsConsent == false }
 
     var body: some View {
         Group {
@@ -247,7 +251,7 @@ struct TeamTrailSection: View {
             var wait = TeamTrailModel.interval
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(wait))
-                guard !Task.isCancelled, trail.canRun, scenePhase == .active, TeamTrailForegroundRecorder.isAuthorized else { continue }
+                guard !Task.isCancelled, trail.canRun, !trail.needsConsent, scenePhase == .active, TeamTrailForegroundRecorder.isAuthorized else { continue }
                 let ok = await trail.tick(points: recorder.points, done: done())
                 wait = ok ? TeamTrailModel.interval : min(wait * 2, TeamTrailModel.maxInterval)
             }
@@ -379,7 +383,11 @@ struct CityFavoriteNodesSection: View {
                 if let nodes {
                     if nodes.isEmpty { Text("playerGap.cityFavorites.empty").cyText(.body).foregroundStyle(CYColor.textTertiary) }
                     ForEach(nodes) { node in
-                        row(node)
+                        // r8 A4-01 (MP mylike.wxml:43 bindtap goNode → subpackageRoam/poi-detail?poiId=): the row opens the place.
+                        NavigationLink {
+                            MPReviewedPageScreen(page: "subpackageRoam/poi-detail/index", query: ["poiId": String(node.id), "name": node.name])
+                        } label: { row(node) }
+                            .accessibilityHint(Text("fixr8.favorites.node.openHint"))
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button("playerGap.cityFavorites.remove", role: .destructive) { pendingRemoval = node }
                                     .disabled(removing != nil)

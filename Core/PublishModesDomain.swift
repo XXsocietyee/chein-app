@@ -122,10 +122,11 @@ public struct ActivityPublishTicket: Identifiable, Codable, Equatable {
     public var end = ""
     public init() {}
     public func wire(activityStart: String, activityEnd: String) throws -> ProjectEditJSON {
+        // MP submit overwrites every ticket window with the activity span.
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               let price = ProjectEditValidation.decimal(price), price >= 0, let stock = Int(stock), stock > 0,
-              let start = ProjectEditValidation.dateTime(start), let end = ProjectEditValidation.dateTime(end), end > start,
-              start >= activityStart, end <= activityEnd else { throw PublishModesError.invalidDraft }
+              let start = ProjectEditValidation.dateTime(activityStart), let end = ProjectEditValidation.dateTime(activityEnd, endOfDay: false),
+              end > start else { throw PublishModesError.invalidDraft }
         return .object(["name": .string(name.trimmingCharacters(in: .whitespacesAndNewlines)), "price": .number(price), "totalStock": .number(Decimal(stock)), "startTime": .string(start), "endTime": .string(end)])
     }
 }

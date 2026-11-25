@@ -19,6 +19,7 @@ final class WP08HostTipSurfaceTests: XCTestCase {
             "/api/video-bounty/submission/{}/attribution",
             "/api/video-bounty/campaign/{}/attribution",
             "/api/channel/redeem",
+            "/api/channel/redeem/status",
             "/api/content-landing/info",
             "/api/content-landing/save",
             "/api/content-landing/translation/save"

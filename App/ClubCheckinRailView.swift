@@ -5,6 +5,9 @@ struct ClubCheckinRailView: View {
     var stateKind: ClubCheckinRail.StateKind? = nil
     /// CLB-checkin-detail-03 (fix-r3-club-b): MP 重新加载 for a load failure; denied and missing only go back.
     var onReload: (() -> Void)? = nil
+    /// Round 4: MP `errorText`, the server sentence. Missing uses it as the title; denied and error show it as the
+    /// sub line, and denied falls back to 当前身份不能查看核销记录 (index.js:82).
+    var reason: String? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -16,7 +19,9 @@ struct ClubCheckinRailView: View {
             Section {
                 CYEmptyState(
                     systemImage: stateKind == .error ? "exclamationmark.triangle" : (stateKind == .denied ? "lock" : "doc.text"),
-                    LocalizedStringKey(stateCopy(stateKind)),
+                    LocalizedStringKey(stateKind == .missing ? (shownReason ?? stateCopy(stateKind)) : stateCopy(stateKind)),
+                    detailVerbatim: stateKind == .missing ? nil
+                        : (shownReason ?? (stateKind == .denied ? appLocalized("clubR3b.checkin.deniedReason", locale: locale) : nil)),
                     messageIdentifier: "club.checkin.rail.stateTitle",
                     actionTitle: stateKind == .error && onReload != nil ? "clubR3b.checkin.reload" : "clubR3b.checkin.back",
                     actionIdentifier: "club.checkin.state.action",
@@ -98,6 +103,11 @@ struct ClubCheckinRailView: View {
     }
 
     /// `titleKey` is not in the catalog yet. Use it once it resolves; otherwise the bilingual fallback, never the dotted key.
+    private var shownReason: String? {
+        guard let text = reason?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+        return text
+    }
+
     private func stateCopy(_ kind: ClubCheckinRail.StateKind) -> String {
         let key = kind.titleKey
         let resolved = String(localized: String.LocalizationValue(stringLiteral: key))
@@ -116,6 +126,7 @@ struct ClubCheckinRailView: View {
 struct ClubCheckinDetailRows: View {
     let value: ClubGovernanceValue
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Section {
@@ -154,7 +165,7 @@ struct ClubCheckinDetailRows: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 // CLB-checkin-detail-07: MP topic is label-bold; body-medium is the closest step on the scale.
-                Text(verbatim: text("topicName") ?? "—")
+                Text(verbatim: text("topicName") ?? appLocalized("clubR3b.checkin.untitledTopic", locale: locale))
                     .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)

@@ -15,12 +15,11 @@ struct ProfileParticipantsView: View {
     @State private var recoveryGeneration: UInt64 = 0
     @State private var recoveryIssue: ParticipantScreenIssue?
     @State private var deletedNotice: UUID?
-    /// WIRE-2: mini-program pages/address "select" mode. When a sign-up caller supplies this, a row tap hands back
-    /// the participant id instead of opening the detail. Nil (every current call site) keeps the list as before.
-    private let onSelect: ((Int) -> Void)?
     @Environment(\.locale) private var locale
-    init(reader: any ProfileReading, coordinator: ParticipantMutationCoordinator? = nil, onSelect: ((Int) -> Void)? = nil) {
-        self.reader = reader; self.coordinator = coordinator; self.onSelect = onSelect
+    /// r8 A5-01: the pages/address "select" mode had no caller; 报名 keeps its one participant sheet
+    /// (RegistrationSheetView 选择参与人信息), so this list only manages participants.
+    init(reader: any ProfileReading, coordinator: ParticipantMutationCoordinator? = nil) {
+        self.reader = reader; self.coordinator = coordinator
     }
     var body: some View {
         let _ = recoveryRevision
@@ -81,21 +80,15 @@ struct ProfileParticipantsView: View {
                             }
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            if onSelect != nil { Image(systemName: "circle").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true) }
                         }
                         .padding(.vertical, 4)
                         .accessibilityElement(children: .combine)
                         .accessibilityAddTraits(.isButton)
                         HStack(spacing: CYSpacing.sm) {
-                            Group {
-                                if let onSelect {
-                                    Button { onSelect(card.id) } label: { rowLabel }.buttonStyle(.plain)
-                                } else {
-                                    NavigationLink { ProfileParticipantDetailView(id: card.id, reader: reader, coordinator: coordinator) } label: { rowLabel }
-                                }
-                            }.accessibilityIdentifier("profile.participant.\(card.id)")
+                            NavigationLink { ProfileParticipantDetailView(id: card.id, reader: reader, coordinator: coordinator) } label: { rowLabel }
+                                .accessibilityIdentifier("profile.participant.\(card.id)")
                             // Mini-program pages/address row: 编辑 and × stay visible beside each participant.
-                            if onSelect == nil, let coordinator, coordinator.canPrepare, reader.identity != nil {
+                            if let coordinator, coordinator.canPrepare, reader.identity != nil {
                                 Button { editing = ParticipantRowTarget(id: card.id) } label: {
                                     Text("participant.list.editShort").cyText(.meta).underline().foregroundStyle(CYColor.textSecondary)
                                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
@@ -115,9 +108,9 @@ struct ProfileParticipantsView: View {
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             if let coordinator, coordinator.canPrepare, reader.identity != nil {
                                 // Direct list entry only opens the existing review/confirm flows; nothing is written here.
-                                Button("participant.form.delete", role: .destructive) { deleting = ParticipantRowTarget(id: card.id) }
+                                Button("participant.list.deleteShort", role: .destructive) { deleting = ParticipantRowTarget(id: card.id) } // MP address.wxml 删除
                                     .accessibilityIdentifier("participant.list.delete.\(card.id)")
-                                Button("participant.form.edit") { editing = ParticipantRowTarget(id: card.id) }
+                                Button("participant.list.editShort") { editing = ParticipantRowTarget(id: card.id) } // MP address.wxml 编辑
                                     .tint(CYColor.infoText).accessibilityIdentifier("participant.list.edit.\(card.id)")
                             }
                         }

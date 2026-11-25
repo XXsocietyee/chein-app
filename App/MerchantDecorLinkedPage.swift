@@ -27,8 +27,10 @@ import SwiftUI
         case .signedOut:
             MerchantCoopSignInState(title: "merchant.gate.signIn", identifier: "merchantCoop.decorLink.signIn")
         case .inactive:
-            MerchantCoopApplyState(title: "merchant.decor.state.empty.title", message: "merchant.decor.state.empty.message",
-                                   actionTitle: "merchantCoop.decor.openApplication", identifier: "merchantCoop.decorLink.inactive")
+            // MC8-20-1 / MC8-22-1 (gallery index.wxml:16-17, coop-setting index.wxml:32-42): the page's own title
+            // (暂时无法上传门店相册 / 暂时无法编辑承接设置) and a working 去商家入驻 on the deep-link host too.
+            MerchantInactiveApplyState(title: inactiveTitle, message: "merchant.decor.state.empty.message",
+                                       identifier: "merchantCoop.decorLink.inactive")
         case .denied:
             MerchantCoopActionState(systemImage: "lock", title: "merchantCoop.decor.denied.title", identifier: "merchantCoop.decorLink.denied")
         case .failed:
@@ -36,6 +38,14 @@ import SwiftUI
                                     actionTitle: "action.retry", action: { attempt += 1 }, identifier: "merchantCoop.decorLink.failed")
         case .ready(let access):
             open(destination, access)
+        }
+    }
+
+    private var inactiveTitle: LocalizedStringKey {
+        switch destination {
+        case .gallery: return "merchantCoop.decor.gallery.inactive"
+        case .cooperation: return "merchantCoop.decor.coopSetting.inactive"
+        default: return "merchant.decor.state.empty.title"
         }
     }
 

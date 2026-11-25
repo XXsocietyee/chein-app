@@ -72,13 +72,16 @@ import FoundationNetworking
         do { _ = try await factory.transport.send(request()); XCTFail() } catch { XCTAssertEqual(error as? PlayExperienceError, .staleSession) }
         XCTAssertEqual(recorder.requests.count, 1)
     }
-    func testPublisherReadGrantDoesNotGrantPricingRefundOrOwnershipWrites() async throws {
+    /// Was `testPublisherReadGrantDoesNotGrantPricingRefundOrOwnershipWrites`. MP-first (owner 2026-11-25, R7-PC-B4-1 /
+    /// R7-PC-B1-2): pricing confirm, graduation and ownership open with the publisher grant; refunds (money) and creator
+    /// applications stay closed.
+    func testPublisherGrantOpensMPWritesButNotRefundsOrApplications() async throws {
         let current = try context(), recorder = RuntimeTestTransport()
         recorder.response = Data(#"{"code":200,"data":{"priceMin":12,"lineup":[]}}"#.utf8)
         let factory = RuntimeDependencyFactory(api: try .init(baseURL: url), configuration: try approval(paths: ["api/topic/pricing/preview"], play: [], publisher: true), transport: recorder, current: { current })
         let grants = factory.publisherGrants
-        XCTAssertNotNil(grants.reads); XCTAssertNil(grants.pricing); XCTAssertNil(grants.cancellationRefunds)
-        XCTAssertNil(grants.ownership); XCTAssertNil(grants.graduation); XCTAssertNil(grants.creatorApplication)
+        XCTAssertNotNil(grants.reads); XCTAssertNotNil(grants.pricing); XCTAssertNil(grants.cancellationRefunds)
+        XCTAssertNotNil(grants.ownership); XCTAssertNotNil(grants.graduation); XCTAssertNil(grants.creatorApplication)
         let credentials = try PublishingCredentials(session: .init(namespace: "fixture-cn", accountID: 7, epoch: UUID(), role: "member", region: .china), token: "synthetic")
         let client = PublisherLifecycleHTTP(configuration: try .init(baseURL: url), transport: factory.transport, grants: grants, credentials: { credentials })
         let preview = try await client.pricing(.init(topicID: 4, subtype: .selfPlay))

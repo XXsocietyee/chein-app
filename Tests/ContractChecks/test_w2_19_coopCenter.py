@@ -45,7 +45,7 @@ class CoopCenterContract(unittest.TestCase):
             for forbidden in ['perform(', 'prepare(', 'POST', 'api/coop/handle', 'MerchantContentCommand']:
                 self.assertNotIn(forbidden, text)
         self.assertNotIn('cooperationCenter', GATES)  # no write switch is needed or added
-        self.assertIn('public static var reviewedEndpoints: [RegionalMarket: Set<String>] { [:] }', GATES)
+        self.assertIn('public static var reviewedEndpoints: [RegionalMarket: Set<String>] { [.china: mpFirstChinaEndpoints] }', GATES)  # MP-first 2026-11-25
 
     def test_loads_parallel_guarded_no_refetch_on_tab(self):
         self.assertIn('func loadAll() { loadRoutes(); loadEvents() }', VIEW)

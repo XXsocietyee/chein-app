@@ -106,7 +106,7 @@ class ClubOpsEventContracts(unittest.TestCase):
     def test_mini_copy_is_exact(self):
         zh = {k: v['localizations']['zh-Hans']['stringUnit']['value'] for k, v in self.catalog['strings'].items()}
         self.assertEqual(zh['clubOpsEvent.title'], '活动运营')
-        self.assertEqual(zh['clubOpsEvent.denied.title'], '你没有活动运营的权限')
+        self.assertEqual(zh['clubOpsEvent.denied.title'], '当前身份不能运营活动')
         self.assertEqual(zh['clubOpsEvent.denied.body'], '场次编排、签到与出勤更正需要「活动运营」或「本场核销」权限。')
         self.assertEqual(zh['clubOpsEvent.cancel.confirmBody'], '会下架本场、处理退款并终止候补。已核销的部分不退。')
         self.assertEqual(zh['clubOpsEvent.roster.window %@'], '签到更正仅限活动开始至结束后 48 小时，本场可更正时段：%@')

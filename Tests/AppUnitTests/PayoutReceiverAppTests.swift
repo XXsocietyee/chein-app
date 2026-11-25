@@ -7,9 +7,9 @@ import XCTest
     override func tearDown() { ReleaseMoneyWriteSwitch.testDerivation = nil; super.tearDown() }
 
     /// Owner 2026-11-14: receiver status and the payout-account read are status reads, admitted on every host.
-    private let statusReads = ["/api/club/personal-receiver/status", "/api/merchant/payout-account"]
+    private let statusReads = ["/api/club/personal-receiver/status", "/api/merchant/payout-account",
+                               "/api/club/settlement/mine"]
     private let payoutPaths = ["/api/club/personal-receiver/bind", "/api/club/personal-receiver/unbind",
-                               "/api/club/settlement/mine",
                                "/api/club-direct-merchant/club", "/api/club-direct-merchant/merchant"]
     private let moneyWrites = ["/api/registration/pay", "/api/registration/pay/app", "/api/pay/create", "/api/asset/withdraw",
                                "/api/withdrawal/create", "/api/fund/preflight/bank-withdrawal", "/api/fund/preflight/7/confirm"]
@@ -40,8 +40,8 @@ import XCTest
         for route in PayoutReceiverRoute.allCases {
             XCTAssertTrue(PayoutReceiverRouteGrant.admits(route), route.rawValue)
             XCTAssertEqual(PayoutReceiverRouteGrant.moneyPaths.contains(route.rawValue), route.isPayout, route.rawValue)
-            if route == .receiverStatus || route == .merchantPayoutAccount {
-                // Owner 2026-11-14: status reads, granted unconditionally.
+            if route == .receiverStatus || route == .merchantPayoutAccount || route == .settlementMine {
+                // Status reads and the settlement mine list, granted unconditionally. Bind stays a payout write.
                 XCTAssertTrue(ChinaReviewedRouteCapability.ownerDecisionGuardGrant.contains("/" + route.rawValue), route.rawValue)
                 XCTAssertNil(ChinaReviewedRouteCapability.moneyAreaOwnerGrant["/" + route.rawValue], route.rawValue)
             } else if route != .settlementSummary {

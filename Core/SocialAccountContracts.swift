@@ -19,6 +19,8 @@ public struct SocialPublicProfile: Decodable, Equatable, Identifiable {
     public let workImages: [String]
     /// A1-05: MP cy-profile 关于 › 加入时间 (`createTime`, first ten characters, `-` → `.`); nil when absent.
     public let joinDate: String?
+    /// `res.data.role` on the same public-info object the mini-program stores as `userInfo`. Nil when the server omits it.
+    public let role: String?
     public var published: Int? {
         guard let topics, let activities else { return nil }
         let sum = topics.addingReportingOverflow(activities)
@@ -38,6 +40,12 @@ public struct SocialPublicProfile: Decodable, Equatable, Identifiable {
         }
         workImages = (v["casePics"].text ?? "").split(separator: ";").compactMap { SocialText.nonempty(String($0)) }
         joinDate = SocialText.nonempty(v["createTime"].text ?? "").map { String($0.prefix(10)).replacingOccurrences(of: "-", with: ".") }
+        role = SocialText.nonempty(v["role"].text ?? "")
+    }
+    /// The viewed member id the mini-program posts to `api/merchant/public-home` as `memberId`.
+    /// The merchant row id is `PublicMerchantHome.id` from that read, not a public-info field.
+    public var merchantHomeTarget: PublicMerchantHomeTarget? {
+        PublicMerchantOwnerID(id).map { .ownerMemberID($0) }
     }
 }
 public struct SocialInterest: Equatable, Identifiable { public let id: Int; public let name: String }

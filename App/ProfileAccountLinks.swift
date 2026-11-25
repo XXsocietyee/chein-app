@@ -40,7 +40,8 @@ struct ProfileAccountLinks: View {
     }
     private var badgeRow: some View {
         NavigationLink { ObjectBadgeWallView(reader: reader) } label: {
-            Label("profile.badges.title", systemImage: "medal")
+            // MP cy-profile index.wxml:336 收集册 · 勋章 pile: `/subpackageMember/images/album/medal-3d.png`.
+            Label { Text("profile.badges.title") } icon: { AccountPublishMPGlyph(MPAsset.BadgeMedal.medal3d, side: 22) }
         }.accessibilityIdentifier("profile.open.badges")
     }
 }

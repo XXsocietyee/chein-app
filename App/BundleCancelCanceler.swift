@@ -43,7 +43,7 @@ import Foundation
             switch failure {
             case .disabled, .staleSession: return .unavailable
             case .invalid: return .rejected(message: "")
-            case .response(_, _, let code):
+            case .response(_, _, let code, _):
                 switch code {
                 case "BUNDLE_CANCEL_QUOTE_CHANGED":
                     quoteChangedPending = true

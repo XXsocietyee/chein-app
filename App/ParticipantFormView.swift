@@ -319,7 +319,7 @@ struct ParticipantFormView: View {
         }
         .cyGroupedSurface()
         .cyPushedChrome(domain: .player)
-        .appNavigationTitle(key: model.id == nil ? "participant.form.add" : "participant.form.edit")
+        .appNavigationTitle(key: "profile.participants.title") // MP addressinfo.json: 参与人信息 for add and edit alike
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

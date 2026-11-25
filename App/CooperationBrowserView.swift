@@ -10,11 +10,15 @@ import SwiftUI
     /// Existing public topic screen. Nil keeps the topic reference and does not navigate.
     var topicDestination: ((Int) -> AnyView)? = nil
     @State private var direction: CooperationDirection
+    /// MC8-30-1 (coop/list index.js:163-172): `?topicId=` seeds the 只看「X」的协作 filter once the inbox loads.
+    private let initialTopicID: Int?
+    @State private var seededInitialTopic = false
     /// Parity coop/list P1: false when pushed onto an existing stack (no nested NavigationStack / double bar).
     private let embedsNavigationStack: Bool
     init(reader: any CooperationReading, onClose: (() -> Void)? = nil, peerReader: (any CoopFlowReading)? = nil,
          operationScope: String? = nil, initialDirection: CooperationDirection = .received,
-         topicDestination: ((Int) -> AnyView)? = nil, embedsNavigationStack: Bool = true) {
+         topicDestination: ((Int) -> AnyView)? = nil, embedsNavigationStack: Bool = true, initialTopicID: Int? = nil) {
+        self.initialTopicID = initialTopicID
         self.reader = reader; self.onClose = onClose; self.peerReader = peerReader; self.operationScope = operationScope
         self.topicDestination = topicDestination; self.embedsNavigationStack = embedsNavigationStack
         _direction = State(initialValue: initialDirection)
@@ -22,6 +26,10 @@ import SwiftUI
     @State private var topicFilter: CooperationInboxTopicFilter?
     /// Parity coop/list P0: the row's two-button `inv-acts` open the reviewed submit page (X1) as a sheet.
     @State private var rowAction: CoopListRowAction?
+    @State private var composingInvite = false
+    /// MC8-30-4 / MC8-30-5: 回邀约 / 发邀约 open the new-invitation page with the recipient and topic fixed.
+    @State private var invitePreset: CoopListInvitePreset?
+    @Environment(\.cooperationTopicNearbyDestination) private var topicNearbyDestination
     private var selectedTopicID: Int? {
         guard reader.isConfigured, reader.isAuthenticated else { return nil }
         return topicFilter?.selectedTopic(owner: ObjectIdentifier(reader), scope: reader.scope)
@@ -49,17 +57,20 @@ import SwiftUI
                     }
                     .accessibilityIdentifier("cooperation.pool.open")
                     if let peerReader, listPage.showsNewInvite {
-                        NavigationLink {
-                            CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope)
-                                .cyPushedChrome(domain: .merchant)
-                        } label: {
-                            CYListRow("cooperation.list.newInvite", trailing: .none) { CYRowIcon(systemImage: "plus.circle") }
+                        // flows-g2 108: programmatic push so a sent invite can pop back here on 我发出的 (MP redirectTo ?tab=sent).
+                        Button { composingInvite = true } label: {
+                            CYListRow("cooperation.list.newInvite", trailing: .chevron) { CYRowIcon(systemImage: "plus.circle") }
                         }
+                        .buttonStyle(.plain)
                         .accessibilityIdentifier("cooperation.list.newInvite")
                     }
                 }
                 topicFilterSection(snapshot)
-                if let peerReader { CoopChapterApplicationSection(reader: peerReader, direction: direction, operationScope: operationScope) }
+                    .onAppear { seedInitialTopic(snapshot) }
+                if let peerReader {
+                    CoopChapterApplicationSection(reader: peerReader, direction: direction, operationScope: operationScope,
+                                                  topicDestination: topicDestination)
+                }
                 if snapshot.isPartial {
                     Label("cooperation.partial", systemImage: "exclamationmark.triangle")
                         .cyText(.meta)
@@ -67,11 +78,23 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cooperation.partial")
                 }
+                if inboxAllEmpty(snapshot) {
+                    // MC8-30-11 (wxml:178,262): one empty state for the whole box instead of one per section.
+                    Section {
+                        CYEmptyState(systemImage: "tray", direction == .received ? "merchantCoop.list.allEmpty.received" : "merchantCoop.list.allEmpty.sent",
+                                     actionTitle: peerReader != nil && listPage.showsNewInvite ? "merchantCoop.list.allEmpty.compose" : nil,
+                                     actionIdentifier: "cooperation.list.allEmpty.compose",
+                                     action: { composingInvite = true })
+                            .listRowBackground(Color.clear)
+                            .accessibilityIdentifier("cooperation.list.allEmpty")
+                    }
+                } else {
                 invitationSection(snapshot.invitations, direction: snapshot.direction)
                     .accessibilityValue(Text(verbatim: listPage.invitationCountText))
                 applicationSection(snapshot.applications, direction: snapshot.direction, sentInvites: { () -> [CooperationInvite] in if case .content(let list) = snapshot.invitations { return list.sent }; return [] }())
                     .accessibilityValue(Text(verbatim: listPage.applicationCountText))
                 if let registrations = snapshot.registrations { registrationSection(registrations) }
+                }
                 if direction == .received, let peerReader { CoopOfficialInviteSection(reader: peerReader) }
                 Section { CooperationReadOnlyNotice() }
             }
@@ -89,12 +112,42 @@ import SwiftUI
             .onChange(of: ObjectIdentifier(reader)) { _, _ in topicFilter = nil }
             .onChange(of: reader.isAuthenticated) { _, _ in topicFilter = nil }
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
+            .navigationDestination(isPresented: Binding(get: { invitePreset != nil }, set: { if !$0 { invitePreset = nil } })) {
+                if let peerReader, let invitePreset {
+                    CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope,
+                                              lockedTarget: invitePreset.target, initialTopicID: invitePreset.topicID)
+                        .cyPushedChrome(domain: .merchant)
+                        .environment(\.coopInviteSent, { direction = .sent; self.invitePreset = nil })
+                }
+            }
+            .navigationDestination(isPresented: $composingInvite) {
+                if let peerReader {
+                    CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope)
+                        .cyPushedChrome(domain: .merchant)
+                        .environment(\.coopInviteSent, { direction = .sent; composingInvite = false })
+                }
+            }
             .sheet(item: $rowAction) { action in
                 Group {
                     NavigationStack { CoopFlowRequestPreview(operation: action.operation) }
                 }
                 .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
+    }
+    /// MC8-30-11: every inbox section loaded and empty, with no topic filter. Failures keep their own sections.
+    private func inboxAllEmpty(_ inbox: CooperationInbox) -> Bool {
+        guard selectedTopicID == nil, case .content(let invites) = inbox.invitations, invites.rows(inbox.direction).isEmpty,
+              case .content(let applications) = inbox.applications, applications.isEmpty else { return false }
+        guard let registrations = inbox.registrations else { return true }
+        if case .content(let page) = registrations { return page.rows.isEmpty }
+        return false
+    }
+    /// Applies the deep-link topic once, only when that topic is among the loaded inbox's options.
+    private func seedInitialTopic(_ inbox: CooperationInbox) {
+        guard !seededInitialTopic, let initialTopicID, topicFilter == nil,
+              reader.isConfigured, reader.isAuthenticated else { return }
+        seededInitialTopic = true
+        topicFilter = CooperationInboxTopicFilter(topicID: initialTopicID, inbox: inbox, owner: ObjectIdentifier(reader), scope: reader.scope)
     }
     @ViewBuilder private func topicFilterSection(_ inbox: CooperationInbox) -> some View {
         let owner = ObjectIdentifier(reader)
@@ -194,6 +247,28 @@ import SwiftUI
                         .accessibilityElement(children: .combine)
                         .accessibilityAddTraits(.isButton)
                     }.accessibilityIdentifier("cooperation.invite.\(direction.rawValue).\(row.id).\(index)")
+                    .contextMenu {
+                        // MC7-30-5: MP `copyPartnerPhone` on a card whose contact is released. Local-only, expiring copy.
+                        if case .visible = CooperationInvitePresentation(invite: row, direction: direction).contact,
+                           let phone = row.partner?.phone?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty {
+                            Button { LocalPasteboard.copy(phone) } label: { Label("merchantCoop.list.copyPhone", systemImage: "doc.on.doc") }
+                                .accessibilityIdentifier("cooperation.invite.copyPhone.\(row.id)")
+                        }
+                    }
+                    .accessibilityAction(named: Text("merchantCoop.list.copyPhone")) {
+                        if case .visible = CooperationInvitePresentation(invite: row, direction: direction).contact,
+                           let phone = row.partner?.phone?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty { LocalPasteboard.copy(phone) }
+                    }
+                    // MC8-30-6 (wxml:225-227 `goInviteOthers`): a declined sent invite offers 再邀别人 → 找商家 for that topic.
+                    if direction == .sent, row.status == 2, !row.legacyReadonly, let topic = row.topicId, topic > 0, let topicNearbyDestination {
+                        NavigationLink {
+                            topicNearbyDestination(CoopNearbyTopicContext(topicID: topic, topicName: row.topicName ?? ""))
+                        } label: {
+                            Label("merchantCoop.list.inviteOthers", systemImage: "person.badge.plus")
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .accessibilityIdentifier("cooperation.invite.inviteOthers.\(row.id).\(index)")
+                    }
                 }
             }
         }
@@ -236,10 +311,30 @@ import SwiftUI
                             if direction == .received {
                                 CoopListRowActions(secondary: ("cooperation.list.apply.decline", .decline(applyID: row.applyId, scope: row.scope)),
                                                    primary: nil, identifier: "cooperation.list.apply.\(row.applyId)") { rowAction = .init(operation: $0) }
+                                // MC8-30-4 (wxml:117-123 `replyApplyInvite`): 回邀约 = a formal invite with terms to that club.
+                                if let club = row.clubId, club > 0 {
+                                    CYPillButton("merchantCoop.list.apply.replyInvite") {
+                                        invitePreset = .init(target: CoopInviteLockedTarget(type: CoopFlowTargetKind.club.rawValue, toID: club, name: row.clubName ?? ""),
+                                                             topicID: row.topicId)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                                    .buttonStyle(.borderless)
+                                    .accessibilityIdentifier("cooperation.list.apply.replyInvite.\(row.applyId)")
+                                }
                             } else {
                                 CoopListRowActions(secondary: ("cooperation.list.apply.withdraw", .withdraw(topicID: row.topicId)),
                                                    primary: nil, identifier: "cooperation.list.withdraw.\(row.topicId)") { rowAction = .init(operation: $0) }
                             }
+                        }
+                        // MC7-30-12 (MP coop/list wxml:257-259): the club answered this application with an invite (status 3),
+                        // which lands in 收到的 — one tap switches the segment there.
+                        if direction == .sent, row.status == 3 {
+                            Button { self.direction = .received } label: {
+                                Text("merchantCoop.list.apply.goReceived").frame(minHeight: CYSpacing.minTouchTarget)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityLabel(Text("merchantCoop.list.apply.goReceived.a11y"))
+                            .accessibilityIdentifier("cooperation.list.apply.goReceived.\(row.topicId)")
                         }
                         if let linked = replied?.linkedInviteID {
                             NavigationLink { CooperationInviteDetailView(key: CooperationInviteKey(id: linked, direction: .sent), reader: reader, peerReader: peerReader)
@@ -290,6 +385,17 @@ import SwiftUI
                                                primary: ("cooperation.list.registration.confirm", .confirm(registrationID: row.id)),
                                                identifier: "cooperation.list.registration.\(row.id)") { rowAction = .init(operation: $0) }
                         }
+                        // MC8-30-5 (wxml:145-151 `goTermsInvite`): a confirmed registration can get its invite with terms,
+                        // merchant target locked. The MP also hides it once an invite exists (`inviteState`, not decoded yet).
+                        if peerReader != nil, row.auditStatus == 1, let member = row.memberId, member > 0, let topic = row.topicId, topic > 0 {
+                            CYPillButton("merchantCoop.list.registration.invite") {
+                                invitePreset = .init(target: CoopInviteLockedTarget(type: CoopFlowTargetKind.merchant.rawValue, toID: member, name: row.merchantName ?? ""),
+                                                     topicID: topic)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            .buttonStyle(.borderless)
+                            .accessibilityIdentifier("cooperation.list.registration.invite.\(row.id)")
+                        }
                     }.padding(.vertical, CYSpacing.xs)
                 }
                 if page.hasMore == true {
@@ -306,6 +412,12 @@ func coopCoverSeed(_ name: String?, fallback: String) -> String {
     return fallback
 }
 
+/// Image parity: the MP has no default cover art here. A missing or failed cover is the plain `.inv-cover`
+/// box (`--cy-bg-card-2`), not generated art.
+struct CoopCoverPlaceholder: View {
+    var body: some View { Rectangle().fill(CYColor.bgRaised) }
+}
+
 struct CoopCloudCoverBanner: View {
     let url: URL?
     let seed: String
@@ -316,10 +428,10 @@ struct CoopCloudCoverBanner: View {
                 if let url {
                     AsyncImage(url: url) { phase in
                         if let image = phase.image { image.resizable().scaledToFill() }
-                        else { CYCoverArt(seed: seed) }
+                        else { CoopCoverPlaceholder() }
                     }
                 } else {
-                    CYCoverArt(seed: seed)
+                    CoopCoverPlaceholder()
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
@@ -336,10 +448,10 @@ struct CoopCloudCoverThumb: View {
             if let url {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() }
-                    else { CYCoverArt(seed: seed) }
+                    else { CoopCoverPlaceholder() }
                 }
             } else {
-                CYCoverArt(seed: seed)
+                CoopCoverPlaceholder()
             }
         }
         .frame(width: side, height: side)

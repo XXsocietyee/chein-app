@@ -819,7 +819,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有可委派的成员"
+            "value": "暂无成员"
           }
         }
       }
@@ -1332,6 +1332,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "主理人资格未确认"
+          }
+        }
+      }
+    },
+    "clubOpsGov.retryAction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }

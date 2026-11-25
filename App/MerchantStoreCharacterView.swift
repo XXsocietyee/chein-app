@@ -705,6 +705,15 @@ private struct StoreCharacterVoiceSheet: View {
             Button {} label: { t("storeCharacter.voice.hold").frame(maxWidth: .infinity) }
                 .buttonStyle(.borderedProminent).disabled(true).accessibilityIdentifier("aiNPC.voice.hold")
             t("storeCharacter.voice.recordingUnavailable").cyText(.bodyCompact).foregroundStyle(.secondary)
+            // MC8-23-8 (ai-npc index.wxml:303): a denied microphone grant offers 去设置开启麦克风.
+            if AVAudioApplication.shared.recordPermission == .denied {
+                Button {
+                    if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                } label: {
+                    Label("merchantCoop.npc.voice.openMicSettings", systemImage: "mic.slash").frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityIdentifier("aiNPC.voice.openMicSettings")
+            }
             if c.canRecord {
                 Button { c.useSyntheticRecording() } label: { t("storeCharacter.voice.useSample") }
                     .disabled(c.voiceBusy || c.voiceUnknown).accessibilityIdentifier("aiNPC.voice.useSample")

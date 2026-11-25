@@ -76,6 +76,21 @@ public struct MiniCropSession: Equatable {
         return true
     }
 
+    /// Re-attempt the current image. Does not advance and does not drop a finished result.
+    public mutating func retryCurrent() {
+        guard currentSize != nil else { return }
+        scale = 1
+        offsetX = 0
+        offsetY = 0
+    }
+
+    /// 还原: the current frame returns to the initial scale and offset.
+    public mutating func reset() {
+        scale = 1
+        offsetX = 0
+        offsetY = 0
+    }
+
     private mutating func advance(_ outcome: Outcome) {
         outcomes.append(outcome)
         scale = 1

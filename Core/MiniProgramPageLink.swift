@@ -26,14 +26,14 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         var pages: [String: Rule] = [
             "subpackageA/pages/video-bounty/index": .init(allowed: ["campaignKey", "topicId"], required: [], ids: ["topicId"]),
             "subpackageMember/market/passes/index": .init(allowed: ["tab"], required: [], ids: []),
-            "subpackageMember/market/pass/index": .init(allowed: ["id"], required: ["id"], ids: []),
-            "subpackageMember/market/gift/index": .init(allowed: ["token"], required: [], ids: []),
+            "subpackageMember/market/pass/index": .init(allowed: ["id"], required: [], ids: []),
+            "subpackageMember/market/gift/index": .init(allowed: ["token", "mode"], required: [], ids: []),
             "subpackageMember/market/membership/index": .init(allowed: [], required: [], ids: []),
             "subpackageMember/market/library/index": .init(allowed: ["kind"], required: [], ids: []),
-            "subpackageMember/market/pass-order/index": .init(allowed: ["orderNo"], required: ["orderNo"], ids: []),
+            "subpackageMember/market/pass-order/index": .init(allowed: ["orderNo"], required: [], ids: []),
             "subpackageMember/free-explore/index": .init(allowed: ["registrationId", "topicId", "requestId"], required: [],
                                                          ids: ["registrationId", "topicId"]),
-            "subpackageMember/invoice-detail/index": .init(allowed: ["id"], required: ["id"], ids: ["id"]),
+            "subpackageMember/invoice-detail/index": .init(allowed: ["id"], required: [], ids: ["id"]),
             "subpackageMember/signup/index": .init(allowed: ["focusId", "topicId", "arrive"], required: [], ids: ["focusId", "topicId"]),
             "subpackageMember/mycanyuinfo/mycanyuinfo": .init(allowed: ["id"], required: ["id"], ids: ["id"]),
             "subpackageMember/character/index": .init(allowed: ["topicId"], required: ["topicId"], ids: ["topicId"]),
@@ -55,6 +55,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         let identified = Rule(allowed: ["id"], required: ["id"], ids: ["id"])
         let optionalID = Rule(allowed: ["id"], required: [], ids: ["id"])
         for page in openPages { pages[page] = open }
+        // `coupon/coupon` is in openPages, which drops `scope`. The mini-program sends
+        // scope=MERCHANT or omits it. The value is not a closed set.
+        pages["subpackageMember/coupon/coupon"] = .init(allowed: ["scope"], required: [], ids: [])
         for page in identifiedPages { pages[page] = identified }
         for page in optionalIDPages { pages[page] = optionalID }
         // Club pages (CLB-*-01 parity r1): the keys each MP page reads in onLoad. `clubId` and `id` are both
@@ -64,7 +67,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/club/detail/index"] = Rule(allowed: ["id", "tab", "postId", "scan", "owner", "scope", "topicId"], required: [], ids: ["id", "postId", "topicId"])
         pages["pages/club/customer-detail/index"] = Rule(allowed: ["clubId", "memberId"], required: ["clubId", "memberId"], ids: ["clubId", "memberId"])
         pages["pages/club/checkin-detail/index"] = Rule(allowed: ["clubId", "registrationId"], required: ["clubId", "registrationId"], ids: ["clubId", "registrationId"])
-        pages["pages/club/enroll/index"] = Rule(allowed: ["clubId", "clubName", "topicId"], required: ["clubId"], ids: ["clubId", "topicId"])
+        // CLB-enroll-08: no clubId still opens the page. The screen loads api/club/my and uses the one owned club.
+        pages["pages/club/enroll/index"] = Rule(allowed: ["clubId", "clubName", "topicId", "id"], required: [], ids: ["clubId", "topicId", "id"])
         pages["pages/club/event-ops/index"] = Rule(allowed: ["clubId", "id", "activityId", "topicId", "recurrence"], required: [], ids: ["clubId", "id", "activityId", "topicId"])
         pages["pages/club/group-code/index"] = Rule(allowed: ["activityId", "activityName", "topicId", "topicName"], required: [], ids: ["activityId", "topicId"])
         pages["pages/club/join-requests/index"] = Rule(allowed: ["clubId"], required: ["clubId"], ids: ["clubId"])
@@ -83,6 +87,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["subpackageA/pages/myproject/index"] = open
         pages["pages/merchant/ledger/index"] = Rule(allowed: ["view", "topicId", "ownerType", "ownerId", "source", "tab"], required: [], ids: ["topicId", "ownerType", "ownerId"])
         pages["pages/merchant/ledger/order-detail/index"] = Rule(allowed: ["recordType", "recordId"], required: [], ids: ["recordId"])
+        pages["pages/merchant/ledger/batch-detail/index"] = Rule(allowed: ["batchId"], required: ["batchId"], ids: ["batchId"])
+        pages["pages/merchant/relation/index"] = Rule(allowed: ["tab", "topicId"], required: [], ids: ["topicId"])
+        pages["pages/merchant/coop-center/index"] = Rule(allowed: ["tab", "topicId"], required: [], ids: ["topicId"])
         pages["pages/merchant/profile/index"] = Rule(allowed: ["id", "poiId", "topicId", "topicName"], required: [], ids: ["id", "poiId", "topicId"])
         pages["pages/merchant/team/index"] = Rule(allowed: ["invite"], required: [], ids: [])
         pages["pages/coop/invite/index"] = Rule(allowed: ["type", "toId", "topicId"], required: [], ids: ["toId", "topicId"])
@@ -104,7 +111,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         // Parity r1 (player-content): pages whose MP `onLoad` reads a query now carry it to the native screen.
         for (page, rule) in queryPages { pages[page] = rule }
         // fix-parity r1 (account-publish X1): the keys each MP page reads in `onLoad`. Values are checked below.
-        pages["pages/userinfo/userinfo"] = Rule(allowed: ["id", "userId", "tab"], required: [], ids: ["id", "userId"])
+        pages["pages/userinfo/userinfo"] = Rule(allowed: ["id", "userId", "tab", "topicId", "chapterId", "scope", "preview"], required: [], ids: ["id", "userId", "topicId", "chapterId"])
         pages["pages/talent/list/index"] = Rule(allowed: ["tab"], required: [], ids: [])
         pages["pages/gerenziliao/gerenziliao"] = Rule(allowed: ["field"], required: [], ids: [])
         pages["pages/addressinfo/addressinfo"] = optionalID
@@ -154,14 +161,12 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/merchant/index/index",
         "pages/merchant/apply/index",
         "pages/merchant/ledger/order-detail/index",
-        "pages/merchant/ledger/batch-detail/index",
         "pages/merchant/aftercare/index",
         "pages/merchant/predict/index",
         "pages/merchant/aftercare/detail/index",
         "pages/merchant/marketing/index",
         "pages/merchant/reviews/index",
         "pages/merchant/marketing/ai-insight/index",
-        "pages/merchant/relation/index",
         "pages/merchant/citynode/index",
         "pages/merchant/citynode/create/index",
         "pages/merchant/decor/index",
@@ -169,7 +174,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/merchant/decor/coop-setting/index",
         "pages/merchant/decor/gallery/index",
         "pages/merchant/decor/perks/index",
-        "pages/merchant/coop-center/index",
         "pages/merchant/customer/index",
         "pages/merchant/game-node/index",
         "pages/merchant/verify-records/index",
@@ -259,7 +263,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
 
     /// Keys whose MP values are a closed set: anything else would open a state the MP page never shows.
     private static let enumeratedValues: [String: [String: Set<String>]] = [
-        "pages/userinfo/userinfo": ["tab": ["projects", "posts", "achievements", "about"]],
+        "pages/userinfo/userinfo": ["tab": ["projects", "posts", "achievements", "about"], "scope": ["MERCHANT"], "preview": ["1"]],
         "pages/talent/list/index": ["tab": ["feed", "club"]],
         "pages/gerenziliao/gerenziliao": ["field": ["introduction", "category"]],
         "pages/shezhi/shezhi": ["scene": ["settings-deregister", "settings-profile", "settings-feedback", "settings-likes",
@@ -354,4 +358,16 @@ public struct MiniProgramPageLink: Equatable, Sendable {
 public enum TopicCatalogDestination: Equatable, Sendable {
     case topic(Int)
     case home
+}
+
+/// CLB-enroll-08. No club id loads `api/club/my` and opens the one owned club.
+public enum ClubEnrollMissingClubCopy {
+    public static let title = "还没有可管理的俱乐部"
+    public static let body = "成为俱乐部主理人后，可在这里查看报名名册"
+    public static func clubID(explicit: Int?, ownedClubIDs: [Int]) -> Int? {
+        if let explicit, explicit > 0 { return explicit }
+        guard ownedClubIDs.count == 1 else { return nil }
+        let only = ownedClubIDs[0]
+        return only > 0 ? only : nil
+    }
 }

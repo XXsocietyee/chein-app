@@ -118,7 +118,7 @@ import UIKit
         page.appear(foreground: true); try await waitFor { !page.loading && page.pager.error != nil }
         XCTAssertEqual(page.pager.error as? APIError, .notConfigured); XCTAssertTrue(r.wire.pages.isEmpty)
         let view = RoamStampAlbumView(reader: r.reader, readOnlyScope: scope)
-        XCTAssertFalse(view.allowsCapture); XCTAssertFalse(view.allowsRemoteImages)
+        XCTAssertFalse(view.allowsCapture); XCTAssertTrue(view.allowsRemoteImages) // MP-first: MP album shows picUrl
         XCTAssertFalse(page.pager.loaded); XCTAssertTrue(scope.isCurrent)
     }
     func testActualOriginalCardPushPreservesScopeAndBackRefreshesMetadataOnce() async throws {

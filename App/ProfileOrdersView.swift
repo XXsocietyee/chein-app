@@ -55,7 +55,7 @@ struct ProfileOrdersView: View {
             let orders = displayedOrders(loaded)
             if orders.isEmpty {
                 VStack(spacing: 12) {
-                    CYEmptyState(systemImage: "ticket", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
+                    CYEmptyState(systemImage: "tray", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
                     if let discoverRoutes {
                         Button("profile.orderParity.discover") { discoverRoutes() }
                             .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
@@ -621,6 +621,10 @@ private struct ProfileOrderHeroSection: View {
     }
     var body: some View {
         Section {
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+            // Round 4: MP hero image (scene-member-order-detail wxml:21). `ProfileOrder` has no cover field yet,
+            // so the MP fallback `icon_ticket_empty.svg` shows (resolveHeroImage default).
+            OrderCoverTile(size: 72, fallback: MPAsset.EmptyState.iconTicketEmpty)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 // Unknown money is an em dash, never ¥0.
                 Text(verbatim: order.actualPaidAmount.map(ProfileOrderYuan.text) ?? "—")
@@ -632,6 +636,7 @@ private struct ProfileOrderHeroSection: View {
                 if let statusText { CYStatusChip(verbatim: statusText) } else { CYStatusChip(stateKey) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            }
             .padding(.vertical, CYSpacing.xs)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("profile.order.detail.hero")

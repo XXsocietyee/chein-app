@@ -24,6 +24,11 @@ final class ClubOpsJoinNotifyPresentationTests: XCTestCase {
         XCTAssertEqual(copy?.table, "ClubOpsJoinNotify"); XCTAssertEqual(copy?.titleKey, "clubOpsNotify.failed")
         XCTAssertEqual(copy?.retryKey, "clubOpsNotify.retry")
         XCTAssertNil(ClubOpsPageFailureCopy(operation: .audienceCounts, failure: .forbidden))
+        XCTAssertEqual(ClubOpsPageFailureCopy(operation: .series, failure: .malformed)?.retryKey, "clubOpsGov.retryAction")
+        XCTAssertEqual(ClubOpsPageFailureCopy(operation: .eventTopics, failure: .unknown(message: "x"))?.retryKey, "clubOpsGov.retryAction")
+        XCTAssertEqual(ClubOpsNetworkFailureClassifier.eventOpsHubTitle(.invalidRequest), "链接已失效")
+        XCTAssertEqual(ClubOpsNetworkFailureClassifier.ClubOpsEventHubAction.forFailure(.invalidRequest).title, "返回")
+        XCTAssertEqual(ClubOpsNetworkFailureClassifier.ClubOpsEventHubAction.forFailure(.unknown(message: nil)).title, "重新加载")
     }
     func testDirectMerchantLedgerAndFailureClassifier() throws {
         let emptyLedger = try ClubDirectMerchantLedgerPresentation(value: .array([]))

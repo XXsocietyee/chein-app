@@ -99,13 +99,16 @@ public enum MerchantCityNodeVerifyGrant {
     }
 }
 
-/// Writes need both the injected offline harness and the w2-19 gate path; production stays dormant.
+/// Claim, cancel, offline, and save follow `MerchantCoopLiveWrites.cityNode`. Poster code stays off.
+/// `.mpFirst` is not a second switch for these four paths.
 public enum MerchantCityNodeWriteGate {
     public static let paths: Set<String> = ["api/merchant/city-node/claim", "api/merchant/city-node/claim/cancel",
                                             "api/merchant/city-node/offline", "api/merchant/city-node/save"]
     public static func enabled(permitsWrites: Bool, isOfflineExample: Bool, path: String,
                                gates: MerchantCityNPCParityGates = .disabled, market: RegionalMarket? = nil) -> Bool {
-        guard permitsWrites, paths.contains(path) else { return false }
+        guard paths.contains(path) else { return false }
+        if MerchantCoopLiveWrites.cityNode { return true }
+        guard permitsWrites else { return false }
         if isOfflineExample { return true }
         guard gates.cityNodeWrites, let market else { return false }
         return gates.allows(path, market: market)
