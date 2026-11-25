@@ -1,6 +1,102 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "nearby.actionFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作未完成"
+          }
+        }
+      }
+    },
+    "nearby.error.apply.ALREADY_JOINED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are already in this team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已在这支队伍里"
+          }
+        }
+      }
+    },
+    "nearby.error.apply.APPLY_BLOCKED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot apply to this team right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时不能申请这支队伍"
+          }
+        }
+      }
+    },
+    "nearby.error.apply.APPLY_PENDING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have already applied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已经申请过了"
+          }
+        }
+      }
+    },
+    "nearby.error.handle.APPLY_BLOCKED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This application cannot be approved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不能同意这条申请"
+          }
+        }
+      }
+    },
+    "nearby.rejected.foot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You cannot apply to this team again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不能再申请这支队伍"
+          }
+        }
+      }
+    },
     "officialRoute.detail.error": {
       "localizations": {
         "en": {
@@ -177,6 +273,22 @@
         }
       }
     },
+    "playHelp.skipped": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skipped · 0 points · assisted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过 · 记 0 分 · 辅助完成"
+          }
+        }
+      }
+    },
     "playMerchant.perk.title": {
       "localizations": {
         "en": {
@@ -189,6 +301,86 @@
           "stringUnit": {
             "state": "translated",
             "value": "本店权益"
+          }
+        }
+      }
+    },
+    "playkit.photo.fallbackRecorded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片已记录"
+          }
+        }
+      }
+    },
+    "playx.circle.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing free exploration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备自由探索"
+          }
+        }
+      }
+    },
+    "playx.circle.notice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This card only records your own choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本卡仅记录玩家自己的选择"
+          }
+        }
+      }
+    },
+    "playx.merchant.stat.wait": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Est. wait (min)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预计等待（分）"
+          }
+        }
+      }
+    },
+    "playx.node.untitled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名地点"
           }
         }
       }
@@ -257,6 +449,102 @@
         }
       }
     },
+    "roam.experience.noTrack": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No track was recorded this time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次没有记录到轨迹"
+          }
+        }
+      }
+    },
+    "roam.historyLocal.finishPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your last walk needs confirming"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次漫游需要确认"
+          }
+        }
+      }
+    },
+    "roam.historyLocal.unfinishedHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded after completion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束后收录"
+          }
+        }
+      }
+    },
+    "roam.live.consentCard.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used for live location, check-ins and your track. Recording continues while locked and stops when you end the walk."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于实时定位、打卡和轨迹记录，锁屏后仍会记录，结束漫游即停止。"
+          }
+        }
+      }
+    },
+    "roam.live.finishing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在结算"
+          }
+        }
+      }
+    },
+    "roam.live.locationQuality": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location is not precise enough. Move to an open area, wait for it to settle, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位精度不足，请到开阔处等待定位稳定后重试。"
+          }
+        }
+      }
+    },
     "roam.passportSheet.title": {
       "localizations": {
         "en": {
@@ -269,6 +557,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "漫游护照与工具"
+          }
+        }
+      }
+    },
+    "roam.poi.location.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location is unavailable right now. Please try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法获取位置，请稍后重试。"
           }
         }
       }
@@ -465,6 +769,118 @@
         }
       }
     },
+    "roam.share.photoPermissionDenied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow saving to Photos in Settings, then come back and tap “Retry save”."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在设置里允许保存到相册，返回后点“重试保存”。"
+          }
+        }
+      }
+    },
+    "roam.share.prepare": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make footprint card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成足迹卡"
+          }
+        }
+      }
+    },
+    "roamSub.w208.poi.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node could not be found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到这个节点"
+          }
+        }
+      }
+    },
+    "roamSub.w208.poi.offline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node is offline; your history is kept"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点已下线，保留历史记录"
+          }
+        }
+      }
+    },
+    "roamSub.w208.poi.offlineVoucher": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node is offline; your history is kept, and checked-in coupons awaiting redemption can still be shown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点已下线，保留历史记录，已打卡待核销的券仍可出码领取"
+          }
+        }
+      }
+    },
+    "roamSub.w208.poi.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This node is not open or is offline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点未开放或已下线"
+          }
+        }
+      }
+    },
+    "roamSub.w208.shared.errorTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This footprint cannot be opened"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条足迹无法打开"
+          }
+        }
+      }
+    },
     "roamSub.w208.voucher.defaultName": {
       "localizations": {
         "en": {
@@ -493,6 +909,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "核销码二维码没能生成，请重试"
+          }
+        }
+      }
+    },
+    "roamTools.clearCache.confirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear local cache"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认清空本机缓存"
+          }
+        }
+      }
+    },
+    "templateVenue.park": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Park · Green space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公园 · 绿地"
+          }
+        }
+      }
+    },
+    "u10.roamFinish.medals": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章（枚）"
           }
         }
       }

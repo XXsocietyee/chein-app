@@ -239,8 +239,8 @@ struct RoamShareLinkDormantNotice: View {
                     CYSkeleton().accessibilityLabel(Text("roamSub.w208.shared.loading"))
                         .accessibilityIdentifier("roamSub.w208.shared.loading")
                 case .error?:
+                    // MP session shared error: 这条足迹无法打开 + 重试, no sub line.
                     CYEmptyState(systemImage: "wifi.exclamationmark", "roamSub.w208.shared.errorTitle",
-                                 detail: "roamSub.w208.shared.errorHint",
                                  actionTitle: "roamSub.w208.shared.retry", actionIdentifier: "roamSub.w208.shared.retry",
                                  action: { Task { await load() } })
                         .accessibilityIdentifier("roamSub.w208.shared.error")
@@ -346,8 +346,8 @@ struct RoamShareLinkDormantNotice: View {
 struct RoamPOIUnavailableView: View {
     var onBack: (() -> Void)? = nil
     var body: some View {
+        // MP scene-roam-poi-detail `unavailable`: 节点未开放或已下线 + 返回地图, no sub line.
         CYEmptyState(systemImage: "mappin.slash", "roamSub.w208.poi.unavailable",
-                     detail: "roamSub.w208.poi.unavailableHint",
                      actionTitle: onBack == nil ? nil : "roamSub.w208.poi.backToMap", action: onBack)
             .accessibilityIdentifier("roamSub.w208.poi.unavailable")
     }
@@ -357,8 +357,8 @@ struct RoamPOIUnavailableView: View {
 struct RoamPOIMissingView: View {
     var onBack: (() -> Void)? = nil
     var body: some View {
+        // MP scene-roam-poi-detail `empty`: missing-param (info glyph), 找不到这个节点 + 返回地图, no sub line.
         CYEmptyState(systemImage: "info.circle", "roamSub.w208.poi.missing",
-                     detail: "roamSub.w208.poi.missingHint",
                      actionTitle: onBack == nil ? nil : "roamSub.w208.poi.backToMap", action: onBack)
             .accessibilityIdentifier("roamSub.w208.poi.missing")
     }

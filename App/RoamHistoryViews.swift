@@ -45,7 +45,8 @@ import SwiftUI
                                      action: { dismissHistory() })
                             .accessibilityIdentifier("roam.experience.history.unfinished")
                     } else {
-                        CYEmptyState(systemImage: "figure.walk", "roam.experience.historyEmpty", detail: "roam.experience.historyEmptyHint",
+                        // MP scene-roam-history: cy-empty kind="empty" (MP illustration), 还没有漫游记录, no sub, 出发第一次漫游.
+                        CYEmptyState(systemImage: "tray", "roam.experience.historyEmpty",
                                      actionTitle: "roamSub.w208.history.emptyCTA", actionIdentifier: "roam.history.startFirst",
                                      actionStyle: .primary,
                                      action: { if liveDestination != nil { startFirstWalk = true } else { dismissHistory() } })
