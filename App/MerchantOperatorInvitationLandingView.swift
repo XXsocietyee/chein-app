@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Inactive access/me has no merchant id. Accept still posts `{token, requestId}` (MC9-29-1).
 enum MerchantInvitationAcceptGate {
-    static func allows(_ command: MerchantEngagementCommand, merchantID: Int?, reader: any MerchantEngagementReading) -> Bool {
+    @MainActor static func allows(_ command: MerchantEngagementCommand, merchantID: Int?, reader: any MerchantEngagementReading) -> Bool {
         if let merchantID, merchantID > 0 { return reader.canExecute(command, merchantID: merchantID) }
         guard case .acceptInvitation = command else { return false }
         return reader.canExecute(command, merchantID: 0)
