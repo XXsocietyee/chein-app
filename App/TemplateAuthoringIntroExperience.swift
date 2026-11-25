@@ -133,6 +133,7 @@ import Combine
                         }
                         .frame(maxWidth:.infinity,alignment:.leading)
                         .cyDomainCard(padding: CYSpacing.xs)
+                        .modifier(TemplateIntroFloatingCover(index: index)) // r8 C-I9-r7: covers float (still under Reduce Motion)
                         .accessibilityElement(children:.combine).accessibilityIdentifier("creatorIntro.example.\(index)")
                     }
                 }

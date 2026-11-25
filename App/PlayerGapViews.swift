@@ -160,6 +160,8 @@ struct TeamInviteQRSection: View {
                     AsyncImage(url: qr) { $0.resizable().scaledToFit() } placeholder: { ProgressView() }
                         .frame(maxWidth: 180, maxHeight: 180)
                         .accessibilityLabel(Text("playerGap.teamQR.image"))
+                    // r8 C-D11-r7 (MP team/detail 邀请卡 保存图片): in-page notice, then add to Photos.
+                    TeamInviteImageSaveRow(imageURL: qr)
                     codeLine(code)
                 case .code(let code)?:
                     codeLine(code)
@@ -379,7 +381,11 @@ struct CityFavoriteNodesSection: View {
                 if let nodes {
                     if nodes.isEmpty { Text("playerGap.cityFavorites.empty").cyText(.body).foregroundStyle(CYColor.textTertiary) }
                     ForEach(nodes) { node in
-                        row(node)
+                        // r8 A4-01 (MP mylike.wxml:43 bindtap goNode → subpackageRoam/poi-detail?poiId=): the row opens the place.
+                        NavigationLink {
+                            MPReviewedPageScreen(page: "subpackageRoam/poi-detail/index", query: ["poiId": String(node.id), "name": node.name])
+                        } label: { row(node) }
+                            .accessibilityHint(Text("fixr8.favorites.node.openHint"))
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button("playerGap.cityFavorites.remove", role: .destructive) { pendingRemoval = node }
                                     .disabled(removing != nil)

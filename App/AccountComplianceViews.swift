@@ -50,6 +50,20 @@ import SwiftUI
 
     func rememberContractCode(_ code: String) { contractSMSCode = code }
 
+    /// r8 B-DR-04b (MP utils/deregister-flow.js:137-176): the notice step runs the read-only precheck on entry, so
+    /// blockers show before 我已阅读并理解注销后果. Nothing is recorded; the agreed precheck still runs on 下一步.
+    @Published private(set) var entryPrecheck: AccountPublishMPContract.DeregisterPrecheck?
+    @Published private(set) var entryPrecheckLoading = false
+    func entryPrecheckOnContract() async {
+        guard AccountPublishContractLane.isInstalled, let baseURL = AccountPublishContractLane.baseURL, !entryPrecheckLoading else { return }
+        entryPrecheckLoading = true
+        defer { entryPrecheckLoading = false }
+        guard let request = try? AccountPublishMPContract.deregisterPrecheckRequest(baseURL: baseURL, token: AccountPublishContractLane.token),
+              let (data, _) = try? await AccountPublishContractLane.send(request) else { return }
+        entryPrecheck = AccountPublishMPContract.deregisterPrecheck(from: data)
+    }
+    var entryBlockers: [String] { entryPrecheck?.blockers.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty } ?? [] }
+
     func precheckOnContract(documentRead: Bool, explicitAgreement: Bool, expectedConsentVersion: String?, intent: AccountDeregistrationIntent) async {
         guard AccountPublishContractLane.isInstalled else {
             await coordinator.precheckAndAgree(documentRead: documentRead, explicitAgreement: explicitAgreement, expectedConsentVersion: expectedConsentVersion, recordConsent: false, intent: intent)
@@ -402,6 +416,22 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if model.state.status?.cancellationConfirmed == true {
                 Text("compliance.cancellationConfirmed", tableName: "AccountDeregistrationPresentation").accessibilityIdentifier("compliance.cancellationConfirmed")
             }
+            if !model.entryBlockers.isEmpty {
+                // r8 B-DR-04b: blockers from the entry precheck, before the agreement (MP BLOCKED card).
+                Section {
+                    Text("fixr3.deregister.blocked.lead").cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    ForEach(Array(model.entryBlockers.enumerated()), id: \.offset) { _, blocker in
+                        Label { Text(verbatim: blocker).cyText(.body) } icon: {
+                            Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText).accessibilityHidden(true)
+                        }
+                        .accessibilityIdentifier("compliance.entryBlocker")
+                    }
+                    Button { Task { await model.entryPrecheckOnContract() } } label: { Text("fixr3.deregister.blocked.recheck") }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .disabled(model.entryPrecheckLoading)
+                        .accessibilityIdentifier("compliance.entryBlocked.recheck")
+                } header: { Text("fixr3.deregister.blocked.title") }
+            }
             Section {
                 if let document {
                     Text(document.title).cyText(.cardTitle)
@@ -424,9 +454,11 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 }
                     .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                     .disabled(document?.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
-                        || !agreement || !model.state.localCancellationConsent.allowsNewConsent)
+                        || !agreement || !model.state.localCancellationConsent.allowsNewConsent
+                        || !model.entryBlockers.isEmpty)
                     .accessibilityIdentifier("compliance.precheck")
             }
+            .task { await model.entryPrecheckOnContract() }
         case .verify:
             Section {
                 // B-DR-03 (MP deregister-flow sendSms): the code goes to the account's bound phone, read from

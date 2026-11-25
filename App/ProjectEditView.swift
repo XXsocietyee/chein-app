@@ -390,6 +390,14 @@ import SwiftUI
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("projectEdit.settings.tickets")
                 } header: { OpsR3Text.text("editor.settings") }
+                // r8 C-F5 (MP fabu wxml:172): 角色 card, city themes only, never in the whitelist scope.
+                if model.draft.product == .city, model.coordinator.snapshot?.scope != .whitelist {
+                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly)
+                }
+                // r8 C-F7 (MP topic-detail-sheet.wxml:79, look-sheet.wxml): 画面风格.
+                if model.coordinator.snapshot?.scope != .whitelist {
+                    ProjectEditLookHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly)
+                }
                 if canvas == .list {
                     chapterStructure(opening: opening).id("project-issue-anchor-chapters")
                 } else {
@@ -901,6 +909,26 @@ import SwiftUI
                 starter.createChapter(lease: opening, name: name)
             }.buttonStyle(.borderless)
                 .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addChapter")
+            // r8 C-F7 (MP fabu wxml:441, js openTopicOpening): city themes get 添加序章 / 编辑序章 next to 添加章节.
+            if model.draft.product == .city {
+                if let prologue = model.draft.chapters.first(where: { $0.preserved["opening"] == .bool(true) }) {
+                    NavigationLink { ProjectEditChapterView(model: model, chapterID: prologue.id) } label: {
+                        Label("fixr8.fabu.editPrologue", systemImage: "book.pages")
+                    }
+                    .accessibilityIdentifier("projectEdit.editPrologue")
+                } else if model.coordinator.snapshot?.scope != .whitelist {
+                    Button("fixr8.fabu.addPrologue", systemImage: "book.pages") {
+                        var chapter = ProjectEditChapter()
+                        chapter.name = String(localized: "fixr8.fabu.prologueName", table: "Localizable")
+                        chapter.preserved["opening"] = .bool(true)
+                        chapter.blocks = []
+                        model.draft.chapters.insert(chapter, at: 0)
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(!model.fullEdit)
+                    .accessibilityIdentifier("projectEdit.addPrologue")
+                }
+            }
         }
     }
     private func chapterIndex(_ id: String) -> Int { model.draft.chapters.firstIndex { $0.id == id } ?? 0 }

@@ -185,6 +185,9 @@ import SwiftUI
         case "pages/play/poi-challenge/index":
             // PLAYPOI-2: the challenge reads its node by poiId.
             if let id = positiveID(query["poiId"]) { ChallengePOIHostView(poiID: id, reader: session.roamReader) } else { unavailable }
+        case "subpackageRoam/poi-detail/index":
+            // r8 A4-01 (MP mylike.js:435 `poi-detail?poiId=`): the city node detail by poiId (`id` is the canonical link key).
+            if let id = positiveID(query["poiId"] ?? query["id"]) { RoamPOIDetailHost(poiID: id, name: query["name"]) } else { unavailable }
         case "subpackageRoam/citynode-code/index":
             RoamCityVoucherCodeView(poiID: positiveID(query["poiId"]), name: query["name"])
         case "subpackageP3/pages/stamp-album/index/index":
@@ -554,7 +557,7 @@ import SwiftUI
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
             // B-SZ-12: `?scene=` lands on the Settings row it names (MP shezhi.js:50, 231-244); unknown or
-            // unavailable scenes (and settings-identity-picker, whose entries live on Settings) open Settings itself.
+            // unavailable scenes open Settings itself.
             if query["scene"] == "settings-deregister", let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
             } else if query["scene"] == "settings-profile", session.account != nil {
@@ -566,6 +569,9 @@ import SwiftUI
             } else if query["scene"] == "settings-likes" {
                 MPFavoritesLinkHost(session: session)
                     .id(session.profileFavoritesReader.scope)
+            } else if query["scene"] == "settings-identity-picker" {
+                // r8 B-SZ-12b (MP scene-registry.js:27 选择要申请的身份): the identity application rows on their own.
+                SettingsIdentityPickerHost(session: session)
             } else if query["scene"] == "settings-how-to-play" {
                 ProfileGuideHost(reader: session.makeProfileGuideReader(),
                                  makeArticleReader: { session.makeProfileGuideArticleReader($0) },

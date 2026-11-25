@@ -214,6 +214,10 @@ import SwiftUI
                             ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)
                         }
                     case .posts:
+                        // r8 A1-01: own profile only.
+                        if let actions, actions.identity.accountID == memberID {
+                            OwnProfileComposerHost(actions: actions, offline: reader.isOfflineExample)
+                        }
                         UGCBlockedFilterContainer(memberID: profile.id, authorName: profile.nickname) {
                             ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader,
                                 actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)
@@ -224,6 +228,8 @@ import SwiftUI
                                 authorName: profile.nickname
                             )
                         }
+                        // r8 A2-08 (MP cy/profile loadMyClubPosts): own club posts follow the community posts.
+                        if let actions, actions.identity.accountID == memberID { OwnProfileClubPostsSection() }
                     case .achievements:
                         // Points come first under 成就, as in the mini-program.
                         if let weeklyPointsAccess {
