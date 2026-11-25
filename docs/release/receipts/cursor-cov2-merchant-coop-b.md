@@ -13,7 +13,7 @@ Merchant-coop rows are those whose MP path starts with `pages/merchant/` or `pag
 | Last row of lane a | `pages/merchant/decor/ai-npc/index.js:314` |
 | First row of lane b | `pages/merchant/decor/coop-setting/index.js:117` |
 
-`utils/`, `app.js`, and `components/` were not taken. `pages/merchant/utils/voice-enrollment-journal.js` (4 rows) is in this half and was left missing. `api/creativesquare/list` (`pages/merchant/relation/index.js:388`) was not taken.
+`app.js` and `components/` were not taken. The four `pages/merchant/utils/voice-enrollment-journal.js` rows are covered below. `api/creativesquare/list` (`pages/merchant/relation/index.js:388`) was not taken.
 
 ## Endpoints added
 
@@ -26,11 +26,24 @@ Merchant-coop rows are those whose MP path starts with `pages/merchant/` or `pag
 | `reviewReplyUpdatePath` | `api/merchant/reviews/reply/update` | Same row. |
 | `reviewReplyDeletePath` | `api/merchant/reviews/reply/delete` | Same row. Delete does not send `content`. |
 
+## Voice enrollment journal
+
+`Core/MerchantVoiceEnrollmentJournal.swift`. `App/` has no type of that name. Line 6 is `const request = value => …`, a local id check: `sample:` plus 64 lowercase hex digits, or 8-4-4-4-12 lowercase hex. The four calls pass one property. They do not forward `url`, and they have no HTTP method. No API path was added.
+
+| Row | Call shape | Literal fields | Test |
+|---|---|---|---|
+| `:18` | `request(value.active)` | `active` | `testVoiceJournalActiveCallQuotesActiveAndSendsNothing` |
+| `:20` | `request(row.requestId)` | `createdAt`, `intentId`, `previousIntentId`, `requestId`, `state` | `testVoiceJournalRecordCallQuotesRequestIdAndSendsNothing` |
+| `:76` | `request(result.voiceRequestId)` | `voiceRequestId` | `testVoiceJournalObserveCallQuotesVoiceRequestIdAndSendsNothing` |
+| `:100` | `request(value.requestId)` | `requestId`, `intentId`, `state` | `testVoiceJournalRecoverCallQuotesRequestIdAndSendsNothing` |
+
+`httpMethod` is nil. The tests send nothing. Payout, refund, withdrawal, and both IM mark-read switches are unchanged.
+
 No path was invented for a call that only forwards `url`: `pages/merchant/ledger/index.js:196`, `pages/merchant/reviews/index.js:624`, and `pages/merchant/index/index.js:1387` (forwards `options`). Ternary urls at `decor/index.js:367`, `reviews/index.js:253`, and `team/index.js:715` already have Core literals. `api/merchant/aftercare/list` (`ledger/index.js:360`) is already a Core literal; the checker marks that row templated because the query string is interpolated, and a fixed literal does not fill a templated lookup. `api/merchant/reviews/reply/receipt` was already `MerchantReviewReplyOriginal.receiptPath`.
 
 ## Tests added
 
-`Tests/CoreTests/ZzMerchantCoopLaneBContractTests.swift`: 54 functions. 53 quote a path, `"POST"`, and the literal field names for 73 owned rows. The class name sorts after existing CoreTests classes, so a shared path keeps the test it already had. The 54th function only asserts the money switches.
+`Tests/CoreTests/ZzMerchantCoopLaneBContractTests.swift`: 58 functions. 53 quote a path, `"POST"`, and the literal field names for 73 owned rows. Four more quote the journal call shape and its literal field names. The class name sorts after existing CoreTests classes, so a shared path keeps the test it already had. One function only asserts the money switches.
 
 The checker counts a test only when the row's method and field list are literals. It counts these three:
 
@@ -57,4 +70,4 @@ The other quoting tests stay uncounted because the data is `JSON.stringify`, a t
 
 Matched was 6 on the base and is 10 now. Missing endpoint was 14 and is 13 (arrivals today gained a symbol; its test stays missing because there is no data object). Missing test was 81 and is 77.
 
-The 13 missing endpoints are the 4 journal rows, the 3 url-forward calls, the 3 ternary calls, the templated aftercare list, and the two reply-recovery rows whose urls sit inside the outer `request(`.
+The checker still reports the 4 journal rows as missing endpoint and missing test: it only keeps a literal API url, and these calls have none. The other 9 missing endpoints are the 3 url-forward calls, the 3 ternary calls, the templated aftercare list, and the two reply-recovery rows whose urls sit inside the outer `request(`.

@@ -622,4 +622,44 @@ final class ZzMerchantCoopLaneBContractTests: XCTestCase {
         XCTAssertFalse(ReleaseMoneyWriteSwitch.isEnabled(.withdrawal))
         XCTAssertFalse(ReleaseMoneyWriteSwitch.isEnabled(.refund))
     }
+
+    func testVoiceJournalActiveCallQuotesActiveAndSendsNothing() {
+        // pages/merchant/utils/voice-enrollment-journal.js:18
+        XCTAssertEqual(MerchantVoiceEnrollmentJournal.activeCall, "request(value.active)")
+        XCTAssertNil(MerchantVoiceEnrollmentJournal.httpMethod)
+        let fields = ["active"]
+        XCTAssertEqual(fields, ["active"])
+        XCTAssertTrue(MerchantVoiceEnrollmentJournal.accepts("sample:" + String(repeating: "a", count: 64)))
+        XCTAssertFalse(MerchantVoiceEnrollmentJournal.accepts("active"))
+    }
+
+    func testVoiceJournalRecordCallQuotesRequestIdAndSendsNothing() {
+        // pages/merchant/utils/voice-enrollment-journal.js:20
+        XCTAssertEqual(MerchantVoiceEnrollmentJournal.recordRequestIDCall, "request(row.requestId)")
+        XCTAssertNil(MerchantVoiceEnrollmentJournal.httpMethod)
+        let fields = ["createdAt", "intentId", "previousIntentId", "requestId", "state"]
+        XCTAssertEqual(fields, ["createdAt", "intentId", "previousIntentId", "requestId", "state"])
+        XCTAssertTrue(MerchantVoiceEnrollmentJournal.accepts("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"))
+        XCTAssertFalse(MerchantVoiceEnrollmentJournal.accepts("AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA"))
+    }
+
+    func testVoiceJournalObserveCallQuotesVoiceRequestIdAndSendsNothing() {
+        // pages/merchant/utils/voice-enrollment-journal.js:76
+        XCTAssertEqual(MerchantVoiceEnrollmentJournal.voiceRequestIDCall, "request(result.voiceRequestId)")
+        XCTAssertNil(MerchantVoiceEnrollmentJournal.httpMethod)
+        let fields = ["voiceRequestId"]
+        XCTAssertEqual(fields, ["voiceRequestId"])
+        XCTAssertTrue(MerchantVoiceEnrollmentJournal.accepts("sample:" + String(repeating: "0", count: 64)))
+        XCTAssertFalse(MerchantVoiceEnrollmentJournal.accepts("sample:" + String(repeating: "0", count: 63)))
+    }
+
+    func testVoiceJournalRecoverCallQuotesRequestIdAndSendsNothing() {
+        // pages/merchant/utils/voice-enrollment-journal.js:100
+        XCTAssertEqual(MerchantVoiceEnrollmentJournal.recoverRequestIDCall, "request(value.requestId)")
+        XCTAssertNil(MerchantVoiceEnrollmentJournal.httpMethod)
+        let fields = ["requestId", "intentId", "state"]
+        XCTAssertEqual(fields, ["requestId", "intentId", "state"])
+        XCTAssertTrue(MerchantVoiceEnrollmentJournal.accepts("01234567-89ab-cdef-0123-456789abcdef"))
+        XCTAssertFalse(MerchantVoiceEnrollmentJournal.accepts(""))
+    }
 }
