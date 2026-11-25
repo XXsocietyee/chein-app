@@ -346,6 +346,9 @@ import SwiftUI
                         ClubGovernanceReadView(operation: .topicOverview, scope: scope, identity: session.clubIdentity,
                                                access: g.access, coordinator: g.coordinator, opensStoryOnLoad: true)
                     }
+                    // CLB-topic-story-05 (MP topic-story/index.js:160-162, 273-285): a merchant link has `scope` and no
+                    // clubId, so its answers read `api/topic/host-node-answer`; a club link never carries a host scope.
+                    .environment(\.clubStoryHostAnswer, session.clubStoryHostAnswerContext(scope: scope.clubID == nil ? query["scope"] : nil))
                 } else {
                     clubRead(.topicOverview, scope, needsClub: false)
                 }

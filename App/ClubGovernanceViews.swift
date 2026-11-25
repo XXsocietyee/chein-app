@@ -2149,6 +2149,8 @@ struct ClubGovernanceEventView: View {
     let coordinator: ClubGovernanceCoordinator
     let reload: () async -> Void
     @Environment(\.clubStoryTemplates) private var templates
+    /// CLB-topic-story-05: set only on a merchant link (scope, no clubId).
+    @Environment(\.clubStoryHostAnswer) private var hostAnswer
     @Environment(\.locale) private var locale
     @State private var tab: ClubStoryTab = .route
     @State private var selectedChapter = 0
@@ -2158,6 +2160,7 @@ struct ClubGovernanceEventView: View {
     @State private var answerSheetTarget: ClubStoryAnswerRoute?
     /// CLB-topic-story-03: the answer sheet is titled 答案 · <node name>.
     @State private var answerSheetName: String?
+    @State private var hostAnswerTarget: ClubStoryHostAnswerTarget?
     @State private var storyToastMessage: String?
     @State private var mediaScope = UUID()
 
@@ -2169,7 +2172,8 @@ struct ClubGovernanceEventView: View {
     }
     private var presentation: ClubStoryPresentation? {
         guard sourceIsCurrent, let snapshot else { return nil }
-        return try? ClubStoryPresentation(snapshot: snapshot)
+        // A club snapshot ignores the host scope; a clubless (merchant) snapshot needs it (CLB-topic-story-05).
+        return try? ClubStoryPresentation(snapshot: snapshot, hostScope: snapshot.scope.clubID == nil ? hostAnswer.scope : nil)
     }
     private var sourceRevision: ClubStorySourceRevision {
         .init(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration,
@@ -2285,6 +2289,16 @@ struct ClubGovernanceEventView: View {
                 }
             }
         }
+        .sheet(item: $hostAnswerTarget) { target in
+            PlayCloseSheetHost(
+                title: [appLocalized("club.story.answerTitle", locale: locale), target.name].compactMap { $0 }.joined(separator: " · "),
+                detents: [.half, .full],
+                onClose: { hostAnswerTarget = nil }
+            ) {
+                ClubStoryHostAnswerSheetContent(topicID: target.topicID, nodeID: target.nodeID, context: hostAnswer)
+                    .id(target.id)
+            }
+        }
         .cyToast(verbatimMessage: $storyToastMessage)
         .task(id: reloadContext) {
             // The overview is also covered. On return, obtain a fresh source
@@ -2388,6 +2402,17 @@ struct ClubGovernanceEventView: View {
                             }
                             .frame(minHeight: CYSpacing.minTouchTarget)
                             .accessibilityIdentifier("club.story.answer.\(play.id)")
+                        } else if let target = hostAnswerTarget(play) {
+                            // CLB-topic-story-05: merchant entry posts api/topic/host-node-answer {topicId, nodeId, scope}.
+                            Button("club.gov.nodeAnswer") {
+                                guard hostAnswerTarget == nil, selectedTemplate == nil, sourceIsCurrent else {
+                                    storyToastMessage = appLocalized("club.story.sourceUnavailable", locale: locale)
+                                    return
+                                }
+                                hostAnswerTarget = target
+                            }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityIdentifier("club.story.answer.\(play.id)")
                         }
                     }
                     .buttonStyle(.borderless)
@@ -2404,6 +2429,12 @@ struct ClubGovernanceEventView: View {
         guard sourceIsCurrent, let snapshot else { return nil }
         return .init(gameplay: play, snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration)
     }
+    /// Host entry only: the presentation has no club id, the link carried a scope, and the play is answerable.
+    private func hostAnswerTarget(_ play: ClubStoryGameplay) -> ClubStoryHostAnswerTarget? {
+        guard sourceIsCurrent, hostAnswer.isAvailable, let presentation, presentation.clubID == nil,
+              presentation.hostScope != nil, play.isAnswerable, let nodeID = play.nodeID else { return nil }
+        return .init(topicID: presentation.topicID, nodeID: nodeID, name: play.nodeName ?? play.title)
+    }
     private func current(_ selection: ClubStoryTemplateSelection) -> Bool {
         sourceIsCurrent && selection.isCurrent(snapshot: snapshot, context: context,
             snapshotGeneration: snapshotGeneration, templates: templates)
@@ -2412,7 +2443,7 @@ struct ClubGovernanceEventView: View {
         sourceIsCurrent && route.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration)
     }
     private func invalidateSelection(resetChapter: Bool = false) {
-        selectedTemplate = nil; selectedAnswer = nil; answerSheetTarget = nil; storyExpanded = false
+        selectedTemplate = nil; selectedAnswer = nil; answerSheetTarget = nil; hostAnswerTarget = nil; storyExpanded = false
         if resetChapter { selectedChapter = 0; mediaScope = UUID() }
     }
 }
