@@ -368,3 +368,37 @@ enum ProjectEditLook {
         .disabled(readOnly)
     }
 }
+
+// MARK: - C-A4 发起人信息 (MP pages/publish/activity/index.wxml:135, index.js:1302-1342)
+
+/// The MP reads `/api/user/info` for the publisher on step 3 and shows only a failure: 发起人信息未加载 with
+/// 发起人信息加载失败，请重试 and 重试. A good read shows nothing. Hosts without the contract lane show nothing.
+@MainActor final class ActivityPublishOrganizerRead: ObservableObject {
+    @Published private(set) var failed = false
+    @Published private(set) var loading = false
+
+    func load() async {
+        guard AccountPublishContractLane.isInstalled, !loading else { return }
+        loading = true
+        defer { loading = false }
+        guard let (data, status) = try? await AccountPublishContractLane.userInfo(), (200..<300).contains(status),
+              AccountPublishMPContract.activityOwner(from: data) != nil else { failed = true; return }
+        failed = false
+    }
+}
+
+@MainActor struct ActivityPublishOrganizerHost: View {
+    @ObservedObject var read: ActivityPublishOrganizerRead
+
+    var body: some View {
+        if read.failed {
+            Section {
+                CYEmptyState(systemImage: "exclamationmark.triangle", "fixr8.activity.organizerFailed",
+                             detail: "fixr8.activity.organizerFailedDetail", actionTitle: "重试",
+                             actionIdentifier: "activityPublish.organizer.retry", kind: .failure,
+                             action: { Task { await read.load() } })
+                    .disabled(read.loading)
+            }
+        }
+    }
+}

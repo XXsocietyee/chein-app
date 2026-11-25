@@ -189,6 +189,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     var openResource: ((PublishedResource) -> Void)? = nil
     @State private var draft = ActivityPublishDraft()
     @State private var picker: String?
+    @StateObject private var organizerRead = ActivityPublishOrganizerRead()
     @State private var review: PublishingReview?
     @State private var localReview = false
     @State private var wizardStep = 0
@@ -414,6 +415,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 }
             }
             if ActivityPublishingWizard.clamp(wizardStep) == 2 {
+                // r8 C-A4 (MP activity wxml:135, js getUserData): 发起人信息未加载 + 重试 above 合作者.
+                ActivityPublishOrganizerHost(read: organizerRead)
                 Section {
                     Button { picker = "collaborator" } label: {
                         chooserRow("publishModes.collaborators", value: draft.collaboratorMemberIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.collaboratorMemberIDs.count)", locale: locale), icon: "person.2")
@@ -425,6 +428,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("合作与核销", "Collaborators")) }
                 .listRowBackground(palette.bgElevated)
                 .disabled(!editable)
+                .task { await organizerRead.load() }
                 ForEach($draft.tickets) { $ticket in
                     let index = draft.tickets.firstIndex { $0.id == ticket.id } ?? 0
                         Section {
