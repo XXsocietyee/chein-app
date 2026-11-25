@@ -124,7 +124,8 @@ private final class EntryRecordingTransport: HTTPTransport {
         let guest = RoamEntryNearbyReader(configuration: try APIConfiguration(baseURL: base), transport: guestTransport,
             current: { nil }, viewerRevision: { 0 }, area: { selection.snapshot }, access: { _ in nil })
         XCTAssertTrue(guest.allowsPublicEntry); XCTAssertFalse(guest.isSignedIn); XCTAssertTrue(guest.isConfigured)
-        XCTAssertEqual(try await guest.entryNearby(), [])
+        let guestRows = try await guest.entryNearby()
+        XCTAssertEqual(guestRows, [])
         XCTAssertEqual(guestTransport.requests.count, 1)
         XCTAssertNil(guestTransport.requests[0].value(forHTTPHeaderField: "Authorization"))
         XCTAssertEqual(guestTransport.requests[0].httpMethod, "GET")
