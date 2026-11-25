@@ -81,7 +81,8 @@ struct ActivityDetailView: View {
             hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess,
             opensRegistrationOnLoad: guestSignIn == nil && opensRegistrationOnLoad,
             registrationTicketID: registrationTicketID,
-            guestSignIn: guestSignIn)
+            guestSignIn: guestSignIn,
+            viewerAccountID: session.account?.id)
             .environment(\.inGameChannelHost, session.inGameChannelHost)
             .id(session.contentDetailRevision)
     }
@@ -107,6 +108,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     var registrationTicketID: Int? = nil
     /// Guest 立即报名. Nil for a signed-in reader, which opens the registration sheet instead.
     var guestSignIn: (() -> Void)? = nil
+    /// R9-PC-C1-2: signed-in viewer, so the host still sees 取消活动并退款 (disabled) while refunds are money-off.
+    var viewerAccountID: Int? = nil
     @State private var openedRegistrationOnLoad = false
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
@@ -686,6 +689,22 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                         await load()
                     }
                     .cyDomainSheet(detents: [.half, .full])
+                }
+            } else if hostCancelAccess == nil, !detail.isCancelled,
+                      ActivityHostCancelRules.isHost(hostMemberID: detail.hostMemberID, accountID: viewerAccountID) {
+                // R9-PC-C1-2: MP host footer (scene-play-activity-detail/index.wxml:149-151, `isOwner` index.js:338) is
+                // 取消活动并退款, never 立即报名. The refund write is money (TEST-only), so in Release it is shown disabled.
+                VStack(spacing: CYSpacing.xxs) {
+                    Button(role: .destructive) {} label: {
+                        Text(verbatim: CoreLoopCopy(locale: locale).t("取消活动并退款", "Cancel event & refund"))
+                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(true)
+                    .accessibilityIdentifier("activity.hostCancel.footer.unavailable")
+                    Text("activity.hostCancel.refundUnavailable")
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
             } else if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
                 // PC-C-1-3: nothing can be bought; the pill is disabled and names the reason (MP noTicketText).
