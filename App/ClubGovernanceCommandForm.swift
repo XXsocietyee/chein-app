@@ -73,6 +73,8 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.clubProfileDraftFlow) private var profileDraftFlow
+    /// CLB-group-code-04 (fix-r3-club-b round 3): the session label the event tools pass in (never a command field).
+    @Environment(\.clubRoleActivityLabel) private var sessionLabel
     @QuestifyReduceMotion private var reduceMotion
     @State private var audienceVisible = false
     @State private var scheduleSession: ClubSeriesScheduleSession?
@@ -364,7 +366,8 @@ import SwiftUI
                 Section {
                     ClubGroupCodePresentation(value: groupCode,
                         current: identity == access.identity && scenePhase == .active,
-                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } })
+                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } },
+                        sessionName: ClubRoleActivityLabel.entry(sessionLabel))
                 }
             }
             if let receipt {

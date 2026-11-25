@@ -1924,7 +1924,9 @@ struct ClubGovernanceEventView: View {
             }
             if let activity = scope.activityID, activity > 0,
                groupCodePage.map({ !$0.hidden && $0.sessions?.contains(where: { $0.id == activity }) == true }) ?? true {
-                NavigationLink { ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: scope), identity: identity, access: access, coordinator: coordinator) } label: {
+                // CLB-group-code-04 (fix-r3-club-b round 3): the session label rides in the environment, not the command.
+                NavigationLink { ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: scope), identity: identity, access: access, coordinator: coordinator)
+                    .environment(\.clubRoleActivityLabel, activityLabel) } label: {
                     CYListRow("club.gov.action.issueGroupCode", trailing: .chevron) { CYRowIcon(systemImage: "qrcode") }
                 }
             }

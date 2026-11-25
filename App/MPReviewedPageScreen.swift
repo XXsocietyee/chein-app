@@ -301,10 +301,16 @@ import SwiftUI
         case "pages/club/join-requests/index":
             if let id = clubQueryID(query) {
                 let management = session.clubManagementContext
-                ClubManagementView(clubID: id, identity: session.clubIdentity, access: management.access, coordinator: management.coordinator, viewerRevision: management.viewerRevision)
+                ClubManagementView(clubID: id, identity: session.clubIdentity, access: management.access, coordinator: management.coordinator, viewerRevision: management.viewerRevision,
+                                   joinRequestsOnly: true)
             } else { unavailable }
         case "pages/club/notify/index":
-            clubRead(.audienceCounts, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
+            // CLB-notify-01 / -06 (fix-r3-club-b round 3): the MP notify page is one composer: the selectable audience
+            // list with counts, 标题 / 内容, 预览受众, then 发送给 N 人. The composer reads the counts itself and shows
+            // the no-permission state, so the link opens it directly instead of a counts page with a second list.
+            if let clubID = clubQueryID(query) {
+                clubGovernance { g in ClubGovernanceCommandForm(route: .init(operation: .sendNotification, scope: .init(clubID: clubID, activityID: queryID(query, "activityId"))), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+            } else { unavailable }
         case "pages/club/topic-detail/index", "pages/club/topic-story/index":
             // MP topic-detail reads topicId (or id). CLB-topic-story-01: the story link opens the story itself, hosted by
             // the topic overview that owns its read (back returns to the topic page).

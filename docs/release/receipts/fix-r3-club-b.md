@@ -136,3 +136,56 @@
 - **Contract ratchet:** the r7 merge commit and this branch both fail 200 (baseline 184, 16 new). That is the **identical set**, compared line by line in a separate worktree, so this round adds 0 new failures. The 16 are pre-existing on r7, for example search map, coupons, and `test_localization_key_catalog_contract`, which lists the not-yet-merged `clubR3b.*` fragment keys of every round.
 - **Typography lint:** PASS.
 - **Strings:** `docs/port/strings/fix-r3-club-b.json` adds `clubR3b.customer.saveFailed`, `clubR3b.customer.saveFailedRetry` and `clubR3b.customer.retrySave` (en + zh-Hans).
+
+## Round 3 (2026-11-24 evening)
+
+- Brief: `origin/design/handoff-r2:docs/briefs/fix-r3-round3.md`.
+- Synced: `origin/ui/combined-r7` @ b0ac0108d merged cleanly (no conflicts). It is merged again before the final push.
+- **Not compiled** (no Swift toolchain in the cloud). Every API used was grepped on the new base: `EnvironmentValues.clubRoleActivityLabel`, `ClubRoleActivityLabel.entry`, `CYClubGameCodeCard(state:name:)`, `ClubGovernanceEventView.activityLabel`, `ClubGovernanceCommandForm(route:identity:access:coordinator:)`, `ClubGovernanceScope(clubID:activityID:)`, `CYColor.bgElevated`, `cyPageTitle(_: String.LocalizationValue)`.
+- No new Swift files, no new types, no new strings (`club.management.requests` already reads 入会申请 / Join requests).
+
+### Round 3 · re-applied
+
+Nothing needed re-applying. None of this branch's files were restored to Cursor's side. I compared every round-2 hunk (`61badb468`, `ac1c6362c`) with the new base:
+- MP avatar, empty art, two-decimal money (`ClubMoneyText`, now also `twoDecimals`), failure copy, the group-code auto re-issue and the 重试保存 customer failure are all present.
+- `ClubOpsFailureSection` / `ClubOpsPageFailureSection`: Cursor's version shows Core's `literalTitle` as a plain centred title and 返回 as a secondary pill (instead of my `CYEmptyState` + primary pill). The effect is the same: the Core sentence wins and a refusal offers 返回, not reload. I kept Cursor's version rather than adding a second implementation.
+
+### Fixed in round 3
+
+| id | files | what changed |
+|---|---|---|
+| CLB-group-code-04 (session name) | App/ClubGroupCodePresentation.swift, App/ClubGovernanceCommandForm.swift, App/ClubGovernanceViews.swift | The code card names the session 「活动名 · 开始时间」 (MP wxml:38-39). The label rides in the existing `clubRoleActivityLabel` environment from `ClubGovernanceEventView`; it never enters the command fields. With no label, the card shows the code alone. |
+| CLB-join-requests-01 | App/ClubManagementView.swift, App/MPReviewedPageScreen.swift | The MP route `pages/club/join-requests/index` opens the requests-only page: bar title 入会申请, no duplicate section header, no owner member list. The club 管理 tab and the r1 fixture keep the combined page (`joinRequestsOnly` defaults to false), so the r1 UI tests are unchanged. |
+| CLB-notify-01 / -06 | App/MPReviewedPageScreen.swift | The MP route `pages/club/notify/index` opens the composer directly: one selectable audience list with counts, 标题 / 内容, 预览受众, then 发送给 N 人. The composer runs its own audience-count read and permission gate (`ClubNotificationAudienceReadModel.project` throws `forbidden` without `club:notify:send` / `club:event:operate`; `canPrepare` needs an enabled audience), so send stays gated exactly as before. |
+| CLB-checkin-detail-04 (empty cover) | App/ClubCheckinRailView.swift | MP `ckd-cover--empty`: with no topic cover, a 59×40 `bgElevated` block keeps the order card's text column in place. |
+| CLB-workbench-03 | — | Closed as not applicable. The MP state appears only when `wx.redirectTo` fails. Native navigation cannot fail that way, and `MiniProgramPageLink` rejects invalid ids before the route. |
+
+### MP assets (round 3)
+
+- The pages in this half reference only `/images/d_profile.png` (badges, checkin-detail, join-requests), which was applied in round 2. Template-detail shelf tabs, leaderboard memojis and member-journey icons are not on these pages.
+
+### Gemini flow gaps (`docs/mp-gap/flows-g2.md`, Claude edges on these pages)
+
+- `customers/index.js:122` is a request, not a navigation (mis-extracted); customer rows already open the customer detail.
+- `group-code/index.js:223` 进入俱乐部管理 → the native denied state's 返回俱乐部 (`club.gov.groupCode.back`).
+- `settlement/index.js:235` (mine → personal) is `ClubSettlementMineView` → `ClubPersonalSettlementView(personal: true)`.
+- `settlement/index.js:240` → `ClubPayoutReceiverLink` (owner).
+- `settlement/index.js:254` → the club view opens `ClubSettlementDetail` (governance). The personal path is still blocked (below).
+- `workbench/index.js:25` is the club 管理 tab redirect (`clubDetail(id, tab: .manage)` / `ownedClubs`).
+
+### Left after round 3
+
+| id | owner | reason |
+|---|---|---|
+| CLB-notify-05 (silent re-read) | Claude, next round | The composer shows the campaign rows inline after a send. A silent `notificationStatus` re-read on return needs a second read model inside the generic form. |
+| CLB-settlement-04 / -06 (personal) | Cursor | `ClubSettlementDetailTarget.init` is still `fileprivate`, and there is no personal funds-stage read. The round-1 request stands. |
+| CLB-settlement-02 / CLB-r7-D-01 / F-C21 | integrator | Mounting `ClubGapFEReferenceSettlementSection` needs a reviewed-transport route grant for `api/fe/reference-settlement/*`, which is infra, not App views. At the mount: `allowsMoneyWrite = (API is TEST) && <default-off flag>`, never a literal `true`. |
+| CLB-group-code-04 (topic-detail path) | Claude, next round | The inline 出示团码 on topic detail opens the shared editor sheet, which has no label channel. The event-tools path carries it. |
+| CLB-group-code-05 | Gemini | Native 选择场次 step. |
+| CLB-workbench-04 | Cursor / club-a | Unchanged. |
+| CLB-payout-receiver-01, CLB-settlement-05 | owner | Unchanged. |
+| CLB-join-requests-06 (drop 刷新) | — | Kept: UI tests tap `club.management.refresh`. |
+
+### Gates (round 3)
+
+- **Contract ratchet:** the merged base and this branch both fail 217, the **identical set** (diffed), so this round adds 0 new failures.
