@@ -40,7 +40,11 @@ public struct ClubGovernanceFormDraft {
                     text["startTime"] = time
                 }
             }
-        case .ban: text = ["reason": "", "banDays": String(Self.defaultBanDays)]
+        case .ban:
+            // CLB-governance-01: the 对成员执行 card picks 期限 before the form (MP governance wxml:101-105).
+            // Only a listed choice is kept; anything else falls back to the default. `banDays` is never an anchor.
+            let picked = seed["banDays"]?.string.flatMap { Int($0) }.flatMap { Self.banDayChoices.contains($0) ? $0 : nil }
+            text = ["reason": "", "banDays": String(picked ?? Self.defaultBanDays)]
         case .unban, .transferOwner, .cancelOccurrence, .appeal: text["reason"] = ""
         case .revokeRole: text["reason"] = Self.revokeRoleReason
         // arrived is the roster row's immutable anchor; there is no default-false toggle.

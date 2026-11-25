@@ -22,8 +22,8 @@ final class OrientScorePageReadyTests: XCTestCase {
         XCTAssertFalse(hidden.showsMerchantChoice)
         XCTAssertFalse(hidden.appealEnabled)
         XCTAssertFalse(hidden.disputeEnabled)
-        XCTAssertFalse(hidden.settleEnabled)
-        XCTAssertFalse(hidden.syncEnabled)
+        XCTAssertTrue(hidden.settleEnabled)
+        XCTAssertTrue(hidden.syncEnabled)
         XCTAssertFalse(hidden.paymentEnabled)
         XCTAssertFalse(hidden.payoutEnabled)
         XCTAssertFalse(hidden.withdrawalEnabled)
@@ -57,6 +57,9 @@ final class OrientScorePageReadyTests: XCTestCase {
             + "\"timeline\":[{\"entryId\":30,\"dimension\":\"TASK\",\"deltaCenti\":500,\"runningCenti\":500,\"reasonCode\":\"TASK_DONE\"}],"
             + "\"settlement\":null,\"appeals\":[],\"disputes\":[]}"
         let score = try JSONDecoder().decode(OrientSessionScore.self, from: Data(scored.utf8))
+        XCTAssertNil(score.pendingReviewCount)
+        XCTAssertTrue(score.canSync)
+        XCTAssertTrue(score.canSettle)
         let facts = try XCTUnwrap(ready(OrientScorePage.bind(clientCapabilityPresent: true, value: try json(scored))))
         XCTAssertEqual(facts, OrientScorePage.facts(from: score))
         XCTAssertEqual(facts.totalText, "17.00")
@@ -72,6 +75,8 @@ final class OrientScorePageReadyTests: XCTestCase {
             + "\"settlement\":{\"state\":\"SETTLED\",\"settlementId\":5,\"sessionId\":9,\"totalCenti\":0,\"pointsAwarded\":0,\"xpAwarded\":0,\"idempotencyKey\":\"k-s\"},"
             + "\"appeals\":[],\"disputes\":[]}"
         let zeroScore = try JSONDecoder().decode(OrientSessionScore.self, from: Data(zero.utf8))
+        XCTAssertFalse(zeroScore.canSync)
+        XCTAssertFalse(zeroScore.canSettle)
         let zeroFacts = try XCTUnwrap(ready(OrientScorePage.bind(clientCapabilityPresent: true, value: try json(zero))))
         XCTAssertEqual(zeroFacts, OrientScorePage.facts(from: zeroScore))
         XCTAssertEqual(zeroFacts.totalText, "0.00")
@@ -83,8 +88,8 @@ final class OrientScorePageReadyTests: XCTestCase {
         let page = OrientScorePage.bind(clientCapabilityPresent: true, value: try json(zero))
         XCTAssertFalse(page.appealEnabled)
         XCTAssertFalse(page.disputeEnabled)
-        XCTAssertFalse(page.settleEnabled)
-        XCTAssertFalse(page.syncEnabled)
+        XCTAssertTrue(page.settleEnabled)
+        XCTAssertTrue(page.syncEnabled)
     }
 
     func testUnknownScoresAreAnEmDashAndAreNotStoredAsZero() throws {

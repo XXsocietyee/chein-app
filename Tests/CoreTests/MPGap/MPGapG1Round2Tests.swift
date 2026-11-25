@@ -210,7 +210,8 @@ final class MPGapG1Round2Tests: XCTestCase {
 
         let lb = OrientScoreLeaderboardItem(id: "1", rank: 1, isMine: true, scoreText: "99", elapsedText: "20分")
         XCTAssertTrue(lb.isMine)
-        XCTAssertEqual(OrientReviewSheetKind.appeal.title, "计分申诉")
+        XCTAssertEqual(OrientReviewSheetKind.appeal.rawValue, "APPEAL")
+        XCTAssertEqual(OrientReviewSheetKind.dispute.rawValue, "DISPUTE")
         XCTAssertEqual(PassOrderActionKind.refundApply.title, "申请退款")
         XCTAssertEqual(ReportAppealSheetPhase.unknown, .unknown)
 

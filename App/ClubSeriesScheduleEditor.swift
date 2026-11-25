@@ -487,6 +487,11 @@ struct ClubCreatedSeriesReceipt: Equatable {
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     let didDismiss: () -> Void
+    /// CLB-event-ops-06: the selected topic's ticket-count fact from the eventTopics proof (MP js:581).
+    private var topicFact: ClubOpsEventTopicFact? {
+        guard case let .topics(snapshot, _) = item.source.proof else { return nil }
+        return ClubOpsEventTopicNames.facts(snapshot, clubID: item.route.scope.clubID).first { $0.id == item.route.scope.topicID }
+    }
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(isPresented: owner.binding(item, source: source, active: active), onDismiss: {
@@ -505,6 +510,7 @@ struct ClubCreatedSeriesReceipt: Equatable {
                                 item: item, source: source(), active: active())
                         }))
                 }
+                .environment(\.clubOpsEventTopicFact, topicFact)
             }
             .onChange(of: source()) { _, source in owner.invalidateForm(item, source: source, active: active()) }
     }

@@ -47,7 +47,7 @@ private func board(rows: [String], me: String = "null", mode: String = "SCORE", 
         t.append(syncReceipt()); t.append(orientTestView()); t.append(reviewScore(total: 2400))
         try await c.synchronizeScore(key: "score-key-01")
         XCTAssertEqual(t.requests[1].url?.path, "/api/orient/scoring/session/9/sync")
-        XCTAssertEqual(String(data: t.requests[1].httpBody!, encoding: .utf8), "idempotencyKey=score-key-01")
+        XCTAssertEqual(String(data: t.requests[1].httpBody!, encoding: .utf8), "idempotencyKey=score-key-01&sessionId=9")
         XCTAssertTrue(t.requests[1].value(forHTTPHeaderField: "Content-Type")!.hasPrefix("application/x-www-form-urlencoded"))
         XCTAssertEqual(c.score?.totalCenti, 2400) // may differ from the earlier receipt; never recomputed locally
         guard case .sync(let receipt) = c.lastReceipt else { return XCTFail() }
@@ -302,5 +302,14 @@ private func board(rows: [String], me: String = "null", mode: String = "SCORE", 
         XCTAssertNotEqual(original, differentBytes)
         XCTAssertThrowsError(try store.clear(matching: differentBytes))
         XCTAssertEqual(try store.read(), original)
+    }
+    func testScoreRecoveryPostsKindOnly() async throws {
+        let t = OrientTestTransport()
+        t.append("{\"kind\":\"SYNC\",\"status\":0}")
+        let service = try orientScoringService(t)
+        _ = try await service.scoreRecovery(sessionID: 9, kind: "SYNC", token: "synthetic-token")
+        XCTAssertEqual(t.requests.first?.url?.path, "/api/orient/scoring/session/9/recovery")
+        XCTAssertEqual(String(data: t.requests.first!.httpBody!, encoding: .utf8), "kind=SYNC")
+        XCTAssertTrue(t.requests.first!.value(forHTTPHeaderField: "Content-Type")!.hasPrefix("application/x-www-form-urlencoded"))
     }
 }

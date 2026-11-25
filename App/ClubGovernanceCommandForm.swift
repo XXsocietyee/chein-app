@@ -72,6 +72,7 @@ import SwiftUI
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.clubOpsEventTopicFact) private var eventTopicFact
     @Environment(\.clubProfileDraftFlow) private var profileDraftFlow
     /// CLB-group-code-04 (fix-r3-club-b round 3): the session label the event tools pass in (never a command field).
     @Environment(\.clubRoleActivityLabel) private var sessionLabel
@@ -220,7 +221,8 @@ import SwiftUI
                     } else { Text("club.schedule.choose") }
                 }
                 if isSeries {
-                    ClubOpsEventSeriesFields(operation: route.operation, capacity: textBinding("capacity"), waitlist: flagBinding("waitlistEnabled"))
+                    ClubOpsEventSeriesFields(operation: route.operation, capacity: textBinding("capacity"), waitlist: flagBinding("waitlistEnabled"),
+                                             topicFact: eventTopicFact)
                 }
                 if isSeries {
                     ClubSeriesOfferWindowField(minutes: textBinding("offerMinutes"))
