@@ -13,13 +13,19 @@ enum ClubFEReferenceMoneyWriteGate {
 }
 
 @MainActor enum ClubFEReferenceBridge {
-    static func open(_ session: AppSession) -> Bool { PayoutReceiverBridge.payoutOpen(session) }
+    /// CLB-settlement-05: the payer list and export are reads; they no longer wait on the payout area.
+    static func open(_ session: AppSession) -> Bool { PayoutReceiverBridge.readsOpen(session) }
+    /// 标记已结清 is money: it still needs the payout area (TEST/DEBUG off the production host) and the TEST gate.
+    static func settleOpen(_ session: AppSession) -> Bool { PayoutReceiverBridge.payoutOpen(session) }
 
     private static func lease(_ session: AppSession) -> (any HTTPTransport)? {
         guard session.regionalConfiguration?.apiConfiguration != nil else { return nil }
         return Lease(underlying: session.composition.makeTransport(), open: { [weak session] in
             guard let session else { return false }
             return open(session)
+        }, settleOpen: { [weak session] in
+            guard let session else { return false }
+            return settleOpen(session)
         })
     }
 
@@ -38,7 +44,7 @@ enum ClubFEReferenceMoneyWriteGate {
     }
 
     static func settle(_ session: AppSession, ids: [Int], voucherNo: String?) async throws -> Bool {
-        guard ClubFEReferenceMoneyWriteGate.allowsSettle, open(session) else { return false }
+        guard ClubFEReferenceMoneyWriteGate.allowsSettle, settleOpen(session) else { return false }
         guard let configuration = session.regionalConfiguration?.apiConfiguration, let transport = lease(session) else { throw APIError.notConfigured }
         guard let token = session.token else { throw APIError.unauthorized }
         return try await ClubFEReferenceSettlementClient(configuration: configuration, transport: transport)
@@ -49,8 +55,10 @@ enum ClubFEReferenceMoneyWriteGate {
     private struct Lease: HTTPTransport {
         let underlying: any HTTPTransport
         let open: @MainActor () -> Bool
+        let settleOpen: @MainActor () -> Bool
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             guard await open(), let path = request.url?.path else { throw APIError.notConfigured }
+            if request.httpMethod?.uppercased() == "POST" { guard await settleOpen() else { throw APIError.notConfigured } }
             let method = request.httpMethod?.uppercased() ?? "GET"
             let read = method == "GET" && (path.hasSuffix("/api/fe/reference-settlement/payer") || path.hasSuffix("/api/fe/reference-settlement/payer/export"))
             let write = method == "POST" && path.hasSuffix("/api/fe/reference-settlement/settle") && ClubFEReferenceMoneyWriteGate.allowsSettle

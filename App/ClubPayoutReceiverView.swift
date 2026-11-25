@@ -202,7 +202,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     @State private var state: PayoutPageState<[PayoutSettlementClub]> = .loading
     var body: some View {
         List {
-            if !PayoutReceiverBridge.payoutOpen(session) {
+            if !PayoutReceiverBridge.readsOpen(session) {
                 PayoutAreaClosedNote()
             } else {
                 switch state {
@@ -233,7 +233,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         .cyDomainScreen(.player)
     }
     private func load() async {
-        guard PayoutReceiverBridge.payoutOpen(session) else { return }
+        guard PayoutReceiverBridge.readsOpen(session) else { return }
         state = .loading
         do {
             let clubs = try await PayoutReceiverBridge.call(session) { try await $0.settlementClubs(token: $1) }
@@ -266,7 +266,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
 
     private var personalBody: some View {
         List {
-            if !PayoutReceiverBridge.payoutOpen(session) {
+            if !PayoutReceiverBridge.readsOpen(session) {
                 PayoutAreaClosedNote()
             } else {
                 switch state {
@@ -359,7 +359,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     }
 
     private func load() async {
-        guard PayoutReceiverBridge.payoutOpen(session) else { return }
+        guard PayoutReceiverBridge.readsOpen(session) else { return }
         state = .loading
         do {
             let summary = try await PayoutReceiverBridge.call(session) { try await $0.settlementSummary(clubID: clubID, personal: personal, token: $1) }
@@ -424,7 +424,7 @@ struct ClubPayoutReceiverLink: View {
 
     private var ledgerBody: some View {
         Group {
-            if !PayoutReceiverBridge.payoutOpen(session) {
+            if !PayoutReceiverBridge.readsOpen(session) {
                 EmptyView()
             } else if case .ready(let ledger) = state, isClub, ledger.rows.isEmpty {
                 EmptyView()
@@ -497,7 +497,7 @@ struct ClubPayoutReceiverLink: View {
     }
 
     private func load() async {
-        guard PayoutReceiverBridge.payoutOpen(session) else { return }
+        guard PayoutReceiverBridge.readsOpen(session) else { return }
         state = .loading
         do {
             let scope = self.scope
