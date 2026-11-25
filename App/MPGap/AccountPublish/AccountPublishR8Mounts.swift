@@ -543,3 +543,66 @@ struct TemplateIntroFloatingCover: ViewModifier {
             .onChange(of: reduceMotion) { _, reduced in if reduced { lifted = false } }
     }
 }
+
+// MARK: - A2-08 own club posts on 帖文 (MP cy/profile index.js:2104-2128, wxml:277-282)
+
+/// Self only: the viewer's club posts (`POST /api/club/post/feed {scope:all, author:me, limit:20}`), after the
+/// community posts. A row opens the club with that post (`pages/club/detail?id=&postId=`). A failed read draws
+/// nothing, as on the MP (the community list owns the empty / error state).
+@MainActor struct OwnProfileClubPostsSection: View {
+    @State private var posts: [AccountPublishMPContract.ClubFeedPost] = []
+
+    var body: some View {
+        Section {
+            ForEach(Array(posts.enumerated()), id: \.offset) { _, post in
+                if let clubID = post.clubID, clubID > 0 {
+                    NavigationLink {
+                        MPReviewedPageScreen(page: "pages/club/detail/index",
+                                             query: ["id": String(clubID)].merging(post.id.map { ["postId": String($0)] } ?? [:]) { a, _ in a })
+                    } label: { row(post) }
+                    .accessibilityIdentifier("profile.clubPost.\(post.id ?? 0)")
+                } else {
+                    row(post)
+                }
+            }
+        }
+        .task { await load() }
+    }
+
+    private func row(_ post: AccountPublishMPContract.ClubFeedPost) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            HStack(spacing: CYSpacing.xs) {
+                Label("fixr8.profile.clubPost", systemImage: "person.3").labelStyle(.titleAndIcon)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Spacer()
+                if !post.formattedCreateTime.isEmpty {
+                    Text(verbatim: post.formattedCreateTime).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                }
+            }
+            if !post.content.isEmpty {
+                Text(verbatim: post.content).cyText(.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
+            }
+            if !post.images.isEmpty {
+                HStack(spacing: CYSpacing.xs) {
+                    ForEach(Array(post.images.prefix(3).enumerated()), id: \.offset) { _, raw in
+                        if let url = URL(string: raw), url.scheme == "https" {
+                            AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYColor.bgSurfaceSubtle }
+                                .frame(width: 72, height: 72)
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                                .accessibilityHidden(true)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func load() async {
+        guard AccountPublishContractLane.isInstalled, let baseURL = AccountPublishContractLane.baseURL,
+              let request = try? AccountPublishMPContract.ownClubPostsRequest(baseURL: baseURL, token: AccountPublishContractLane.token),
+              let (data, status) = try? await AccountPublishContractLane.send(request), (200..<300).contains(status) else { return }
+        posts = AccountPublishMPContract.ownClubPosts(from: data)
+    }
+}

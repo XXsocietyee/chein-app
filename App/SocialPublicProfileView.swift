@@ -219,6 +219,8 @@ import SwiftUI
                                 authorName: profile.nickname
                             )
                         }
+                        // r8 A2-08 (MP cy/profile loadMyClubPosts): own club posts follow the community posts.
+                        if let actions, actions.identity.accountID == memberID { OwnProfileClubPostsSection() }
                     case .achievements:
                         // Points come first under 成就, as in the mini-program.
                         if let weeklyPointsAccess {

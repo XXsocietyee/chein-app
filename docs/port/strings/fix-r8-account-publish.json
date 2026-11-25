@@ -764,6 +764,23 @@
       }
     }
   },
+  "fixr8.profile.clubPost": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Club post"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "俱乐部帖文"
+        }
+      }
+    }
+  },
   "fixr8.profile.composerPlaceholder": {
     "extractionState": "manual",
     "localizations": {
