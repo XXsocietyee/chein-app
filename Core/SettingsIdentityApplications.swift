@@ -152,8 +152,14 @@ public struct SettingsAccountProfileClient {
         self.configuration = configuration
         self.transport = transport
     }
+    /// Printable Authorization token: no leading or trailing whitespace, no non-ASCII.
+    /// Kept local so this settings file does not build auth requests.
+    private static func printableToken(_ token: String) -> Bool {
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && trimmed == token && token.utf8.allSatisfy { $0 >= 0x20 && $0 < 0x7f }
+    }
     public func refresh(memberID: Int, token: String) async -> SettingsAccountProfileAccess {
-        guard memberID > 0, AuthRequestBuilder.isValidToken(token) else { return .failed }
+        guard memberID > 0, Self.printableToken(token) else { return .failed }
         guard var request = try? AccountPublishMPContract.userInfoRequest(
             baseURL: configuration.baseURL, memberID: String(memberID), token: token) else { return .failed }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
