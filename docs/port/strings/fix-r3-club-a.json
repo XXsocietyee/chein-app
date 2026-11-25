@@ -1394,6 +1394,23 @@
           }
         }
       }
+    },
+    "club.membership.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for the host to approve"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待主理人审核"
+          }
+        }
+      }
     }
   }
 }
