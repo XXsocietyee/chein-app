@@ -1,0 +1,36 @@
+{
+  "profile.orderParity.error.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Orders failed to load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "订单加载失败"
+        }
+      }
+    }
+  },
+  "profile.orderParity.forbidden.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your current role can’t view orders"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看订单"
+        }
+      }
+    }
+  }
+}
