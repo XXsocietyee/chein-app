@@ -63,7 +63,7 @@ Pinning tests in `Tests/CoreTests/ClubCoreClubContractTests.swift` name the exis
 
 ## Delta (`cursor/cov2-club`)
 
-Base `0e1cf578a0e710803d49e6bc1151a53b4a8dfe24`. Owned rows are `pages/club/` except `pages/club/components/`. `utils/`, `app.js`, and `components/` were not taken. The checker and `docs/mp-contract-coverage.md` were not edited.
+Base `0e1cf578a0e710803d49e6bc1151a53b4a8dfe24`. Owned rows are `pages/club/`, including the eight rows under `pages/club/components/`. `utils/`, `app.js`, and other `components/` trees were not taken. The checker and `docs/mp-contract-coverage.md` were not edited.
 
 M7 tests and the M7 section above are on this branch. They do not change a checker cell: those bodies are `jsonBody(...)`, `JSON.stringify(...)`, or a forwarded `data` value, so the field list stays unparsed.
 
@@ -92,7 +92,9 @@ The follow test is also recorded for the same POST at `pages/square/detail/index
 
 `pages/club/detail/index.js:801` posts `api/club/my` with `jsonBody({})`. A test that only quotes that path and `POST` would also match `pages/topic/index/index.js:1279`, which already has a pin, so that quote was not added.
 
-Owned re-run: 115 rows, matched 11, missing endpoint 5, missing test 104. Global re-run: total 1038, matched 175, missing endpoint 130, missing test 862. The generated table was left as it is.
+The eight `pages/club/components/` rows each have a pinning test in `ClubPageContractPinTests`. Endpoints added for them: 0. `fe-reference-range/index.js:34` is a ternary url (`payer` or `merchant`, then `/export`), method `GET`, query keys `from` and `to`, so no path was added. The other seven already had a Core path: `api/club/detail` (`POST`, field `id`) at scene-club-edit lines 103, 574, and 618; `api/club/update-mine` (`POST`, payload keys `id`, `name`, `logo`, `cover`, `description`, `clubType`, `activityPrefs`, `city`, `keywords`, `style`, plus owner keys `operationConfigUpdated`, `prioritySignupEnabled`, `memberReservedQuota`, `joinPolicy`) at line 269; `api/club/dissolve` (`POST`, `id`, `dissolveConfirmed`, `memberConsequencesConfirmed`) at line 312; `api/coop/deposit/refund/retry` (`POST`, `inviteId`) at line 393, which stays off and sends nothing; `api/club/dissolution-blockers` (`POST`, `id`) at line 430. Those bodies are `jsonBody(...)` or `JSON.stringify(payload)`, so the checker still does not record the tests.
+
+Owned re-run: 123 `pages/club/` rows, matched 11, missing endpoint 6, missing test 112. The eight component rows: matched 0, missing endpoint 1, missing test 8. Global re-run: total 1038, matched 175, missing endpoint 130, missing test 862. The generated table was left as it is. Zero cells moved when the eight tests were added.
 
 ## Historical slice
 

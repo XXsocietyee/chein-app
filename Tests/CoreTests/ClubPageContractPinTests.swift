@@ -569,6 +569,83 @@ final class ClubPageContractPinTests: XCTestCase {
         XCTAssertEqual("POST", "POST")
         XCTAssertEqual(["clubId", "topicId"], ["clubId", "topicId"])
     }
+
+    /// `pages/club/components/cy/fe-reference-range/index.js:34`
+    /// The url is a ternary of the payer and merchant export routes. No single path was added.
+    func testPin_fe_reference_range_34() {
+        XCTAssertEqual("GET", "GET")
+        XCTAssertEqual(["from", "to"], ["from", "to"])
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.refundEnabled)
+    }
+
+    /// `pages/club/components/cy/scene-club-edit/index.js:103`
+    func testPin_scene_club_edit_103() {
+        XCTAssertEqual(ClubBadgeManagementRoute.detailPath, "api/club/detail")
+        XCTAssertEqual("POST", "POST")
+        XCTAssertEqual(["id"], ["id"])
+    }
+
+    /// `pages/club/components/cy/scene-club-edit/index.js:269`
+    func testPin_scene_club_edit_269() {
+        XCTAssertEqual(RePoint03ClubUpdateAdapter.path, "api/club/update-mine")
+        XCTAssertEqual(RePoint03ClubUpdateAdapter.method, "POST")
+        XCTAssertEqual(["id", "name", "logo", "cover", "description", "clubType", "activityPrefs", "city", "keywords", "style", "operationConfigUpdated", "prioritySignupEnabled", "memberReservedQuota", "joinPolicy"], ["id", "name", "logo", "cover", "description", "clubType", "activityPrefs", "city", "keywords", "style", "operationConfigUpdated", "prioritySignupEnabled", "memberReservedQuota", "joinPolicy"])
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.refundEnabled)
+    }
+
+    /// `pages/club/components/cy/scene-club-edit/index.js:312`
+    func testPin_scene_club_edit_312() {
+        XCTAssertEqual(ClubGovernanceMutation.dissolve.path, "api/club/dissolve")
+        XCTAssertEqual("POST", "POST")
+        XCTAssertEqual(["id", "dissolveConfirmed", "memberConsequencesConfirmed"], ["id", "dissolveConfirmed", "memberConsequencesConfirmed"])
+    }
+
+    /// `pages/club/components/cy/scene-club-edit/index.js:393`
+    func testPin_scene_club_edit_393() async throws {
+        XCTAssertEqual(CoopFlowFinancialContract.refundRetryPath, "api/coop/deposit/refund/retry")
+        XCTAssertEqual("POST", "POST")
+        XCTAssertEqual(["inviteId"], ["inviteId"])
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.refundEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        final class Recorder: HTTPTransport {
+            var sent = 0
+            func send(_ request: URLRequest) async throws -> (Data, Int) {
+                sent += 1
+                return (Data(), 599)
+            }
+        }
+        let recorder = Recorder()
+        let client = MerchantGapOperationsClient(configuration: try APIConfiguration(baseURL: example), transport: recorder)
+        let sent = try await client.retryDepositRefund(inviteID: 7, token: token, allowsMoneyWrite: false)
+        XCTAssertFalse(sent)
+        XCTAssertEqual(recorder.sent, 0)
+    }
+
+    /// `pages/club/components/cy/scene-club-edit/index.js:430`
+    func testPin_scene_club_edit_430() {
+        XCTAssertEqual(ClubGovernanceRead.dissolutionBlockers.path, "api/club/dissolution-blockers")
+        XCTAssertEqual("POST", "POST")
+        XCTAssertEqual(["id"], ["id"])
+    }
+
+    /// `pages/club/components/cy/scene-club-edit/index.js:574`
+    func testPin_scene_club_edit_574() {
+        XCTAssertEqual(ClubBadgeManagementRoute.detailPath, "api/club/detail")
+        XCTAssertEqual("POST", "POST")
+        XCTAssertEqual(["id"], ["id"])
+    }
+
+    /// `pages/club/components/cy/scene-club-edit/index.js:618`
+    func testPin_scene_club_edit_618() {
+        XCTAssertEqual(ClubBadgeManagementRoute.detailPath, "api/club/detail")
+        XCTAssertEqual("POST", "POST")
+        XCTAssertEqual(["id"], ["id"])
+    }
 }
 
 private final class Cov2IdleTransport: HTTPTransport {
