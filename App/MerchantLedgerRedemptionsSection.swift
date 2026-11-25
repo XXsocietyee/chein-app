@@ -169,3 +169,28 @@ extension EnvironmentValues {
         set { self[MerchantCoopProfitDestinationKey.self] = newValue }
     }
 }
+
+/// MC7-06-9 (ledger/index.js:641-643, 652-656): a 收入明细 COOP_SHARE row whose `refKind` is `coop_settlement`, whose
+/// payee is the merchant or a club (or unset), and whose `refId` is a positive safe integer opens
+/// `pages/coop/settlement-detail/index?source=ledger&id=refId`. Every other entry stays a plain row.
+enum MerchantLedgerCoopDetail {
+    static func settlementID(_ fields: MerchantBusinessObject) -> Int? {
+        guard fields.mbText("source") == "COOP_SHARE", fields.mbText("refKind") == "coop_settlement" else { return nil }
+        if let payee = fields["payeeType"]?.string, payee != "merchant", payee != "club" { return nil }
+        guard let id = fields["refId"]?.integer, id > 0, id <= 9_007_199_254_740_991 else { return nil }
+        return id
+    }
+}
+
+private struct MerchantCoopSettlementDetailDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int) -> AnyView)? = nil
+}
+
+extension EnvironmentValues {
+    /// The ledger-source settlement detail (CoopSettlementDetailRoute, source ledger), injected at the root with the
+    /// session's coop reader. Nil keeps 收入明细 rows read-only.
+    var merchantCoopSettlementDetailDestination: (@MainActor (Int) -> AnyView)? {
+        get { self[MerchantCoopSettlementDetailDestinationKey.self] }
+        set { self[MerchantCoopSettlementDetailDestinationKey.self] = newValue }
+    }
+}

@@ -432,21 +432,37 @@ import SwiftUI
             } else {
                 MerchantMissingParamState(title: "merchant.gate.batch.missingParam")
             }
-        case "pages/merchant/ledger/order-detail/index":
-            // MC7-07-1 / MC7-07-2 (ledger/order-detail/index.js:23-31,63): recordType + recordId open that ledger record;
-            // activity_ticket / session_fee keep their type (Core MerchantOrderDetailLink). Missing pair → 缺少核销记录信息.
-            if let ref = MerchantOrderDetailLink.record(query) {
-                MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
-                                     query: .redemption(recordID: ref.recordType == "redemption" ? ref.recordID : ref.recordKey))
-                    .cyPushedChrome(domain: .merchant)
-            } else {
-                MerchantMissingParamState(title: "merchant.gate.redemption.missingParam")
-            }
         case "pages/merchant/apply/index":
             MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
         case "pages/merchant/verify-records/index":
             MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .verificationRecords)
                 .cyPushedChrome(domain: .merchant)
+        // fix/r3-merchant-coop-a round 3 (flows-g2 MISSING-ROUTE): bare MP links to half-a merchant pages open the
+        // same native screens the workbench pushes. The page link rules keep these query-free.
+        case "pages/merchant/aftercare/index", "pages/merchant/aftercare/detail/index":
+            // aftercare/detail/index.js:50-54: a detail link without a valid refundId / manualCaseId redirects to the list.
+            // The reviewed link rule admits no query on detail yet (Core request in the receipt), so it always lands here.
+            MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                 query: .aftercare(.pending, page: 1))
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/reviews/index":
+            MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .reviews(page: 1))
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/customer/index":
+            MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                 query: .customers(MerchantCustomerQuery()))
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/crm-campaigns/index":
+            MerchantCampaignHistoryHost(reader: session.merchantEngagementReader, journal: session.merchantBusinessJournal,
+                                        exports: session.merchantExportRecovery)
+                .id(session.merchantEngagementReader.scope)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/marketing/index":
+            SessionMerchantMarketingLinkScreen(session: session)
+        case "pages/merchant/marketing/ai-insight/index":
+            SessionMerchantMarketingLinkScreen(session: session, initialSurface: .insight)
+        case "pages/merchant/predict/index":
+            SessionMerchantPredictionLinkScreen(session: session)
         case "pages/merchant/team/index":
             // MC7-29-12: `?invite=` opens the operator invitation landing (same token rule as MerchantOperatorAcceptance).
             if let token = query["invite"], let invitation = try? MerchantOperatorAcceptance(token: token) {
