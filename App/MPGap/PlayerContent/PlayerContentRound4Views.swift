@@ -13,9 +13,16 @@ public struct MerchantApplyPickerGapView: View {
     @Binding public var ruleInstructions: String
     @Binding public var uploadedPicURLs: [String]
     public let writesEnabled: Bool
+    /// R9-PC-B3-2: false when mounted inside the editor, whose own review/submit footer is the one submit (MP has one).
+    public var showsSubmit: Bool = true
 
     @State private var showMapPicker = false
     @State private var pickerItems: [PhotosPickerItem] = []
+    /// R9-PC-B3-1: MP `uploadPic` → `app.chooseImage(cb, 9 - cur.length)` uploads, then appends to `picUrl` (≤9)
+    /// (pages/topic/merchantapply/index.js:501-509).
+    @Environment(\.playerContentImageUploader) private var imageUploader
+    @State private var uploadingPhotos = false
+    @State private var photoUploadFailure: String?
     public var onSelectPhotos: ([PhotosPickerItem]) -> Void = { _ in }
     public var onSubmit: () -> Void = {}
 
@@ -27,6 +34,7 @@ public struct MerchantApplyPickerGapView: View {
         ruleInstructions: Binding<String>,
         uploadedPicURLs: Binding<[String]>,
         writesEnabled: Bool = false,
+        showsSubmit: Bool = true,
         onSelectPhotos: @escaping ([PhotosPickerItem]) -> Void = { _ in },
         onSubmit: @escaping () -> Void = {}
     ) {
@@ -34,6 +42,7 @@ public struct MerchantApplyPickerGapView: View {
         self._ruleInstructions = ruleInstructions
         self._uploadedPicURLs = uploadedPicURLs
         self.writesEnabled = writesEnabled
+        self.showsSubmit = showsSubmit
         self.onSelectPhotos = onSelectPhotos
         self.onSubmit = onSubmit
     }
@@ -79,14 +88,30 @@ public struct MerchantApplyPickerGapView: View {
             Section {
                 PhotosPicker(
                     selection: $pickerItems,
-                    maxSelectionCount: maxImages,
+                    maxSelectionCount: max(1, maxImages - uploadedPicURLs.count),
                     matching: .images
                 ) {
                     Label("merchantApply.pic.upload", systemImage: "photo.on.rectangle.angled")
                         .cyText(.bodyCompact)
                 }
+                .disabled(imageUploader == nil || uploadingPhotos || uploadedPicURLs.count >= maxImages)
                 .onChange(of: pickerItems) { _, items in
+                    guard !items.isEmpty else { return }
                     onSelectPhotos(items)
+                    uploadPhotos(items)
+                }
+                if uploadingPhotos {
+                    ProgressView("merchantApply.pic.uploading")
+                }
+                if let photoUploadFailure {
+                    Text(verbatim: photoUploadFailure)
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.dangerText)
+                }
+                if imageUploader == nil {
+                    Text("merchantApply.pic.signIn")
+                        .cyText(.meta)
+                        .foregroundStyle(.secondary)
                 }
 
                 if !uploadedPicURLs.isEmpty {
@@ -113,15 +138,17 @@ public struct MerchantApplyPickerGapView: View {
                 Text("merchantApply.pic.title")
             }
 
-            Section {
-                Button("common.submit", action: onSubmit)
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                    .disabled(!writesEnabled || location == nil || ruleInstructions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || uploadedPicURLs.isEmpty)
-            } footer: {
-                if !writesEnabled {
-                    Text("merchantHost.workbench.gatedFooter")
-                        .cyText(.meta)
+            if showsSubmit {
+                Section {
+                    Button("common.submit", action: onSubmit)
+                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
+                        .disabled(!writesEnabled || location == nil || ruleInstructions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || uploadedPicURLs.isEmpty)
+                } footer: {
+                    if !writesEnabled {
+                        Text("merchantHost.workbench.gatedFooter")
+                            .cyText(.meta)
+                    }
                 }
             }
         }
@@ -129,6 +156,25 @@ public struct MerchantApplyPickerGapView: View {
             MerchantLocationMapPickerSheet(selection: $location) {
                 showMapPicker = false
             }
+        }
+    }
+
+    private func uploadPhotos(_ items: [PhotosPickerItem]) {
+        guard let imageUploader, !uploadingPhotos else { pickerItems = []; return }
+        let remaining = maxImages - uploadedPicURLs.count
+        guard remaining > 0 else { pickerItems = []; return }
+        let batch = Array(items.prefix(remaining))
+        uploadingPhotos = true
+        photoUploadFailure = nil
+        Task { @MainActor in
+            let result = await imageUploader.upload(items: batch)
+            uploadedPicURLs = Array((uploadedPicURLs + result.urls).prefix(maxImages))
+            if result.failed > 0 {
+                // MP: showModal(r.failures[0].msg || '上传失败')
+                photoUploadFailure = result.message ?? appLocalized("merchantApply.pic.uploadFailed", locale: .current)
+            }
+            uploadingPhotos = false
+            pickerItems = []
         }
     }
 }
