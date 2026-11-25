@@ -1204,7 +1204,13 @@ import SwiftUI
                 ForEach(MerchantReviewReplyAction.allCases, id: \.self) { action in
                     let key = action == .reply ? "canReply" : action == .report ? "canReport" : "canEditReply"
                     if row.fields[key]?.bool == true {
-                        Button(LocalizedStringKey("merchant.business.review." + String(action.rawValue))) { editor = .init(kind: .review(row, action)) }
+                        Button { editor = .init(kind: .review(row, action)) } label: {
+                            // MC8-13-7 (reviews/index.wxml:193,223): 回复 carries the MP send glyph.
+                            HStack(spacing: CYSpacing.xs) {
+                                if action == .reply { MerchantMPIcon(image: MPAsset.FeatureIcon.iconSend, size: 18) }
+                                Text(LocalizedStringKey("merchant.business.review." + String(action.rawValue)))
+                            }
+                        }
                     }
                 }
             } else if reviewSource == nil, let destination = model.reviewSourcePage(for: row) {
