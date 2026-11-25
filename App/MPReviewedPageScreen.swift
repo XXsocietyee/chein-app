@@ -283,7 +283,11 @@ import SwiftUI
             if let id = reviewedID(query) {
                 clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil },
                            postID: positiveID(query["postId"]))
-            } else if query["owner"] != nil { ownedClubs } else { unavailable }
+            } else if query["owner"] != nil {
+                // MP club/detail/index.js:798-819 resolveOwnerEntry: exactly one owned club opens it (on `tab`); several → picker.
+                let tab = ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil }
+                ClubSingleOwnedEntry(reader: session, single: { clubDetail($0, tab: tab) }, fallback: { ownedClubs })
+            } else { unavailable }
         case "pages/club/workbench/index":
             // CLB-workbench-01/02: the workbench is the club page's 管理 tab; no id → my own club.
             // CLB-r7-D-05 (fix-r3-club-b round 4): no id → MP `detail?owner=1&tab=manage`, which opens the viewer's only
