@@ -159,15 +159,6 @@ public struct OrientSessionScore: Decodable, Equatable {
     public var canDispute: Bool {
         (status == 1 || status == 2) && disputeWindowDeadline != nil && !disputeRecords.contains { $0.status == 0 }
     }
-    /// Absent or JSON null. `orient-score-view.js` `integer(pendingReviewCount)`.
-    /// An unreadable present value is `""`, which blocks settle.
-    public let pendingReviewCount: String?
-    /// `!settlement && status !== 3`.
-    public var canSync: Bool { settlement == nil && status != 3 }
-    /// Status 1 or 2, no settlement, and a missing or zero pending-review count.
-    public var canSettle: Bool {
-        (status == 1 || status == 2) && settlement == nil && (pendingReviewCount == nil || pendingReviewCount == "0")
-    }
     private enum CodingKeys: String, CodingKey {
         case sessionId, topicId, activityId, status, totalCenti, byDimension, timeline, settlement, appeals, disputes
         case disputeWindowDeadline, pendingReviewCount
@@ -192,7 +183,6 @@ public struct OrientSessionScore: Decodable, Equatable {
         appealRecords = try c.decode([OrientSessionScoreReviewRecord].self, forKey: .appeals)
         disputeRecords = try c.decode([OrientSessionScoreReviewRecord].self, forKey: .disputes)
         disputeWindowDeadline = Self.deadlineText(c)
-        pendingReviewCount = Self.pendingReviewText(c)
         guard sessionID > 0, (0...3).contains(status), settlement == nil || settlement?.sessionID == sessionID,
               ["TASK", "PUZZLE", "BONUS", "PENALTY", "ADJUSTMENT"].allSatisfy({ byDimension[$0] != nil }),
               appealRecords.allSatisfy({ $0.sessionID == sessionID }), disputeRecords.allSatisfy({ $0.sessionID == sessionID }),
@@ -221,18 +211,6 @@ public struct OrientSessionScore: Decodable, Equatable {
         formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         return formatter.string(from: date)
-    }
-
-    /// Nil when the key is absent or JSON null. A canonical integer stays its decimal text.
-    private static func pendingReviewText(_ c: KeyedDecodingContainer<CodingKeys>) -> String? {
-        let key = CodingKeys.pendingReviewCount
-        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return nil }
-        if let number = try? c.decode(Int.self, forKey: key) { return String(number) }
-        if let text = try? c.decode(String.self, forKey: key) {
-            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            if let number = Int(trimmed), String(number) == trimmed { return String(number) }
-        }
-        return ""
     }
 }
 
