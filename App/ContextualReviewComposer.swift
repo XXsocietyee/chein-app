@@ -12,13 +12,15 @@ import SwiftUI
     @State private var revision = 0
     @State private var confirmDiscard = false
     @FocusState private var typing: Bool
+    /// MP topic / activity review textarea maxlength (300); Core still accepts up to 500.
+    static let maximumContents = 300
     /// Round 4 copy (MP topic/index.wxml:438/448): the topic sheet is 评价路线 with 请输入您的评价内容...
     private var isTopic: Bool { if case .topic = target { return true } else { return false } }
     private var state: ContextualReviewState { let _ = revision; return owner?.state ?? .idle }
     var body: some View {
         Form {
             Section("context.review.rating") {
-                // Round 4 image parity (MP topic/index.wxml:441-446 评价路线): five MP stars, icon_star2 filled / icon_star1 empty.
+                // R7-PC-B1-7 / R7-PC-C1-6 + round 4 (MP topic/index.wxml:441-446): five MP stars, icon_star2 filled / icon_star1 empty; text cap is the MP 300.
                 HStack(spacing: CYSpacing.sm) {
                     ForEach(1...5, id: \.self) { star in
                         Button { draft.rating = star } label: {
@@ -39,7 +41,10 @@ import SwiftUI
                 .accessibilityIdentifier("context.review.rating")
                 TextField(LocalizedStringKey(isTopic ? "context.review.topicContents" : "context.review.contents"), text: $draft.contents, axis: .vertical)
                     .lineLimit(4...10).focused($typing).accessibilityIdentifier("context.review.contents")
-                Text(verbatim: "\(draft.contents.utf16.count)/500").cyText(.meta)
+                    .onChange(of: draft.contents) { _, value in
+                        if value.count > Self.maximumContents { draft.contents = String(value.prefix(Self.maximumContents)) }
+                    }
+                Text(verbatim: "\(draft.contents.count)/\(Self.maximumContents)").cyText(.meta)
             }.disabled(busy || state == .unknown || state == .acknowledged)
             if owner?.writer.isConfigured != true { Section { Text("context.review.disabled") } }
             Section {

@@ -34,6 +34,12 @@ final class MPGapG1Tests: XCTestCase {
         XCTAssertTrue(preview.cards[0].isCover)
         XCTAssertEqual(preview.cards[0].steps, ["线索推理", "密码破译"])
         XCTAssertEqual(preview.checks, ["2 章节 · 7 节点", "约 1 小时30 分", "勋章「城市行者」"])
+        XCTAssertEqual(preview.checkCopies.map(\.key), [
+            "topic.template.preview.chaptersNodes",
+            "topic.template.preview.about",
+            "topic.template.preview.medal"
+        ])
+        XCTAssertEqual(preview.cards[0].footCopy.key, "topic.template.preview.hoursMinutes")
     }
 
     func testObjectCardRenameValidatorClampsTo64() {

@@ -66,21 +66,3 @@ extension ClubDetailTab {
         }
     }
 }
-
-struct ClubDetailOverviewFactsGridView: View {
-    let grid: ClubDetailOverviewFactsGrid
-    var body: some View {
-        HStack(spacing: 12) {
-            ForEach(grid.items) { item in
-                VStack(spacing: 4) {
-                    Text(verbatim: item.label).cyText(.meta).foregroundStyle(.secondary)
-                    Text(verbatim: item.value).cyText(.bodyMedium)
-                }
-                .frame(maxWidth: .infinity)
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("club.detail.fact.\(item.id)")
-            }
-        }
-        .accessibilityIdentifier("club.detail.factsGrid")
-    }
-}

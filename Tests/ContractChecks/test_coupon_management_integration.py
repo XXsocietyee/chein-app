@@ -47,4 +47,5 @@ class CouponManagementIntegrationTests(unittest.TestCase):
   self.assertIn('CouponManagementFileLocks',self.read('App/SessionCouponManagementView.swift'))
   self.assertNotIn('MemoryLocks',self.read('App/SessionCouponManagementView.swift'))
   c=json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
-  self.assertEqual(len([k for k in c if k.startswith('couponManagement.')]),97)  # MKT-10-5: couponManagement.denied, couponManagement.back
+  # coupon.wxml:10 denied empty state: title「当前身份不能查看优惠券」and outsider CTA「申请入驻」.
+  self.assertEqual(len([k for k in c if k.startswith('couponManagement.')]),99)  # MKT-10-5 plus couponManagement.forbidden.title, couponManagement.forbidden.applyMerchant

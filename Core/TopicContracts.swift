@@ -52,6 +52,11 @@ public struct TopicSummary: Decodable, Equatable, Identifiable {
     public let locationCount: Int?
     /// Optional source classification only; never inferred from category IDs or other topic fields.
     public let categoryNames: [String]
+    public let clubName: String?
+    public let merchantName: String?
+    /// Present only when the payload sends a non-empty label. The home page does not invent one.
+    public let statusLabel: String?
+    public let productType: Int?
     public var favoriteCategoryText: String? {
         categoryNames.isEmpty ? nil : categoryNames.joined(separator: " · ")
     }
@@ -83,6 +88,15 @@ public struct TopicSummary: Decodable, Equatable, Identifiable {
                   !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
             return name
         }
+        clubName = Self.present(c.text("clubName"))
+        merchantName = Self.present(c.text("merchantName"))
+        statusLabel = Self.present(c.text("statusLabel"))
+        productType = c.int("productType")
+    }
+    public var clubLabel: String? { clubName ?? merchantName ?? categoryNames.first }
+    private static func present(_ raw: String?) -> String? {
+        guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return nil }
+        return trimmed
     }
 }
 
@@ -164,6 +178,8 @@ public struct TopicChapter: Decodable, Equatable, Identifiable {
     /// Server-counted games in this chapter; nil when omitted.
     public let templateCount: Int?
     public let sortID: Int?
+    /// True only when the payload says `locked === true`.
+    public let locked: Bool
     public let nodes: [TopicNode]
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -179,6 +195,7 @@ public struct TopicChapter: Decodable, Equatable, Identifiable {
         }
         templateCount = c.int("templateCount")
         sortID = c.int("sortId")
+        locked = (try? c.decode(Bool.self, forKey: TopicKey("locked"))) == true
         nodes = try c.list("nodes")
     }
 }

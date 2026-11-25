@@ -89,6 +89,14 @@ struct SearchMapAllResultsSheet: View {
                             // R7-PC-A5-5: MP result-card address opens the place in the map app.
                             .modifier(HomeFeedOpenPlaceInMaps(url: SearchMapPlaceLink.url(for: row), openURL: openURL))
                             .accessibilityIdentifier("searchMap.w208.sheet.activity.\(row.id)")
+                        // R7-PC-A5-5 (r8): the address is also a visible tap target, not long-press only.
+                        if let placeURL = SearchMapPlaceLink.url(for: row) {
+                            Link(destination: placeURL) {
+                                Label("accountCollection.coupon.openInMaps", systemImage: "map")
+                                    .cyText(.label).frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                            }
+                            .accessibilityIdentifier("searchMap.w208.sheet.openInMaps.\(row.id)")
+                        }
                     }
                 }.padding()
             }

@@ -21,7 +21,7 @@ public struct MerchantGapBatchVoucherRow: View {
                     .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                 Spacer()
-                Button("复制") {
+                Button("merchant.ledger.copy") {
                     onCopy(payVoucherNo)
                 }
                 .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
@@ -246,7 +246,7 @@ public struct CoopGapListAndDepositActionsView: View {
                     .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
             }
             if showsSendInvite {
-                Button("发邀约", action: onSendInvite)
+                Button("merchantCoop.sendInvite", action: onSendInvite)
                     .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
             }
             if showsInviteOthers {

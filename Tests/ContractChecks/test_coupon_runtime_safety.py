@@ -49,7 +49,10 @@ class CouponRuntimeSafetyTests(unittest.TestCase):
   self.assertIn('permission == accepted.permission',c)
  def test_explicit_merchant_scope_and_preserved_date_codec(self):
   s=self.read('Core/CouponManagementContract.swift')
-  self.assertEqual(s.count('"scope": "MERCHANT"'),3)
+  # coupon.js:101 operationScope is MERCHANT or ''; getList (coupon.js:169-173) sends that scope.
+  # A player list omits scope. Publish and stop still carry the merchant literal.
+  self.assertIn('if scope == .merchant { fields["scope"] = "MERCHANT" }', s)
+  self.assertEqual(s.count('"scope": "MERCHANT"'),2)
   bridge=self.read('Core/CouponManagementReadTransport.swift')
   self.assertIn('CouponValidityTime.parse(start)',bridge)
   self.assertNotIn('ISO8601DateFormatter',bridge)

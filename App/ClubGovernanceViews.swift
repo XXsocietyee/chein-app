@@ -214,6 +214,12 @@ struct ClubGovernanceReadView: View {
     @State private var pickedSession: ClubGovernanceScope?
     /// CLB-topic-detail-04: /api/club/crm/topic-manage-stats read beside the topic overview (MP loadManageStats).
     @State private var topicStats: ClubGovernanceValue?
+    /// CLB-G12: the reviewed MP page the topic 更多 menu opens.
+    @State private var topicMoreRoute: ClubTopicMoreRoute?
+    /// CLB-topic-detail-05: the half sheet a topic round action opened.
+    @State private var topicQuickSheet: ClubTopicQuickSheet?
+    /// CLB-r7-C-03 (MP roles/index.js:266-272): a failed reread after a role action keeps the list and toasts.
+    @State private var roleRereadToast: LocalizedStringKey?
     @State private var feedMediaScope = UUID()
     private var readContext: ClubGovernanceReadContext {
         .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : (operation == .topicOverview ? storyTemplates.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision)),
@@ -348,6 +354,7 @@ struct ClubGovernanceReadView: View {
         .onChange(of: roleManagementSource) { _, source in
             roleManagementReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
         }
+        .cyToast(message: $roleRereadToast, tone: .warning)
         .onChange(of: scenePhase) { _, phase in
             if operation == .roles {
                 if phase != .active { roleManagementReturn.retire(); roleReads.retire(); generation &+= 1; loading = false }
@@ -688,9 +695,28 @@ struct ClubGovernanceReadView: View {
             if operation == .customers {
                 Section {
                     // Mini-program club/customers: filter chips, then search (typing already re-reads).
-                    Picker("club.gov.filter", selection: customerFilterBinding) {
-                        ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
-                    }.pickerStyle(.segmented).labelsHidden()
+                    // CLB-customers-07 (MP customers wxml:15-23): a scrolling chip row, not a segmented control.
+                    ScrollView(.horizontal) {
+                        HStack(spacing: CYSpacing.sm) {
+                            ForEach(["all", "repeat", "new", "remark"], id: \.self) { value in
+                                let selected = customerFilterBinding.wrappedValue == value
+                                Button { customerFilterBinding.wrappedValue = value } label: {
+                                    Text(LocalizedStringKey("club.gov.filter." + value))
+                                        .cyText(.label)
+                                        .foregroundStyle(selected ? CYColor.textInverse : CYColor.textPrimary)
+                                        .padding(.horizontal, CYSpacing.md)
+                                        .frame(minHeight: CYSpacing.minTouchTarget)
+                                        .background(Capsule().fill(selected ? CYColor.textPrimary : CYColor.bgRaised))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityAddTraits(selected ? .isSelected : [])
+                                .accessibilityIdentifier("club.gov.customers.filter." + value)
+                            }
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityLabel(Text("club.gov.filter"))
                     HStack {
                         Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                         TextField("club.gov.keyword", text: customerKeywordBinding)
@@ -752,7 +778,9 @@ struct ClubGovernanceReadView: View {
         // customer page shows when the owner comes back.
         .onAppear { rereadCustomersOnReturn() }
         .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in
-            NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) }
+            NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator)
+                // CLB-group-code-04 (MP group-code wxml:38-39): the topic-detail 出示团码 carries its session label.
+                .environment(\.clubRoleActivityLabel, groupCodeSessionLabel(route)) }
                 .cyDomainSheet(detents: [.full])
         }
         .background {
@@ -898,7 +926,15 @@ struct ClubGovernanceReadView: View {
             defer { roleManagementReturn.finishRead(ticket) }
             guard roleManagementReturn.isReading(ticket, context: readContext, active: scenePhase == .active),
                   roleManagementSource == ticket.source, !Task.isCancelled else { return }
+            let kept = ticket.source
             await load()
+            // CLB-r7-C-03 (MP roles/index.js:266-272 failWith afterAction): the list that was on screen stays, and
+            // 列表没刷新成功，下拉重试 shows; the first load still lands on the error state.
+            if failure != nil, failure != .signedOut, snapshot == nil, !loading, kept.context == readContext,
+               identity == access.identity, scenePhase == .active {
+                failure = nil; snapshotContext = kept.context; snapshotGeneration = generation; snapshot = kept.snapshot
+                roleRereadToast = "club.roles.rereadFailed"
+            }
         }
     }
     @MainActor private func roleReadIsCurrent(_ attachment: UUID?) -> Bool {
@@ -1266,6 +1302,27 @@ struct ClubGovernanceReadView: View {
         guard customerTopic == nil, current(target) else { return }
         customerTopic = target
     }
+    /// CLB-group-code-04: the 「活动名 · 开始时间」 label of the topic session an 出示团码 route targets, from the loaded topic.
+    private func groupCodeSessionLabel(_ route: ClubGovernanceFormRoute) -> String? {
+        guard route.operation == .issueGroupCode, operation == .topicOverview, let id = route.scope.activityID,
+              let row = (snapshot?.value["activityList"].array ?? []).first(where: { $0["id"].int == id }),
+              let name = row["name"].string else { return nil }
+        return ClubGroupCodePort.sessionLabel(id: id, name: name, startDate: row["startDate"].string, startTime: row["startTime"].string)
+    }
+    /// CLB-notify-01: in-app 通知 entries open the composer (ClubGovernanceCommandForm .sendNotification) directly, like the
+    /// MP notify link (MPReviewedPageScreen), instead of a counts page with a second step.
+    private func notifyComposerLink(_ target: ClubGovernanceScope) -> some View {
+        NavigationLink {
+            ClubGovernanceCommandForm(route: .init(operation: .sendNotification, scope: .init(clubID: target.clubID, activityID: target.activityID)),
+                                      identity: identity, access: access, coordinator: coordinator)
+        } label: {
+            CYListRow(LocalizedStringKey("club.gov." + ClubGovernanceRead.audienceCounts.rawValue), trailing: .chevron,
+                      verbatimMeta: operation == .access ? Self.subline(.audienceCounts) : nil) {
+                CYRowIcon(systemImage: Self.symbol(.audienceCounts))
+            }
+        }
+        .accessibilityIdentifier("club.gov.route." + ClubGovernanceRead.audienceCounts.rawValue)
+    }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
         NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: {
             CYListRow(LocalizedStringKey("club.gov." + target.rawValue), trailing: .chevron, verbatimMeta: operation == .access ? Self.subline(target) : nil) {
@@ -1375,6 +1432,9 @@ struct ClubGovernanceReadView: View {
                 ForEach([ClubGovernanceRead.roles, .bans, .cases, .audienceCounts, .dissolutionBlockers], id: \.rawValue) { read in
                     if read == .bans {
                         if snapshot.permissions?.canGovernMembers == true { link(read) }
+                    } else if read == .audienceCounts {
+                        // CLB-notify-01 (MP notify wxml:44-114): the workspace entry opens the one composer, as the MP link does.
+                        if snapshot.permissions?.allows(read.permission, scope: scope) == true { notifyComposerLink(scope) }
                     } else if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                 }
                 if snapshot.permissions?.permissions.contains("club:member:manage") == true,
@@ -1530,7 +1590,17 @@ struct ClubGovernanceReadView: View {
                             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                 }.accessibilityElement(children: .combine)
-                ClubGovernanceFactRows(value: value, fields: ["playModeText"])
+                // CLB-topic-detail-08 residual (MP wxml:57-59, js:740-747 buildChips): playModeText, then 本场 N 人 only when
+                // the page is bound to one session (an activityId) and the stats count is positive.
+                let headcount = stats["sessionHeadcount"].int ?? 0
+                let playMode = value["playModeText"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if !playMode.isEmpty || (scope.activityID != nil && headcount > 0) {
+                    HStack(spacing: CYSpacing.sm) {
+                        if !playMode.isEmpty { CYStatusChip(verbatim: playMode, tone: .neutral) }
+                        if scope.activityID != nil, headcount > 0 { CYStatusChip("club.topic.chip.sessionHeadcount \(headcount)", tone: .neutral) }
+                    }
+                    .accessibilityIdentifier("club.topic.chips")
+                }
             }
             .task(id: snapshotGeneration) {
                 guard scope.clubID != nil, scope.topicID != nil else { topicStats = nil; return }
@@ -1539,19 +1609,77 @@ struct ClubGovernanceReadView: View {
                 guard expected == readContext, !Task.isCancelled else { return }
                 topicStats = read
             }
+            // CLB-G12 (MP topic-detail wxml:426-500 「更多」): 编辑主题内容 (fabu ?id), 确认终价 while pricing (lifecycle 2,
+            // MP setting.canManage → the organiser's canDirect here; the pricing page re-checks), 承接审核 when the stats
+            // grant canReviewChapterApplications (merchantinfo ?scope=CLUB). Each opens the reviewed MP route.
+            .toolbar {
+                if let topicID = scope.topicID, scope.clubID != nil, canDirect || stats["canReviewChapterApplications"] == .bool(true) {
+                    ToolbarItem(placement: .primaryAction) {
+                        ClubGapTopicMoreMenu(
+                            canEditContent: canDirect,
+                            canConfirmFinalPrice: canDirect && value["lifecycle"].int == 2,
+                            canReviewUndertake: stats["canReviewChapterApplications"] == .bool(true),
+                            onEditContent: { topicMoreRoute = .init(page: "pages/publish/fabu/index", query: ["id": String(topicID)]) },
+                            onConfirmFinalPrice: { topicMoreRoute = .init(page: "pages/topic/pricing/index", query: ["topicId": String(topicID), "club": "1"]) },
+                            onReviewUndertake: { topicMoreRoute = .init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB"]) })
+                        .accessibilityIdentifier("club.topic.more")
+                    }
+                }
+            }
+            .navigationDestination(item: $topicMoreRoute) { route in MPReviewedPageScreen(page: route.page, query: route.query) }
+            // CLB-topic-detail-05 (MP wxml:63-80): 商家 · 报名参与者 · 团码 · 更多 as round actions that open half sheets.
+            // 商家 goes to the merchantinfo recruit layer when the stats grant canReviewChapterApplications (MP ROUND4).
+            Section {
+                ClubTopicQuickActionRow(items: [
+                    .init(id: "merchant", titleKey: "club.gov.recruit", systemImage: "storefront") {
+                        if let topicID = scope.topicID, stats["canReviewChapterApplications"] == .bool(true) {
+                            topicMoreRoute = .init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB", "open": "merchant"])
+                        } else { topicQuickSheet = .merchants }
+                    },
+                    .init(id: "customer", titleKey: "club.gov.topicCustomers", systemImage: "person.2") { topicQuickSheet = .customers },
+                    .init(id: "groupcode", titleKey: "club.topic.quick.groupCode", systemImage: "qrcode") {
+                        guard let topicID = scope.topicID else { return }
+                        var query = ["topicId": String(topicID)]
+                        if let clubID = scope.clubID { query["clubId"] = String(clubID) }
+                        if let activityID = scope.activityID { query["activityId"] = String(activityID) }
+                        topicMoreRoute = .init(page: "pages/club/group-code/index", query: query)
+                    },
+                    .init(id: "more", titleKey: "club.topic.quick.more", systemImage: "ellipsis") { topicQuickSheet = .more },
+                ])
+            }
+            .sheet(item: $topicQuickSheet) { sheet in
+                NavigationStack {
+                    Group {
+                        switch sheet {
+                        case .merchants:
+                            ClubGovernanceReadView(operation: .recruit, scope: scope, identity: identity, access: access, coordinator: coordinator)
+                        case .customers:
+                            ClubGovernanceReadView(operation: .topicCustomers, scope: scope, identity: identity, access: access, coordinator: coordinator)
+                        case .more:
+                            List { Section { link(.topicStats); link(.topicSettings); enrollmentLink(focusTopicID: scope.topicID) } }
+                                .cyPageTitle("club.topic.quick.more")
+                        }
+                    }
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { topicQuickSheet = nil } } }
+                }
+                .cyDomainSheet(detents: [.half, .full])
+            }
             // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`;
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
             if ClubTopicDetailPort.showsVerify(topicDisplay, canViewVerify: stats["canViewVerify"].bool) {
                 ClubTopicVerifySummarySection(metrics: ClubTopicDetailPort.verifyMetrics(
                     pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int))
             }
-            Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
                 Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(CYColor.dangerText) }
             }
+            // CLB-r8-topic-detail-01 (MP wxml:106-125): the 主题 card (cover when present, name, 「N 章 · N 站 · 玩法」, the
+            // 剧情已写 chip, 打开剧情与玩法) is the story entry.
             Section {
-                NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
-            }
+                NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: {
+                    ClubTopicStoryCard(value: value, nodeCount: stats["nodeCount"].int)
+                }.accessibilityIdentifier("club.gov.openStory")
+            } header: { Text("club.topic.card.title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil) }
             Section("club.topic.upcoming") {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
@@ -1576,6 +1704,11 @@ struct ClubGovernanceReadView: View {
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                     if !when.isEmpty { Text(verbatim: when).cyText(.bodyMedium).monospacedDigit() }
                                     if !who.isEmpty { Text(verbatim: who).cyText(when.isEmpty ? .bodyMedium : .meta).foregroundStyle(when.isEmpty ? CYColor.textPrimary : CYColor.textSecondary) }
+                                    // CLB-r8-topic-detail-02 (MP wxml:142-148, js:783-785): the eta line is the session's addressName;
+                                    // the kind chip stays out because the server sends no session kind (MP kindText '').
+                                    if let eta = row["addressName"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !eta.isEmpty {
+                                        Text(verbatim: eta).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                    }
                                     if when.isEmpty && who.isEmpty { Text("club.gov.eventID \(id)") }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1600,6 +1733,9 @@ struct ClubGovernanceReadView: View {
                     !loading && self.snapshot == snapshot && snapshotContext == terminalContext && readContext == terminalContext &&
                     snapshotGeneration == terminalGeneration && identity == access.identity && scenePhase == .active
                 }, presentation: terminalPresentation)
+            // CLB-G13 (MP topic-detail wxml:160-500): with an activityId the topic detail carries the director block
+            // (K8 banner, 准备总览, director tools, 排行榜), only where topic-manage-stats grants canDirect.
+            if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID) }
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
             // CLB-topic-detail-02: the phase primary is the pinned footer (`topicPrimaryFooter`), not the last row.
         } else if operation == .audienceCounts {
@@ -1745,7 +1881,13 @@ struct ClubGovernanceReadView: View {
             if operation == .topicCustomers {
                 ClubGovernanceFactRows(value: value, fields: ["soldCount", "pendingCount", "verifiedCount"], showUnknown: true)
                 ForEach(Array((value["sessions"].array ?? []).enumerated()), id: \.offset) { _, session in
-                ClubGovernanceFactRows(value: session, fields: ["timeText", "name"]); dataRows(session["rows"].array ?? [])
+                ClubGovernanceFactRows(value: session, fields: ["timeText", "name"])
+                // CLB-topic-detail-10: MP cli-row (avatar initial, masked phone, 拨号 when callable, status chip).
+                let rows = session["rows"].array ?? []
+                if rows.isEmpty { CYEmptyState(systemImage: "tray", "club.gov.empty") }
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    ClubTopicCustomerRow(row: row, sessionTime: session["timeText"].string)
+                }
             } }
             if operation == .checkin, let clubID = scope.clubID, let registrationID = scope.registrationID,
                let target = try? ClubOwnerRefundTarget(clubID: clubID, registrationID: registrationID) {
@@ -1977,8 +2119,14 @@ struct ClubGovernanceEventView: View {
                 // Original role approval and journal own exactly club + optional activity.
                 let target = operation == .roles ? ClubGovernanceScope(clubID: scope.clubID, activityID: scope.activityID) : scope
                 NavigationLink {
-                    ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator)
-                        .environment(\.clubRoleActivityLabel, activityLabel)
+                    if operation == .audienceCounts {
+                        // CLB-notify-01: 通知本场成员 opens the composer for this session (MP notify?clubId&activityId).
+                        ClubGovernanceCommandForm(route: .init(operation: .sendNotification, scope: .init(clubID: scope.clubID, activityID: scope.activityID)),
+                                                  identity: identity, access: access, coordinator: coordinator)
+                    } else {
+                        ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator)
+                            .environment(\.clubRoleActivityLabel, activityLabel)
+                    }
                 } label: {
                     CYListRow(LocalizedStringKey("club.gov." + operation.rawValue), trailing: .chevron) { CYRowIcon(systemImage: "calendar") }
                 }
@@ -2223,7 +2371,8 @@ struct ClubGovernanceEventView: View {
             }
             ForEach(chapter.gameplay) { play in
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    ClubStoryGameplayCard(play: play, imageReader: templates.imageReader)
+                    ClubStoryGameplayCard(play: play, imageReader: templates.imageReader,
+                                          order: (chapter.gameplay.firstIndex(of: play) ?? 0) + 1)
                     // CLB-topic-story-02 (MP wxml:97-104): one row of borderless actions; 查看答案 opens one sheet.
                     HStack(spacing: CYSpacing.lg) {
                         if let selection = templateSelection(play) {

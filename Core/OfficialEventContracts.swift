@@ -120,6 +120,8 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     /// MP official-detail js:482-483 / wxml:180-182: `safetyNotice{title,version}`. When a title is present, signup
     /// waits for an explicit 我已阅读并同意《title》 (never pre-checked). Absent = no consent step, as in the MP.
     public let safetyNoticeTitle: String?
+    /// `e.leaderboard` when `enabled === true`. Nil hides the board.
+    public let leaderboard: OfficialEventLeaderboard?
     public var isCompleteRecord: Bool { id > 0 && !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var isV2: Bool { (contractVersion ?? 1) >= 2 }
     /// Exact official_event codes from the existing task-list source. This is a
@@ -156,6 +158,7 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
         category = c.text("category"); contentJSON = c.text("contentJson")
         let notice = try? c.decode(OfficialSafetyNotice.self, forKey: OfficialKey("safetyNotice"))
         safetyNoticeTitle = notice?.title.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        leaderboard = (try? c.decode(OfficialEventLeaderboardBox.self, forKey: OfficialKey("leaderboard")))?.value
     }
     private struct OfficialSafetyNotice: Decodable { let title: String? }
     private var rewardMap: [String: Any] {
@@ -541,13 +544,126 @@ public struct OfficialStatistic: Equatable, Identifiable {
     public let id: String
     public let value: OfficialStatisticValue
 }
+public struct OfficialBroadcastDeliveryCounts: Decodable, Equatable, Sendable {
+    public let inappStored: Int
+    public let channelAccepted: Int
+    public let rejected: Int
+    public let notSubmitted: Int
+    public let retryable: Int
+    public let unknown: Int
+    public let legacyUnconfirmed: Int
+    public let capped: Int
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: OfficialKey.self)
+        func n(_ key: String) -> Int {
+            if let value = c.integer(key) { return value }
+            if let value = try? c.decode(Double.self, forKey: OfficialKey(key)), value.isFinite { return Int(value) }
+            return 0
+        }
+        inappStored = n("INAPP_STORED")
+        channelAccepted = n("CHANNEL_ACCEPTED")
+        rejected = n("REJECTED")
+        notSubmitted = n("NOT_SUBMITTED")
+        retryable = n("RETRYABLE")
+        unknown = n("UNKNOWN")
+        legacyUnconfirmed = n("LEGACY_UNCONFIRMED")
+        capped = n("CAPPED")
+    }
+    /// Mini-program `broadcastStatsText` when `deliveryCounts` is a record.
+    public var line: String {
+        "站内已入库 \(inappStored) · 订阅渠道受理 \(channelAccepted) · 明确拒绝 \(rejected) · 未提交 \(notSubmitted) · 可恢复 \(retryable) · 结果不明 \(unknown) · 历史待核 \(legacyUnconfirmed) · 频控未发 \(capped)；不代表已读"
+    }
+}
+
+struct OfficialEventLeaderboardBox: Decodable {
+    let value: OfficialEventLeaderboard?
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: OfficialKey.self)
+        guard c.flag("enabled") == true else { value = nil; return }
+        let raw = (try? c.decode([Row].self, forKey: OfficialKey("rows"))) ?? []
+        let rows: [OfficialEventLeaderboardRow] = raw.enumerated().compactMap { index, row in
+            guard let rank = row.rank, rank > 0 else { return nil }
+            let name = row.name?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let display = (name?.isEmpty == false) ? name! : "城瘾玩家"
+            var score = "\(row.done) / \(row.total)"
+            if let elapsed = row.elapsedSeconds {
+                score += " · " + Self.clock(elapsed)
+            }
+            return OfficialEventLeaderboardRow(id: String(index), rank: rank, displayName: display, scoreText: score, isSelf: false)
+        }
+        let my = c.integer("myRank")
+        let final = c.flag("final") == true
+        let chip: String
+        if let my, my > 0 { chip = final ? "第 \(my) 名" : "暂列第 \(my) 名" }
+        else { chip = "" }
+        value = OfficialEventLeaderboard(rows: rows, chipText: chip, myRank: (my ?? 0) > 0 ? my : nil, isFinal: final)
+    }
+    private struct Row: Decodable {
+        let rank: Int?
+        let name: String?
+        let done: Int
+        let total: Int
+        let elapsedSeconds: Double?
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: OfficialKey.self)
+            rank = c.integer("rank")
+            name = c.text("name")
+            done = c.integer("doneCount") ?? 0
+            total = c.integer("totalCount") ?? 0
+            if let whole = c.integer("elapsedSeconds") { elapsedSeconds = Double(whole) }
+            else if let value = try? c.decode(Double.self, forKey: OfficialKey("elapsedSeconds")), value.isFinite { elapsedSeconds = value }
+            else { elapsedSeconds = nil }
+        }
+    }
+    private static func clock(_ seconds: Double) -> String {
+        let n = max(0, Int(seconds.rounded(.down)))
+        func p2(_ value: Int) -> String { value < 10 ? "0\(value)" : String(value) }
+        return "\(n / 3600):\(p2((n / 60) % 60)):\(p2(n % 60))"
+    }
+}
+
+public struct OfficialEventLeaderboard: Equatable, Sendable {
+    public let rows: [OfficialEventLeaderboardRow]
+    public let chipText: String
+    public let myRank: Int?
+    public let isFinal: Bool
+    public init(rows: [OfficialEventLeaderboardRow], chipText: String, myRank: Int?, isFinal: Bool) {
+        self.rows = rows
+        self.chipText = chipText
+        self.myRank = myRank
+        self.isFinal = isFinal
+    }
+}
+
 public struct OfficialBroadcastStats: Decodable, Equatable {
     public let rows: [OfficialStatistic]
+    public let canRecoverInapp: Bool
+    public let deliveryCounts: OfficialBroadcastDeliveryCounts?
     public init(from decoder: Decoder) throws {
         let values = try [String: OfficialStatisticValue](from: decoder)
         rows = values.keys.sorted().compactMap { key in
             guard let value = values[key], value != .unsupported else { return nil }
             return OfficialStatistic(id: key, value: value)
         }
+        if case .flag(let value) = values["canRecoverInapp"] { canRecoverInapp = value }
+        else { canRecoverInapp = false }
+        let c = try decoder.container(keyedBy: OfficialKey.self)
+        deliveryCounts = try c.decodeIfPresent(OfficialBroadcastDeliveryCounts.self, forKey: OfficialKey("deliveryCounts"))
+    }
+    /// Prefers the delivery-count sentence. Otherwise the reach/click sentence when both counts exist.
+    public var summaryLine: String? {
+        if let deliveryCounts { return deliveryCounts.line }
+        func number(_ key: String) -> Int? {
+            guard let row = rows.first(where: { $0.id == key }) else { return nil }
+            if case .number(let value) = row.value { return NSDecimalNumber(decimal: value).intValue }
+            return nil
+        }
+        guard let reached = number("reached") ?? number("reach"), let clicked = number("clicked") ?? number("clicks") else { return nil }
+        return "站内触达 \(reached) 人 · 点击 \(clicked) 人"
+    }
+    /// Server message, then the mini-program retry suffix. Empty message uses `fallback`.
+    public static func failureLine(serverMessage: String?, fallback: String = "复盘没读到") -> String {
+        let trimmed = serverMessage?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return (trimmed.isEmpty ? fallback : trimmed) + "，点一下重试"
     }
 }

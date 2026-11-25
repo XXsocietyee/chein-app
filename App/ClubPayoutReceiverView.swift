@@ -292,6 +292,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
 
     @ViewBuilder private func ready(_ summary: ClubSettlementSummaryView) -> some View {
         if !summary.personal { ClubDirectLedgerSection(scope: .club(clubID: clubID, topicID: nil)) }
+        else { ClubFEReferenceSettlementHost() } // CLB-G17: MP shows the payer reference block on the personal view too.
         if summary.isOwner { ClubPayoutReceiverLink(clubID: clubID) }
         if summary.isEmpty {
             Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver"), messageIdentifier: "clubSettlement.empty") }
@@ -323,6 +324,13 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         if !summary.topics.isEmpty {
             Section {
                 ForEach(summary.topics) { row in
+                    // CLB-settlement-04 (fix-r8-club): MP goTopicSettlement (js:243-254) opens coop/settlement-detail
+                    // source=club by the row id (else topicId), keeping personal=1.
+                    NavigationLink {
+                        CoopClubSettlementScreen(reader: session.cooperationFlowReader, clubID: clubID,
+                                                 recordID: String(row.id > 0 ? row.id : row.topicID), personal: summary.personal,
+                                                 recordKey: row.id > 0 ? "id" : "topicId")
+                    } label: {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         HStack {
                             Text(verbatim: row.name).cyText(.cardTitle)
@@ -337,6 +345,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                         if row.showsPaidText { Text(verbatim: row.paidText).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         CYStatusChip(verbatim: payoutText(row.chipKey, locale),
                                      tone: row.status == "settled" && row.amountText != nil ? .success : .neutral)
+                    }
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("clubSettlement.topic.\(row.id)")
@@ -408,6 +417,12 @@ struct ClubPayoutReceiverLink: View {
     private var isClub: Bool { if case .club = scope { return true } else { return false } }
 
     var body: some View {
+        ledgerBody
+        // CLB-G17 / CLB-r7-D-01 (fix-r8-club): MP settlement wxml:9-11, the reference settlement follows the ledger.
+        if isClub { ClubFEReferenceSettlementHost() }
+    }
+
+    private var ledgerBody: some View {
         Group {
             if !PayoutReceiverBridge.payoutOpen(session) {
                 EmptyView()

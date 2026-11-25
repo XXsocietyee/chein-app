@@ -47,13 +47,14 @@ class ActivityDetailParityTests(unittest.TestCase):
             "E1ActivityInfoCard(detail:detail)",
             'accessibilityIdentifier("activity.detail.cancelled")',
             "detail.summary.hasValidCoordinates",
+            'Section("activity.about")',
             'E1IconHeader(systemImage: "ticket"',
             'accessibilityIdentifier("activity.more.toggle")',
             "if showsMoreInfo { moreInfoSections(detail) }",
-            'Section("activity.about")',
         ))
-        # The about text is secondary content: it only renders behind the "More info" disclosure.
-        self.assertIn('Section("activity.about")', source.split("private func moreInfoSections", 1)[1].split("private func profileAction", 1)[0])
+        # R7-PC-C1-7 (r8 re-pin): MP shows 关于这场活动 in the first fold, above the people section, not behind 更多信息.
+        self.assertLess(source.index('Section("activity.about")'), source.index("ActivityPeopleSection(people:"))
+        self.assertNotIn('Section("activity.about")', source.split("private func moreInfoSections", 1)[1].split("private func profileAction", 1)[0])
         meta = source.split("private struct ActivityDetailMetaSection")[1].split("enum ActivityLocationAccessibility", 1)[0]
         for token in ('"activityParity.header.category"', 'facts.categoryText ?? "—"',
                       '"activityParity.header.meetingPoint"', 'case .mapOnly', 'case .unconfirmed',

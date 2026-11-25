@@ -39,13 +39,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No merchants have taken a station for this topic yet."
+            "value": "No merchants have taken this topic yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这个主题还没有承接商家。"
+            "value": "这个主题还没有承接商家"
           }
         }
       }

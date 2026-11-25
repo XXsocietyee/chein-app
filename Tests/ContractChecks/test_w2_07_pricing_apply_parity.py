@@ -14,10 +14,23 @@ class W207PricingApplyParity(unittest.TestCase):
         view = read('App/PublisherLifecycleViews.swift')
         for exact in ['accessibilityIdentifier("publisher.subtype")', 'accessibilityIdentifier("publisher.preview")',
                       'accessibilityIdentifier("publisher.finalPrice")', 'accessibilityIdentifier("publisher.reviewPrice")',
-                      'accessibilityIdentifier("publisher.confirmPrice")', 'coordinator.confirm(review, consequentialApproval: true)',
+                      'accessibilityIdentifier("publisher.confirmPrice")',
                       'TopicPricingXcx.sliderMax(floor: preview.minimum, reference: preview.reference)', '"publisherPricing.confirmFinalPriceAndSubmitFor"',
                       'preview.canConfirm == false', '"publisherPricing.thisPartnerLinkIsNoLonger"', '"publisherPricing.theLineupFreezesWhenSalesOpen"']:
             self.assertIn(exact, view)
+        # MP pages/topic/pricing/index.js:419 confirmPrice posts /api/topic/pricing/confirm (:443).
+        # Pricing stays dormant: the view only builds the hard-off contract and reports notSent.
+        # It must not call the coordinator, which sends once the runtime pricing grant is present.
+        # Other money confirms in this file still require consequential approval.
+        pricing = view.split('@MainActor struct PublisherPricingView', 1)[1].split('@MainActor struct PublisherPartnerView', 1)[0]
+        self.assertIn('PlayerContentMPContract.pricingConfirm(', pricing)
+        self.assertIn('PublisherLifecycleCopy.outcome(.notSent', pricing)
+        self.assertNotIn('await coordinator.confirm(', pricing)
+        self.assertNotIn('URLSession', pricing)
+        self.assertIn('coordinator.confirm(value, consequentialApproval: true)', view)
+        contract = read('Core/PlayerContentMPContract.swift')
+        self.assertIn('public static let pricingGrantEnabled = false', contract)
+        self.assertIn('if !pricingGrantEnabled { throw Refusal.pricingGrantDisabled }', contract)
         # Copy moved from inline Chinese literals to catalog keys; the catalog must still carry the exact wording.
         import json
         catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']

@@ -38,8 +38,11 @@ class MerchantListToolsTests(unittest.TestCase):
         filters = core.split('public struct MerchantBusinessListFilters')[1].split('public struct MerchantBusinessDocument')[0]
         self.assertNotIn('request(', filters)
         self.assertNotIn('summary', filters)
-        self.assertIn('case .aftercare(let bucket, _): return .query("api/merchant/aftercare/list", ["bucket": bucket.rawValue, "pageNum": String(page), "pageSize": "20"])', query)
-        self.assertIn('case .reviews: return .query("api/merchant/reviews/manage", ["pageNum": String(page), "pageSize": "20"])', query)
+        # ledger/index.js:195-197 and :360 post JSON.stringify(data || {}) with bucket, pageNum, pageSize on the query.
+        # aftercare/index.js:118 and :135 keep the keyword off the request (presentation filter only).
+        self.assertIn('return .queryJSON("api/merchant/aftercare/list", ["bucket": bucket.rawValue, "pageNum": String(page), "pageSize": "20"], [:])', query)
+        # reviews/index.js:256 sends filter, pageNum and pageSize. The default tab is all.
+        self.assertIn('case .reviews: return try MerchantReviewManageRead(filter: "all", page: page).request()', query)
 
     def test_accumulation_is_read_only_and_generation_fenced(self):
         app = self.read('App/MerchantBusinessViews.swift')

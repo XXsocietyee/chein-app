@@ -44,10 +44,15 @@ public struct MerchantApplyPickerGapView: View {
                 Button {
                     showMapPicker = true
                 } label: {
-                    LabeledContent(
-                        "merchantApply.location.field",
-                        value: location?.address ?? "点击选择承接地点"
-                    )
+                    LabeledContent {
+                        if let address = location?.address {
+                            Text(verbatim: address)
+                        } else {
+                            Text("merchantApply.location.choose")
+                        }
+                    } label: {
+                        Text("merchantApply.location.field")
+                    }
                 }
             }
 
@@ -77,7 +82,7 @@ public struct MerchantApplyPickerGapView: View {
                     maxSelectionCount: maxImages,
                     matching: .images
                 ) {
-                    Label("上传现场照片（5:3 横图，1–9 张）", systemImage: "photo.on.rectangle.angled")
+                    Label("merchantApply.pic.upload", systemImage: "photo.on.rectangle.angled")
                         .cyText(.bodyCompact)
                 }
                 .onChange(of: pickerItems) { _, items in
@@ -137,12 +142,12 @@ private struct MerchantLocationMapPickerSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: Text("点击选择承接地点"), style: .merchant, onClose: onClose)
+            CYSheetHeader(title: Text("merchantApply.location.choose"), style: .merchant, onClose: onClose)
             Map()
                 .frame(height: 240)
             Form {
                 Section("merchantApply.location.addressDetail") {
-                    TextField("点击选择承接地点", text: $addressInput)
+                    TextField("merchantApply.location.choose", text: $addressInput)
                 }
                 Section {
                     Button("common.save") {
@@ -215,10 +220,10 @@ public struct TopicPostPurchaseRevealView: View {
             }
 
             HStack(spacing: CYSpacing.sm) {
-                Button("放进票夹", action: onWallet)
+                Button("topicReveal.addToWallet", action: onWallet)
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
-                Button("开始游戏", action: onPlay)
+                Button("topicReveal.startGame", action: onPlay)
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
             }
@@ -244,7 +249,7 @@ public struct MerchantJoinContactHostButton: View {
         Button(action: onTap) {
             HStack {
                 if isBusy { ProgressView() }
-                Label("联系主办", systemImage: "message")
+                Label("merchantJoin.contactHost", systemImage: "message")
                     .cyText(.bodyMedium)
             }
         }

@@ -71,7 +71,10 @@ struct GlobalTemplateSearchLanes {
                 guard let session else { return AnyView(EmptyView()) }
                 switch row.kind {
                 case .topicTemplate:
-                    return AnyView(DiscoveryTopicTemplatePreview(coordinator: session.publicTopicTemplateCoordinator(id: row.sourceID)))
+                    // R7-PC-A7-1: like the shelf, a 主题模板 result opens the topic-preview deck; 查看详情 pushes the detail.
+                    let id = row.sourceID
+                    return AnyView(DiscoveryTopicTemplateDeckHost(coordinator: session.publicTopicTemplateCoordinator(id: id), readonly: false,
+                                                                  makeDetail: { session.publicTopicTemplateCoordinator(id: id) }))
                 case .playTemplate:
                     return AnyView(DiscoveryTemplateDetailView(id: row.sourceID, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
                                                        authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)

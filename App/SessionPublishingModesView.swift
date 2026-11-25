@@ -37,7 +37,8 @@ import SwiftUI
                             placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
                             openResource: { resource = $0 },
                             makeProfessional: { professionalEditor($0) },
-                            makeTemplateAuthoring: { templateAuthoring() })
+                            makeTemplateAuthoring: { templateAuthoring() },
+                            makeProjects: { AnyView(SessionCreatorProjectsView(session: session)) })
         }
     }
     var body: some View {

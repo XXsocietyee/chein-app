@@ -165,6 +165,17 @@ private struct UsageConsentLaunchGate: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            .overlay(alignment: .bottom) {
+                if !signedIn && policy.granted {
+                    Text(verbatim: UsageConsentOfflineRecord.signedOutCopy)
+                        .cyText(.meta)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, CYSpacing.md)
+                        .allowsHitTesting(false)
+                        .accessibilityIdentifier("usageConsent.offline.signedOut")
+                }
+            }
             .onAppear { presented = UsageConsentGateDecision.showAtLaunch(granted: policy.granted, signedIn: signedIn, declinedThisLaunch: declinedThisLaunch); presentation?.consentActive = presented }
             .onChange(of: presented) { _, value in presentation?.consentActive = value }
             .sheet(isPresented: $presented) { Group {

@@ -38,6 +38,8 @@ RAW_COLOR_ALLOWLIST: dict[str, int] = {
     "App/DiceD20View.swift": 5,
     "App/E1CommerceComponents.swift": 4,
     "App/FogOverlayLayer.swift": 1,
+    # subpackageP3/pages/growthcenter/leaderboard/index.js:29-33 RING_BG gold / pale gold / bronze.
+    "App/GrowthLeaderboardView.swift": 3,
     "App/IMInboxViews.swift": 2,
     "App/MapCoreEntryHubView.swift": 1,
     "App/MapVisualLayerControlSectionView.swift": 1,
@@ -54,6 +56,8 @@ RAW_COLOR_ALLOWLIST: dict[str, int] = {
     "App/OwnMediaModelPreviewDevice.swift": 1,
     "App/PlayKitSensorChallengeView.swift": 1,
     "App/PlayNativeDeviceProvider.swift": 2,
+    # pages/play/index.wxml:168 story map; unselected stop disc is systemBackground, same as PlayRouteMapView.
+    "App/PlayExperienceView.swift": 1,
     "App/PlayRouteMapView.swift": 1,
     "App/PrivateHomeMapPicker.swift": 1,
     "App/PrivateHomeView.swift": 1,

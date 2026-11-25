@@ -28,10 +28,12 @@ public struct PublicTopicTemplateDetail: Decodable, Equatable, Identifiable {
     public let games: [PublicTemplateGame]
     /// U02-01 / §23.3 optional delivery facts. Malformed or absent -> nil; the detail itself still loads.
     public let contentDelivery: TopicTemplateContentDelivery?
+    /// `Number(info.isOfficial) === 1`: JSON `1`, `"1"`, or `true`.
+    public let isOfficial: Bool
     enum CodingKeys: String, CodingKey {
         case id, name, subtitle, description, imgUrl, totalTime, totalMileage, locationCount, templateCount
         case templateStatus, version, mode, addressName, playerPromise, author, finishMedalName
-        case viewerIsMerchant, viewerIsPublisher, chapters, games, contentDelivery
+        case viewerIsMerchant, viewerIsPublisher, chapters, games, contentDelivery, isOfficial
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -62,10 +64,20 @@ public struct PublicTopicTemplateDetail: Decodable, Equatable, Identifiable {
         chapters = decoded.map { $0.withRecruitment(canViewRecruitment) }
         games = try c.decodeIfPresent([PublicTemplateGame].self, forKey: .games) ?? []
         contentDelivery = (try? c.decodeIfPresent(TopicTemplateContentDelivery.self, forKey: .contentDelivery)) ?? nil
+        isOfficial = Self.officialFlag(c)
         guard Set(chapters.map(\.id)).count == chapters.count,
               Set(games.map(\.id)).count == games.count,
               [totalTime, templateCount].compactMap({ $0 }).allSatisfy({ $0 >= 0 })
         else { throw APIError.malformedResponse }
+    }
+
+    private static func officialFlag(_ c: KeyedDecodingContainer<CodingKeys>) -> Bool {
+        if let flag = try? c.decode(Bool.self, forKey: .isOfficial) { return flag }
+        if let number = try? c.decode(Int.self, forKey: .isOfficial) { return number == 1 }
+        if let text = try? c.decode(String.self, forKey: .isOfficial) {
+            return text.trimmingCharacters(in: .whitespacesAndNewlines) == "1"
+        }
+        return false
     }
 
     /// Read-only name from the same public detail. Missing, null, blank, and non-strings stay absent.

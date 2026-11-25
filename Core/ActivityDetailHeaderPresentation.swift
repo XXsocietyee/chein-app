@@ -68,6 +68,7 @@ public enum ActivityDetailPagePhase: Equatable {
     case error
     /// Existing club gate from `api/activity/info`. The activity body stays hidden.
     case clubRequired(clubID: Int?, message: String?)
+    case cancelled(canViewOwnOrders: Bool)
     case ready(ActivityDetailPageSnapshot)
 }
 
@@ -143,6 +144,8 @@ public enum ActivityDetailPageModel {
         switch access {
         case .clubRequired(let clubID, let message):
             return .clubRequired(clubID: clubID, message: message)
+        case .cancelled(let canViewOwnOrders):
+            return .cancelled(canViewOwnOrders: canViewOwnOrders)
         case .allowed(let detail):
             if isEmpty(detail) { return .empty }
             return .ready(project(detail))

@@ -40,8 +40,9 @@ class OfficialDetailParityChecks(unittest.TestCase):
 
     def test_locked_identifiers_price_row_and_actions_survive(self):
         view = read("App/OfficialEventDetailView.swift")
-        for required in ['.accessibilityLabel(Text("official.price"))', '.accessibilityValue(Text("official.priceNotProvided"))',
-                         '.accessibilityIdentifier("official.price")', '.accessibilityIdentifier("official.detail.content")',
+        # R7-PC-C4-3 (r8): the MP has no price row; the 暂无价格信息 placeholder is retired.
+        self.assertNotIn('.accessibilityIdentifier("official.price")', view)
+        for required in ['.accessibilityIdentifier("official.detail.content")',
                          '.accessibilityIdentifier("official.participationState")', '"official.mission.\\(mission.index)"',
                          "OfficialParticipationActions(coordinator: actions, event: event, onReturn: {",
                          "lease.permits(eventID: id, scope: reader.scope, visit: visit,", "readback = UUID()",
