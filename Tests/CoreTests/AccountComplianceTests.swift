@@ -67,9 +67,10 @@ private final class ComplianceHTTPFake: HTTPTransport {
     func testDeregisterUsesMultipartAndSameEpochCannotCancel() async throws {
         let context = ComplianceTestContext(); let fake = ComplianceHTTPFake([#"{"code":200,"data":{"status":"WAITING","executeAfter":"server-date","blockers":[]}}"#]); let (service, _, _) = try build(fake, context: context)
         let result = try await service.apply(smscode: "123456", requestID: "fixture", session: context.session!)
-        XCTAssertTrue(result.pending); XCTAssertTrue(fake.requests[0].value(forHTTPHeaderField: "Content-Type")!.contains("multipart/form-data"))
+        XCTAssertTrue(result.pending)
+        XCTAssertEqual(fake.requests[0].value(forHTTPHeaderField: "Content-Type"), AccountPublishMPContract.formContentType)
         let body = String(data: fake.requests[0].httpBody!, encoding: .utf8)!
-        XCTAssertTrue(body.contains("name=\"smscode\"")); XCTAssertTrue(body.contains("name=\"requestId\""))
+        XCTAssertEqual(body, "requestId=fixture&smscode=123456")
         do { _ = try await service.cancel(session: context.session!); XCTFail() } catch { XCTAssertEqual(error as? ComplianceFailure, .staleSession) }
         XCTAssertEqual(fake.requests.count, 1)
     }
@@ -156,8 +157,9 @@ extension AccountComplianceTests {
         let info = try XCTUnwrap(fake.requests.last)
         XCTAssertEqual(info.httpMethod, "POST")
         XCTAssertTrue(info.url?.path.hasSuffix("api/user/info") == true)
+        XCTAssertEqual(info.value(forHTTPHeaderField: "Content-Type"), AccountPublishMPContract.formContentType)
         let form = String(data: try XCTUnwrap(info.httpBody), encoding: .utf8)
-        XCTAssertTrue(form?.contains("name=\"member_id\"\r\n\r\n7") == true)
+        XCTAssertEqual(form, "member_id=7")
         await coordinator.sendBoundPhoneSMS(explicitlyRequested: true, now: sent.addingTimeInterval(30))
         XCTAssertEqual(auth.smsCalls, 1)
         XCTAssertEqual(fake.requests.count, 3)
@@ -186,8 +188,10 @@ extension AccountComplianceTests {
         let request = try XCTUnwrap(transport.requests.first)
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertTrue(request.url?.path.hasSuffix("api/sms/send") == true)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), AccountPublishMPContract.formContentType)
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
         let body = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8)
-        XCTAssertTrue(body?.contains("name=\"phone\"\r\n\r\n138****0000") == true)
+        XCTAssertEqual(body, "phone=138****0000")
     }
     func testRoamPartialFailureResumesWithoutSecondWrite() async throws {
         let context = ComplianceTestContext(); let fake = ComplianceHTTPFake([#"{"code":200}"#, #"{"code":200}"#, #"{"code":200,"data":{"docType":"privacy_policy","scene":"roam_location","eventType":"REVOKE"}}"#]); let (service, _, _) = try build(fake, context: context)

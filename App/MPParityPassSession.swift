@@ -490,7 +490,11 @@ struct MPParityRegistrationOrder: View {
                 gifts = try await reader.gifts(token: token)
                 passOrders = (try? await reader.passOrders(token: token)) ?? []
                 if !merchant {
-                    points = try? await reader.points(token: token)
+                    if let memberID = session.account?.id, memberID > 0 {
+                        points = try? await reader.points(token: token, memberID: memberID)
+                    } else {
+                        points = try? await reader.points(token: token)
+                    }
                     overview = try? await reader.overview(token: token, viewerIsMerchant: false)
                 }
             }

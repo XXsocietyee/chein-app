@@ -60,6 +60,13 @@ public struct WalletHistoryReadRoute: Equatable {
               request.httpMethod == "POST", request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Accept") == "application/json",
               let path = Self.paths.first(where: { url.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent($0).absoluteString.utf8) }) else { return nil }
+        if path == AccountPublishMPContract.userInfoPath,
+           request.value(forHTTPHeaderField: "Content-Type") == AccountPublishMPContract.formContentType,
+           let contract = try? AccountPublishMPContract.userInfoRequest(baseURL: baseURL, memberID: String(accountID), token: nil),
+           request.httpBody == contract.httpBody {
+            self.path = path
+            return
+        }
         if path == "api/withdrawal/list" {
             guard request.httpBody == nil, request.value(forHTTPHeaderField: "Content-Type") == nil else { return nil }
         } else if path == "api/wallet/stages" {

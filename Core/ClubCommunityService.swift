@@ -45,7 +45,15 @@ public struct ClubCommunityService {
         }
         // c6 returns the full visible list; page > 1 cannot identify a continuation.
         if case let .comments(_, page) = operation, page != 1 { throw ClubCommunityFailure.invalid }
-        let request = try request(suffix: operation.suffix, fields: operation.fields, session: session)
+        let request: URLRequest
+        if case let .feed(limit, beforeID) = operation {
+            var built = try AccountPublishMPContract.clubPostFeedRequest(
+                baseURL: baseURL, limit: limit, beforeID: beforeID, token: session.token)
+            built.setValue("application/json", forHTTPHeaderField: "Accept")
+            request = built
+        } else {
+            request = try request(suffix: operation.suffix, fields: operation.fields, session: session)
+        }
         try check(); let (data, status) = try await transport.send(request); try check()
         let value = try await PlayerFeedJSON.perform { try Self.decode(data, status: status) }
         switch operation {
