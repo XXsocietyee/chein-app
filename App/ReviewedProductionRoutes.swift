@@ -10,6 +10,7 @@ enum ReviewedNearbyTeamWriteRoute {
     static let approvalPaths: Set<String> = ["api/team/apply", "api/team/withdraw", "api/team/handle"]
 
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        if acceptsContractHandle(request, baseURL: baseURL, token: token) { return true }
         guard let token, AuthRequestBuilder.isValidToken(token),
               request.httpMethod == "POST", request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
@@ -42,6 +43,32 @@ enum ReviewedNearbyTeamWriteRoute {
               let memberID = object["memberId"] as? Int, memberID > 0,
               let approved = object["approved"] as? Bool else { return false }
         return canonical(["teamId": teamID, "memberId": memberID, "approved": approved])
+    }
+
+    /// `AccountPublishMPContract.teamHandleRequest`: `api/team/command` with string ids, `action` `handle`, and a 32-hex `requestId`.
+    private static func acceptsContractHandle(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              request.value(forHTTPHeaderField: "Content-Type") == AccountPublishMPContract.jsonContentType,
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              let url = request.url, url.fragment == nil, url.query == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              url.path == baseURL.appendingPathComponent(AccountPublishMPContract.teamCommandPath).path,
+              let body = request.httpBody, body.count <= 1024,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              Set(object.keys) == ["memberId", "approved", "targetId", "action", "requestId"],
+              object["action"] as? String == "handle",
+              let memberID = object["memberId"] as? String,
+              let targetID = object["targetId"] as? String,
+              let approved = object["approved"] as? Bool,
+              let requestID = object["requestId"] as? String,
+              let contract = try? AccountPublishMPContract.teamHandleRequest(
+                baseURL: baseURL, memberID: memberID, approved: approved, targetID: targetID, requestID: requestID, token: token),
+              contract.httpBody == body else { return false }
+        return true
     }
 }
 

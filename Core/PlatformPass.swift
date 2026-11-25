@@ -159,6 +159,21 @@ public struct PlatformPass: @unchecked Sendable {
         return PlatformPassJSON.number(data["point"])
     }
 
+    /// Pass-market point read. Posts `userInfoRequest` (`member_id`) and reads `point`. No pass write.
+    public func points(token: String, memberID: Int) async throws -> Double? {
+        guard memberID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        var request = try AccountPublishMPContract.userInfoRequest(
+            baseURL: configuration.baseURL, memberID: String(memberID), token: token)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (bytes, status) = try await transport.send(request)
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        let object = try PlatformPassJSON.object(bytes)
+        guard PlatformPassJSON.isBizOK(object) else { throw APIError.businessCode(PlatformPassJSON.code(object["code"]) ?? -1) }
+        guard let data = PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)) else { return nil }
+        return PlatformPassJSON.number(data["point"])
+    }
+
     /// Platform-pass purchase. Compiled, never sends.
     public func purchase(planCode: String, channel: String, token: String) throws -> Never {
         _ = (planCode, channel, token, Self.moneyEnabled, Self.writesReachable, Self.purchasePath)

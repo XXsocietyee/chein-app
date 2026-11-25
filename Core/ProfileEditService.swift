@@ -45,6 +45,28 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
         do { return try JSONDecoder().decode(Detail.self, from: data).data }
         catch { throw APIError.malformedResponse }
     }
+    /// Production snapshot read. Posts `userInfoRequest` (`member_id`) and decodes the same snapshot as `read(token:)`.
+    public func read(token: String, memberID: Int) async throws -> ProfileEditSnapshot {
+        guard memberID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        let key = InFlightReadKey.fields(method: "POST", path: AccountPublishMPContract.userInfoPath, fields: ["member_id": String(memberID)], token: token)
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            var request = try AccountPublishMPContract.userInfoRequest(
+                baseURL: self.configuration.baseURL, memberID: String(memberID), token: token)
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        let (data, status) = (response.data, response.status)
+        let envelope = try? JSONDecoder().decode(Response.self, from: data)
+        guard (200..<300).contains(status), envelope?.code == 200 else {
+            throw ProfileReadFailure(httpStatus: status, code: envelope?.code, message: envelope?.msg)
+        }
+        struct Detail: Decodable { let data: ProfileEditSnapshot }
+        do { return try JSONDecoder().decode(Detail.self, from: data).data }
+        catch { throw APIError.malformedResponse }
+    }
     public func save(_ payload: ProfileEditPayload, token: String) async throws {
         guard !payload.carriesUpload else { throw ProfileEditWriteError.notSent }
         var prepared: URLRequest

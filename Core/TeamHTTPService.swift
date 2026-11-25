@@ -129,14 +129,12 @@ public enum TeamCommandRecoveryCopy {
         guard Self.paths.contains(path), !key.isEmpty else { return .unknown }
         let requestID = savedRequestIDs[key] ?? Self.hexIdentifier()
         savedRequestIDs[key] = requestID
-        var body = fields
-        body["requestId"] = requestID
-        guard let encoded = try? JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]) else { return .unknown }
+        guard let encoded = Self.commandBody(path: path, fields: fields, requestID: requestID) else { return .unknown }
         var request = URLRequest(url: configuration.baseURL.appendingPathComponent(path))
         request.httpMethod = "POST"
         request.timeoutInterval = 20
         request.cachePolicy = .reloadIgnoringLocalCacheData
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(AccountPublishMPContract.jsonContentType, forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.httpBody = encoded
         let status: Int
@@ -151,6 +149,52 @@ public enum TeamCommandRecoveryCopy {
             return .rejected(status)
         }
         return .unknown
+    }
+
+    /// Mini-program command order for join, quit, kick, disband, and join-mode: payload fields, then
+    /// `targetId`, `action`, `requestId`. Query and cancel stay on sorted keys.
+    private static func commandBody(path: String, fields: [String: String], requestID: String) -> Data? {
+        guard path == AccountPublishMPContract.teamCommandPath,
+              let action = fields["action"],
+              ["join", "quit", "kick", "disband", "join-mode"].contains(action) else {
+            var body = fields
+            body["requestId"] = requestID
+            return try? JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        }
+        var parts: [String] = []
+        switch action {
+        case "join":
+            if let code = fields["inviteCode"] { parts.append("\"inviteCode\":\(jsonText(code))") }
+        case "kick":
+            if let member = fields["memberId"] { parts.append("\"memberId\":\(jsonText(member))") }
+        case "join-mode":
+            if let mode = fields["joinMode"] {
+                if let number = Int(mode), String(number) == mode {
+                    parts.append("\"joinMode\":\(number)")
+                } else {
+                    parts.append("\"joinMode\":\(jsonText(mode))")
+                }
+            }
+        default:
+            break
+        }
+        if let target = fields["targetId"] { parts.append("\"targetId\":\(jsonText(target))") }
+        parts.append("\"action\":\(jsonText(action))")
+        parts.append("\"requestId\":\(jsonText(requestID))")
+        return Data(("{" + parts.joined(separator: ",") + "}").utf8)
+    }
+
+    private static func jsonText(_ value: String) -> String {
+        var out = "\""
+        for scalar in value.unicodeScalars {
+            switch scalar {
+            case "\\": out += "\\\\"
+            case "\"": out += "\\\""
+            default: out.append(Character(scalar))
+            }
+        }
+        out += "\""
+        return out
     }
 
     /// `POST /api/team/command/query` with only the saved `{requestId}`. Does not mint an id.

@@ -73,6 +73,7 @@ public enum ClubCommunityReadRoute: Equatable, Sendable {
 
         let canonicalFields: [String: Any]
         let parsed: Self
+        var contractFeedBody: Data? = nil
 
         if url.absoluteString == baseURL.appendingPathComponent(Self.postsPath).absoluteString {
             guard let clubID = fields["clubId"] as? Int, clubID > 0,
@@ -100,6 +101,8 @@ public enum ClubCommunityReadRoute: Equatable, Sendable {
             if let beforeID { canonical["beforeId"] = beforeID }
             canonicalFields = canonical
             parsed = .feed(limit: limit, beforeID: beforeID)
+            contractFeedBody = (try? AccountPublishMPContract.clubPostFeedRequest(
+                baseURL: baseURL, limit: limit, beforeID: beforeID, token: nil))?.httpBody
         } else if url.absoluteString == baseURL.appendingPathComponent(Self.commentsPath).absoluteString {
             guard fields.count == 1, let postID = fields["postId"] as? Int, postID > 0 else { return nil }
             canonicalFields = ["postId": postID]
@@ -115,8 +118,11 @@ public enum ClubCommunityReadRoute: Equatable, Sendable {
             return nil
         }
 
-        guard let canonicalBody = try? JSONSerialization.data(withJSONObject: canonicalFields, options: [.sortedKeys]),
-              canonicalBody == body else {
+        if let contractFeedBody {
+            guard contractFeedBody == body else { return nil }
+        } else if let canonicalBody = try? JSONSerialization.data(withJSONObject: canonicalFields, options: [.sortedKeys]),
+                  canonicalBody == body {
+        } else {
             return nil
         }
         self = parsed

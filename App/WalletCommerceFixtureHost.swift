@@ -59,14 +59,19 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
                 return (Data(#"{"code":200,"data":[]}"#.utf8), 200)
             }
         }
-        if request.url?.path == "/api/user/info", arguments.contains("--design-fixture") {
-            return (Data(#"{"code":200,"data":{"balance":"128.50","currency":"CNY"}}"#.utf8), 200)
+        if request.url?.path == "/api/user/info" {
+            let payload = Data(#"{"code":200,"data":{"balance":"128.50","currency":"CNY"}}"#.utf8)
+            let contractForm = request.value(forHTTPHeaderField: "Content-Type") == AccountPublishMPContract.formContentType
+                && request.httpBody?.isEmpty == false
+            if contractForm || arguments.contains("--design-fixture") {
+                guard case .amount = AccountPublishMPContract.earningsBalance(from: payload) else {
+                    return try await fallback.send(request)
+                }
+                return (payload, 200)
+            }
         }
         if arguments.contains("--design-fixture"), let rich = Self.designLedger(path: request.url?.path ?? "") {
             return (Data(("{\"code\":200,\"data\":" + rich + "}").utf8), 200)
-        }
-        if arguments.contains("--design-fixture"), request.url?.path == "/api/user/info" {
-            return (Data(#"{"code":200,"data":{"balance":"128.50","currency":"CNY"}}"#.utf8), 200)
         }
         guard request.url?.path == "/api/wallet/stages" else { return try await fallback.send(request) }
         reads += 1

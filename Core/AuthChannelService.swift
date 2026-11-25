@@ -87,7 +87,20 @@ public struct AuthChannelService: AuthChannelServing {
     public func sendBoundDeregistrationCode(phone: String) async throws {
         let trimmed = phone.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw AuthChannelError.invalidPhone }
-        _ = try await execute(.smsSend, fields: ["phone": trimmed])
+        try Task.checkCancellation()
+        var request = try AccountPublishMPContract.smsSendRequest(baseURL: builder.configuration.baseURL, phone: trimmed)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (data, status) = try await transport.send(request)
+        try Task.checkCancellation()
+        if status == 401 { throw APIError.unauthorized }
+        if status == 429 { throw AuthChannelError.rateLimited }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        let body: StatusEnvelope
+        do { body = try JSONDecoder().decode(StatusEnvelope.self, from: data) }
+        catch { throw APIError.malformedResponse }
+        if body.code == 401 { throw APIError.unauthorized }
+        if body.code == 429 { throw AuthChannelError.rateLimited }
+        guard body.code == 200 else { throw APIError.businessCode(body.code) }
     }
     public func loginWithPhone(phone: String, code: String) async throws -> LoginResult {
         try await login(.phone, fields: ["phone": AuthChannelInput.phone(phone), "code": AuthChannelInput.code(code)])
