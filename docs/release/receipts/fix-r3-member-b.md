@@ -333,3 +333,32 @@ Every Claude-owned P2 row for pages 16–30 in `audit/parity-r7-member` was clos
 ### a11y lint (brief item 5)
 
 `python3 -B tools/check_a11y_lint.py` reports 1 finding, `App/ClubKit/ClubWorkbenchKit.swift:261`, which comes in from `origin/ui/combined-r7` (club area, `fix/r3-club-a`). It is a false positive: the `ShareLink` that wraps `glyph` carries `.accessibilityLabel`. **0 findings in member-b files.** I did not touch the club file, to avoid colliding with the club agent.
+
+### Round 4 verification (cloud, contract layer only)
+
+**Contract modules.** I ran every ContractChecks module that names an edited file: 8 for pages 25–30 and 36 for pages 16–24.
+- 39 pass.
+- 5 fail, all with the **same failing test ids as an untouched `origin/ui/combined-r7` worktree**, so 0 are new:
+  - `check_wallet_earnings_overview`
+  - `test_c11_ops_support_projections`
+  - `test_category_roam_registration`
+  - `test_design_system_component_contracts`
+  - `test_merchant_project_workspace_entry`
+
+**Localization catalog.** `test_localization_key_catalog_contract` flags 5 round-4 keys that so far exist only in `docs/port/strings/fix-r3-member-b.json`. It goes green after `tools/merge_localization_fragments.py`, the same as round 3. The merge tool refuses to overwrite existing values, so **the coordinator applies the round-4 zh overrides by hand**, as in earlier rounds (R7-MEM-16-3).
+
+**Lints.**
+- `tools/check_typography_lint.py` passes.
+- `tools/check_player_journey_screens.py` passes.
+- `tools/check_a11y_lint.py` has 1 finding, on the base club file (see above). There are 0 in member-b files.
+
+**Not run here.** The Xcode build, `swift test`, AppUnit and screenshots: there is no compiler in the cloud. Every API used was grepped on the base first:
+- `CYEmptyIllustration(kind:size:)` (internal, App module)
+- `MPAsset.BannerCover.routeCityCover`, `MPAsset.EmptyState.iconTicketEmpty`
+- `OrderCoverTile(size:fallback:)`
+- `SubscribeMessageProjectsEntry(session:entryScope:)`
+- `ButtonStyle.cyPrimary`
+- `MemberReportProgressTime.display()`
+- `appLocalized(_:locale:)`
+
+The coordinator should compile.
