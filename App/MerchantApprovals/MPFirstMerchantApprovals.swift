@@ -41,6 +41,7 @@ enum MPFirstMerchantWriteRoute {
     static let exactPaths: Set<String> = MPFirstMerchantApprovals.businessPaths
         .union([MerchantEngagementProductionApproval.acceptInvitationPath])
         .union(MerchantCityNPCParityGates.mpFirstChinaEndpoints)
+        .union(["api/merchant/predict/settle"]) // pages/merchant/predict/index.js:215 (coupons, not cash)
         .subtracting(["api/compliance/consents"])
     static let customerSuffixes: Set<String> = ["notes", "notes/hide", "tags", "tags/remove"]
 

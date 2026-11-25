@@ -642,10 +642,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     var isRoamShareSnapshotApproved: Bool {
         reviewed?.productionGatesEnabled == true && reviewed?.regional.market == .china
     }
-    /// Merchant marketing dashboard + AI insight reads; settlement stays off. Nothing is enabled unless the reviewed China deployment enables production gates.
+    /// Merchant marketing dashboard + AI insight reads, and MC8-18-1 (MP-first, owner 2026-11-25) prediction settle:
+    /// the MP posts `api/merchant/predict/settle {nodeId, playDay, settledOption}` (pages/merchant/predict/index.js:215);
+    /// winners get the store's configured coupons, not cash. Nothing is enabled unless the reviewed China deployment enables production gates.
     var merchantMarketingGates: MerchantMarketingService.Gates {
         guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }
-        return .init(reads: true, insight: true, settlement: false)
+        return .init(reads: true, insight: true, settlement: true)
     }
     /// Merchant decor / cooperation / NPC / perk-template save lease; nil unless the reviewed deployment enables production gates (merchant role only).
     func merchantOperationsWriteApproval(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {

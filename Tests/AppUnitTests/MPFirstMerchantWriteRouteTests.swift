@@ -24,7 +24,8 @@ import XCTest
                      "api/merchant/crm/customers/61001/tags", "api/merchant/crm/customers/61001/tags/remove",
                      "api/merchant/city-node/claim", "api/merchant/city-node/claim/cancel", "api/merchant/city-node/offline",
                      "api/merchant/city-node/save", "api/game/session/command", "api/game/session/receipt",
-                     "api/merchant/npc/save", "api/merchant/decor/save", "api/merchant/npc/voice/enroll", "api/merchant/npc/voice/reset"] {
+                     "api/merchant/npc/save", "api/merchant/decor/save", "api/merchant/npc/voice/enroll", "api/merchant/npc/voice/reset",
+                     "api/merchant/predict/settle"] {
             XCTAssertTrue(MPFirstMerchantWriteRoute.accepts(post(path), baseURL: base, token: token), path)
         }
         XCTAssertTrue(MPFirstMerchantWriteRoute.accepts(post("api/merchant/aftercare/respond", query: "refundId=62001"), baseURL: base, token: token))
