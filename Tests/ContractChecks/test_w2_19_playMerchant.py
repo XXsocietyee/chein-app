@@ -39,7 +39,7 @@ class PlayMerchantContractChecks(unittest.TestCase):
         gates = read('Core/MerchantCityNPCParityGates.swift')
         self.assertIn('public var storeDayProofWrites = false', gates)
         self.assertIn('public var storeDayConsentWrites = false', gates)
-        self.assertIn('public static var reviewedEndpoints: [RegionalMarket: Set<String>] { [:] }', gates)
+        self.assertIn('public static var reviewedEndpoints: [RegionalMarket: Set<String>] { [.china: mpFirstChinaEndpoints] }', gates)  # MP-first 2026-11-25
         service = read(SERVICE)
         self.assertIn('execution: Execution = .disabled', service)
         self.assertIn('readsEnabled: Bool = false', service)
