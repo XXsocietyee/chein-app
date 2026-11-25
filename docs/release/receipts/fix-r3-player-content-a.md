@@ -202,3 +202,84 @@ Not run from the cloud (no compiler). Coordinator: please compile and send exact
 - `tools/check_a11y_lint.py`: nothing new from this branch's lines. `HomeSearchTabParityViews.swift` `readAvailability` image is a baseline row that combined-r7 restyled (`.font` → `.cyText`).
 - `tools/check_search_map.py`: fails `local filters and first-page scope` **on the merge base too** (combined-r7, Cursor A5-7 page size).
 - Acceptance and compile: not run from the cloud. Coordinator, please compile and send back the exact errors.
+
+---
+
+## Round 3 (2026-11-24 evening)
+
+- **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round3.md` (+ `wave-x10.md`, `fix-r3-round2.md`, `owner-decisions-1124.md`).
+- **Sync:** merged `origin/ui/combined-r7` @ `b0ac0108d`. No textual conflict. Before the final push it is merged again.
+- **Strings:** 8 new keys (`discovery.shelf.group.shop/team/city`, `discovery.shelf.allTopics/withinTwoHours/scifi/cityMemory/solo`) in `docs/port/strings/fix-r3-player-content-a.json`, en + zh-Hans (32 keys in total). Integrator: add them to `Localizable.xcstrings`.
+- **Acceptance routes:** Round 3 block appended to `docs/port/accept/f-player-content-a.txt`.
+
+### Round 3 · re-applied
+
+Each round-2 commit (`5be7191a3`, `6d471bc22`, `f5b96cf93`, `505f1174c`, `d2400b000`) was diffed against the new base. Only
+`TopicXcxSections`, `PlatformConsumerSessionOwner` and `TopicDetailView` lost hunks. Everything else is present on the base
+(the other "Cursor side" files in the brief are not in this half).
+
+| id | how it was re-applied | file |
+|---|---|---|
+| R7-PC-B1-9 publisher row + owner review chip | Put back under the hero, unchanged (Core `publisher` / `ownerReviewLabel` are still there). | TopicXcxSections |
+| Owner #9 bar price | `MoneyDisplay.yuan` again in `TopicXcxActionBar.priceText` (Cursor's side had the locale currency formatter, 0–2 decimals). | TopicXcxSections |
+| R7-PC-B1-19 去设置票价 | Kept **Cursor's** route: `openEditor` + `\.topicEditorDestination` (sheet). Only the label went back to `topicXcx.cta.editPrice` (去设置票价, MP `index.js:1177`), not `topicXcx.cta.edit` (Edit topic), plus the `pageTemplateControl` label. | TopicXcxSections |
+| R7-PC-B1-15 `via=session` | Covered by **Cursor's** `preferSession` (`MiniProgramPageLink.opensSessionPickerFirst`). My `prefersSessionPicker` and `ownerEditorDestination` / `showsOwnerEditor` push in `TopicDetailView` were left behind by the merge as a second implementation, so I removed them. | TopicDetailView |
+| R7-PC-B1-17 浏览其他主题 | Put back in `TopicXcxRouteSection` (`rootTabSwitch(.publish)`). | TopicXcxSections |
+| REV-B B-06 出发前 copy | 「N 个章节」(story + endings) and `topic.depart.stops` (「N 个节点」) again. | TopicXcxSections |
+| Missing state: signed-out topic | 登录 pill (→ 我的) under the unauthorized message again. | PlatformConsumerSessionOwner |
+| R7-PC-C1-2 guest read / C1-3 "—" | Not re-applied: **Cursor's** wiring supersedes mine. Guests read `api/activity/info` with a nil token and 立即报名 calls sign-in. The "—" pill is disabled, with id `activity.primaryAction` and a catalog label. | — |
+
+### Fixed in round 3
+
+| id | what | files |
+|---|---|---|
+| Flow gap PC-A-7-2 (flows-g1 `topic-preview`) | `pages/templatedetail/topic-preview/index` now mounts Gemini's `TopicTemplateDeckPreviewView` (card deck) through `DiscoveryTopicTemplateDeckHost`. The host re-projects the public `PublicTopicTemplateDetail` into `TopicTemplatePreviewData.fromWire`. 查看详情 pushes topic-detail. 用这个模板 shows only when the adoption write is live and `readonly≠1`; it also lands on the detail, which owns the adoption flow. `topic-detail/index` keeps the detail. It has its own loading (skeleton), error (retry) and session-changed states. | DiscoveryTemplateDetailView, MPReviewedPageScreen |
+| Flow gap PC-B-1-5 (flows-g1 `topic/index`) | The 路线 tab mounts `TopicRouteMapAndTeamsSection` with one numbered pin per stop that has a valid coordinate, and a polyline for fixed routes. Tapping a pin opens Apple Maps (`TopicStopMapsLink`). Progress and teams stay off, because the detail has no play read. | TopicXcxSections |
+| R7-PC-B1-13 | Free-explore session rows are buttons (MP `bindtap="bmClick"`) that open the in-page session picker. They are one combined button each, with id `topic.session.row`. The MP also preselects the tapped ticket **by name** in the picker. The app's preselect (`registrationPreselectedTicketID`) is by id and is set inside `ActivityDetailView`, so name preselect is a half-b change (`RegistrationSheetView`). | TopicDetailView |
+| MP assets: shelf art | New `TemplateShelfArt`, a port of `shelf/art.js` THEMES (18 topic names, exact match then prefix match like `themeKey`) and `game-covers.js` GAMES (25 play titles), mapped to the bundled `MPAsset.BannerCover.*` covers. A known title always uses the bundled cover, as in the MP ("不依赖接口回来的 imgUrl"). Applied to the template shelf (hero card + row thumbs, topics and plays), the play-template detail head (MP `detailCover`) and the topic-template detail head (MP `topicArt`). | TemplateShelfArt (new), DiscoveryTemplateBrowserView, DiscoveryTemplateDetailView |
+| MP asset: home card default | `HomeFeedShelfCard` uses `CYImageCard.fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)` (MP `index.wxml:216`). The design system added that input after round 2. | HomeFeedView |
+| R7-PC-A2-3 / A2-6 | The default 玩法 view is now the MP `buildGames`: the 精选 paging rail (`FEATURED_GAMES` order, bundled covers, page dots) and one shelf each for 到店互动 / 小队协作 / 城市探索 (`GROUPS`, through Core `SearchDiscoveryFilterParity.games(_, matching: "shop"/"team"/"city")`). Both are built from the paged `api/template/list` rows (Core A2-1). `api/template/homeData` sections remain only as the fallback when the list has no shelf play, as in fixtures. While the list loads, the page shows a skeleton. | DiscoveryTemplateBrowserView, TemplateShelfArt |
+| R7-PC-A2-3 (topic tab) | MP `buildTopics`: with no tag and no name search, the topic tab shows the 精选 paging rail (`FEATURED_TOPICS` order, then the rest, capped at 7), 全部主题, and the `TOPIC_SHELVES` rows that have content (两小时内玩完, 科幻异常, 城市记忆, 一个人也能玩). The shelves reuse Core `SearchDiscoveryFilterParity.topics(_, matching:)`. Secondary shelf cards get `discovery.topic.<shelf>.<id>`, so `discovery.topic.<id>` stays unique for the UI tests. A tag or a search keeps the single hero list. | DiscoveryTemplateBrowserView, TemplateShelfArt |
+| R7-PC-A8-2 (rest) | Closed as obsolete. The current MP `topic-detail/index.wxml` has no image mosaic (the owner simplified it on 11-14). The node-image gallery is done (round 2). | — |
+
+### MP assets (mapping.md), round 3
+
+- [x] `BannerCover` topic covers (18) and game covers (25), from `shelf/art.js:15` and `shelf/game-covers.js:2`.
+- [x] `BannerCover.homeRouteCityPlaceholder`: home shelf card default.
+- [ ] `TabIcon.tplTabTopic` / `tplTabGame`: the shelf switch stays the native segmented `Picker`. Three UI tests (`PublicPlayTemplatePresentationFlowTests`, `TemplateTabStaffFlowTests`, `TopicTemplateNameSearchFlowTests`) find it as `segmentedControls["discovery.shelf"]`, and a segmented segment cannot show icon and label together. Switching to the MP icon tabs needs those tests moved first (coordinator).
+- [ ] `BannerCover.recoHero` (编辑精选 carousel default): `CYCarouselSlide` has no fallback-image input (design-system owner).
+- [ ] `FeatureIcon.iconViewers` / `iconStar`: the app's home cards have no distance or rating line to carry them.
+- [ ] Leaderboard memojis and member-journey icons: not on this half's pages (official-detail is C4 = half b; journey is member).
+- [ ] Search map / search / merchantinfo icons: still hash-pinned files (see round 1).
+
+### Flow gaps (flows-g1 `[GAP-CLAUDE]`) in this half
+
+| edge | status |
+|---|---|
+| `templatedetail/topic-preview` deck | **mounted** (above) |
+| `topic/index` route map | **mounted** (map part); `RegistrationGapSections` belongs to baoming (C2, half b) |
+| `templatedetail/shelf` → topic-preview / detail | The shelf opens the topic-template detail in place. The deck is reachable by the `topic-preview` link. |
+| `search2` / `searchmap` → `SearchMapExplorerGapView` | Not mounted. `GlobalSearchView.swift` / `SearchMapExplorerView.swift` are whole-file hash-pinned (`test_global_search_category_recovery`). The app's own explorer already opens topics. |
+| `topic/merchantapply` → `MerchantApplyPickerGapView`, `MerchantJoinContactHostButton`, success summary (R7-PC-B3-3) | Not mounted. The host is `MerchantContentEditView` in `MerchantContentViews.swift`, hash-pinned (`test_merchant_project_workspace_entry`, `test_merchant_station_submission_import`). The merchant writes stay owner-gated. |
+| `topic/pricing` → `TopicPricingGapSection` | Not mounted. The pricing page has no topic or ticket read to fill per-ticket fields, sale status or fee rate. Core can now send `ticketPrices` (R7-PC-B4-2), but it is still behind the pricing grant. |
+| flows-g2 (ops) | Not this area. |
+
+### Review / audit rows
+
+- REV-B B-02…B-09: all present after the re-apply (B-03 is Cursor's `TopicCastRow` mount).
+- REV-B B-16 (FE-G5 perk line on the route detail): `TopicMerchant` has no perk name / 已含 / 需消费 / 需预约 fields. **Cursor:** decode them on topic nodes' merchants; the ticket-wallet half of B-16 is not this half's page.
+- R7-PC-B4-5: free-explore owners now go to the editor (B1-19), not to pricing. The bare `pricing?topicId=` link still has no `productType`. **Cursor:** decode `productType` on `PublisherPricingPreview` (MP `pricing/index.js:144` reads it from the preview).
+
+### Still left after round 3
+
+| id | reason |
+|---|---|
+| R7-PC-B1-21 | `TopicChapter.locked` still not decoded (MP `topic-motion.js:160`). **Cursor.** |
+| R7-PC-A8-3, C1-9, B3-4, C1-8 | Still need Core: `isOfficial`, `organizerShopLogo`, `MerchantApplyXcx.allMissing`, a distinct not-found error. None are on combined-r7 @ b0ac0108d. |
+| R7-PC-A1-1 relocate, A1-7 share, A3-4, A4-1, A5-6, B2-3, B3-3 | Unchanged from round 2 (no API, or hash-pinned files). |
+| Gemini MPGap copy | `TopicTemplatePreviewData.fromWire` builds Chinese-only strings in Core (「N 分钟」「N 章节」); the deck therefore shows Chinese under en. **Gemini:** move them to catalog keys. |
+
+### Local gates (round 3, cloud, no compiler)
+- `tools/check_typography_lint.py`: PASS.
+- `tools/check_a11y_lint.py`: no row from this branch's files (17 new rows are all elsewhere, same as the base).
+- `tools/contract_ratchet.py --check`: **217 failing, identical set to the base `ui/combined-r7` @ b0ac0108d (217, 33 above baseline 184)**. 0 new from this branch. (A first run caught one catalog-key failure from a new VoiceOver hint key; the hint was dropped.)

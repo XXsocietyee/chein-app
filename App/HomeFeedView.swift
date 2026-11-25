@@ -487,6 +487,8 @@ struct HomeFeedShelfCard: View {
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
+            // MP asset (index.wxml:216): a card without a cover shows `home-route-city-placeholder.jpg`.
+            .fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)
             .cachingFeedImage()
     }
 }

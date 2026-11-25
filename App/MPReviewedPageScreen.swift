@@ -43,7 +43,15 @@ import SwiftUI
                 searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }
             )
             .id(session.templateAuthoringViewIdentity)
-        case "pages/templatedetail/topic-preview/index", "pages/templatedetail/topic-detail/index":
+        case "pages/templatedetail/topic-preview/index":
+            // Flow gap PC-A-7-2: topic-preview is the MP card deck; 查看详情 pushes topic-detail.
+            if let id = reviewedID(query) {
+                DiscoveryTopicTemplateDeckHost(coordinator: session.publicTopicTemplateCoordinator(id: id),
+                                               readonly: query["readonly"] == "1",
+                                               makeDetail: { session.publicTopicTemplateCoordinator(id: id) })
+                    .cyPushedChrome()
+            } else { unavailable }
+        case "pages/templatedetail/topic-detail/index":
             // PC-A-7-1 / PC-A-8-1: a shared topic-template link lands on that template, not the shelf root.
             if let id = reviewedID(query) {
                 DiscoveryTopicTemplatePreview(coordinator: session.publicTopicTemplateCoordinator(id: id))

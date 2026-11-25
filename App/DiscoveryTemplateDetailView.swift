@@ -62,8 +62,11 @@ struct DiscoveryTemplateDetailView: View {
                     Section {
                         TemplateXbHead(title: item.title.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: item.title),
                                        publisher: publisherText(parity, item: item), official: isOfficial(parity)) {
-                            // PC-A-6-1: the template's own cover first (MP coverUrl), generated art while loading or without one.
-                            if let url = TemplateBrowserPort.coverURL(item.imgUrl) {
+                            // MP `detailCover` (templatedetail.js:507): a shelf play's bundled cover first, then the template's own
+                            // cover (PC-A-6-1), generated art while loading or without one.
+                            if let art = TemplateShelfArt.gameCover(item.title) {
+                                art.resizable().scaledToFill().accessibilityHidden(true)
+                            } else if let url = TemplateBrowserPort.coverURL(item.imgUrl) {
                                 PlayerFeedRemoteImage(url: url, maxPixel: 512, placeholder: {
                                     E1CoverArt(seed: item.title, symbol: "sparkles", debugLabel: false, symbolPoint: CGPoint(x: 0.5, y: 0.5))
                                 }, failure: {
@@ -321,7 +324,10 @@ struct DiscoveryTopicTemplatePreview: View {
                     Section {
                         TemplateXbHead(title: (item.name ?? "").isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name ?? ""),
                                        publisher: topicAuthor(item), official: false, subtitle: item.subtitle) {
-                            if QuestifyCardArtwork.safeURL(item.imgUrl) != nil {
+                            // MP topic-detail js:169 `art.topicArt(info.name)`: a known topic name shows its bundled cover.
+                            if let art = TemplateShelfArt.topicCover(item.name) {
+                                art.resizable().scaledToFill().accessibilityHidden(true)
+                            } else if QuestifyCardArtwork.safeURL(item.imgUrl) != nil {
                                 E1CoverArt(seed: item.name ?? "topic", symbol: "building.2", imageURL: item.imgUrl, debugLabel: false,
                                            symbolPoint: CGPoint(x: 0.5, y: 0.5))
                             } else {
@@ -687,5 +693,65 @@ struct DiscoveryClampedText: View {
                     .accessibilityIdentifier("discovery.clampedText.toggle")
             }
         }
+    }
+}
+
+/// Flow gap PC-A-7-2 (MP `pages/templatedetail/topic-preview/index`): the card deck over the same public read.
+/// 查看详情 pushes the topic-template detail (MP `topic-detail/index`). 用这个模板 appears only while the adoption write is
+/// live, and also lands on the detail, which owns the adoption flow. `readonly=1` hides it, as in the MP.
+@MainActor
+struct DiscoveryTopicTemplateDeckHost: View {
+    @State private var detail: PublicTopicTemplateCoordinator
+    @State private var showsDetail = false
+    let readonly: Bool
+    let makeDetail: () -> PublicTopicTemplateCoordinator
+    init(coordinator: PublicTopicTemplateCoordinator, readonly: Bool, makeDetail: @escaping () -> PublicTopicTemplateCoordinator) {
+        _detail = State(initialValue: coordinator)
+        self.readonly = readonly
+        self.makeDetail = makeDetail
+    }
+    /// The MP deck reads the raw template JSON; the app re-projects the allowlisted public fields it already decoded.
+    static func previewData(_ item: PublicTopicTemplateDetail, readonly: Bool) -> TopicTemplatePreviewData {
+        var object: [String: PlayWireValue] = [:]
+        if let name = item.name { object["name"] = .string(name) }
+        if let cover = item.imgUrl { object["imgUrl"] = .string(cover) }
+        if let description = item.description { object["description"] = .string(description) }
+        if let total = item.totalTime { object["totalTime"] = .integer(Int64(total)) }
+        if let medal = item.finishMedalName { object["finishMedalName"] = .string(medal) }
+        object["games"] = .array(item.games.map { game in
+            var g: [String: PlayWireValue] = ["title": .string(game.title ?? "")]
+            if let duration = game.duration { g["duration"] = .integer(Int64(duration)) }
+            return .object(g)
+        })
+        object["chapters"] = .array(item.chapters.map { chapter in
+            var c: [String: PlayWireValue] = ["nodeCount": .integer(Int64(chapter.nodeCount ?? chapter.nodes.count))]
+            if let name = chapter.name { c["name"] = .string(name) }
+            return .object(c)
+        })
+        return TopicTemplatePreviewData.fromWire(.object(object), templateID: item.id,
+                                                 isReadonly: readonly || !TopicTemplateUseFactory.isLive)
+    }
+    var body: some View {
+        Group {
+            if detail.isInvalidated {
+                ContentUnavailableView("discovery.templateSessionChanged", systemImage: "person.crop.circle.badge.exclamationmark",
+                                       description: Text("discovery.templateReopen"))
+            } else if let error = detail.error, detail.value == nil {
+                DiscoveryErrorView(error: error) { Task { await detail.load() } }
+            } else if let item = detail.value {
+                TopicTemplateDeckPreviewView(preview: Self.previewData(item, readonly: readonly),
+                                             onViewDetail: { showsDetail = true },
+                                             onUseTemplate: { showsDetail = true })
+                    .accessibilityIdentifier("discovery.topicPreview.deck")
+            } else {
+                // MP skeleton, not a centred spinner (R7-PC-A7-2).
+                CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityLabel(Text("discovery.loading"))
+            }
+        }
+        .navigationDestination(isPresented: $showsDetail) {
+            DiscoveryTopicTemplatePreview(coordinator: makeDetail())
+        }
+        .task { if detail.value == nil { await detail.load() } }
     }
 }
