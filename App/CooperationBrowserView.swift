@@ -22,6 +22,7 @@ import SwiftUI
     @State private var topicFilter: CooperationInboxTopicFilter?
     /// Parity coop/list P0: the row's two-button `inv-acts` open the reviewed submit page (X1) as a sheet.
     @State private var rowAction: CoopListRowAction?
+    @State private var composingInvite = false
     private var selectedTopicID: Int? {
         guard reader.isConfigured, reader.isAuthenticated else { return nil }
         return topicFilter?.selectedTopic(owner: ObjectIdentifier(reader), scope: reader.scope)
@@ -49,12 +50,11 @@ import SwiftUI
                     }
                     .accessibilityIdentifier("cooperation.pool.open")
                     if let peerReader, listPage.showsNewInvite {
-                        NavigationLink {
-                            CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope)
-                                .cyPushedChrome(domain: .merchant)
-                        } label: {
-                            CYListRow("cooperation.list.newInvite", trailing: .none) { CYRowIcon(systemImage: "plus.circle") }
+                        // flows-g2 108: programmatic push so a sent invite can pop back here on 我发出的 (MP redirectTo ?tab=sent).
+                        Button { composingInvite = true } label: {
+                            CYListRow("cooperation.list.newInvite", trailing: .chevron) { CYRowIcon(systemImage: "plus.circle") }
                         }
+                        .buttonStyle(.plain)
                         .accessibilityIdentifier("cooperation.list.newInvite")
                     }
                 }
@@ -89,6 +89,13 @@ import SwiftUI
             .onChange(of: ObjectIdentifier(reader)) { _, _ in topicFilter = nil }
             .onChange(of: reader.isAuthenticated) { _, _ in topicFilter = nil }
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
+            .navigationDestination(isPresented: $composingInvite) {
+                if let peerReader {
+                    CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope)
+                        .cyPushedChrome(domain: .merchant)
+                        .environment(\.coopInviteSent, { direction = .sent; composingInvite = false })
+                }
+            }
             .sheet(item: $rowAction) { action in
                 Group {
                     NavigationStack { CoopFlowRequestPreview(operation: action.operation) }
@@ -194,6 +201,18 @@ import SwiftUI
                         .accessibilityElement(children: .combine)
                         .accessibilityAddTraits(.isButton)
                     }.accessibilityIdentifier("cooperation.invite.\(direction.rawValue).\(row.id).\(index)")
+                    .contextMenu {
+                        // MC7-30-5: MP `copyPartnerPhone` on a card whose contact is released. Local-only, expiring copy.
+                        if case .visible = CooperationInvitePresentation(invite: row, direction: direction).contact,
+                           let phone = row.partner?.phone?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty {
+                            Button { LocalPasteboard.copy(phone) } label: { Label("merchantCoop.list.copyPhone", systemImage: "doc.on.doc") }
+                                .accessibilityIdentifier("cooperation.invite.copyPhone.\(row.id)")
+                        }
+                    }
+                    .accessibilityAction(named: Text("merchantCoop.list.copyPhone")) {
+                        if case .visible = CooperationInvitePresentation(invite: row, direction: direction).contact,
+                           let phone = row.partner?.phone?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty { LocalPasteboard.copy(phone) }
+                    }
                 }
             }
         }
@@ -240,6 +259,16 @@ import SwiftUI
                                 CoopListRowActions(secondary: ("cooperation.list.apply.withdraw", .withdraw(topicID: row.topicId)),
                                                    primary: nil, identifier: "cooperation.list.withdraw.\(row.topicId)") { rowAction = .init(operation: $0) }
                             }
+                        }
+                        // MC7-30-12 (MP coop/list wxml:257-259): the club answered this application with an invite (status 3),
+                        // which lands in 收到的 — one tap switches the segment there.
+                        if direction == .sent, row.status == 3 {
+                            Button { self.direction = .received } label: {
+                                Text("merchantCoop.list.apply.goReceived").frame(minHeight: CYSpacing.minTouchTarget)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityLabel(Text("merchantCoop.list.apply.goReceived.a11y"))
+                            .accessibilityIdentifier("cooperation.list.apply.goReceived.\(row.topicId)")
                         }
                         if let linked = replied?.linkedInviteID {
                             NavigationLink { CooperationInviteDetailView(key: CooperationInviteKey(id: linked, direction: .sent), reader: reader, peerReader: peerReader)
@@ -306,6 +335,12 @@ func coopCoverSeed(_ name: String?, fallback: String) -> String {
     return fallback
 }
 
+/// Image parity: the MP has no default cover art here. A missing or failed cover is the plain `.inv-cover`
+/// box (`--cy-bg-card-2`), not generated art.
+struct CoopCoverPlaceholder: View {
+    var body: some View { Rectangle().fill(CYColor.bgRaised) }
+}
+
 struct CoopCloudCoverBanner: View {
     let url: URL?
     let seed: String
@@ -316,10 +351,10 @@ struct CoopCloudCoverBanner: View {
                 if let url {
                     AsyncImage(url: url) { phase in
                         if let image = phase.image { image.resizable().scaledToFill() }
-                        else { CYCoverArt(seed: seed) }
+                        else { CoopCoverPlaceholder() }
                     }
                 } else {
-                    CYCoverArt(seed: seed)
+                    CoopCoverPlaceholder()
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
@@ -336,10 +371,10 @@ struct CoopCloudCoverThumb: View {
             if let url {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() }
-                    else { CYCoverArt(seed: seed) }
+                    else { CoopCoverPlaceholder() }
                 }
             } else {
-                CYCoverArt(seed: seed)
+                CoopCoverPlaceholder()
             }
         }
         .frame(width: side, height: side)

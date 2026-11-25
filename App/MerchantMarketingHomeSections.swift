@@ -72,7 +72,9 @@ extension EnvironmentValues {
         Section {
             // MC7-10-5 (marketing/index.wxml:79-82): an all-zero home shows 还没有主题和活动 in place of the tiles.
             if home.isAllZero {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                VStack(spacing: CYSpacing.sm) {
+                    // MP cy-empty kind="empty": the shared empty-state art above the title.
+                    CYEmptyIllustration(kind: .generic, size: 96)
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.empty.title")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("merchantOps.marketing.empty")
                     if access.canManageProjects {
@@ -81,6 +83,7 @@ extension EnvironmentValues {
                             .accessibilityIdentifier("merchantOps.marketing.firstContent")
                     }
                 }
+                .frame(maxWidth: .infinity)
             } else {
                 HStack(alignment: .top, spacing: CYSpacing.sm) {
                     mineTile("merchantMarketing.topics", home.content.topicCount + home.content.freeExploreCount, create: { onRoute(.content) })

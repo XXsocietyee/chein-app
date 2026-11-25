@@ -556,7 +556,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "门店信息加载失败，请重试"
+            "value": "商家权限没能读取"
           }
         }
       }
@@ -572,7 +572,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在核对经营团队权限…"
+            "value": "正在确认经营团队权限…"
           }
         }
       }
@@ -700,7 +700,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法或店址还没有提交，直接离开会丢失本页草稿。"
+            "value": "玩法或店址还没有提交，确定离开吗？"
           }
         }
       }
@@ -764,7 +764,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "配一个自己店铺的玩法就行,商家信息用你的入驻资料"
+            "value": "配一个自己店铺的玩法就行，商家信息用你的入驻资料"
           }
         }
       }
@@ -892,7 +892,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的店铺资料里还没有坐标,得在地图上点一下店门口。"
+            "value": "请在地图上选择店门口"
           }
         }
       }
@@ -940,7 +940,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申请已提交，审核状态暂未同步"
+            "value": "申请已提交，审核状态更新中"
           }
         }
       }
@@ -1660,7 +1660,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前岗位没有节点管理权限"
+            "value": "当前身份不能管理节点"
           }
         }
       }
@@ -1692,7 +1692,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前岗位不能管理节点"
+            "value": "当前身份不能管理节点"
           }
         }
       }
@@ -1708,7 +1708,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前岗位没有核销权限"
+            "value": "当前身份不能核销"
           }
         }
       }

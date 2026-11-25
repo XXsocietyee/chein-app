@@ -90,7 +90,8 @@ extension EnvironmentValues {
                     Text("nearbyMerchant.total \(page.totalText)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("nearbyMerchant.total")
                     if page.phase == .empty {
-                        CYEmptyStateView(systemImage: "mappin.slash", title: "cooperation.nearby.empty", description: "cooperation.nearby.empty.detail")
+                        // Image parity: MP cy-empty kind="empty" → MPAsset.EmptyState art via "tray".
+                        CYEmptyState(systemImage: "tray", "cooperation.nearby.empty")
                             .accessibilityIdentifier("cooperation.nearby.empty")
                         // MC7-33-7: MP 刷新附近商家 re-runs the same consented search.
                         Button { operation = Task { await model.search(purposeAccepted: purposeAccepted) } } label: {

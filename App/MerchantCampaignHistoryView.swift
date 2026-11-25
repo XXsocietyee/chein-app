@@ -89,7 +89,7 @@ struct MerchantCampaignHistoryView: View {
                                         identifier: "merchant.campaigns.failed") { Task { await model.load() } }
             }
         } else if model.campaigns.isEmpty {
-            ContentUnavailableView("merchant.campaigns.empty", systemImage: "paperplane")
+            CYEmptyState(systemImage: "tray", "merchant.campaigns.empty")
                 .accessibilityIdentifier("merchant.campaigns.empty")
         } else {
             List {

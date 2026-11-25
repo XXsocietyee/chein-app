@@ -252,7 +252,11 @@ func mcc(_ key: String, _ locale: Locale) -> String {
 
     private func emptyView(_ title: String, id: String) -> some View {
         ContentUnavailableView {
-            Label { Text(title) } icon: { Image(systemName: "tray") }
+            // Image parity: MP cy-empty kind="empty" → the shared MP empty art (MPAsset.EmptyState).
+            VStack(spacing: CYSpacing.md) {
+                CYEmptyIllustration(kind: .generic, size: 96)
+                Text(title)
+            }
         } actions: {
             Button { model.loadAll() } label: { Text(verbatim: mcc("merchantCoopCenter.refresh", locale)) }
                 .buttonStyle(.borderedProminent).frame(minHeight: CYSpacing.minTouchTarget)

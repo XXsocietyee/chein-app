@@ -106,7 +106,8 @@ import SwiftUI
                 if model.refreshing { Section { ProgressView("merchant.perks.refreshing").cyText(.meta) } }
                 if model.rows.isEmpty {
                     Section {
-                        CYEmptyStateView(systemImage: "gift", title: "merchant.perks.empty")
+                        // Image parity: MP cy-empty kind="empty" → the shared MP empty art (MPAsset.EmptyState via "tray").
+                        CYEmptyState(systemImage: "tray", "merchant.perks.empty")
                             .accessibilityIdentifier("merchant.perks.empty")
                     }
                     .listRowBackground(Color.clear)

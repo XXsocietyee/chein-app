@@ -259,6 +259,7 @@ struct ClubHeaderShareButton: View {
 
     private var glyph: some View {
         Image(systemName: "square.and.arrow.up")
+            .accessibilityHidden(true)
             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
             .contentShape(Rectangle())
     }

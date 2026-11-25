@@ -62,8 +62,12 @@ import UIKit
                         partnerLine(row)
                     }
                 }
-                if let name = row.topicName {
-                    // Hero: generated cover under the topic name so the invite reads as a card, not a form row.
+                if let name = row.topicName, TemplateBrowserPort.coverURL(row.coverURL) == nil {
+                    // Image parity (MP invite-detail wxml:40-41): no cover data → no cover block, the name stays as the title.
+                    Text(verbatim: name).cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                } else if let name = row.topicName {
+                    // Hero: the real cover under the topic name so the invite reads as a card, not a form row.
                     ZStack(alignment: .bottomLeading) {
                         // MC7-32-2: the invite's real cover (generated art only as the fallback), dimmed once closed.
                         CoopCloudCoverBanner(url: TemplateBrowserPort.coverURL(row.coverURL), seed: coopCoverSeed(name, fallback: "invite-\(row.id)"))
