@@ -189,7 +189,7 @@ struct ClubOperationsWorkspaceView: View {
                 // Round 4 copy (MP create wxml:20): the create page says 登录后创建俱乐部.
                 CYEmptyState(systemImage: "person.crop.circle", target == .create ? "club.ops.create.signedOut" : "club.ops.signedOut",
                              actionTitle: rootTabSwitch.isAvailable ? "club.host.signIn.action" : nil,
-                             actionIdentifier: "club.ops.signIn", actionStyle: .primary,
+                             actionIdentifier: "club.host.signIn.action", actionStyle: .primary,
                              action: rootTabSwitch.isAvailable ? { dismiss(); rootTabSwitch(.mine) } : nil)
                     .listRowBackground(Color.clear)
             }
