@@ -454,12 +454,19 @@ struct JourneySeatCircle: Identifiable, Equatable {
     var id: Int { no }
 }
 
+struct JourneyTransferSeat: Identifiable, Equatable {
+    let no: Int
+    var id: Int { no }
+}
+
 struct JourneyInvitedRow: Identifiable, Equatable {
     let invitationID: String
     let no: Int
     let kind: JourneySeatKind
     let expiresText: String?
     let canCancel: Bool
+    /// JSEAT-r8-1: a phone-transferred seat (INVITED / CLAIMED) shows 称呼 + the server-masked number (MP `who`).
+    var who: String? = nil
     var id: String { invitationID }
 }
 
@@ -486,6 +493,8 @@ struct JourneySeatsContent: Equatable {
     /// they stay nil there and the card is hidden rather than printing "—".
     var stopCount: Int? = nil
     var estimatedMinutes: Int? = nil
+    /// JSEAT-r8-1: open seats (not seat 1) the buyer may transfer by phone (`seatPhoneTransferSupported`, MP `canTransfer`).
+    var transferable: [Int] = []
 }
 
 enum JourneySeatsPhase: Equatable {
@@ -534,8 +543,11 @@ struct JourneySeatsView: View {
     let onStart: () -> Void
     let onEditMe: () -> Void
     var onSignIn: () -> Void = {}
+    /// JSEAT-r8-1: `POST /api/play/seat-invitations/transfer-phone` (seat no, 称呼, phone, request id). nil hides 转赠给同伴.
+    var onTransfer: ((Int, String, String, String) async -> JourneySeatTransferOutcome)? = nil
     @State private var inviteShown = false
     @State private var cancelTarget: JourneyInvitedRow?
+    @State private var transferSeat: JourneyTransferSeat?
 
     var body: some View {
         Group {
@@ -609,15 +621,21 @@ struct JourneySeatsView: View {
                 if content.multi && !content.tiles.isEmpty {
                     JourneyModeTilesView(tiles: content.tiles, active: .constant(nil), showsRules: false, selectable: false)
                 }
-                if content.showsParty && (!content.invited.isEmpty || content.actionError != nil) {
+                if content.showsParty && (!content.invited.isEmpty || content.actionError != nil || (onTransfer != nil && !content.transferable.isEmpty)) {
                     if let error = content.actionError { MPInlineError(text: Text(verbatim: error)) }
                     if !content.invited.isEmpty {
                         MPRows(items: content.invited) { row in
                             HStack(spacing: CYSpacing.md) {
                                 Text(verbatim: String(row.no)).cyText(.cardTitle).monospacedDigit().frame(width: 28)
                                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                    Text(row.kind.label).cyText(.bodyMedium)
-                                    if let expires = row.expiresText { Text("mp.seats.validUntil \(expires)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                                    // JSEAT-r8-1 (MP `item.who || item.label`, then label as the sub line).
+                                    if let who = row.who {
+                                        Text(verbatim: who).cyText(.bodyMedium)
+                                        Text(row.kind.label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                    } else {
+                                        Text(row.kind.label).cyText(.bodyMedium)
+                                        if let expires = row.expiresText { Text("mp.seats.validUntil \(expires)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                                    }
                                 }
                                 Spacer()
                                 if row.canCancel {
@@ -639,6 +657,20 @@ struct JourneySeatsView: View {
                             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                         }
                     }
+                    if onTransfer != nil && !content.transferable.isEmpty {
+                        MPRows(items: content.transferable.map(JourneyTransferSeat.init)) { seat in
+                            HStack(spacing: CYSpacing.md) {
+                                Text(verbatim: String(seat.no)).cyText(.cardTitle).monospacedDigit().frame(width: 28)
+                                Text("mp.seats.transferable").cyText(.bodyMedium)
+                                Spacer()
+                                Button("mp.seats.transfer.open") { transferSeat = seat }
+                                    .frame(minHeight: CYSpacing.minTouchTarget)
+                                    .accessibilityLabel(Text("mp.seats.transfer.a11y \(seat.no)"))
+                                    .accessibilityIdentifier("journeySeats.transfer.\(seat.no)")
+                            }
+                            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+                        }
+                    }
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -654,6 +686,12 @@ struct JourneySeatsView: View {
             }
         }
         .sheet(isPresented: $inviteShown) { JourneyInviteSheet(content: content) }
+        .sheet(item: $transferSeat) { seat in
+            if let onTransfer {
+                JourneySeatTransferSheet(seatNo: seat.no, submit: { name, phone, id in await onTransfer(seat.no, name, phone, id) },
+                                         onDone: onRetry)
+            }
+        }
     }
 
     private func party(_ content: JourneySeatsContent) -> some View {
