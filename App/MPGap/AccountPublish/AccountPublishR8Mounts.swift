@@ -460,3 +460,66 @@ enum ProjectEditLook {
         continuation = nil
     }
 }
+
+// MARK: - B-SZ-12b `pages/shezhi/shezhi?scene=settings-identity-picker` (MP utils/scene-registry.js:27)
+
+/// 选择要申请的身份: the identity application rows from Settings, on their own page. Reads `/api/user/info` the same
+/// way Settings does; signed-out, denied and failed reads show their state instead of the rows.
+@MainActor struct SettingsIdentityPickerHost: View {
+    @ObservedObject var session: AppSession
+    @State private var profile: SettingsAccountProfile?
+    @State private var state: ReadState = .loading
+    enum ReadState: Equatable { case loading, ready, signedOut, denied, failed }
+
+    var body: some View {
+        List {
+            switch state {
+            case .loading:
+                CYLoadingState("fixr8.settings.identityPicker.loading", messageIdentifier: "settings.identityPicker.loading")
+            case .signedOut:
+                CYEmptyState(systemImage: "person.crop.circle", "fixr8.settings.identityPicker.signedOut")
+            case .denied:
+                CYEmptyState(systemImage: "lock", verbatimTitle: SettingsAccountProfileClient.deniedCopy)
+            case .failed:
+                CYEmptyState(systemImage: "exclamationmark.triangle", "fixr8.settings.identityPicker.failed",
+                             actionTitle: "重试", actionIdentifier: "settings.identityPicker.retry", kind: .failure,
+                             action: { Task { await load() } })
+            case .ready:
+                if let profile, SettingsIdentityApplications.isOffered(toRole: profile.role, isClubLeader: profile.isClubLeader) {
+                    SettingsIdentityApplicationEntries(session: session, profile: profile)
+                        .environment(\.settingsTileTint, SettingsTint.orange)
+                } else {
+                    CYEmptyState(systemImage: "checkmark.seal", "fixr8.settings.identityPicker.none")
+                }
+            }
+        }
+        .navigationTitle(Text("fixr8.settings.identityPicker.title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await load() }
+    }
+
+    private func load() async {
+        state = .loading
+        guard let memberID = session.account?.id, memberID > 0,
+              let token = session.token, AuthRequestBuilder.isValidToken(token),
+              let api = session.regionalConfiguration?.apiConfiguration else {
+            state = session.account == nil ? .signedOut : .failed
+            return
+        }
+        do {
+            let request = try AccountPublishMPContract.userInfoRequest(baseURL: api.baseURL, memberID: String(memberID), token: token)
+            let (data, status) = try await session.runtimeHTTPTransport.send(request)
+            switch AccountPublishMPContract.settingsAccess(status: status, body: data) {
+            case .signedOut: state = .signedOut
+            case .denied: state = .denied
+            case .failed: state = .failed
+            case .ready(let read):
+                let home = AccountPublishMPContract.homeAccount(from: data)
+                profile = SettingsAccountProfile(role: read.role, isClubLeader: home?.isClubLeader == true || read.role == "club")
+                state = .ready
+            }
+        } catch {
+            state = .failed
+        }
+    }
+}

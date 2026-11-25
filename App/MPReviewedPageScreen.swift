@@ -557,7 +557,7 @@ import SwiftUI
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
             // B-SZ-12: `?scene=` lands on the Settings row it names (MP shezhi.js:50, 231-244); unknown or
-            // unavailable scenes (and settings-identity-picker, whose entries live on Settings) open Settings itself.
+            // unavailable scenes open Settings itself.
             if query["scene"] == "settings-deregister", let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
             } else if query["scene"] == "settings-profile", session.account != nil {
@@ -569,6 +569,9 @@ import SwiftUI
             } else if query["scene"] == "settings-likes" {
                 MPFavoritesLinkHost(session: session)
                     .id(session.profileFavoritesReader.scope)
+            } else if query["scene"] == "settings-identity-picker" {
+                // r8 B-SZ-12b (MP scene-registry.js:27 选择要申请的身份): the identity application rows on their own.
+                SettingsIdentityPickerHost(session: session)
             } else if query["scene"] == "settings-how-to-play" {
                 ProfileGuideHost(reader: session.makeProfileGuideReader(),
                                  makeArticleReader: { session.makeProfileGuideArticleReader($0) },
