@@ -39,6 +39,13 @@ import SwiftUI
                             else { Text("club.topicMerchants.unnamedMerchant").cyText(.cardTitle) }
                             if let station = row.stationName { Text(verbatim: station).cyText(.body).foregroundStyle(.secondary) }
                             if let state = row.state { Text(verbatim: state).cyText(.body).foregroundStyle(.secondary) }
+                            if !row.contactText.isEmpty {
+                                Text(verbatim: row.contactText).cyText(.meta).foregroundStyle(.secondary)
+                            }
+                            if let phone = row.phone, !phone.isEmpty {
+                                Button("club.topicMerchants.copyPhone") { UIPasteboard.general.string = phone }
+                                    .accessibilityIdentifier("club.topicMerchants.copy.\(row.id)")
+                            }
                         }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                         .accessibilityIdentifier("club.topicMerchants.node.\(row.id)")

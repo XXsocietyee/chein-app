@@ -62,12 +62,15 @@ public struct PublisherPricingPreview: Equatable {
     public let lineup: [PublisherLineup]
     /// Source `canConfirm`; false means the topic is not in its pricing phase yet. Nil is unknown.
     public let canConfirm: Bool?
+    /// `2` is free explore. The page hides 有人带 / 无人带 for that value.
+    public let productType: Int?
     public init(_ data: ProjectEditJSON) throws {
         guard let b = data.object, let floor = PublisherValue.number(b["priceMin"]), !floor.isNaN else { throw PublisherLifecycleError.incomplete }
         minimum = floor; reference = PublisherValue.number(b["cityReferencePrice"])
         sampleSize = PublisherValue.integer(b["cityReferenceSampleSize"]); referenceLabel = b["cityReferenceLabel"]?.text
         lineup = (b["lineup"]?.array ?? []).compactMap(PublisherLineup.init)
         if case .bool(let value)? = b["canConfirm"] { canConfirm = value } else { canConfirm = nil }
+        productType = PublisherValue.integer(b["productType"])
     }
     public func accepts(_ price: Decimal) -> Bool { !price.isNaN && price >= minimum }
 }

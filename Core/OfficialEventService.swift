@@ -66,6 +66,27 @@ public struct OfficialEventService {
         try requireToken(token)
         return try await get("api/official/broadcast/\(id)/stats", token: token, missingBroadcast: true)
     }
+    /// `POST /api/official/broadcast/{id}/recover` with no body.
+    public func recoverBroadcast(id: String, token: String) async throws {
+        guard !id.isEmpty, !id.contains("/"), !id.contains("?") else { throw APIError.invalidRequest }
+        try requireToken(token)
+        let path = PlayerContentMPContract.broadcastRecoverPath(id: id)
+        let url = configuration.baseURL.appendingPathComponent(path)
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        try Task.checkCancellation()
+        let (data, status) = try await transport.send(request)
+        try Task.checkCancellation()
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        let envelope = try? JSONDecoder().decode(Status.self, from: data)
+        if envelope?.code == 401 { throw APIError.unauthorized }
+        guard envelope?.code == 200 else { throw OfficialReadFailure.rejected(envelope?.code ?? status) }
+    }
     private func requireToken(_ token: String) throws {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
     }

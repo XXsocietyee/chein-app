@@ -71,6 +71,8 @@ struct MessagingHistoryView: View {
     @State private var generation: UInt64 = 0
     @State private var visibleMessageID: Int?
     @State private var showingPollComposer = false
+    /// R7-PC-D9-3: the composer `+` (图片 / 位置 / 路线) pushes the conversation's existing send controls.
+    @State private var showingAttachControls = false
     @State private var pageBlocked: Bool?
     /// subpackageB/pages/im/chat/index page model for the last first-page read. Unknown stays unknown:
     /// an empty first page that still reports `hasMore` is not shown as "no messages".
@@ -90,6 +92,20 @@ struct MessagingHistoryView: View {
         self.directory = directory
         self.onConversationMutationAccepted = onConversationMutationAccepted
         _history = State(initialValue: MessagingHistory(conversationID: conversationID))
+    }
+    /// One builder for the toolbar entry and the composer `+` destination.
+    private func conversationControls(_ owner: IMExpandedCoordinator, lease: IMConversationReplyAuthority.Lease) -> some View {
+        let authority = replyAuthority
+        return IMConversationControlsView(coordinator: owner, identity: reader.identity,
+            uploadOwner: replyPolicy.permitsReply && replyBlock == nil ? expanded?.uploadCoordinator(conversationID) : nil,
+            topicReader: expanded?.topicReader, replyPolicy: replyPolicy,
+            isConversationCurrent: { authority.isCurrent(lease) },
+            readCursor: channelReadCursor,
+            admission: admission,
+            directory: directory,
+            showsAdmissionEntry: directory != nil || conversation?.kind == .group,
+            isMuted: conversation?.muted,
+            onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
     }
     private var replyBlock: IMReplyBlock? {
         IMReplyBlock.from(conversation: conversation, page: pageBlocked, blockedByMe: pageBlockedByMe)
@@ -183,7 +199,8 @@ struct MessagingHistoryView: View {
                     conversationReady: currentHistoryReady,
                     canReply: { authority.permitsReply(lease) },
                     createPoll: canCreatePoll ? { showingPollComposer = true } : nil,
-                    flight: sendFlight) { receipt in
+                    flight: sendFlight,
+                    attach: currentHistoryReady && expanded?.coordinator(conversationID) != nil ? { _ in showingAttachControls = true } : nil) { receipt in
                     // The ghost lands on the acknowledged message only if its bubble is not on screen yet.
                     if history.messages.contains(where: { $0.id == receipt.id }) { sendFlight.cancel() }
                     else { sendFlight.land(on: receipt.id) }
@@ -199,6 +216,9 @@ struct MessagingHistoryView: View {
             .themeDomain(.player)
         }.cySheet(detents: [.large])
         }
+        .navigationDestination(isPresented: $showingAttachControls) {
+            if let owner = expanded?.coordinator(conversationID) { conversationControls(owner, lease: lease) }
+        }
         .privacySensitive()
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
@@ -208,16 +228,7 @@ struct MessagingHistoryView: View {
                 if currentHistoryReady,
                    let owner = expanded?.coordinator(conversationID) {
                     NavigationLink {
-                        IMConversationControlsView(coordinator: owner, identity: reader.identity,
-                            uploadOwner: replyPolicy.permitsReply && replyBlock == nil ? expanded?.uploadCoordinator(conversationID) : nil,
-                            topicReader: expanded?.topicReader, replyPolicy: replyPolicy,
-                            isConversationCurrent: { authority.isCurrent(lease) },
-                            readCursor: channelReadCursor,
-                            admission: admission,
-                            directory: directory,
-                            showsAdmissionEntry: directory != nil || conversation?.kind == .group,
-                            isMuted: conversation?.muted,
-                            onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
+                        conversationControls(owner, lease: lease)
                     } label: { Label("im.full.title", systemImage: "info.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")
                 }
@@ -583,6 +594,13 @@ private struct MessagingBubble: View {
     @State private var showMoreSheet = false
     @State private var pendingSelection: Choice?
     @State private var peerReportClosed = false
+    /// R8-PC-D9-1: 举报对方 is only offered when a live `CommunityMemberReportClient` (writesEnabled) is on the
+    /// session. None is today, so the row stays hidden instead of a dead-end 「举报对方暂未开放」 alert.
+    var peerReportWritesEnabled: Bool = false
+
+    private var offersPeerReport: Bool {
+        peerReportWritesEnabled && IMSafetyMenu.offersPeerReport(conversation: conversation)
+    }
 
     private enum Choice: Hashable {
         case poll
@@ -596,7 +614,7 @@ private struct MessagingBubble: View {
     var body: some View {
         let menu = IMSafetyMenu(conversation: conversation, blockedByMe: blockedByMe)
         let items = menu.items.filter(granted)
-        if !items.isEmpty || createPoll != nil || IMSafetyMenu.offersPeerReport(conversation: conversation) {
+        if !items.isEmpty || createPoll != nil || offersPeerReport {
             Button {
                 showMoreSheet = true
             } label: {
@@ -643,7 +661,7 @@ private struct MessagingBubble: View {
                 identifier: "im.chat.more.\(identifier(item))"
             ))
         }
-        if IMSafetyMenu.offersPeerReport(conversation: conversation) {
+        if offersPeerReport {
             result.append(CYOptionSheetItem(
                 id: .peerReport,
                 title: appLocalized("im.chat.more.reportPeer", locale: locale),

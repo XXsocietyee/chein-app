@@ -29,7 +29,11 @@ class TemplateOwnShelfHostFlow(unittest.TestCase):
                         self.shelf.index('TemplateOwnShelfCardFactsEnvelope.self, from: data'))
         for forbidden in ['/api/template/market-submit', '/market-submit', 'updateLibraryStatus', 'MERCHANT']:
             self.assertNotIn(forbidden, self.decode)
-        self.assertNotIn('MERCHANT', self.shelf)
+        # MP subpackageA/pages/myproject/index.js:134 stores MERCHANT or '', and :749
+        # sends that scope on /api/template/my-list. Quoted MERCHANT stays those two nil-guards.
+        self.assertEqual(self.shelf.count('"MERCHANT"'), 4)
+        self.assertIn('scope == "MERCHANT" ? "MERCHANT" : nil', self.shelf)
+        self.assertIn('operationScope == "MERCHANT" ? "MERCHANT" : nil', self.shelf)
 
     def test_personal_library_stays_separate_from_the_undispatchable_plan(self):
         # PLY-26-1: the square action follows the mini-program plan, not the personal publishStatus.

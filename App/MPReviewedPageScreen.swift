@@ -149,6 +149,7 @@ import SwiftUI
                                     rootTabSwitch(destination == .roam ? .roam : .home)
                                 } : nil,
                                 templateReader: session)
+            .socialGuideSessionCatalog(session)
             // R7-PC-D2-1: 去发布广场 / 更多玩法 leave this entry for the 发布 tab, like the mode cards.
             .environment(\.rootTabSwitch, rootTabSwitch.isAvailable ? RootTabSwitch { tab in
                 session.dismissNativeEntry()
@@ -188,7 +189,8 @@ import SwiftUI
             if let reader = session.officialRouteReader, let id = positiveID(query["id"]) { OfficialRouteDetailView(reader: reader, routeID: String(id)) } else { unavailable }
         case "pages/play/poi-challenge/index":
             // PLAYPOI-2: the challenge reads its node by poiId.
-            if let id = positiveID(query["poiId"]) { ChallengePOIHostView(poiID: id, reader: session.roamReader) } else { unavailable }
+            // PLAYPOI-r7 #14: `photo=` (nearby spot camera, already uploaded) prefills the photo step.
+            if let id = positiveID(query["poiId"]) { ChallengePOIHostView(poiID: id, reader: session.roamReader, photoURL: query["photo"]) } else { unavailable }
         case "subpackageRoam/poi-detail/index":
             // r8 A4-01 (MP mylike.js:435 `poi-detail?poiId=`): the city node detail by poiId (`id` is the canonical link key).
             if let id = positiveID(query["poiId"] ?? query["id"]) { RoamPOIDetailHost(poiID: id, name: query["name"]) } else { unavailable }
@@ -215,6 +217,7 @@ import SwiftUI
             // a bare id = browsing that topic's chapters from the brand square.
             if let topicID = reviewedID(query, key: "topicId") {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID)
+                    .merchantProjectHostDestinations(session: session)
                     .cyPushedChrome()
             } else if let id = reviewedID(query) {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: id))
@@ -227,7 +230,8 @@ import SwiftUI
                 MerchantContentEditView(service: session.merchantContentService, query: .registration(id: registrationID), kind: .registrationEdit(registrationID))
                     .cyPushedChrome()
             } else if let topicID = reviewedID(query, key: "topicId"), let nodeID = reviewedID(query, key: "nodeId") {
-                MerchantContentEditView(service: session.merchantContentService, query: .chapters(topicID: topicID), kind: .registrationCreate(topicID: topicID, nodeID: nodeID))
+                MerchantContentEditView(service: session.merchantContentService, query: .chapters(topicID: topicID), kind: .registrationCreate(topicID: topicID, nodeID: nodeID),
+                                        applyTarget: merchantApplyTarget(query))
                     .cyPushedChrome()
             } else if let topicID = reviewedID(query, key: "topicId") {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: topicID))
@@ -249,7 +253,7 @@ import SwiftUI
         case "pages/topic/pricing/index":
             // PC-B-4-3: MP pricing reads `topicId || id`; the partner page is reached from the pricing lineup.
             if let topicID = reviewedID(query, key: "topicId") ?? reviewedID(query), let context = session.publisherLifecycleContext {
-                PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)
+                PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator, scope: query["scope"])
                     .environment(\.pricingChapterProjectDestination, { topicID in
                     AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
                 })
@@ -298,7 +302,9 @@ import SwiftUI
         case "pages/club/edit/index":
             if let id = clubQueryID(query) { clubOperations(.club(id)) } else { unavailable }
         case "pages/club/badges/index":
-            if let id = clubQueryID(query), let host = badgeHost(id) { ClubBadgeManagementView(host: host).id(host.id) } else { unavailable }
+            // CLB-r8-badges-01 (fix-r8-club): no clubId is the MP missing-param shell (链接已失效 + 返回).
+            if let id = clubQueryID(query), let host = badgeHost(id) { ClubBadgeManagementView(host: host).id(host.id) }
+            else if clubQueryID(query) == nil { MemberMissingLinkState(identifier: "club.badges.missing") } else { unavailable }
         case "pages/club/customers/index":
             clubRead(.customers, .init(clubID: clubQueryID(query)), needsClub: true)
         case "pages/club/customer-detail/index":
@@ -350,7 +356,9 @@ import SwiftUI
                     // clubId, so its answers read `api/topic/host-node-answer`; a club link never carries a host scope.
                     .environment(\.clubStoryHostAnswer, session.clubStoryHostAnswerContext(scope: scope.clubID == nil ? query["scope"] : nil))
                 } else {
+                    // CLB-G13: with `activityId` the topic page carries the director block (session-owned host).
                     clubRead(.topicOverview, scope, needsClub: false)
+                        .environment(\.clubTopicDirectorHost, scope.activityID == nil ? nil : session.clubTopicDirectorHost)
                 }
             } else { unavailable }
         case "pages/club/governance/index":
@@ -374,7 +382,8 @@ import SwiftUI
                 case .appeal:
                     clubRead(.cases, .init(clubID: route.clubID), needsClub: true)
                 }
-            case .failure: unavailable
+            // CLB-r8-governance-01 (fix-r8-club): MP governance wxml:11 missing-param 链接已失效 + 返回.
+            case .failure: MemberMissingLinkState(identifier: "club.governance.missing")
             }
         case "pages/club/roles/index":
             // CLB-roles-02: the event tools put 「活动名 · 开始时间」 in `activityLabel`; the picker shows it (or 未命名).
@@ -403,6 +412,7 @@ import SwiftUI
             } else if let id = reviewedID(query) {
                 DiscoveryTemplateDetailView(id: id, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
                                             authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
+                    .readonlyLink(query["readonly"] == "1")
                     .id(session.templateAuthoringViewIdentity)
             } else { unavailable }
         case "pages/square/detail/index":
@@ -768,7 +778,17 @@ import SwiftUI
                     .environment(\.socialConversationDestination, session.socialConversationDestination) // A2-03 发消息
             } else { unavailable }
         case "subpackageRoam/history/index":
-            RoamHistoryView(reader: session.roamExperienceReader, toolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader)
+            if session.account == nil {
+                // r7 history #1: MP history/index.wxml cy-access-gate kind="login" — 登录后查看 + 登录, no list for guests.
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.history.signedOut",
+                             messageIdentifier: "roam.history.signedOut",
+                             actionTitle: openSignIn == nil ? nil : "auth.signIn",
+                             actionIdentifier: "roam.history.signIn", actionStyle: .primary, action: openSignIn)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .cyPageTitle("roam.experience.history")
+            } else {
+                RoamHistoryView(reader: session.roamExperienceReader, toolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader)
+            }
         case "subpackageRoam/nearby/index":
             SessionRoamNearbyTeamsView(onSignIn: openSignIn).environmentObject(session)
         case "subpackageRoam/my-teams/index":
@@ -824,7 +844,9 @@ import SwiftUI
     }
 
     @ViewBuilder private func clubRead(_ operation: ClubGovernanceRead, _ scope: ClubGovernanceScope, needsClub: Bool) -> some View {
-        if needsClub && scope.clubID == nil { unavailable } else {
+        // CLB-r8-roles-01 (fix-r8-club): a club page link without its clubId is the MP missing-param state
+        // (roles wxml:11 链接已失效 + 返回), not the generic unavailable placeholder.
+        if needsClub && scope.clubID == nil { MemberMissingLinkState(identifier: "club.\(operation.rawValue).missing") } else {
             clubGovernance { g in ClubGovernanceReadView(operation: operation, scope: scope, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
         }
     }
@@ -878,11 +900,12 @@ import SwiftUI
 
     private var roam: some View {
         RoamBrowserView(reader: session.roamReader, nearbyEventsReader: session.roamNearbyEventsReader, nearbyPlayersReader: session.roamNearbyPlayersReader,
-                        onChooseArea: {}, onOpenAccount: {}, experienceReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader,
+                        onChooseArea: {}, onOpenAccount: { openSignIn?() }, experienceReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader,
                         tileMemoryReader: session.roamTileMemoryReader, sessionFactReader: session.roamSessionFactReader,
                         cityDestination: { AnyView(SessionCityPlayerView().environmentObject(session)) },
                         territoryDestination: { AnyView(SessionRoamTerritoryView().environmentObject(session)) },
-                        nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environmentObject(session)) },
+                        // r7 residual P2: the reviewed roam host hands 登录 to its team pages too (RNEAR-5).
+                        nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(onSignIn: openSignIn).environmentObject(session)) },
                         stampDestination: { AnyView(SessionRoamStampCameraView().environmentObject(session)) },
                         liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) },
                         posterDestination: { AnyView(SessionRoamPosterView(node: $0).environmentObject(session)) },
@@ -902,8 +925,8 @@ import SwiftUI
                         officialRouteReader: session.officialRouteReader, mediaScope: session.platformConsumers.scope,
                         makeExternalMaps: session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader,
                         entryTeams: { await session.roamEntryTeams(area: $0) },
-                        myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1).environmentObject(session)) },
-                        nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0).environmentObject(session)) },
+                        myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: openSignIn).environmentObject(session)) },
+                        nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: openSignIn).environmentObject(session)) },
                         toolsReader: session.roamPassportToolsReader, passportToolsReader: session.roamPassportToolsReader,
                         privateToolsReader: session.roamPrivateToolsReader,
                         anniversaryRouteDestination: { topicID in
@@ -973,6 +996,18 @@ private func queryID(_ query: [String: String], _ key: String) -> Int? {
     guard let text = query[key], text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
           let value = Int(text), value > 0, String(value) == text else { return nil }
     return value
+}
+
+/// R7-PC-B3-3, MP merchantapply index.wxml:61-64: 承接标的 = nodeName, then "topicName · chapterName". Only the names the link carries.
+private func merchantApplyTarget(_ query: [String: String]) -> [String]? {
+    func clean(_ key: String) -> String? {
+        guard let raw = query[key]?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else { return nil }
+        return String(raw.prefix(80))
+    }
+    let node = clean("nodeName"), topic = clean("topicName"), chapter = clean("chapterName")
+    let route = [topic, chapter].compactMap { $0 }.joined(separator: " · ")
+    let lines = [node, route.isEmpty ? nil : route].compactMap { $0 }
+    return lines.isEmpty ? nil : lines
 }
 
 private func reviewedID(_ query: [String: String], key: String = "id") -> Int? {

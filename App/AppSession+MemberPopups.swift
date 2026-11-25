@@ -37,6 +37,15 @@ extension EnvironmentValues {
 }
 
 extension AppSession {
+    /// `GET /api/roam/presence-visibility` for the latest local roam session. Nil stays unknown and does not hide the off control.
+    func readRoamPresenceVisibility() async -> Bool? {
+        guard isConfigured, isSignedIn, let config = regionalConfiguration?.apiConfiguration else { return nil }
+        let sessionID = (try? roamExperienceReader.history())?.compactMap(\.serverSessionID).last
+        guard let sessionID, sessionID > 0 else { return nil }
+        return await RoamPresenceVisibilityService(configuration: config, transport: compositionTransport)
+            .readPresence(token: token, sessionID: sessionID)
+    }
+
     /// Turns off approximate nearby roam presence via `POST /api/roam/presence-visibility` (`visible=false`).
     func disableRoamPresenceVisibility() async -> RoamPresenceDisableOutcome {
         guard isConfigured, isSignedIn,

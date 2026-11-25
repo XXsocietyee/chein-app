@@ -160,13 +160,29 @@ public final class PlayerContentGapService {
         return await send(req)
     }
 
-    /// `PC-B-1-4`: `POST /api/orient/safety/check` (form `topicId`)
+    /// `pages/topic/index/index.js`: `POST /api/orient/safety/check` JSON `{topicId}`.
     public func checkOrientSafety(topicID: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/orient/safety/check",
             method: "POST",
-            form: ["topicId": String(topicID)]
+            json: ["topicId": .integer(Int64(topicID))]
         ) else { return .unauthorized }
         return await send(req)
+    }
+}
+
+/// Play-button decision for `POST /api/orient/safety/check`.
+/// `ORIENT_DISABLED` and `ORIENT_NOT_ORIENTEERING` proceed. Anything else that is not an allow refuses or retries.
+public enum PlayerOrientSafetyDecision: Equatable, Sendable {
+    case proceed
+    case refused(String)
+    case retry(String)
+    public static let refusedLine = "按平台规则，现在不能开始这个主题。"
+    public static let retryLine = "网络异常，请重试"
+    public static func decide(code: String?, errorCode: String?, allowed: Bool?) -> PlayerOrientSafetyDecision {
+        if errorCode == "ORIENT_DISABLED" || errorCode == "ORIENT_NOT_ORIENTEERING" { return .proceed }
+        if code != "200" || allowed == nil { return .retry(retryLine) }
+        if allowed != true { return .refused(refusedLine) }
+        return .proceed
     }
 }

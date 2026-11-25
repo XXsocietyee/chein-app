@@ -29,10 +29,15 @@ final class RegistrationWaitlistTests: XCTestCase {
         XCTAssertFalse(status.matches(try .init(activityID: 7, ticketID: 11), accountID: 2))
         XCTAssertFalse(try decode(eligibility: "NOT_MEMBER", allowed: false).canJoin)
     }
-    func testUnknownStatesAndContradictoryEligibilityFailClosed() {
+    func testUnknownStatesAndContradictoryEligibilityFailClosed() throws {
         XCTAssertThrowsError(try decode(state: "FUTURE"))
         XCTAssertThrowsError(try decode(eligibility: "FUTURE"))
         XCTAssertThrowsError(try decode(eligibility: "BLOCKED"))
+        let hostFirst = try decode(allowed: false)
+        XCTAssertFalse(hostFirst.canJoin)
+        XCTAssertTrue(hostFirst.hostReservation(ticketSoldOut: false).isShown)
+        XCTAssertEqual(hostFirst.hostReservation(ticketSoldOut: false).statusText, "本场需先预约主持")
+        XCTAssertFalse(hostFirst.hostReservation(ticketSoldOut: true).isShown)
         XCTAssertThrowsError(try decode(state: "WAITING"))
         XCTAssertThrowsError(try decode(",\"id\":-1", state: "WAITING"))
     }

@@ -6,9 +6,9 @@ import SwiftUI
     let goHome: () -> Void
     var body: some View {
         CYEmptyState(
-            systemImage: "exclamationmark.triangle",
+            // MP circle onLoad without topicId: cy-empty missing-param (info glyph), 探索链接不完整, no sub line, 返回首页.
+            systemImage: "info.circle",
             "playx.circleLink.title",
-            detail: "playx.circleLink.subtitle",
             messageIdentifier: "playx.circleLink.missing",
             actionTitle: "playx.circleLink.home",
             actionIdentifier: "playx.circleLink.home",

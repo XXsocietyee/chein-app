@@ -12,7 +12,7 @@ public struct RegistrationWaitlistScope: Codable, Hashable {
     }
     enum CodingKeys: String, CodingKey { case activityID = "activityId", ticketID = "ticketId" }
 }
-public enum RegistrationWaitlistState: String, Decodable { case none = "NONE", waiting = "WAITING", offered = "OFFERED", claimed = "CLAIMED", converted = "CONVERTED", cancelled = "CANCELLED", expired = "EXPIRED" }
+public enum RegistrationWaitlistState: String, Decodable { case none = "NONE", waiting = "WAITING", offered = "OFFERED", claimed = "CLAIMED", converted = "CONVERTED", cancelled = "CANCELLED", expired = "EXPIRED", requested = "REQUESTED", rejected = "REJECTED" }
 public enum RegistrationWaitlistEligibility: String, Decodable { case noSeries = "NO_SERIES", closed = "WAITLIST_CLOSED", notMember = "NOT_MEMBER", registered = "ALREADY_REGISTERED", eligible = "ELIGIBLE", blocked = "BLOCKED" }
 
 /// Exact current-member status. No queue position, capacity, renewal, or quantity is inferred.
@@ -26,8 +26,9 @@ public struct RegistrationWaitlistStatus: Decodable, Equatable {
     public let joinAllowed: Bool
     public let registrationID: Int?
     public let expiresAt: Date?
+    public let reservationState: String?
     private let offerToken: String?
-    enum CodingKeys: String, CodingKey { case id, activityID = "activityId", ticketID = "ticketId", memberID = "memberId", state, eligibility = "eligibilityState", joinAllowed = "waitlistJoinAllowed", registrationID = "registrationId", expiresAt = "offerExpiresAt", offerToken }
+    enum CodingKeys: String, CodingKey { case id, activityID = "activityId", ticketID = "ticketId", memberID = "memberId", state, eligibility = "eligibilityState", joinAllowed = "waitlistJoinAllowed", registrationID = "registrationId", expiresAt = "offerExpiresAt", offerToken, reservationState }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(Int.self, forKey: .id)
@@ -39,12 +40,15 @@ public struct RegistrationWaitlistStatus: Decodable, Equatable {
         joinAllowed = try c.decode(Bool.self, forKey: .joinAllowed)
         registrationID = try c.decodeIfPresent(Int.self, forKey: .registrationID)
         offerToken = try c.decodeIfPresent(String.self, forKey: .offerToken)
+        let rawReservation = try c.decodeIfPresent(String.self, forKey: .reservationState)
+        let trimmedReservation = rawReservation?.trimmingCharacters(in: .whitespacesAndNewlines)
+        reservationState = (trimmedReservation?.isEmpty == false) ? trimmedReservation : nil
         let rawDate = try c.decodeIfPresent(String.self, forKey: .expiresAt)
         expiresAt = rawDate.flatMap(Self.parseDeadline)
         guard activityID > 0, ticketID > 0, memberID > 0,
               id.map({ $0 > 0 }) ?? (state == .none),
               registrationID.map({ $0 > 0 }) ?? ![.claimed, .converted].contains(state),
-              joinAllowed == (eligibility == .eligible),
+              !joinAllowed || eligibility == .eligible,
               state != .offered || eligibility != .eligible || (id != nil && expiresAt != nil && offerToken.map({ !$0.isEmpty && $0.utf8.count <= 256 && $0 == $0.trimmingCharacters(in: .whitespacesAndNewlines) }) == true) else { throw APIError.malformedResponse }
     }
     public func matches(_ scope: RegistrationWaitlistScope, accountID: Int) -> Bool {
@@ -52,6 +56,35 @@ public struct RegistrationWaitlistStatus: Decodable, Equatable {
     }
     public var canJoin: Bool { eligibility == .eligible && joinAllowed && [.none, .cancelled, .expired].contains(state) }
     public var canCancel: Bool { [.waiting, .offered].contains(state) }
+    /// Host reservation block from `pages/activity/utils/host-reservation.js`.
+    /// A sold-out ticket with no reservation stays on the waitlist card.
+    public func hostReservation(ticketSoldOut: Bool) -> ActivityHostReservationState {
+        if let raw = reservationState {
+            let text: String
+            switch raw {
+            case "REQUESTED": text = "主持申请中"
+            case "ACCEPTED_AWAITING_PAYMENT": text = "主持已接受，待付款"
+            case "CONFIRMED": text = "主持预约已确认"
+            case "REJECTED": text = "主持未接受"
+            case "EXPIRED": text = "主持预约已过期"
+            case "CANCELLED": text = "主持预约已取消"
+            case "PAYMENT_REVIEW_REQUIRED": text = "付款待处置"
+            case "ORDER_REVIEW_REQUIRED": text = "订单待处置"
+            default: text = "主持预约待确认"
+            }
+            return ActivityHostReservationState(
+                isShown: true,
+                statusText: text,
+                awaitingPayment: raw == "ACCEPTED_AWAITING_PAYMENT",
+                canRequest: raw == "REJECTED" || raw == "EXPIRED" || raw == "CANCELLED",
+                canCancel: raw == "REQUESTED"
+            )
+        }
+        if !ticketSoldOut && state == .none && eligibility == .eligible && !joinAllowed {
+            return ActivityHostReservationState(isShown: true, statusText: "本场需先预约主持", canRequest: true)
+        }
+        return ActivityHostReservationState(isShown: false, statusText: "")
+    }
     public func offer(at now: Date) -> RegistrationWaitlistOffer? {
         guard state == .offered, eligibility == .eligible, let id, let offerToken, let expiresAt,
               expiresAt > now else { return nil }

@@ -34,6 +34,10 @@ import SwiftUI
     }
     /// CLB-detail-02: the club page's 活动 tab embeds the list (MP detail wxml:163-216). The host owns the push.
     var embedded: ((Int) -> Void)? = nil
+    /// CLB-G01 (MP detail wxml:189-191, js:2759-2771): a merchant viewer gets 邀约承接 on each card, not 报名.
+    var undertake: ((Int) -> Void)? = nil
+    /// CLB-detail-20 (MP wxml:204-213, C3): the empty state offers 发布主题 to the owner or an activity manager.
+    var onPublish: (() -> Void)? = nil
     var body: some View {
         if embedded != nil { embeddedBody } else { pageBody }
     }
@@ -73,12 +77,21 @@ import SwiftUI
                 let rows = snapshot.rows.filter { $0.status != .ended }
                 if rows.isEmpty {
                     Section {
-                        CYEmptyState(systemImage: "calendar", "club.detail.events.empty", messageIdentifier: "club.detail.events.empty")
+                        CYEmptyState(systemImage: "calendar", "club.detail.events.empty", messageIdentifier: "club.detail.events.empty",
+                                     actionTitle: onPublish == nil ? nil : "club.detail.events.publish",
+                                     actionIdentifier: "club.detail.events.emptyPublish", actionStyle: .primary, action: onPublish)
                             .listRowBackground(Color.clear)
                     }
                 } else {
                     ClubActivityListContent(rows: rows, canOpen: visible && scenePhase == .active && opening == nil, open: { row in
                         select(row, from: snapshot, snapshotID: renderedSnapshotID)
+                    }, report: undertake.map { action -> (ClubActivityRow) -> AnyView in
+                        { row in
+                            AnyView(ClubGapActivityAndScanActions(showsUndertake: true, showsScanVerify: false,
+                                                                  onTapUndertake: { action(row.id) }, onTapScanVerify: {})
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .accessibilityIdentifier("club.activity.undertake.\(row.id)"))
+                        }
                     }, embedded: true)
                 }
             } else if !model.loading, model.issueScope == scope, let issue = model.issue {

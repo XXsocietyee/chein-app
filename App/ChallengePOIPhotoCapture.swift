@@ -26,16 +26,13 @@ import QuestifyCore
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playx.poi.photoStep")
-                .cyText(.sectionTitle)
-                .foregroundStyle(palette.textPrimary)
-                .accessibilityAddTraits(.isHeader)
-                .fixedSize(horizontal: false, vertical: true)
+            // MP cy-playkit-qa shot mode: the lead (photoRequireDesc or 拍下你到达这里的样子) is the big line; no step header.
             Group {
                 if let lead, !lead.isEmpty { Text(verbatim: lead) } else { Text("playx.poi.photoLead") }
             }
-            .cyText(.body)
+            .cyText(.sectionTitle)
             .foregroundStyle(palette.textPrimary)
+            .accessibilityAddTraits(.isHeader)
             .fixedSize(horizontal: false, vertical: true)
             if confirmed {
                 Label("playx.poi.photoSaved", systemImage: "checkmark.circle.fill")

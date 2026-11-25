@@ -25,6 +25,10 @@ import SwiftUI
     @State private var applyEnd = Date()
     @State private var pauseFallback: MerchantStationPauseChoice?
     @State private var approve = true
+    /// R7-PC-B3-2: MP merchantapply location/photo picker sheet.
+    @State private var showApplyPicker = false
+    /// R7-PC-B3-3: MP merchantapply target summary lines (topicName / chapterName / nodeName from the link).
+    var applyTarget: [String]? = nil
     private struct AddressConfirmation: Equatable {
         let scope: UUID
         let observedAt: Date
@@ -38,8 +42,9 @@ import SwiftUI
     @State private var placementTemplateReturnReadback = false
     @State private var placementTemplateProtectedReadback: Date?
     @Environment(\.dismiss) private var dismiss
-    init(service: any MerchantContentServing, query: MerchantContentQuery, kind: Kind, placeSearch: (any PublishingPlaceSearching)? = nil) {
-        self.service = service; self.query = query; self.kind = kind; self.placeSearch = placeSearch
+    init(service: any MerchantContentServing, query: MerchantContentQuery, kind: Kind, placeSearch: (any PublishingPlaceSearching)? = nil,
+         applyTarget: [String]? = nil) {
+        self.service = service; self.query = query; self.kind = kind; self.placeSearch = placeSearch; self.applyTarget = applyTarget
         _model = StateObject(wrappedValue: .init(service: service, query: query))
     }
     private var c: MerchantContentCoordinator { model.coordinator }
@@ -108,6 +113,17 @@ import SwiftUI
             } else if c.busy { ProgressView("merchant.loading") }
         }
         .accessibilityIdentifier("merchant.content.editor")
+        .sheet(isPresented: $showApplyPicker) {
+            NavigationStack {
+                MerchantApplyPickerGapView(location: applyLocationBinding, ruleInstructions: binding("activityDesc"),
+                                           uploadedPicURLs: applyPicBinding, writesEnabled: false)
+                    .navigationTitle(Text("merchantApply.location.title"))
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) { Button("common.done") { showApplyPicker = false } }
+                    }
+            }
+        }
         .modifier(MerchantRegistrationAvailabilityPresentation(editor: $availabilityEditor,
             context: currentAvailabilityContext, source: currentAvailabilitySource,
             replacement: availabilityReplacement, canEdit: canEditAvailability,
@@ -198,6 +214,23 @@ import SwiftUI
         text[name] = $0; dirty = true; model.cancel()
     }) }
     private static let addressFields = ["name", "address", "latitude", "longitude", "cityCode"]
+    /// R7-PC-B3-2: the picker writes address/latitude/longitude through the same dirty-tracking field bindings.
+    private var applyLocationBinding: Binding<MerchantApplyLocationSelection?> {
+        Binding(get: {
+            let address = (text["address"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !address.isEmpty, let lat = Double(text["latitude"] ?? ""), let lng = Double(text["longitude"] ?? "") else { return nil }
+            return MerchantApplyLocationSelection(address: address, latitude: lat, longitude: lng)
+        }, set: { selection in
+            binding("address").wrappedValue = selection?.address ?? ""
+            binding("latitude").wrappedValue = selection.map { String($0.latitude) } ?? ""
+            binding("longitude").wrappedValue = selection.map { String($0.longitude) } ?? ""
+        })
+    }
+    /// MP merchantapply keeps photos as one comma-joined `picUrl` (index.js:504-508), at most 9.
+    private var applyPicBinding: Binding<[String]> {
+        Binding(get: { (text["picUrl"] ?? "").split(separator: ",").map(String.init).filter { !$0.isEmpty } },
+                set: { binding("picUrl").wrappedValue = $0.prefix(MerchantApplyXcx.maximumPhotos).joined(separator: ",") })
+    }
     private func addressContext(_ source: MerchantContentSnapshot) -> AddressConfirmation {
         .init(scope: source.scope, observedAt: source.observedAt, generation: addressGeneration,
               fields: Dictionary(uniqueKeysWithValues: Self.addressFields.map { ($0, Data((text[$0] ?? "").utf8)) }))
@@ -212,8 +245,24 @@ import SwiftUI
         case .apply:
             Section { field("message"); Text("merchant.content.applyTwoSteps").font(.footnote) }
         case .registrationCreate, .registrationEdit:
+            // R7-PC-B3-3: MP merchantapply target summary (route · chapter · stop) from the link.
+            if let target = applyTarget, !target.isEmpty {
+                Section("merchantApply.target.title") {
+                    ForEach(Array(target.enumerated()), id: \.offset) { _, line in Text(line) }
+                }
+                .accessibilityIdentifier("merchantApply.target")
+            }
             Section("merchant.content.registrationContent") {
-                ForEach(["addressName", "address", "longitude", "latitude", "activityDesc", "picUrl", "limitNum"], id: \.self) { field($0) }
+                // R7-PC-B3-2: MP merchantapply map picker + ≤9 photos + 承接说明 replace the raw address/coordinate/picUrl fields.
+                field("addressName")
+                Button { showApplyPicker = true } label: {
+                    LabeledContent("merchantApply.location.field", value: applyLocationBinding.wrappedValue?.address ?? appLocalized("merchantApply.location.placeholder", locale: locale))
+                }
+                .accessibilityIdentifier("merchantApply.location.open")
+                if !(text["picUrl"] ?? "").isEmpty {
+                    LabeledContent("merchantApply.pic.title", value: "\(applyPicBinding.wrappedValue.count)/\(MerchantApplyXcx.maximumPhotos)")
+                }
+                field("limitNum")
                 if case .registrationCreate = kind { field("cooperateDate") }
             }
             if case .registrationCreate = kind { applyDateSection }

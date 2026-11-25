@@ -58,8 +58,11 @@ extension EnvironmentValues {
                             .accessibilityIdentifier("verificationCode.orderState")
                     }
                 }
-                Text(model.target.kind == .ticket ? "verificationCode.ticket.authority" : "verificationCode.city.authority")
-                    .cyText(.bodyCompact).foregroundStyle(.secondary)
+                // MP scene-qr-citynode shows only the code, the countdown and 出示给商家扫码领券; no authority line there.
+                if !(model.target.kind == .cityVoucher && autoIssue) {
+                    Text(model.target.kind == .ticket ? "verificationCode.ticket.authority" : "verificationCode.city.authority")
+                        .cyText(.bodyCompact).foregroundStyle(.secondary)
+                }
             }
     }
     private func lifecycle<V: View>(_ view: V) -> some View {
@@ -82,7 +85,8 @@ extension EnvironmentValues {
     }
     @ViewBuilder private var content: some View {
         if model.phase == .ready, let code = model.displayCode {
-            VerificationLocalQRCode(code: code, side: embeddedQRSide)
+            VerificationLocalQRCode(code: code, side: embeddedQRSide,
+                                    renderFailedKey: model.target.kind == .cityVoucher && autoIssue ? "roamSub.w208.voucher.renderFailed" : "verificationCode.renderFailed")
                 .overlay { CYScanSweep(active: revealSweep, period: 1.4).allowsHitTesting(false) }
                 .task(id: code) {
                     // One reveal pass over a freshly presented code, then the line rests.
@@ -129,9 +133,11 @@ extension EnvironmentValues {
 @MainActor private struct VerificationLocalQRCode: View {
     let code: String
     var side: CGFloat? = nil
+    var renderFailedKey: LocalizedStringKey = "verificationCode.renderFailed"
     private var image: UIImage? {
         let filter = CIFilter.qrCodeGenerator()
-        filter.message = Data(code.utf8); filter.correctionLevel = "M"
+        // "H": the MP cy-qr-voucher centre logo covers the middle of the code; level H keeps it readable.
+        filter.message = Data(code.utf8); filter.correctionLevel = "H"
         guard let output = filter.outputImage,
               let bitmap = CIContext(options: [.cacheIntermediates: false]).createCGImage(output, from: output.extent) else { return nil }
         return UIImage(cgImage: bitmap)
@@ -139,8 +145,32 @@ extension EnvironmentValues {
     var body: some View {
         if let image {
             Image(uiImage: image).resizable().interpolation(.none).scaledToFit()
+                .overlay { VerificationQRCentreLogo() }
                 .frame(width: side, height: side).frame(maxWidth: side == nil ? 280 : nil).padding(side == nil ? 24 : CYSpacing.lg).background(.white, in: RoundedRectangle(cornerRadius: side == nil ? 0 : CYRadius.lg, style: .continuous))
                 .accessibilityLabel("verificationCode.image").accessibilityIdentifier("verificationCode.qr")
-        } else { Text("verificationCode.renderFailed") }
+        } else { Text(renderFailedKey) }
+    }
+}
+
+/// MP `cy-qr-voucher` `.qr__logo`: white round cut-out (96/440 of the code) holding the 城瘾 mark drawn black
+/// (`filter: brightness(0)`, 56/440). Decoration: VoiceOver reads the code image label only.
+@MainActor private struct VerificationQRCentreLogo: View {
+    var body: some View {
+        GeometryReader { proxy in
+            let side = min(proxy.size.width, proxy.size.height)
+            ZStack {
+                Circle().fill(Color.white)
+                    .frame(width: side * 96 / 440, height: side * 96 / 440)
+                MPAsset.BrandLogo.cyLogoMark
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .foregroundStyle(Color.black)
+                    .frame(width: side * 56 / 440, height: side * 56 / 440)
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }

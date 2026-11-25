@@ -205,7 +205,7 @@ import SwiftUI
         // CLB-roles-03: the member's name only; a missing name reads 未命名, never 「用户 <id>」.
         // CLB-roles-03 (MP roles wxml:84-91): a monogram avatar leads each member row (the read carries no avatar URL).
         HStack(spacing: CYSpacing.sm) {
-            ClubMPAvatar(url: nil, name: member.nickname ?? "", size: .sm)
+            ClubMPAvatar(url: QuestifyCardArtwork.safeURL(member.avatarURL), name: member.nickname ?? "", size: .sm)
                 .accessibilityHidden(true)
             if let name = member.nickname { Text(verbatim: name) } else { Text("club.rolePicker.unnamed") }
         }

@@ -12,7 +12,7 @@ import SwiftUI
 
     private enum Phase: Equatable {
         case loading, signedOut
-        case failed(ledgerOff: Bool)
+        case failed(ledgerOff: Bool, message: String?)
         case ready(FreeExploreLaunchCatalog)
     }
     @State private var phase: Phase = .loading
@@ -43,8 +43,9 @@ import SwiftUI
                           primary: (title: "mp.common.signIn", action: onSignIn),
                           primaryIdentifier: "freeBundle.topicCatalog.signIn")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-        case .failed(let ledgerOff):
-            CYStateLayout(kind: .failure, title: Text("freeBundle.catalog.loadFailed"),
+        case .failed(let ledgerOff, let message):
+            CYStateLayout(kind: .failure,
+                          title: (message?.isEmpty == false) ? Text(verbatim: message!) : Text("freeBundle.catalog.loadFailed"),
                           primary: ledgerOff ? nil : reloadAction,
                           primaryIdentifier: "freeBundle.topicCatalog.reload")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -92,8 +93,9 @@ import SwiftUI
                 let units = item.unitsPerHolder > 0
                     ? appLocalized("freeBundle.catalog.unitsPerHolder \(item.unitsPerHolder)", locale: Locale.current)
                     : appLocalized("freeBundle.catalog.unitsUnknown", locale: Locale.current)
+                let closed = store.available ? nil : appLocalized("freeBundle.catalog.storeClosed", locale: Locale.current)
                 return FreeExploreCatalogMerchantItem(id: id, merchantName: store.merchantName ?? "—",
-                                                     chapterName: "\(chapter) · \(units)")
+                                                     chapterName: "\(chapter) · \(units)", perkSummary: closed)
             }
         }
     }
@@ -104,7 +106,7 @@ import SwiftUI
               let launch = try? FreeExploreLaunchSession(baseURL: context.baseURL, accountID: Int64(context.session.accountID),
                                                           market: context.market.rawValue, namespace: context.session.namespace,
                                                           role: context.role, epoch: context.session.epoch, token: context.session.token)
-        else { phase = .failed(ledgerOff: false); return }
+        else { phase = .failed(ledgerOff: false, message: nil); return }
         phase = .loading
         let owner = session
         let service = FreeExploreLaunchService(session: launch, transport: session.runtimeHTTPTransport,
@@ -117,12 +119,12 @@ import SwiftUI
             let catalog = try await service.catalog(topicID: topic)
             guard !Task.isCancelled else { return }
             phase = .ready(catalog)
-        } catch FreeExploreLaunchFailure.response(_, _, let businessCode, _) {
+        } catch FreeExploreLaunchFailure.response(_, _, let businessCode, let message) {
             guard !Task.isCancelled else { return }
-            phase = .failed(ledgerOff: businessCode == "BUNDLE_LEDGER_OFF")
+            phase = .failed(ledgerOff: businessCode == "BUNDLE_LEDGER_OFF", message: message)
         } catch {
             guard !Task.isCancelled else { return }
-            phase = session.currentRuntimeDependencyContext == nil ? .signedOut : .failed(ledgerOff: false)
+            phase = session.currentRuntimeDependencyContext == nil ? .signedOut : .failed(ledgerOff: false, message: nil)
         }
     }
 }
