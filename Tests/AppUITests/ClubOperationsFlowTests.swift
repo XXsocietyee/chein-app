@@ -189,24 +189,12 @@ final class ClubOperationsFlowTests: XCTestCase {
             app.terminate()
         }
     }
-    func testMemberRoleConfirmationIdentifiesTarget() {
+    /// CLB-edit-03 (fix-r8-club): the edit page no longer offers the legacy 设为管理员 rows.
+    func testEditPageHasNoLegacyAdminRows() {
         launch(); tap("club.ops.openManage")
-        let member = app.buttons["club.ops.member.704"].firstMatch
-        func clearOfBottomToolbar() -> Bool {
-            guard member.exists && member.isHittable else { return false }
-            let topOfToolbar = app.toolbars.allElementsBoundByIndex
-                .filter { $0.exists && $0.frame.minY > app.frame.midY }
-                .map { $0.frame.minY }.min() ?? app.frame.maxY
-            return member.frame.maxY < topOfToolbar
-        }
-        for _ in 0..<10 { if clearOfBottomToolbar() { break }; app.swipeUp() }
-        XCTAssertTrue(clearOfBottomToolbar(), app.debugDescription)
-        tap("club.ops.member.704")
-        XCTAssertTrue(element("club.ops.reviewSheet").waitForExistence(timeout: 5), app.debugDescription)
-        // LabeledContent exposes a combined localized label and value.
-        let target = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Fixture member (#704)")).firstMatch
-        XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
-        tap("club.ops.confirm"); count(1)
+        XCTAssertTrue(element("club.ops.field.name").waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(element("club.ops.member.704").exists)
+        count(0)
     }
     func testChineseProfileValidationAndDiscard() {
         launch(chinese: true)

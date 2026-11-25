@@ -221,6 +221,10 @@ struct ClubOperationsWorkspaceView: View {
             if target == .create, createStepBar.step != nil, snapshot?.canCreate == true {
                 ClubCreateStepBarView(bar: createStepBar)
                     .disabled(loading || state.locksForm || profileDraftBlocked)
+            } else if target != .create, let value = snapshot, value.profile != nil {
+                // CLB-edit-01 / CLB-edit-05 (fix-r8-club): MP scene-club-edit pins 保存修改 in the bottom bar
+                // (wxml:161-170); a failed save replaces it with 保存失败 + 重新保存 / 继续编辑.
+                CYFooterBar { editSaveBar(value) }
             }
         }
         .navigationTitle(title).navigationBarTitleDisplayMode(.inline)
@@ -401,7 +405,7 @@ struct ClubOperationsWorkspaceView: View {
                 createNameTaken: createNameTakenMessage,
                 createBar: target == .create && !ClubPlayerSurface.flatCreateForm ? createStepBar : nil)
                 .disabled(loading || state.locksForm || profileDraftBlocked)
-            if target != .create || ClubPlayerSurface.flatCreateForm {
+            if target == .create && ClubPlayerSurface.flatCreateForm {
                 Section {
                     reviewProfileButton(value)
                         .disabled(loading || state.locksForm || profileDraftBlocked || (target != .create && !dirty) || (target == .create && ClubOperationsPort.missingCreateStep(clubType: draft.clubType, name: draft.name, city: draft.city) != nil))
@@ -430,24 +434,8 @@ struct ClubOperationsWorkspaceView: View {
                     } else { LabeledContent(LocalizedStringKey("club.ops." + setting.rawValue)) { Text("club.ops.unknownValue") } }
                 }
             }
-            Section("club.ops.memberRoles") {
-                if value.members.isEmpty { Text("club.ops.membersUnavailable").foregroundStyle(.secondary) }
-                ForEach(value.members) { member in
-                    if !member.isOwner, member.memberId != identity?.accountID, [0, 1].contains(member.role) {
-                        Button {
-                            Task { await prepare(.memberRole(memberID: member.id, admin: !member.isAdmin, previousRole: member.role)) }
-                        } label: {
-                            LabeledContent {
-                                Text(member.isAdmin ? "club.ops.removeAdmin" : "club.ops.makeAdmin")
-                            } label: { Text(verbatim: member.trimmedNickname ?? "—") }
-                        }
-                        .disabled(loading || state.locksForm)
-                        .accessibilityIdentifier("club.ops.member.\(member.id)")
-                    } else {
-                        LabeledContent { Text(member.isOwner ? "club.ops.owner" : "club.ops.unknownRole") } label: { Text(verbatim: member.trimmedNickname ?? "—") }
-                    }
-                }
-            }
+            // CLB-edit-03 (fix-r8-club): the legacy 设为管理员 rows are gone; MP edit has none, and roles live on
+            // governance 角色与权限.
         }
         if ClubEditDissolveAccess.isAvailable(snapshot: value), let profile = value.profile, let governance = hostApplication {
             // Mini-program club/edit: owner-only dissolve. The blockers read gates the destructive step
@@ -469,14 +457,41 @@ struct ClubOperationsWorkspaceView: View {
             Section { Text("club.ops.writeGated").accessibilityIdentifier("club.ops.writeGated") }
         }
     }
-    @ViewBuilder private func reviewProfileButton(_ value: ClubOperationsSnapshot) -> some View {
+    /// CLB-edit-05: the last profile save was rejected; the bottom bar carries the failure until 继续编辑.
+    private var editSaveFailed: Bool {
+        guard target != .create, case .rejected = state, let last = lastSubmittedReview, case .update = last.command else { return false }
+        return true
+    }
+    @ViewBuilder private func editSaveBar(_ value: ClubOperationsSnapshot) -> some View {
+        if editSaveFailed, case .rejected(let failure) = state {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text("clubR8b.edit.saveFailed").cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("club.ops.edit.saveFailed")
+                if let message = failure.message { Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                HStack(spacing: CYSpacing.sm) {
+                    Button { state = .idle } label: { Text("club.ops.keepEditing").frame(maxWidth: .infinity) }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
+                        .accessibilityIdentifier("club.ops.edit.keepEditing")
+                    reviewProfileButton(value, titleKey: "clubR8b.edit.saveAgain")
+                        .disabled(loading || profileDraftBlocked)
+                        .accessibilityIdentifier("club.ops.edit.saveAgain")
+                }
+            }
+        } else {
+            reviewProfileButton(value)
+                .disabled(loading || state.locksForm || profileDraftBlocked || !dirty)
+                .accessibilityIdentifier("club.ops.reviewProfile")
+        }
+    }
+    @ViewBuilder private func reviewProfileButton(_ value: ClubOperationsSnapshot, titleKey: LocalizedStringKey? = nil) -> some View {
         let button = Button {
             let command: ClubOperationsCommand
             if let original = value.profile { command = .update(draft, original: original) }
             else { command = .create(draft) }
-            Task { await prepare(command) }
+            // CLB-edit-05 (fix-r8-club): MP 保存修改 saves on the tap; the review sheet stays only when writes are unverified.
+            Task { await prepare(command, confirmsInline: target != .create) }
         } label: {
-            Text(target == .create ? "club.ops.create" : "club.ops.reviewProfile").frame(maxWidth: .infinity)
+            Text(titleKey ?? LocalizedStringKey(target == .create ? "club.ops.create" : "club.ops.reviewProfile")).frame(maxWidth: .infinity)
         }
         if target == .create {
             button.buttonStyle(CYPillButtonStyle())
@@ -498,8 +513,22 @@ struct ClubOperationsWorkspaceView: View {
                 Text("club.ops.acknowledged").accessibilityIdentifier("club.ops.acknowledged")
                 if let message = receipt.message { Text(verbatim: message) }
             case .rejected(let failure):
-                Text("club.ops.rejected")
-                if let message = failure.message { Text(verbatim: message) }
+                if target == .create {
+                    // CLB-r8-create-01 (fix-r8-club): MP create wxml:134-135 创建没有完成 + the reason + 重试. A taken
+                    // name already sends the wizard back to the name step, so it carries no retry here.
+                    Text("clubR8b.create.failed").cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("club.ops.create.failed")
+                    Text(verbatim: failure.message ?? appLocalized("clubR8b.create.failedHint", locale: locale)).cyText(.bodyCompact)
+                    if createNameTakenMessage == nil {
+                        Button("clubR8b.retry") { Task { await prepare(.create(draft), confirmsInline: true) } }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                            .disabled(loading || identity == nil)
+                            .accessibilityIdentifier("club.ops.create.retry")
+                    }
+                } else if !editSaveFailed {
+                    Text("club.ops.rejected")
+                    if let message = failure.message { Text(verbatim: message) }
+                }
             case .outcomeUnknown: Text("club.ops.outcomeUnknown").accessibilityIdentifier("club.ops.outcomeUnknown")
             default: EmptyView()
             }
@@ -673,7 +702,7 @@ struct ClubOperationsWorkspaceView: View {
             }
             let pending = try await coordinator.prepare(command, target: target, expectedIdentity: identity, ownerID: ownerID)
             guard run == generation, access.identity == identity, !Task.isCancelled else { coordinator.cancel(pending); return }
-            if confirmsInline, case .create = pending.command, coordinator.writeAvailability != .unverified {
+            if confirmsInline, coordinator.writeAvailability != .unverified {
                 state = .preflighting
                 await confirm(pending)
                 return
