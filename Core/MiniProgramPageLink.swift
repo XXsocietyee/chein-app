@@ -83,6 +83,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["subpackageA/pages/myproject/index"] = open
         pages["pages/merchant/ledger/index"] = Rule(allowed: ["view", "topicId", "ownerType", "ownerId", "source", "tab"], required: [], ids: ["topicId", "ownerType", "ownerId"])
         pages["pages/merchant/ledger/order-detail/index"] = Rule(allowed: ["recordType", "recordId"], required: [], ids: ["recordId"])
+        pages["pages/merchant/ledger/batch-detail/index"] = Rule(allowed: ["batchId"], required: ["batchId"], ids: ["batchId"])
+        pages["pages/merchant/relation/index"] = Rule(allowed: ["tab", "topicId"], required: [], ids: ["topicId"])
+        pages["pages/merchant/coop-center/index"] = Rule(allowed: ["tab", "topicId"], required: [], ids: ["topicId"])
         pages["pages/merchant/profile/index"] = Rule(allowed: ["id", "poiId", "topicId", "topicName"], required: [], ids: ["id", "poiId", "topicId"])
         pages["pages/merchant/team/index"] = Rule(allowed: ["invite"], required: [], ids: [])
         pages["pages/coop/invite/index"] = Rule(allowed: ["type", "toId", "topicId"], required: [], ids: ["toId", "topicId"])
@@ -154,14 +157,12 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/merchant/index/index",
         "pages/merchant/apply/index",
         "pages/merchant/ledger/order-detail/index",
-        "pages/merchant/ledger/batch-detail/index",
         "pages/merchant/aftercare/index",
         "pages/merchant/predict/index",
         "pages/merchant/aftercare/detail/index",
         "pages/merchant/marketing/index",
         "pages/merchant/reviews/index",
         "pages/merchant/marketing/ai-insight/index",
-        "pages/merchant/relation/index",
         "pages/merchant/citynode/index",
         "pages/merchant/citynode/create/index",
         "pages/merchant/decor/index",
@@ -169,7 +170,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/merchant/decor/coop-setting/index",
         "pages/merchant/decor/gallery/index",
         "pages/merchant/decor/perks/index",
-        "pages/merchant/coop-center/index",
         "pages/merchant/customer/index",
         "pages/merchant/game-node/index",
         "pages/merchant/verify-records/index",

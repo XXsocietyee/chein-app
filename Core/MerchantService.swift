@@ -32,7 +32,7 @@ public struct MerchantService {
             else { values = try decoder.container(keyedBy: CodingKeys.self).decode([Value].self, forKey: .rows) }
         }
     }
-    private enum Body { case none, json([String: Int]), form([String: String]) }
+    private enum Body { case none, json([String: Int]), form([String: String]), urlencoded }
     private func post<Value: Decodable>(_ path: String, body: Body = .none, token: String) async throws -> Value {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         let url = configuration.baseURL.appendingPathComponent(path)
@@ -40,6 +40,10 @@ public struct MerchantService {
         switch body {
         case .form(let fields):
             request = try AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token)
+        case .urlencoded:
+            request = try AuthRequestBuilder.makeFormRequest(url: url, fields: [:], token: token, includesBody: false)
+            request.httpBody = Data()
+            request.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
         case .none, .json:
             request = try AuthRequestBuilder.makeFormRequest(url: url, fields: [:], token: token, includesBody: false)
             if case .json(let fields) = body {
@@ -69,8 +73,8 @@ public struct MerchantService {
     }
     public func events(access: MerchantAccess, token: String) async throws -> [MerchantEvent] {
         guard access.canReadEvents else { throw MerchantReadError.accessDenied }
-        // Unlike dashboard/todo, Flutter _rows sends a JSON object here.
-        return try await post("api/merchant/events", body: .json([:]), token: token)
+        // Mini-program POST with no header is application/x-www-form-urlencoded and data defaults to {}.
+        return try await post("api/merchant/events", body: .urlencoded, token: token)
     }
     public func orders(access: MerchantAccess, filter: MerchantOrderFilter = .init(), token: String) async throws -> [MerchantOrder] {
         guard access.allows(.orders) else { throw MerchantReadError.accessDenied }

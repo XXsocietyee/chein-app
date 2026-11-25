@@ -14,7 +14,8 @@ class MPFirstPlayerContentPins(unittest.TestCase):
         content = read('Core/MerchantContentService.swift')
         self.assertIn('func permits(_ command: MerchantContentCommand) -> Bool\n', content)
         self.assertIn('public static let closed = MerchantContentWriteApproval(', content)
-        self.assertIn('case .claim, .cancelClaim, .cityStatus, .place: return writeApproval().cityNode', content)
+        self.assertIn('case .claim, .cancelClaim, .cityStatus, .place: return MerchantCoopLiveWrites.cityNode', content)
+        self.assertIn('case .station: return false', content)
         self.assertNotIn('chapterWithdraw: Bool = false', content)
         self.assertIn('MerchantContentMPWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token)', read('App/AppCompositionRoot.swift'))
 

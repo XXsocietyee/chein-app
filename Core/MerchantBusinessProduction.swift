@@ -50,45 +50,29 @@ public struct MerchantBusinessProductionApproval {
     public let endpoints: OperationEndpointApproval
     public let grants: Set<MerchantBusinessActionGrant>
     public let reviewedPolicyVersion: String
-    /// Owner 2026-11-25 MP-first rule: actions the mini-program sends from its merchant pages. For these the
-    /// server's own merchant permission check decides, so no per-target grant is needed. Empty for reviewed grants.
-    public let mpFirstActions: Set<MerchantBusinessAction>
+    /// True only for the injected China approval that delegates to `MerchantCoopLiveWrites.admits`.
+    /// Not a second action list. Explicit grants stay narrow.
+    public let usesLiveCatalog: Bool
     public init(market: RegionalMarket, endpoints: OperationEndpointApproval, grants: Set<MerchantBusinessActionGrant>, reviewedPolicyVersion: String) throws {
         guard !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.invalidConfiguration }
         self.market = market; self.endpoints = endpoints; self.grants = grants; self.reviewedPolicyVersion = reviewedPolicyVersion
-        self.mpFirstActions = []
+        self.usesLiveCatalog = false
     }
-    /// MP-first approval: the same endpoint, method and body as the MP pages listed on `MerchantBusinessAction.mpFirst`.
-    /// `endpoints` pins the base URL, namespace and account; the path must stay under `api/merchant/`.
-    public init(mpFirstMarket market: RegionalMarket, endpoints: OperationEndpointApproval,
-                actions: Set<MerchantBusinessAction> = MerchantBusinessAction.mpFirst) throws {
+    /// Injected China approval. Membership is `MerchantCoopLiveWrites.admits` (review report and `saveSku` stay off).
+    public init(mpFirstMarket market: RegionalMarket, endpoints: OperationEndpointApproval) throws {
         self.market = market; self.endpoints = endpoints; self.grants = []
-        self.reviewedPolicyVersion = "mp-first-2026-11-25"; self.mpFirstActions = actions
+        self.reviewedPolicyVersion = MerchantCoopLiveWrites.policyVersion; self.usesLiveCatalog = true
     }
     public func permits(_ mutation: MerchantBusinessMutation, merchantID: Int, context: RuntimeDependencyContext) -> Bool {
         guard market == .china, context.market == market, endpoints.baseURL == context.baseURL,
               endpoints.accountID == context.session.accountID, endpoints.namespace == context.session.namespace,
               let descriptor = try? mutation.request(requestID: "grant-validation") else { return false }
-        if merchantID > 0, mpFirstActions.contains(mutation.action) {
+        if usesLiveCatalog, merchantID > 0, MerchantCoopLiveWrites.admits(mutation) {
             return descriptor.path.hasPrefix("api/merchant/") && !descriptor.path.contains("..")
         }
         guard endpoints.paths.contains(descriptor.path) else { return false }
         return grants.contains { $0.merchantID == merchantID && $0.action == mutation.action && $0.target == mutation.productionTarget }
     }
-}
-
-public extension MerchantBusinessAction {
-    /// Every merchant business write the MP sends (owner 2026-11-25 MP-first rule). None of them moves money:
-    /// aftercare agree/reject/evidence is the store's opinion; the platform processes any refund
-    /// (pages/merchant/aftercare/detail/index.js:288, toast 意见已提交，等待平台处理).
-    /// - crm notes/tags/batch: pages/merchant/customer/detail/index.js:178,230,262,300; customer/index.js:716
-    /// - reviews reply/update/delete/report: pages/merchant/reviews/index.js:555-620
-    /// - operators invite/role/remove/revoke: pages/merchant/team/index.js:570,626,718
-    /// `saveSku` is not on an MP page and stays on the reviewed grant.
-    static let mpFirst: Set<MerchantBusinessAction> = [
-        .addNote, .hideNote, .assignTag, .removeTag, .batchTag, .aftercareAgree, .aftercareReject, .aftercareEvidence,
-        .reviewReply, .reviewUpdate, .reviewDelete, .reviewReport, .inviteOperator, .operatorRole, .removeOperator, .revokeInvite
-    ]
 }
 
 @MainActor public final class MerchantBusinessProductionTransport: HTTPTransport {
@@ -145,6 +129,58 @@ public extension MerchantBusinessAction {
     }
 
 }
+/// Non-money merchant cooperation writes the mini-program already sends.
+/// Pay, refund execution, payout, withdrawal, paid orders, review reports, and `saveSku` stay off.
+public enum MerchantCoopLiveWrites {
+    public static let policyVersion = "r8-merchant-coop"
+    /// City-node claim, cancel, offline, and save. Poster codes and station commands stay off.
+    public static let cityNode = true
+    public static let operationsPaths: Set<String> = [
+        "api/merchant/business-status/update",
+        "api/merchant/decor/save",
+        "api/merchant/npc/save",
+        "api/merchant/coop-profile/save",
+    ]
+
+    public static func admits(_ mutation: MerchantBusinessMutation) -> Bool {
+        switch mutation.action {
+        case .saveSku, .reviewReport: return false
+        case .addNote, .hideNote, .assignTag, .removeTag, .batchTag,
+             .aftercareAgree, .aftercareReject, .aftercareEvidence,
+             .reviewReply, .reviewUpdate, .reviewDelete,
+             .inviteOperator, .operatorRole, .removeOperator, .revokeInvite:
+            return true
+        }
+    }
+
+    /// Used only when composition injected no business approval. An explicit grant is never widened.
+    public static func businessApproval(mutation: MerchantBusinessMutation, merchantID: Int, context: RuntimeDependencyContext?) -> MerchantBusinessProductionApproval? {
+        guard let context, context.market == .china, admits(mutation), merchantID > 0,
+              let descriptor = try? mutation.request(requestID: "grant-validation"),
+              let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID, paths: [descriptor.path]),
+              let grant = try? MerchantBusinessActionGrant(merchantID: merchantID, mutation: mutation) else { return nil }
+        return try? MerchantBusinessProductionApproval(market: .china, endpoints: endpoints, grants: [grant], reviewedPolicyVersion: policyVersion)
+    }
+
+    /// Invite accept only. Campaigns, exports, broadcasts, and device privacy grants stay off.
+    public static func admitsAccept(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool {
+        guard merchantID > 0, case .acceptInvitation = command else { return false }
+        return true
+    }
+
+    public static func engagementApproval(command: MerchantEngagementCommand, merchantID: Int, context: RuntimeDependencyContext?) -> MerchantEngagementProductionApproval? {
+        guard let context, context.market == .china, merchantID > 0, case .acceptInvitation = command,
+              let descriptor = try? command.request(requestID: "grant-validation"),
+              let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID, paths: [descriptor.path]),
+              let grant = try? MerchantEngagementActionGrant(merchantID: merchantID, command: command) else { return nil }
+        return try? MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [grant], reviewedPolicyVersion: policyVersion)
+    }
+
+    public static func supplementsOperations(_ path: String, approval: OperationEndpointApproval, configuration: APIConfiguration, namespace: String, accountID: Int) -> Bool {
+        operationsPaths.contains(path) && approval.baseURL == configuration.baseURL && approval.namespace == namespace && approval.accountID == accountID
+    }
+}
+
 @MainActor public struct MerchantBusinessProductionFactory {
     private let api: APIConfiguration
     private let approval: MerchantBusinessProductionApproval?
@@ -160,8 +196,9 @@ public extension MerchantBusinessAction {
         var copy = self; copy.beforeForward = barrier; return copy
     }
     public func service(for mutation: MerchantBusinessMutation, merchantID: Int) -> MerchantBusinessService? {
-        guard let approval, let captured = current(), api.baseURL == captured.baseURL, approval.permits(mutation, merchantID: merchantID, context: captured) else { return nil }
-        let scoped = MerchantBusinessProductionTransport(configuration: api, approval: approval, captured: captured, mutation: mutation, merchantID: merchantID, transport: transport, current: current, beforeForward: beforeForward)
+        let issued = approval ?? MerchantCoopLiveWrites.businessApproval(mutation: mutation, merchantID: merchantID, context: current())
+        guard let issued, let captured = current(), api.baseURL == captured.baseURL, issued.permits(mutation, merchantID: merchantID, context: captured) else { return nil }
+        let scoped = MerchantBusinessProductionTransport(configuration: api, approval: issued, captured: captured, mutation: mutation, merchantID: merchantID, transport: transport, current: current, beforeForward: beforeForward)
         return MerchantBusinessService(productionConfiguration: api, productionTransport: scoped)
     }
 }

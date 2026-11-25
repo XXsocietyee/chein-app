@@ -122,28 +122,25 @@ public struct MerchantContentWriteApproval: Equatable {
     public let auditNode: Bool
     /// `api/circle-theme/instance/review` (merchantinfo.js:3227).
     public let reviewCircle: Bool
-    /// `api/merchant/city-node/claim`, `claim/cancel`, `offline` (pages/merchant/citynode/index.js:318,360,483)
-    /// and `city-node/save` (citynode/create/index.js:397).
-    public let cityNode: Bool
     /// `api/merchant/chapter-node/npc/save`, `npc/voice/enroll`, `npc/voice/reset`
     /// (pages/topic/components/cy/node-npc-form/index.js:332,518,563).
     public let npc: Bool
-    /// `api/game/session/command` station commands (utils/game-session-client.js:395 from pages/merchant/game-node).
+    /// `api/game/session/command` station commands stay off. Not a live write.
     public let station: Bool
     public init(chapterInvite: Bool = true, chapterRespond: Bool = true, chapterApply: Bool = true, chapterWithdraw: Bool = true,
                 register: Bool = true, updateRegistration: Bool = true, cancelRegistration: Bool = true,
                 submitNode: Bool = true, auditApplication: Bool = true, auditNode: Bool = true, reviewCircle: Bool = true,
-                cityNode: Bool = true, npc: Bool = true, station: Bool = true) {
+                npc: Bool = true, station: Bool = false) {
         self.chapterInvite = chapterInvite; self.chapterRespond = chapterRespond
         self.chapterApply = chapterApply; self.chapterWithdraw = chapterWithdraw
         self.register = register; self.updateRegistration = updateRegistration; self.cancelRegistration = cancelRegistration
         self.submitNode = submitNode; self.auditApplication = auditApplication; self.auditNode = auditNode; self.reviewCircle = reviewCircle
-        self.cityNode = cityNode; self.npc = npc; self.station = station
+        self.npc = npc; self.station = station
     }
     /// Every write closed. Test-only use; the host default is the MP-first `.init()`.
     public static let closed = MerchantContentWriteApproval(chapterInvite: false, chapterRespond: false, chapterApply: false, chapterWithdraw: false,
         register: false, updateRegistration: false, cancelRegistration: false, submitNode: false, auditApplication: false, auditNode: false, reviewCircle: false,
-        cityNode: false, npc: false, station: false)
+        npc: false, station: false)
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
@@ -183,9 +180,9 @@ public struct MerchantContentWriteApproval: Equatable {
         case .auditApplication: return writeApproval().auditApplication
         case .auditNode: return writeApproval().auditNode
         case .reviewCircle: return writeApproval().reviewCircle
-        case .claim, .cancelClaim, .cityStatus, .place: return writeApproval().cityNode
+        case .claim, .cancelClaim, .cityStatus, .place: return MerchantCoopLiveWrites.cityNode
         case .saveNPC, .enrollVoice, .resetVoice: return writeApproval().npc
-        case .station: return writeApproval().station
+        case .station: return false
         }
     }
     public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }, writeApproval: @escaping () -> MerchantContentWriteApproval = { .init() }) {
