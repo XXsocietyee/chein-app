@@ -72,6 +72,9 @@ import SwiftUI
                     if !picker.draft.canApply { Text("merchant.decorTags.limit").foregroundStyle(.secondary) }
                     ForEach(Array(picker.draft.selected.enumerated()), id: \.offset) { index, tag in
                         HStack {
+                            if let icon = MerchantTagIcons.image(for: tag) {
+                                icon.resizable().scaledToFit().frame(width: 18, height: 18).accessibilityHidden(true)
+                            }
                             Text(verbatim: tag)
                             Spacer()
                             Button(role: .destructive) { edit { $0.remove(at: index) } } label: { Image(systemName: "minus.circle") }
@@ -83,9 +86,17 @@ import SwiftUI
                 ForEach(MerchantDecorTagDraft.groups, id: \.key) { group in
                     Section(LocalizedStringKey("merchant.decorTags.group." + group.key)) {
                         ForEach(Array(group.values.enumerated()), id: \.offset) { index, tag in
-                            Toggle(LocalizedStringKey("merchant.decorTags." + group.key + "." + String(index)), isOn: Binding(
+                            Toggle(isOn: Binding(
                                 get: { picker.draft.contains(tag) },
-                                set: { selected in if selected != picker.draft.contains(tag) { edit { try $0.toggle(tag) } } }))
+                                set: { selected in if selected != picker.draft.contains(tag) { edit { try $0.toggle(tag) } } })) {
+                                // Image parity: MP decor tag chip `dc-tag-ico` (tag-library MERCHANT_ICON_DIR artwork).
+                                HStack(spacing: CYSpacing.sm) {
+                                    if let icon = MerchantTagIcons.image(for: tag) {
+                                        icon.resizable().scaledToFit().frame(width: 18, height: 18).accessibilityHidden(true)
+                                    }
+                                    Text(LocalizedStringKey("merchant.decorTags." + group.key + "." + String(index)))
+                                }
+                            }
                                 .disabled(!picker.draft.contains(tag) && picker.draft.selected.count >= 12)
                                 .accessibilityIdentifier("merchant.decorTags." + group.key + "." + String(index))
                         }

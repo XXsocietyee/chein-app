@@ -135,6 +135,14 @@ struct CooperationInviteCardDetails: View {
                     .accessibilityLabel(Text(LocalizedStringKey(view.direction == .received ? "cooperation.detail.receivingClub" : "cooperation.detail.sendingClub")) + Text(verbatim: " " + party))
             }
             CooperationInviteTermsText(terms: view.terms).cyText(.label).foregroundStyle(CYColor.textSecondary)
+            // MC7-30-4 (part): MP `.inv-terms` 核销据点 · {name} line.
+            if let station = invite.supplyStationName {
+                Text("merchantCoop.list.supplyStation \(station)").cyText(.label).foregroundStyle(CYColor.textSecondary)
+            }
+            // MC7-30-5: MP `.inv-contact` (leaderName · phone) once the contact is released; 复制 is the row's context menu.
+            if case .visible(let contact) = view.contact {
+                Text(verbatim: contact).cyText(.label).foregroundStyle(CYColor.textSecondary).monospacedDigit()
+            }
             if case .owed = view.deposit {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Image(systemName: "exclamationmark.circle.fill").foregroundStyle(CYColor.warningText).accessibilityHidden(true)

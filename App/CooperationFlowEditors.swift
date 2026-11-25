@@ -6,6 +6,8 @@ struct CoopFlowRequestPreview: View {
     @Environment(\.coopFlowPreviewWrite) private var write
     @Environment(\.dismiss) private var dismiss
     @Environment(\.coopInviteOutcomeUnknown) private var reportUnknownOutcome
+    @Environment(\.coopInviteSent) private var reportInviteSent
+    @Environment(\.topicEditorDestination) private var topicEditor
     @Environment(\.coopConversationDestination) private var conversationDestination
     @State private var openedConversation: Int?
     private let review: CoopFlowRequestReviewContext?
@@ -25,7 +27,10 @@ struct CoopFlowRequestPreview: View {
             case .sent:
                 Label("coopflow.submit.sent", systemImage: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
                     .accessibilityIdentifier("coopflow.submit.sent")
-                Button("coopflow.submit.done") { dismiss() }
+                Button("coopflow.submit.done") {
+                    // flows-g2 108: a sent invite ends on 协作列表 · 我发出的 when the list pushed the invite page.
+                    if case .invite = operation, let reportInviteSent { reportInviteSent() } else { dismiss() }
+                }
             case .unknown:
                 Label("coopflow.submit.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("coopflow.submit.unknown")
@@ -39,6 +44,14 @@ struct CoopFlowRequestPreview: View {
                     if case .failed(let message) = outcome {
                         Group { if let message { Text(verbatim: message) } else { Text("coopflow.submit.failed") } }
                             .cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    }
+                    // MC7-31-9 (MP coop/invite wxml:157 `goEditTopic`): a rejected send offers the topic editor
+                    // (`pages/publish/fabu/index?id=&scope=`), so the owner can fix price/content and send again.
+                    if case .failed = outcome, case .invite(let draft) = operation, let topicEditor {
+                        NavigationLink { topicEditor(draft.topicID, draft.scope) } label: {
+                            Text("merchantCoop.invite.editTopic").cyText(.meta)
+                        }
+                        .accessibilityIdentifier("coopflow.submit.editTopic")
                     }
                 } else {
                     // Gated, not removed: production keeps merchant writes closed (ReviewedAreaSwitch).

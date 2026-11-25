@@ -532,6 +532,10 @@ import SwiftUI
                     AnyView(MerchantPerkTemplatesHost(reader: session.cooperationFlowReader, executor: coopFlowWrite?.executor()))
                 })
                 .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+                .environment(\.merchantReviewsDestination, {
+                    AnyView(MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .reviews(page: 1))
+                        .cyPushedChrome(domain: .merchant))
+                })
                 .id(session.merchantOperationsReader.scope)
                 .cyPushedChrome(domain: .merchant)
         case "pages/merchant/decor/gallery/index", "pages/merchant/decor/coop-setting/index", "pages/merchant/decor/ai-npc/index":

@@ -1,4 +1,395 @@
 {
+  "context.coop.chooseTopic": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose one of my topics"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择我发布的主题"
+        }
+      }
+    }
+  },
+  "cooperation.detail.cancelLocked": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Price locked; contact support to cancel"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已锁价，取消合作需联系客服"
+        }
+      }
+    }
+  },
+  "cooperation.detail.footer.ongoingFrozen": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cooperation in progress, terms locked"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "合作进行中，条款已锁定"
+        }
+      }
+    }
+  },
+  "cooperation.invite.terms.traffic": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Traffic cooperation (no cash settlement)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "引流合作（不产生现金结算）"
+        }
+      }
+    }
+  },
+  "cooperation.list.incomplete": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invitation details are incomplete"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请信息不完整"
+        }
+      }
+    }
+  },
+  "cooperation.list.official.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Official invitations failed to load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "官方邀约加载失败"
+        }
+      }
+    }
+  },
+  "cooperation.nearby.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No merchants nearby"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "附近暂无商家"
+        }
+      }
+    }
+  },
+  "cooperation.nearby.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Nearby merchants failed to load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "附近商家加载失败"
+        }
+      }
+    }
+  },
+  "cooperation.phone.copyFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Couldn't copy"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "没能复制"
+        }
+      }
+    }
+  },
+  "cooperation.settlement.back": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "返回"
+        }
+      }
+    }
+  },
+  "cooperation.settlement.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Settlement details failed to load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结算详情加载失败"
+        }
+      }
+    }
+  },
+  "coopflow.discovery": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Discover"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "发现"
+        }
+      }
+    }
+  },
+  "cooprelation.partial": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Some club details are unavailable"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "部分俱乐部资料暂不可用"
+        }
+      }
+    }
+  },
+  "image.galleryBatch.select": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Add gallery photos"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "添加相册图片"
+        }
+      }
+    }
+  },
+  "merchant.business.removeOperator": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除"
+        }
+      }
+    }
+  },
+  "merchant.operations.discardBody": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "If you leave, these changes won't be kept."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "离开后，本次修改不会保留。"
+        }
+      }
+    }
+  },
+  "merchant.operations.discardTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not saved yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没有保存"
+        }
+      }
+    }
+  },
+  "merchant.operations.wechat": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Store WeChat"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "门店微信"
+        }
+      }
+    }
+  },
+  "merchant.operatorRoster.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team list failed to load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "团队名单加载失败"
+        }
+      }
+    }
+  },
+  "merchant.perks.deleted": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Perk deleted"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "常备权益已删除"
+        }
+      }
+    }
+  },
+  "merchant.perks.discard.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not saved yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没有保存"
+        }
+      }
+    }
+  },
+  "merchant.perks.form.save": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Save perk"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存权益"
+        }
+      }
+    }
+  },
+  "merchant.perks.saved": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Perk saved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "常备权益已保存"
+        }
+      }
+    }
+  },
   "merchantCoop.aiNpc.intro.avatar.line": {
     "extractionState": "manual",
     "localizations": {
@@ -186,6 +577,74 @@
       }
     }
   },
+  "merchantCoop.cityNode.create.viewOnMap": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View the store address on the map"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在地图中查看店址"
+        }
+      }
+    }
+  },
+  "merchantCoop.cityNode.poster.codeText.a11y %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Verification code %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "验证码 %@，长按复制"
+        }
+      }
+    }
+  },
+  "merchantCoop.cityNode.poster.codeText.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The QR code is unavailable right now. Copy the verification code instead."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "二维码暂时不可用，可长按复制验证码"
+        }
+      }
+    }
+  },
+  "merchantCoop.cityNode.poster.copyCode": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制验证码"
+        }
+      }
+    }
+  },
   "merchantCoop.cityNode.poster.save": {
     "extractionState": "manual",
     "localizations": {
@@ -260,13 +719,64 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Hosting settings saved"
+          "value": "Saved"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "承接设置已保存"
+          "value": "已保存"
+        }
+      }
+    }
+  },
+  "merchantCoop.decor.businessStatus.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business status was not saved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "营业状态保存失败"
+        }
+      }
+    }
+  },
+  "merchantCoop.decor.businessStatus.saved": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business status saved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "营业状态已保存"
+        }
+      }
+    }
+  },
+  "merchantCoop.decor.businessStatus.toggle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "切换营业状态"
         }
       }
     }
@@ -318,6 +828,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "去商家入驻"
+        }
+      }
+    }
+  },
+  "merchantCoop.decor.reviews": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reviews"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "口碑"
         }
       }
     }
@@ -441,6 +968,23 @@
       }
     }
   },
+  "merchantCoop.invite.editTopic": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Topic terms not set up? Edit the topic (price / content)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "主题条款没配好？去编辑主题(票价/内容)"
+        }
+      }
+    }
+  },
   "merchantCoop.invite.missing": {
     "extractionState": "manual",
     "localizations": {
@@ -492,6 +1036,74 @@
       }
     }
   },
+  "merchantCoop.list.apply.goReceived": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirm in Received"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去收到的确认"
+        }
+      }
+    }
+  },
+  "merchantCoop.list.apply.goReceived.a11y": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Go to Received to confirm the merchant's invitation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去收到的确认商家回的邀约"
+        }
+      }
+    }
+  },
+  "merchantCoop.list.copyPhone": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy partner phone"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制合作方电话"
+        }
+      }
+    }
+  },
+  "merchantCoop.list.supplyStation %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemption spot · %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销据点 · %@"
+        }
+      }
+    }
+  },
   "merchantCoop.nearby.refresh": {
     "extractionState": "manual",
     "localizations": {
@@ -515,13 +1127,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Sign in to see nearby merchants"
+          "value": "Sign in to view"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "登录后查看附近商家"
+          "value": "登录后查看"
         }
       }
     }
@@ -692,6 +1304,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "返回"
+        }
+      }
+    }
+  },
+  "merchantCoop.settlement.backToList": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back to settlements"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "返回结算列表"
         }
       }
     }
@@ -1015,6 +1644,57 @@
         "stringUnit": {
           "state": "translated",
           "value": "登录后查看经营团队"
+        }
+      }
+    }
+  },
+  "nearbyMerchant.locationDenied.detail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Location permission is needed to find nearby merchants"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "需要定位权限才能找附近商家"
+        }
+      }
+    }
+  },
+  "nearbyMerchant.locationDenied.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Nearby merchants aren't available right now"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前无法查看附近商家"
+        }
+      }
+    }
+  },
+  "nearbyMerchant.locationFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Location service is unavailable. Please try again later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "定位服务暂不可用，请稍后重试"
         }
       }
     }

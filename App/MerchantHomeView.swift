@@ -313,6 +313,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
                 { AnyView(MerchantPerkTemplatesHost(reader: flowReader, executor: coopFlowWrite?.executor())) }
             })
+            .environment(\.merchantReviewsDestination, businessReader.flatMap { reader in businessJournal.map { journal in
+                { AnyView(MerchantBusinessPage(reader: reader, journal: journal, query: .reviews(page: 1)).cyPushedChrome(domain: .merchant)) }
+            } })
             .id(operationsReader.scope)
             .onDisappear(perform: onChildReturn)
             .cyPushedChrome(domain: .merchant)
