@@ -291,8 +291,8 @@ struct ObjectBadgeWallBadgeLabel: View {
             VStack(spacing: CYSpacing.sm) {
                 CYFoilMedal(unlocked: !badge.isLocked, size: 76) {
                     ZStack {
-                        // MP default badge art `badge-demo.png` (MP assets).
-                        MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit().padding(CYSpacing.xs)
+                        // BWALL-2: server `badge.image` through the bounded loader; MP `badge-demo.png` is the fallback.
+                        ObjectBadgeTileArtwork(url: badge.image, locked: badge.isLocked).padding(CYSpacing.xs)
                     }
                 }.padding(6).accessibilityHidden(true)   // the name + locked chip carry the meaning
                 description.fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
