@@ -155,59 +155,114 @@ public struct ProjectEditGapChapterExtrasSection: View {
     }
 }
 
-/// Mount hook for `TemplateAuthoringView` (`C-T3`):
-/// `状态不好时松一点`, `可触发的结果`, `扫完回复`, and `from=citynode` mode row.
-public struct TemplateAuthoringGapRound4Section: View {
-    @Binding public var draft: TemplateAuthoringRound4Draft
+/// `C-T3` (r9): mounted in `TemplateAuthoringView` beside `TemplateAuthoringCompletionFields`.
+/// MP pages/publish/temp/index.wxml:108-118 (参与方式 → 扫完回复, r5-editor.js:259 `toggleScanReply`),
+/// :1056-1060 (状态不好时松一点, index.js:1185-1199 `_writeRelax` / `toggleRelax` / `onRelaxPick`)
+/// and :1068-1074 (可触发的结果). Every row writes `model.draft.advanced` through the Core setters, so the
+/// values ride the normal template save / publish payload.
+/// citynode 玩法形态 has no Core `from=citynode` editor flag yet; it stays a separate Core row (see receipt).
+@MainActor struct TemplateAuthoringGapRound4Section: View {
+    @ObservedObject var model: TemplateAuthoringModel
 
-    public init(draft: Binding<TemplateAuthoringRound4Draft>) {
-        self._draft = draft
+    init(model: TemplateAuthoringModel) {
+        self.model = model
     }
 
-    public var body: some View {
+    /// MP r5-editor.js:25: participation is 扫码 when `scan.enabled` or `validationMethod === 4`.
+    private var isScanParticipation: Bool {
+        model.draft.advanced.enabled("scan") || model.draft.validationMethod == .scan
+    }
+    private var scanReplyOn: Bool {
+        (model.draft.advanced.value["scan"]?.object?["kind"]?.string ?? "TEXT") != "NONE"
+    }
+    private var scanKind: String { model.draft.advanced.value["scan"]?.object?["kind"]?.string ?? "TEXT" }
+    private var relaxConfiguration: TemplateLowHPPresetConfiguration { TemplateLowHPPresetConfiguration(model.draft.advanced) }
+    private var outcomeRows: [TemplateR5Authoring.Row] { TemplateR5Authoring.rows(model.draft.advanced) }
+
+    private var scanReplyBinding: Binding<Bool> {
+        Binding(get: { scanReplyOn }, set: { on in
+            guard model.canEdit else { return }
+            var draft = model.draft
+            draft.advanced.setScanReplyEnabled(on)
+            model.draft = draft
+            model.changed()
+        })
+    }
+    private var scanReplyText: Binding<String> {
+        Binding(get: { model.draft.advanced.text("scan", "reply") }, set: { text in
+            guard model.canEdit else { return }
+            var draft = model.draft
+            // MP maxlength="200" on the reply textarea.
+            draft.advanced.set("scan", "reply", .string(String(text.prefix(200))))
+            model.draft = draft
+            model.changed()
+        })
+    }
+    /// MP `toggleRelax`: on = the first preset, off = remove the editor variant.
+    private var relaxOn: Binding<Bool> {
+        Binding(get: { !relaxConfiguration.selectedID.isEmpty }, set: { on in
+            applyRelax(on ? (relaxConfiguration.options.first?.id ?? "") : "")
+        })
+    }
+    private var relaxPick: Binding<String> {
+        Binding(get: { relaxConfiguration.selectedID }, set: { applyRelax($0) })
+    }
+    private func applyRelax(_ selection: String) {
+        guard model.canEdit, let next = relaxConfiguration.applying(selection) else { return }
+        var draft = model.draft
+        draft.advanced = next
+        model.draft = draft
+        model.changed()
+    }
+    private func outcomeTitle(_ row: TemplateR5Authoring.Row) -> String {
+        switch row.title {
+        case "pass": return appLocalized("fixr9.ap.template.outcome.pass", locale: Locale.current)
+        case "fail": return appLocalized("fixr9.ap.template.outcome.fail", locale: Locale.current)
+        default: return row.title
+        }
+    }
+
+    var body: some View {
         Group {
-            if draft.isCityNodeMode {
+            if isScanParticipation {
                 Section {
-                    LabeledContent("templateAuthor.round4.playForm", value: draft.cityNodeModeLabel)
-                        .cyText(.body)
-                }
-            }
-
-            Section {
-                Toggle(TemplateAuthoringExtraCopy.relaxOnLowHP, isOn: $draft.relaxOnLowHP)
-                    .cyText(.body)
-                if draft.relaxOnLowHP {
-                    Picker("templateAuthor.round4.relaxLevel", selection: $draft.relaxLevel) {
-                        ForEach(AccountPublishRound4Copy.relaxLevels, id: \.self) { level in
-                            Text(verbatim: level).tag(level)
-                        }
+                    Toggle("fixr9.ap.template.scanReply", isOn: scanReplyBinding)
+                        .accessibilityIdentifier("templateAuthor.scanReply")
+                    if scanReplyOn && scanKind == "TEXT" {
+                        TextField("templateAuthor.round4.scanReplyPrompt", text: scanReplyText, axis: .vertical)
+                            .lineLimit(2...6)
+                            .accessibilityIdentifier("templateAuthor.scanReply.text")
                     }
-                    .cyText(.body)
+                } header: {
+                    Text("fixr9.ap.template.participation")
                 }
             }
-
-            Section {
-                Toggle(TemplateAuthoringExtraCopy.scanReply, isOn: $draft.scanReplyEnabled)
-                    .cyText(.body)
-                if draft.scanReplyEnabled {
-                    TextField("templateAuthor.round4.scanReplyPrompt", text: $draft.scanReplyText, axis: .vertical)
-                        .lineLimit(2...4)
-                        .cyText(.body)
-                }
-            }
-
-            if !draft.triggerableOutcomes.isEmpty {
+            if !relaxConfiguration.options.isEmpty && relaxConfiguration.isSupported {
                 Section {
-                    ForEach(draft.triggerableOutcomes, id: \.self) { outcome in
-                        Text(verbatim: outcome)
-                            .cyText(.body)
+                    Toggle("fixr9.ap.template.relaxOnLowHP", isOn: relaxOn)
+                        .accessibilityIdentifier("templateAuthor.relaxOnLowHP")
+                    if !relaxConfiguration.selectedID.isEmpty {
+                        Picker("templateAuthor.round4.relaxLevel", selection: relaxPick) {
+                            ForEach(relaxConfiguration.options) { option in
+                                Text("\(Text(LocalizedStringKey(option.field.labelKey))) \(option.operation)").tag(option.id)
+                            }
+                        }
+                        .accessibilityIdentifier("templateAuthor.relaxLevel")
+                    }
+                }
+            }
+            if !outcomeRows.isEmpty && !model.draft.advanced.enabled("album") {
+                Section {
+                    ForEach(outcomeRows) { row in
+                        Text(verbatim: outcomeTitle(row))
                             .foregroundStyle(CYColor.textSecondary)
                     }
                 } header: {
-                    Text(verbatim: TemplateAuthoringExtraCopy.triggerableOutcomes).cyText(.sectionTitle)
+                    Text("fixr9.ap.template.outcomes")
                 }
             }
         }
+        .disabled(!model.canEdit)
     }
 }
 
