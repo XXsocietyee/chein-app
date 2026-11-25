@@ -51,6 +51,40 @@
           }
         }
       }
+    },
+    "club.host.merchant.activeSub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One account can't be both a merchant and a club host. Switch to the merchant side to keep running your business."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一个账号不能同时是商家和俱乐部主理人，切换到商家端继续经营"
+          }
+        }
+      }
+    },
+    "club.host.merchant.switch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to merchant side"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换到商家端"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

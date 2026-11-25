@@ -1468,15 +1468,22 @@ struct ClubGovernanceReadView: View {
         } else if operation == .hostStatus {
             // Mini-program club/apply: intro → form; merchant accounts get a blocked state; hosts see the done card.
             if value["accountRole"] == .string("merchant") {
-                CYEmptyState(systemImage: "storefront", "club.host.merchant.title", detail: "club.gov.hostMerchantBlocked")
+                // CLB-apply-04 (r9, MP apply js:94-96, 108, 159-163): a merchant-role account is an active merchant
+                // (MP isMerchantAccount → merchantActive: true) unless the read says otherwise. Active → 切换到商家端
+                // (reLaunch pages/merchant/index/index); otherwise 查看商家入驻 (pages/merchant/apply/index).
+                let merchantActive = value["merchantActive"].bool ?? true
+                CYEmptyState(systemImage: "storefront", "club.host.merchant.title",
+                             detail: LocalizedStringKey(merchantActive ? "club.host.merchant.activeSub" : "club.gov.hostMerchantBlocked"))
                     .listRowBackground(Color.clear)
                 // CLB-apply-04 (MP apply wxml:30-33, js:157-162): the way out is the merchant side, plus 返回.
                 Section {
-                    NavigationLink { MPReviewedPageScreen(page: "pages/merchant/apply/index", query: [:]) } label: {
-                        Text("club.host.merchant.viewApply")
+                    NavigationLink {
+                        MPReviewedPageScreen(page: merchantActive ? "pages/merchant/index/index" : "pages/merchant/apply/index", query: [:])
+                    } label: {
+                        Text(LocalizedStringKey(merchantActive ? "club.host.merchant.switch" : "club.host.merchant.viewApply"))
                     }
                     .buttonStyle(CYPillButtonStyle(style: .primary))
-                    .accessibilityIdentifier("club.host.merchant.viewApply")
+                    .accessibilityIdentifier(merchantActive ? "club.host.merchant.switch" : "club.host.merchant.viewApply")
                     Button("action.back") { dismissPage() }
                         .buttonStyle(CYPillButtonStyle(style: .secondary))
                         .accessibilityIdentifier("club.host.merchant.back")
