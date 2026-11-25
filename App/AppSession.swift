@@ -6068,7 +6068,7 @@ final class AppSession: ObservableObject {
                     self.compositionViewerRevision == revision
             })
     }
-    lazy var clubOperationsAccess = ClubOperationsSessionAccess(service: clubOperationsService, currentSession: { [weak self] in self?.currentClubOperationsSession }, welcomeNote: clubWelcomeNoteService, welcomeNoteRevision: { [weak self] in self?.compositionViewerRevision ?? 0 }, profileDrafts: { [weak self] in self?.clubProfileDraftContext }, onUnauthorized: { [weak self] captured in
+    lazy var clubOperationsAccess = ClubOperationsSessionAccess(service: clubOperationsService, currentSession: { [weak self] in self?.currentClubOperationsSession }, approvalSource: { [weak self] in guard let self, self.composition.reviewed?.playerWritesEnabled == true, let context = self.currentRuntimeDependencyContext, context.market == .china, let club = self.currentClubOperationsSession, club.identity.accountID == context.session.accountID, club.storageNamespace == context.session.namespace else { return nil }; return MPFirstClubApprovals.operations(context) }, journal: composition.storage.operationJournal(), welcomeNote: clubWelcomeNoteService, welcomeNoteRevision: { [weak self] in self?.compositionViewerRevision ?? 0 }, profileDrafts: { [weak self] in self?.clubProfileDraftContext }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentClubOperationsSession == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
     })
