@@ -531,25 +531,27 @@ struct ObjectCardRenameButton: View {
     var body: some View {
         if service != nil, cardID > 0 {
             Button { draft = title; error = nil; editing = true } label: { Image(systemName: "pencil") }
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
                 .accessibilityLabel(Text("playerGap.card.rename"))
-                .alert("playerGap.card.rename", isPresented: $editing) {
-                    TextField("playerGap.card.renamePlaceholder", text: $draft)
-                    Button("playerGap.card.save") { save() }
-                    Button("playerGap.cancel", role: .cancel) {}
-                } message: {
-                    if let error { Text(verbatim: error) }
+                // OCARDS-4 (MP object-cards wxml:91 改名 sheet): 64-char field with count, inline server error, 保存.
+                .sheet(isPresented: $editing) {
+                    ObjectCardRenameSheetView(initialName: draft, errorMessage: error, isSaving: busy,
+                                              onSave: { save($0) }, onClose: { editing = false })
                 }
         }
     }
 
-    private func save() {
+    private func save(_ text: String) {
         guard let service = service, !busy else { return }
+        draft = text
+        error = nil
         busy = true
         Task {
             defer { busy = false }
-            switch await service.renameObjectCard(id: cardID, title: draft) {
-            case .renamed(let saved): renamed(saved)
-            case .failed(let message): error = message ?? appLocalized("playerGap.card.renameFailed", locale: locale); editing = true
+            switch await service.renameObjectCard(id: cardID, title: text) {
+            case .renamed(let saved): renamed(saved); editing = false
+            case .failed(let message): error = message ?? appLocalized("playerGap.card.renameFailed", locale: locale)
             }
         }
     }

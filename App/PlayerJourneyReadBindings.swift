@@ -2,12 +2,17 @@ import SwiftUI
 
 extension MPParityBindings {
     /// Fills the journey closures on an existing bindings value. Purchase and gift claim stay nil.
-    @MainActor func fillingPlayerJourneyReads(source: JourneyLoopSource, token: @escaping () -> String?) -> MPParityBindings {
+    /// `passReader` / `viewerIsMerchant` feed the settle 完局优惠卡 (JSETTLE-r7-1); without a reader no card shows.
+    @MainActor func fillingPlayerJourneyReads(source: JourneyLoopSource, token: @escaping () -> String?,
+                                              passReader: @escaping @MainActor () -> PlatformPass? = { nil },
+                                              viewerIsMerchant: @escaping @MainActor () -> Bool = { false }) -> MPParityBindings {
         var copy = self
         copy.journeyLanding = { link in PlayerJourneyLandingModel(link: link, source: source, token: token) }
         copy.journeySeats = { registrationID in PlayerJourneySeatsModel(registrationID: registrationID, source: source, token: token) }
         copy.journeyReport = { scope in PlayerJourneyReportModel(scope: scope, source: source, token: token) }
-        copy.journeySettle = { scope in PlayerJourneySettleModel(scope: scope, source: source, token: token) }
+        copy.journeySettle = { scope in
+            PlayerJourneySettleModel(scope: scope, source: source, token: token, passReader: passReader, viewerIsMerchant: viewerIsMerchant)
+        }
         copy.journeyPromo = { PlayerJourneyPromoModel(source: source, token: token) }
         return copy
     }
@@ -17,7 +22,9 @@ extension AppSession {
     func mpParityPlayerReads() -> MPParityBindings {
         let base = mpParityPassBindings().fillingVideoBounty(session: self)
         guard let source = composition.playerJourneySource() else { return base }
-        return base.fillingPlayerJourneyReads(source: source, token: { [weak self] in self?.token })
+        return base.fillingPlayerJourneyReads(source: source, token: { [weak self] in self?.token },
+                                              passReader: { [weak self] in self?.makePlatformPassReader() },
+                                              viewerIsMerchant: { [weak self] in self?.mpViewerIsMerchant ?? false })
     }
 
     /// Anonymous catalog host for the shipped China composition. A missing host sends nothing.
@@ -629,14 +636,23 @@ struct PlayerJourneySignInSheet: ViewModifier {
     /// JSETTLE-1: set once the run is ready, so the share step always has 分享 (topic link fallback).
     private(set) var shareURL: URL?
     private(set) var topicName: String?
+    /// JSETTLE-r7-1 (MP settle `_loadOffer`, finish-offer.js): one read per page; nil hides the card.
+    private(set) var finishOffer: JourneyFinishOffer?
+    private var offerAsked = false
     private let scope: JourneyRunScope
     private let source: JourneyLoopSource
     private let token: () -> String?
+    private let passReader: @MainActor () -> PlatformPass?
+    private let viewerIsMerchant: @MainActor () -> Bool
 
-    init(scope: JourneyRunScope, source: JourneyLoopSource, token: @escaping () -> String?) {
+    init(scope: JourneyRunScope, source: JourneyLoopSource, token: @escaping () -> String?,
+         passReader: @escaping @MainActor () -> PlatformPass? = { nil },
+         viewerIsMerchant: @escaping @MainActor () -> Bool = { false }) {
         self.scope = scope
         self.source = source
         self.token = token
+        self.passReader = passReader
+        self.viewerIsMerchant = viewerIsMerchant
         topicName = scope.topicName
         // Settle preset (mini-program rank-board `preset="settle"`): 全体 + 队内, no "more" (JSETTLE-5).
         rank.tabs = PlayerJourneyProjection.rankTabs(scope).filter { $0.kind == .quest || $0.kind == .team }
@@ -704,12 +720,37 @@ struct PlayerJourneySignInSheet: ViewModifier {
         await installJourneyRankMenu(&rankMenu, scope: scope, source: source, session: session, settle: true)
         rank = rankMenu
         if rank.scope != rankBefore { loadRank() }
+        await loadFinishOffer(topicID: report.topicID ?? scope.topicID, session: session)
         // JSETTLE-3: a link without `topicName` reads it, so the overview and card do not fall back to 本局.
         if topicName == nil, let topic = report.topicID ?? scope.topicID, JourneyLoopSource.isID(topic),
            let info = try? await source.topicInfo(id: topic, token: session),
            let name = PlayerJourneyProjection.topicHead(info)?.name, topicName == nil {
             topicName = name
         }
+    }
+
+    /// JSETTLE-r7-1: GET `/api/platform-pass` + GET `/api/marketing/product/list` (both read-only), resolved by Core
+    /// `JourneyFinishOfferResolver`. A merchant viewer asks nothing; a failed read counts as "none" (MP `facts`).
+    private func loadFinishOffer(topicID: String?, session: String) async {
+        guard !offerAsked, !viewerIsMerchant(), let reader = passReader() else { return }
+        offerAsked = true
+        async let overviewRead = try? reader.overview(token: session, viewerIsMerchant: false)
+        async let productsRead = try? reader.productList(token: session)
+        let overview = await overviewRead
+        let products = await productsRead ?? []
+        let pass = overview.map { ov -> JourneyFinishOfferPassInput in
+            let month = ov.plans.first { $0.code == "MONTH" && !$0.title.trimmingCharacters(in: .whitespaces).isEmpty && $0.priceFen > 0 }
+            return JourneyFinishOfferPassInput(enabled: ov.enabled, holdingActive: ov.holding.active, libraryCount: ov.libraryCount ?? 0,
+                                               monthPlanTitle: month?.title, monthPlanPriceFen: month?.priceFen)
+        }
+        let rows = products.compactMap { p -> JourneyFinishOfferProductInput? in
+            guard let id = Int(p.id) else { return nil }
+            return JourneyFinishOfferProductInput(productID: id, productKind: p.productKind, productName: p.name,
+                                                  cashPrice: p.cashPrice, pointsPrice: p.pointsPrice.map { Int($0) },
+                                                  coveredTopicIDs: p.topicIDs.compactMap { Int($0) })
+        }
+        finishOffer = JourneyFinishOfferResolver.resolve(isMerchantView: false, pass: pass, products: rows,
+                                                         currentTopicID: topicID.flatMap { Int($0) })
     }
 
     private var readyReport: JourneyReport? {
