@@ -261,6 +261,7 @@ struct ClubHeaderShareButton: View {
         Image(systemName: "square.and.arrow.up")
             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
             .contentShape(Rectangle())
+            .accessibilityHidden(true) // the share control carries the label
     }
 }
 

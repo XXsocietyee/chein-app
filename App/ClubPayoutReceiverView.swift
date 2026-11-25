@@ -91,7 +91,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             }
         case .failed where missingClub:
             Section {
-                CYEmptyState(systemImage: "questionmark.folder", "clubR3b.payout.clubMissing", messageIdentifier: "payoutReceiver.clubMissing",
+                CYEmptyState(systemImage: "exclamationmark.triangle", "clubR3b.payout.clubMissing", messageIdentifier: "payoutReceiver.clubMissing",
                              actionTitle: "clubR3b.checkin.back", actionStyle: .primary, kind: .failure) { dismiss() }
             }
         case .failed(let issue):

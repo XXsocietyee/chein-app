@@ -279,7 +279,11 @@ import SwiftUI
             } else if query["owner"] != nil { ownedClubs } else { unavailable }
         case "pages/club/workbench/index":
             // CLB-workbench-01/02: the workbench is the club page's 管理 tab; no id → my own club.
-            if let id = clubQueryID(query) { clubDetail(id, tab: .manage) } else { ownedClubs }
+            // CLB-r7-D-05 (fix-r3-club-b round 4): no id → MP `detail?owner=1&tab=manage`, which opens the viewer's only
+            // club directly. One owned-clubs read decides; none, several or a failed read falls back to the owned list.
+            if let id = clubQueryID(query) { clubDetail(id, tab: .manage) } else {
+                ClubSingleOwnedEntry(reader: session, single: { clubDetail($0, tab: .manage) }, fallback: { ownedClubs })
+            }
         case "pages/club/apply/index":
             clubGovernance { g in ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
         case "pages/club/create/index":
@@ -304,9 +308,13 @@ import SwiftUI
             } else { unavailable }
         case "pages/club/group-code/index":
             if let activity = queryID(query, "activityId") {
+                // MP title = activityName || topicName (index.js:52-56): the code card names the session with it.
                 clubGovernance { g in ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: .init(topicID: queryID(query, "topicId"), activityID: activity)), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+                    .environment(\.clubRoleActivityLabel, ClubRoleActivityLabel.entry(query["activityName"] ?? query["topicName"]))
             } else if let topic = queryID(query, "topicId") {
-                clubRead(.topicOverview, .init(clubID: queryID(query, "clubId"), topicID: topic), needsClub: false)
+                // CLB-group-code-05 (fix-r3-club-b round 4): topic-only links run the MP 选择场次 step (one session
+                // issues at once), not the whole topic overview. A link with neither id never reaches this route.
+                clubGovernance { g in ClubGroupCodeSessionStep(clubID: queryID(query, "clubId"), topicID: topic, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
             } else { unavailable }
         case "pages/club/join-requests/index":
             if let id = clubQueryID(query) {
@@ -961,5 +969,31 @@ enum PublisherPartnerLink {
               let id, id > 0 else { return nil }
         let row: ProjectEditJSON = .object(["toType": .string(type), "toId": .number(Decimal(id))])
         return (try? PublisherPricingPreview(.object(["priceMin": .number(0), "lineup": .array([row])])))?.lineup.first
+    }
+}
+
+/// CLB-r7-D-05 (fix-r3-club-b round 4): MP club/workbench without an id redirects to `detail?owner=1&tab=manage`;
+/// with exactly one owned club the MP opens that club, not a list. The read runs once; the owned list keeps its own
+/// sign-in, empty and failure states, so any other outcome shows it unchanged.
+private struct ClubSingleOwnedEntry<Reader: ClubReading & ObservableObject, Single: View, Fallback: View>: View {
+    @ObservedObject var reader: Reader
+    let single: (Int) -> Single
+    let fallback: () -> Fallback
+    private enum Resolution: Equatable { case single(Int), list }
+    @State private var resolved: Resolution?
+
+    var body: some View {
+        Group {
+            switch resolved {
+            case .single(let id)?: single(id)
+            case .list?: fallback()
+            case nil: CYSkeleton()
+            }
+        }
+        .task {
+            guard resolved == nil else { return }
+            let rows = try? await reader.clubOwned()
+            if let rows, rows.count == 1, let only = rows.first { resolved = .single(only.id) } else { resolved = .list }
+        }
     }
 }
