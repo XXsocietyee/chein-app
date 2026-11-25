@@ -43,11 +43,16 @@ class BackendSyncSourceTests(unittest.TestCase):
   direction = (ROOT/'Core/TopicLikeDirection.swift').read_text()
   self.assertIn('fields: ["id": String(topicID), "type": direction.typeField]', direction)
   self.assertIn("return envelope.code == 200 ? .acknowledged : .rejected(envelope.msg)", direction)
- def test_topic_like_direction_factory_stays_unwired(self):
-  # BK-LIKE/I05 factory is audited request construction only: no transport or approval in App/Core.
+ def test_topic_like_direction_factory_wired_only_through_mp_favorite_host(self):
+  # Was test_topic_like_direction_factory_stays_unwired. MP-first rule (owner 2026-11-25, R7-PC-B1-1): the MP topic
+  # page sends api/topic/like {id, type 1|0} for 收藏 (pages/topic/index/index.js:619-637), so the pin is lifted;
+  # the factory is wired in exactly one host, behind the reviewed TopicUnlike lease.
   for p, value in self.swift().items():
-   if p.name == 'TopicLikeDirection.swift': continue
+   if p.name in ('TopicLikeDirection.swift', 'TopicFavoriteHost.swift'): continue
    self.assertNotIn('TopicLikeOperationFactory', value, p)
+  host = (ROOT/'App/TopicFavoriteHost.swift').read_text()
+  self.assertIn('composition.topicUnlikeApproval(context) != nil', host)
+  self.assertIn('TopicLikeOperationFactory(configuration: api)', host)
  def test_legacy_square_bookmark_never_routes_through_community_id(self):
   contracts = (ROOT/'Core/SocialActionContracts.swift').read_text()
   self.assertIn('case .communityComment, .communityCommentLike, .postAction: return .communityV1', contracts)
