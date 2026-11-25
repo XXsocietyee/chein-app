@@ -25,7 +25,10 @@ import SwiftUI
                 ProfileInviteHistoryIssueView(error: error)
             }
             else {
-                if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
+                // FIN-20-4: with no rows the failure is the full-page state at the top; a next-page failure sits below the rows.
+                if let error = model.error, model.pagination.members.isEmpty {
+                    ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: true) }
+                }
                 // FIN-20-2: one hero (首购奖励积分 / 已邀请 N 人 · 已到账 M 人); no duplicate 累计邀请 row.
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), total: model.pagination.total,
                                                  coverageIncomplete: ProfileInviteHistoryPageReady.rewardCoverage(model.scan) != .complete,
@@ -53,6 +56,10 @@ import SwiftUI
                 }
                 if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
                 if model.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
+                if let error = model.error, !model.pagination.members.isEmpty {
+                    // MP myinvite wxml:63 `没加载出来 · 重试`, where 加载更多 sits.
+                    ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: false) }
+                }
                 if model.pagination.continuationInvalid { CYStatusChip("social.invites.continuationInvalid", tone: .danger, systemImage: "exclamationmark.triangle") }
                 if model.pagination.hasMore && !model.loading && model.error == nil {
                     CYPillButton("wallet.loadMore", style: .secondary) { model.start(reader, permit: permit, reset: false) }.accessibilityIdentifier("social.invites.more")
