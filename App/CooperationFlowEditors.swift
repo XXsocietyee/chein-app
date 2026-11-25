@@ -314,7 +314,9 @@ struct CoopFlowHandleEditor: View {
             Label("coopflow.submit.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText)
                 .accessibilityIdentifier("coopflow.stationAccept.unknown")
         default:
-            if stationSender != nil || flowReader != nil {
+            // MC8-32-5: only the gated sender may confirm. Without it the page shows the same disabled 暂不可提交 +
+            // gated note as CoopFlowRequestPreview, instead of a live 确认 that falls to the dormant flow reader.
+            if stationSender != nil {
                 Button { confirmHandle = true } label: {
                     HStack { Text("coopflow.reviewAction"); if stationOutcome == .sending { Spacer(); ProgressView() } }
                         .frame(minHeight: CYSpacing.minTouchTarget)
