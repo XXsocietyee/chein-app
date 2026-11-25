@@ -196,10 +196,15 @@ struct CoopFlowHandleEditor: View {
     var supplyStationName: String? = nil
     var flowReader: (any CoopFlowReading)? = nil
     @Environment(\.locale) private var locale
+    /// MC7-30-6 (round 3): the TEST-only gated station sender; nil where merchant writes are closed.
+    @Environment(\.coopFlowPreviewWrite) private var write
+    @Environment(\.dismiss) private var dismiss
     @State private var reason = ""
     @State private var confirmHandle = false
     @State private var proceedPreview = false
     @State private var toastMessage: String?
+    private enum StationOutcome: Equatable { case idle, sending, sent, failed(String?), unknown }
+    @State private var stationOutcome: StationOutcome = .idle
 
     private var modalTitle: String {
         switch action {
@@ -231,9 +236,14 @@ struct CoopFlowHandleEditor: View {
         Form {
             LabeledContent("coopflow.field.id", value: String(inviteID))
             Text(LocalizedStringKey("coopflow.handle." + String(action.rawValue)))
-            if action == .accept, let supplyStationName, !supplyStationName.isEmpty {
-                Text(verbatim: supplyStationName).cyText(.body).foregroundStyle(CYColor.textPrimary)
+            if action == .accept, let supplyStationID {
+                // MC7-30-6: MP supplyStationConfirmation shows the frozen station and its lock note before the accept.
+                LabeledContent {
+                    if let supplyStationName, !supplyStationName.isEmpty { Text(verbatim: supplyStationName) }
+                    else { Text("merchantCoop.station.fallback \(supplyStationID)") }
+                } label: { Text("merchantCoop.station.label") }
                     .accessibilityIdentifier("coopflow.supplyStation")
+                Text("merchantCoop.station.note.beforeAccept").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             TextField("coopflow.field.reason", text: $reason, axis: .vertical)
                 .onChange(of: reason) { _, value in if value.count > 100 { reason = String(value.prefix(100)) } }
@@ -242,7 +252,9 @@ struct CoopFlowHandleEditor: View {
             if action == .cancel && currentStatus == 1 { Text("coopflow.cancel.reason") }
             else if action == .reject { Text("cooperation.detail.reject.reasonRequired") }
             else if action == .cancel { Text("cooperation.detail.withdraw.reasonRequired") }
-            if action == .accept || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if supplyStationID != nil, action == .accept {
+                stationStatus
+            } else if action == .accept || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 Button("coopflow.reviewAction") {
                     confirmHandle = true
                 }
@@ -278,14 +290,60 @@ struct CoopFlowHandleEditor: View {
         .cyToast(verbatimMessage: $toastMessage)
     }
 
+    /// MC7-30-6 status rows for a station accept: sent / unknown / failed copy, or the one review button.
+    @ViewBuilder private var stationStatus: some View {
+        switch stationOutcome {
+        case .sent:
+            Label("coopflow.submit.sent", systemImage: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
+                .accessibilityIdentifier("coopflow.stationAccept.sent")
+            Button("coopflow.submit.done") { dismiss() }.frame(minHeight: CYSpacing.minTouchTarget)
+        case .unknown:
+            Label("coopflow.submit.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText)
+                .accessibilityIdentifier("coopflow.stationAccept.unknown")
+        default:
+            if stationSender != nil || flowReader != nil {
+                Button { confirmHandle = true } label: {
+                    HStack { Text("coopflow.reviewAction"); if stationOutcome == .sending { Spacer(); ProgressView() } }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .disabled(stationOutcome == .sending)
+                .accessibilityIdentifier("coopflow.stationAccept.submit")
+                if case .failed(let message) = stationOutcome {
+                    Group { if let message { Text(verbatim: message) } else { Text("coopflow.submit.failed") } }
+                        .cyText(.meta).foregroundStyle(CYColor.dangerText)
+                }
+            } else {
+                Button("coopflow.reviewAction") {}.disabled(true).accessibilityIdentifier("coopflow.stationAccept.disabled")
+                Text("coopflow.submit.gated").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            }
+        }
+    }
+
+    /// The TEST-only gated sender (`CoopFlowPreviewWriteFactory.stationAccept`, same per-op `.handle` approval as the
+    /// generic accept). Production returns nil, so the send falls to `flowReader`, whose dormant grant sends nothing.
+    private var stationSender: ((_ inviteID: Int, _ reason: String?, _ stationID: Int) async throws -> CoopFlowJSON)? {
+        write?.stationAccept()
+    }
+
     /// Station accept uses `acceptSupplyStation` after the name is shown and the confirm is accepted.
-    /// The 3-argument `.handle` path is the one without a station. The dormant grant still sends nothing.
+    /// The 3-argument `.handle` path is the one without a station.
     private func submitStation(_ stationID: Int) async {
+        guard stationOutcome != .sending else { return }
+        stationOutcome = .sending
         let note = reason.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
-            guard let flowReader else { throw CoopFlowFailure.disabled }
-            _ = try await flowReader.acceptSupplyStation(inviteID: inviteID, reason: note.isEmpty ? nil : note, supplyStationID: stationID)
-        } catch {
+            if let send = stationSender {
+                _ = try await send(inviteID, note.isEmpty ? nil : note, stationID)
+            } else {
+                guard let flowReader else { throw CoopFlowFailure.disabled }
+                _ = try await flowReader.acceptSupplyStation(inviteID: inviteID, reason: note.isEmpty ? nil : note, supplyStationID: stationID)
+            }
+            stationOutcome = .sent
+        } catch CoopFlowFailure.server(_, let message) { stationOutcome = .failed(message) }
+        catch CoopFlowFailure.inactiveMerchant(_, let message) { stationOutcome = .failed(message) }
+        catch CoopFlowFailure.ambiguous { stationOutcome = .unknown }
+        catch {
+            stationOutcome = .failed(nil)
             toastMessage = MerchantAreaCopy.text("接受未发送", "Acceptance was not sent", locale)
         }
     }

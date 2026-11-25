@@ -1,12 +1,17 @@
 import SwiftUI
 
 /// `OCARDS-3` / `OCARDS-4`: Object card 3-column category icon sheet and sheet-based rename
-/// (64-char limit + inline error).
+/// (64-char limit + inline error). Mounted from `ObjectCardsView` (filter) and `ObjectCardRenameButton` (rename).
+/// Native structure: system inline title, one cancellation item (owner native-iOS rule).
 public struct ObjectCardCategorySheetView: View {
     public let categories: [ObjectCardCategoryOption]
     public let selectedID: String?
     public var onSelect: (String) -> Void
     public var onClose: () -> Void
+    /// MP `catIcon[item.key]` (subpackageP3/images/cat/*.png). Nil falls back to the option's SF symbol.
+    var icon: ((String) -> Image?)? = nil
+    /// Tile accessibility identifier (the host keeps its existing `objects.category.<key>` ids for UI tests).
+    var tileIdentifier: (String) -> String = { "objects.categorySheet.\($0.isEmpty ? "all" : $0)" }
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: CYSpacing.sm), count: 3)
 
@@ -22,9 +27,15 @@ public struct ObjectCardCategorySheetView: View {
         self.onClose = onClose
     }
 
+    init(categories: [ObjectCardCategoryOption], selectedID: String?, icon: @escaping (String) -> Image?,
+         tileIdentifier: @escaping (String) -> String, onSelect: @escaping (String) -> Void, onClose: @escaping () -> Void) {
+        self.init(categories: categories, selectedID: selectedID, onSelect: onSelect, onClose: onClose)
+        self.icon = icon
+        self.tileIdentifier = tileIdentifier
+    }
+
     public var body: some View {
-        VStack(spacing: 0) {
-            CYSheetHeader(title: Text("objects.category"), style: .player, onClose: onClose)
+        NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: CYSpacing.sm) {
                     ForEach(categories) { category in
@@ -34,26 +45,41 @@ public struct ObjectCardCategorySheetView: View {
                             onClose()
                         } label: {
                             VStack(spacing: CYSpacing.xs) {
-                                // TODO: MPAsset.FeatureIcon.* (subpackageP3/images/cat/*.png)
-                                Image(systemName: category.systemImage)
-                                    .cyText(.sectionTitle)
+                                if let image = icon?(category.id) {
+                                    image.resizable().scaledToFit().frame(width: 40, height: 40).accessibilityHidden(true)
+                                } else {
+                                    Image(systemName: category.systemImage).cyText(.sectionTitle).accessibilityHidden(true)
+                                }
                                 Text(category.title)
                                     .cyText(.label)
                                     .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
                             }
-                            .frame(maxWidth: .infinity, minHeight: 72)
+                            .frame(maxWidth: .infinity, minHeight: 80)
                             .padding(CYSpacing.xs)
                             .foregroundStyle(isSelected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
                             .background(isSelected ? CYColor.actionPrimaryBg : CYColor.bgSurface)
                             .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         }
                         .buttonStyle(.plain)
+                        // MP aria-label / aria-selected.
+                        .accessibilityLabel(Text(verbatim: category.title))
+                        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+                        .accessibilityIdentifier(tileIdentifier(category.id))
                     }
                 }
                 .padding(CYSpacing.md)
             }
+            .navigationTitle(Text("objects.category"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: onClose) { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly)
+                }
+            }
         }
-        .presentationDetents([.fraction(0.6)])
+        .presentationDetents([.medium, .large])
     }
 }
 
@@ -79,41 +105,56 @@ public struct ObjectCardRenameSheetView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            CYSheetHeader(title: Text("playerGap.card.rename"), style: .player, onClose: onClose)
+        NavigationStack {
             Form {
                 Section {
+                    // MP cy-field (label 卡名, maxlength 64, show-count); catalog keys 卡片名称 / 输入藏品名称.
                     TextField("objects.rename.placeholder", text: $name)
+                        .submitLabel(.done)
+                        .onSubmit { if canSave { onSave(trimmed) } }
                         .onChange(of: name) { _, newValue in
                             let clamped = ObjectCardRenameValidator.clamped(newValue)
                             if clamped != newValue { name = clamped }
                         }
+                        .accessibilityIdentifier("objects.rename.field")
+                } header: {
+                    Text("playerGap.card.renamePlaceholder")
                 } footer: {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        HStack {
-                            Spacer()
-                            Text("\(name.count)/\(ObjectCardRenameValidator.maxLength)")
-                                .cyText(.meta, monospacedDigit: true)
-                                .foregroundStyle(CYColor.textSecondary)
-                        }
                         if let errorMessage, !errorMessage.isEmpty {
-                            Text(errorMessage)
+                            Text(verbatim: errorMessage)
                                 .cyText(.meta)
-                                .foregroundStyle(.red)
+                                .foregroundStyle(CYColor.dangerText)
+                                .accessibilityIdentifier("objects.rename.error")
                         }
+                        Text(verbatim: "\(name.count)/\(ObjectCardRenameValidator.maxLength)")
+                            .cyText(.meta, monospacedDigit: true)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
-
-                Section {
-                    Button("common.save") {
-                        onSave(name.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            .navigationTitle(Text("playerGap.card.rename"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: onClose) { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    if isSaving {
+                        ProgressView()
+                    } else {
+                        Button("common.save") { onSave(trimmed) }
+                            .disabled(!canSave)
+                            .accessibilityIdentifier("objects.rename.save")
                     }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                    .disabled(isSaving || !ObjectCardRenameValidator.isValid(name))
                 }
             }
         }
         .presentationDetents([.medium])
+        .interactiveDismissDisabled(isSaving)
     }
+
+    private var trimmed: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var canSave: Bool { !isSaving && ObjectCardRenameValidator.isValid(name) }
 }

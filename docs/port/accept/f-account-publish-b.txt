@@ -17,7 +17,8 @@ t11-fabu-blocked
 # 17 temp (C-T5 保存草稿 in the bar, C-T8 categories, C-T11; round 2: icon_tag_check on added tools)
 t11-template-author
 t11-template-author-locked
-# 18 activity (C-A7 domain; round 2: template rows show 人数 d_mbico1 / 分钟 d_mbico2)
+# 18 activity (C-A7 domain; round 2: template rows show 人数 d_mbico1 / 分钟 d_mbico2;
+#    round 3: closing the result sheet opens 我的项目 › 活动 — needs a signed-in publishing session, no fixture)
 publish-activity
 publish-template-select
 # 19 template-intro (C-I5 spacing)
@@ -25,7 +26,8 @@ t11-template-intro
 t11-template-intro-empty
 # 20 square detail (C-S9 reach-bottom paging; round 2: d_profile avatar default, comment 加号 icon_jia, inline 关注 C-S8)
 d2-square
-# 21/22 team detail and join (C-D9, C-J3; round 2: d_profile member avatar, C-D10 二维码 sheet, C-J5 bottom bar, C-J6 seat row)
+# 21/22 team detail and join (C-D9, C-J3; round 2: d_profile member avatar, C-D10 二维码 sheet, C-J5 bottom bar, C-J6 seat row;
+#    round 3: the four round-2 team items re-applied on Cursor's wiring, plus Cursor's C-D12 recovery buttons)
 cur8-team
 g-team-qr
 g-team-qr-refused

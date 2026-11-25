@@ -362,11 +362,9 @@ enum MerchantGameNodeCopy {
                     get: { c.readyDraft.note }, set: { c.readyDraft.note = String($0.prefix(200)) }))
                     .textFieldStyle(.roundedBorder).accessibilityIdentifier("gameNode.ready.note")
             }
-            ForEach(c.readyFieldIssues, id: \.key) { issue in
-                MerchantGameNodeCopy.text(issue.key).cyText(.meta).foregroundStyle(CYColor.dangerText)
-                    .accessibilityIdentifier("gameNode.ready.issue." + issue.kind.rawValue)
-            }
-            Button { Task { await c.submitReady() } } label: {
+            // MC7-26-4 (round 3 re-apply): per-field errors render under each field (`readyIssue`) once 确认准备完成
+            // is tapped, so the merged always-on list of the same issues is not repeated here.
+            Button { readyAttempted = true; Task { await c.submitReady() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.ready.submit") }.frame(maxWidth: .infinity)
             }.buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
         }

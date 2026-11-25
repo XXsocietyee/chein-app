@@ -178,3 +178,11 @@ public enum OfficialActionReceipt: Equatable {
     case acknowledged, published(Int), broadcastSubmitted(Int), invitesIssued([Int])
     case arrival(accepted: Bool, completed: Bool, reason: String?)
 }
+
+/// `POST /api/official/events/{id}/share-code` from the roam share card.
+/// The call sends no data fields. This builds the path only and does not send.
+public enum OfficialEventShareCodeRoute {
+    public static func path(eventID: String) -> String {
+        "api/official/events/\(eventID)/share-code"
+    }
+}

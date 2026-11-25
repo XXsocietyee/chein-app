@@ -20,8 +20,9 @@ import QuestifyCore
               let writer = open(session: context.session, score: context.score, runtime: runtime, api: api, paths: grant.reports.paths)
         else { return nil }
         let entryID = context.entryID
+        let nodeID = context.nodeID
         let submitter: OrientScoreReviewModel.Submitter = { kind, reason, key in
-            try await writer.submit(kind: kind, reason: reason, key: key, entryID: entryID())
+            try await writer.submit(kind: kind, reason: reason, key: key, entryID: entryID(), nodeID: nodeID())
         }
         return (submitter, { writer.lockedKey ?? UUID().uuidString })
     }
@@ -48,4 +49,6 @@ import QuestifyCore
     let session: AppSession
     let score: OrientSessionScore
     let entryID: () -> Int?
+    /// PLY-25-5: MP 申诉漏记任务 node id, read at send time. Used only when no ledger row is chosen.
+    var nodeID: () -> Int? = { nil }
 }

@@ -7,6 +7,8 @@ import SwiftUI
     let query: [String: String]
     @EnvironmentObject private var session: AppSession
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    /// Perks deep link: the TEST-only template executor (nil where merchant writes are closed).
+    @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
     /// RNEAR-5 / RTEAMS-4: the signed-out team pages offer 登录, which opens 我的 (the app's sign-in home).
     private var openSignIn: (() -> Void)? {
         guard rootTabSwitch.isAvailable else { return nil }
@@ -41,7 +43,15 @@ import SwiftUI
                 searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }
             )
             .id(session.templateAuthoringViewIdentity)
-        case "pages/templatedetail/topic-preview/index", "pages/templatedetail/topic-detail/index":
+        case "pages/templatedetail/topic-preview/index":
+            // Flow gap PC-A-7-2: topic-preview is the MP card deck; 查看详情 pushes topic-detail.
+            if let id = reviewedID(query) {
+                DiscoveryTopicTemplateDeckHost(coordinator: session.publicTopicTemplateCoordinator(id: id),
+                                               readonly: query["readonly"] == "1",
+                                               makeDetail: { session.publicTopicTemplateCoordinator(id: id) })
+                    .cyPushedChrome()
+            } else { unavailable }
+        case "pages/templatedetail/topic-detail/index":
             // PC-A-7-1 / PC-A-8-1: a shared topic-template link lands on that template, not the shelf root.
             if let id = reviewedID(query) {
                 DiscoveryTopicTemplatePreview(coordinator: session.publicTopicTemplateCoordinator(id: id))
@@ -301,10 +311,16 @@ import SwiftUI
         case "pages/club/join-requests/index":
             if let id = clubQueryID(query) {
                 let management = session.clubManagementContext
-                ClubManagementView(clubID: id, identity: session.clubIdentity, access: management.access, coordinator: management.coordinator, viewerRevision: management.viewerRevision)
+                ClubManagementView(clubID: id, identity: session.clubIdentity, access: management.access, coordinator: management.coordinator, viewerRevision: management.viewerRevision,
+                                   joinRequestsOnly: true)
             } else { unavailable }
         case "pages/club/notify/index":
-            clubRead(.audienceCounts, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
+            // CLB-notify-01 / -06 (fix-r3-club-b round 3): the MP notify page is one composer: the selectable audience
+            // list with counts, 标题 / 内容, 预览受众, then 发送给 N 人. The composer reads the counts itself and shows
+            // the no-permission state, so the link opens it directly instead of a counts page with a second list.
+            if let clubID = clubQueryID(query) {
+                clubGovernance { g in ClubGovernanceCommandForm(route: .init(operation: .sendNotification, scope: .init(clubID: clubID, activityID: queryID(query, "activityId"))), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+            } else { unavailable }
         case "pages/club/topic-detail/index", "pages/club/topic-story/index":
             // MP topic-detail reads topicId (or id). CLB-topic-story-01: the story link opens the story itself, hosted by
             // the topic overview that owns its read (back returns to the topic page).
@@ -343,6 +359,7 @@ import SwiftUI
         case "pages/club/roles/index":
             // CLB-roles-02: the event tools put 「活动名 · 开始时间」 in `activityLabel`; the picker shows it (or 未命名).
             clubRead(.roles, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
+                .environment(\.clubRoleActivityLabel, ClubRoleActivityLabel.entry(query["activityLabel"]))
         case "pages/topic/catalog/index":
             // A canonical id is the topic screen. Every other catalog link, including a non-canonical id, is home.
             if let link = MiniProgramPageLink(path: page, query: query), case .topic(let id) = link.catalogDestination {
@@ -412,6 +429,7 @@ import SwiftUI
             } else {
                 MerchantMissingParamState(title: LocalizedStringKey(MerchantOrderDetailLink.missing))
             }
+        // MC7-35-1 / MC7-35-2: settlement-detail `source` finance | ledger | club (MerchantSettlementDetailLink).
         case "pages/coop/settlement-detail/index":
             CoopSettlementDetailRoute(reader: session.cooperationFlowReader, query: query)
         case "pages/merchant/ledger/batch-detail/index":
@@ -425,21 +443,37 @@ import SwiftUI
             } else {
                 MerchantMissingParamState(title: "merchant.gate.batch.missingParam")
             }
-        case "pages/merchant/ledger/order-detail/index":
-            // MC7-07-1 / MC7-07-2 (ledger/order-detail/index.js:23-31,63): recordType + recordId open that ledger record;
-            // activity_ticket / session_fee keep their type (Core MerchantOrderDetailLink). Missing pair → 缺少核销记录信息.
-            if let ref = MerchantOrderDetailLink.record(query) {
-                MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
-                                     query: .redemption(recordID: ref.recordType == "redemption" ? ref.recordID : ref.recordKey))
-                    .cyPushedChrome(domain: .merchant)
-            } else {
-                MerchantMissingParamState(title: "merchant.gate.redemption.missingParam")
-            }
         case "pages/merchant/apply/index":
             MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
         case "pages/merchant/verify-records/index":
             MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .verificationRecords)
                 .cyPushedChrome(domain: .merchant)
+        // fix/r3-merchant-coop-a round 3 (flows-g2 MISSING-ROUTE): bare MP links to half-a merchant pages open the
+        // same native screens the workbench pushes. The page link rules keep these query-free.
+        case "pages/merchant/aftercare/index", "pages/merchant/aftercare/detail/index":
+            // aftercare/detail/index.js:50-54: a detail link without a valid refundId / manualCaseId redirects to the list.
+            // The reviewed link rule admits no query on detail yet (Core request in the receipt), so it always lands here.
+            MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                 query: .aftercare(.pending, page: 1))
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/reviews/index":
+            MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .reviews(page: 1))
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/customer/index":
+            MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                 query: .customers(MerchantCustomerQuery()))
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/crm-campaigns/index":
+            MerchantCampaignHistoryHost(reader: session.merchantEngagementReader, journal: session.merchantBusinessJournal,
+                                        exports: session.merchantExportRecovery)
+                .id(session.merchantEngagementReader.scope)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/marketing/index":
+            SessionMerchantMarketingLinkScreen(session: session)
+        case "pages/merchant/marketing/ai-insight/index":
+            SessionMerchantMarketingLinkScreen(session: session, initialSurface: .insight)
+        case "pages/merchant/predict/index":
+            SessionMerchantPredictionLinkScreen(session: session)
         case "pages/merchant/team/index":
             // MC7-29-12: `?invite=` opens the operator invitation landing (same token rule as MerchantOperatorAcceptance).
             if let token = query["invite"], let invitation = try? MerchantOperatorAcceptance(token: token) {
@@ -456,16 +490,6 @@ import SwiftUI
             CoopFinanceProfitView(reader: session.cooperationFlowReader)
                 .environment(\.coopWalletReader, session.walletCommerceReader)
                 .cyPushedChrome(domain: .merchant)
-        // MC7-35-1 / MC7-35-2: settlement-detail `source` finance | ledger | club (MerchantSettlementDetailLink).
-        case "pages/coop/settlement-detail/index":
-            if let link = MerchantSettlementDetailLink.resolve(query) {
-                if link.source == .club {
-                    CoopClubSettlementDetailView(reader: session.cooperationFlowReader, link: link)
-                } else if let id = Int(link.recordID), id > 0 {
-                    CoopSettlementDetailView(reader: session.cooperationFlowReader, source: link.source == .finance ? .finance : .mybiz, id: id)
-                        .cyPushedChrome(domain: .merchant)
-                } else { settlementMissing }
-            } else { settlementMissing }
         // MC7-30-2: coop list opens on the linked tab. The topic-only scope (CooperationInboxTopicFilter) is not seeded yet.
         case "pages/coop/list/index":
             CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
@@ -485,6 +509,43 @@ import SwiftUI
         case "pages/coop/invite/index":
             CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: nil)
                 .cyPushedChrome(domain: .merchant)
+        // flows-g2 (round 3): merchant decor / city-node / game-node MP paths (query-free in MiniProgramPageLink).
+        // decor opens 品牌中心 with the same factory and perks / city-node destinations as the merchant tab.
+        case "pages/merchant/decor/index":
+            MerchantOperationsHomeView(reader: session.merchantOperationsReader,
+                                       destinationFactory: { session.merchantOperationsDestination($0, access: $1) })
+                .environment(\.merchantPerkTemplatesDestination, {
+                    AnyView(MerchantPerkTemplatesHost(reader: session.cooperationFlowReader, executor: coopFlowWrite?.executor()))
+                })
+                .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+                .id(session.merchantOperationsReader.scope)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/decor/gallery/index", "pages/merchant/decor/coop-setting/index", "pages/merchant/decor/ai-npc/index":
+            MerchantDecorLinkedPage(reader: session.merchantOperationsReader,
+                                    destination: page.contains("/gallery/") ? .gallery : page.contains("/coop-setting/") ? .cooperation : .character,
+                                    open: { session.merchantOperationsDestination($0, access: $1) })
+                .id(session.merchantOperationsReader.scope)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/decor/perks/index":
+            MerchantPerkTemplatesHost(reader: session.cooperationFlowReader, executor: coopFlowWrite?.executor())
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/citynode/index":
+            session.merchantCityNodeHub()
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/citynode/create/index":
+            MerchantCityNodeCreateView(service: session.merchantContentService, placeSearch: PublishingMapKitAdapter())
+                .id(session.merchantContentService.scope)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/game-node/index":
+            // The link rule is query-free today, so `activityId` cannot arrive yet: the entry list (选择场次) opens instead.
+            if let activityID = queryID(query, "activityId") {
+                SessionMerchantGameNodeView(session: session, activityID: activityID)
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                MerchantGameNodeEntryView(service: session.merchantGameNodeService, topicID: nil)
+                    .id(session.merchantContentService.scope)
+                    .cyPushedChrome(domain: .merchant)
+            }
         case "pages/merchant/coop-center/index":
             session.merchantCoopCenterDestination()
         case "pages/coop/nearby/index":
@@ -793,26 +854,21 @@ import SwiftUI
     }
 
     /// `free-explore?registrationId=` opens that order (its 自由探索权益 entry hosts the bundle read);
-    /// `?topicId=` opens the topic (the catalog entry before purchase); `?requestId=` (purchase receipt) opens 我的订单.
+    /// `?topicId=` shows the bundle catalog (MKT-7-1, MP `loadEntry` catalog read) with a way to the topic;
+    /// `?requestId=` (purchase receipt) resolves to that order. No valid id is the MP missing-param state with 返回.
     @ViewBuilder private var freeExplore: some View {
         if let id = reviewedID(query, key: "registrationId") {
             ProfileOrderDetailView(id: id, reader: session.ownedOrderReader)
         } else if let id = reviewedID(query, key: "topicId") {
-            SessionTopicDetailView(id: id, session: session)
-        } else if query["requestId"] != nil {
-            SessionOwnedOrdersView(session: session)
+            FreeExploreTopicCatalogScreen(topicID: id, session: session, onSignIn: signIn)
+        } else if let request = query["requestId"], FreeExploreReceiptResolveScreen.isValid(request) {
+            // MKT-7-1: the purchase receipt resolves to that order's bundle detail (MP `loadEntry` receipt read).
+            FreeExploreReceiptResolveScreen(requestID: request, session: session, onSignIn: signIn)
         } else {
-            CYStateLayout(kind: .generic, title: Text("mp.route.missingParam"))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            MemberMissingLinkState(identifier: "freeExplore.missing")
         }
     }
 
-    /// MP settlement-detail `missing-param`: 缺少结算记录信息 + 返回.
-    private var settlementMissing: some View {
-        MerchantCoopActionState(systemImage: "doc.text.magnifyingglass", title: "merchantCoop.settlement.missingParam",
-                                actionTitle: "merchantCoop.settlement.back", action: { session.dismissNativeEntry() },
-                                identifier: "coop.settlement.missingParam")
-    }
     private var unavailable: some View {
         CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
             .frame(maxWidth: .infinity, maxHeight: .infinity)

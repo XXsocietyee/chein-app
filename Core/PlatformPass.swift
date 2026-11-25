@@ -42,6 +42,12 @@ public struct PlatformPass: @unchecked Sendable {
     public static let quotePath = "api/marketing/product/quote"
     public static let orderPath = "api/marketing/product/order"
     public static let claimPath = "api/marketing/product/gifts/claim"
+    /// GET `api/marketing/product/orders/{orderNo}` (`market/pass` `_verify`). Read only. Pay stays off.
+    public static let productOrderDetailPath = "api/marketing/product/orders/{}"
+    /// POST `api/marketing/product/orders/{orderNo}/pay`. No `data` key. Compiled, never sent.
+    public static let productOrderPayPath = "api/marketing/product/orders/{}/pay"
+    /// POST `api/platform-pass/orders/{orderNo}/pay` (`platform-pass-pay.js`). Field `jsCode`. Compiled, never sent.
+    public static let passOrderPayPath = "api/platform-pass/orders/{}/pay"
 
     public static var writesReachable: Bool {
         moneyEnabled && ReleaseMoneyWriteSwitch.paymentEnabled && ReleaseMoneyWriteSwitch.payoutEnabled
@@ -159,6 +165,21 @@ public struct PlatformPass: @unchecked Sendable {
         return PlatformPassJSON.number(data["point"])
     }
 
+    /// Pass-market point read. Posts `userInfoRequest` (`member_id`) and reads `point`. No pass write.
+    public func points(token: String, memberID: Int) async throws -> Double? {
+        guard memberID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        var request = try AccountPublishMPContract.userInfoRequest(
+            baseURL: configuration.baseURL, memberID: String(memberID), token: token)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (bytes, status) = try await transport.send(request)
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        let object = try PlatformPassJSON.object(bytes)
+        guard PlatformPassJSON.isBizOK(object) else { throw APIError.businessCode(PlatformPassJSON.code(object["code"]) ?? -1) }
+        guard let data = PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)) else { return nil }
+        return PlatformPassJSON.number(data["point"])
+    }
+
     /// Platform-pass purchase. Compiled, never sends.
     public func purchase(planCode: String, channel: String, token: String) throws -> Never {
         _ = (planCode, channel, token, Self.moneyEnabled, Self.writesReachable, Self.purchasePath)
@@ -180,6 +201,20 @@ public struct PlatformPass: @unchecked Sendable {
     /// Gift claim. Compiled, never sends.
     public func claim(giftToken: String, requestID: String, token: String) throws -> Never {
         _ = (giftToken, requestID, token, Self.moneyEnabled, Self.writesReachable, Self.claimPath)
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Cash pay for a marketing product order (`market/pass` `_payCash`).
+    /// The page sends no `data` key. Compiled, never sends. `moneyEnabled` stays false.
+    public func payProductOrder(orderNo: String, token: String) throws -> Never {
+        _ = (orderNo, token, Self.moneyEnabled, Self.writesReachable, Self.productOrderPayPath)
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Virtual-payment pay for a platform-pass order. Field `jsCode`. Compiled, never sends.
+    /// `moneyEnabled` stays false.
+    public func payPassOrder(orderNo: String, jsCode: String, token: String) throws -> Never {
+        _ = (orderNo, jsCode, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderPayPath)
         throw PlatformPassWriteRefusal.unreachable
     }
 

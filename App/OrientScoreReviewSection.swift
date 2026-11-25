@@ -25,6 +25,15 @@ extension EnvironmentValues {
 
 @MainActor final class OrientScoreReviewEntrySelection: ObservableObject {
     @Published var entryID: Int?
+    /// PLY-25-5: MP 申诉漏记任务 node id (only when no ledger row is chosen).
+    @Published var nodeID: Int?
+}
+
+/// PLY-25-5: which MP review sheet is open (row appeal, 漏记任务 appeal, or dispute).
+struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
+    let kind: OrientReviewSheetKind
+    let entryID: Int?
+    var id: String { "\(kind.rawValue)-\(entryID ?? 0)" }
 }
 
 /// Appeal / dispute form with an explicit confirm step. Attach under `OrientScoreReadyContent`
@@ -34,51 +43,84 @@ extension EnvironmentValues {
     @StateObject private var selection: OrientScoreReviewEntrySelection
     private let entries: [OrientScoreTimelineRow]
     @Environment(\.offlineWriteSession) private var offlineWriteSession
-    @State private var reason = ""
-    @State private var kind: OrientScoreReviewModel.Kind = .appeal
+    private let canDispute: Bool
+    @State private var sheet: OrientScoreReviewSheetTarget?
+    /// Filled by the sheet's 提交; validated into the confirm step once the sheet is gone.
+    @State private var pendingReview: (kind: OrientScoreReviewModel.Kind, reason: String)?
 
     init(session: AppSession, score: OrientSessionScore, entries: [OrientScoreTimelineRow]) {
         let selection = OrientScoreReviewEntrySelection()
-        if entries.count == 1 { selection.entryID = entries[0].entryID }
         self.entries = entries
+        // The writer refuses a dispute before the round ends (status 1 / 2), so the entry is not offered before then.
+        canDispute = score.status == 1 || score.status == 2
         _selection = StateObject(wrappedValue: selection)
         let built = OrientScoreReviewFactory.makeSubmitter(OrientScoreReviewContext(
-            session: session, score: score, entryID: { selection.entryID }))
+            session: session, score: score, entryID: { selection.entryID }, nodeID: { selection.nodeID }))
         _model = StateObject(wrappedValue: OrientScoreReviewModel(
             submitter: built?.submitter, makeKey: built?.makeKey ?? { UUID().uuidString }))
     }
 
+    private var busy: Bool {
+        switch model.state {
+        case .submitting, .awaitingConfirmation: return true
+        default: return false
+        }
+    }
+
+    /// MP orient-score wxml:73-113: 申诉这一条 per ledger row (not while that row's appeal is pending), 申诉漏记任务,
+    /// and the 成绩争议 entry; each opens the review sheet (reason up to 500, 节点编号 for a missed task).
     var body: some View {
         CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Picker("orientScore.review.kind", selection: $kind) {
-                    Text("orientScore.review.appeal").tag(OrientScoreReviewModel.Kind.appeal)
-                    Text("orientScore.review.dispute").tag(OrientScoreReviewModel.Kind.dispute)
-                }
-                .pickerStyle(.segmented)
-                if kind == .appeal {
-                    Picker("orientScore.review.entry", selection: entryBinding) {
-                        Text("orientScore.review.needEntry").tag(0)
-                        ForEach(entries) { row in
-                            Text(verbatim: row.dimension + " " + row.delta).tag(row.entryID)
+                let appealable = entries.filter { !$0.appealPending }
+                if !appealable.isEmpty {
+                    Menu {
+                        ForEach(appealable) { row in
+                            Button { sheet = OrientScoreReviewSheetTarget(kind: .appeal, entryID: row.entryID) } label: {
+                                Text(verbatim: row.dimension + " " + row.delta)
+                            }
                         }
+                    } label: {
+                        Text("orientScore.review.appealEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
+                    .buttonStyle(.cySecondary(fullWidth: true))
+                    .disabled(busy)
                     .accessibilityIdentifier("orientScore.review.entry")
                 }
-                TextField("orientScore.review.reason", text: $reason, axis: .vertical)
-                    .lineLimit(3...6)
-                    .textFieldStyle(.roundedBorder)
-                    .accessibilityIdentifier("orientScore.review.reason")
-                Button("orientScore.review.begin") { model.review(kind: kind, reason: reason) }
+                Button { sheet = OrientScoreReviewSheetTarget(kind: .appeal, entryID: nil) } label: {
+                    Text("orientScore.review.appealMissing").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.cySecondary(fullWidth: true))
+                .disabled(busy)
+                .accessibilityIdentifier("orientScore.review.missing")
+                if canDispute {
+                    Button { sheet = OrientScoreReviewSheetTarget(kind: .dispute, entryID: nil) } label: {
+                        Text("orientScore.review.dispute").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    }
                     .buttonStyle(.cySecondary(fullWidth: true))
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityIdentifier("orientScore.review.begin")
+                    .disabled(busy)
+                    .accessibilityIdentifier("orientScore.review.dispute")
+                }
                 CYScreenOfflineWriteBanner(
                     routes: ["/api/orient/scoring/appeal", "/api/orient/scoring/dispute"],
                     session: offlineWriteSession.session
                 )
                 statusView
             }
+        }
+        .sheet(item: $sheet, onDismiss: {
+            guard let pending = pendingReview else { return }
+            pendingReview = nil
+            model.review(kind: pending.kind, reason: pending.reason)
+        }) { target in
+            OrientScoreAppealSheetView(kind: target.kind, entryID: target.entryID.map { String($0) }, isBusy: busy,
+                onSubmit: { node, reason in
+                    selection.entryID = target.kind == .appeal ? target.entryID : nil
+                    selection.nodeID = target.kind == .appeal && target.entryID == nil ? node : nil
+                    pendingReview = (target.kind == .dispute ? .dispute : .appeal, reason)
+                    sheet = nil
+                },
+                onClose: { sheet = nil })
         }
         .sheet(isPresented: Binding(
             get: { if case .awaitingConfirmation = model.state { return true } else { return false } },
@@ -95,10 +137,6 @@ extension EnvironmentValues {
                 }
             }
         }
-    }
-
-    private var entryBinding: Binding<Int> {
-        Binding(get: { selection.entryID ?? 0 }, set: { selection.entryID = $0 > 0 ? $0 : nil })
     }
 
     @ViewBuilder private var statusView: some View {

@@ -15,22 +15,10 @@ import SwiftUI
             switch view.footer {
             case .legacy: Text("cooperation.detail.footer.legacy").foregroundStyle(.secondary)
             case .decide:
-                if let name = invite.supplyStationName, !name.isEmpty, invite.supplyStationId != nil {
-                    Text(verbatim: name).cyText(.body).foregroundStyle(CYColor.textPrimary)
-                        .accessibilityIdentifier("cooperation.detail.supplyStation")
-                }
-                // Mini bottom bar: 接受合作 is the single solid action, 拒绝 the quiet one.
-                if let stationID = invite.supplyStationId {
-                    // MC7-30-6: a station topic confirms the frozen station, then sends `supplyStationId` with the accept.
-                    NavigationLink {
-                        CoopSupplyStationAcceptView(inviteID: invite.id, stationID: stationID, stationName: invite.supplyStationName)
-                    } label: {
-                        Text("cooperation.detail.accept").cyText(.bodyMedium).foregroundStyle(CYColor.infoText)
-                    }
-                    .accessibilityIdentifier("cooperation.detail.handle.\(CoopFlowHandle.accept.rawValue)")
-                } else {
-                    handle(.accept, label: "cooperation.detail.accept", emphasis: true)
-                }
+                // Mini bottom bar: 接受合作 is the single solid action, 拒绝 the quiet one. A station topic (MC7-30-6)
+                // goes through the same handle editor, which shows the frozen station (named in 合作条款 above) and
+                // sends `supplyStationId` with the accept.
+                handle(.accept, label: "cooperation.detail.accept", emphasis: true)
                 handle(.reject, label: "cooperation.detail.reject")
                 Text("cooperation.detail.reply.hint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             case .withdraw:

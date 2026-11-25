@@ -26,6 +26,8 @@ public struct JourneyFinishOfferCardView: View {
     public var body: some View {
         Button(action: onTapOffer) {
             HStack(spacing: CYSpacing.md) {
+                // MP settle wxml:33 `cy-icon coupon` (40 rpx): the shipped coupon art (MP assets).
+                MPAsset.FeatureIcon.coupon.resizable().scaledToFit().frame(width: 28, height: 28).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(offer.kind == .pass ? "finishOffer.passBadge" : "finishOffer.productBadge")
                         .cyText(.meta)
@@ -43,12 +45,20 @@ public struct JourneyFinishOfferCardView: View {
                 Text(offer.priceText)
                     .cyText(.sectionTitle, monospacedDigit: true)
                     .foregroundStyle(CYColor.brand)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                    .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             }
             .padding(CYSpacing.md)
+            .frame(minHeight: 44)
             .background(CYColor.bgSurface)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         }
         .buttonStyle(.plain)
+        // MP aria-label="{{offer.name}} {{offer.price}}".
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: offer.name + " " + offer.priceText))
+        .accessibilityAddTraits(.isButton)
         .onAppear(perform: onAppearTrack)
     }
 }

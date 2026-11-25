@@ -23,6 +23,9 @@ import SwiftUI
                                    topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) })
         case .myProjects:
             SubscribeMessageProjectsEntry(session: session)
+        case .myProjectsEntry(let merchant, let initialType):
+            // Flow gap (Gemini flows-g2): merchant home `myproject?scope=MERCHANT`, publish `myproject?type=template`.
+            SubscribeMessageProjectsEntry(session: session, entryScope: merchant ? "MERCHANT" : nil, initialType: initialType)
         case .merchantLedger:
             MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal)
         case .merchantLedgerSettlement:
@@ -39,8 +42,10 @@ import SwiftUI
 /// (`SessionCreatorProjectsView`: covers, tabs, row ops menu), not the older publishing list.
 @MainActor struct SubscribeMessageProjectsEntry: View {
     @ObservedObject var session: AppSession
+    var entryScope: String? = nil
+    var initialType: String = "topic"
 
     var body: some View {
-        SessionCreatorProjectsView(session: session)
+        SessionCreatorProjectsView(session: session, entryScope: entryScope, initialType: initialType)
     }
 }

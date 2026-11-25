@@ -3937,13 +3937,36 @@ private enum AccountComplianceCompositionRoute {
               request.value(forHTTPHeaderField: "Accept") == "application/json",
               let url = request.url, url.query == nil, url.fragment == nil else { return false }
         if url == baseURL.appendingPathComponent("api/user/deregister/status") {
-            return request.httpMethod == "GET" && request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+            if request.httpMethod == "GET" && request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil { return true }
+            return matchesContract(request, try? AccountPublishMPContract.deregisterStatusRequest(baseURL: baseURL, token: token))
         }
-        if url == baseURL.appendingPathComponent("api/user/deregister/precheck")
-            || url == baseURL.appendingPathComponent("api/user/deregister/cancel") {
-            return request.httpMethod == "POST" && request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+        if url == baseURL.appendingPathComponent("api/user/deregister/precheck") {
+            if request.httpMethod == "POST" && request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil { return true }
+            return matchesContract(request, try? AccountPublishMPContract.deregisterPrecheckRequest(baseURL: baseURL, token: token))
+        }
+        if url == baseURL.appendingPathComponent("api/user/deregister/cancel") {
+            if request.httpMethod == "POST" && request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil { return true }
+            return matchesContract(request, try? AccountPublishMPContract.deregisterCancelRequest(baseURL: baseURL, token: token))
         }
         if url == baseURL.appendingPathComponent("api/user/deregister/apply") {
+            if request.httpMethod == "POST",
+               request.value(forHTTPHeaderField: "Content-Type") == AccountPublishMPContract.formContentType,
+               let body = request.httpBody, body.count <= 1024,
+               let text = String(data: body, encoding: .utf8) {
+                var fields: [String: String] = [:]
+                for pair in text.split(separator: "&", omittingEmptySubsequences: false) {
+                    let parts = pair.split(separator: "=", maxSplits: 1).map(String.init)
+                    guard parts.count == 2, fields[parts[0]] == nil else { return false }
+                    fields[parts[0]] = parts[1].removingPercentEncoding ?? parts[1]
+                }
+                guard Set(fields.keys) == ["requestId", "smscode"],
+                      let requestID = fields["requestId"], !requestID.isEmpty, requestID.count <= 64,
+                      let code = fields["smscode"], (try? AuthChannelInput.code(code)) == code,
+                      let contract = try? AccountPublishMPContract.deregisterApplyRequest(
+                        baseURL: baseURL, requestID: requestID, smsCode: code, token: token),
+                      contract.httpBody == body else { return false }
+                return true
+            }
             guard request.httpMethod == "POST",
                   let type = request.value(forHTTPHeaderField: "Content-Type"),
                   type.hasPrefix("multipart/form-data; boundary="),
@@ -3980,6 +4003,13 @@ private enum AccountComplianceCompositionRoute {
             return canonical == body
         }
         return false
+    }
+
+    private static func matchesContract(_ request: URLRequest, _ contract: URLRequest?) -> Bool {
+        guard let contract else { return false }
+        return request.httpMethod == contract.httpMethod
+            && request.value(forHTTPHeaderField: "Content-Type") == contract.value(forHTTPHeaderField: "Content-Type")
+            && request.httpBody == contract.httpBody
     }
 }
 

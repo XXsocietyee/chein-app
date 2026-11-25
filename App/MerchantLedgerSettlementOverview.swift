@@ -8,6 +8,9 @@ import UIKit
 @MainActor final class MerchantLedgerSettlementModel: ObservableObject {
     let reader: any MerchantBusinessReading
     @Published private(set) var state = MerchantLedgerSettlementRead()
+    /// MC7-06-5 (ledger/index.js:125-130): 收入明细 / 结算批次 rows kept across pages. Page 1 replaces them,
+    /// later pages append by row id. Cleared whenever the owner (scope or permission generation) changes.
+    @Published private(set) var accumulated: [MerchantLedgerSettlementSection: [MerchantBusinessRecord]] = [:]
     private var tasks: [MerchantLedgerSettlementSection: Task<Void, Never>] = [:]
     private var started = false
     init(reader: any MerchantBusinessReading) { self.reader = reader }
@@ -29,7 +32,7 @@ import UIKit
 
     func appear() {
         let replaced = mutate { $0.replaceOwner(currentOwner) }
-        if replaced { cancelTasks(); started = false }
+        if replaced { cancelTasks(); started = false; accumulated = [:] }
         guard reader.isConfigured, reader.scope != nil, replaced || !started else { return }
         started = true
         loadAll()
@@ -38,13 +41,15 @@ import UIKit
     func leave() {
         cancelTasks()
         started = false
+        accumulated = [:]
         mutate { $0.leave() }
     }
     func openBatch(_ batchID: Int) { mutate { $0.presentBatch(batchID) } }
     func childPopped(_ cover: MerchantLedgerBatchCover?) {
         guard let cover else { return }
         guard mutate({ $0.consumePop(cover) }) else { return }
-        load(.batches, page: state.batches.page)
+        // Appended rows refresh from the first page, as the MP onShow reload does.
+        load(.batches, page: 1)
     }
     func batchDenied(_ cover: MerchantLedgerBatchCover) {
         guard mutate({ $0.denyFromBatch(cover) }) else { return }
@@ -58,11 +63,25 @@ import UIKit
     func load(_ section: MerchantLedgerSettlementSection, page: Int) {
         guard reader.isConfigured, reader.scope != nil else { return }
         let owner = currentOwner
-        if mutate({ $0.replaceOwner(owner) }) { cancelTasks() }
+        if mutate({ $0.replaceOwner(owner) }) { cancelTasks(); accumulated = [:] }
         guard let ticket = mutate({ $0.begin(section, page: page, owner: owner) }) else { return }
         tasks[section]?.cancel()
         let task = Task { [weak self] in _ = await self?.perform(section, ticket: ticket, owner: owner) }
         tasks[section] = task
+    }
+
+    /// MC7-06-5: asks for the next page once the current one is loaded and more exist.
+    func loadMore(_ section: MerchantLedgerSettlementSection) {
+        let slot = state.section(section)
+        guard section != .overview, slot.phase == .loaded, slot.hasMore else { return }
+        load(section, page: slot.page + 1)
+    }
+    private func accumulate(_ section: MerchantLedgerSettlementSection, page: Int, rows: [MerchantBusinessRecord]) {
+        guard page > 1 else { accumulated[section] = rows; return }
+        var kept = accumulated[section] ?? []
+        var known = Set(kept.map(\.id))
+        for row in rows where !known.contains(row.id) { kept.append(row); known.insert(row.id) }
+        accumulated[section] = kept
     }
 
     private func perform(_ section: MerchantLedgerSettlementSection, ticket: Int, owner: MerchantLedgerSettlementOwner) async {
@@ -75,7 +94,8 @@ import UIKit
             })
             guard !Task.isCancelled else { mutate { $0.cancel(section, generation: ticket) }; return }
             let result = mutate { $0.succeed(section, generation: ticket, owner: owner, snapshot: snapshot) }
-            if result == .rejected("merchant.business.denied") { cancelTasks() }
+            if result == .stored, section != .overview { accumulate(section, page: page, rows: snapshot.document.rows) }
+            if result == .rejected("merchant.business.denied") { cancelTasks(); accumulated = [:] }
         } catch is CancellationError {
             mutate { $0.cancel(section, generation: ticket) }
         } catch {
@@ -95,6 +115,7 @@ import UIKit
     let journal: (any MerchantBusinessIntentStore)?
     @State private var ledgerView: MerchantR1LedgerView = .redemptions
     @Environment(\.merchantR1CumulativeRevenue) private var cumulativeRevenue
+    @Environment(\.merchantCoopSettlementDetailDestination) private var coopSettlementDetail
     @Environment(\.locale) private var locale
     init(reader: any MerchantBusinessReading, journal: (any MerchantBusinessIntentStore)? = nil, topicID: Int? = nil, initialView: MerchantR1LedgerView = .redemptions) {
         self.reader = reader
@@ -168,7 +189,13 @@ import UIKit
 
     @ViewBuilder private func section(_ id: MerchantLedgerSettlementSection) -> some View {
         let slot = model.state.section(id)
+        let kept = model.accumulated[id] ?? []
         Section {
+            if id != .overview, slot.page > 1, !kept.isEmpty, slot.phase != .loaded {
+                // MC7-06-5: a later page is loading or failed; the rows already shown stay in place.
+                rows(id, kept)
+                appendFooter(id, slot, hasRows: true)
+            } else {
             switch slot.phase {
             case .idle, .loading:
                 CYSkeleton(variant: id == .overview ? .merchantMetric : .row)
@@ -186,6 +213,7 @@ import UIKit
                 .accessibilityIdentifier("merchant.ledgerSettlement.retry." + id.rawValue)
             case .loaded:
                 loaded(id, slot)
+            }
             }
         } header: { Text(LocalizedStringKey(headerKey(id))) }
     }
@@ -219,35 +247,70 @@ import UIKit
                     }
                 }
             case .entries:
-                if snapshot.document.rows.isEmpty {
+                let entryRows = model.accumulated[.entries] ?? snapshot.document.rows
+                if entryRows.isEmpty {
                     CYEmptyState(systemImage: "list.bullet.rectangle", LocalizedStringKey("merchant.ledgerSettlement.emptyEntries"), tableName: "MerchantLedgerSettlement")
                 }
-                ForEach(snapshot.document.rows) { row in
-                    MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchant.ledgerSettlement.entry." + row.id)
-                }
-                pages(id, slot)
+                rows(.entries, entryRows)
+                appendFooter(id, slot, hasRows: !entryRows.isEmpty)
             case .batches:
-                if snapshot.document.rows.isEmpty {
+                let batchRows = model.accumulated[.batches] ?? snapshot.document.rows
+                if batchRows.isEmpty {
                     CYEmptyState(systemImage: "tray", LocalizedStringKey("merchant.ledgerSettlement.emptyBatches"), tableName: "MerchantLedgerSettlement")
                 }
-                ForEach(snapshot.document.rows) { row in
+                rows(.batches, batchRows)
+                appendFooter(id, slot, hasRows: !batchRows.isEmpty)
+            }
+        }
+    }
+    @ViewBuilder private func rows(_ id: MerchantLedgerSettlementSection, _ records: [MerchantBusinessRecord]) -> some View {
+        switch id {
+        case .overview:
+            EmptyView()
+        case .entries:
+                ForEach(records) { row in
+                    // MC7-06-9: coop-share rows open their settlement detail (source=ledger).
+                    if let settlementID = MerchantLedgerCoopDetail.settlementID(row.fields), let coopSettlementDetail {
+                        NavigationLink { coopSettlementDetail(settlementID) } label: {
+                            MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchant.ledgerSettlement.entry." + row.id)
+                        }
+                        .accessibilityIdentifier("merchant.ledgerSettlement.entry.coopDetail." + row.id)
+                    } else {
+                        MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchant.ledgerSettlement.entry." + row.id)
+                    }
+                }
+        case .batches:
+                ForEach(records) { row in
                     Button { if let batchID = Int(row.id) { model.openBatch(batchID) } } label: {
                         MerchantLedgerRowLabel(line: MerchantLedgerParity.batch(row.fields), identifier: "merchant.ledgerSettlement.batch." + row.id)
                     }.buttonStyle(.plain).accessibilityIdentifier("merchant.ledgerSettlement.open." + row.id)
                 }
-                pages(id, slot)
-            }
         }
     }
-    @ViewBuilder private func pages(_ id: MerchantLedgerSettlementSection, _ slot: MerchantLedgerReadSlot) -> some View {
-        if slot.hasMore || slot.page > 1 {
-            HStack {
-                Button("merchant.business.previous") { model.load(id, page: slot.page - 1) }.disabled(slot.page <= 1 || slot.isLoading)
-                Spacer()
-                Text(slot.page, format: .number).monospacedDigit().accessibilityLabel(Text("merchant.business.page"))
-                Spacer()
-                Button("merchant.business.next") { model.load(id, page: slot.page + 1) }.disabled(!slot.hasMore || slot.isLoading)
+    /// MC7-06-5 (ledger/index.wxml load-more footer): 正在加载更多… appends the next page when it appears,
+    /// 重新加载 after a failed page, 已经到底了 once the last page is in. Replaces the 上一页 / 下一页 pager.
+    @ViewBuilder private func appendFooter(_ id: MerchantLedgerSettlementSection, _ slot: MerchantLedgerReadSlot, hasRows: Bool) -> some View {
+        if slot.phase == .failed {
+            Button { model.load(id, page: slot.page) } label: {
+                Text("merchant.gate.reload").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             }
+            .accessibilityIdentifier("merchant.ledgerSettlement.loadMoreRetry." + id.rawValue)
+        } else if slot.isLoading || slot.hasMore {
+            HStack(spacing: CYSpacing.sm) {
+                ProgressView()
+                Text("merchant.list.loadingMore").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            }
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+            .accessibilityElement(children: .combine)
+            // Re-fires after each page settles, so a still-visible row keeps asking until the last page.
+            .task(id: [slot.generation, slot.isLoading ? 1 : 0]) { model.loadMore(id) }
+            .accessibilityIdentifier("merchant.ledgerSettlement.loadingMore." + id.rawValue)
+        } else if hasRows {
+            Text("merchant.list.end")
+                .cyText(.meta)
+                .foregroundStyle(CYColor.textTertiary)
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("merchant.ledgerSettlement.listEnd." + id.rawValue)
         }
     }
 }

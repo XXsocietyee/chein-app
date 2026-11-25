@@ -187,3 +187,80 @@ Of the r7 parity P1 rows still open, this round closed B-DR-03, B-DR-04 and the 
   - `if case .error? = view` in `TeamInviteQRSection.failed`.
   - The `@ViewBuilder` `invitationActions` if/else-if chain in TeamHomeView.
   - `MPReviewedPageScreen` pushed from `TeamDetailView`: it needs the `AppSession` environment object, which the app root provides.
+
+---
+
+## Round 3 (2026-11-24 evening)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round3.md`, plus `wave-x10.md`, `fix-r3-round2.md` and `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` at `b0ac0108d`. The merge had no conflicts.
+
+### Round 3 · re-applied
+
+I checked every round-1 and round-2 commit of this branch, hunk by hunk, against the new base (`git diff origin/fix/r3-account-publish-b HEAD -- <file>`). Only `App/TeamHomeView.swift` lost hunks, because it was restored to Cursor's side. In the other files the base only added to my edits: Cursor/Gemini marketing rows, membership glass key, `@preconcurrency`, and the iOS 18 `symbolEffect` guard.
+
+| ID | What was missing on the base | Re-applied on top of Cursor's wiring |
+|---|---|---|
+| C-J5 | The invitation actions were back inside the scroll view. | `invitationActions(detail:invitationCode:)` again sits in a bottom `CYFooterBar` (`safeAreaInset`). Cursor's `model.rememberRecovery(action)` in `joinDirectly` is kept, so 加入队伍 still captures the recovery fields. |
+| C-J2 | 去买这一场的票 after `TICKET_REQUIRED` on an activity team was gone. | It is back in the footer branch and uses the same `TeamSeatPresentation.showsBuyTicket` and `MPReviewedPageScreen("pages/activity/baoming/baoming")`. |
+| C-J6 | `TeamJoinSeatRow` was not mounted. | It is mounted again on the invitation page, above `TeamSeatFactsCard`. |
+| C-D10 | 二维码 was back to the inline `TeamInviteQRSection`. | `TeamInviteQRSheetButton` is restored (the sheet reads the code when it opens; `loadsOnAppear` is still on the base). |
+| — | Kept from Cursor | `teamRecoveryButtons` (C-D12 query / retry / cancel + `abortNote`), the `teamCommandWriter` environment and `rememberRecovery`. This closes my round-2 open item C-D12-r7. |
+
+`App/SettingsView.swift` (B-DR-07 search sheet) and `App/SquareDetailView.swift` (C-S4, C-S8, C-S9, C-S11) still had my hunks, so nothing was re-applied there.
+
+### Fixed in round 3
+
+| ID | Source | What changed | Files |
+|---|---|---|---|
+| flows-g2 `publish/activity/index.js` `redirectTo ?` | Gemini flow gap (MISSING-ROUTE for Claude) | MP `onResultSheetClose` redirects to `myproject?type=club_activity`. Closing the activity result sheet now pushes the project list with the 活动 filter selected (`PublishingProjectsView(initialType: "activity", readOnly: true)`). This uses the same condition as the result card's existing 项目 link: a signed-in owner whose session is current and who can read projects. Otherwise the sheet just closes, as before. `initialType` applies once, on first appearance, and loads through the existing `onChange(of: type)`. | App/PublishingModesViews.swift (ActivityPublishingView, outside the hash-pinned slices), App/PublishingManagementViews.swift |
+
+### Flow gaps on my pages (`docs/mp-gap/flows-g1.md`, `flows-g2.md`)
+
+| Edge | Status |
+|---|---|
+| `agreement/index.js` `redirectTo ?` | The MP falls back to `redirectTo(origin)` only when `navigateBack` fails, i.e. the page was opened with no stack. In the app, the agreement page is always pushed or presented, so system back is always present. No change needed. |
+| `publish/activity/index.js` `redirectTo ?` | **Fixed** (above). |
+| `publish/temp/index.js` `reLaunch myproject?type=template` | Already covered. `TemplateAuthoringSaveFlow` / `TemplateAuthoringPublishCompletion` turn the pushed editor into the own-template library once the result panel closes. |
+| `publish/fabu/index.js` `redirectTo next` (result sheet → `topic/merchantinfo`) | Already covered. `ProjectEditView.submissionResult` hands off to `submittedResource` (the publisher lifecycle host). |
+| `publish/fabu/index.js` `navigateTo fabu?mode=` (复制为新草稿 on a mode switch) | **Open, Cursor.** The app has no mode switch after the draft has content. The MP flow copies the draft (`_buildCopiedDraft`: runtime config references, tickets re-moded, categories, pending materials) into a new draft. This needs a Core draft-copy API on `ProjectEditCoordinator`. The App will then add the 复制并切换 confirm. |
+| `team/detail` & `team/join`, `square/detail`, `subpackagePass/reveal` | `[OK]` in flows-g1. |
+
+### MP assets
+
+`docs/mp-assets/mapping.md` has no new rows on my pages since round 2. The rows for template-detail shelf covers, leaderboard memojis and member-journey icons all map to `DiscoveryTemplateDetailView`, the official leaderboard and the member-journey screens, which are not on my half's page list (pages 12–22). The round-2 ticks stand.
+
+### Review findings
+
+`review/r7-rev-a`, `-b` and `-c` have no Claude-owned row on any file of my pages (checked again on the fetched branches).
+
+### Still open after round 3 (with reasons)
+
+| ID | Sev | Reason / next owner |
+|---|---|---|
+| B-DR-06 (rest) | P1 | There is still no `.denied` in `ComplianceStep` and no sign-in hook on the compliance sheet. **Cursor.** |
+| C-T6 (rest), C-T13-r7, C-I8-r7 | P1 | `TemplateAuthoringCoordinator.operationScope` now exists, but it reaches only the shelf requests (`TemplateAuthoringShelf`). Save and publish (`TemplateAuthoringContract` save fields) do not carry `scope=MERCHANT`, and `AppSession.templateAuthoringEditor` still takes only `adopting:`. Setting the scope in the App alone would show a merchant editor that saves as a player. **Cursor:** put the scope on the save and publish requests, and add `from:` / `scope:` to the editor factory. |
+| C-T2 (rest), C-T12-r7 | P1 | There is still no adoption-pending kind and no support-matrix read. **Cursor.** |
+| C-F2 (rest), C-F4 (rest), C-T5 (rest), C-F16-r7 | P1/P2 | Each needs a coordinated XCUITest change in Tests/, which belongs to Cursor. The identifiers are listed in round 1. |
+| C-F8 | P1 | Story text and image blocks already use the `storyImages` picker (选择替换图片 / insert before). What remains is the rich-story gallery rows (`ProjectEditRichStoryForms` :56, :62), which are still URL `TextField`s pinned by the story-media contracts. This is size M and needs a compile pass; not attempted blind. |
+| C-S10 | P2 | `SquarePost` still has no medal fields. **Cursor:** decode them. |
+| Team member avatars | P2 | `TeamMember` still has no `memberAvatar`. **Cursor.** |
+| C-A9-r7 | P2 | Kept as is. Design hand-off r1 CF-58 makes real-name its own pushed page, shown only when needed; it is not inline as in the MP. **Owner/design** to overrule if the MP layout should win. |
+| C-I9-r7 | P2 | The owner-final (2026-10-22) floating cover field is a full-screen canvas with an orbit, drag physics and glass edges. Contract tests pin the card identifiers (`creatorIntro.example.*`). This is size M+, and I did not attempt it without a compiler. |
+| B-PR-03 | P2 | The parity router still only pushes; it has no replace-top. |
+| B-PV-02 (presence), B-PV-07-r7, C-F14, C-A8 | — | Unchanged. These wait on Core signals. |
+
+### Checks run in the cloud (round 3)
+
+- `contract_ratchet.py --check`: 217 failing (baseline 184, new 33). `origin/ui/combined-r7` `b0ac0108d` gives the identical 33-name set, so this branch adds **0** new failures.
+- `check_typography_lint.py`: PASS.
+- `check_appsession_ratchet.py`: PASS.
+- `check_a11y_lint.py`: 17 new against the baseline, which is the same 17 as `origin/ui/combined-r7`. None are in files this branch touches.
+- Contract tests:
+  - `test_original_publishing_request_recovery` and `test_publishing_modes`: OK.
+  - `test_team_*`: OK, except `test_team_postjoin_navigation.test_separate_readonly_route_does_not_weaken_action_lock`, which also fails on the base. Cursor's C-D12 changed `pending != nil` to `let pending =`, so the pinned literal no longer matches. **Cursor:** update that pin.
+  - `test_activity_publishing_wizard.test_untouched_publishing_slices_and_activity_handoff`: fails on the base too. The Swift 6 `@preconcurrency` edit is in the hash-pinned suffix.
+- **Not compiled.** The coordinator should check:
+  - `.navigationDestination(isPresented:)` on `ActivityPublishingView`. Every host pushes it inside a NavigationStack: the publish menu, the deep link and the fixtures.
+  - `if let account, let service, let openResource { … }` inside that destination's `@ViewBuilder`.
+  - `PublishingProjectsView(…, readOnly: true, initialType: "activity")`: the argument order follows the declaration, and `designPreview` is DEBUG-only and sits after `initialType`.

@@ -16,11 +16,14 @@ t5-library-empty
 t5-free-explore
 t5-free-explore-error
 e1-bundle-detail
+# round 3: free-explore?topicId= catalog and ?requestId= receipt screens read the live session; no fixture route yet.
+# Reachable via chein://mp/subpackageMember/free-explore/index?topicId=<id> and ?requestId=<id> on a signed-in build.
 # 8 优惠券 / 9 优惠券出示 / 10 我发布的优惠券
 coupons
 coupons-empty
 member-popup-coupon-code
 merchant-coupons
+# round 3: merchant-coupons also shows the BL-77 累计领取 / 累计核销 tiles (synthetic summary)
 # 11-15 发票 (history rows: MP d_orderIcon / d_orderIcon2)
 e5-invoice-history
 e5-invoice-empty

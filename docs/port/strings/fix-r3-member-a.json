@@ -66,5 +66,73 @@
         }
       }
     }
+  },
+  "freeBundle.catalog.signIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to view"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请登录后查看"
+        }
+      }
+    }
+  },
+  "freeBundle.catalog.loadFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Couldn't load. Please try again later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "加载失败，请稍后重试"
+        }
+      }
+    }
+  },
+  "freeBundle.receipt.pending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirming your purchase. Refresh in a moment."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "购买结果确认中，请稍后刷新"
+        }
+      }
+    }
+  },
+  "freeBundle.receipt.unreadable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Can't read the purchase result right now. Please refresh."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "购买结果暂时读不到，请刷新"
+        }
+      }
+    }
   }
 }

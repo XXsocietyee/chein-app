@@ -8,6 +8,9 @@ import UIKit
     let current: Bool
     /// CLB-group-code-03 (fix-r3-club-b): re-issue in place once the code has expired. Nil while busy.
     var onReissue: (() -> Void)? = nil
+    /// CLB-group-code-04 (fix-r3-club-b round 3): MP wxml:38-39 names the session under the code
+    /// (「活动名 · 开始时间」). Nil when the entry did not carry a label; the card then shows the code alone.
+    var sessionName: String? = nil
     @Environment(\.scenePhase) private var scenePhase
     @State private var savedBrightness: CGFloat?
     @State private var autoReissuedFor: Date?
@@ -21,7 +24,7 @@ import UIKit
                     // Mini `club-game-code-sheet` card: code on white inside an ink card, then 保存.
                     VStack(spacing: CYSpacing.sm) {
                         Text("club.gov.codeAvailable").cyText(.cardTitle)
-                        CYClubGameCodeCard(state: .ready, name: nil) {
+                        CYClubGameCodeCard(state: .ready, name: sessionName) {
                             Image(uiImage: image).interpolation(.none).resizable().scaledToFit()
                                 .accessibilityLabel(Text("groupCode.image", tableName: "ClubGroupCodeDisplay"))
                                 .privacySensitive().accessibilityIdentifier("club.gov.groupCode")

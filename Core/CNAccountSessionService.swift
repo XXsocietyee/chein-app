@@ -94,6 +94,16 @@ extension CNAccountSessionService {
             return token.map(AuthRequestBuilder.isValidToken) == true && request.httpBody == nil
                 && request.value(forHTTPHeaderField: "Content-Type") == nil
         }
+        if url == configuration.url(for: .smsSend), token == nil,
+           request.value(forHTTPHeaderField: "Content-Type") == AccountPublishMPContract.formContentType,
+           let body = request.httpBody, let text = String(data: body, encoding: .utf8), text.hasPrefix("phone=") {
+            let encoded = String(text.dropFirst("phone=".count))
+            let phone = encoded.removingPercentEncoding ?? encoded
+            if let contract = try? AccountPublishMPContract.smsSendRequest(baseURL: configuration.baseURL, phone: phone),
+               contract.httpBody == body {
+                return true
+            }
+        }
         let keys: Set<String>
         if url == configuration.url(for: .smsSend) { keys = ["phone"]; guard token == nil else { return false } }
         else if url == configuration.url(for: .phone) { keys = ["phone", "code"]; guard token == nil else { return false } }

@@ -280,6 +280,16 @@ struct DiscoveryTemplateBrowserView: View {
                         .accessibilityIdentifier("discovery.topicNameSearch.noResults")
                 } else if let selection = tags.selection, let tag = tags.row.first(where: { $0.key == selection }) ?? tags.groups.flatMap(\.tags).first(where: { $0.key == selection }) {
                     topicSection("discovery.topics", rows: shown, hero: true, verbatimTitle: locale.pick(tag.zh, tag.en))
+                } else if named.count == catalog.count {
+                    // R7-PC-A2-3 topic half (MP shelf/index.js:309 `buildTopics`): 精选 rail in FEATURED_TOPICS order,
+                    // then 全部主题, then the TOPIC_SHELVES rows that have content.
+                    let featured = TemplateShelfArt.featuredTopics(shown)
+                    if !featured.isEmpty { featuredTopicRail(featured) }
+                    topicSection("discovery.shelf.allTopics", rows: shown)
+                    topicSection("discovery.shelf.withinTwoHours", rows: shown.filter { ($0.totalTime ?? 0) > 0 && ($0.totalTime ?? 0) <= 7200 }, shelfKey: "shelf2h")
+                    topicSection("discovery.shelf.scifi", rows: SearchDiscoveryFilterParity.topics(shown, matching: "scifi"), shelfKey: "shelfScifi")
+                    topicSection("discovery.shelf.cityMemory", rows: SearchDiscoveryFilterParity.topics(shown, matching: "nostalgia"), shelfKey: "shelfMemory")
+                    topicSection("discovery.shelf.solo", rows: SearchDiscoveryFilterParity.topics(shown, matching: "solo"), shelfKey: "shelfSolo")
                 } else {
                     topicSection("discovery.topics", rows: shown, hero: true)
                 }
@@ -331,6 +341,19 @@ struct DiscoveryTemplateBrowserView: View {
                     gameSection("discovery.searchResults", rows: shown, verbatimTitle: locale.pick(tag.zh, tag.en))
                 } else { gameSection("discovery.searchResults", rows: shown) }
             }
+        } else if let rows = shelfGames.value, !SearchDiscoveryFilterParity.shelfGames(rows).isEmpty {
+            // R7-PC-A2-3 / A2-6 (MP shelf/index.js:340 `buildGames`): the default 玩法 view is built from the paged
+            // `api/template/list` rows: the FEATURED_GAMES paging rail, then one shelf per GROUPS entry.
+            let shelf = SearchDiscoveryFilterParity.shelfGames(rows)
+            let featured = TemplateShelfArt.featuredGameTitles.compactMap { title in
+                shelf.first { $0.title.trimmingCharacters(in: .whitespacesAndNewlines) == title }
+            }
+            if !featured.isEmpty { featuredGameRail(featured) }
+            gameSection("discovery.shelf.group.shop", rows: SearchDiscoveryFilterParity.games(rows, matching: "shop"))
+            gameSection("discovery.shelf.group.team", rows: SearchDiscoveryFilterParity.games(rows, matching: "team"))
+            gameSection("discovery.shelf.group.city", rows: SearchDiscoveryFilterParity.games(rows, matching: "city"))
+        } else if shelfGames.isLoading, shelfGames.value == nil {
+            CYSkeleton()
         } else {
             if home.isLoading { CYSkeleton() }
             if let error = home.error {
@@ -346,7 +369,46 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
-    @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate], hint: LocalizedStringKey? = nil, hero: Bool = false, verbatimTitle: String? = nil) -> some View {
+    /// R7-PC-A2-4: MP `openTopic` — a preview-only row says 暂未开放 instead of opening.
+    private func openTopic(_ item: DiscoveryTopicTemplate) {
+        if item.previewOnly {
+            toastMessage = appLocalized("searchMap.template.previewOnly", locale: locale)
+            return
+        }
+        guard topicSelection == nil, topics.canOpen(reader: reader),
+              topics.value?.contains(where: { $0.id == item.id }) == true else { return }
+        topicSelection = .init(identity: reader.discoveryPresentationIdentity,
+            coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
+        topics.cover()
+    }
+    /// MP `featTopics` swiper (shelf/index.wxml:21-36): bundled-cover cards with page dots.
+    @ViewBuilder private func featuredTopicRail(_ rows: [DiscoveryTopicTemplate]) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYSectionHeader("discovery.featured")
+            TabView {
+                ForEach(rows, id: \.id) { item in
+                    Button { openTopic(item) } label: {
+                        if let art = TemplateShelfArt.topicCover(item.name) {
+                            TemplateShelfArtHeroCard(art: art, title: item.name.isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name), meta: item.subtitle)
+                        } else {
+                            CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .allowsHitTesting(topics.canOpen(reader: reader))
+                    .padding(.bottom, CYSpacing.xl)
+                    .pageTemplateGroupedCard(label: topicCardLabel(item), traits: .isButton)
+                    .accessibilityIdentifier("discovery.topic.featured.\(item.id)")
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .always))
+            .indexViewStyle(.page(backgroundDisplayMode: .interactive))
+            .aspectRatio(16.0 / 11.5, contentMode: .fit)
+            .accessibilityIdentifier("discovery.featuredTopics")
+        }
+    }
+    /// `shelfKey` names a secondary shelf: its cards get `discovery.topic.<shelfKey>.<id>` so the main card id stays unique.
+    @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate], hint: LocalizedStringKey? = nil, hero: Bool = false, verbatimTitle: String? = nil, shelfKey: String? = nil) -> some View {
         if !rows.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if let shownTitle = verbatimTitle {
@@ -356,22 +418,17 @@ struct DiscoveryTemplateBrowserView: View {
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
                     Button {
-                        // R7-PC-A2-4: MP `openTopic` — a preview-only row says 暂未开放 instead of opening.
-                        if item.previewOnly {
-                            toastMessage = appLocalized("searchMap.template.previewOnly", locale: locale)
-                            return
-                        }
-                        guard topicSelection == nil, topics.canOpen(reader: reader),
-                              topics.value?.contains(where: { $0.id == item.id }) == true else { return }
-                        topicSelection = .init(identity: reader.discoveryPresentationIdentity,
-                            coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
-                        topics.cover()
+                        openTopic(item)
                     } label: {
-                        if hero && index == 0 {
+                        // MP asset (shelf/art.js THEMES): a known topic name always shows its bundled cover.
+                        if hero && index == 0, let art = TemplateShelfArt.topicCover(item.name) {
+                            TemplateShelfArtHeroCard(art: art, title: item.name.isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name), meta: item.subtitle)
+                        } else if hero && index == 0 {
                             CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
                         } else {
                             HStack(alignment: .top, spacing: CYSpacing.md) {
-                                DiscoveryTopicCoverThumb(urlString: item.imgUrl, seed: item.name)
+                                if let art = TemplateShelfArt.topicCover(item.name) { TemplateShelfArtThumb(art: art) }
+                                else { DiscoveryTopicCoverThumb(urlString: item.imgUrl, seed: item.name) }
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                     DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").cyText(.cardTitle)
                                         .foregroundStyle(palette.textPrimary)
@@ -386,9 +443,36 @@ struct DiscoveryTemplateBrowserView: View {
                         }
                     }.buttonStyle(.plain).allowsHitTesting(topics.canOpen(reader: reader))
                         .pageTemplateGroupedCard(label: topicCardLabel(item), traits: .isButton)
-                        .accessibilityIdentifier("discovery.topic.\(item.id)")
+                        .accessibilityIdentifier(shelfKey.map { "discovery.topic.\($0).\(item.id)" } ?? "discovery.topic.\(item.id)")
                 }
             }
+        }
+    }
+    /// MP `featGames` swiper (shelf/index.wxml:49-78): one large bundled-cover card per page, with page dots.
+    @ViewBuilder private func featuredGameRail(_ rows: [DiscoveryPlayTemplate]) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYSectionHeader("discovery.featured")
+            TabView {
+                ForEach(rows, id: \.id) { item in
+                    NavigationLink {
+                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
+                    } label: {
+                        if let art = TemplateShelfArt.gameCover(item.title) {
+                            TemplateShelfArtHeroCard(art: art, title: Text(verbatim: item.title), meta: item.description)
+                        } else {
+                            CYImageCard(verbatim: item.title, fallback: "discovery.untitledPlay", meta: item.description, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.bottom, CYSpacing.xl)
+                    .pageTemplateGroupedCard(label: gameCardLabel(item), traits: .isButton)
+                    .accessibilityIdentifier("discovery.play.featured.\(item.id)")
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .always))
+            .indexViewStyle(.page(backgroundDisplayMode: .interactive))
+            .aspectRatio(16.0 / 11.5, contentMode: .fit)
+            .accessibilityIdentifier("discovery.featuredGames")
         }
     }
     @ViewBuilder private func gameSection(_ title: LocalizedStringKey, rows: [DiscoveryPlayTemplate], hero: Bool = false, verbatimTitle: String? = nil) -> some View {
@@ -403,8 +487,16 @@ struct DiscoveryTemplateBrowserView: View {
                     NavigationLink {
                         DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
                     } label: {
-                        if hero && index == 0 {
+                        // MP asset (shelf/game-covers.js GAMES): a known play title always shows its bundled cover.
+                        if hero && index == 0, let art = TemplateShelfArt.gameCover(item.title) {
+                            TemplateShelfArtHeroCard(art: art, title: item.title.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: item.title), meta: item.description)
+                        } else if hero && index == 0 {
                             CYImageCard(verbatim: item.title, fallback: "discovery.untitledPlay", meta: item.description, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                        } else if let art = TemplateShelfArt.gameCover(item.title) {
+                            HStack(alignment: .top, spacing: CYSpacing.md) {
+                                TemplateShelfArtThumb(art: art)
+                                DiscoveryPlayRow(item: item)
+                            }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                         } else {
                             DiscoveryPlayRow(item: item).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                         }

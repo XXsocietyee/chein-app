@@ -85,9 +85,20 @@ struct ObjectBadgeThreeDEntry: ViewModifier {
     @Environment(\.objectCardMedia) private var envMedia
     @State private var scope = UUID()
     private var parameters: ObjectBadgeDetailParameters? {
-        guard case .medal(let medal) = badge, ObjectBadgePresentation.style(medal: medal) == "enamel" else { return nil }
-        return ObjectBadgeDetailParameters(query: ["name": medal.medalName, "style": "enamel", "rarity": "1", "img": medal.medalImage],
-                                           fallbackName: "")
+        switch badge {
+        case .medal(let medal):
+            guard ObjectBadgePresentation.style(medal: medal) == "enamel" else { return nil }
+            return ObjectBadgeDetailParameters(query: ["name": medal.medalName, "style": "enamel", "rarity": "1", "img": medal.medalImage],
+                                               fallbackName: "")
+        case .identity(let identity):
+            // MP badge-wall wxml:82 / `goBadge3d`: an unlocked identity pin opens badge-3d `style=pin&glyph=&name=&rarity=`
+            // (rarity = the category track). A locked one has no 3D entry.
+            guard identity.unlocked else { return nil }
+            var query = ["name": identity.badgeName, "style": "pin",
+                         "rarity": String(ObjectBadgePresentation.track(category: identity.category))]
+            if let glyph = ObjectBadgePinGlyph.glyph(code: identity.badgeCode) { query["glyph"] = glyph }
+            return ObjectBadgeDetailParameters(query: query, fallbackName: "")
+        }
     }
     func body(content: Content) -> some View {
         content.toolbar {
@@ -101,6 +112,23 @@ struct ObjectBadgeThreeDEntry: ViewModifier {
                 }
             }
         }
+    }
+}
+
+/// MP badge-wall `CODE_TO_GLYPH` / `glyphFor`: badge code → pin glyph key (badge-3d `glyph`). Unknown → nil (DEFAULT).
+enum ObjectBadgePinGlyph {
+    static let byCode: [String: String] = [
+        "FIRST_STEP": "arrival", "TOPIC_CLEAR": "route", "ID_CITY_PROPOSAL": "proposal", "ID_FOUNDING_CIRCLE": "founding",
+        "ID_JOINED_CIRCLE": "joined", "ID_GATHERING": "gathering", "ID_FOLLOWED_PATH": "followed",
+        "ID_NEW_COMPANION": "companion", "ID_CITY_ALLIANCE": "alliance", "ID_CITY_LIT": "citylit", "ID_ROAM_FIRST": "roam"
+    ]
+    static func glyph(code: String) -> String? {
+        if let glyph = byCode[code] { return glyph }
+        // Official place badges (ROAM_POI_<id>) share 点亮一隅.
+        if code.hasPrefix("ROAM_POI_"), code.count > 9, code.dropFirst(9).allSatisfy(\.isASCII), code.dropFirst(9).allSatisfy(\.isNumber) {
+            return "citylit"
+        }
+        return nil
     }
 }
 
@@ -357,7 +385,9 @@ enum ObjectBadgeShowroomMode: Equatable {
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                         // B3D-4: MP stage hint; under Reduce Motion it says the spin is off.
-                        Text(reduceMotion ? "objects.badge3d.hint.reduced" : "objects.badge3d.hint.drag")
+                        // B3D-1: a pin badge reads the pin hint (Core `ObjectBadgeTurntable.hintKey`).
+                        Text(reduceMotion ? "objects.badge3d.hint.reduced"
+                             : (parameters.style == "pin" ? "objects.badge3d.hint.pin" : "objects.badge3d.hint.drag"))
                             .cyText(.meta)
                             .foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("objects.badge3d.hint")

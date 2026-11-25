@@ -276,6 +276,14 @@ public struct MemberHomeService {
               base.id == nil || full.id == base.id else { return base }
         return full
     }
+    /// Lane-absent production identity. Posts `userInfoRequest` (`member_id`) and decodes the same snapshot.
+    public func contractIdentity(token: String, memberID: Int) async throws -> MemberIdentitySnapshot {
+        guard memberID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        var request = try AccountPublishMPContract.userInfoRequest(
+            baseURL: configuration.baseURL, memberID: String(memberID), token: token)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        return try await read(request)
+    }
     /// Same body-less `userInfo` read as `identity`. Null or non-object data is `.unknown`, not a zeroed card.
     public func identityPage(token: String) async throws -> MemberHomePageState {
         let request = try AuthRequestBuilder(configuration: configuration).make(.userInfo, token: token)
@@ -397,6 +405,13 @@ public struct MemberHomeSession: Equatable {
     }
     public func identity() async throws -> MemberIdentitySnapshot {
         try await read(requiresApproval: false) { try await $0.identity(token: $1) }
+    }
+    /// Production header path when `AccountPublishContractLane` is absent.
+    public func contractIdentity() async throws -> MemberIdentitySnapshot {
+        guard let memberID = currentSession()?.accountID else { throw APIError.unauthorized }
+        return try await read(requiresApproval: false) { service, token in
+            try await service.contractIdentity(token: token, memberID: memberID)
+        }
     }
     public func roleInfo() async throws -> MemberRoleInfo {
         try await read(requiresApproval: true) { try await $0.roleInfo(token: $1) }

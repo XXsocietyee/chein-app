@@ -15,11 +15,6 @@ struct TopicDetailView: View {
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     var ticketWalletDestination: ((Int) -> AnyView)? = nil
-    /// R7-PC-B1-15: a club session card link (`via=session`) makes the bar open the session picker before self-play.
-    var prefersSessionPicker: Bool = false
-    /// R7-PC-B1-19: the topic editor (`pages/publish/fabu/index?id=` + `scope`) for a free-explore owner in pricing.
-    var ownerEditorDestination: ((Int, String?) -> AnyView)? = nil
-    @State private var showsOwnerEditor = false
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
@@ -372,6 +367,8 @@ struct TopicDetailView: View {
             Section("topic.source.sessions") {
                 if value.tickets.isEmpty { Text("topic.noTickets") }
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
+                    // R7-PC-B1-13 (MP index.wxml:227 `bindtap="bmClick"`): a session row opens the in-page session picker.
+                    Button { if !showingSessionSelection { showingSessionSelection = true } } label: {
                     // Mini-program `sess`: name / time / meeting point / refund on the left, price and seats left on the right.
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         // Grouped session card: one element. The visible rows stay in source order.
@@ -392,6 +389,10 @@ struct TopicDetailView: View {
                             else { Text("topic.source.seatsUnknown").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                         }
                     }.accessibilityElement(children: .combine)
+                    .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("topic.session.row")
                 }
                 if !value.tickets.isEmpty { Text("topic.source.sessionNote.mp").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }.id("topicXcx.anchor.sessions")
@@ -560,11 +561,6 @@ struct TopicDetailView: View {
                               preferSession: preferSession,
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
                               heroNamespace: barHero)
-        }
-        .navigationDestination(isPresented: $showsOwnerEditor) {
-            if let ownerEditorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
-                ownerEditorDestination(value.id, scope)
-            }
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)

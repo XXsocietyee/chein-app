@@ -81,7 +81,22 @@ enum CYPassCardPick {
             if let ticket = current(in: snapshot) {
                 ScrollView {
                     VStack(spacing: CYSpacing.lg) {
-                        TicketPassCard(ticket: ticket, onVerified: { glowTick += 1 })
+                        let openable = snapshot.tickets.filter { $0.action == .detail }
+                        if openable.count > 1, openable.contains(where: { $0.id == ticket.id }) {
+                            // PLY-21-13 (MP signup index.js:655-708): several passes page sideways; the page in view is the
+                            // current ticket. The overflow 切换票券 picker stays as the non-gesture path.
+                            StackedPassHorizontalPager(passes: openable, selectedID: Binding(
+                                get: { ticket.id }, set: { if let id = $0 { selectedID = id } })) { pass in
+                                TicketPassCard(ticket: pass, onVerified: { if pass.id == ticket.id { glowTick += 1 } })
+                            }
+                            .accessibilityIdentifier("ticketPass.pager")
+                            let position = (openable.firstIndex(where: { $0.id == ticket.id }) ?? 0) + 1
+                            Text("ticketPass.pager.position \(position) \(openable.count)")
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit()
+                                .accessibilityIdentifier("ticketPass.pager.position")
+                        } else {
+                            TicketPassCard(ticket: ticket, onVerified: { glowTick += 1 })
+                        }
                         // PLY-21-3 / PLY-21-4: MP signup wxml:103-106 puts 开始游戏 (查看记录 once cleared) under the pass.
                         if playProvider != nil, ticket.status == .ready, ticket.action == .detail, !ticket.isWalletLocked,
                            TicketWalletPlayEntry.entry(ticket: ticket, requestedID: ticket.id) != nil {

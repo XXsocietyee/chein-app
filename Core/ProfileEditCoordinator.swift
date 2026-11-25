@@ -92,7 +92,12 @@ public final class ProfileEditCoordinator {
         guard let service else { throw APIError.notConfigured }
         guard currentSession() == expected else { throw CancellationError() }
         do {
-            let result = try await service.read(token: expected.token)
+            let result: ProfileEditSnapshot
+            if let concrete = service as? ProfileEditService {
+                result = try await concrete.read(token: expected.token, memberID: expected.identity.accountID)
+            } else {
+                result = try await service.read(token: expected.token)
+            }
             guard currentSession() == expected, !Task.isCancelled else { throw CancellationError() }
             guard result.id == expected.identity.accountID else { throw APIError.malformedResponse }
             return result

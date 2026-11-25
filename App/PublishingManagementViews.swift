@@ -8,11 +8,14 @@ import SwiftUI
     let account: PublishingSession?
     var openResource: (PublishedResource) -> Void
     var readOnly = false
+    /// MP `myproject/index?type=club_activity` lands on one type tab. Applied once, on first appearance.
+    var initialType: String? = nil
     #if DEBUG
     /// Design fixture only (DEBUG): "rows" | "empty" | "loading" bypasses the service read with synthetic projects.
     var designPreview: String? = nil
     #endif
     @State private var type = "all"
+    @State private var appliedInitialType = false
     @State private var state = "all"
     @State private var owner = "all"
     @State private var rows: [PublishingProject] = []
@@ -99,7 +102,14 @@ import SwiftUI
         .listStyle(.plain).scrollContentBackground(.hidden).cyDomainPageBackground()
         .navigationBarTitleDisplayMode(.large)
 .navigationTitle(Text("publishModes.projects"))
-        .task { await load() }.refreshable { await load() }
+        .task {
+            if !appliedInitialType, let initialType, Self.typeFilters.contains(initialType) {
+                appliedInitialType = true
+                // The type change reloads through onChange(of: type).
+                if type != initialType { type = initialType; return }
+            }
+            await load()
+        }.refreshable { await load() }
         .onChange(of: type) { _, _ in Task { await load() } }
         .onChange(of: state) { _, _ in Task { await load() } }
         .onChange(of: owner) { _, _ in Task { await load() } }
