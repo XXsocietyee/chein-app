@@ -312257,6 +312257,125 @@
           }
         }
       }
+    },
+    "clubOpsEvent.roster.call": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Call"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拨打电话"
+          }
+        }
+      }
+    },
+    "clubOpsGov.card.banAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a reason and ban"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写原因并封禁"
+          }
+        }
+      }
+    },
+    "clubOpsGov.card.banReason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁原因"
+          }
+        }
+      }
+    },
+    "club.host.merchant.activeSub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One account can't be both a merchant and a club host. Switch to the merchant side to keep running your business."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一个账号不能同时是商家和俱乐部主理人，切换到商家端继续经营"
+          }
+        }
+      }
+    },
+    "club.host.merchant.switch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to merchant side"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换到商家端"
+          }
+        }
+      }
+    },
+    "club.ops.create.editName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change the name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去改名称"
+          }
+        }
+      }
+    },
+    "clubSettlement.withdraw.complaintWaiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can withdraw after the complaint period ends"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客诉期结束后可提现"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
