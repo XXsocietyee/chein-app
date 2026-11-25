@@ -211,6 +211,8 @@ struct ClubGovernanceReadView: View {
     @State private var feedClub: ClubFeedClubRoute?
     /// CLB-topic-detail-04: /api/club/crm/topic-manage-stats read beside the topic overview (MP loadManageStats).
     @State private var topicStats: ClubGovernanceValue?
+    /// CLB-G12: the reviewed MP page the topic 更多 menu opens.
+    @State private var topicMoreRoute: ClubTopicMoreRoute?
     @State private var feedMediaScope = UUID()
     private var readContext: ClubGovernanceReadContext {
         .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : (operation == .topicOverview ? storyTemplates.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision)),
@@ -1524,6 +1526,24 @@ struct ClubGovernanceReadView: View {
                 guard expected == readContext, !Task.isCancelled else { return }
                 topicStats = read
             }
+            // CLB-G12 (MP topic-detail wxml:426-500 「更多」): 编辑主题内容 (fabu ?id), 确认终价 while pricing (lifecycle 2,
+            // MP setting.canManage → the organiser's canDirect here; the pricing page re-checks), 承接审核 when the stats
+            // grant canReviewChapterApplications (merchantinfo ?scope=CLUB). Each opens the reviewed MP route.
+            .toolbar {
+                if let topicID = scope.topicID, scope.clubID != nil, canDirect || stats["canReviewChapterApplications"] == .bool(true) {
+                    ToolbarItem(placement: .primaryAction) {
+                        ClubGapTopicMoreMenu(
+                            canEditContent: canDirect,
+                            canConfirmFinalPrice: canDirect && value["lifecycle"].int == 2,
+                            canReviewUndertake: stats["canReviewChapterApplications"] == .bool(true),
+                            onEditContent: { topicMoreRoute = .init(page: "pages/publish/fabu/index", query: ["id": String(topicID)]) },
+                            onConfirmFinalPrice: { topicMoreRoute = .init(page: "pages/topic/pricing/index", query: ["topicId": String(topicID), "club": "1"]) },
+                            onReviewUndertake: { topicMoreRoute = .init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB"]) })
+                        .accessibilityIdentifier("club.topic.more")
+                    }
+                }
+            }
+            .navigationDestination(item: $topicMoreRoute) { route in MPReviewedPageScreen(page: route.page, query: route.query) }
             // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`;
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
             if ClubTopicDetailPort.showsVerify(topicDisplay, canViewVerify: stats["canViewVerify"].bool) {
@@ -1585,6 +1605,9 @@ struct ClubGovernanceReadView: View {
                     !loading && self.snapshot == snapshot && snapshotContext == terminalContext && readContext == terminalContext &&
                     snapshotGeneration == terminalGeneration && identity == access.identity && scenePhase == .active
                 }, presentation: terminalPresentation)
+            // CLB-G13 (MP topic-detail wxml:160-500): with an activityId the topic detail carries the director block
+            // (K8 banner, 准备总览, director tools, 排行榜), only where topic-manage-stats grants canDirect.
+            if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID) }
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
             // CLB-topic-detail-02: the phase primary is the pinned footer (`topicPrimaryFooter`), not the last row.
         } else if operation == .audienceCounts {

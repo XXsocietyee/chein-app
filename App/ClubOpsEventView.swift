@@ -100,6 +100,9 @@ import SwiftUI
                     CYListRow("club.gov.action.cancelOccurrence", trailing: .none) { CYRowIcon(systemImage: "calendar.badge.minus") }
                 }
             } header: { ClubOpsTableHeading("clubOpsEvent.section.occurrence") }
+            // CLB-G15 (MP event-ops wxml:39-43): 主持小费 · 暂不可开通 under 本场管理 (collection channel not enabled, so no
+            // switch or ratio). paymentNotice / windowWarning stay nil until Core feeds them (fix-r8-club "for Cursor").
+            ClubGapEventOpsExtrasSection(onTapPublishTopic: {})
         case .roster:
             Section {
                 push(.roster, eventScope) {

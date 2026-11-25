@@ -302017,6 +302017,40 @@
           }
         }
       }
+    },
+    "club.topic.director.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the director desk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载导演台"
+          }
+        }
+      }
+    },
+    "club.topic.director.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the director desk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导演台加载失败"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
