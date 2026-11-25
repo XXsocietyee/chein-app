@@ -35,7 +35,7 @@ public struct ProjectEditGapRichStoryBlocksSection: View {
                 TextField(AccountPublishRound4Copy.branchQuestionPlaceholder, text: $branch.question)
                     .cyText(.body)
                 ForEach($branch.options) { $option in
-                    TextField("选项文案", text: $option.label)
+                    TextField("accountPublish.round4.optionLabel", text: $option.label)
                         .cyText(.body)
                 }
                 if branch.options.count < 3 {
@@ -168,7 +168,7 @@ public struct TemplateAuthoringGapRound4Section: View {
         Group {
             if draft.isCityNodeMode {
                 Section {
-                    LabeledContent("玩法形态", value: draft.cityNodeModeLabel)
+                    LabeledContent("templateAuthor.round4.playForm", value: draft.cityNodeModeLabel)
                         .cyText(.body)
                 }
             }
@@ -177,7 +177,7 @@ public struct TemplateAuthoringGapRound4Section: View {
                 Toggle(TemplateAuthoringExtraCopy.relaxOnLowHP, isOn: $draft.relaxOnLowHP)
                     .cyText(.body)
                 if draft.relaxOnLowHP {
-                    Picker("松一点程度", selection: $draft.relaxLevel) {
+                    Picker("templateAuthor.round4.relaxLevel", selection: $draft.relaxLevel) {
                         ForEach(AccountPublishRound4Copy.relaxLevels, id: \.self) { level in
                             Text(verbatim: level).tag(level)
                         }
@@ -190,7 +190,7 @@ public struct TemplateAuthoringGapRound4Section: View {
                 Toggle(TemplateAuthoringExtraCopy.scanReply, isOn: $draft.scanReplyEnabled)
                     .cyText(.body)
                 if draft.scanReplyEnabled {
-                    TextField("输入扫完后的回复", text: $draft.scanReplyText, axis: .vertical)
+                    TextField("templateAuthor.round4.scanReplyPrompt", text: $draft.scanReplyText, axis: .vertical)
                         .lineLimit(2...4)
                         .cyText(.body)
                 }

@@ -20,10 +20,32 @@ enum ReviewedMerchantWorkbenchReadRoute {
               url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port else { return false }
         let absolute = url.absoluteString
         if absolute == baseURL.appendingPathComponent(eventsPath).absoluteString {
-            return request.value(forHTTPHeaderField: "Content-Type") == "application/json" && request.httpBody == Data("{}".utf8)
+            return MerchantEventsBodyAdmission.admits(request)
         }
         guard request.httpBody == nil || request.httpBody?.isEmpty == true,
               request.value(forHTTPHeaderField: "Content-Type") == nil else { return false }
         return bodylessPaths.contains { absolute == baseURL.appendingPathComponent($0).absoluteString }
+    }
+}
+
+/// `api/merchant/events` admits the existing JSON `{}` and Core's empty urlencoded POST. A POST with no content type stays out.
+enum MerchantEventsBodyAdmission {
+    static func admits(_ request: URLRequest) -> Bool {
+        let type = request.value(forHTTPHeaderField: "Content-Type")
+        if type == "application/json", request.httpBody == Data("{}".utf8) { return true }
+        let empty = request.httpBody == nil || request.httpBody?.isEmpty == true
+        return type == "application/x-www-form-urlencoded; charset=utf-8" && empty
+    }
+}
+
+/// `MerchantOperationsService.save` sends `business_status=<int>` as one form field. JSON business-status stays unmatched.
+enum MerchantBusinessStatusAdmission {
+    static func kind(contentType: String?, body: Data?, matches: Bool) -> ReviewedMerchantOperationsRoute.Kind? {
+        guard matches, contentType == "application/x-www-form-urlencoded; charset=utf-8",
+              let body, let text = String(data: body, encoding: .utf8),
+              text.hasPrefix("business_status=") else { return nil }
+        let value = String(text.dropFirst("business_status=".count))
+        guard !value.isEmpty, value.allSatisfy(\.isNumber), Int(value) != nil, text == "business_status=\(value)" else { return nil }
+        return .write(path: "api/merchant/business-status/update")
     }
 }

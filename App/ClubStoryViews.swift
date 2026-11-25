@@ -78,37 +78,56 @@ struct ClubStoryEmptyState: View {
 }
 struct ClubStoryChapterTitle: View {
     let chapter: ClubStoryChapter
+    @Environment(\.locale) private var locale
     var body: some View {
-        Group {
-            if let name = chapter.name, name.hasPrefix("第"), name.contains("章") { Text(verbatim: name) }
-            else if let name = chapter.name { Text("club.story.chapter \(chapter.id + 1)") + Text(verbatim: " · " + name) }
-            else { Text("club.story.chapter \(chapter.id + 1)") }
+        Text(verbatim: ClubStoryChapterText.title(chapter, locale: locale))
+            .cyText(.cardTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("club.gov.fact.title")
+    }
+}
+/// CLB-topic-story-06 (MP topic-story/index.js:30-35, 104-107): 第一章 · name with Chinese ordinals, and one meta
+/// line 「1h 30min · 3 站」 (or 未开放 · 待招商 when the chapter has no stop).
+enum ClubStoryChapterText {
+    private static let chineseOrdinals = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
+    static func title(_ chapter: ClubStoryChapter, locale: Locale) -> String {
+        let name = chapter.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if name.hasPrefix("第"), name.contains("章") { return name }
+        let ordinal: String
+        if locale.language.languageCode?.identifier == "zh" {
+            let word = chapter.id >= 0 && chapter.id < chineseOrdinals.count ? chineseOrdinals[chapter.id] : String(chapter.id + 1)
+            ordinal = "第" + word + "章"
+        } else {
+            ordinal = appLocalized("club.story.chapter \(chapter.id + 1)", locale: locale)
         }
-        .cyText(.cardTitle)
-        .foregroundStyle(CYColor.textPrimary)
-        .fixedSize(horizontal: false, vertical: true)
-        .accessibilityIdentifier("club.gov.fact.title")
+        return name.isEmpty ? ordinal : ordinal + " · " + name
+    }
+    /// MP `durationText`: 90 → 1h 30min, 60 → 1h, 25 → 25min; a missing or non-positive value is left out.
+    static func duration(_ minutes: Double?) -> String? {
+        guard let minutes, minutes.isFinite, minutes > 0 else { return nil }
+        let total = Int(minutes.rounded())
+        guard total > 0 else { return nil }
+        let hours = total / 60, rest = total % 60
+        if hours > 0, rest > 0 { return "\(hours)h \(rest)min" }
+        if hours > 0 { return "\(hours)h" }
+        return "\(rest)min"
+    }
+    static func meta(_ chapter: ClubStoryChapter, locale: Locale) -> String {
+        guard !chapter.stops.isEmpty else { return appLocalized("club.story.awaitingMerchants", locale: locale) }
+        return [duration(chapter.totalTime), appLocalized("club.story.stopCount \(chapter.stops.count)", locale: locale)]
+            .compactMap { $0 }.joined(separator: " · ")
     }
 }
 struct ClubStoryChapterHeader: View {
     let chapter: ClubStoryChapter
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             ClubStoryChapterTitle(chapter: chapter)
-            if chapter.stops.isEmpty {
-                Text("club.story.awaitingMerchants")
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text("club.story.stopCount \(chapter.stops.count)")
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let minutes = chapter.totalTime {
-                    Text("club.story.minutes \(minutes.formatted(.number.precision(.fractionLength(0...2))))")
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
+            Text(verbatim: ClubStoryChapterText.meta(chapter, locale: locale))
+                .cyText(.label).foregroundStyle(CYColor.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }.textCase(nil)
     }
 }
@@ -133,81 +152,160 @@ struct ClubStoryChapterHeader: View {
         }
     }
 }
+/// CLB-topic-story-08 (MP topic-story wxml:28-52, wxss:37-133): compact timeline stop. A numbered dot on the left, then
+/// one raised card with a 117×80 thumbnail beside 时间 / 站名 / 地址. The estimated walk sits above as one tertiary line.
+/// CLB-topic-story-04: the address is the mounted `ClubGapStoryMapAddressRow` (opens Maps once Core supplies coordinates).
 @MainActor struct ClubStoryStopCard: View {
     let stop: ClubStoryStop
     let imageReader: (any RetainedPublicImageReading)?
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if let minutes = stop.estimatedWalkingMinutes {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    CYListRow("topic.itinerary.estimatedWalkMinutes", trailing: .value(minutes.formatted(.number))) {
-                        CYRowIcon(systemImage: "figure.walk")
-                    }
-                    Text("topic.itinerary.estimateNotice")
-                        .cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                        .fixedSize(horizontal: false, vertical: true)
+                Label {
+                    Text("club.story.walkMinutes \(minutes)")
+                } icon: {
+                    Image(systemName: "figure.walk").accessibilityHidden(true)
                 }
+                .cyText(.micro).foregroundStyle(CYColor.textTertiary)
+                .padding(.leading, 28 + CYSpacing.md)
                 .accessibilityElement(children: .combine)
+                .accessibilityHint(Text("topic.itinerary.estimateNotice"))
                 .accessibilityIdentifier("club.story.walk.\(stop.id)")
             }
-            ZStack(alignment: .topLeading) {
-                ClubStoryCover(raw: stop.imgUrl, imageReader: imageReader, seed: stop.name ?? String(stop.id))
-                CYStatusChip("club.story.stop \(stop.sequence)", tone: .neutral, systemImage: "mappin.circle.fill")
-                    .padding(CYSpacing.sm)
-            }
-            if let name = stop.name { Text(verbatim: name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-            else { Text("club.story.unnamedStop").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-            if let time = stop.businessTime {
-                CYListRow(verbatim: time, trailing: .none) { CYRowIcon(systemImage: "clock") }
-            } else {
-                CYListRow("club.story.hoursUnavailable", trailing: .none) { CYRowIcon(systemImage: "clock") }
-            }
-            if let address = stop.address {
-                CYListRow(verbatim: address, trailing: .none) { CYRowIcon(systemImage: "mappin.and.ellipse") }
-            } else {
-                CYListRow("club.story.addressUnavailable", trailing: .none) { CYRowIcon(systemImage: "mappin.and.ellipse") }
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                Text(verbatim: String(stop.sequence))
+                    .cyText(.label).foregroundStyle(CYColor.textPrimary)
+                    .frame(width: 28, height: 28)
+                    .background(Circle().fill(CYColor.bgRaised))
+                    .overlay(Circle().strokeBorder(CYColor.borderStrong, lineWidth: 1))
+                    .accessibilityLabel(Text("club.story.stop \(stop.sequence)"))
+                card
             }
         }
-        .padding(.vertical, CYSpacing.sm)
+        .padding(.vertical, CYSpacing.xs)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("club.story.stop.\(stop.id)")
     }
+    private var card: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
+        return layout {
+            thumbnail
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Group {
+                    if let time = stop.businessTime { Text(verbatim: time) } else { Text("club.story.hoursUnavailable") }
+                }
+                .cyText(.caption).foregroundStyle(CYColor.textPrimary)
+                Group {
+                    if let name = stop.name { Text(verbatim: name) } else { Text("club.story.unnamedStop") }
+                }
+                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                if let address = stop.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    ClubGapStoryMapAddressRow(stop: ClubStoryStopLocation(name: stop.name ?? "", address: address))
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                } else {
+                    Label {
+                        Text("club.story.addressUnavailable")
+                    } icon: {
+                        MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true)
+                    }
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(CYSpacing.md)
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
+    }
+    @ViewBuilder private var thumbnail: some View {
+        Group {
+            if let raw = stop.imgUrl {
+                NativeMediaImage(raw: raw, reader: imageReader ?? RetainedPublicImageReader(), zoomable: false)
+            } else {
+                // MP stop-card__cover--empty: a plain tile with the image glyph, labelled 「站名 暂无图片」.
+                ZStack {
+                    CYColor.bgSurfaceStrong
+                    Image(systemName: "photo").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                }
+            }
+        }
+        .frame(width: 117, height: 80)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .accessibilityHidden(true)
+    }
 }
+/// CLB-topic-story-09 (MP topic-story wxml:89-110, wxss:226-300): an image-led play card. The cover fills the card under a
+/// bottom scrim; the method badge sits top-left, the order top-right, and the title with one meta line
+/// 「第 N 站 节点 · 人数 · 分钟 · 难度」 reads on the scrim. Actions stay below the card (GV playContent).
 @MainActor struct ClubStoryGameplayCard: View {
     let play: ClubStoryGameplay
     let imageReader: (any RetainedPublicImageReading)?
+    var order: Int? = nil
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            ClubStoryCover(raw: play.imgUrl, imageReader: imageReader, seed: play.title ?? String(play.id))
-            chipRow
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(alignment: .top, spacing: CYSpacing.sm) {
+                chipRow
+                Spacer(minLength: CYSpacing.sm)
+                Text(verbatim: String(order ?? play.sequence))
+                    .cyText(.label)
+                    .frame(minWidth: 26, minHeight: 26)
+                    .background(Circle().fill(CYColor.bgOverlay))
+                    .accessibilityHidden(true)
+            }
+            Spacer(minLength: CYSpacing.xl)
             Group {
                 if let title = play.title { Text(verbatim: title) }
                 else { Text("discovery.untitledPlay") }
             }
-            .cyText(.cardTitle)
-            .foregroundStyle(CYColor.textPrimary)
+            .cyText(.sheetTitle)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("club.gov.fact.title")
-            CYListRow("club.story.stop \(play.sequence)", trailing: .none) { CYRowIcon(systemImage: "mappin.circle") }
+            Text(verbatim: metaLine)
+                .cyText(.label)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("club.story.play.\(play.id)")
-            if let name = play.nodeName {
-                CYListRow(verbatim: name, trailing: .none) { CYRowIcon(systemImage: "flag") }
-            }
-            if let players = play.players {
-                CYListRow(verbatim: players, trailing: .none) { CYRowIcon(systemImage: "person.2") }
-            }
-            if let duration = play.duration {
-                CYListRow("club.story.minutes \(duration.formatted(.number.precision(.fractionLength(0...2))))", trailing: .none) {
-                    CYRowIcon(systemImage: "clock")
-                }
-            }
-            if let difficulty = play.difficulty {
-                CYListRow("club.story.difficulty \(difficulty)", trailing: .none) { CYRowIcon(systemImage: "speedometer") }
-            }
         }
-        .fixedSize(horizontal: false, vertical: true)
+        .foregroundStyle(.white)
+        .padding(CYSpacing.lg)
+        .frame(maxWidth: .infinity, minHeight: 248, alignment: .leading)
+        .background { cover }
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .environment(\.colorScheme, .dark)
+        .accessibilityElement(children: .combine)
+    }
+    /// MP `joinMeta(['第 N 站 ' + node, players, duration + ' 分钟', '难度' + difficulty])`.
+    private var metaLine: String {
+        var stopText = appLocalized("club.story.stop \(play.sequence)", locale: locale)
+        if let node = play.nodeName?.trimmingCharacters(in: .whitespacesAndNewlines), !node.isEmpty { stopText += " " + node }
+        let duration = play.duration.map { appLocalized("club.story.minutes \($0.formatted(.number.precision(.fractionLength(0...2))))", locale: locale) }
+        let difficulty = play.difficulty.map { appLocalized("club.story.difficulty \($0)", locale: locale) }
+        return [stopText, play.players, duration, difficulty]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " · ")
+    }
+    private var cover: some View {
+        ZStack {
+            if let raw = play.imgUrl {
+                NativeMediaImage(raw: raw, reader: imageReader ?? RetainedPublicImageReader(), zoomable: false)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                CYCoverArt(seed: play.title ?? String(play.id), symbol: "map.fill")
+            }
+            // MP play-card__scrim: clear → 55% → 92% black so the title stays legible on any photo.
+            LinearGradient(stops: [.init(color: .black.opacity(0), location: 0),
+                                   .init(color: .black.opacity(0.55), location: 0.55),
+                                   .init(color: .black.opacity(0.92), location: 1)],
+                           startPoint: .top, endPoint: .bottom)
+        }
+        .accessibilityHidden(true)
     }
     private var chipRow: some View {
         let layout = dynamicTypeSize.isAccessibilitySize

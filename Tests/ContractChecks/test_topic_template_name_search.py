@@ -40,7 +40,9 @@ class TopicTemplateNameSearchContracts(unittest.TestCase):
         self.assertIn('let rows = try await request.read()', view)
         self.assertIn('if error as? APIError == .unauthorized { request.onUnauthorized() }', view)
         self.assertIn('selected.identity == reader.discoveryPresentationIdentity', view)
-        self.assertIn('DiscoveryTopicTemplatePreview(coordinator: selected.coordinator).id(selected.id)', view)
+        # R7-PC-A7-1 (r8 re-pin): the row opens the MP topic-preview deck over the same selected coordinator.
+        self.assertIn('DiscoveryTopicTemplateDeckHost(coordinator: selected.coordinator, readonly: false,', view)
+        self.assertIn('.id(selected.id)', view)
         service = (ROOT / 'Core/DiscoveryService.swift').read_text()
         read = service.split('public func topicTemplates(', 1)[1].split('public func publicTopicTemplate(', 1)[0]
         self.assertIn('fields: nil', read)

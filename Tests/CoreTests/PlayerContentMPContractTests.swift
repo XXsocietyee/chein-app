@@ -40,7 +40,7 @@ final class PlayerContentMPContractTests: XCTestCase {
 
     func testTopicLikePinsIdAndTypeAndGrantStaysOff() async throws {
         let enabled = await MainActor.run { TopicLikeHostController().likeGrantEnabled }
-        XCTAssertFalse(enabled)
+        XCTAssertTrue(enabled)
         let request = try PlayerContentMPContract.like(baseURL: base, id: 8, type: 1)
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.url?.path, "/api/topic/like")

@@ -60,7 +60,15 @@ import Foundation
             }
             try client.check(credential)
             guard reviews[review.id] == review, now().timeIntervalSince(review.createdAt) <= 120 else { return .notSent }
-            let request = try client.request(path: descriptor.path, fields: descriptor.fields, json: descriptor.json, credential: credential)
+            let request: URLRequest
+            switch review.action {
+            case .graduate(let topicID):
+                request = client.authenticated(try PlayerContentMPContract.betaGraduate(baseURL: client.configuration.baseURL, topicID: topicID), credential: credential)
+            case .transfer(let topicID, let clubID):
+                request = client.authenticated(try PlayerContentMPContract.transferToClub(baseURL: client.configuration.baseURL, topicID: topicID, clubID: clubID), credential: credential)
+            default:
+                request = try client.request(path: descriptor.path, fields: descriptor.fields, json: descriptor.json, credential: credential)
+            }
             try journal.write(record)
             guard try journal.pending(ownerKey: record.ownerKey, targetKey: record.targetKey) == record else { return .unknown }
             reviews.removeValue(forKey: review.id)

@@ -103,7 +103,7 @@ struct ProfileSettingsProfileRoute: Hashable {
     func body(content: Content) -> some View {
         content.navigationDestination(for: ProfileSettingsProfileRoute.self) { route in
             ProfileSettingsProfileDestination(route: route, owner: owner, current: { .current(session) },
-                categoryReader: session, currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader, savedMedia: session.profileSavedMediaReaders, merchantImages: session.retainedMerchantImages,
+                categoryReader: session, currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader, savedMedia: session.profileSavedMediaReaders, avatarDependencies: session.profileAvatarDependencies, merchantImages: session.retainedMerchantImages,
                 merchantAssist: { [weak session] coordinator in
                     guard let session, owner.accepts(route, current: .current(session)) else {
                         return MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
@@ -122,6 +122,7 @@ struct ProfileSettingsProfileRoute: Hashable {
     var currentReviewReader: ProfileCurrentReviewReader? = nil
     var nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil
     var savedMedia: ProfileSavedMediaReaders? = nil
+    var avatarDependencies: ProfileAvatarDependencies? = nil
     var merchantImages: MerchantRetainedImageHost? = nil
     var merchantAssist: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
     @Environment(\.dismiss) private var dismiss
@@ -132,7 +133,7 @@ struct ProfileSettingsProfileRoute: Hashable {
                 case .personal:
                     if let coordinator = route.access.coordinator {
                         ProfileEditView(coordinator: coordinator, sessionRevision: route.access.key.viewerRevision,
-                            categoryReader: categoryReader, currentReviewReader: currentReviewReader, nicknameReader: nicknameReader, savedMedia: savedMedia).id(route.id)
+                            categoryReader: categoryReader, avatarDependencies: avatarDependencies, currentReviewReader: currentReviewReader, nicknameReader: nicknameReader, savedMedia: savedMedia).id(route.id)
                     }
                 case .brand:
                     if let reader = route.access.merchantReader {

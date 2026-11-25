@@ -88,7 +88,7 @@ class ClubStoryNavigationContractTests(unittest.TestCase):
         for text in ['stop.sequence', 'stop.name', 'stop.businessTime', 'stop.address', 'stop.imgUrl',
                      'chapter.totalTime', 'chapter.stops.count', 'play.validationMethod', 'play.players',
                      'play.duration', 'play.difficulty', 'play.nodeName', 'club.story.hoursUnavailable',
-                     'club.story.addressUnavailable', 'ClubStoryCover(raw: stop.imgUrl', 'ClubStoryCover(raw: play.imgUrl']:
+                     'club.story.addressUnavailable', 'if let raw = stop.imgUrl', 'if let raw = play.imgUrl']:
             self.assertIn(text, cards)
     def test_fragment_is_bilingual_and_covers_all_display_keys(self):
         fragment = json.loads(self.text('Resources/ClubStoryLocalizations.fragment.json'))['strings']

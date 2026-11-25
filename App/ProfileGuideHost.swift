@@ -18,6 +18,7 @@ import SwiftUI
                 if reader.hasAppeared {
                     SocialPlayGuideView(reader: reader, onOpenDestination: onOpenDestination, templateReader: templateReader,
                         informationDestination: { row in AnyView(ProfileGuideArticleDestination(row: row, reader: reader, makeReader: makeArticleReader)) })
+                        .socialGuideSessionCatalog(templateReader as? AppSession)
                 } else { ProgressView() }
             } else { SocialIssueView(error: APIError.unauthorized) }
         }
@@ -44,5 +45,33 @@ import SwiftUI
         .onAppear { reader?.appear(foreground: scenePhase == .active) }
         .onDisappear { reader?.disappear() }
         .onChange(of: scenePhase) { _, phase in reader?.setForeground(phase == .active) }
+    }
+}
+
+private struct SocialGuideTemplateCatalogKey: EnvironmentKey { static let defaultValue: (@MainActor () -> AnyView)? = nil }
+extension EnvironmentValues {
+    /// R7-PC-A2-7: the guide's 更多玩法 catalog as the full template tab (应用 / 发布 / 搜索). Nil keeps the read-only browser.
+    var socialGuideTemplateCatalog: (@MainActor () -> AnyView)? {
+        get { self[SocialGuideTemplateCatalogKey.self] }
+        set { self[SocialGuideTemplateCatalogKey.self] = newValue }
+    }
+}
+extension View {
+    /// Same factories as the `pages/template/index` route (MPReviewedPageScreen).
+    @MainActor func socialGuideSessionCatalog(_ session: AppSession?) -> some View {
+        environment(\.socialGuideTemplateCatalog, session.map { session in
+            {
+                AnyView(DiscoveryTemplateBrowserView(
+                    reader: session,
+                    authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
+                    authoringRevision: session.sessionRevision,
+                    authoringCompletion: session.templateAuthoringCompletionContext,
+                    publishDestination: {
+                        AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch))
+                    },
+                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }
+                ).id(session.templateAuthoringViewIdentity))
+            }
+        })
     }
 }

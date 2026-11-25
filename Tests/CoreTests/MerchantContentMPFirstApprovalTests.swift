@@ -6,9 +6,8 @@ import XCTest
 import FoundationNetworking
 #endif
 
-/// MP-first rule (owner 2026-11-25), rows R7-PC-B2-1 / R7-PC-B3-1: every merchant-content write the mini
-/// program sends from `pages/topic/merchantinfo` and `pages/topic/merchantapply` is open by default on the
-/// real transport (incl. city node, node NPC and station commands); the server decides.
+/// One flag per gate. Node, NPC, cancel, audit, circle review, register, and update default on.
+/// Chapter invite, respond, apply, and withdraw stay closed. City-node and station commands stay off.
 private final class MPFirstNoNetworkTransport: HTTPTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int) { throw URLError(.notConnectedToInternet) }
 }
@@ -28,28 +27,26 @@ private final class MPFirstNoNetworkTransport: HTTPTransport {
 
     func test_mp_first_defaults_open_every_merchantinfo_and_merchantapply_write() throws {
         let a = MerchantContentWriteApproval()
-        XCTAssertTrue(a.chapterInvite && a.chapterRespond && a.chapterApply && a.chapterWithdraw)
-        XCTAssertTrue(a.register && a.updateRegistration && a.cancelRegistration)
-        XCTAssertTrue(a.submitNode && a.auditApplication && a.auditNode && a.reviewCircle)
+        XCTAssertFalse(a.chapterInvite || a.chapterRespond || a.chapterApply || a.chapterWithdraw)
+        XCTAssertTrue(a.register && a.updateRegistration && a.cancel && a.node && a.audit && a.circleReview && a.npc)
         let s = try service(.init())
         let open: [MerchantContentCommand] = [
-            .apply(chapterID: 7, message: ""), .withdraw(applicationID: 3),
             .register(topicID: 70, nodeID: 9, draft: draft(), cooperateDate: ""),
             .updateRegistration(id: 5, topicID: 70, draft: draft()), .cancelRegistration(id: 5),
             .submitNode(chapterID: 7, draft: MerchantChapterContentDraft()),
             .auditApplication(id: 3, approve: true, reason: ""), .auditNode(nodeID: 9, approve: true, reason: ""),
             .reviewCircle(topicID: 70, scope: "MERCHANT"),
-        ]
-        // MP citynode/index.js:318,360,483, citynode/create/index.js:397, node-npc-form/index.js:332,518,563.
-        let cityAndNPC: [MerchantContentCommand] = [
-            .claim(poiID: 1), .cancelClaim(poiID: 1), .cityStatus(poiID: 1, online: false), .place(MerchantCityPlacementDraft()),
             .saveNPC(nodeID: 9, name: "n", avatar: "a", greeting: "g"), .enrollVoice(nodeID: 9, voiceSample: "s"), .resetVoice(nodeID: 9),
         ]
-        XCTAssertTrue(a.cityNode && a.npc && a.station)
-        for command in open + cityAndNPC { XCTAssertTrue(s.permits(command), command.key) }
+        let closedCommands: [MerchantContentCommand] = [
+            .apply(chapterID: 7, message: ""), .withdraw(applicationID: 3),
+            .claim(poiID: 1), .cancelClaim(poiID: 1), .cityStatus(poiID: 1, online: false), .place(MerchantCityPlacementDraft()),
+        ]
+        for command in open { XCTAssertTrue(s.permits(command), command.key) }
+        for command in closedCommands { XCTAssertFalse(s.permits(command), command.key) }
         XCTAssertTrue(s.permitsWrites)
         let closed = try service(.closed)
-        for command in open + cityAndNPC { XCTAssertFalse(closed.permits(command), command.key) }
+        for command in open + closedCommands { XCTAssertFalse(closed.permits(command), command.key) }
         XCTAssertFalse(closed.permitsWrites)
     }
 

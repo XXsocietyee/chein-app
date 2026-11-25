@@ -129,28 +129,42 @@ struct RoamHomeTabPicker: View {
     var onCount: ((Int?) -> Void)? = nil
     /// ROAM-13: team count of the last successful team read at this centre (nil = not read / failed).
     var onTeamsLive: ((Int?) -> Void)? = nil
+    /// ROAM-13 本城推荐 (MP `entryCityStrip`): nil hides the second tab.
+    var cityStrip: RoamCityGuideStrip? = nil
+    /// Places of the current map read; a matching seed tag gives a city card its cover.
+    var cityPlaces: [RoamPlace] = []
+    var onOpenCityPlace: ((RoamCityGuidePlace) -> Void)? = nil
     let onOpen: (RoamEntryActivityCard) -> Void
     @State private var model = RoamNearbyEventsEntryState()
+    /// MP `entryStripTab` ('near' | 'city').
+    @State private var showsCityTab = false
     @State private var retryTask: Task<Void, Never>?
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("roam.w208.entry.title").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+            HStack(spacing: 16) {
+                if let cityStrip, onOpenCityPlace != nil {
+                    stripTab(Text("roam.w208.entry.title"), on: !showsCityTab, identifier: "roam.home.peek.tab.near") { showsCityTab = false }
+                    stripTab(cityTabLabel(cityStrip), on: showsCityTab, identifier: "roam.home.peek.tab.city") { showsCityTab = true }
+                } else {
+                    Text("roam.w208.entry.title").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+                }
                 Spacer()
                 Button("action.retry", systemImage: "arrow.clockwise", action: refresh)
 
                 .disabled(RoamNearbyEventsEntryScope(reader: reader) == nil)
                 .accessibilityIdentifier("roam.home.peek.refresh")
             }
-            if reader.isSignedIn, reader.isConfigured, reader.searchArea == nil {
+            if showsCityTab, let cityStrip, let onOpenCityPlace {
+                RoamCityGuideCards(strip: cityStrip, places: cityPlaces, onOpen: onOpenCityPlace)
+            } else if reader.isSignedIn, reader.isConfigured, reader.searchArea == nil {
                 RoamStatusView(issue: .areaRequired)
                     .accessibilityIdentifier("roam.home.peek.areaRequired")
                 if let onChooseArea { Button("roam.area.title", action: onChooseArea) }
             } else { content }
-            if model.visibleTeamState(reader: reader) == .loading {
+            if !showsCityTab, model.visibleTeamState(reader: reader) == .loading {
                 ProgressView { Text("roam.nearbyEvents.teamsLoading", tableName: "RoamNearbyEvents") }
                     .accessibilityIdentifier("roam.home.peek.teamsLoading")
-            } else if model.visibleTeamState(reader: reader) == .failed {
+            } else if !showsCityTab, model.visibleTeamState(reader: reader) == .failed {
                 VStack(alignment: .leading, spacing: 6) {
                     Label { Text("roam.nearbyEvents.teamsFailed", tableName: "RoamNearbyEvents") } icon: { Image(systemName: "exclamationmark.triangle") }
                         .cyText(.meta).foregroundStyle(.secondary)
@@ -165,6 +179,21 @@ struct RoamHomeTabPicker: View {
         .onDisappear { retryTask?.cancel(); retryTask = nil; model.cancel() }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("roam.home.peek")
+    }
+    /// MP `entryCityLabel`: `<城市> · N 处推荐` when the map faces a catalog city, else 本城推荐.
+    private func cityTabLabel(_ strip: RoamCityGuideStrip) -> Text {
+        strip.inCity ? Text("roam.cityGuide.tab.inCity \(strip.city.name) \(strip.items.count)") : Text("roam.cityGuide.tab.default")
+    }
+    private func stripTab(_ title: Text, on: Bool, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            title.cyText(.cardTitle).foregroundStyle(on ? CYColor.textPrimary : CYColor.textSecondary)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityAddTraits(on ? .isSelected : [])
+        .accessibilityIdentifier(identifier)
     }
     private var loadedCount: Int? {
         if case .loaded(let cards) = model.visibleState(reader: reader) { return cards.count }
@@ -237,6 +266,8 @@ struct RoamEntryCardView: View {
     var body: some View {
         CYImageCard(title: title, meta: Text(LocalizedStringKey(card.tagKey)) + Text(verbatim: " · ") + RoamEntryMetaLine(card: card).text,
             imageURL: card.activity.coverURL.flatMap(URL.init(string:)), style: .shelf)
+            // MP roam `.entry-card__cover`: item.cover || /images/home-route-city-placeholder.jpg
+            .fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)
     }
     private var title: Text {
         card.activity.title.isEmpty ? Text("roam.w208.entry.untitled") : Text(verbatim: card.activity.title)
@@ -266,20 +297,27 @@ struct RoamEntryMetaLine: View {
     }
 }
 
-/// Only an absolute https cover is loaded; anything else shows the source's empty-cover placeholder.
+/// Only an absolute https cover is loaded; anything else shows the MP default
+/// (`entryActivity.cover || /images/route_city_cover.png`, aspect fill).
 struct RoamEntryCover: View {
     let source: String?
+    /// MP default for this slot; nearby cards use `/images/home-route-city-placeholder.jpg`.
+    var fallbackArt: Image = MPAsset.BannerCover.routeCityCover
     var body: some View {
         ZStack {
             Rectangle().fill(.secondary.opacity(0.12))
             if let source, let url = URL(string: source), url.scheme == "https", url.host != nil, url.user == nil, url.password == nil {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() }
-                    else { Image(systemName: "photo").foregroundStyle(.secondary) }
+                    else { fallback }
                 }
-            } else { Image(systemName: "photo").foregroundStyle(.secondary) }
+            } else { fallback }
         }
+        .clipped()
         .accessibilityHidden(true)
+    }
+    private var fallback: some View {
+        fallbackArt.resizable().scaledToFill()
     }
 }
 
@@ -386,6 +424,9 @@ struct RoamToolUnavailableView: View {
     var liveDestination: (() -> AnyView)? = nil
     var toolsReader: (any RoamPassportToolsReading)? = nil
     var discoverDestination: (() -> AnyView)? = nil
+    /// MP `_loadOfficialRoutes`: the 官方路线 passport card after 官方活动, only when ≥ 1 route is listed.
+    var officialRouteReader: OfficialRouteReader? = nil
+    @State private var officialRoutes: [OfficialRoute] = []
     /// Host's existing topic detail for an anniversary card's current route; nil = honestly unavailable.
     var anniversaryRouteDestination: ((String) -> AnyView)? = nil
     /// 探索目标 / 时光胶囊 / 导出 owner-only tools; nil keeps the tiles on their fallback page.
@@ -421,8 +462,12 @@ struct RoamToolUnavailableView: View {
                 ForEach(RoamPassportHome.Tile.allCases.filter(tileAvailable)) { tile in tileLink(tile) }
             }
             Section {
-                ForEach(RoamPassportHome.Play.allCases) { play in playCard(play) }
+                ForEach(RoamPassportHome.Play.allCases) { play in
+                    playCard(play)
+                    if play == .event { officialRoutesCard }
+                }
             }
+            .task(id: officialRouteReader == nil) { await loadOfficialRoutes() }
             RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
         }
         .roamPassportToolsDestinations(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
@@ -607,6 +652,31 @@ struct RoamToolUnavailableView: View {
         if let albumMetadataReader { return { AnyView(RoamAlbumMetadataDestination(reader: albumMetadataReader, stampDestination: stampDestination).id(albumMetadataReader.scope)) } }
         if let reader { return { AnyView(RoamStampAlbumView(reader: reader, stampDestination: stampDestination)) } }
         return nil
+    }
+    /// MP passport play `routes`: 官方路线 · N 条路线, art = the first route's previewImg, else the MP goals icon.
+    @ViewBuilder private var officialRoutesCard: some View {
+        if let officialRouteReader, let first = officialRoutes.first {
+            NavigationLink { OfficialRouteListView(reader: officialRouteReader) } label: {
+                HStack(spacing: 12) {
+                    Color.clear.frame(width: 44, height: 44)
+                        .overlay { E1CoverArt(seed: first.name, symbol: "map", imageURL: first.previewImage, debugLabel: false,
+                                              fallbackImage: MPAsset.FeatureIcon.goals, fallbackFills: false) }
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("officialRoute.intro").cyText(.cardTitle)
+                        Text("roam.passport.play.routes.count \(officialRoutes.count)").cyText(.meta).foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+            .accessibilityIdentifier("roam.home.passport.play.routes")
+        }
+    }
+    /// Server-only, as in the MP: a failed or empty read shows no card.
+    private func loadOfficialRoutes() async {
+        guard let officialRouteReader else { officialRoutes = []; return }
+        do { officialRoutes = try await officialRouteReader.list() } catch { if !(error is CancellationError) { officialRoutes = [] } }
     }
     /// 官方活动 opens the official roam tasks;
     /// 发现附近店铺 opens the nearby map. A card without a destination is not listed.

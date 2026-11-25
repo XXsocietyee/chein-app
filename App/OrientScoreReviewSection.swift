@@ -44,6 +44,7 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
     private let entries: [OrientScoreTimelineRow]
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     private let canDispute: Bool
+    private let disputeDeadline: String?
     @State private var sheet: OrientScoreReviewSheetTarget?
     /// Filled by the sheet's 提交; validated into the confirm step once the sheet is gone.
     @State private var pendingReview: (kind: OrientScoreReviewModel.Kind, reason: String)?
@@ -51,8 +52,9 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
     init(session: AppSession, score: OrientSessionScore, entries: [OrientScoreTimelineRow]) {
         let selection = OrientScoreReviewEntrySelection()
         self.entries = entries
-        // The writer refuses a dispute before the round ends (status 1 / 2), so the entry is not offered before then.
-        canDispute = score.status == 1 || score.status == 2
+        // PLY-25-5: status 1 or 2, a deadline, and no dispute still in status 0. Sync and settle stay off.
+        canDispute = score.canDispute
+        disputeDeadline = score.disputeWindowDeadline
         _selection = StateObject(wrappedValue: selection)
         let built = OrientScoreReviewFactory.makeSubmitter(OrientScoreReviewContext(
             session: session, score: score, entryID: { selection.entryID }, nodeID: { selection.nodeID }))
@@ -93,6 +95,12 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
                 .buttonStyle(.cySecondary(fullWidth: true))
                 .disabled(busy)
                 .accessibilityIdentifier("orientScore.review.missing")
+                if let disputeDeadline, !disputeDeadline.isEmpty {
+                    Text("orientScore.disputeDeadline \(disputeDeadline)")
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("orientScore.review.deadline")
+                }
                 if canDispute {
                     Button { sheet = OrientScoreReviewSheetTarget(kind: .dispute, entryID: nil) } label: {
                         Text("orientScore.review.disputeEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)

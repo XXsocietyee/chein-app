@@ -388,11 +388,12 @@ extension EnvironmentValues {
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("club.enroll.ticket.\(ticket.id)")
     }
-    /// A literal capacity, including 0, stays in the fraction. Nil inventory keeps the existing word.
+    /// CLB-r8-enroll-01 (fix-r8-club): MP enroll wxml:70 shows 「n / 上限」 only for a positive totalInventory;
+    /// 0 or nil reads 「n 人」.
     private func capacity(_ ticket: ClubEnrollmentTicket) -> some View {
         HStack(spacing: 2) {
             Text(ticket.registrants.count, format: .number)
-            if let capacity = ticket.capacity {
+            if let capacity = ticket.capacity, capacity > 0 {
                 Text(verbatim: "/")
                 Text(capacity, format: .number)
             } else {
@@ -443,15 +444,13 @@ extension EnvironmentValues {
         }
         .disabled(source == nil || navigation.item != nil)
     }
+    /// CLB-enroll-02 (fix-r8-club): MP enroll wxml:75 `reg-l bindtap="goCheckinDetail"`: the person opens 核销详情
+    /// (报名与退款), the same destination as the status chip; the roster no longer opens the public profile.
     @ViewBuilder private func profileControl(_ registrant: ClubEnrollmentRegistrant, source: ClubEnrollmentNavigation.Source?) -> some View {
-        if registrant.memberID != nil, host.permitsProfile {
-            Button { open(.profile, source: source) } label: { attendee(registrant) }
-                .buttonStyle(.borderless)
-                .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                .accessibilityIdentifier("club.enroll.profile.\(registrant.id)")
-        } else {
-            attendee(registrant).frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-        }
+        Button { open(.checkin, source: source) } label: { attendee(registrant) }
+            .buttonStyle(.borderless)
+            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+            .accessibilityIdentifier("club.enroll.profile.\(registrant.id)")
     }
     private func checkinControl(_ registrant: ClubEnrollmentRegistrant, source: ClubEnrollmentNavigation.Source?) -> some View {
         Button { open(.checkin, source: source) } label: { checkinChip(registrant) }

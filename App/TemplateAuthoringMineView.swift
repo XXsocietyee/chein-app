@@ -37,19 +37,8 @@ import SwiftUI
         List {
             // PLY-26-3: the title is the bar's inline title. X12: no 刷新 pill next to pull-to-refresh.
             Section {
+                // PLY-26-2: the mini-program shelf search is gone. The page stays; the keyword field does not.
                 readStateCopy
-                TextField("templateAuthor.shelf.keyword", text: $keyword)
-                    .submitLabel(.search)
-                    .onSubmit { Task { await refresh() } }
-                    .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.keyword")
-                if !keyword.isEmpty {
-                    CYPillButton("templateAuthor.shelf.clearSearch", style: .tertiary, systemImage: "xmark.circle") {
-                        guard !busy else { return }
-                        let stamp = viewRequest
-                        keyword = ""
-                        Task { await refreshClearedKeyword(stamp: stamp, refreshUnfiltered: true) }
-                    }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.clearSearch").e1ActionRow()
-                }
             }
             ForEach(appliedKeyword == keyword ? rows : []) { row in
                 Section {

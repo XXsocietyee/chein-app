@@ -1758,13 +1758,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ban member"
+            "value": "Ban"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "封禁成员"
+            "value": "封禁"
           }
         }
       }
@@ -1775,13 +1775,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove club ban"
+            "value": "Unban"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "解除俱乐部封禁"
+            "value": "解封"
           }
         }
       }
@@ -1809,13 +1809,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit a platform report"
+            "value": "State the facts and report to the platform"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交平台举报"
+            "value": "填写事实并提交平台"
           }
         }
       }
@@ -1826,13 +1826,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal a platform case"
+            "value": "State your reason and appeal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交封禁申诉"
+            "value": "填写理由并提交申诉"
           }
         }
       }
@@ -1894,13 +1894,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry failed recipients"
+            "value": "Retry failed only"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重试失败收件人"
+            "value": "只重试失败项"
           }
         }
       }
@@ -4019,13 +4019,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Holds a guide or travel qualification"
+            "value": "Guide / travel certificate"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "持导游/旅游资质"
+            "value": "持导游 / 旅游资质"
           }
         }
       }

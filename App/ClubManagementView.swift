@@ -53,6 +53,8 @@ struct ClubManagementView: View {
     @State private var reviewReasonDraft = ""
     /// CLB-join-requests-05 (fix-r3-club-b): the last acknowledged action, for the MP toast 已通过 / 已拒绝.
     @State private var acknowledgedAction: ClubManagementAction?
+    /// CLB-r8-join-requests-01 (fix-r8-club): the row whose last 通过 / 拒绝 was rejected; its card carries the failure.
+    @State private var failedRow: (action: ClubManagementAction, memberID: Int)?
 
     var body: some View {
         List {
@@ -106,6 +108,7 @@ struct ClubManagementView: View {
                                 if snapshot.allows(.approve, memberID: request.id) {
                                     requestRowActions(request)
                                 }
+                                if let failure = rowFailure(request.id) { rowFailureBlock(failure, request: request) }
                             }
                             // HANDOFF-R1 MC-21: approve / reject also work by swipe; both still open the review sheet.
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -176,6 +179,9 @@ struct ClubManagementView: View {
                     }
                 }
                 // CLB-join-requests-06 (fix-r3-club-b): pull to refresh is the main path; this stays a secondary pill.
+                // fix-r8-club: the MP join-requests page (requests only) has no bottom 刷新 at all; the full management
+                // list keeps the pill its UI tests drive.
+                if !joinRequestsOnly {
                 Button("club.management.refresh") { Task { await refresh() } }
                     .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
@@ -183,6 +189,7 @@ struct ClubManagementView: View {
                     .listRowInsets(Self.gutterInsets)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
+                }
             }
         }
         .listStyle(.plain)
@@ -300,6 +307,28 @@ struct ClubManagementView: View {
         // MP join-requests `item.avatar || '/images/d_profile.png'` (round 2 MP asset).
         ClubMPAvatar(url: QuestifyCardArtwork.safeURL(raw), name: fallback, size: .md)
             .accessibilityHidden(true)
+    }
+    private func rowFailure(_ memberID: Int) -> ClubActionResponseFailure? {
+        guard let row = failedRow, row.memberID == memberID, case .rejected(let failure) = state else { return nil }
+        return failure
+    }
+    /// CLB-r8-join-requests-01 (fix-r8-club): MP join-requests row error 这次处理没有完成 + reason + 重试 (same action again).
+    private func rowFailureBlock(_ failure: ClubActionResponseFailure, request: ClubManagementRequest) -> some View {
+        let attachment = reviewOwner.attachment, source = reviewContext
+        let busy = loading || state == .checking || state == .awaitingConfirmation || state == .submitting
+        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text("clubR8b.join.rowFailed").cyText(.body, weight: .semibold).foregroundStyle(CYColor.dangerText)
+            if let message = failure.message { Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            if let row = failedRow {
+                Button("clubR8b.retry") { Task { await prepare(row.action, memberID: request.id, attachment: attachment, source: source) } }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .disabled(busy)
+                    .accessibilityIdentifier("club.management.row.retry.\(request.id)")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("club.management.row.failed.\(request.id)")
     }
     /// MC-21 row buttons: 拒绝 (secondary) and 通过 (primary), 12 pt apart, 44 pt targets. Both open the same review.
     private func requestRowActions(_ request: ClubManagementRequest) -> some View {
@@ -434,7 +463,9 @@ struct ClubManagementView: View {
                 statusLine(action == .approve ? "clubR3b.join.approved" : "clubR3b.join.rejected", symbol: "checkmark.circle")
             } else { statusLine("club.management.acknowledged", symbol: "checkmark.circle") }
         case .rejected(let failure):
-            if let message = failure.message { serverMessage(message) } else { statusLine("club.management.rejected", symbol: "xmark.circle") }
+            if let row = failedRow, contextMatches, snapshot?.requests.contains(where: { $0.id == row.memberID }) == true {
+                EmptyView() // CLB-r8-join-requests-01: shown on the row instead.
+            } else if let message = failure.message { serverMessage(message) } else { statusLine("club.management.rejected", symbol: "xmark.circle") }
             if let row = RequestReferenceRow(pathFragment: "/api/club/") { row }
         case .outcomeUnknown:
             statusLine("club.management.unknown", symbol: "questionmark.circle", identifier: "club.management.unknown")
@@ -639,6 +670,7 @@ struct ClubManagementView: View {
         guard run == generation, access.identity == pending.identity, !Task.isCancelled, viewerRevision == revision, screenRevision == revision,
               reviewOwner.permitsDispatch(item, context: reviewContext, active: scenePhase == .active) else { return }
         state = coordinator.state(clubID: clubID)
+        if case .rejected = state { failedRow = (pending.action, pending.memberID) } else { failedRow = nil }
         switch coordinator.readback(clubID: clubID) {
         case .received(let result): snapshot = result
         case .unavailable: readbackUnavailable = true

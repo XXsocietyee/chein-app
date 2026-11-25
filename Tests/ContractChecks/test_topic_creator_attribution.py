@@ -11,8 +11,14 @@ class TopicCreatorAttributionChecks(unittest.TestCase):
         detail = contract.split('public struct TopicDetail:', 1)[1].split('public enum TopicAvailability:', 1)[0]
         for unsupported in ['initiatorName', 'initiatorAvatar', 'TopicCollaboratorRecord', 'collaborators.first']:
             self.assertNotIn(unsupported, contract)
-        for unsupported in ['collaboratorsList', 'umsMember', 'contentPublisherName']:
-            self.assertNotIn(unsupported, detail)
+        # Publisher display is MP pages/topic/utils/topic-motion.js:33-39: contentPublisherName
+        # else clubName, and umsMember.avatar only when contentPublisherType is MEMBER.
+        # That is not a collaborator-as-creator projection.
+        self.assertNotIn('collaboratorsList', detail)
+        self.assertNotIn('collaborators.first', detail)
+        self.assertIn('c.text("contentPublisherName") ?? c.text("clubName")', detail)
+        self.assertIn('contentPublisherType == "MEMBER"', detail)
+        self.assertIn('TopicKey("umsMember")', detail)
         self.assertIn('publisherAuthoritySource = try? PublisherTopicAuthoritySource(from: decoder)', detail)
         self.assertIn('isOwner = c.flag("isOwner")', detail)
 
