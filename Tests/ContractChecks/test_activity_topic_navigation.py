@@ -18,7 +18,7 @@ class ActivityTopicNavigationChecks(unittest.TestCase):
         self.assertIn('.id(session.contentDetailRevision)', view)
         self.assertIn('.onDisappear { loads.cancel(); generation += 1; if phase.isLoading { phase = .idle } }', view)
         topic = (ROOT/'App/PlatformConsumerSessionOwner.swift').read_text()
-        for value in ['reader: topicReaderOverride ?? session.topicReader', 'if session.account == nil', '.id(session.contentDetailRevision)']:
+        for value in ['reader: topicReaderOverride ?? session.topicReader', 'guestSignIn: session.account == nil', '.id(session.contentDetailRevision)']:
             self.assertIn(value, topic)
     def test_route_is_safe_integer_and_has_no_external_payload(self):
         model = (ROOT/'Core/ActivitySummary.swift').read_text()

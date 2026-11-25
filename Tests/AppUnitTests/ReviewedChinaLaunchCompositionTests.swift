@@ -321,7 +321,14 @@ import XCTest
             role: player.role, token: player.session.token)
         XCTAssertEqual(composition.readAvailability(.contentDetail, identity: identity), .available)
         let guest = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: nil, role: nil, token: nil)
-        XCTAssertEqual(composition.readAvailability(.contentDetail, identity: guest), .signInRequired)
+        XCTAssertEqual(composition.readAvailability(.contentDetail, identity: guest), .available)
+        let guestTransport = composition.transport()
+        guestTransport.current = { guest }
+        let anonymous = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/topic/info-to-user"),
+            fields: ["id": "990013"], token: nil)
+        _ = try await guestTransport.send(anonymous)
+        XCTAssertEqual(recorder.paths.last, "api/topic/info-to-user")
+        XCTAssertNil(anonymous.value(forHTTPHeaderField: "Authorization"))
         let transport = signedIn(composition, player)
         for path in ["api/topic/info-to-user", "api/activity/info"] {
             let request = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent(path),

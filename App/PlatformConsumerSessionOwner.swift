@@ -37,24 +37,15 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
     /// Club session card (`via=session`): the bar opens the session picker before self-play.
     var preferSession = false
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @State private var showsGuestLogin = false
     var body: some View {
         Group {
-            if session.account == nil {
-                // Missing state (not signed in): the message plus a way forward, like the activity detail.
-                VStack(spacing: CYSpacing.md) {
-                    TopicIssueView(issue: .unauthorized).accessibilityIdentifier("topic.detail.signIn")
-                    if rootTabSwitch.isAvailable {
-                        CYPillButton("auth.signIn", style: .secondary, fullWidth: false) { rootTabSwitch(.mine) }
-                            .accessibilityIdentifier("topic.detail.signInAction")
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-            } else if let message = session.contentDetailReadAvailability.messageKey {
+            if let message = session.contentDetailReadAvailability.messageKey {
                 ContentUnavailableView("topic.detail", systemImage: "network.slash", description: Text(LocalizedStringKey(message)))
                     .accessibilityIdentifier("topic.detail.configurationUnavailable")
             } else {
                 TopicDetailView(id: id, reader: topicReaderOverride ?? session.topicReader, preferSession: preferSession,
+                    guestSignIn: session.account == nil ? { promptGuestSignIn() } : nil,
                     activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)) },
                     publicMerchant: session.publicMerchantHomeContext,
                     makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,
@@ -98,6 +89,14 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     .environment(\.topicFavoriteHostFactory, { session.makeTopicFavoriteHost() })
             }
         }
+        .sheet(isPresented: $showsGuestLogin) {
+            Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible)
+        }
+        .onChange(of: session.account == nil) { _, signedOut in if !signedOut { showsGuestLogin = false } }
+    }
+    /// 收藏, buy, and review. The public info-to-user read stays open.
+    private func promptGuestSignIn() {
+        if rootTabSwitch.isAvailable { rootTabSwitch(.mine) } else { showsGuestLogin = true }
     }
 }
 

@@ -122,6 +122,41 @@ public struct PublicTemplateNode: Decodable, Equatable {
     public let imgUrl: String?
     public let interactionType: String?
     public let hookTeaser: String?
+    /// Mini-program stop pill: `gameTitle`, else `game`. Blank stays nil.
+    public let game: String?
+    /// Optional server icon. The mini-program draws its own art when this is absent.
+    public let gameIcon: String?
+    /// Minutes from `gameDuration`, else `duration`. Missing or unusable stays nil.
+    public let duration: Int?
+    enum CodingKeys: String, CodingKey {
+        case name, addressName, imgUrl, interactionType, hookTeaser
+        case game, gameTitle, gameIcon, duration, gameDuration
+    }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        name = try c.decodeIfPresent(String.self, forKey: .name)
+        addressName = try c.decodeIfPresent(String.self, forKey: .addressName)
+        imgUrl = try c.decodeIfPresent(String.self, forKey: .imgUrl)
+        interactionType = try c.decodeIfPresent(String.self, forKey: .interactionType)
+        hookTeaser = try c.decodeIfPresent(String.self, forKey: .hookTeaser)
+        game = Self.plain(c, .gameTitle) ?? Self.plain(c, .game)
+        gameIcon = Self.plain(c, .gameIcon)
+        duration = Self.minutes(c, .gameDuration) ?? Self.minutes(c, .duration)
+    }
+    private static func plain(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
+        guard let raw = try? c.decode(String.self, forKey: key) else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    /// Whole positive minutes only. A bad type does not fail the node.
+    private static func minutes(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Int? {
+        if let value = try? c.decode(Int.self, forKey: key), value > 0 { return value }
+        if let raw = try? c.decode(String.self, forKey: key),
+           let value = Int(raw.trimmingCharacters(in: .whitespacesAndNewlines)), value > 0 { return value }
+        if let value = try? c.decode(Double.self, forKey: key), value.isFinite, value > 0, value == value.rounded(.towardZero),
+           value <= Double(Int.max) { return Int(value) }
+        return nil
+    }
 }
 public struct PublicTemplateGame: Decodable, Equatable, Identifiable {
     public let id: Int

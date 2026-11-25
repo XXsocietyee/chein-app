@@ -225,7 +225,7 @@ import SwiftUI
             reload += 1
         } catch is CancellationError {
         } catch {
-            recoverNote = OfficialBroadcastStats.failureLine(serverMessage: nil)
+            recoverNote = OfficialBroadcastStats.failureLine(serverMessage: OfficialBroadcastStats.serverNote(error))
         }
     }
 }
@@ -315,11 +315,11 @@ private extension Decimal {
                 guard reader.scope == scope else { phase = .idle; return }
                 if stats.summaryLine != nil || OfficialBroadcastStatsText.counts(stats) != nil || stats.canRecoverInapp {
                     phase = .loaded(stats)
-                } else { phase = .failed(nil) }
+                } else { phase = .failed(OfficialBroadcastStats.failureLine(serverMessage: nil)) }
             } catch is CancellationError {
                 phase = .idle
             } catch {
-                phase = reader.scope == scope ? .failed(nil) : .idle
+                phase = reader.scope == scope ? .failed(OfficialBroadcastStats.failureLine(serverMessage: OfficialBroadcastStats.serverNote(error))) : .idle
             }
         }
     }
@@ -337,7 +337,7 @@ private extension Decimal {
         } catch is CancellationError {
             phase = .idle
         } catch {
-            phase = reader.scope == scope ? .failed(OfficialBroadcastStats.failureLine(serverMessage: nil)) : .idle
+            phase = reader.scope == scope ? .failed(OfficialBroadcastStats.failureLine(serverMessage: OfficialBroadcastStats.serverNote(error))) : .idle
         }
     }
 }

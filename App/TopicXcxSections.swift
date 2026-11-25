@@ -543,6 +543,8 @@ struct TopicXcxRouteSection: View {
             let value = km.formatted(.number.precision(.fractionLength(0...1)))
             parts.append(appLocalized("topicXcx.routeNote.walk \(value)", locale: locale))
         }
+        let gifts = TopicXcxFacts.giftStopCount(topic)
+        if gifts > 0 { parts.append(appLocalized("topicXcx.routeNote.gifts \(gifts)", locale: locale)) }
         return parts.joined(separator: separator) + end
     }
     /// Flow gap PC-B-1-5 (MP index.wxml route `<map>`): every stop with a usable coordinate, numbered in route order.
@@ -580,8 +582,7 @@ struct TopicXcxRouteSection: View {
                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                 .background(Capsule().fill(topic.productType == 2 ? CYNight.glassFill : CYNight.lantern))
                 .accessibilityIdentifier("topic.route.note")
-            // R7-PC-B1-18, MP topic-motion.js:270-285 `routeNote`: the sentence after the chip. 到店礼 needs the stop
-            // merchants' `derivativeBenefits`, which Core does not decode yet.
+            // R7-PC-B1-18, MP pages/topic/utils/topic-motion.js routeNote: the gift count is in the sentence.
             Text(verbatim: routeNoteText)
                 .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -612,6 +613,11 @@ struct TopicXcxRouteSection: View {
                                 Text(verbatim: stop.node.name)
                                 if let hours = stop.node.businessTime { Text(verbatim: hours).cyText(.meta) }
                                 // R7-PC-B1-18: MP stop row opens the place in the map app.
+                                if let gift = stop.node.shopGift {
+                                    Text(verbatim: appLocalized("topicXcx.stop.gift \(gift)", locale: locale))
+                                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                        .accessibilityIdentifier("topic.route.stop.\(stop.id).gift")
+                                }
                                 if let address = stop.node.address {
                                     if let url = TopicStopMapsLink.url(for: stop.node) {
                                         Link(destination: url) {

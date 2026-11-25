@@ -666,4 +666,10 @@ public struct OfficialBroadcastStats: Decodable, Equatable {
         let trimmed = serverMessage?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return (trimmed.isEmpty ? fallback : trimmed) + "，点一下重试"
     }
+    /// `msg` carried by a broadcast stats or recover failure. Other errors stay nil.
+    public static func serverNote(_ error: Error) -> String? {
+        guard case .explained(_, let text) = error as? OfficialReadFailure else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
 }

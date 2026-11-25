@@ -188,6 +188,12 @@ public enum TopicXcxFacts {
         if case .pricing = ownerSaleRoute(topic) { return true }
         return false
     }
+    /// Stops whose first merchant published `derivativeBenefits`. Matches topic-motion `routeNote`.
+    public static func giftStopCount(_ topic: TopicDetail) -> Int {
+        topic.chapters.reduce(0) { total, chapter in
+            total + chapter.nodes.filter { $0.shopGift != nil }.count
+        }
+    }
 
     private static let selfOrdinalExpression: NSRegularExpression? = try? NSRegularExpression(
         pattern: #"^(?:第\s*[0-9一二三四五六七八九十百零两]+\s*章|结局|终章|序章|尾声)"#)
