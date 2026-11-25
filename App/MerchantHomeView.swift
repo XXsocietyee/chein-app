@@ -631,6 +631,14 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         .background(CYColor.bgPage)
         .navigationBarTitleDisplayMode(.inline)
         .listSectionSpacing(CYSpacing.xxl)
+        .toolbar {
+            // MC8-01-5 (index.js:1757-1764): share the store's public home (MP onShareAppMessage default).
+            if access.active, access.ownerMemberID != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    MerchantPublicHomeShareButton(memberID: access.ownerMemberID, storeName: access.merchantName)
+                }
+            }
+        }
         .navigationDestination(item: $quickRoute) { route in
             Group {
                 if let businessReader, let businessJournal,
