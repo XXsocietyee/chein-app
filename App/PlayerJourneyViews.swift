@@ -172,7 +172,7 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("playerJourney.refreshing")
                 }
                 if visible.isEmpty {
-                    CYEmptyState(systemImage: "ticket", LocalizedStringKey(filter.emptyTitleKey), detail: LocalizedStringKey(filter.emptyDetailKey), messageIdentifier: "playerJourney.empty", kind: .orders)
+                    CYEmptyState(systemImage: "tray", LocalizedStringKey(filter.emptyTitleKey), detail: LocalizedStringKey(filter.emptyDetailKey), messageIdentifier: "playerJourney.empty", kind: .orders)
                         .listRowBackground(Color.clear)
                 }
                 ForEach(visible) { row in
@@ -304,12 +304,14 @@ private extension ParticipationRecord {
         }
     }
 }
-/// Never invented artwork: a fixed symbol when the source cover is absent or not https.
+/// Never invented artwork: the MP default cover (`/images/route_city_cover.png`, mycanyu.wxml:22) when the source
+/// cover is absent or not https.
 private struct ParticipationCoverPlaceholder: View {
     var body: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous).fill(CYColor.bgSurfaceSubtle)
+        MPAsset.BannerCover.routeCityCover.resizable().scaledToFill()
             .frame(height: 136).frame(maxWidth: .infinity)
-            .overlay { Image(systemName: "map").imageScale(.large).foregroundStyle(CYColor.textSecondary) }
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .accessibilityHidden(true).accessibilityIdentifier("playerJourney.row.coverPlaceholder")
     }
 }

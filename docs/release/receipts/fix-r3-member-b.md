@@ -213,3 +213,123 @@ Strings: `ticketPass.pager.position`, `orientScore.board.{open,loading,failed,re
   - Every API was grepped on r7: `OrientSessionService.leaderboard`, `OrientScoreFormat.centi`, `squareGovernanceAccess().token`, `AuthRequestBuilder.isValidToken`, `writer.submit(…nodeID:)`, `CommunityTrustPlayerService.appeal`, `SessionOwnedOrderDetailView(session:id:)`, `QuestifyCardArtwork.safeURL`, and the MPGap view initializers.
   - The coordinator should compile.
 - `origin/ui/combined-r7` was re-fetched before the final push. It is still b0ac0108d, which is already merged.
+
+## Round 4 (2026-11-25)
+
+- **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round4.md` (flows, image parity, copy, P2 rows, a11y lint), plus `wave-x10.md` and `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` (Cursor round 4 W2 wiring, the a11y zero baseline, Swift 6, Gemini round 7). No conflicts. None of the member-b App files were changed by the merge, so no round 1–3 hunk needed re-applying.
+- **Method:** a full MP inventory of every page in this half (16–25, 27–30; page 26 `mytemplate` was deleted from the MP). It covers every image slot, every user-visible Chinese string, and every `navigateTo` / `redirectTo` / `switchTab` / `navigateBack`, each checked against the App.
+- **Gemini's share:** Gemini is out of quota, so I also did the MP-alignment work on the Gemini views mounted on these pages (`App/MPGap/Member/OrientScoreGapViews.swift`, `ReportAppealAndCouponSummaryViews.swift`).
+
+### Fixed (round 4)
+
+| id / source | page | what changed | files |
+|---|---|---|---|
+| R3 left-over (Gemini views) | 25, 29 | Raw Chinese is now keyed: 本人 / 参赛玩家, 还有 N 项任务在审核, the 计分申诉 / 成绩争议 sheet title (was `Text(verbatim: kind.title)` from Core), and the four 举报 appeal sheet titles. `.borderedProminent` becomes `.cyPrimary`. | App/MPGap/Member/OrientScoreGapViews.swift, App/MPGap/Member/ReportAppealAndCouponSummaryViews.swift |
+| Flow · report-detail `goMine` (index.js:165-170) | 29 → 28 | 查看我的全部举报 now **goes back** (`dismiss()`) when the detail was opened from 我的举报, as the MP `navigateBack` does. Before, it stacked a second list. From a deep link it still pushes `SquareReportProgressView`. The new `returnsToList` flag defaults to false. | App/MemberReportProgressDetailView.swift, App/SquareReportProgressView.swift |
+| Flow · order.js:20-21 | 16 | A merchant session's 我的订单 now opens 我的项目 with `entryScope: "MERCHANT"` (MP `myproject?scope=MERCHANT`), from both the deep link and the notification route. | App/MPReviewedPageScreen.swift, App/SubscribeMessageTapScreens.swift |
+| Copy · 举报 button | 29 | `对处理结果申诉` → 提交申诉 (MP wxml:43). | App/CommunityTrustPlayerViews.swift |
+| Copy · 提出成绩争议 | 25 | The dispute entry button uses the new key `orientScore.review.disputeEntry` (提出成绩争议, MP wxml:94). The sheet title keeps 成绩争议. | App/OrientScoreReviewSection.swift |
+| Copy · 本局计分 · {phase} | 25 | The total card's head line is `orientScore.titlePhase %@` (MP wxml:20). | App/OrientScoreView.swift |
+| PG-090 · no ids shown | 25, 27, 28, 29 | Removed the ids that the MP never shows: 对局 {sessionId} (total card and session chooser), 冲正原流水 {id} (now 已撤销, MP wxml:72), 编号 {reportId} (我的举报 rows and the 举报进度 head card), and the ` #id` suffix on an unnamed 投诉 topic (now 未命名活动). | App/OrientScoreView.swift, App/SquareReportProgressView.swift, App/MemberReportProgressDetailView.swift, App/ProfileComplaintPreparationView.swift |
+| Copy · ETA | 29 | The head card ETA is 预计 {time} 前给出结论 (MP wxml:23, same key as 我的举报), replacing the 来源预计时间 row. The now-unused `labeledTime` helper is removed. | App/MemberReportProgressDetailView.swift |
+| Image · 积分变动 fallback | 18 | A points row with no reason reads 积分变动 (MP rows.js:46). Other ledgers keep 变动记录. | App/WalletCommerceViews.swift |
+| Copy · invite hero | 20 | The hero's pending value is 待同步 (`profile.inviteRewards.heroPending`, MP I:12). Rows say 已加入 · 奖励发放中 (MP IJ:116). The two shared one key before. | App/ProfileInviteRewardReviewSection.swift |
+| Copy · RPG meters | 24 | 动量 and clock values read `{v} / {max}` with spaces (MP wxml:45,48). | App/CharacterSheetDetailView.swift |
+
+### Image parity (brief item 2)
+
+`CYEmptyState` draws the MP `cy-empty` art (`MPAsset.EmptyState.emptyStateBg` + `emptyStateFigure`) only when `systemImage == "tray"`. Other symbols fall back to an SF tray, and `kind: .orders` alone draws the ticket art. `ContentUnavailableView` icons are SF symbols unless swapped for `CYEmptyIllustration`.
+
+| page | MP slot (file:line) | MP asset | App before | App now | status |
+|---|---|---|---|---|---|
+| 16 | order-history H:21 empty | empty_state_bg + figure | `iconTicketEmpty` (`"ticket"`) | `emptyStateBg` + `emptyStateFigure` (`"tray"`) | **fixed** |
+| 16 | H:24 filtered empty | empty_state_bg + figure | SF `line.3.horizontal.decrease.circle` | `CYEmptyIllustration(.generic)` | **fixed** |
+| 16 | H:50/70 time icon | `d_orderIcon.png` | `MPAsset.FeatureIcon.dOrderIcon` | same | match (r2) |
+| 16 | H:51/71 address icon | `d_orderIcon2.png` | `MPAsset.FeatureIcon.dOrderIcon2` | same | match (r2) |
+| 16 | H:36/56 card cover | remote `imgUrl` / `imgArr` | generated tile | same | **Core-blocked**: `ProfileOrder` has no cover field |
+| 17 | detail D:21 hero image | remote cover, fallback `icon_ticket_empty.svg` (DJ:85) | none | `OrderCoverTile(fallback: MPAsset.EmptyState.iconTicketEmpty)` beside the amount | **fixed** (fallback; remote cover Core-blocked) |
+| 17 | lifecycle hero | same fallback | `iconTicketEmpty` | same | match (r2) |
+| 17 | D:299 award icons | remote `iconUrl` | — | — | Core-blocked (no explore-completion fields on `ProfileOrder`) |
+| 18 | points-history wxml:11/14 empty | empty_state_bg + figure | SF tray (`list.bullet`) | `"tray"` → MP art (points ledger only) | **fixed** |
+| 19 | W:21 empty | empty_state_bg + figure | `"tray"` | same | match |
+| 20 | I:39 empty | empty_state_bg + figure | SF tray (`person.2.badge.plus`) | `"tray"` → MP art | **fixed** |
+| 20 | I:25 / I:50 avatars | remote → initial → `d_profile.png` | `CYAvatarView` (remote → `dProfile`) | same | match (no initial step; shared `CYAvatarView`) |
+| 20 | I:15 hero avatar stack | remote ×5 | — | — | left: no avatar list in the reward review read |
+| 21 | signup wxml:51 empty | empty_state_bg + figure | SF `ticket` | `CYEmptyIllustration(.generic)` | **fixed** |
+| 21 | wxml:64 `icon_go.svg` | `iconGo` | `MPAsset.FeatureIcon.iconGo` | same | match (r2/r3) |
+| 21 | wxml:66 cover | remote | `AsyncImage` | same | match (Cursor) |
+| 21 | wxml:68 no-cover art | `cover-route.svg` | `MPAsset.BannerCover.coverRoute` | same | match (r2/r3) |
+| 21 | wxml:105 `icon_play.svg` | `iconPlay` | `MPAsset.FeatureIcon.iconPlay` | same | match (r2) |
+| 21 | dot-qr centre logo | `cy_logo_mark.png` | none | none | left: `VerificationCodeView` is shared with the roam city voucher and play entry code. Request for the DS owner. |
+| 21 | pass sheet empty (`TicketPassSheet.emptyContent`) | empty_state_bg + figure | SF `ticket` via `CYStateView` | same | left: `CYStateView` draws `Image(systemName:)` only. Shared-DS request: map `"tray"` to `CYEmptyIllustration`. |
+| 22 | mycanyu wxml:16 empty | empty_state_bg + figure | `iconTicketEmpty` (`"ticket"`) | `"tray"` → MP art | **fixed** |
+| 22 | wxml:22 cover fallback | `route_city_cover.png` | SF `map` placeholder | `MPAsset.BannerCover.routeCityCover` | **fixed** |
+| 22 | wxml:34/37 | `d_cyIcon.png` / `d_cyIcon2.png` | `MPAsset.BrandLogo.dCyIcon` / `dCyIcon2` | same | match (r2) |
+| 23 | PD:30 cover | remote `picUrl` | `CYCachedAsyncImage` | same | match (r3) |
+| 23 | PD:45/56/110 | `d_cyinfo1/2/4.png` | `MPAsset.FeatureIcon.dCyinfo1/2/4` | same | match (r2) |
+| 23 | PD:101 template banner | remote `topicImgArr` | — | — | Core-blocked: no topic image on the participation record |
+| 24 | character wxml:23 attribute icons | server cy-icon names | — | — | NO-ASSET-IN-MPASSET (coolicons masks) |
+| 25 | orient-score wxml:16 empty | empty_state_bg + figure | SF tray (`list.number`) | `"tray"` → MP art (both empty states) | **fixed** |
+| 27 | complaint wxml:35 empty | empty_state_bg + figure | SF `tray` | `CYEmptyIllustration(.generic)` | **fixed** |
+| 28 | report-mine wxml:13/16 empty | empty_state_bg + figure | SF tray (`doc.text.magnifyingglass`) | `"tray"` → MP art | **fixed** |
+| 30 | appeal-mine wxml:25/28 empty | empty_state_bg + figure | SF tray (`text.bubble`) | `"tray"` → MP art | **fixed** |
+| all | cy-icon glyphs (`lock`, `info`, `clock`, `warning`, `check`, `star`, `arrow-right`, `back`, `close`) | inline coolicons masks | SF symbols | same | NO-ASSET-IN-MPASSET, so they stay SF Symbols (system-control or state glyph) |
+
+The MP `cy-error load-failure` and `cy-state-shell kind=data/error` render a blank veil, with no title, art or retry. The App shows a visible error state in those places. I kept it, because a blank screen with no way out is worse on iOS. **Owner call** if exact parity is wanted.
+
+### Copy (brief item 3)
+
+These keys were added or overridden in `docs/port/strings/fix-r3-member-b.json` (en + zh-Hans):
+- **Orient score:** `orientScore.board.mine` / `.player`, `orientScore.pendingReview %lld`, `orientScore.reversed`, `orientScore.titlePhase %@`, `orientScore.review.disputeEntry`, `orientScore.appealPending` (申诉处理中), `orientScore.review.submitted` (已提交复核，请等待处理), `orientScore.review.unknown` (操作结果待确认，请勿重复提交).
+- **Report appeal:** `reportAppeal.title.form` / `.ok` / `.fail` / `.unknown`.
+- **Complaint:** `profile.complaint.kind` (投诉类型), `.contact` (联系方式), `.contactPlaceholder` (手机号/微信（可选）), `.validation.topic` (请选择投诉的活动), `.validation.reasonShort` (请填写至少 5 字的投诉内容), `.submit.signIn`, `.submit.network` (网络异常，请重试), `.submit.sending` (处理中), `.unnamed` (未命名活动), `profile.complaintProgress.denied` (当前身份不能查看处理进展).
+- **Orders:** `orderLifecycle.state.refunded` (退款成功), `profile.orderFilter.empty` (no trailing 。), `profile.orderParity.notice.refunded` (退款成功).
+- **Points and invites:** `wallet.points.entryFallback` (积分变动), `profile.inviteRewards.heroPending` (待同步), `social.invites.synchronizing` (已加入 · 奖励发放中), `profile.inviteHistory.denied` (当前身份不能查看邀请记录), `profile.inviteHistory.failed` (邀请记录加载失败).
+- **Participation and character card:** `playerJourney.parity.list.unavailable` (服务暂不可用，请稍后重试), `characterCard.failure.forbidden` (无权查看角色卡), `characterCard.failure.error` (角色卡暂时无法读取).
+
+Keys in other tables were edited in place, because the fragment merge only writes `Localizable.xcstrings`:
+- `Resources/MemberReportProgress.xcstrings`: `report.signIn.title` (登录后查看), `report.privacy.source` (被举报方看不到你的身份和举报内容), `report.stage.UNKNOWN` (—).
+- `Resources/MemberScoreAppealList.xcstrings`: `score.status.accepted` / `.rejected` (已有结论, as the MP tag).
+
+**Not overridden, because a test pins the current zh value.** Request for Cursor to update the pin, after which the override is one line each:
+
+| key | current | MP | pinned by |
+|---|---|---|---|
+| `orderLifecycle.timeline.paid` | 支付已完成 | 付款成功 (DJ:235) | `test_w2_04_orders.py:132` |
+| `orderLifecycle.timeline.refunding` | 退款处理中 | 正在退款 | `test_w2_04_orders.py:134` |
+| `profile.orderParity.timeline.refunded` | 已退款 | 退款成功 | `test_w2_04_orders.py:136` |
+| `orderLifecycle.state.refunding` | 退款处理中 | 正在退款 (order-status.js) | `Tests/AppUITests/OrderLifecycleUITests.swift:74` |
+
+**Copy left, with reasons:**
+- **Core-owned raw strings (Cursor):**
+  - `Core/OrientScorePresentation.swift`: the dimension, phase and status labels, the 本局尚未结算 notice, and the missing " 分" suffix on centi values;
+  - `Core/OrientScoreReviewModel.swift:47`;
+  - `Core/CharacterSheetRules.swift:217-226`: the five definition notes, each differing from `utils/user-character.js:111-114`.
+- **Shared keys used outside member pages, so not overridden:**
+  - `wallet.login` (also BankWithdrawal);
+  - the `verificationCode.*` 重新生成 / 生成中… / 入场码 (also the roam city voucher);
+  - `localCopy.copied`.
+- **Order lifecycle money flows (MP toasts and modals for cancel, pay and refund):** the App runs these through `OrderLifecycleView` review sheets behind `ReleaseMoneyWriteSwitch`. Owner #3/#6/#12 keep money TEST-only, so I did not rewrite that flow's copy.
+- **App-only explanatory sub-lines** on member empty and error states (for example 报名后，路线和活动会出现在这里). The MP has none, but they carry no MP-conflicting text. Removing them changes the shared `CYEmptyState` detail in more pinned places. Listed for the owner.
+
+### Flows (brief item 1)
+
+`flows-g1.md` §3 member edges for pages 16–30: orient-score (62), mycanyu/mycanyuinfo (66), signup (67) and report (68) were mounted in round 3. Order (65, `OrderDetailTeamSeatsClubSections`) is still Core-blocked (see below). `flows-g2.md` has no member-b edge. The per-page edge inventory adds two round-4 fixes (above): `goMine` and `scope=MERCHANT`.
+
+Edges left:
+- **No back fallback on a cold deep link.** MP `navigateBack` → `switchTab` member / `redirectTo` list. On iOS the system back already handles the pushed case, and a cold deep link lands in the app's own stack.
+- **appeal-mine row → `pages/play/index?layer=scoring`.** The App goes through `MemberScoreAppealDetailView`, which links 打开本局计分. The audit asked for that intermediate page (PLY-30-5).
+- **mycanyuinfo 去修改 → `merchantapply?mode=1`.** There is no native editor (PLY-23-4, known gap).
+- **signup avatar `goMe`.** The wallet has no avatar slot. **Owner call.**
+
+### P2 / P1 rows (brief item 4)
+
+Every Claude-owned P2 row for pages 16–30 in `audit/parity-r7-member` was closed in rounds 1–3 (see the tables above). The open P1 rows are unchanged:
+- **PLY-21-6:** `test_ticket_wallet_team.py:16` is still pinned on r7.
+- **PLY-26-2:** the page was deleted from the MP.
+- **PLY-21-4 (rest), FIN-16-7 (rest), R7-MEM-17-2 (rest), FIN-17-4, FIN-17-8:** Core requests. `ProfileOrder` still has no cover, game flag, settle, team, seat, club or party fields (checked on this base).
+
+### a11y lint (brief item 5)
+
+`python3 -B tools/check_a11y_lint.py` reports 1 finding, `App/ClubKit/ClubWorkbenchKit.swift:261`, which comes in from `origin/ui/combined-r7` (club area, `fix/r3-club-a`). It is a false positive: the `ShareLink` that wraps `glyph` carries `.accessibilityLabel`. **0 findings in member-b files.** I did not touch the club file, to avoid colliding with the club agent.

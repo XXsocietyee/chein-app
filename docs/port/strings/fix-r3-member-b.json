@@ -1,4 +1,55 @@
 {
+  "characterCard.failure.error": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Could not load the character card. Try again later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色卡暂时无法读取"
+        }
+      }
+    }
+  },
+  "characterCard.failure.forbidden": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "You do not have access to this character card"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无权查看角色卡"
+        }
+      }
+    }
+  },
+  "orderLifecycle.state.refunded": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refunded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退款成功"
+        }
+      }
+    }
+  },
   "orientScore.appealPending": {
     "extractionState": "manual",
     "localizations": {
@@ -322,6 +373,23 @@
       }
     }
   },
+  "playerJourney.parity.list.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The service is temporarily unavailable. Try again later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务暂不可用，请稍后重试"
+        }
+      }
+    }
+  },
   "profile.complaint.contact": {
     "extractionState": "manual",
     "localizations": {
@@ -492,6 +560,74 @@
       }
     }
   },
+  "profile.inviteHistory.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This account cannot view invitation history"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看邀请记录"
+        }
+      }
+    }
+  },
+  "profile.inviteHistory.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invitation history did not load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请记录加载失败"
+        }
+      }
+    }
+  },
+  "profile.inviteRewards.heroPending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待同步"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Syncing"
+        }
+      }
+    }
+  },
+  "profile.orderFilter.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No orders match this status."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前筛选暂无订单"
+        }
+      }
+    }
+  },
   "profile.orderParity.error.title": {
     "extractionState": "manual",
     "localizations": {
@@ -522,6 +658,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "当前身份不能查看订单"
+        }
+      }
+    }
+  },
+  "profile.orderParity.notice.refunded": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund accepted"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退款成功"
         }
       }
     }
@@ -645,6 +798,23 @@
       }
     }
   },
+  "social.invites.synchronizing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Joined · reward not synchronized"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已加入 · 奖励发放中"
+        }
+      }
+    }
+  },
   "ticketPass.pager.position %lld %lld": {
     "extractionState": "manual",
     "localizations": {
@@ -658,6 +828,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "左右滑动切换票券 · %1$lld/%2$lld"
+        }
+      }
+    }
+  },
+  "wallet.points.entryFallback": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "积分变动"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Points change"
         }
       }
     }
