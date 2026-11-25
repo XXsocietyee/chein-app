@@ -53,7 +53,9 @@ struct SettingsView: View {
         Section {
             if showsAccountCard, let info = accountInfo {
                 if let route = profileOwner.route(.current(session)) {
-                    NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true) }
+                    // MP shezhi.wxml:14: the merchant row (品牌中心) carries icon_lc_store; players keep the initial avatar.
+                    NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true,
+                                                                       brandMark: route.access.target == .brand) }
                         .questifyHidesLinkIndicator()
                         .accessibilityIdentifier("settingsNative.openProfile")
                 } else {
@@ -62,7 +64,7 @@ struct SettingsView: View {
             } else if showsSignedOut {
                 // B-SZ-04: the MP signed-out row starts sign-in.
                 Button { showsSignIn = true } label: {
-                    Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { Image(systemName: "person.crop.circle") }
+                    Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconQaPerson) }
                 }
                 .accessibilityIdentifier("settingsNative.profileSignedOut")
             }
@@ -78,13 +80,16 @@ struct SettingsView: View {
                             Label {
                                 Text(verbatim: SettingsAccountProfileClient.deniedCopy)
                             } icon: {
-                                Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+                                AccountPublishMPGlyph(MPAsset.FeatureIcon.iconQaPerson).accessibilityHidden(true)
                             }
                             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: SettingsAccountProfileClient.deniedRetry)
                                 .cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         }
                     }
+                    // B-SZ-09: a second tap while the read is in flight is dropped; 44 pt row.
+                    .disabled(accountProfileLoading)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .padding(.horizontal, CYSpacing.lg)
                     .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
                 } else {
@@ -207,7 +212,7 @@ struct SettingsView: View {
                             makeArticleReader: { session.makeProfileGuideArticleReader($0) },
                             onOpenDestination: onOpenGuideDestination, templateReader: session)
                             .id(session.socialAccountReader.identity)
-                    } label: { Label("social.guide.title", systemImage: "questionmark.circle") }
+                    } label: { Label { Text("social.guide.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcCompass) } }
                         .accessibilityIdentifier("settings.playGuide")
                 }
                 .environment(\.settingsTileTint, SettingsTint.teal)
@@ -339,12 +344,20 @@ struct SettingsAccountCard: View {
     let nickname: String
     let level: Int
     let tappable: Bool
+    /// Merchant view: MP `icon_lc_store` in place of the initial.
+    var brandMark = false
     @Environment(\.cyPalette) private var palette
     @Environment(\.themeDomain) private var themeDomain
     @Environment(\.locale) private var locale
     var body: some View {
         HStack(alignment: .center, spacing: CYSpacing.lg) {
-            Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
+            Group {
+                if brandMark {
+                    MPAsset.FeatureIcon.iconLcStore.resizable().scaledToFit().padding(16)
+                } else {
+                    Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
+                }
+            }
                 .cyText(.dataXL).foregroundStyle(palette.textPrimary)
                 .frame(width: 60, height: 60)
                 .background(Circle().fill(palette.bgRaised))
@@ -463,7 +476,7 @@ private struct SettingsSearchResults: View {
         if bindings.journeyPromo != nil, !bindings.isMerchant {
             Section {
                 NavigationLink { MPParityDestination(route: .journeyPromo) } label: {
-                    Label("mp.account.promo", systemImage: "person.2.wave.2")
+                    Label { Text("mp.account.promo") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcGift) }
                 }
                 .accessibilityIdentifier("settings.invitePromo")
             }
