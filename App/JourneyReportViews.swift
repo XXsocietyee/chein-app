@@ -1095,14 +1095,14 @@ struct JourneySettleView: View {
     }
 
     /// The share card as an image (post or story size), the same face the step shows.
-    @MainActor private func cardImage(_ report: JourneyReport) -> Image {
+    @MainActor private func cardImage(_ report: JourneyReport) -> (Image) {
         let card = JourneyShareCard(report: report, topicName: topicName, story: shareKind == .story)
             .frame(width: shareKind == .story ? 270 : 360)
             .environment(\.locale, locale)
             .environment(\.colorScheme, .dark)
         let renderer = ImageRenderer(content: card)
         renderer.scale = 3
-        return renderer.uiImage.map(Image.init(uiImage:)) ?? Image(systemName: "photo")
+        return renderer.uiImage.map(Image.init(uiImage:)) ?? journeySharePhotoFallback()
     }
 
     private func go(_ next: Step) {
@@ -1198,4 +1198,9 @@ struct JourneyShareCard: View {
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("journeySettle.card")
     }
+}
+
+/// ShareLink item fallback. Kept outside a `View` so the symbol is a value, not a focusable element.
+private func journeySharePhotoFallback() -> Image {
+    Image(systemName: "photo")
 }

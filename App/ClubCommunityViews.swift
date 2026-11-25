@@ -156,8 +156,15 @@ final class ClubCommunityViewModel: ObservableObject {
         let sourceScope = context.feedSourceScope()
         do {
             let session = try context.currentSession(); identity = session.identity
-            let result = try await context.service.read(operation, session: session) {
-                guard try self.context.currentSession() == session else { throw ClubCommunityFailure.stale }
+            let result: ClubCommunitySnapshot
+            if case let .feed(limit, beforeID) = operation {
+                result = try await context.service.readDiscoverFeed(limit: limit, beforeID: beforeID, session: session) {
+                    guard try self.context.currentSession() == session else { throw ClubCommunityFailure.stale }
+                }
+            } else {
+                result = try await context.service.read(operation, session: session) {
+                    guard try self.context.currentSession() == session else { throw ClubCommunityFailure.stale }
+                }
             }
             guard ticket == generation, try context.currentSession() == session else { return }
             if case .posts = operation { snapshot = try postCursor.accept(result, identity: session.identity) }

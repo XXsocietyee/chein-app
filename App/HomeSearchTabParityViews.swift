@@ -286,7 +286,7 @@ struct PlayContinuationBannerView: View {
             if let messageKey = readAvailability.messageKey, readAvailability != .unauthenticated {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: readAvailability == .failed ? "exclamationmark.triangle" : "info.circle")
-                        .cyText(.caption)
+                        .accessibilityHidden(true).cyText(.caption)
                         .foregroundStyle(CYColor.textSecondary)
                     Text(LocalizedStringKey(messageKey))
                         .cyText(.caption)

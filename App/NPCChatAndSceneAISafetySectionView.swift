@@ -181,7 +181,7 @@ public struct NPCChatAndSceneAISafetySnapshot: Equatable, Sendable {
             ForEach(snapshot.rows) { row in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: row.isEnforced ? "lock.shield.fill" : "exclamationmark.triangle.fill")
-                        .foregroundStyle(row.isEnforced ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(row.isEnforced ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
                             .cyText(.bodyMedium)

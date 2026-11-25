@@ -124,7 +124,7 @@ import UIKit
         Group {
             if let image {
                 if zoomable { NativeZoomImage(image: image).accessibilityLabel(Text("media.destination.image")) }
-                else { Image(uiImage: image).resizable().scaledToFit() }
+                else { Image(uiImage: image).resizable().scaledToFit().accessibilityLabel(Text("media.destination.image")) }
             } else if !reader.enabled { Label("media.destination.unavailable", systemImage: "photo") }
             else if failed {
                 VStack {

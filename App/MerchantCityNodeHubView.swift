@@ -173,7 +173,7 @@ struct MerchantCityNodeInlineError: View {
 
     private func state(title: String, sub: String, identifier: String, retry: Bool) -> some View {
         VStack(spacing: 10) {
-            Image(systemName: retry ? "wifi.exclamationmark" : "lock").font(.largeTitle).foregroundStyle(.secondary)
+            Image(systemName: retry ? "wifi.exclamationmark" : "lock").accessibilityHidden(true).font(.largeTitle).foregroundStyle(.secondary)
             MerchantCityNodeCopy.text(title).cyText(.cardTitle)
             Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             if retry {
@@ -228,7 +228,7 @@ struct MerchantCityNodeInlineError: View {
         ForEach(p.applications) { applicationRow($0) }
         if p.isEmpty {
             VStack(spacing: 10) {
-                Image(systemName: "mappin.slash").font(.largeTitle).foregroundStyle(.secondary)
+                Image(systemName: "mappin.slash").accessibilityHidden(true).font(.largeTitle).foregroundStyle(.secondary)
                 MerchantCityNodeCopy.text("merchantCityNode.empty.title").cyText(.cardTitle)
                 MerchantCityNodeCopy.text("merchantCityNode.empty.sub").font(.subheadline).foregroundStyle(.secondary)
                 if p.showsEmptyPlacementAction && showsProjectActions {
@@ -427,7 +427,7 @@ struct MerchantCityNodeInlineError: View {
             if let rows = MerchantCityClaimableProjection.rows(snapshot.value["rows"]) {
                 if rows.isEmpty {
                     VStack(spacing: 8) {
-                        Image(systemName: "tray").font(.largeTitle).foregroundStyle(.secondary)
+                        Image(systemName: "tray").accessibilityHidden(true).font(.largeTitle).foregroundStyle(.secondary)
                         MerchantCityNodeCopy.text("merchantCityNode.claim.empty").cyText(.cardTitle)
                     }.frame(maxWidth: .infinity).padding(.vertical, 32).accessibilityIdentifier("cityNodeHub.claim.empty")
                 }

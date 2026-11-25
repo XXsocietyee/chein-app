@@ -80,7 +80,7 @@ struct MerchantTopicRemoteImage: View {
         }.clipped().accessibilityHidden(true)
     }
     private var placeholder: some View {
-        ZStack { Color(uiColor: .tertiarySystemFill); Image(systemName: "photo").foregroundStyle(.secondary) }
+        ZStack { Color(uiColor: .tertiarySystemFill); Image(systemName: "photo").accessibilityHidden(true).foregroundStyle(.secondary) }
     }
 }
 

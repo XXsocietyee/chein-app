@@ -376,7 +376,7 @@ private struct CYShareMedalArt: View {
 
     /// Gold is the completion medal. Silver and bronze follow when the title or symbol names that metal.
     /// A stamp share (`mappin.and.ellipse` on a medal card) uses the 3D stamp.
-    private var medalImage: Image {
+    private var medalImage: (Image) {
         let blob = (content.artSymbol + " " + content.title + " " + content.artSeed).lowercased()
         if blob.contains("bronze") || blob.contains("铜") { return MPAsset.BadgeMedal.medalBronze }
         if blob.contains("silver") || blob.contains("银") { return MPAsset.BadgeMedal.medalSilver }

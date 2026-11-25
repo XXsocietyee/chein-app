@@ -61,7 +61,7 @@ public struct ProjectTopicUploadedImage: Equatable {
                 field: ProjectTopicImageField) async throws -> ProjectTopicUploadedImage
 }
 @MainActor public final class ProjectTopicImageUploadClient: ProjectTopicImageUploading {
-    public static let path = "api/common/uploadOSS"
+    nonisolated public static let path = "api/common/uploadOSS"
     private let configuration: APIConfiguration
     private let approval: ProjectTopicImageUploadApproval?
     private let transport: any HTTPTransport

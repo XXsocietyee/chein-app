@@ -704,7 +704,7 @@ struct JourneySeatsView: View {
             ZStack(alignment: .bottom) {
                 if circle.kind == .open {
                     Circle().strokeBorder(CYColor.borderStrong, style: StrokeStyle(lineWidth: 1.5, dash: [4, 4])).frame(width: 56, height: 56)
-                    Image(systemName: "plus").foregroundStyle(CYColor.textSecondary).frame(width: 56, height: 56)
+                    Image(systemName: "plus").accessibilityHidden(true).foregroundStyle(CYColor.textSecondary).frame(width: 56, height: 56)
                 } else if circle.kind == .invited {
                     Circle().strokeBorder(CYColor.textPrimary, style: StrokeStyle(lineWidth: 1.5, dash: [4, 4])).frame(width: 56, height: 56)
                         .overlay(Text(verbatim: String(circle.no)).cyText(.cardTitle).monospacedDigit())

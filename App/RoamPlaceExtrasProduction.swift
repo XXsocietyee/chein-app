@@ -14,7 +14,8 @@ struct RoamPlaceExtrasLive: View {
 /// Official place facts and reviews for one roam POI card.
 /// City-node reads go through the existing search-map and roam readers (`api/city/nodes/{id}`).
 /// Merchant facts go through `RoamReading.roamMerchantDetail` (`api/merchant/public-detail`).
-/// Reviews use `api/comment/list` and `api/comment/add` with owner type 4. Publish keeps one request id.
+/// Reviews list through `RoamPlaceCommentClient`. Publish sends `PlayerContentMPContract.commentAdd` (owner type 4).
+/// The local attempt still keeps one request id; that id is not a field on the mini-program add body.
 /// No payment, quote, or price is sent. `routeMarkedLive` stays false on the comment client.
 @MainActor @Observable final class RoamPlaceExtrasProduction: RoamPlaceExtrasBinding {
     let poiID: Int
@@ -100,8 +101,7 @@ struct RoamPlaceExtrasLive: View {
             finishPublish(.notSent, message: nil, write: write)
             return
         }
-        let client = RoamPlaceCommentClient(configuration: configuration, transport: session.runtimeHTTPTransport)
-        let outcome = await client.publish(poiID: poiID, stars: stars, text: text, requestID: requestID, token: credential.token)
+        let outcome = await publishComment(configuration: configuration, stars: stars, text: text, requestID: requestID, token: credential.token)
         if case .unknown = outcome {
             attempt = attempt.resolve(.unknown)
             RoamPlaceReviewLockStore.write(accountID: credential.accountID, poiID: poiID, attempt)
@@ -124,6 +124,41 @@ struct RoamPlaceExtrasLive: View {
         case .unknown, .unauthorized:
             finishPublish(.unknown, message: nil, write: write)
         }
+    }
+
+    /// Mini-program `api/comment/add`. The local request id stays on the attempt and is not put on this body.
+    private func publishComment(configuration: APIConfiguration, stars: Int, text: String, requestID: String, token: String) async -> RoamPlaceCommentClient.PublishOutcome {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard poiID > 0, (1...5).contains(stars), !trimmed.isEmpty, trimmed.utf16.count <= 200,
+              RoamPlaceCommentClient.acceptableRequestID(requestID), AuthRequestBuilder.isValidToken(token) else { return .notSent }
+        let drafted: URLRequest
+        do {
+            drafted = try PlayerContentMPContract.commentAdd(
+                baseURL: configuration.baseURL, ownerType: RoamPlaceCommentClient.ownerType, ownerID: poiID,
+                rating: stars, contents: trimmed, replyID: 0, images: "")
+        } catch { return .notSent }
+        let request: URLRequest
+        do { request = try PlayerContentMPAppWire.rehome(drafted, onto: configuration.baseURL, token: token, stripContentType: false) }
+        catch { return .notSent }
+        let data: Data
+        let status: Int
+        do { (data, status) = try await session.runtimeHTTPTransport.send(request) }
+        catch { return .unknown }
+        if status == 401 { return .unauthorized }
+        guard (200..<300).contains(status),
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let code = Self.commentCode(root["code"]) else { return .unknown }
+        if code == 401 { return .unauthorized }
+        if code == 200 { return .published }
+        let message = (root["msg"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return .rejected(message?.isEmpty == false ? message : nil)
+    }
+
+    private static func commentCode(_ value: Any?) -> Int? {
+        if let number = value as? Int { return number }
+        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() { return number.intValue }
+        if let text = value as? String { return Int(text) }
+        return nil
     }
 
     private func finishPublish(_ outcome: RoamPlaceReviewAttempt.Outcome, message: String?, write: Int) {

@@ -111,7 +111,7 @@ struct CityDeedPhoto: View {
         } else {
             ZStack {
                 palette.bgRaised
-                Image(systemName: "map").font(.title2).foregroundStyle(palette.textTertiary)
+                Image(systemName: "map").accessibilityHidden(true).font(.title2).foregroundStyle(palette.textTertiary)
             }
         }
     }
@@ -163,11 +163,11 @@ struct CityNoPhotoCover: View {
             CityTokens.district(place.districtIndex).opacity(place.districtIndex > 0 ? 0.24 : 0)
             switch cover {
             case .thumb:
-                Image(systemName: "camera.fill").font(.footnote).foregroundStyle(palette.textSecondary)
+                Image(systemName: "camera.fill").accessibilityHidden(true).font(.footnote).foregroundStyle(palette.textSecondary)
             case .compact, .large:
                 VStack(spacing: cover == .large ? 6 : 4) {
                     Image(systemName: "camera.fill")
-                        .font(cover == .large ? .callout : .footnote)
+                        .accessibilityHidden(true).font(cover == .large ? .callout : .footnote)
                         .foregroundStyle(palette.textSecondary)
                         .frame(width: cover == .large ? disc : disc * 0.78, height: cover == .large ? disc : disc * 0.78)
                         .background(palette.borderStrong, in: Circle())

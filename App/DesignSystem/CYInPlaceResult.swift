@@ -86,13 +86,13 @@ struct CYResultButton: View {
         HStack(spacing: CYSpacing.sm) {
             switch phase {
             case .idle:
-                if let systemImage { Image(systemName: systemImage) }
+                if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
             case .loading:
                 ProgressView().controlSize(.small)
                     .tint(CYPillButtonStyle.tokens(style: style, isEnabled: true, in: palette).foreground)
             case .done:
                 Image(systemName: "checkmark")
-                    .fontWeight(.bold)
+                    .accessibilityHidden(true).fontWeight(.bold)
                     .transition(reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace).combined(with: .scale(scale: 0.25)))
             }
             titles[phase]

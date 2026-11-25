@@ -356,9 +356,9 @@ struct CYStampSlamView: View {
             Circle().strokeBorder(CYNight.ink0.opacity(0.35), style: StrokeStyle(lineWidth: 1.5, dash: [1.5, 5])).padding(s * 0.17)
             Circle().strokeBorder(Color.white.opacity(0.30), lineWidth: 1).padding(s * 0.11 + 3)
             ZStack {
-                Image(systemName: payload.symbol).font(.system(size: s * 0.38, weight: .bold))
+                Image(systemName: payload.symbol).accessibilityHidden(true).font(.system(size: s * 0.38, weight: .bold))
                     .foregroundStyle(Color.white.opacity(0.45)).offset(x: 1, y: 1.5)
-                Image(systemName: payload.symbol).font(.system(size: s * 0.38, weight: .bold))
+                Image(systemName: payload.symbol).accessibilityHidden(true).font(.system(size: s * 0.38, weight: .bold))
                     .foregroundStyle(CYNight.ink0.opacity(0.82))
             }
         }

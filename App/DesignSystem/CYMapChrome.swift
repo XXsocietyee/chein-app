@@ -76,7 +76,7 @@ struct CYGlassLabel: View {
     private var size: CGFloat { min(scaled, 60) }
     var body: some View {
         Image(systemName: systemImage)
-            .font(.system(.body).weight(.semibold))
+            .accessibilityHidden(true).font(.system(.body).weight(.semibold))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
             .background(Color.black.opacity(reduceTransparency ? 0.94 : 0.62), in: Circle())
@@ -137,7 +137,7 @@ struct CYGoLabel: View {
     var body: some View {
         Group {
             if let symbol {
-                Image(systemName: symbol).font(.system(.title).weight(.heavy))
+                Image(systemName: symbol).accessibilityLabel(Text(title)).font(.system(.title).weight(.heavy))
             } else if isWordmark {
                 Text(title).font(.system(.title, design: .default).weight(.heavy).italic())
             } else {
@@ -342,7 +342,7 @@ struct CYMapCallout: View {
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
                 .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(Color.black.opacity(selected ? 0.9 : 0), lineWidth: 2))
-            Image(systemName: "arrowtriangle.down.fill").font(.system(size: 9)).foregroundStyle(.white).offset(y: -1)
+            Image(systemName: "arrowtriangle.down.fill").accessibilityHidden(true).font(.system(size: 9)).foregroundStyle(.white).offset(y: -1)
         }
     }
 }

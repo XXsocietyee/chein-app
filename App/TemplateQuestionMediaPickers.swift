@@ -206,6 +206,7 @@ private extension TemplateAuthoringModel {
             if let image = owner.preview, owner.current {
                 Image(uiImage: image).resizable().scaledToFit()
                     .clipShape(RoundedRectangle(cornerRadius: EditorKitMetric.cardRadius, style: .continuous))
+                    .accessibilityLabel(Text("media.destination.image"))
                     .accessibilityIdentifier("config.qimage.localPreview")
             }
             HStack(spacing: CYSpacing.sm) {

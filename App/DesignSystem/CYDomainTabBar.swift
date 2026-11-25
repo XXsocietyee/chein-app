@@ -106,9 +106,9 @@ struct CYTabBarIcon: View {
 
     var body: some View {
         #if canImport(UIKit)
-        Image(uiImage: CYTabIconRaster.image(named: name, template: template))
+        Image(uiImage: CYTabIconRaster.image(named: name, template: template)).accessibilityHidden(true)
         #else
-        Image(name).renderingMode(template ? .template : .original)
+        Image(name).renderingMode(template ? .template : .original).accessibilityHidden(true)
         #endif
     }
 }

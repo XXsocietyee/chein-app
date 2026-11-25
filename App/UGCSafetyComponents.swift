@@ -248,7 +248,7 @@ struct UGCBlockedNoticeBanner: View {
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: "hand.raised.slash")
-                .foregroundStyle(CYColor.warningText)
+                .accessibilityHidden(true).foregroundStyle(CYColor.warningText)
             Text(messageKey, tableName: "UGCSafety")
                 .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
@@ -412,7 +412,7 @@ struct UGCReportSheet: View {
             if selectedReason?.isEmergency == true {
                 HStack(alignment: .top, spacing: CYSpacing.sm) {
                     Image(systemName: "exclamationmark.shield.fill")
-                        .foregroundStyle(CYColor.dangerText)
+                        .accessibilityHidden(true).foregroundStyle(CYColor.dangerText)
                     Text("ugc.safety.emergencyHint", tableName: "UGCSafety")
                         .cyText(.meta)
                         .foregroundStyle(CYColor.dangerText)

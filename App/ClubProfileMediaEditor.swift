@@ -60,6 +60,7 @@ import UIKit
             } else {
                 if let preview = flow.preview, let image = UIImage(data: preview.jpeg) {
                     Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240)
+                        .accessibilityLabel(Text("media.destination.image"))
                     Text(String(localized: LocalizedStringResource("media.uploadHint", table: "ClubProfileMedia", locale: locale)))
                     Button(String(localized: LocalizedStringResource("media.upload", table: "ClubProfileMedia", locale: locale))) { flow.upload(consume: apply) }.disabled(!canSelect)
                 } else if let asset = flow.pendingAsset, let scope = flow.scope, let service = flow.service {
@@ -72,7 +73,8 @@ import UIKit
                     }
                     Text(String(localized: LocalizedStringResource("media.reviewHint", table: "ClubProfileMedia", locale: locale)))
                 } else if let scope = flow.scope, let service = flow.service {
-                    PhotosPicker(selection: $item, matching: .images) { Label(String(localized: LocalizedStringResource("media.album", table: "ClubProfileMedia", locale: locale)), systemImage: "photo") }
+                    let albumLocale = locale
+                    PhotosPicker(selection: $item, matching: .images) { Label(String(localized: LocalizedStringResource("media.album", table: "ClubProfileMedia", locale: albumLocale)), systemImage: "photo") }
                         .disabled(!canSelect || !service.permitsAlbum(scope))
                     Button(String(localized: LocalizedStringResource("media.camera", table: "ClubProfileMedia", locale: locale))) { Task { await openCamera(scope: scope, service: service) } }
                         .disabled(!canSelect || !service.permitsCamera(scope) || !UIImagePickerController.isSourceTypeAvailable(.camera))

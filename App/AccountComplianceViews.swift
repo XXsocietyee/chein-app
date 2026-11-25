@@ -44,6 +44,82 @@ import SwiftUI
         else if marketingPresentation != nil { pauseMarketing() }
         else { coordinator.invalidate() }
     }
+    private var contractApplyRequestID = UUID().uuidString.lowercased()
+    private var contractSMSSentAt: Date?
+    private var contractSMSCode: String?
+
+    func rememberContractCode(_ code: String) { contractSMSCode = code }
+
+    func precheckOnContract(documentRead: Bool, explicitAgreement: Bool, expectedConsentVersion: String?, intent: AccountDeregistrationIntent) async {
+        guard AccountPublishContractLane.isInstalled else {
+            await coordinator.precheckAndAgree(documentRead: documentRead, explicitAgreement: explicitAgreement, expectedConsentVersion: expectedConsentVersion, recordConsent: false, intent: intent)
+            return
+        }
+        guard let baseURL = AccountPublishContractLane.baseURL, coordinator.beginContractWrite(intent: intent) else { return }
+        defer { coordinator.endContractWrite() }
+        do {
+            let request = try AccountPublishMPContract.deregisterPrecheckRequest(baseURL: baseURL, token: AccountPublishContractLane.token)
+            let (data, _) = try await AccountPublishContractLane.send(request)
+            guard let precheck = AccountPublishMPContract.deregisterPrecheck(from: data) else { return }
+            coordinator.adoptContractPrecheck(precheck, documentRead: documentRead, explicitAgreement: explicitAgreement, intent: intent)
+        } catch {}
+    }
+
+    func sendBoundSMSOnContract(intent: AccountDeregistrationIntent) async {
+        guard AccountPublishContractLane.isInstalled else {
+            await coordinator.sendBoundPhoneSMS(explicitlyRequested: true, intent: intent)
+            return
+        }
+        if state.smsSent, let sent = contractSMSSentAt, Date().timeIntervalSince(sent) < 60 { return }
+        guard coordinator.beginContractWrite(intent: intent) else { return }
+        defer { coordinator.endContractWrite() }
+        do {
+            let (data, _) = try await AccountPublishContractLane.userInfo()
+            guard let phone = AccountPublishMPContract.deregisterPhone(from: data) else {
+                coordinator.adoptContractBoundSMS(phone: nil, intent: intent)
+                return
+            }
+            guard let baseURL = AccountPublishContractLane.baseURL else { return }
+            let request = try AccountPublishMPContract.smsSendRequest(baseURL: baseURL, phone: phone, token: AccountPublishContractLane.token)
+            _ = try await AccountPublishContractLane.send(request)
+            contractSMSSentAt = Date()
+            coordinator.adoptContractBoundSMS(phone: phone, now: contractSMSSentAt ?? Date(), intent: intent)
+        } catch {}
+    }
+
+    func applyOnContract(recordNoticeConsent: Bool, expectedConsentVersion: String?, intent: AccountDeregistrationIntent) async {
+        guard AccountPublishContractLane.isInstalled else {
+            await coordinator.apply(explicitlyConfirmed: true, recordNoticeConsent: recordNoticeConsent, expectedConsentVersion: expectedConsentVersion, intent: intent)
+            return
+        }
+        guard coordinator.beginContractWrite(intent: intent) else { return }
+        defer { coordinator.endContractWrite() }
+        let consented = await coordinator.prepareContractApplyConsent(recordNoticeConsent: recordNoticeConsent, expectedConsentVersion: expectedConsentVersion, intent: intent)
+        guard consented, let baseURL = AccountPublishContractLane.baseURL else { return }
+        do {
+            let request = try AccountPublishMPContract.deregisterApplyRequest(baseURL: baseURL, requestID: contractApplyRequestID, smsCode: contractSMSCode, token: AccountPublishContractLane.token)
+            let (data, _) = try await AccountPublishContractLane.send(request)
+            await coordinator.adoptContractApply(AccountPublishMPContract.deregisterApply(from: data), intent: intent)
+        } catch {
+            await coordinator.adoptContractApply(nil, intent: intent)
+        }
+    }
+
+    func cancelOnContract(intent: AccountDeregistrationIntent) async {
+        guard AccountPublishContractLane.isInstalled else {
+            await coordinator.cancel(explicitlyConfirmed: true, intent: intent)
+            return
+        }
+        guard let baseURL = AccountPublishContractLane.baseURL, coordinator.beginContractWrite(intent: intent) else { return }
+        defer { coordinator.endContractWrite() }
+        do {
+            let request = try AccountPublishMPContract.deregisterCancelRequest(baseURL: baseURL, token: AccountPublishContractLane.token)
+            let (data, _) = try await AccountPublishContractLane.send(request)
+            coordinator.adoptContractCancel(cancelled: AccountPublishMPContract.deregisterCancel(from: data) == "CANCELLED", intent: intent)
+        } catch {
+            coordinator.adoptContractCancel(cancelled: false, intent: intent)
+        }
+    }
 }
 /// Add to Settings Form with an injected coordinator; sheet dismissal never retries a write.
 @MainActor struct AccountComplianceSettingsSection: View {
@@ -243,7 +319,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 MemberDeregistrationCancelConfirmSheet {
                     cancelReview = false
                     cancelIntent = nil
-                    Task { await model.coordinator.cancel(explicitlyConfirmed: true, intent: intent) }
+                    Task { await model.cancelOnContract(intent: intent) }
                 }
                 .themeDomain(.player)
             }
@@ -344,8 +420,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     let documentWasRead = document != nil
                     let explicitlyAgreed = agreement
                     // B-DR-04: the notice step only reads the precheck; AGREE is recorded in apply(), after SMS (MP order).
-                    Task { await model.coordinator.precheckAndAgree(documentRead: documentWasRead,
-                        explicitAgreement: explicitlyAgreed, expectedConsentVersion: displayedVersion, recordConsent: false, intent: intent) }
+                    Task { await model.precheckOnContract(documentRead: documentWasRead, explicitAgreement: explicitlyAgreed, expectedConsentVersion: displayedVersion, intent: intent) }
                 }
                     .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                     .disabled(document?.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
@@ -358,7 +433,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 // `/api/user/info`; there is no number field. Core blocks a second send for 60 seconds.
                 Button(LocalizedStringKey(model.state.smsSent ? "fixr3.deregister.resendSMS" : "fixr3.deregister.sendSMS")) {
                     guard let intent = model.cancellationIntent() else { return }
-                    Task { await model.coordinator.sendBoundPhoneSMS(explicitlyRequested: true, intent: intent) }
+                    Task { await model.sendBoundSMSOnContract(intent: intent) }
                 }
                     .buttonStyle(.bordered).buttonBorderShape(.capsule)
                     .frame(minHeight: CYSpacing.minTouchTarget)
@@ -373,6 +448,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 TextField("fixr3.deregister.code", text: $code).textContentType(.oneTimeCode).keyboardType(.numberPad).accessibilityIdentifier("compliance.code")
                 Button("compliance.review") {
                     guard model.cancellationIntent() != nil else { return }
+                    model.rememberContractCode(code)
                     model.coordinator.prepareReview(code: code); code = ""
                 }
                 .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
@@ -392,13 +468,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     AccountDeregistrationImpactConfirmation(revision: impact.revision) {
                         guard let intent = model.cancellationIntent() else { return }; code = ""
                         let displayedVersion = document?.version
-                        Task { await model.coordinator.apply(explicitlyConfirmed: true, recordNoticeConsent: true, expectedConsentVersion: displayedVersion, intent: intent) }
+                        Task { await model.applyOnContract(recordNoticeConsent: true, expectedConsentVersion: displayedVersion, intent: intent) }
                     }.id(impact.revision).disabled(!model.state.localCancellationConsent.allowsNewConsent)
                 } else if model.coordinator.deregistrationOriginalRevision == nil {
                     Button("fixr3.deregister.confirmApply", role: .destructive) {
                         guard let intent = model.cancellationIntent() else { return }; code = ""
                         let displayedVersion = document?.version
-                        Task { await model.coordinator.apply(explicitlyConfirmed: true, recordNoticeConsent: true, expectedConsentVersion: displayedVersion, intent: intent) }
+                        Task { await model.applyOnContract(recordNoticeConsent: true, expectedConsentVersion: displayedVersion, intent: intent) }
                     }
                     .disabled(!model.state.localCancellationConsent.allowsNewConsent)
                     .accessibilityIdentifier("compliance.confirmApply")

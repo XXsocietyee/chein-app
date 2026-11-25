@@ -181,7 +181,7 @@ public struct AppStoreReviewRejectionPreventionSectionView: View {
     private var headerRow: some View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.shield.fill")
-                .foregroundStyle(.teal)
+                .accessibilityHidden(true).foregroundStyle(.teal)
             Text(verbatim: "App Store Review Rejection Prevention Playbook")
                 .cyText(.cardTitle)
                 .accessibilityIdentifier("reviewRejectionPlaybook.header")

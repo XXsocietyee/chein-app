@@ -313,6 +313,8 @@ struct ClubPostImageSectionView: View {
                             .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner))
                     }
                     .buttonStyle(.plain)
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityLabel(Text("media.destination.image"))
                     .accessibilityIdentifier("club.community.uploadedImagePreview.\(index)")
                 }
                 #endif
@@ -359,6 +361,8 @@ struct ClubPostImageSectionView: View {
                             .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner))
                     }
                     .buttonStyle(.plain)
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityLabel(Text("media.destination.image"))
                     .accessibilityIdentifier("club.community.localImagePreview.\(candidate.id.uuidString)")
                 }
                 #endif
@@ -452,6 +456,7 @@ private struct ClubPostImagePreviewSheet: View {
                         .resizable()
                         .scaledToFit()
                         .frame(maxWidth: .infinity, maxHeight: 360)
+                        .accessibilityLabel(Text("media.destination.image"))
                         .accessibilityIdentifier("club.community.imagePreviewSheet.image")
                 }
                 #endif

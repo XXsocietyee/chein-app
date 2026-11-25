@@ -275,28 +275,23 @@ import SwiftUI
         guard visible, phase == .active, !busy, let session = client.session,
               coordinator.currentSession == session, value.session == session,
               self.review == value, value.action == currentAction else { return }
-        let stamp = generation, key = formKey
-        busy = true
-        Task {
-            guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
-            defer { if isCurrent(stamp, session, key) { busy = false } }
-            let review = value
-            let outcome = await coordinator.confirm(review, consequentialApproval: true)
-            guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
-            self.review = nil
-            if case .acknowledged(let serverMessage, _) = outcome {
-                // MP: the server only moves the topic to PRICING; never claim 已开售.
-                let trimmed = serverMessage?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                let text = trimmed.isEmpty
-                    ? (isChinese ? "终价已确认，请等待开售审核" : "Final price confirmed. Waiting for the sales review.") : trimmed
-                if text.contains("支付资质") { paymentQualificationNote = text; return }
-                successToast = text
-                try? await Task.sleep(nanoseconds: 2_500_000_000)
-                if visible { dismiss() }
-                return
-            }
-            message = PublisherLifecycleCopy.outcome(outcome, zh: isChinese); resultSession = session
+        // Pricing confirm is refused by the contract while the grant flag is off. Do not call the coordinator,
+        // which would build POST api/topic/pricing/confirm. Graduate, transfer, and cancel use their own methods.
+        guard case .pricing = value.action else { return }
+        do {
+            _ = try PlayerContentMPContract.pricingConfirm(
+                baseURL: client.configuration.baseURL, topicID: topicID, scope: nil,
+                guidedPrice: subtype == .guided ? Int(price) : nil, ticketPrices: [],
+                leadCost: Int(cost), teamSize: Int(team), selfPrice: subtype == .selfPlay ? Int(price) : nil)
+        } catch {
+            message = PublisherLifecycleCopy.outcome(.notSent, zh: isChinese)
+            resultSession = session
+            review = nil
+            return
         }
+        message = PublisherLifecycleCopy.outcome(.notSent, zh: isChinese)
+        resultSession = session
+        review = nil
     }
 }
 @MainActor struct PublisherPartnerView: View {

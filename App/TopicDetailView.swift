@@ -312,9 +312,10 @@ struct TopicDetailView: View {
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value), stops: value.locationCount)
                     .listRowBackground(Color.clear)
                 // One container for 详情 / 故事 / 路线: inline here, and pinned under the bar once it scrolls away.
+                let line = pinLine
                 TopicXcxTabs(proxy: proxy, productType: value.productType).selection($tab)
                     .opacity(tabsPinned ? 0 : 1)
-                    .onGeometryChange(for: Bool.self) { $0.frame(in: .global).minY < pinLine } action: { pinned in
+                    .onGeometryChange(for: Bool.self) { $0.frame(in: .global).minY < line } action: { pinned in
                         if tabsPinned != pinned { tabsPinned = pinned }
                     }
                     // A tab tap scrolls with `scrollTo`, which jumps: the row leaves the list without ever reporting a

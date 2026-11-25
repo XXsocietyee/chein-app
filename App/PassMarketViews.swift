@@ -941,8 +941,10 @@ struct PassGiftClaimView: View {
 
 // MARK: - Pass order (`subpackageMember/market/pass-order`)
 
-/// Read-only city-pass order: status, refund progress, validity, paid day, copy the order number. 继续付款 stays gated;
-/// 取消订单 and 申请退款 are platform-pass writes that are not wired here (see the receipt), so they show the gate note.
+/// City-pass order: status, refund progress, validity, paid day, copy the order number.
+/// 继续付款 calls `confirmPassOrder`, 取消订单 calls `cancelPassOrder`, 申请退款 calls `refundApplyPassOrder`.
+/// `PlatformPass.moneyEnabled` stays false, so each of those throws `PlatformPassWriteRefusal.unreachable` and sends nothing.
+/// Pay is not called. The gate note stays.
 @MainActor protocol PassOrderDetailBinding: AnyObject, Observable {
     var phase: MPLoad<PlatformPassSubscriptionOrder> { get }
     func load()
@@ -1031,9 +1033,122 @@ struct PassOrderDetailView: View {
             }
             .accessibilityIdentifier("passOrder.rows")
             if order.canResume || order.canCancel || order.canRefund {
-                MPGatedNote(text: Text("mp.passOrder.gated"), identifier: "passOrder.gated")
+                PassOrderRefusedWrites(order: order)
             }
         }
         .transition(.opacity)
+    }
+}
+
+/// Resume, cancel, and refund sit on the contracts from `cursor-mp-cov-member`.
+/// The three writes throw before any transport send. No pay request is built.
+private struct PassOrderRefusedWrites: View {
+    let order: PlatformPassSubscriptionOrder
+    @Environment(\.passOrderWriteSession) private var session
+    @Environment(\.locale) private var locale
+    @State private var confirmCancel = false
+    @State private var refunding = false
+    @State private var reason = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            MPGatedNote(text: Text("mp.passOrder.gated"), identifier: "passOrder.gated")
+            if order.canResume {
+                Button { refuse(.resume) } label: { copy("继续付款", "Continue payment") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("passOrder.resume")
+            }
+            if order.canCancel {
+                Button(role: .destructive) { confirmCancel = true } label: { copy("取消订单", "Cancel order") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("passOrder.cancel")
+            }
+            if order.canRefund {
+                Button(role: .destructive) { refunding = true } label: { copy("申请退款", "Request a refund") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("passOrder.refund")
+            }
+        }
+        .confirmationDialog(copy("取消订单", "Cancel order"), isPresented: $confirmCancel, titleVisibility: .visible) {
+            Button(role: .destructive) { refuse(.cancel) } label: { copy("取消订单", "Cancel order") }
+            Button(role: .cancel) {} label: { Text("common.cancel") }
+        }
+        .sheet(isPresented: $refunding) {
+            NavigationStack {
+                Form {
+                    Section {
+                        TextField(text: $reason, axis: .vertical) { copy("退款原因", "Refund reason") }
+                            .lineLimit(3...6)
+                            .onChange(of: reason) { _, newValue in
+                                if newValue.count > 200 { reason = String(newValue.prefix(200)) }
+                            }
+                    } header: {
+                        copy("退款原因", "Refund reason").font(.caption)
+                    } footer: {
+                        Text(verbatim: "\(reason.count)/200").font(.caption).monospacedDigit()
+                    }
+                    Section {
+                        Button(role: .destructive) {
+                            let trimmed = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !trimmed.isEmpty else { return }
+                            refunding = false
+                            refuse(.refund, reason: trimmed)
+                        } label: {
+                            copy("提交申请", "Submit request")
+                        }
+                        .disabled(reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+                .navigationTitle(copy("申请退款", "Request a refund"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { refunding = false } label: { Text("common.cancel") }
+                    }
+                }
+            }
+            .presentationDetents([.medium])
+        }
+    }
+
+    /// Mini-program words. Kept out of the pinned string catalog.
+    private func copy(_ zh: String, _ en: String) -> Text {
+        let chinese = locale.language.languageCode?.identifier.hasPrefix("zh") == true
+        return Text(verbatim: chinese ? zh : en).font(.body)
+    }
+
+    private enum Write { case resume, cancel, refund }
+
+    /// Money stays off. A missing reader does not invent a sender.
+    private func refuse(_ write: Write, reason: String = "") {
+        guard PlatformPass.moneyEnabled == false, MPParityBindings.moneyEnabled == false else { return }
+        guard let session, let client = session.makePlatformPassReader() else { return }
+        let token = session.passReadToken() ?? ""
+        do {
+            switch write {
+            case .resume:
+                _ = PlatformPass.passOrderConfirmPath(orderNo: order.orderNo)
+                try client.confirmPassOrder(orderNo: order.orderNo, token: token)
+            case .cancel:
+                _ = PlatformPass.passOrderCancelPath(orderNo: order.orderNo)
+                try client.cancelPassOrder(orderNo: order.orderNo, token: token)
+            case .refund:
+                _ = PlatformPass.passOrderRefundApplyPath(orderNo: order.orderNo)
+                try client.refundApplyPassOrder(orderNo: order.orderNo, reason: reason, token: token)
+            }
+        } catch {
+            return
+        }
+    }
+}
+
+private struct PassOrderWriteSessionKey: EnvironmentKey {
+    static let defaultValue: AppSession? = nil
+}
+
+extension EnvironmentValues {
+    var passOrderWriteSession: AppSession? {
+        get { self[PassOrderWriteSessionKey.self] }
+        set { self[PassOrderWriteSessionKey.self] = newValue }
     }
 }

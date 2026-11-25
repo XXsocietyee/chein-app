@@ -26,7 +26,7 @@ struct TemplateAuthoringCoverHeader: View {
                             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                     } else {
                         palette.coverFallback
-                            .overlay(Image(systemName: "photo").font(.title).foregroundStyle(palette.onCoverFgDim))
+                            .overlay(Image(systemName: "photo").accessibilityHidden(true).font(.title).foregroundStyle(palette.onCoverFgDim))
                     }
                 }
             }

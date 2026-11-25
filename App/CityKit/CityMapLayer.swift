@@ -244,10 +244,10 @@ struct CityPin: View {
 
     @ViewBuilder private var badge: some View {
         if place.isProtected(now: Date()) {
-            Image(systemName: "lock.fill").font(.caption2.weight(.bold)).foregroundStyle(.black)
+            Image(systemName: "lock.fill").accessibilityHidden(true).font(.caption2.weight(.bold)).foregroundStyle(.black)
                 .frame(width: 16, height: 16).background(Color.white, in: Circle()).offset(x: -2, y: 2)
         } else if place.isWeathered {
-            Image(systemName: "exclamationmark").font(.caption2.weight(.black)).foregroundStyle(.black)
+            Image(systemName: "exclamationmark").accessibilityHidden(true).font(.caption2.weight(.black)).foregroundStyle(.black)
                 .frame(width: 16, height: 16).background(CityTokens.coin, in: Circle()).offset(x: -2, y: 2)
         }
     }

@@ -120,7 +120,7 @@ struct D6MapFixture: View {
                     CYGlassButton(systemImage: "chevron.left", label: "Back", action: {})
                     CYGlassCapsule {
                         HStack(spacing: CYSpacing.sm) {
-                            Image(systemName: "magnifyingglass").foregroundStyle(Color.white.opacity(0.6))
+                            Image(systemName: "magnifyingglass").accessibilityHidden(true).foregroundStyle(Color.white.opacity(0.6))
                             Text(verbatim: t("Search routes, places", "搜索路线、地点等")).foregroundStyle(Color.white.opacity(0.6))
                                 .lineLimit(1).minimumScaleFactor(0.7)
                             Spacer(minLength: 0)

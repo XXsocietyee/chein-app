@@ -137,7 +137,7 @@ import SwiftUI
 
     private func step(_ symbol: String, _ text: Text) -> some View {
         HStack(spacing: CYSpacing.md) {
-            Image(systemName: symbol).foregroundStyle(CYColor.textPrimary).frame(width: 24)
+            Image(systemName: symbol).accessibilityHidden(true).foregroundStyle(CYColor.textPrimary).frame(width: 24)
             text.cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
         }
             .padding(CYSpacing.lg)

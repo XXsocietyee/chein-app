@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Presentation metadata only. No question, answer, error text or audio is retained.
-@MainActor struct MerchantNPCTranscriptScrollEvent: Equatable {
+@MainActor struct MerchantNPCTranscriptScrollEvent: @preconcurrency Equatable {
     enum ReplyState: Equatable { case none, processing, succeeded, rejected, failed, other }
     enum FailureState: Equatable { case none, disabled, staleScope, invalid, reviewRequired, unknownOutcome, malformed, rejected }
     struct Status: Equatable {

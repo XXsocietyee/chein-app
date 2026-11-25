@@ -120,7 +120,7 @@ struct CYMorphButton<DoneAccessory: View>: View {
 
     @ViewBuilder private var label: some View {
         HStack(spacing: CYSpacing.sm) {
-            if let systemImage { Image(systemName: systemImage) }
+            if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
             Text(title)
         }
         .multilineTextAlignment(.center)

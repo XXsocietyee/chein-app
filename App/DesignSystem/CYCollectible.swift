@@ -136,7 +136,7 @@ struct CYCelebrationMoment: View {
                 .background { CYRingPulse(trigger: burst, idle: false).frame(width: 170, height: 170) }
         case .checkIn, .club:
             Image(systemName: symbol)
-                .font(.system(size: 92, weight: .semibold))
+                .accessibilityHidden(true).font(.system(size: 92, weight: .semibold))
                 .foregroundStyle(.white, Color(hue: Double(CYCoverArt.stableHash(seed) % 360) / 360, saturation: 0.65, brightness: 0.75))
                 .symbolEffect(.bounce, options: .nonRepeating, value: landed)
                 .scaleEffect(on ? 1 : 0.3)
@@ -150,7 +150,7 @@ struct CYCelebrationMoment: View {
         return ZStack {
             Circle().strokeBorder(ink, lineWidth: 6)
             Circle().strokeBorder(ink.opacity(0.7), style: StrokeStyle(lineWidth: 2, dash: [2, 6])).padding(16)
-            Image(systemName: symbol).font(.system(size: 64, weight: .bold)).foregroundStyle(ink)
+            Image(systemName: symbol).accessibilityHidden(true).font(.system(size: 64, weight: .bold)).foregroundStyle(ink)
         }
         .frame(width: 170, height: 170)
         .background(Circle().fill(ink.opacity(0.10)))

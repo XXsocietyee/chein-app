@@ -57,7 +57,7 @@ struct E1CoverArt: View {
     }
     private var neutral: some View {
         LinearGradient(colors: [palette.bgStrong, palette.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing)
-            .overlay { if symbolPoint != nil { Image(systemName: symbol).font(.title).foregroundStyle(palette.textPlaceholder) } }
+            .overlay { if symbolPoint != nil { Image(systemName: symbol).accessibilityHidden(true).font(.title).foregroundStyle(palette.textPlaceholder) } }
     }
     #if DEBUG
     private var debugArt: some View {
@@ -73,7 +73,7 @@ struct E1CoverArt: View {
                 if let symbolPoint {
                     let glyphSize = max(16, min(g.size.width, g.size.height) * 0.3)
                     Image(systemName: symbol)
-                        .resizable()
+                        .resizable().accessibilityHidden(true)
                         .scaledToFit()
                         .fontWeight(.light)
                         .foregroundStyle(.white.opacity(0.4))
@@ -195,7 +195,7 @@ struct CYPillButtonLabel: View {
     init(_ title: LocalizedStringKey, systemImage: String? = nil) { self.title = title; self.systemImage = systemImage }
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
-            if let systemImage { Image(systemName: systemImage) }
+            if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
             Text(title)
         }
     }

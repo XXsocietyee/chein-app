@@ -30,13 +30,13 @@ struct CYStampSeal: View {
                 Circle().strokeBorder(LinearGradient(colors: [.white.opacity(0.85), foil.1.opacity(0.6)], startPoint: .top, endPoint: .bottom), lineWidth: 2 * scale)
                 Circle().strokeBorder(.white.opacity(0.35), style: StrokeStyle(lineWidth: scale, dash: [2 * scale, 3 * scale])).padding(6 * scale)
                 Image(systemName: "seal.fill")
-                    .font(.title3.weight(.semibold))
+                    .accessibilityHidden(true).font(.title3.weight(.semibold))
                     .scaleEffect(scale)
                     .foregroundStyle(.white)
                     .shadow(color: .black.opacity(0.35), radius: 2 * scale, y: scale)
             } else {
                 Circle().strokeBorder(palette.textTertiary, style: StrokeStyle(lineWidth: 1.5 * scale, dash: [4 * scale, 4 * scale]))
-                Image(systemName: "seal").font(.title3).scaleEffect(scale).foregroundStyle(palette.textTertiary)
+                Image(systemName: "seal").accessibilityHidden(true).font(.title3).scaleEffect(scale).foregroundStyle(palette.textTertiary)
             }
         }
         .aspectRatio(1, contentMode: .fit)
