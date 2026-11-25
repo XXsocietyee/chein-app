@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // r8 account-publish (Claude App): hosts that mount the compiled AccountPublish gap views
 // from their MP-equivalent entry points. Each host owns only its own state; contracts stay in Core.
@@ -400,5 +401,62 @@ enum ProjectEditLook {
                     .disabled(read.loading)
             }
         }
+    }
+}
+
+// MARK: - C-D11-r7 邀请卡 保存图片 (MP team/detail wxml:157-159: wx.saveImageToPhotosAlbum behind the in-page privacy gate)
+
+/// Downloads the server's team code image (https only) and adds it to Photos (add-only access; the system asks once,
+/// with `NSPhotoLibraryAddUsageDescription`). The in-page notice comes first, as on the MP.
+@MainActor struct TeamInviteImageSaveRow: View {
+    let imageURL: URL
+    @State private var phase: Phase = .idle
+    enum Phase: Equatable { case idle, saving, saved, failed }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            TeamDetailGapSaveInviteImageRow { save() }
+                .disabled(phase == .saving)
+                .frame(minHeight: 44)
+                .accessibilityIdentifier("team.invite.saveImage")
+            switch phase {
+            case .saving: ProgressView().controlSize(.small)
+            case .saved: Text("fixr8.team.saveImage.saved").cyText(.meta).foregroundStyle(CYColor.successText)
+            case .failed: Text("fixr8.team.saveImage.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+            case .idle: EmptyView()
+            }
+        }
+    }
+
+    private func save() {
+        guard phase != .saving, imageURL.scheme == "https" else { phase = .failed; return }
+        phase = .saving
+        Task {
+            guard let (data, response) = try? await URLSession.shared.data(from: imageURL),
+                  (response as? HTTPURLResponse).map({ (200..<300).contains($0.statusCode) }) ?? false,
+                  let image = UIImage(data: data) else { phase = .failed; return }
+            phase = await TeamInvitePhotoSaver.save(image) ? .saved : .failed
+        }
+    }
+}
+
+/// `UIImageWriteToSavedPhotosAlbum` with its completion selector bridged to async.
+@MainActor final class TeamInvitePhotoSaver: NSObject {
+    private var continuation: CheckedContinuation<Bool, Never>?
+    private static var active: Set<TeamInvitePhotoSaver> = []
+
+    static func save(_ image: UIImage) async -> Bool {
+        let saver = TeamInvitePhotoSaver()
+        active.insert(saver)
+        defer { active.remove(saver) }
+        return await withCheckedContinuation { continuation in
+            saver.continuation = continuation
+            UIImageWriteToSavedPhotosAlbum(image, saver, #selector(TeamInvitePhotoSaver.image(_:didFinishSavingWithError:contextInfo:)), nil)
+        }
+    }
+
+    @objc private func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeMutableRawPointer?) {
+        continuation?.resume(returning: error == nil)
+        continuation = nil
     }
 }

@@ -225,14 +225,14 @@ public struct TeamDetailGapSaveInviteImageRow: View {
         Button {
             showPrivacyAlert = true
         } label: {
-            Label(AccountPublishRound4Copy.saveInviteImage, systemImage: "square.and.arrow.down")
+            Label("fixr8.team.saveImage", systemImage: "square.and.arrow.down")
                 .cyText(.body)
         }
-        .alert(AccountPublishRound4Copy.saveInviteImage, isPresented: $showPrivacyAlert) {
-            Button("取消", role: .cancel) {}
-            Button("允许并保存") { onSaveConfirmed() }
+        .alert(Text("fixr8.team.saveImage"), isPresented: $showPrivacyAlert) {
+            Button("common.cancel", role: .cancel) {}
+            Button("fixr8.team.saveImage.allow") { onSaveConfirmed() }
         } message: {
-            Text(verbatim: AccountPublishRound4Copy.saveInvitePrivacyNote)
+            Text("fixr8.team.saveImage.privacy")
         }
     }
 }
