@@ -1,0 +1,75 @@
+# Matched-indirect mini-program calls.
+# The checker applies the rule itself. This file records the rows.
+# A row is here only when the call forwards url, requestJson, or _request,
+# or the url is a ternary whose path literals are already Core string literals.
+# A concatenation, a data spread that drops a path, and a call that only
+# forwards opts or options are not listed.
+# Mini-program: liboyang42-cpu/hengyin chengyinhub-xcx 25eb6a0c1fbae79f124f109e19f7b7f97fd06aaf
+# MP file:line<TAB>reason
+
+components/cy/club-direct-ledger/index.js:38	ternary api/club-direct-merchant/club | api/club-direct-merchant/merchant
+components/cy/fe-reference-settlement/index.js:39	ternary api/fe/reference-settlement/payer | api/fe/reference-settlement/merchant
+components/cy/fe-reference-settlement/index.js:98	forwards url
+pages/activity/official-inbox/index.js:110	forwards url
+pages/club/detail/index.js:1037	forwards url
+pages/club/event-ops/index.js:935	ternary api/club/event-ops/series/update-future | api/club/event-ops/series/create
+pages/club/join-requests/index.js:196	ternary api/club/join-request/approve | api/club/join-request/reject
+pages/club/settlement/index.js:186	ternary api/club/settlement/mine | api/club/settlement/summary
+pages/club/topic-story/index.js:274	ternary api/club/topic-node-answer | api/topic/host-node-answer
+pages/coop/list/index.js:391	ternary api/merchant/chapter-application/owner-mine | api/merchant/chapter-application/mine
+pages/coop/settlement-detail/index.js:232	ternary api/club/settlement/summary | api/coop/finance | api/coop/mybiz
+pages/index/index.js:1057	forwards url
+pages/merchant/decor/ai-npc/index.js:272	forwards url
+pages/merchant/decor/index.js:367	ternary api/merchant/info | api/merchant/coop-profile
+pages/merchant/ledger/index.js:196	forwards url
+pages/merchant/reviews/index.js:624	forwards url
+pages/merchant/team/index.js:715	ternary api/merchant/operators/remove | api/merchant/operators/invite/revoke
+pages/play/circle/index.js:12	forwards url
+pages/play/components/advanced-game/index.js:89	forwards url
+pages/play/index.js:336	forwards url
+pages/play/merchant/index.js:16	forwards url
+pages/play/utils/theme-backpack.js:372	ternary api/game/session/shared/preview | api/play/theme/gameplay-preview
+pages/play/utils/theme-backpack.js:503	ternary api/game/session/command | api/play/theme/gameplay-action
+pages/play/utils/theme-command.js:11	forwards options.url
+pages/privacy/index.js:119	forwards url
+pages/publish/activity/index.js:818	ternary api/merchant/access/me | api/publish/home
+pages/publish/temp/index.js:3490	ternary api/template/draft | api/template/publish
+pages/publish/temp/index.js:3560	ternary api/template/author-myinfo | api/template/author-info
+pages/roam/index.js:210	forwards url
+pages/search2/result/index.js:198	forwards request.url
+pages/templatedetail/templatedetail.js:331	ternary api/template/myinfo | api/template/info
+pages/topic/components/cy/node-npc-form/index.js:641	forwards url
+pages/topic/index/index.js:13	forwards url
+pages/topic/merchantapply/index.js:672	ternary api/registration/merchant/update | api/registration/merchant/create
+pages/topic/merchantinfo/merchantinfo.js:646	ternary api/topic/info-to-merchant | api/topic/info-to-user
+pages/topic/merchantinfo/merchantinfo.js:959	forwards url
+pages/topic/merchantinfo/merchantinfo.js:3368	ternary api/club/detail | api/merchant/public-detail
+pages/topic/pricing/index.js:227	ternary api/club/detail | api/merchant/public-detail
+pages/topic/pricing/partner/index.js:205	ternary api/club/detail | api/merchant/public-detail
+subpackageA/pages/myproject/index.js:696	forwards url
+subpackageA/pages/myproject/index.js:1130	forwards url
+subpackageA/pages/video-bounty/index.js:11	forwards url
+subpackageA/pages/video-bounty/index.js:20	forwards url
+subpackageJourney/utils/journey-api.js:11	forwards url
+subpackageMember/components/cy/npc-chat/index.js:129	ternary api/ai/npc/merchant-chat | api/ai/npc/chat
+subpackageMember/components/cy/profile/index.js:83	forwards url
+subpackageMember/components/cy/profile/index.js:1300	forwards url
+subpackageMember/components/cy/scene-member-order-detail/index.js:658	ternary api/registration/cancel-refund | api/registration/cancel
+subpackageMember/components/cy/scene-member-order-history/index.js:425	ternary api/registration/cancel-refund | api/registration/cancel
+subpackageMember/components/cy/scene-route-content/index.js:260	forwards config.url
+subpackageMember/components/cy/scene-route-content/index.js:521	forwards request.url
+subpackageMember/components/scene-member-participation-detail/index.js:636	ternary api/registration/cancel-refund | api/registration/cancel
+subpackageMember/free-explore/index.js:83	forwards url
+subpackageMember/market/membership/index.js:27	forwards url
+subpackageMember/market/passes/index.js:19	forwards url
+subpackageP3/pages/growthcenter/index/index.js:35	forwards url
+subpackageRoam/citystamp/index.js:29	forwards url
+subpackageRoam/components/cy/scene-roam-stamp-album/index.js:66	ternary api/roam/stamp/received | api/roam/stamp/list
+subpackageTools/utils/features/exploration-export.js:26	forwards url
+utils/features/capsule-client.js:34	forwards url
+utils/features/exploration-goals.js:63	forwards url
+utils/game-session-client.js:457	ternary api/game/session/shared/export | api/game/session/shared/control
+utils/post-feed-actions.js:53	ternary api/creativesquare/like | api/club/post/like
+utils/roam-place-detail.js:9	forwards url
+utils/roam-place-media.js:52	forwards url
+utils/ui-state-request.js:4	forwards url

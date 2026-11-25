@@ -9,21 +9,33 @@ are not rows. subscribe.request([...]) is not an HTTP row, and neither is
 require("...subscribe.js").request([...]).
 
 This extracts literal arguments only. It does not parse JavaScript.
-A path or method that is not a literal is left unknown. A call that only
-forwards url, with no path string, stays missing-endpoint. A spread or
+A path or method that is not a literal is left unknown. A spread or
 Object.assign source that follows a url literal can replace it, so that
 literal is not kept. Same-file request helpers are used only when the
 helper body contains one literal /api URL or one literal method.
 
+A row with no path is matched-indirect when the call forwards url,
+requestJson, or _request, or when the url is a ternary and every path
+literal on that ternary is already a Core string literal. The symbol
+column then reads INDIRECT. A concatenation such as siteBaseUrl + '/api/...'
+stays missing-endpoint. A data spread that drops a path literal stays
+missing-endpoint. A call that only forwards opts or options stays
+missing-endpoint, unless the checker can see that the forwarded value is
+url, requestJson, or _request. Both sides of a ternary must already be
+literals in Core; if one side is not, the row stays missing-endpoint.
+No path is invented for an indirect row. The rows this rule matches on the
+pinned mini-program are recorded in tools/mp_contract_indirect_allowlist.txt.
+
 Columns, tab-separated:
-  MP file:line    Core symbol or MISSING    test or MISSING
+  MP file:line    Core symbol, INDIRECT, or MISSING    test or MISSING
 
 A Core symbol is a type.member in Core/ whose string literal is that path.
 A test pins the row when one Tests/CoreTests function contains the path
 and the quoted method. Literal field names are still required when this
 scan can read them. A body passed through jsonBody(...), JSON.stringify(...),
 a forwarded data value, Object.assign, a spread, a variable, or no data
-object stays unread and does not block the pin.
+object stays unread and does not block the pin. An indirect row has no
+single path, so it is not a direct match and it does not take a pin.
 
 usage:
   python3 tools/check_mp_contract_coverage.py --mp-root /path/to/chengyinhub-xcx
@@ -899,6 +911,286 @@ def matching_test(functions, pattern, templated, method, fields):
     return sorted(hits)[0] if hits else None
 
 
+FORWARDERS = ("url", "requestJson", "_request")
+
+
+def strip_wrapping_parens(text):
+    while text.startswith("(") and match_bracket(text, 0) == len(text) - 1:
+        text = text[1:-1].strip()
+    return text
+
+
+def depth0_has(text, op):
+    """True when op sits outside strings, brackets, and regex literals."""
+    depth, quote, i, n = 0, "", 0, len(text)
+    while i < n:
+        c = text[i]
+        if quote:
+            if c == "\\":
+                i += 2
+                continue
+            if c == quote:
+                quote = ""
+            i += 1
+            continue
+        if c in "\"'`":
+            quote = c
+            i += 1
+            continue
+        if c == "/":
+            end = skip_regex_literal(text, i)
+            if end > i:
+                i = end
+                continue
+        if c in "([{":
+            depth += 1
+        elif c in ")]}" and depth:
+            depth -= 1
+        elif c == op and depth == 0:
+            return True
+        i += 1
+    return False
+
+
+def split_one_ternary(text):
+    """Split one conditional into (condition, true arm, false arm).
+
+    Nested conditionals in the true arm keep their own question mark, so the
+    colon that belongs to this conditional is the one that brings the nesting
+    back to zero. Optional chaining and ?? are not conditionals.
+    """
+    depth, quote, q_at, nested, i, n = 0, "", -1, 0, 0, len(text)
+    while i < n:
+        c = text[i]
+        if quote:
+            if c == "\\":
+                i += 2
+                continue
+            if c == quote:
+                quote = ""
+            i += 1
+            continue
+        if c in "\"'`":
+            quote = c
+            i += 1
+            continue
+        if c == "/":
+            end = skip_regex_literal(text, i)
+            if end > i:
+                i = end
+                continue
+        if c in "([{":
+            depth += 1
+            i += 1
+            continue
+        if c in ")]}" and depth:
+            depth -= 1
+            i += 1
+            continue
+        if depth == 0 and c == "?" and i + 1 < n and text[i + 1] in ".?":
+            i += 2
+            continue
+        if depth == 0 and c == "?":
+            if q_at < 0:
+                q_at = i
+            else:
+                nested += 1
+            i += 1
+            continue
+        if depth == 0 and c == ":" and q_at >= 0:
+            if nested == 0:
+                cond, left, right = text[:q_at].strip(), text[q_at + 1:i].strip(), text[i + 1:].strip()
+                if not cond or not left or not right:
+                    return None
+                return cond, left, right
+            nested -= 1
+        i += 1
+    return None
+
+
+def looks_like_function(text):
+    body = text.strip()
+    if body.startswith("function") or body.startswith("async "):
+        return True
+    return "=>" in body
+
+
+def forwarder_name(expr):
+    """url, requestJson, or _request, including a member such as options.url.
+
+    The whole expression must be that name. A concatenation, a call, or a
+    different identifier is not a forwarder.
+    """
+    text = strip_wrapping_parens(expr.strip())
+    if text in FORWARDERS:
+        return text
+    if re.fullmatch(r"[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+", text):
+        prop = text.rsplit(".", 1)[1]
+        if prop in FORWARDERS:
+            return prop
+    return ""
+
+
+def plain_path_literal(expr):
+    text = expr.strip()
+    literal = string_literal(text)
+    if literal is not None:
+        return literal
+    if len(text) >= 2 and text[0] == "`" and text[-1] == "`" and "${" not in text:
+        return text[1:-1]
+    return None
+
+
+def ternary_path_literals(expr):
+    """Path literals of a pure conditional, or None when an arm is not one.
+
+    A depth-0 + makes the expression a concatenation, not a conditional.
+    A nested conditional contributes every leaf. One non-literal arm rejects
+    the whole expression.
+    """
+    text = strip_wrapping_parens(expr.strip())
+    if not text or looks_like_function(text) or depth0_has(text, "+"):
+        return None
+    parts = split_one_ternary(text)
+    if parts is None:
+        return None
+    leaves = []
+    for arm in (parts[1], parts[2]):
+        arm = strip_wrapping_parens(arm.strip())
+        if depth0_has(arm, "+"):
+            return None
+        if split_one_ternary(arm) is not None:
+            nested = ternary_path_literals(arm)
+            if nested is None:
+                return None
+            leaves.extend(nested)
+            continue
+        literal = plain_path_literal(arm)
+        if literal is None:
+            return None
+        leaves.append(literal)
+    return leaves or None
+
+
+def key_name(key):
+    text = key.strip()
+    literal = string_literal(text)
+    if literal is not None:
+        return literal
+    if re.fullmatch(r"[A-Za-z_$][\w$]*", text):
+        return text
+    return ""
+
+
+def object_url_slot(text):
+    """('expr', value) when a url key is written, else None.
+
+    A spread does not hide a url key in the same object, and a spread with no
+    url key does not take the slot. The data-spread case drops a path literal
+    in call_facts; that literal is not a forwarder, so the row stays
+    missing-endpoint. A later url key replaces an earlier one.
+    """
+    body = text.strip()
+    if len(body) < 2 or not body.startswith("{") or not body.endswith("}"):
+        return None
+    expr = None
+    seen = False
+    for part in split_top(body[1:-1], ","):
+        piece = part.strip()
+        if not piece or piece.startswith("..."):
+            continue
+        key, value = depth0_colon(piece)
+        if key is None:
+            if piece == "url":
+                seen, expr = True, "url"
+            continue
+        if key_name(key) != "url":
+            continue
+        seen, expr = True, value.strip()
+    if not seen:
+        return None
+    return ("expr", expr)
+
+
+def assign_url_slot(text):
+    """Url slot after Object.assign sources, left to right.
+
+    An object literal that does not mention url leaves the slot alone. Any
+    other source replaces the whole object. opts and options therefore hide
+    an earlier url unless a later literal sets the slot again.
+    """
+    body = text.strip()
+    open_at = body.find("(")
+    close = match_bracket(body, open_at) if open_at >= 0 else -1
+    if close < 0 or body[close + 1:].strip() or not body.startswith("Object.assign"):
+        return ("unknown", None)
+    state = None
+    for part in split_top(body[open_at + 1:close], ","):
+        piece = part.strip()
+        if not piece or piece == "{}":
+            continue
+        if piece.startswith("{") and piece.endswith("}"):
+            inner = object_url_slot(piece)
+            if inner is not None:
+                state = inner
+            continue
+        if forwarder_name(piece):
+            state = ("expr", piece)
+        else:
+            state = ("unknown", None)
+    return state
+
+
+def url_slot(args_src):
+    """Expression in the url slot, or None when this call does not show one."""
+    args = [part.strip() for part in split_top(args_src, ",") if part.strip()]
+    slot, saw = None, False
+    for arg in args:
+        if arg.startswith("{") and arg.endswith("}"):
+            inner = object_url_slot(arg)
+            if inner is not None:
+                saw, slot = True, inner
+        elif arg.startswith("Object.assign"):
+            saw, slot = True, assign_url_slot(arg)
+    if saw:
+        return slot
+    for arg in args:
+        if string_literal(arg) in METHODS:
+            continue
+        if arg.startswith("{") or arg.startswith("Object.assign") or looks_like_function(arg):
+            return None
+        return ("expr", arg)
+    return None
+
+
+def indirect_reason(args_src, exact):
+    """Short reason when this call is matched-indirect, else ''.
+
+    exact is the Core literal path index. A reason is returned only for a
+    named forwarder or a ternary whose every arm is already in that index.
+    """
+    slot = url_slot(args_src)
+    if not slot or slot[0] != "expr" or not slot[1]:
+        return ""
+    text = strip_wrapping_parens(slot[1].strip())
+    if looks_like_function(text):
+        return ""
+    name = forwarder_name(text)
+    if name:
+        shown = text if text != name else name
+        return "forwards " + shown
+    leaves = ternary_path_literals(text)
+    if not leaves or len(leaves) < 2:
+        return ""
+    paths = []
+    for literal in leaves:
+        path = normalize_path(literal)
+        if not is_api(path) or path not in exact:
+            return ""
+        paths.append(path)
+    return "ternary " + " | ".join(paths)
+
+
 def collect(mp_root, core_root, test_root):
     exact, templated_index = index_core(core_root)
     tests = index_tests(test_root)
@@ -922,15 +1214,19 @@ def collect(mp_root, core_root, test_root):
                 symbol = choose_symbol(exact.get(pattern, []), pattern)
             elif pattern and templated:
                 symbol = choose_symbol(templated_index.get(pattern, []), pattern)
+            reason = ""
+            if symbol is None and not pattern:
+                reason = indirect_reason(args, exact)
             pinned = matching_test(tests, pattern, templated, method, fields) if pattern else None
             rows.append({
                 "where": "%s:%d" % (rel, line),
-                "symbol": symbol or "MISSING",
+                "symbol": "INDIRECT" if reason else (symbol or "MISSING"),
                 "test": pinned or "MISSING",
                 "pattern": pattern or "",
                 "method": method or "",
                 "fields": fields,
                 "templated": templated,
+                "indirect": reason,
             })
     return rows
 
@@ -960,14 +1256,17 @@ def main(argv):
     if not rows:
         print("no contract calls", file=sys.stderr)
         return 2
-    matched = sum(row["symbol"] != "MISSING" and row["test"] != "MISSING" for row in rows)
+    matched = sum(
+        row["symbol"] != "MISSING" and row["symbol"] != "INDIRECT" and row["test"] != "MISSING"
+        for row in rows)
     missing_endpoint = sum(row["symbol"] == "MISSING" for row in rows)
     missing_test = sum(row["test"] == "MISSING" for row in rows)
+    matched_indirect = sum(row["symbol"] == "INDIRECT" for row in rows)
     sha = commit_of(args.mp_root)
     print("# hengyin %s" % (sha or "unknown"))
-    print("# total %d matched %d missing_endpoint %d missing_test %d" % (
-        len(rows), matched, missing_endpoint, missing_test))
-    print("MP file:line\tCore symbol or MISSING\ttest or MISSING")
+    print("# total %d matched %d missing_endpoint %d missing_test %d matched_indirect %d" % (
+        len(rows), matched, missing_endpoint, missing_test, matched_indirect))
+    print("MP file:line\tCore symbol, INDIRECT, or MISSING\ttest or MISSING")
     for row in rows:
         print("%s\t%s\t%s" % (row["where"], row["symbol"], row["test"]))
     return 0
