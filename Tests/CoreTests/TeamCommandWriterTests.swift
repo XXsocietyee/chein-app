@@ -48,12 +48,14 @@ final class TeamCommandWriterTests: XCTestCase {
         XCTAssertTrue(wire.payloads.isEmpty)
         wire.status = 503
         _ = await writer.submit(key: "join-9", path: "api/team/command", fields: ["action": "join", "targetId": "9"])
-        let saved = try XCTUnwrap(await writer.savedRequestID(for: "join-9"))
+        let savedID = await writer.savedRequestID(for: "join-9")
+        let saved = try XCTUnwrap(savedID)
         wire.status = 200
         wire.payload = #"{"code":200,"data":{"state":"UNKNOWN","requestId":"saved"}}"#
         let pending = await writer.query(key: "join-9")
         XCTAssertEqual(pending, .unknown)
-        XCTAssertEqual(await writer.savedRequestID(for: "join-9"), saved)
+        let pendingSaved = await writer.savedRequestID(for: "join-9")
+        XCTAssertEqual(pendingSaved, saved)
         let query = try XCTUnwrap(wire.payloads.last)
         XCTAssertEqual(query["requestId"] as? String, saved)
         XCTAssertEqual(query.count, 1)
@@ -61,12 +63,14 @@ final class TeamCommandWriterTests: XCTestCase {
         wire.status = 409
         let httpRejection = await writer.query(key: "join-9")
         XCTAssertEqual(httpRejection, .unknown)
-        XCTAssertEqual(await writer.savedRequestID(for: "join-9"), saved)
+        let rejectedSaved = await writer.savedRequestID(for: "join-9")
+        XCTAssertEqual(rejectedSaved, saved)
         wire.status = 200
         wire.payload = #"{"code":200,"data":{"state":"CANCELLED"}}"#
         let cancelled = await writer.cancel(key: "join-9", fields: ["action": "join", "targetId": "9"])
         XCTAssertEqual(cancelled, .cancelled(200))
-        XCTAssertNil(await writer.savedRequestID(for: "join-9"))
+        let cleared = await writer.savedRequestID(for: "join-9")
+        XCTAssertNil(cleared)
         let cancel = try XCTUnwrap(wire.payloads.last)
         XCTAssertEqual(cancel["requestId"] as? String, saved)
         XCTAssertEqual(cancel["action"] as? String, "join")
