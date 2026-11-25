@@ -65,6 +65,9 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) },
                     ticketWalletDestination: { topicID in
                         AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
+                    },
+                    playDestination: { topicID in
+                        AnyView(SessionPlayRuntimeView(session: session, destination: .journey(.topic(topicID))))
                     })
                     .id(session.contentDetailRevision)
                     .environment(\.pricingChapterProjectDestination, { topicID in

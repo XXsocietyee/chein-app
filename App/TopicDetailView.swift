@@ -15,6 +15,9 @@ struct TopicDetailView: View {
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     var ticketWalletDestination: ((Int) -> AnyView)? = nil
+    /// R7-PC-B1-5: MP `startPrepPlay` → `/pages/play/index?topicId=` after the safety check (pages/topic/index/index.js:714-722).
+    var playDestination: ((Int) -> AnyView)? = nil
+    @State private var showingPlay = false
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
@@ -62,6 +65,12 @@ struct TopicDetailView: View {
     @State private var topicPageVisible = false
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
+    /// R7-PC-B1-5: the prep 开始游玩 opens the play runtime (MP); the ticket wallet stays the fallback when no runtime is mounted.
+    private var prepStartAction: (() -> Void)? {
+        if playDestination != nil { return { showingPlay = true } }
+        if ticketWalletDestination != nil { return { showingTickets = true } }
+        return nil
+    }
     var body: some View {
         Group {
             if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
@@ -109,7 +118,10 @@ struct TopicDetailView: View {
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false }
+        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false; showingPlay = false }
+        .navigationDestination(isPresented: $showingPlay) {
+            if let playDestination { playDestination(id) }
+        }
         .sheet(isPresented: $showingTickets, onDismiss: { barSheetOrigin = nil }) {
             if let ticketWalletDestination {
                 ticketWalletDestination(id)
@@ -458,7 +470,7 @@ struct TopicDetailView: View {
             // R7-PC-B1-20: MP shows 开局前准备 only to a viewer who has joined (`is_join == 1 && prep.show`).
             if value.isSignUp {
                 // 开始游玩 hands over to the ticket wallet, where the joined pass starts play (server checks run there).
-                PlayTopicPrepSection(topicID: id, onStart: ticketWalletDestination != nil ? { showingTickets = true } : nil)
+                PlayTopicPrepSection(topicID: id, onStart: prepStartAction)
             }
             G6TopicCharactersSection(chapters: value.chapters)
             Section("topic.availability") {
