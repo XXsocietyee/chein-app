@@ -171,7 +171,7 @@ import SwiftUI
                 CYInfoCard(title: Text("freeBundle.units.title"), symbol: "square.stack.3d.up") {
                     ForEach(Array(bundle.units.enumerated()), id: \.element.id) { index, unit in
                         HStack(spacing: CYSpacing.xs) {
-                            Text(verbatim: chapterName(unit.chapterId) ?? String(localized: "freeBundle.unit.fallback \(index + 1)"))
+                            Text(verbatim: chapterName(unit.chapterId) ?? appLocalized("freeBundle.unit.fallback \(index + 1)", locale: locale))
                             Text(verbatim: "·")
                             Self.statusText(unit.status)
                         }
@@ -238,12 +238,12 @@ import SwiftUI
     static func statusText(_ raw: String) -> Text { Text(verbatim: statusString(raw)) }
     /// MP `paymentText`: 0 待支付 · 1 支付中 · 2 已支付 · 3 支付失败 · 4 已退款, else 支付状态确认中.
     static func paymentText(_ status: Int?) -> String {
-        guard let status, (0...4).contains(status) else { return String(localized: "freeBundle.payment.unknown") }
+        guard let status, (0...4).contains(status) else { return appLocalized("freeBundle.payment.unknown", locale: Locale.current) }
         return String(localized: String.LocalizationValue("freeBundle.payment." + String(status)))
     }
     /// MP `registrationText`: 1 待支付 · 2 报名成功 · 3 已取消 · 4 已过期, else 报名状态确认中.
     static func registrationText(_ status: Int?) -> String {
-        guard let status, (1...4).contains(status) else { return String(localized: "freeBundle.registration.unknown") }
+        guard let status, (1...4).contains(status) else { return appLocalized("freeBundle.registration.unknown", locale: Locale.current) }
         return String(localized: String.LocalizationValue("freeBundle.registration." + String(status)))
     }
 }

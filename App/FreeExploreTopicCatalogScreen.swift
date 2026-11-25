@@ -88,10 +88,10 @@ import SwiftUI
             item.stores.compactMap { store -> FreeExploreCatalogMerchantItem? in
                 guard let id = Int(exactly: store.offerId.value) else { return nil }
                 // R8-MEM-7-2: keyed copy (MP `name || '章节'`, `每人N次`, `次数待确认` when the count is not positive).
-                let chapter = item.name?.isEmpty == false ? item.name! : String(localized: "freeBundle.catalog.chapterFallback")
+                let chapter = item.name?.isEmpty == false ? item.name! : appLocalized("freeBundle.catalog.chapterFallback", locale: Locale.current)
                 let units = item.unitsPerHolder > 0
-                    ? String(localized: "freeBundle.catalog.unitsPerHolder \(item.unitsPerHolder)")
-                    : String(localized: "freeBundle.catalog.unitsUnknown")
+                    ? appLocalized("freeBundle.catalog.unitsPerHolder \(item.unitsPerHolder)", locale: Locale.current)
+                    : appLocalized("freeBundle.catalog.unitsUnknown", locale: Locale.current)
                 return FreeExploreCatalogMerchantItem(id: id, merchantName: store.merchantName ?? "—",
                                                      chapterName: "\(chapter) · \(units)")
             }

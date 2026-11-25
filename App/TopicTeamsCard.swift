@@ -19,6 +19,7 @@ extension EnvironmentValues {
 }
 
 @MainActor struct TopicTeamsCard: View {
+    @Environment(\.locale) private var locale
     let topic: TopicDetail
     @Environment(\.topicTeamsSource) private var source
     @State private var teams: [NearbyTeam] = []
@@ -89,7 +90,7 @@ extension EnvironmentValues {
     private func title(_ team: NearbyTeam) -> String {
         if !team.title.isEmpty { return team.title }
         if !team.activityName.isEmpty { return team.activityName }
-        return String(localized: "topic.teams.untitled")
+        return String(localized: LocalizedStringResource("topic.teams.untitled", locale: locale))
     }
 
     private func missing(_ team: NearbyTeam) -> Int { team.maxMembers > team.joinedCount ? team.maxMembers - team.joinedCount : 0 }

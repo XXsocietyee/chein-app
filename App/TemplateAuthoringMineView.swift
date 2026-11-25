@@ -363,7 +363,7 @@ private struct TemplateMineCover: View {
         ZStack(alignment: .bottomLeading) {
             LinearGradient(colors: [CYColor.brandStrong, CYColor.gameAccent], startPoint: .topLeading, endPoint: .bottomTrailing)
                 .overlay {
-                    Text(verbatim: title.first.map(String.init) ?? String(localized: "templateAuthor.mine.coverInitial"))
+                    Text(verbatim: title.first.map(String.init) ?? appLocalized("templateAuthor.mine.coverInitial", locale: Locale.current))
                         .cyText(.display, weight: .bold).foregroundStyle(.white.opacity(0.85))
                 }
             if let imageURL {

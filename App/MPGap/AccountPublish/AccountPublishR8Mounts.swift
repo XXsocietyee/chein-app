@@ -108,7 +108,7 @@ enum ProjectEditCastConfig {
     static let nameMax = 8
     static let identityMax = 30
     /// MP story-cast.js COLORS order; a new member takes the first unused colour.
-    static let colors = ["#E8604C", "#3D8BFD", "#2FB57A", "#B98AF0", "#F2B33D", "#8E8E93"]
+    static let colors = ["E8604C", "3D8BFD", "2FB57A", "B98AF0", "F2B33D", "8E8E93"].map { "#" + $0 }  // payload values, not UI colours
     /// MP story-cast.js PRESETS (value, label) plus 不出声.
     static let voicePresets: [(value: String, labelKey: String)] = [
         ("bright_female", "fixr8.cast.voice.bright_female"), ("warm_female", "fixr8.cast.voice.warm_female"),

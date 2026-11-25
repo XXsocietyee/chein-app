@@ -273,7 +273,7 @@ struct MerchantInsightSourcesSection: View {
                 HStack {
                     Text("merchantInsight.sources.title")
                     Spacer()
-                    if let windowText { Text(verbatim: windowText) } else { Text("merchantInsight.window 30") }
+                    if let windowText { Text(verbatim: windowText) } else { Text("merchantInsight.window \(30)") }
                 }
             }
             .accessibilityIdentifier("merchant.insight.sources")
@@ -317,9 +317,9 @@ struct MerchantInsightGrowTipsSection: View {
                                         .frame(width: 220, height: 110).clipped()
                                         .clipShape(RoundedRectangle(cornerRadius: 12))
                                         .accessibilityHidden(true)
-                                    Text(LocalizedStringKey("merchantInsight.grow.\(tip.rawValue).title")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                                    Text(LocalizedStringKey("merchantInsight.grow.\(tip.rawValue).sub")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                    Text(LocalizedStringKey("merchantInsight.grow.\(tip.rawValue).cta")).cyText(.meta).foregroundStyle(CYColor.brandStrong)
+                                    Text(LocalizedStringKey("merchantInsight.grow." + tip.rawValue + ".title")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                    Text(LocalizedStringKey("merchantInsight.grow." + tip.rawValue + ".sub")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                    Text(LocalizedStringKey("merchantInsight.grow." + tip.rawValue + ".cta")).cyText(.meta).foregroundStyle(CYColor.brandStrong)
                                 }
                                 .frame(width: 220, alignment: .leading)
                                 .contentShape(Rectangle())

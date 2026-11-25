@@ -100,7 +100,7 @@ import SwiftUI
                             // MC8-29-6 (MP-first, owner 2026-11-25): the MP shares the invite from the team page
                             // (pages/merchant/team/index.js:844-850, 邀请你加入{门店}经营团队). The system share sheet only
                             // carries the text the owner chooses to send; nothing is stored.
-                            ShareLink(item: String(localized: "merchantCoop.team.shareInvite \(metadata.merchantName ?? String(metadata.merchantID)) \(code)")) {
+                            ShareLink(item: appLocalized("merchantCoop.team.shareInvite \(metadata.merchantName ?? String(metadata.merchantID)) \(code)", locale: Locale.current)) {
                                 Label("merchantCoop.team.shareInvite.action", systemImage: "square.and.arrow.up")
                                     .frame(minHeight: CYSpacing.minTouchTarget)
                             }
