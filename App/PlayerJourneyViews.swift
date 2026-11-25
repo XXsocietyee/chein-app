@@ -21,6 +21,29 @@ extension EnvironmentValues {
     }
 }
 
+/// R7-MEM-23-1: MP `_probeCharacter` (participation-detail js:220-228): `GET /api/play/character?topicId=` decides
+/// whether 我的角色卡 shows (a created card or one with attributes). Nil (fixtures) keeps the row on the id gate.
+private struct ParticipationCharacterProbeKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int) async -> Bool)? = nil
+}
+extension EnvironmentValues {
+    var participationCharacterProbe: (@MainActor (Int) async -> Bool)? {
+        get { self[ParticipationCharacterProbeKey.self] }
+        set { self[ParticipationCharacterProbeKey.self] = newValue }
+    }
+}
+extension AppSession {
+    /// One silent topic-scoped read; the lease is retired straight after, so no card stays in memory.
+    func probeCharacterCard(topicID: Int) async -> Bool {
+        guard let card = characterCardReadback(topicID: topicID, activityID: nil, scope: .topic(topicID)) else { return false }
+        await card.load()
+        let value = card.cardIfCurrent()
+        card.dismiss()
+        guard let value else { return false }
+        return value.created || !value.attributes.isEmpty
+    }
+}
+
 @MainActor struct PlayerJourneyAccountLinks: View {
     var body: some View {
         Section("playerJourney.library") {
@@ -50,6 +73,7 @@ extension EnvironmentValues {
             }
         }.id(session.sessionRevision).privacySensitive()
         .environment(\.participationBundleEntryEnabled, session.freeExploreBundleReadProvider != nil)
+        .environment(\.participationCharacterProbe, { [weak session] topicID in await session?.probeCharacterCard(topicID: topicID) ?? false })
         .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
         .sheet(isPresented: $login) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
         .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
@@ -67,6 +91,7 @@ extension EnvironmentValues {
         ParticipationDetailView(id: id, reader: session.playerJourneyReader, lifecycle: session.orderLifecycleCoordinator,
                                 open: { route = $0 })
             .environment(\.participationBundleEntryEnabled, session.freeExploreBundleReadProvider != nil)
+            .environment(\.participationCharacterProbe, { [weak session] topicID in await session?.probeCharacterCard(topicID: topicID) ?? false })
             .id(session.sessionRevision).privacySensitive()
             .cyPushedChrome(domain: .player)
             .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
@@ -150,6 +175,7 @@ extension EnvironmentValues {
     @State private var hasAppeared = false
     @State private var quietReload = false
     @Environment(\.participationBundleEntryEnabled) private var bundleEntryEnabled
+    @Environment(\.participationCharacterProbe) private var characterProbe
     var body: some View {
         List {
             Section {
@@ -228,6 +254,7 @@ extension EnvironmentValues {
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { self.selected = nil }.accessibilityIdentifier("playerJourney.detail.close") } }
             }
             .environment(\.participationBundleEntryEnabled, bundleEntryEnabled)
+            .environment(\.participationCharacterProbe, characterProbe)
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
@@ -322,6 +349,9 @@ private struct ParticipationCoverPlaceholder: View {
     let lifecycle: OrderLifecycleCoordinator
     let open: (PlayerJourneyRoute) -> Void
     @Environment(\.participationBundleEntryEnabled) private var bundleEntryEnabled
+    @Environment(\.participationCharacterProbe) private var characterProbe
+    /// R7-MEM-23-1: nil until the probe answers (row hidden), then the MP `characterEntry`.
+    @State private var characterEntry: Bool?
     @State private var detail: ParticipationDetail?
     @State private var issue: ParticipationLoadIssue?
     @State private var loading = false
@@ -358,7 +388,8 @@ private struct ParticipationCoverPlaceholder: View {
                 // Source result cards sit above the verification stats.
                 OrientScoreParticipationEntry(detail: detail)
                 // MP「我的角色卡」card → character/index?topicId (PLY-23-2). The card page reads and gates itself.
-                if let topicID = detail.topicID, topicID > 0, (detail.record.order.memberID ?? 0) > 0 {
+                if let topicID = detail.topicID, topicID > 0, (detail.record.order.memberID ?? 0) > 0,
+                   characterProbe == nil || characterEntry == true {
                     Section {
                         Button { open(.characterCard(topicID: topicID, activityID: detail.activityID)) } label: {
                             Label("characterCard.title", systemImage: "person.text.rectangle")
@@ -433,6 +464,14 @@ private struct ParticipationCoverPlaceholder: View {
             }
         }
         .task(id: reader.scope) { detail = nil; await load() }
+        // R7-MEM-23-1: silent probe per topic; a failed read hides the row (MP `settle(null)`).
+        .task(id: detail?.topicID) {
+            characterEntry = nil
+            guard let probe = characterProbe, let topicID = detail?.topicID, topicID > 0 else { return }
+            let shown = await probe(topicID)
+            guard !Task.isCancelled, detail?.topicID == topicID else { return }
+            characterEntry = shown
+        }
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
     }

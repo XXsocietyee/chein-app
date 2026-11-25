@@ -32,6 +32,7 @@ import SwiftUI
     private var shelfOperationScope: String? {
         (themeDomain == .merchant || roleTheme == .merchant) ? "MERCHANT" : nil
     }
+    private var pageDomain: ThemeDomain { shelfOperationScope == "MERCHANT" ? .merchant : .player }
     var body: some View {
         List {
             // PLY-26-3: the title is the bar's inline title. X12: no 刷新 pill next to pull-to-refresh.
@@ -52,6 +53,9 @@ import SwiftUI
             }
             ForEach(appliedKeyword == keyword ? rows : []) { row in
                 Section {
+                    // PLY-26-4: MP card cover (imgUrl, else the title-initial fallback) with the N 次引用 overlay.
+                    TemplateMineCover(title: row.title, imageURL: QuestifyCardArtwork.safeURL(row.imgUrl), useNum: row.useNum)
+                        .listRowInsets(EdgeInsets())
                     // Mini-program 我的节点玩法 card: title (opens the detail), status and facts, then actions.
                     if let id = MemberPlayTemplateID(rawValue: row.id), memberDetail != nil {
                         Button { selectedMember = id } label: {
@@ -118,15 +122,16 @@ import SwiftUI
                 Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus")
             }
             if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
-        }.listStyle(.insetGrouped).cyGroupedSurface().cyDomainScreen(.player)
-            .cyPushedChrome(domain: .player).cyPageTitle("templateAuthor.mine")
+        // PLY-26-5: MP `mytemplate` uses theme-merchant for the merchant scope, theme-dark otherwise.
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyDomainScreen(pageDomain)
+            .cyPushedChrome(domain: pageDomain).cyPageTitle("templateAuthor.mine")
             .refreshable { await refresh() }
             // Stable typed destination survives invalidation of its source list on push.
             .navigationDestination(item: $selectedMember) { id in
                 if let memberDetail { memberDetail(id) }
             }
             .p04LifecycleSurface()
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(pageDomain == .merchant ? nil : .dark)
             .navigationDestination(item: $selectedConfiguration) { id in
                 if let ownerConfiguration { ownerConfiguration(id) }
             }
@@ -345,5 +350,39 @@ private struct TemplateOwnShelfReadCopy: View {
                 else { Text(action).cyText(.meta) }
             }
         }
+    }
+}
+
+/// PLY-26-4: MP `item-pic` (mytemplate.wxml:18-32 before retirement): gradient + first character of the title, the
+/// https cover on top when it loads, and `{useNum} 次引用` bottom-left. The ★ rating is not decoded yet (Core).
+private struct TemplateMineCover: View {
+    let title: String
+    let imageURL: URL?
+    let useNum: Int?
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            LinearGradient(colors: [CYColor.brandStrong, CYColor.gameAccent], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .overlay {
+                    Text(verbatim: title.first.map(String.init) ?? String(localized: "templateAuthor.mine.coverInitial"))
+                        .cyText(.display, weight: .bold).foregroundStyle(.white.opacity(0.85))
+                }
+            if let imageURL {
+                AsyncImage(url: imageURL) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { Color.clear }
+                }
+            }
+            if let useNum {
+                Text("templateAuthor.mine.useNum \(useNum)")
+                    .cyText(.meta, weight: .semibold, monospacedDigit: true).foregroundStyle(.white)
+                    .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                    .background(.black.opacity(0.45), in: Capsule())
+                    .padding(CYSpacing.sm)
+            }
+        }
+        .frame(maxWidth: .infinity).frame(height: 120)
+        .clipped()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(useNum.map { Text("templateAuthor.mine.useNum \($0)") } ?? Text(verbatim: ""))
+        .accessibilityHidden(useNum == nil)
     }
 }

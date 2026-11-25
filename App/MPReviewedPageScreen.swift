@@ -876,7 +876,8 @@ import SwiftUI
     /// `?requestId=` (purchase receipt) resolves to that order. No valid id is the MP missing-param state with 返回.
     @ViewBuilder private var freeExplore: some View {
         if let id = reviewedID(query, key: "registrationId") {
-            ProfileOrderDetailView(id: id, reader: session.ownedOrderReader)
+            // R8-MEM-7-1: mount the session-owned detail so the bundle provider reaches 自由探索权益.
+            SessionOwnedOrderDetailView(session: session, id: id)
         } else if let id = reviewedID(query, key: "topicId") {
             FreeExploreTopicCatalogScreen(topicID: id, session: session, onSignIn: signIn)
         } else if let request = query["requestId"], FreeExploreReceiptResolveScreen.isValid(request) {
