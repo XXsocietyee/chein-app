@@ -310,6 +310,10 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     /// 品牌中心 (MerchantOperationsHomeView), shared by the header avatar and the 更多 row.
     @ViewBuilder private func operationsHome(_ operationsReader: any MerchantOperationsReading) -> some View {
         MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
+            // MC8-19-1: 看公开主页 from the workbench 品牌中心 too.
+            .environment(\.merchantPublicHomePreview, (reader as? AppSession).map { s in
+                { owner in AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: s.publicMerchantHomeContext)) }
+            })
             .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
                 { AnyView(MerchantPerkTemplatesHost(reader: flowReader, executor: coopFlowWrite?.executor())) }
             })
@@ -437,6 +441,12 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         if access.isOwner, value.verifiedCount > 0 { MerchantCountRow("merchant.todo.verified", value: value.verifiedCount) }
                     }
                 }
+            }
+            // MC8-01-1 / MC8-01-6: 项目 cards (first open projects, 待核销, 全部 N).
+            MerchantWorkbenchProjectCards(reader: reader, access: access, reloadKey: childReturnRevision) {
+                AnyView(MerchantProjectsView(reader: reader, contentService: contentService)
+                    .onDisappear(perform: onChildReturn)
+                    .cyPushedChrome(domain: .merchant))
             }
             if showsRecordLinks && (access.allows(.orders) || access.allows(.projects)) {
                 Section("merchant.records") {
@@ -631,6 +641,14 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         .background(CYColor.bgPage)
         .navigationBarTitleDisplayMode(.inline)
         .listSectionSpacing(CYSpacing.xxl)
+        .toolbar {
+            // MC8-01-5 (index.js:1757-1764): share the store's public home (MP onShareAppMessage default).
+            if access.active, access.ownerMemberID != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    MerchantPublicHomeShareButton(memberID: access.ownerMemberID, storeName: access.merchantName)
+                }
+            }
+        }
         .navigationDestination(item: $quickRoute) { route in
             Group {
                 if let businessReader, let businessJournal,

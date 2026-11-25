@@ -147,6 +147,9 @@ import MapKit
             if retry {
                 Button { Task { await model.load(); seedIfNeeded() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
                     .buttonStyle(.bordered).frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("cityNodeCreate.retry")
+            } else if identifier == "cityNodeCreate.noPermission" {
+                // MC8-25-2: MP 申请入驻 when the merchant identity is not active yet.
+                MerchantInactiveApplyAction(identifier: "cityNodeCreate.apply")
             }
         }
         .frame(maxWidth: .infinity).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)

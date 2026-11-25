@@ -449,6 +449,8 @@ import SwiftUI
     @State private var selection: Set<Int> = []
     @State private var pendingMutation: MerchantBusinessMutation?
     @State private var pendingMutationEditorID: UUID?
+    /// MC8-29-3/-4: the MP destructive confirm for 移除成员 / 撤销邀请 (fixed reason, no typed reason).
+    @State private var pendingTeamDanger: MerchantTeamDangerConfirm?
     @State private var reviewSourceDestination: MerchantReviewSourcePage?
     private let reviewSource: MerchantReviewSourcePage?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {
@@ -734,6 +736,10 @@ import SwiftUI
         .cyDomainScreen(.merchant)
         .appNavigationTitle(key: query.titleKey).navigationBarTitleDisplayMode(.inline)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
+        .modifier(MerchantTeamDangerConfirmModifier(pending: $pendingTeamDanger) { mutation in
+            guard editor == nil, pendingMutation == nil, sourcePageCanPrepare(mutation) else { return }
+            model.prepare(mutation)
+        })
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
         .background {
@@ -1155,6 +1161,12 @@ import SwiftUI
                 } else if row.kind == .review {
                     // MC7-13-7 (reviews/index.wxml:145-169): avatar + nickname, time and 平台复审中 above the card.
                     MerchantReviewAuthorLine(fields: row.fields, fallbackTitle: row.title)
+                } else if row.kind == .operatorMember {
+                    // MC8-29-9 (team/index.wxml:65): `item.avatar || /images/d_profile.png` leads the member row.
+                    HStack(spacing: CYSpacing.sm) {
+                        MerchantCoopMPThumb(urlString: row.fields.mbText("avatar"), fallback: .avatar)
+                        Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    }
                 } else {
                 Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }
@@ -1198,7 +1210,13 @@ import SwiftUI
                 ForEach(MerchantReviewReplyAction.allCases, id: \.self) { action in
                     let key = action == .reply ? "canReply" : action == .report ? "canReport" : "canEditReply"
                     if row.fields[key]?.bool == true {
-                        Button(LocalizedStringKey("merchant.business.review." + String(action.rawValue))) { editor = .init(kind: .review(row, action)) }
+                        Button { editor = .init(kind: .review(row, action)) } label: {
+                            // MC8-13-7 (reviews/index.wxml:193,223): 回复 carries the MP send glyph.
+                            HStack(spacing: CYSpacing.xs) {
+                                if action == .reply { MerchantMPIcon(image: MPAsset.FeatureIcon.iconSend, size: 18) }
+                                Text(LocalizedStringKey("merchant.business.review." + String(action.rawValue)))
+                            }
+                        }
                     }
                 }
             } else if reviewSource == nil, let destination = model.reviewSourcePage(for: row) {
@@ -1230,7 +1248,7 @@ import SwiftUI
                 Menu {
                     Button("merchant.business.changeRole") { editor = .init(kind: .role(row)) }
                     Divider()
-                    Button("merchant.business.removeOperator", role: .destructive) { editor = .init(kind: .removeOperator(row)) }
+                    Button("merchant.business.removeOperator", role: .destructive) { pendingTeamDanger = .init(kind: .removeOperator, row: row) }
                 } label: {
                     Label("merchantCoop.team.memberActions", systemImage: "ellipsis.circle")
                         .frame(minHeight: CYSpacing.minTouchTarget)
@@ -1238,7 +1256,7 @@ import SwiftUI
                 .accessibilityIdentifier("merchant.team.memberActions.\(row.id)")
             }
             if row.kind == .invite, row.fields.mbText("status") == "PENDING" {
-                Button("merchant.business.revokeInvite", role: .destructive) { editor = .init(kind: .revokeInvite(row)) }
+                Button("merchant.business.revokeInvite", role: .destructive) { pendingTeamDanger = .init(kind: .revokeInvite, row: row) }
             }
         }
     }

@@ -12,6 +12,8 @@ extension EnvironmentValues {
 }
 @MainActor struct SessionNearbyMerchantsView: View {
     @ObservedObject var session: AppSession
+    /// MC8-33-3: `?topicId=&topicName=` (or coop-list 再邀别人) scopes the page to one topic.
+    var topic: CoopNearbyTopicContext? = nil
     var body: some View {
         Group {
             if session.account == nil {
@@ -22,7 +24,8 @@ extension EnvironmentValues {
                 }
                 .cyMiniListScreen().cyPageTitle("cooperation.nearby.title")
             } else if let model = session.nearbyMerchantCoordinator {
-                NearbyMerchantView(model: model, publicMerchant: session.publicMerchantHomeContext)
+                NearbyMerchantView(model: model, publicMerchant: session.publicMerchantHomeContext,
+                                   topicScope: Self.topicScope(session: session, topic: topic))
             } else { Text("coopflow.nearby.unavailable") }
         }.id(session.sessionRevision).privacySensitive()
     }
@@ -30,6 +33,10 @@ extension EnvironmentValues {
 @MainActor struct NearbyMerchantView: View {
     @Bindable var model: NearbyMerchantCoordinator
     var publicMerchant = PublicMerchantHomeContext()
+    /// MC8-33-1/-2/-5: topic mode (邀请商家): invitable merge and 邀请补位. Nil keeps the plain 找商家 page.
+    var topicScope: NearbyMerchantTopicScope? = nil
+    @State private var invitable: [NearbyMerchantInvitableRow] = []
+    @State private var invitableFailed = false
     @State private var purposeAccepted = false
     @State private var operation: Task<Void, Never>?
     @State private var publicHomeSelection: NearbyMerchantCoordinator.PublicHomeSelection?
@@ -40,6 +47,7 @@ extension EnvironmentValues {
     var body: some View {
         let page = NearbyMerchantPage.resolve(phase: model.phase, rows: model.rows)
         List {
+            if let topicScope { Section { NearbyMerchantTopicHeader(topic: topicScope.topic) } }
             Section {
                 // Mini opens with the privacy gate, then the result cards: purpose + consent stay one quiet block.
                 Text("nearbyMerchant.purpose").cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -89,6 +97,10 @@ extension EnvironmentValues {
                 Section {
                     Text("nearbyMerchant.total \(page.totalText)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("nearbyMerchant.total")
+                    if invitableFailed {
+                        Text("merchantCoop.nearby.topic.failed").cyText(.meta).foregroundStyle(CYColor.warningText)
+                            .accessibilityIdentifier("nearbyMerchant.topic.failed")
+                    }
                     if page.phase == .empty {
                         // Image parity: MP cy-empty kind="empty" → MPAsset.EmptyState art via "tray".
                         CYEmptyState(systemImage: "tray", "cooperation.nearby.empty")
@@ -106,6 +118,10 @@ extension EnvironmentValues {
                                 publicHomeSelection = model.publicHomeSelection(rowID: row.id)
                             } label: { card(row) }
                                 .accessibilityIdentifier("nearbyMerchant.open.\(row.id)")
+                            if let topicScope, let member = row.memberID,
+                               invitable.first(where: { $0.memberID == member })?.hasReplacement == true {
+                                NearbyMerchantReplacementLink(scope: topicScope, memberID: member)
+                            }
                         } else {
                             VStack(alignment: .leading) {
                                 Button {
@@ -123,9 +139,17 @@ extension EnvironmentValues {
                             }
                         }
                     }
+                    if let topicScope {
+                        let nearbyMembers = Set(model.rows.compactMap(\.memberID))
+                        NearbyMerchantInvitableOnlyRows(scope: topicScope, rows: invitable.filter { !nearbyMembers.contains($0.memberID) },
+                                                        publicMerchant: publicMerchant)
+                    }
                 }
             }
-        }.cyMiniListScreen().cyPageTitle("cooperation.nearby.title").accessibilityIdentifier("nearbyMerchant.list")
+        }.cyMiniListScreen().cyPageTitle(topicScope == nil ? "cooperation.nearby.title" : "merchantCoop.nearby.topic.title")
+            .accessibilityIdentifier("nearbyMerchant.list")
+            .modifier(NearbyMerchantInvitableLoader(scope: topicScope, ready: model.phase == .ready,
+                                                    rows: $invitable, failed: $invitableFailed))
             .sheet(item: $publicHomeSelection) { selection in
                 NavigationStack {
                     Group {
@@ -160,10 +184,16 @@ extension EnvironmentValues {
     }
     private func card(_ row: NearbyMerchantRow) -> some View {
         // Mini `cy-merchant-card variant="venue"`: name, then address and distance as quiet meta.
+        // MC8-33-8: the MP card images (default cover + citylink brand, pin, chevron) via NearbyMerchantCardChrome.
+        NearbyMerchantCardChrome {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: row.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            if let address = row.address { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            if let address = row.address { NearbyMerchantAddressLine(address: address) }
+            if let member = row.memberID, let text = invitable.first(where: { $0.memberID == member })?.chapterText {
+                NearbyMerchantChapterLine(text: text)
+            }
             if let distance = NearbyMerchantPage.distanceText(row.distance) { Text(verbatim: distance).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
+        }
         }
     }
 }

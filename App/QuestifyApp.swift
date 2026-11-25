@@ -603,6 +603,9 @@ struct SessionRootView: View {
     private func chain3_7<V: View>(_ v: V) -> some View {
         v
         .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })
+        .modifier(MerchantCoopR8SessionEnvironment(session: session))
+        // MC8-30-6: coop/list 再邀别人 opens 找商家 scoped to that topic.
+        .environment(\.cooperationTopicNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session, topic: $0)) })
     }
 
     private func chain4<V: View>(_ v: V) -> some View {
@@ -616,8 +619,15 @@ struct SessionRootView: View {
                 expanded: session.imExpandedNavigation))
         })
         .environment(\.merchantCoopInboxDestination, {
+            // MC8-32-1/-4: the workbench inbox passes the topic destination so 进入项目 / 主题详情 are links.
             AnyView(CooperationBrowserView(reader: session.cooperationReader, peerReader: session.cooperationFlowReader,
-                                           operationScope: "MERCHANT", embedsNavigationStack: false))
+                                           operationScope: "MERCHANT",
+                                           topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
+                                           embedsNavigationStack: false)
+                .environment(\.coopTopicPublishDestination, { scope in
+                    // MC8-31-3: 先发布主题 → pages/publish/fabu/index (`?scope=MERCHANT` on the merchant surface).
+                    AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: scope.map { ["scope": $0] } ?? [:]).environmentObject(session))
+                }))
         })
         .environment(\.merchantInboxSources, MerchantInboxSources(
             accountKey: session.account.map { String($0.id) } ?? "",

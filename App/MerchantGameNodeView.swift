@@ -636,11 +636,18 @@ struct MerchantGameNodeCivilDateField: View {
     @ObservedObject var session: MerchantGameNodeImportSession
     let cancel: () -> Void
     let apply: () -> Void
+    /// MC8-26-9 (game-node index.js:532 `wx.scanCode`): the camera scanner fills the code; typing stays the fallback.
+    @State private var scanning = false
     var body: some View {
         NavigationStack {
             Form {
-                Text("merchant.submissionImport.instructions")
-                Text("merchant.submissionImport.noCamera").cyText(.bodyCompact)
+                Text("merchantCoop.gameNode.scan.hint").cyText(.bodyCompact)
+                if session.code == nil {
+                    Button { scanning = true } label: {
+                        Label("merchantCoop.gameNode.scan.camera", systemImage: "qrcode.viewfinder").frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .disabled(!session.isCurrent).accessibilityIdentifier("gameNode.scan.camera")
+                }
                 if let code = session.code {
                     Section("merchant.submissionImport.unverified") {
                         Text(verbatim: code.submissionID)
@@ -650,7 +657,7 @@ struct MerchantGameNodeCivilDateField: View {
                         Button("merchant.submissionImport.edit") { session.update("") }
                     }
                 } else {
-                    SecureField("merchant.submissionImport.input", text: Binding(get: { session.raw }, set: session.update))
+                    TextField("merchantCoop.gameNode.scan.placeholder", text: Binding(get: { session.raw }, set: session.update))
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
                         .disabled(!session.isCurrent).accessibilityIdentifier("gameNode.scan.text")
                     Button("merchant.submissionImport.preview") { session.preview() }
@@ -662,6 +669,14 @@ struct MerchantGameNodeCivilDateField: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(action: cancel) { MerchantGameNodeCopy.text("merchantGameNode.cancel") }
             } }
+            .sheet(isPresented: $scanning) {
+                NativeQRScanner { payload in
+                    scanning = false
+                    guard session.isCurrent else { return }
+                    session.update(payload)
+                    session.preview()
+                }
+            }
         }
     }
 }

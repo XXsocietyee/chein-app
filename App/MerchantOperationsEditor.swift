@@ -98,7 +98,8 @@ struct MerchantOperationsEditor: View {
                 profileField("merchant.operations.derivatives", \.derivatives, "derivatives")
                 MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: .derivativeBenefits)
                 profileField("merchant.operations.website", \.website, "website")
-                profileField("merchant.operations.preference", \.preference, "preference")
+                // MC8-19-2: MP 经营类目 multi-select sheet (fixed list + existing custom values), not free text.
+                MerchantPreferenceEntry(model: model)
             }
             // Parity decor P0: 联系电话 / 门店微信 are merchant self-service (MP decor index.wxml:359-390).
             Section("merchant.operations.contact") {
@@ -124,7 +125,10 @@ struct MerchantOperationsEditor: View {
                 MerchantStoreIndustryPicker(document: model)
                 // Parity decor P1: never show the raw `type / id`; source falls back to 已选择主推 without a name.
                 if (value.featuredType ?? 0) > 0, (value.featuredID ?? 0) > 0 {
-                    LabeledContent("merchant.operations.featured") { Text("merchant.operations.featured.set") }
+                    LabeledContent("merchant.operations.featured") {
+                        // MC8-19-9: the chosen activity's name when the first picker page holds it; 已选择主推 otherwise.
+                        MerchantFeaturedActivityName(reader: coordinator.reader, featuredType: value.featuredType, featuredID: value.featuredID)
+                    }
                 }
                 MerchantFeaturedClearControl(model: model, source: value)
                 MerchantFeaturedActivityPicker(document: model)

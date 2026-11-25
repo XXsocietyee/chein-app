@@ -56,6 +56,8 @@ struct MerchantOperationsHomeView: View {
                 if !reader.canSave && access.identity.active {
                     CloseW5dGatedNotice(message: "merchant.decor.save.gated")
                 }
+                // MC8-19-1: MP 看公开主页 under the store header.
+                MerchantDecorPublicHomeRow(access: access)
                 ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
                     let visible = group.destinations.filter { access.allows($0) }
                     let perks = index == Self.perksGroupIndex && access.identity.active ? perkTemplatesDestination : nil
@@ -75,7 +77,16 @@ struct MerchantOperationsHomeView: View {
                                     else if let destinationFactory { destinationFactory(destination, access) }
                                     else { MerchantOperationsDocumentView(reader: reader, destination: destination) }
                                 } label: {
-                                    Label(LocalizedStringKey(destination.titleKey), systemImage: symbol(destination))
+                                    if destination == .gallery {
+                                        // MC8-19-8: MP 门店相册 · N 张照片.
+                                        LabeledContent {
+                                            MerchantDecorGalleryCount(reader: reader)
+                                        } label: {
+                                            Label(LocalizedStringKey(destination.titleKey), systemImage: symbol(destination))
+                                        }
+                                    } else {
+                                        Label(LocalizedStringKey(destination.titleKey), systemImage: symbol(destination))
+                                    }
                                 }
                                 .accessibilityIdentifier("merchant.operations.entry." + destination.id)
                                 }
@@ -92,16 +103,15 @@ struct MerchantOperationsHomeView: View {
                                 }
                                 .accessibilityIdentifier("merchant.operations.entry.perks")
                             }
+                            // MC8-19-5: MP 升级权益 · 联系运营开通 (profile writers only, L07-020).
+                            if index == groups.count - 1, access.profileWrite { MerchantContactOperationsRow() }
                         }
                     }
                 }
             } else if let issue, loadedScope == reader.scope {
                 VStack(spacing: CYSpacing.md) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .accessibilityHidden(true)
-                        .cyText(.display)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .accessibilityHidden(true)
+                    // MC8-19-11: MP cy-error icon="empty-state" → the shared MP empty art.
+                    CYEmptyIllustration(kind: .generic, size: 96)
                     // MC7-19-6: MP `品牌中心加载失败` title above the reason.
                     Text("merchantCoop.decor.failed.title")
                         .cyText(.sectionTitle)
@@ -299,6 +309,8 @@ struct MerchantOperationsDocumentView: View {
                 }
             } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {
                 VStack(spacing: CYSpacing.md) {
+                    // MC8-20-3: MP gallery cy-error icon="empty-state" → the shared MP empty art above the title.
+                    if destination == .gallery { CYEmptyIllustration(kind: .generic, size: 96) }
                     // Parity decor P1: say which page failed, as the source does (品牌中心 / 相册 / 承接设置加载失败).
                     Text(Self.failureTitle(destination))
                         .cyText(.cardTitle)

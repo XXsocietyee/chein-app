@@ -97,6 +97,8 @@ struct MerchantManualCaseDetailView: View {
                              time: [row.dayKey, row.timeText].compactMap { $0 }.joined(separator: " "), done: true)
                 timelineNode(title: MerchantOpsCopy.text(row.statusKey), time: nil, done: completed)
             } header: { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.progress")) }
+            // MC8-17-2: the same 联系平台客服 row on a manual refund case.
+            MerchantAftercareSupportSection()
         }
         .navigationTitle(Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.title")))
         .navigationBarTitleDisplayMode(.inline)
@@ -113,5 +115,21 @@ struct MerchantManualCaseDetailView: View {
             }
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// MC8-17-2: MP `cy-cell title="联系平台客服" description="退款审核与款项问题由平台处理" open-type="contact"`.
+struct MerchantAftercareSupportSection: View {
+    var body: some View {
+        Section {
+            NavigationLink { ParticipationSupportView() } label: {
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    Text("merchantR8.aftercare.contactSupport").cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.help")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+            }
+            .accessibilityIdentifier("merchantOps.aftercare.help")
+        }
     }
 }

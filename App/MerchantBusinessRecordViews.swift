@@ -33,7 +33,8 @@ struct MerchantBusinessField: View {
         switch row.kind {
         case .customer: return compact ? ["tier", "lastAction", "lastTime"] : ["phone", "contactHint", "arrivedCount", "pendingCount", "refundedCount", "paidAmount", "lastInteractionTime", "lastTime", "latestNote", "teamName", "roleName"]
         case .refund: return compact ? ["customerNickname", "activityTitle", "reason", "processing", "merchantOpinion", "refundAmount"] : ["sourceType", "sourceId", "customerNickname", "activityTitle", "refundAmount", "reason", "processing", "merchantOpinion", "refundPolicyCode", "refundPolicyVersion", "refundDeadline", "createTime"]
-        case .review: return ["rating", "content", "verifiedRedemption", "status", "merchantReply", "createTime", "repliedAt", "version"]
+        // MC8-13-6 (reviews/index.wxml:150-175): rating, content and time are on the author line / card; no raw version row.
+        case .review: return ["verifiedRedemption", "status", "merchantReply", "repliedAt"]
         case .redemption: return compact ? ["customerDisplayName", "occurredAt", "displayState", "settlementAmount", "noCashReason", "refundState"] : ["topicName", "chapterName", "storeName", "customerDisplayName", "verificationCodeTail", "fulfillmentState", "settlementState", "settlementRoute", "displayState", "settlementAmount", "noCashReason", "refundState", "occurredAt", "unitFee", "headCount"]
         case .entry: return ["entryKind", "settlementRoute", "source", "destination", "signedAmount", "headCount", "displayState", "occurredAt", "arrivalAt"]
         case .batch: return ["periodYm", "amountTotal", "netDirection", "paymentState", "invoiceState", "holdState", "displayState", "paidAt", "payVoucherNo"]

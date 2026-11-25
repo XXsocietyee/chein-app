@@ -88,6 +88,11 @@ struct MerchantCampaignHistoryView: View {
                                         message: appLocalized(String.LocalizationValue(issue), locale: locale),
                                         identifier: "merchant.campaigns.failed") { Task { await model.load() } }
             }
+        } else if model.campaigns.isEmpty, let access = model.access,
+                  !(access.identity.map { $0.allows("merchant:marketing:read") || $0.allows("merchant:marketing:write") } ?? false) {
+            // MC8-12-1 (crm-campaigns/index.js:45-66): a grant without marketing read is 当前身份不能查看触达记录,
+            // not an empty history.
+            MerchantDeniedState(title: "merchant.campaigns.denied", identifier: "merchant.campaigns.denied")
         } else if model.campaigns.isEmpty {
             CYEmptyState(systemImage: "tray", "merchant.campaigns.empty")
                 .accessibilityIdentifier("merchant.campaigns.empty")

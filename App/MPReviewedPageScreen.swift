@@ -432,9 +432,20 @@ import SwiftUI
                     .cyPushedChrome()
             } else { unavailable }
         case "pages/merchant/ledger/index":
-            MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
-                                             topicID: MerchantFinanceRoute.normalize(query)?.topicID)
-                .cyPushedChrome(domain: .merchant)
+            // MC8-06-2 (ledger/index.js:64-82): `view` picks the segment (settlement → 结算). A rejected ledger link shows
+            // 链接已失效 instead of guessing. `view=messages` (project messages by ownerType/ownerId) has no native
+            // by-owner read here, so it opens the 核销 segment (for Cursor: a project-events read by owner).
+            if let route = MerchantFinanceRoute.normalize(query) {
+                MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                                 topicID: route.topicID,
+                                                 initialView: route.view == .settlement ? .settlements : .redemptions)
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                ContentUnavailableView("merchant.ledger.linkExpired", systemImage: "link.badge.plus",
+                                       description: Text("merchant.ledger.linkExpired.detail"))
+                    .accessibilityIdentifier("merchant.ledger.linkExpired")
+                    .cyPushedChrome(domain: .merchant)
+            }
         case "pages/merchant/ledger/order-detail/index":
             if let record = MerchantOrderDetailLink.record(query) {
                 MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
@@ -506,10 +517,18 @@ import SwiftUI
                 .cyPushedChrome(domain: .merchant)
         // MC7-30-2: coop list opens on the linked tab. The topic-only scope (CooperationInboxTopicFilter) is not seeded yet.
         case "pages/coop/list/index":
+            // MC8-30-1: `topicId` seeds the topic filter; `scope=MERCHANT` is forwarded as the operation scope.
+            let listLink = CoopListLink(query)
             CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
                                    peerReader: session.cooperationFlowReader,
-                                   initialDirection: CoopListLink(query).tab == "sent" ? .sent : .received,
-                                   topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) })
+                                   operationScope: listLink.merchantScope ? "MERCHANT" : nil,
+                                   initialDirection: listLink.tab == "sent" ? .sent : .received,
+                                   topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
+                                   initialTopicID: listLink.topicID)
+                .environment(\.cooperationTopicNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session, topic: $0)) })
+                .environment(\.coopTopicPublishDestination, { scope in
+                    AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: scope.map { ["scope": $0] } ?? [:]).environmentObject(session))
+                })
                 .id(session.cooperationReader.scope)
         // MC7-32-7: invite-detail `inviteId` + `box`.
         case "pages/coop/invite-detail/index":
@@ -517,11 +536,20 @@ import SwiftUI
             if let inviteID = link.inviteID {
                 CooperationInviteDetailView(key: CooperationInviteKey(id: inviteID, direction: link.box == "sent" ? .sent : .received),
                                             reader: session.cooperationReader, peerReader: session.cooperationFlowReader)
+                    // MC8-32-1/-4: 进入项目 and 主题详情 are links on the deep-link entry too.
+                    .environment(\.cooperationProjectDestination, { AnyView(SessionTopicDetailView(id: $0, session: session)) })
                     .cyPushedChrome(domain: .merchant)
             } else { unavailable }
-        // MC7-31-10: the new-invitation page. The `type` / `toId` / `topicId` presets are not applied yet.
+        // MC7-31-10 / MC8-31-1: the new-invitation page with the `type` / `toId` / `topicId` presets applied.
         case "pages/coop/invite/index":
-            CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: nil)
+            let inviteLink = CoopInviteLink(query)
+            CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: nil,
+                                      initialType: inviteLink?.type,
+                                      lockedTarget: inviteLink.flatMap { link in link.toID.map { CoopInviteLockedTarget(type: link.type, toID: $0, name: "") } },
+                                      initialTopicID: inviteLink?.topicID)
+                .environment(\.coopTopicPublishDestination, { scope in
+                    AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: scope.map { ["scope": $0] } ?? [:]).environmentObject(session))
+                })
                 .cyPushedChrome(domain: .merchant)
         // flows-g2 (round 3): merchant decor / city-node / game-node MP paths (query-free in MiniProgramPageLink).
         // decor opens 品牌中心 with the same factory and perks / city-node destinations as the merchant tab.
@@ -532,6 +560,10 @@ import SwiftUI
                     AnyView(MerchantPerkTemplatesHost(reader: session.cooperationFlowReader, executor: coopFlowWrite?.executor()))
                 })
                 .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+                // MC8-19-1: 看公开主页 previews the store's own public home.
+                .environment(\.merchantPublicHomePreview, { owner in
+                    AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext))
+                })
                 .environment(\.merchantReviewsDestination, {
                     AnyView(MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .reviews(page: 1))
                         .cyPushedChrome(domain: .merchant))
@@ -553,6 +585,7 @@ import SwiftUI
         case "pages/merchant/citynode/create/index":
             MerchantCityNodeCreateView(service: session.merchantContentService, placeSearch: PublishingMapKitAdapter())
                 .id(session.merchantContentService.scope)
+                .environment(\.merchantIdentityInactive, session.merchantIdentityInactiveProbe)
                 .cyPushedChrome(domain: .merchant)
         case "pages/merchant/game-node/index":
             // The link rule is query-free today, so `activityId` cannot arrive yet: the entry list (选择场次) opens instead.
@@ -567,7 +600,10 @@ import SwiftUI
         case "pages/merchant/coop-center/index":
             session.merchantCoopCenterDestination()
         case "pages/coop/nearby/index":
-            SessionNearbyMerchantsView(session: session)
+            // MC8-33-3 (topic/merchantinfo.js:3194,3217): `topicId/topicName` scope the page to that topic (邀请商家).
+            SessionNearbyMerchantsView(session: session, topic: positiveID(query["topicId"]).map {
+                CoopNearbyTopicContext(topicID: $0, topicName: (query["topicName"] ?? "").removingPercentEncoding ?? query["topicName"] ?? "")
+            })
         case "pages/square/list/index":
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":

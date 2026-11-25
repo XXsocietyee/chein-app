@@ -179,6 +179,9 @@ struct MerchantCityNodeInlineError: View {
             if retry {
                 Button { Task { await reload() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
                     .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.retry")
+            } else {
+                // MC8-24-7: MP 申请入驻 when the merchant identity is not active yet.
+                MerchantInactiveApplyAction(identifier: "cityNodeHub.apply")
             }
         }.frame(maxWidth: .infinity).padding(.vertical, 40).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)
     }
@@ -540,12 +543,8 @@ struct MerchantCityNodeInlineError: View {
                             .accessibilityIdentifier("cityNodeHub.poster.image")
                         if let name = code.nodeName { Text(verbatim: name).cyText(.cardTitle).accessibilityIdentifier("cityNodeHub.poster.name") }
                         // MC7-24-3: a real save / share action instead of the MP long-press hint.
-                        ShareLink(item: code.imageURL) {
-                            Label("merchantCoop.cityNode.poster.save", systemImage: "square.and.arrow.down")
-                                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .accessibilityIdentifier("cityNodeHub.poster.save")
+                        // MC8-24-9: share the picture itself (存储图像), not only its URL.
+                        MerchantPosterImageShareButton(url: code.imageURL, title: code.nodeName ?? MerchantCityNodeCopy.string("merchantCityNode.poster.title"))
                         MerchantCityNodeCopy.text("merchantCityNode.poster.hintPrint").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     case .codeText(let text, let name):
                         // MP cy-code-text: monospaced, selectable code + 二维码暂时不可用，可长按复制验证码.

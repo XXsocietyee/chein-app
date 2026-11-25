@@ -90,7 +90,12 @@ import UIKit
                         .accessibilityIdentifier("merchant.settlementProgress.step." + step.id)
                 }
             }
-            if progress.voucherForCopy != nil {
+            if let voucher = progress.voucherForCopy {
+                // MC8-08-2 (batch-detail/index.wxml:17): 打款凭证 {payVoucherNo} is visible, with the copy action under it.
+                LabeledContent("merchantR8.batch.voucherLabel") {
+                    Text(verbatim: voucher).cyText(.body).monospacedDigit().textSelection(.enabled)
+                }
+                .accessibilityIdentifier("merchant.settlementProgress.voucher")
                 CYPillButton("merchant.settlementProgress.copyVoucher", style: .secondary, systemImage: "doc.on.doc") {
                     Task { await copyModel.copy(progress, intent: displayedIntent, reader: reader, currentSnapshot: currentSnapshot, write: Self.writeLocally) }
                 }
