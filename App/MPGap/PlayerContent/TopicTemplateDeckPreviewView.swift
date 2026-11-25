@@ -42,7 +42,14 @@ public struct TopicTemplateDeckPreviewView: View {
                         .foregroundStyle(CYColor.textPrimary)
 
                     ForEach(preview.checks, id: \.self) { check in
-                        Label(check, systemImage: "checkmark.circle.fill")
+                        // Round 4 image parity: MP `art/tab/check.svg` (topic-preview/index.wxml:40).
+                        Label {
+                            Text(check)
+                        } icon: {
+                            MPAsset.FeatureIcon.pagesTemplatedetailArtTabCheck.resizable().scaledToFit()
+                                .accessibilityHidden(true)
+                                .frame(width: 18, height: 18)
+                        }
                             .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                     }
@@ -118,11 +125,14 @@ public struct TopicTemplateDeckPreviewView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
             } else {
+                // Round 4 image parity: MP `fc__err` shows `/images/cover-route.svg` centred (topic-preview/index.wxml:21).
                 CYColor.coverFallback
                     .overlay {
-                        MPAsset.BannerCover.homeRouteCityPlaceholder
+                        MPAsset.BannerCover.coverRoute
                             .resizable()
-                            .scaledToFill()
+                            .scaledToFit()
+                            .accessibilityHidden(true)
+                            .frame(width: 64, height: 64)
                     }
                     .clipped()
             }
@@ -169,7 +179,14 @@ public struct TopicTemplateDeckPreviewView: View {
             Spacer(minLength: 0)
 
             if !card.footText.isEmpty {
-                Label(card.footText, systemImage: "clock")
+                // Round 4 image parity: MP `art/tab/clock.svg` (topic-preview/index.wxml:30).
+                Label {
+                    Text(card.footText)
+                } icon: {
+                    MPAsset.FeatureIcon.pagesTemplatedetailArtTabClock.resizable().scaledToFit()
+                        .accessibilityHidden(true)
+                        .frame(width: 14, height: 14)
+                }
                     .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }

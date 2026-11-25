@@ -18,6 +18,8 @@ struct DiscoveryTemplateBrowserView: View {
     /// R7-PC-A2-2 (MP `goSearch`, owner ruling 2026-10-22): templates are a result type of the one global search. When
     /// the host supplies it, one read-only capsule pushes that search instead of the two local fields.
     let searchDestination: (() -> AnyView)?
+    /// Round 4 (MP template/index.wxml:16 `tpl-bell` → `subpackageB/pages/im/list/index`): the bell opens the IM inbox.
+    let inboxDestination: (() -> AnyView)?
     @State private var tab = Shelf.topics
     @State private var topicTag: String?
     @State private var gameTag: String?
@@ -44,8 +46,9 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, keyword: appliedKeyword) }
     private var hasGameKeyword: Bool { !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false, searchDestination: (() -> AnyView)? = nil) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false, searchDestination: (() -> AnyView)? = nil, inboxDestination: (() -> AnyView)? = nil) {
         _tab = State(initialValue: startOnGames ? .games : .topics)
+        self.inboxDestination = inboxDestination
         self.publishDestination = publishDestination
         self.searchDestination = searchDestination
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
@@ -132,6 +135,18 @@ struct DiscoveryTemplateBrowserView: View {
                         Label("discovery.templateTab.publish", systemImage: "plus")
                     }.pageTemplateControl(label: Text("discovery.templateTab.publish"), traits: .isButton)
                         .accessibilityIdentifier("discovery.templateTab.publish")
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                if let inboxDestination {
+                    NavigationLink { inboxDestination() } label: {
+                        MPAsset.FeatureIcon.iconBell.resizable().scaledToFit()
+                            .accessibilityHidden(true)
+                            .frame(width: 24, height: 24)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .accessibilityLabel(Text("discovery.templateTab.inbox"))
+                    .accessibilityIdentifier("discovery.templateTab.inbox")
                 }
             }
         }

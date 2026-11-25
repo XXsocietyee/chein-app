@@ -69,7 +69,8 @@ import SwiftUI
             NavigationStack {
                 DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
                     publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) },
-                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) })
+                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) },
+                    inboxDestination: { AnyView(SessionMessagingHome(session: session)) })
                     .toolbar {
                         ToolbarItem(placement:.cancellationAction) {
                             Button("action.close") { showsCreate=false }
@@ -85,7 +86,8 @@ import SwiftUI
                 // PC-A-2-6: 浏览模板 keeps 发布 like the 发布 tab entry.
                 DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
                     publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) },
-                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }).id(session.templateAuthoringViewIdentity)
+                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) },
+                    inboxDestination: { AnyView(SessionMessagingHome(session: session)) }).id(session.templateAuthoringViewIdentity)
                     .toolbar {
                         ToolbarItem(placement:.cancellationAction) {
                             Button("action.close") { showsTemplates=false }

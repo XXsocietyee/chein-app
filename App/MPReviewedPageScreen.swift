@@ -40,21 +40,25 @@ import SwiftUI
                 publishDestination: {
                     AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch))
                 },
-                searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }
+                searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) },
+                    inboxDestination: { AnyView(SessionMessagingHome(session: session)) }
             )
             .id(session.templateAuthoringViewIdentity)
         case "pages/templatedetail/topic-preview/index":
             // Flow gap PC-A-7-2: topic-preview is the MP card deck; 查看详情 pushes topic-detail.
             if let id = reviewedID(query) {
                 DiscoveryTopicTemplateDeckHost(coordinator: session.publicTopicTemplateCoordinator(id: id),
-                                               readonly: query["readonly"] == "1",
+                                               readonly: query["readonly"] == "1", scope: query["scope"],
                                                makeDetail: { session.publicTopicTemplateCoordinator(id: id) })
+                    .environment(\.topicEditorDestination, topicDraftEditorDestination)
                     .cyPushedChrome()
             } else { unavailable }
         case "pages/templatedetail/topic-detail/index":
             // PC-A-7-1 / PC-A-8-1: a shared topic-template link lands on that template, not the shelf root.
             if let id = reviewedID(query) {
                 DiscoveryTopicTemplatePreview(coordinator: session.publicTopicTemplateCoordinator(id: id))
+                    .scopedForAdoption(query["scope"])
+                    .environment(\.topicEditorDestination, topicDraftEditorDestination)
                     .cyPushedChrome()
             } else { unavailable }
         case "pages/talent/list/index":
@@ -829,6 +833,14 @@ import SwiftUI
 
     /// MP `fabu?id=&mode=&scope=&clubId=` (C-F11): `id` loads that topic's edit-detail; otherwise a new topic in the
     /// chosen mode. `scope=MERCHANT` only applies to a merchant account; the server still checks every write.
+    /// Round 4 flow (MP topic-use-flow.js `openDraft`): a copied template draft opens `pages/publish/fabu/index?id=&scope=`.
+    private var topicDraftEditorDestination: (Int, String?) -> AnyView {
+        { [session] topicID, scope in
+            var draftQuery = ["id": String(topicID)]
+            if let scope { draftQuery["scope"] = scope }
+            return AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: draftQuery).environmentObject(session))
+        }
+    }
     @ViewBuilder private var topicEditor: some View {
         let owner: ProjectEditOwner = query["scope"] == "MERCHANT" && session.account?.effectiveRole == "merchant" ? .merchant : .personal
         if let topicID = positiveID(query["id"]) {
