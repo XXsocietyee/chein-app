@@ -182,3 +182,107 @@ Every other round-1/round-2 hunk is present on the new base. The ones `git apply
 ### Local verification (round 3)
 - Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`): branch vs `origin/ui/combined-r7` `b0ac0108d` gives 218 FAIL/ERROR on both, and the sets are identical. Nothing new failed and nothing was fixed.
 - No new Swift files or folders. No compiler in the cloud. APIs grepped on `b0ac0108d` before use: `IMRemoteAvatar<EmptyView>.url`, `MPAsset.AvatarDefault.dProfile`, `IMExpandedCoordinator.isCurrent` / `canReviewOrdinaryRead` / `reviewOrdinaryRead()` / `confirm(stillAuthorized:)`, `IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted` / `shouldAutoMarkRead(unreadCount:)`, `MessagingConversation.unread`, `SessionCreatorProjectsView(entryScope:)`, `CreatorContentQuery.type`.
+
+## Round 4 (2026-11-25, brief `design/handoff-r2:docs/briefs/fix-r3-round4.md`)
+
+- **Sync:** `git merge origin/ui/combined-r7` (`4ef0a2840`, F-agent round 3 + Cursor round 4 + Gemini round 7), no conflicts.
+- **Gemini's MP-alignment work for C2–D9 was taken over** (Gemini out of quota). `App/MPGap/**` is no longer parked (it is in the `generate_project.py` glob), but none of its player-content views has a data source on r7; see "Left" below.
+- **Skipped as in flight:** `restyle/*`, `cursor/*`, `gap/*`, `port/*` (unchanged from round 1).
+
+### 1. Flows (`docs/mp-gap/flows-g1.md` / `flows-g2.md`, C2–D9 edges)
+
+| MP edge | status in the app |
+|---|---|
+| `baoming` → after signup `orderinfo` (redirect) / `mycanyu` / member tab / address / club | OK (unchanged) |
+| `activity/list` → `official-detail` / `official-mine` / `official-inbox`, back | OK. The list is pushed with system back (R7-PC-C3-1). |
+| `official-detail` → `official-organizer`, `topic/index`, `switchTab roam`; load error → `activity/list` | OK. The unavailable state's 返回活动列表 dismisses to the previous page, which is the MP `navigateBack` branch of `onLoadErrorBack`. A cold deep link has a host page under it, so the `reLaunch` branch has no app equivalent. **Mount `OfficialEventLeaderboardSection`: left** (no producer, below). |
+| `infomation` → `templatedetail`; `infomationdetail` → back to list | OK (R7-PC-D2-1 square part, R7-PC-D3-4). **Rich blocks: left** (below). |
+| `im/chat` → `report-mine`, `signup`, `topic/index`, back | OK. Peer report is in the ⋯ menu (Cursor wiring). Closed chat → 返回消息列表. **`IMComposerPlusMenuButton`: left** (below). |
+| flows-g2 `merchant/index.js:1650` `myproject?scope=MERCHANT`, `publish/temp/index.js:3520` `myproject?type=template` | App route done in round 3. The link-parser allow-list is still a Core request (round 3). |
+
+### 2. Image parity (every image slot on the 15 MP pages)
+
+Only shipped artwork counts here. `cy-icon` is the MP icon font (no image file), so those glyphs stay SF Symbols: arrow-right, chevron-right, poi-landmark, pin, flag, check, gift, share, edit, list, close, info, draft, trash, clock, connect, bell, warning, plus, sort, more, coupon, image.
+
+| MP page | MP slot (`file:line`) | MP image | app | status |
+|---|---|---|---|---|
+| C2 baoming | `baoming.wxml:84-85` | activity `imgUrl` / `imgArr[0]`, fallback `/images/cover-route.svg` | `RegistrationSheetView` ticket card: remote cover, fallback `MPAsset.BannerCover.coverRoute` | ✅ (round 2) |
+| C2 baoming | `baoming.wxml:19,66,106,112,304` `cy-empty` (missing-param, gate, not-started, no kind) | glyphs only | — | ✅ no image |
+| C3 activity list | `list/index.wxml:51` | missing cover → `/images/cover-route.svg` | `OfficialEventCard` fallback `coverRoute` | ✅ (round 2) |
+| C3 activity list | `list/index.js:40-50` `EMPTY_COPY` | glyph kinds; the MP says not to use `no_data.svg` here | `CYEmptyState` glyph art | ✅ no image |
+| C4 official-detail | `index.wxml:25-26` hero | `coverImg`, fallback `cy-icon image` | `OfficialEventCard` (remote cover); fallback is `coverRoute` (shared with the list card) | ⚠️ fallback differs (the MP detail uses a glyph). Left: the card is shared with C3, where `coverRoute` is right. |
+| C4 official-detail | `index.wxml:31` | `/images/cy_logo_mark.png` | `MPAsset.BrandLogo.cyLogoMark` | ✅ (round 2) |
+| C4 official-detail | `index.wxml:100-101` activity cards | `coverImg` per card, fallback `cy-icon flag` | cards have no thumbnail | ⚠️ left (layout change on a pinned section; remote image only, no MP asset involved) |
+| C5 official-inbox | `index.wxml:11` `cy-empty kind="empty"` | `empty_state_bg.svg` + `empty_state_figure.svg` | `CYEmptyState(systemImage: "tray")` → `CYEmptyIllustration(.generic)` = `MPAsset.EmptyState.emptyStateBg/Figure` | ✅ **round 4** (was the `envelope.open` generated art) |
+| C6 official-mine | `index.wxml:15,23` `cy-empty` (no kind) | none (legacy default: no art) | text rows | ✅ no image |
+| C7 official-organizer | — | none | — | ✅ |
+| D1 myproject | `index.wxml:38` | `item.cover`, fallback `/subpackageA/images/route_free_cover.png` | `MPAsset.BannerCover.subpackageAImagesRouteFreeCover` | ✅ (round 2) |
+| D1 myproject | `index.wxml:59` `cy-empty kind="empty"` | empty_state bg + figure | `MyProjectEmptyView` `CYStateArt(kind: .generic)`; the no-tab fallback uses `tray` | ✅ **round 4** (was `.projects` generated art) |
+| D1 myproject | `index.wxml:72,83` template / shelf rows | fallback `/images/route_city_cover.png` | no inline shelf rows (R7-PC-D1-4 left) | ⚠️ left with D1-4 |
+| D1 myproject | `index.wxml:162` audit attachments | user upload (remote) | review sheet | ✅ remote only |
+| D2 infomation | `infomation.wxml:40` template pic | `item.imgUrl` (remote) | `E1CoverArt(imageURL: item.imgUrl)` | ✅ |
+| D2 infomation | `infomation.wxml:35,72` `cy-empty kind="empty"` (templates, docs) | empty_state bg + figure | both `CYEmptyState(systemImage: "tray")` | ✅ **round 4** (were `square.grid.2x2` / `doc.text`, which drew the ticket art) |
+| D2 infomation | `infomation.wxml:18` doc row | `cy-icon {{item.icon}}` | `SocialInformationArt` | ✅ glyph slot |
+| D3 infomationdetail | `infomationdetail.wxml:25` error `icon="empty-state"` | empty_state bg + figure | `SocialReadScreen` shared error view | ⚠️ left: the error view is shared by every social read screen |
+| D4 income-detail | `scene-asset-income-detail/index.wxml:43` `cy-empty kind="empty"` | empty_state bg + figure | ledger empty for `.income` → `tray` (points ledger unchanged) | ✅ **round 4** |
+| D5 earnings | `scene-asset-earnings/index.wxml:22` `cy-empty kind="empty"` | empty_state bg + figure | `WalletEarningsEmptyNote` now draws `CYEmptyIllustration(.generic)` | ✅ **round 4** |
+| D6 analysis | — | none (`cy-empty` / `cy-error` without art) | — | ✅ |
+| D7 video-bounty | `index.wxml:26,45` `cy-empty kind="empty"` | empty_state bg + figure | submissions / accruals empty → `tray` | ✅ **round 4** (were `film` / `doc.text`) |
+| D8 im/list | `index.wxml:141` | `counterparty.avatar`, fallback `/images/d_profile.png` | `IMRemoteAvatar` → `MPAsset.AvatarDefault.dProfile` | ✅ (round 2/3) |
+| D8 im/list | `index.wxml:57` invite card | `topicImgUrl`, fallback `cy-icon connect` | `IMCoopInviteStripView` cover | ✅ glyph fallback |
+| D9 im/chat | `index.wxml:68,160` | `senderAvatar ‖ avatar ‖ d_profile.png` | `MPAsset.AvatarDefault.dProfile` | ✅ (round 3) |
+| D9 im/chat | `index.wxml:55,148,164` image messages | remote | image bubbles | ✅ remote only |
+| D9 im/chat | `index.wxml:92` route card no cover | `/images/cover-route.svg` | `IMCardPreviewViews` `coverRoute` | ✅ (round 2) |
+| D9 im/chat | `index.wxml:43` `cy-empty kind="empty"` 还没有消息 | empty_state bg + figure | `tray` | ✅ **round 4** (was the inbox bubble art) |
+| D9 im/chat | `index.wxml:237` composer route picker | `/subpackageB/images/route_free_cover.png` | the `+` route picker is not mounted (below) | ⚠️ left |
+
+### 3. Copy (zh must equal MP; overrides in `docs/port/strings/fix-r3-player-content-b.json`)
+
+| page | MP text (`file:line`) | key | change |
+|---|---|---|---|
+| C2 | 结算 (`baoming.json` / nav-bar) | `registration.form.title` | override 活动报名 → 结算 (en Checkout) |
+| C3 我的 | 登录后查看我的活动 / 当前身份不能查看这些活动 (`list/index.wxml:32-33`) | new `official.mine.signInRequired`, `official.mine.forbidden` | `OfficialReadScreen.issueLabel` (optional, nil keeps the shared label) |
+| C5 | 暂无待处理的活动职责, no sub (`official-inbox/index.wxml:11`) | `official.inbox.empty` | the extra `official.inbox.emptyDetail` line is gone |
+| C6 | 发布记录加载失败 (`official-mine/index.wxml:11`) | new `official.published.loadFailed` | via `issueLabel` |
+| D1 | 还没有主题 / 还没有活动 / 还没有节点玩法, `sub: ''` (`myproject/index.js:50-54`) | `myProject.empty.*` | the detail line is no longer rendered (the Core keys stay, `MyProjectPageReadyTests` still pins them) |
+| D1 | 当前身份不能查看这些项目 / 项目加载失败 (`myproject/index.wxml:22-23`) | new `myProject.accessDenied`, `myProject.loadFailed` | `CreatorContentIssueView` optional `deniedTitleKey` / `failureTitleKey`; denied has no 重试, like the MP |
+| D4 | 登录后查看收益明细 / 当前身份不能查看收益明细 / 收益明细加载失败 (`scene-asset-income-detail/index.wxml:41`) | new `wallet.income.signInRequired`, `.denied`, `.loadFailed` | `WalletIssueView` optional `loginKey` / `deniedKey` (nil keeps the shared copy) |
+| D5 | 登录后查看账户收益 / 当前身份不能查看收益 / 收益加载失败 (`scene-asset-earnings/index.wxml:7`) | new `wallet.earnings.signInRequired`, `.denied`, `.loadFailed` | same |
+| D5 | 还没有收益, no sub (`scene-asset-earnings/index.wxml:22`) | `member.wallet.noEarnings` | the `noEarningsHint` line is gone |
+| D6 | 登录后查看 (`analysis/index.wxml:13`) | `wallet.analysis.login` (table `WalletIncomeAnalysis`) | 登录后查看分析 → 登录后查看, in `Resources/WalletIncomeAnalysis.xcstrings` and its ui-strings doc |
+| D9 | 这个会话无法打开 (`im/chat/index.wxml:41`) | `messaging.accessDenied` | override 无法查看会话 → 这个会话无法打开 |
+
+Already equal (checked): 官方活动, 官方活动邀约, 我发布的, 主办控制台, 我的项目, 城瘾玩法, 玩法详情, 收益明细, 账户收益, 分析, 视频悬赏, 消息, 聊天, 活动详情 (round 1 override), 登录后查看我的项目, 还没发过活动, 还没发过通知, 还没有上架的现成玩法, 现成玩法加载失败, 暂无玩法说明, 这篇玩法说明不在了, 还没有投稿, 还没有应计记录, 读取失败, 还没有消息, 登录后查看消息, 消息加载失败, 这个组局已结束, 返回消息列表, 分析数据加载失败, 去发布路线, 暂无可用票, the four 暂无…的活动 tab empties, 还没有收益记录.
+
+### 4. P2 / P1 rows
+
+Every Claude-owned P2 row for C2–D9 in `audit/parity-r7-player-content` was closed in rounds 1–3, or is listed as left with its reason. Both P1 rows in this half (D1-1 tab root, D4-1) are done. No new P1 is open.
+
+### 5. Accessibility lint
+
+`python3 -B tools/check_a11y_lint.py`: this branch adds 0 findings. The one current finding, `App/ClubKit/ClubWorkbenchKit.swift:261` (unlabeled `square.and.arrow.up`), comes from `origin/ui/combined-r7` itself. It is in the club area, and Cursor's receipts keep `ClubWorkbenchKit` hands-off, so it is left for the club F-agent / integrator. The new `CYEmptyIllustration` is already `accessibilityHidden(true)` inside the shared view.
+
+### Left, with reasons (round 4)
+
+| id | reason / request |
+|---|---|
+| R7-PC-C4-1 `OfficialEventLeaderboardSection` | **Core request (Cursor):** still no producer of `OfficialEventLeaderboardRow` on r7. The section also has a raw 「暂列第 \(n) 名」 literal that needs a key. |
+| R7-PC-D3-2 `SocialArticleRichBlocksView` | **Core request (Cursor):** `SocialArticleContent` drops `img`/`a` on purpose (`Core/SocialArticleContent.swift:246,303`, "contains no URLs"). Nothing builds `SocialArticleRichBlock`. Showing article images needs a reviewed Core change (https-only `src`, allowed hosts). |
+| R7-PC-D9-3 `IMComposerPlusMenuButton` | The image, location and route sends are all off by default (`canSendOrdinaryImage`, `canSendStaticLocation`, `canSendRoute`), so the mounted menu would hold only 投票, which is already the composer's `+`. `IMComposerPlusItem.title` is a raw Chinese string in Core. |
+| R7-PC-C2-1 `ActivityRegistrationGapSections` | **Core request (Cursor):** no decoder produces `ActivityChildAgeRange`, `ActivityDeliveryItem` or merchant-closed/pass-covered flags from the baoming reads. Its host reservation part waits on `reservationState` (R7-PC-C2-2). |
+| R7-PC-C6-2 安全恢复原投递 | **Core request (Cursor):** the audit points at `PlayerContentGapService.swift:167`, which on r7 is `checkOrientSafety`. No broadcast-recover command exists. |
+| C2 报名已截止 | `registration.form.signupClosed` keeps the longer sentence: `Tests/AppUITests/RegistrationWaitlistUITests.swift:25` pins the label. |
+| C5 failure title | `official.w206.inbox.failed.title` (邀约没有加载出来) above 邀约加载失败 is pinned by `test_official_inbox_page_ready` / `OfficialEventComponentsClosureTests`. |
+| D3 error art, D8 list 加载失败 | Both come from shared views (`SocialReadScreen`, `MessagingLoadIssue` is shared by the list and the chat). Changing them would change other pages. |
+| Image ⚠️ rows above | Reasons are in the table. |
+| Round 1–3 left items | Unchanged: R7-PC-C2-2, D1-6 (coordinates), D3-3 (Core); D1-1 (pushed menu), D1-4, D2-1 (detail push), C4-3 (price row) (pins). |
+
+### Files changed in round 4
+`App/CreatorContentViews.swift`, `App/MyProjectTabViews.swift`, `App/OfficialEventComponents.swift`, `App/OfficialEventsBrowserView.swift`, `App/OfficialPrivateViews.swift`, `App/SocialGuideTemplateSection.swift`, `App/SocialGuideViews.swift`, `App/VideoBountyView.swift`, `App/MessagingHistoryView.swift`, `App/WalletCommerceViews.swift`, `App/WalletEarningsParity.swift`, `Resources/WalletIncomeAnalysis.xcstrings`, `docs/release/ui-strings-subpackageA-pages-assetcenter-analysis-index.json`, `docs/port/strings/fix-r3-player-content-b.json` (+13 keys/overrides). No new Swift files or folders. No Core change.
+
+APIs grepped on r7 before use: `CYEmptyIllustration(kind:size:)`, `CYStateArt(kind: .generic)`, `CYEmptyIllustration.kind(matching: "tray")`, `OfficialScreenIssue` cases, `CreatorContentIssue` (`.unavailable`, `.server`), `WalletIssueView.failedKey`, `CYSpacing.xs`.
+
+### Local verification (round 4)
+- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`, 6064 tests): `origin/ui/combined-r7` `4ef0a2840` has 222 FAIL/ERROR, and this branch has 223. Nothing was fixed-then-broken. The one new failure is the expected fragment check, `test_official_event_contracts…test_every_static_user_facing_key_has_two_languages`: `official.mine.signInRequired`, `official.mine.forbidden` and `official.published.loadFailed` live only in the strings fragment until the integrator merges it.
+- `tools/check_typography_lint.py`: PASS. `tools/check_a11y_lint.py`: no new finding from this branch (the one current finding is on the base; see §5).
+- No compiler in the cloud. The coordinator compiles.
