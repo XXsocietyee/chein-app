@@ -92,7 +92,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/merchant/coop-center/index"] = Rule(allowed: ["tab", "topicId"], required: [], ids: ["topicId"])
         pages["pages/merchant/profile/index"] = Rule(allowed: ["id", "poiId", "topicId", "topicName"], required: [], ids: ["id", "poiId", "topicId"])
         pages["pages/merchant/team/index"] = Rule(allowed: ["invite"], required: [], ids: [])
-        pages["pages/coop/invite/index"] = Rule(allowed: ["type", "toId", "topicId"], required: [], ids: ["toId", "topicId"])
+        pages["pages/coop/invite/index"] = Rule(allowed: ["type", "toId", "topicId", "originApplyId", "toName", "scope"], required: [], ids: ["toId", "topicId", "originApplyId"])
         pages["pages/coop/invite-detail/index"] = Rule(allowed: ["inviteId", "box"], required: [], ids: ["inviteId"])
         pages["pages/coop/nearby/index"] = Rule(allowed: ["topicId", "topicName"], required: [], ids: ["topicId"])
         pages["pages/coop/settlement-detail/index"] = Rule(allowed: ["source", "id", "topicId", "clubId", "personal"], required: [], ids: ["id", "topicId", "clubId"])
@@ -275,7 +275,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/team/join/index": ["entry": ["code"]],
         "pages/merchant/ledger/order-detail/index": ["recordType": ["redemption", "activity_ticket", "session_fee"]],
         "pages/coop/list/index": ["scope": ["MERCHANT"]],
-        "pages/coop/invite/index": ["type": ["0", "1"]],
+        "pages/coop/invite/index": ["type": ["0", "1"], "scope": ["MERCHANT"]],
         "pages/coop/invite-detail/index": ["box": ["received", "sent"]],
         "pages/coop/settlement-detail/index": ["personal": ["1"]],
         "pages/topic/index/index": ["via": ["session"]],

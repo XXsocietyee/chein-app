@@ -61,9 +61,8 @@ struct MerchantOperationsHomeView: View {
                 ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
                     let visible = group.destinations.filter { access.allows($0) }
                     let perks = index == Self.perksGroupIndex && access.identity.active ? perkTemplatesDestination : nil
-                    // MC7-19-10: MP shows 口碑 for MARKETING_READ. access/me does not decode that grant yet (Core request),
-                    // so only the owner, who always holds it, sees the row; the reviews page re-checks on read.
-                    let reviews = index == Self.perksGroupIndex && access.identity.isOwner ? reviewsDestination : nil
+                    // MC9-19-4: 口碑 for any operator holding merchant:marketing:read, and for the owner.
+                    let reviews = index == Self.perksGroupIndex && (access.marketingRead || access.identity.isOwner) ? reviewsDestination : nil
                     if !visible.isEmpty || perks != nil || reviews != nil {
                         Section(group.titleKey) {
                             ForEach(visible) { destination in

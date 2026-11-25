@@ -95,13 +95,18 @@ public struct CoopFlowInvitation: Equatable {
     public let compensation: CoopFlowCompensation
     public let originApplyID: Int?
     public let scope: String?
+    /// Merchant invites only. Wire key `supplyStationId`. Absent stays off the body.
+    public let supplyStationID: Int?
     public init(kind: CoopFlowTargetKind, recipient: CoopFlowIdentity, topicID: Int, message: String,
-                compensation: CoopFlowCompensation = .traffic, originApplyID: Int? = nil, scope: String? = nil) throws {
+                compensation: CoopFlowCompensation = .traffic, originApplyID: Int? = nil, scope: String? = nil,
+                supplyStationID: Int? = nil) throws {
         guard recipient.domain == (kind == .merchant ? .member : .club), topicID > 0,
-              originApplyID == nil || (kind == .club && originApplyID! > 0) else { throw CoopFlowFailure.invalid("recipient") }
+              originApplyID == nil || (kind == .club && originApplyID! > 0),
+              supplyStationID == nil || (kind == .merchant && supplyStationID! > 0) else { throw CoopFlowFailure.invalid("recipient") }
         if case .fixed(let fee) = compensation { guard fee > 0 else { throw CoopFlowFailure.invalid("fixedFee") } }
         self.kind = kind; self.recipient = recipient; self.topicID = topicID; self.message = message
         self.compensation = compensation; self.originApplyID = originApplyID; self.scope = scope
+        self.supplyStationID = supplyStationID
     }
 }
 /// Local review entry derived only from a received, pending application in the current session.
@@ -116,10 +121,12 @@ public struct CoopFlowInvitationContext: Identifiable, Equatable {
     public let scope: String?
     public var id: String { "\(session.accountID):\(session.epoch):\(kind.rawValue):\(originApplyID ?? 0):\(topicID):\(recipient.id)" }
 
-    public init?(candidate: CoopFlowTargetCandidate, topic: CoopFlowOwnedTopic, scope: String?, session: CoopFlowSession?) {
+    public init?(candidate: CoopFlowTargetCandidate, topic: CoopFlowOwnedTopic, scope: String?, session: CoopFlowSession?, originApplyID: Int? = nil) {
         guard let session, topic.inviteWindowOpen == true, scope == nil || scope == "MERCHANT" else { return nil }
         self.session = session; self.recipient = candidate.recipient; self.recipientName = candidate.name
-        self.topicID = topic.id; self.kind = candidate.kind; self.originApplyID = nil; self.scope = scope
+        self.topicID = topic.id; self.kind = candidate.kind
+        self.originApplyID = candidate.kind == .club ? originApplyID.flatMap { $0 > 0 ? $0 : nil } : nil
+        self.scope = scope
     }
 
     public init?(receivedApplication row: CoopFlowJSON, session: CoopFlowSession?) {
@@ -271,7 +278,7 @@ public enum CoopFlowMutation: Equatable {
     case invite(CoopFlowInvitation)
     case handle(inviteID: Int, action: CoopFlowHandle, reason: String?)
     case apply(topicID: Int, message: String = ""), withdraw(topicID: Int), decline(applyID: Int, scope: String?)
-    case confirm(registrationID: Int), reject(registrationID: Int)
+    case confirm(registrationID: Int, scope: String?), reject(registrationID: Int, scope: String?)
     case createTemplate(CoopFlowPerkTemplate), deleteTemplate(id: Int)
     case attachPerks(inviteID: Int, templateIDs: [Int])
     case enrollOffer(fields: [String: CoopFlowJSON])
@@ -309,6 +316,7 @@ public enum CoopFlowMutation: Equatable {
             if case .fixed(let fee) = f.compensation { b["shareMode"] = .id(2); b["fixedFee"] = .number(fee) }
             if let origin = f.originApplyID { b["originApplyId"] = .id(origin) }
             if let scope = f.scope, !scope.isEmpty { b["scope"] = .string(scope) }
+            if let station = f.supplyStationID { b["supplyStationId"] = .id(station) }
         case .handle(let id, let action, let reason):
             b = ["id": try positive(id), "status": .id(action.rawValue)]
             if let reason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { b[action == .cancel ? "message" : "handleReason"] = .string(reason) }
@@ -318,7 +326,9 @@ public enum CoopFlowMutation: Equatable {
         case .withdraw(let id): b = ["topicId": try positive(id)]
         case .decline(let id, let scope):
             b = ["applyId": try positive(id)]; if let scope, !scope.isEmpty { b["scope"] = .string(scope) }
-        case .confirm(let id), .reject(let id): b = ["registrationId": try positive(id)]
+        case .confirm(let id, let scope), .reject(let id, let scope):
+            b = ["registrationId": try positive(id)]
+            if let scope, !scope.isEmpty { b["scope"] = .string(scope) }
         case .createTemplate(let f):
             try MerchantPerkValidityDraft.validateForCreation(f.validEnd, now: now)
             b = ["name": .string(f.name), "perkType": .id(f.type), "retailValue": .number(f.retailValue), "quota": .id(f.quota), "validEnd": f.validEnd.map(CoopFlowJSON.string) ?? .null]

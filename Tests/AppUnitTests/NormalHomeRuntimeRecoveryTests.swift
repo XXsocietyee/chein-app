@@ -68,7 +68,7 @@ import UIKit
         let session = try XCTUnwrap(container.session)
         await session.bootstrap()
         XCTAssertEqual(session.homeReadAvailability, .available)
-        XCTAssertEqual(session.contentDetailReadAvailability, .signInRequired)
+        XCTAssertEqual(session.contentDetailReadAvailability, .available)
         _ = try await session.homeFeedReader.categories()
         XCTAssertNil(wire.requests.last?.value(forHTTPHeaderField: "Authorization"))
         await signIn(session, wire: wire)
@@ -86,11 +86,13 @@ import UIKit
         await session.logout()
         XCTAssertNil(session.account); XCTAssertNil(vault.token)
         XCTAssertNotEqual(session.homeFeedReader.scope, signedInScope)
-        XCTAssertEqual(session.contentDetailReadAvailability, .signInRequired)
+        XCTAssertEqual(session.contentDetailReadAvailability, .available)
         let before = wire.requests.filter { $0.url?.path.hasSuffix("/info-to-user") == true }.count
-        do { _ = try await session.topicReader.topicDetail(id: 31); XCTFail() }
-        catch { XCTAssertEqual(error as? APIError, .unauthorized) }
-        XCTAssertEqual(wire.requests.filter { $0.url?.path.hasSuffix("/info-to-user") == true }.count, before)
+        let guestDetail = try await session.topicReader.topicDetail(id: 31)
+        XCTAssertEqual(guestDetail.id, 31)
+        let sent = wire.requests.filter { $0.url?.path.hasSuffix("/info-to-user") == true }
+        XCTAssertEqual(sent.count, before + 1)
+        XCTAssertNil(sent.last?.value(forHTTPHeaderField: "Authorization"))
         _ = try await session.homeFeedReader.categories()
         XCTAssertNil(wire.requests.last?.value(forHTTPHeaderField: "Authorization"))
     }
@@ -118,7 +120,7 @@ import UIKit
         let wire = Wire(), vault = Vault(), session = root(wire, vault, try deployment(auth: false)).makeSession()
         _ = try await session.homeFeedReader.categories()
         XCTAssertNil(wire.requests.last?.value(forHTTPHeaderField: "Authorization"))
-        XCTAssertEqual(session.contentDetailReadAvailability, .signInRequired)
+        XCTAssertEqual(session.contentDetailReadAvailability, .available)
         await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
         XCTAssertNil(session.account); XCTAssertNil(vault.token); XCTAssertEqual(wire.requests.count, 1)
     }

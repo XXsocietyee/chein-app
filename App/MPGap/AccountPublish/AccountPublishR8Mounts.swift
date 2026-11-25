@@ -99,8 +99,8 @@ private struct TeamApplicantsEnvelope: Decodable {
 // MARK: - C-F5 角色 (MP pages/publish/fabu/index.wxml:172-187, theme-cast.js, utils/publish/story-cast.js)
 
 /// MP `formData.castConfig` in its interface shape: `{enabled, playerName, playerIdentity, identities, cast:[member]}`.
-/// The app keeps it in `ProjectEditDraft.preserved["castConfig"]`, so local drafts keep it and the save payload carries
-/// it once Core lists `castConfig` in `ProjectEditContract.topicCarryOver` (see the r8 receipt, "for Cursor").
+/// The app keeps that object in `ProjectEditDraft.preserved["castConfig"]`. `ProjectEditContract` posts it as the
+/// JSON string `serializeCastConfig` sends, and loads the topic or edit-detail value back into the same key.
 /// Member fields the app does not edit (avatar, colour, clues, ending lines) are kept as they were.
 enum ProjectEditCastConfig {
     static let key = "castConfig"
@@ -275,8 +275,8 @@ enum ProjectEditCastConfig {
 
 // MARK: - C-F7 画面风格 (MP fabu topic-detail-sheet.wxml:79-88, look-sheet.wxml, theme-look-editor.js, utils/publish/theme-look.js)
 
-/// MP `formData.look`: a JSON string sent as `payload.look`. The app keeps it in `ProjectEditDraft.preserved["look"]`
-/// (the payload carries it once Core lists `look` in `topicCarryOver`). Keys the app does not edit (map, times, textFx,
+/// MP `formData.look`: a JSON string sent as `payload.look`. The app keeps it in `ProjectEditDraft.preserved["look"]`,
+/// and `topicCarryOver` loads and posts that string. Keys the app does not edit (map, times, textFx,
 /// transition) are kept; a style change resets that style's params to the MP defaults, as `normalizeLook` does.
 enum ProjectEditLook {
     static let key = "look"

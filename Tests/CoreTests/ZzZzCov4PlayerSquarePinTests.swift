@@ -43,7 +43,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         XCTAssertEqual(method, "POST")
         XCTAssertEqual(fields, ["applicationId", "scope"])
         let approval = MerchantContentWriteApproval()
-        XCTAssertFalse(approval.chapterInvite)
+        XCTAssertTrue(approval.chapterInvite)
         XCTAssertFalse(approval.chapterRespond)
         XCTAssertFalse(approval.chapterApply)
         XCTAssertFalse(approval.chapterWithdraw)
@@ -132,7 +132,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         let path = "api/coop/candidates/confirm"
         let method = "POST"
         let fields = ["registrationId", "scope"]
-        XCTAssertEqual(CoopFlowMutation.confirm(registrationID: 1).path, path)
+        XCTAssertEqual(CoopFlowMutation.confirm(registrationID: 1, scope: nil).path, path)
         XCTAssertEqual(method, "POST")
         XCTAssertEqual(fields, ["registrationId", "scope"])
     }
@@ -188,7 +188,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         XCTAssertEqual(MerchantGameNodeHTTPService.entriesPath, path)
         XCTAssertEqual(method, "GET")
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.stationCommands)
-        XCTAssertFalse(MerchantCityNPCParityGates.mpFirst.stationCommands)
+        XCTAssertTrue(MerchantCityNPCParityGates.mpFirst.stationCommands)
     }
 
     /// `subpackageB/pages/im/chat/index.js:1160`
@@ -419,12 +419,12 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.refundEnabled)
         let approval = MerchantContentWriteApproval()
-        XCTAssertFalse(approval.chapterInvite)
+        XCTAssertTrue(approval.chapterInvite)
         XCTAssertFalse(approval.chapterRespond)
         XCTAssertFalse(approval.chapterApply)
         XCTAssertFalse(approval.chapterWithdraw)
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.stationCommands)
-        XCTAssertFalse(MerchantCityNPCParityGates.mpFirst.stationCommands)
+        XCTAssertTrue(MerchantCityNPCParityGates.mpFirst.stationCommands)
         let base = try XCTUnwrap(URL(string: "https://example.com"))
         XCTAssertThrowsError(try PlayerContentMPContract.registrationQuote(baseURL: base, ownerType: 1, ownerID: 4)) { error in
             XCTAssertEqual(error as? PlayerContentMPContract.Refusal, .moneyDisabled)

@@ -11,6 +11,17 @@ public struct RetainedImageScope: Equatable {
         case roamPoster(poiID: Int)
         case publicReview(merchantRowID: Int, registrationID: Int)
         case merchant(merchantRowID: Int, field: MerchantImageField)
+        /// Topic editor images. bizType matches mini-program `chooseImage`: cover 3:4, gallery 16:9, rich media free.
+        case topicCover, topicGallery, topicRichMedia
+        public var uploadBizType: String? {
+            switch self {
+            case .stamp: return "stamp"
+            case .topicCover: return "image_3_4"
+            case .topicGallery: return "image_16_9"
+            case .topicRichMedia: return "image_free"
+            case .roamPoster, .publicReview, .merchant: return nil
+            }
+        }
     }
     public let accountID: Int
     public let epoch: UUID
@@ -23,7 +34,7 @@ public struct RetainedImageScope: Equatable {
         guard accountID > 0, let base = URL(string: realm), base.scheme == "https", base.host != nil,
               base.user == nil, base.password == nil else { throw RetainedImageFailure.invalid }
         switch destination {
-        case .stamp: break
+        case .stamp, .topicCover, .topicGallery, .topicRichMedia: break
         case .roamPoster(let id): guard id > 0 else { throw RetainedImageFailure.invalid }
         case .publicReview(let merchant, let registration): guard merchant > 0, registration > 0 else { throw RetainedImageFailure.invalid }
         case .merchant(let merchant, _): guard merchant > 0 else { throw RetainedImageFailure.invalid }
@@ -120,8 +131,8 @@ import FoundationNetworking
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".utf8)
         body.append(review.selection.jpeg)
-        if case .stamp = review.scope.destination {
-            body.append(Data("\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"bizType\"\r\n\r\nstamp".utf8))
+        if let biz = review.scope.destination.uploadBizType {
+            body.append(Data("\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"bizType\"\r\n\r\n\(biz)".utf8))
         }
         body.append(Data("\r\n--\(boundary)--\r\n".utf8)); request.httpBody = body
         try Task.checkCancellation()

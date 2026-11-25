@@ -48,6 +48,7 @@ public struct MerchantBusinessSnapshot: Equatable {
     func redemptions(filter: String, page: Int, topicID: Int) async throws -> MerchantBusinessSnapshot
     /// Verify-records page N (`pageSize` 50). Page 1 stays `.verificationRecords`.
     func verificationPage(_ page: Int) async throws -> MerchantBusinessSnapshot
+    func manualCaseDetail(id: Int) async throws -> MerchantAftercareManualDetail
 }
 public extension MerchantBusinessReading {
     func snapshot(_ query: MerchantBusinessQuery, isCurrent: () -> Bool) async throws -> MerchantBusinessSnapshot {
@@ -73,6 +74,7 @@ public extension MerchantBusinessReading {
     func managedReviews(filter: String, page: Int) async throws -> MerchantBusinessSnapshot { throw MerchantBusinessFailure.disabled }
     func redemptions(filter: String, page: Int, topicID: Int) async throws -> MerchantBusinessSnapshot { throw MerchantBusinessFailure.disabled }
     func verificationPage(_ page: Int) async throws -> MerchantBusinessSnapshot { throw MerchantBusinessFailure.disabled }
+    func manualCaseDetail(id: Int) async throws -> MerchantAftercareManualDetail { throw MerchantBusinessFailure.disabled }
 }
 @MainActor public final class MerchantBusinessSessionReader: MerchantBusinessReading {
     private let service: MerchantBusinessService?
@@ -127,6 +129,12 @@ public extension MerchantBusinessReading {
             let access = try await service.access(token: session.token)
             let document = try await service.redemptions(filter: filter, page: page, topicID: topicID, access: access, token: session.token)
             return .init(access: access, document: document, roles: nil)
+        }
+    }
+    public func manualCaseDetail(id: Int) async throws -> MerchantAftercareManualDetail {
+        try await read { service, session in
+            let access = try await service.access(token: session.token)
+            return try await service.manualCaseDetail(id: id, access: access, token: session.token)
         }
     }
     public func verificationPage(_ page: Int) async throws -> MerchantBusinessSnapshot {

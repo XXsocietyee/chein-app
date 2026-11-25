@@ -5,12 +5,13 @@ import QuestifyCore
 
 /// MP-first (owner 2026-11-25, R7-PC-B2-1 / R7-PC-B3-1): composition admission for the merchant-content writes
 /// `MerchantContentService` sends once `MerchantContentWriteApproval` permits them. Exact paths from
-/// `MerchantContentCommand.request()`; chapter invite / respond keep their own `ChapterWriteExit`.
-/// Station commands are not admitted. Team item commands keep the play lease.
+/// `MerchantContentCommand.request()`. Chapter invite is admitted here; respond stays on `ChapterWriteExit`.
+/// Station commands are admitted by `MPFirstMerchantWriteRoute`, not this set. Team item commands keep the play lease.
 /// None of these is money; the server's own permission checks decide.
 enum MerchantContentMPWriteRoute {
     static let paths: Set<String> = [
         "api/circle-theme/instance/review",
+        "api/merchant/chapter-application/invite",
         "api/merchant/chapter-application/apply", "api/merchant/chapter-application/withdraw",
         "api/merchant/chapter-application/audit",
         "api/registration/merchant/create", "api/registration/merchant/update", "api/registration/merchant/cancel",

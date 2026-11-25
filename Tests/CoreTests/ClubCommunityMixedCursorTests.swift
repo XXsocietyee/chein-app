@@ -168,5 +168,27 @@ final class ClubCommunityMixedCursorTests: XCTestCase {
         _ = await runtime.loadPosts(clubID: 10)
         XCTAssertEqual(transport.requests.count, sent)
     }
+    func testFeedMergesCreativeSquareAheadOfOlderClubPosts() async throws {
+        let transport = MixedClubReadTransport()
+        var older = post(50)
+        older["createTime"] = "2026-11-01 10:00:00"
+        transport.value = ["clubCount": 1, "hasMore": false, "rows": [older]]
+        let service = ClubCommunityService(baseURL: URL(string: "https://fixture.test")!, transport: transport)
+        let session = try ClubCommunitySession(identity: identity, token: "Bearer fixture")
+        let lane = RelationCreativeSquareLane(posts: [
+            .init(id: 9, content: "square", nickname: "Ada", images: "", createTime: "2026-11-02 10:00:00", authorMemberID: 4),
+            .init(id: 50, content: "same id", nickname: "Ada", images: "", createTime: "2026-11-03 10:00:00", authorMemberID: nil)
+        ], hasMore: true, nextCursor: 9)
+        let result = try await service.read(.feed(limit: 20, beforeID: nil), session: session, community: lane, check: {})
+        XCTAssertEqual(result.feedItems.map(\.id), ["c9", "p50"])
+        XCTAssertEqual(result.feedItems.first?.post.content, "square")
+        XCTAssertEqual(result.feedNextBeforeID, 50)
+        XCTAssertTrue(result.communityLaneIncluded)
+        XCTAssertTrue(result.communityHasMore)
+        XCTAssertEqual(result.communityNextCursor, 9)
+        XCTAssertEqual(transport.requests.count, 1)
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(transport.requests.last?.httpBody)) as? [String: Any])
+        XCTAssertEqual(body["scope"] as? String, "all")
+    }
 
 }

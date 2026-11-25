@@ -994,10 +994,9 @@ final class AppSession: ObservableObject {
             feedSourceScope: { [weak self] in self?.currentClubFeedSourceScope },
             feedSourceDestination: { [weak self] clubID, captured in
                 guard let self, clubID > 0, self.currentClubFeedSourceScope == captured else { return nil }
-                return AnyView(ClubDetailView(id: clubID, reader: self,
-                    actionCoordinator: self.clubActionCoordinator, management: self.clubManagementContext,
-                    community: self.clubCommunityContext, publicRoster: self.clubPublicRosterReader))
-            }
+                return AnyView(ClubDetailView(id: clubID, reader: self, actionCoordinator: self.clubActionCoordinator, management: self.clubManagementContext, community: self.clubCommunityContext, publicRoster: self.clubPublicRosterReader))
+            },
+            creativeSquareLane: relationCreativeSquareLane()
         )
     }
     private func communityEvidence(clubID: Int, post: ClubCommunityPost?, comment: ClubCommunityComment?) async throws -> ClubCommunityEvidence {
@@ -5445,7 +5444,7 @@ final class AppSession: ObservableObject {
     var contentDetailReadAvailability: AppCompositionRoot.ReadAvailability {
         let availability = composition.readAvailability(.contentDetail, identity: compositionTransport.current())
         guard availability == .available else { return availability }
-        return activityService != nil && topicService != nil && currentTopicSession != nil ? .available : .serviceUnavailable
+        return activityService != nil && topicService != nil && currentTopicSession != nil || account == nil && token == nil && activityService != nil && topicService != nil ? .available : .serviceUnavailable
     }
     private let homeFeedService:HomeFeedService?
     private var currentHomeFeedSession:HomeFeedSession? {
@@ -6069,7 +6068,7 @@ final class AppSession: ObservableObject {
                     self.compositionViewerRevision == revision
             })
     }
-    lazy var clubOperationsAccess = ClubOperationsSessionAccess(service: clubOperationsService, currentSession: { [weak self] in self?.currentClubOperationsSession }, welcomeNote: clubWelcomeNoteService, welcomeNoteRevision: { [weak self] in self?.compositionViewerRevision ?? 0 }, profileDrafts: { [weak self] in self?.clubProfileDraftContext }, onUnauthorized: { [weak self] captured in
+    lazy var clubOperationsAccess = ClubOperationsSessionAccess(service: clubOperationsService, currentSession: { [weak self] in self?.currentClubOperationsSession }, approvalSource: { [weak self] in guard let self, self.composition.reviewed?.playerWritesEnabled == true, let context = self.currentRuntimeDependencyContext, context.market == .china, let club = self.currentClubOperationsSession, club.identity.accountID == context.session.accountID, club.storageNamespace == context.session.namespace else { return nil }; return MPFirstClubApprovals.operations(context) }, journal: composition.storage.operationJournal(), welcomeNote: clubWelcomeNoteService, welcomeNoteRevision: { [weak self] in self?.compositionViewerRevision ?? 0 }, profileDrafts: { [weak self] in self?.clubProfileDraftContext }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentClubOperationsSession == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
     })

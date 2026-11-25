@@ -51,7 +51,7 @@ import Foundation
             let rows = try await reader.read(.receivedApplications)
             let row = try unique(rows.rows, key: "applyId", id: id)
             return CoopFlowEvidence(baseline: row, permitted: row["status"].integer == 0 && row["scope"].text == scope)
-        case .confirm(let id), .reject(let id):
+        case .confirm(let id, _), .reject(let id, _):
             let value = try await reader.read(.registrations)
             let row = try unique(value["rows"].rows, key: "id", id: id)
             return CoopFlowEvidence(baseline: row, permitted: row["auditStatus"].integer == 0)

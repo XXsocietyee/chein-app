@@ -200,3 +200,17 @@ public struct MerchantRemainingGapClient {
         )
     }
 }
+
+/// iOS twin of WeChat `subscribe.request(['coopSettle'])` (`utils/subscribe.js`).
+/// There is no HTTP opt-in in the public tree. The settlement segment toggles this
+/// preference and asks for notification permission. The template id and landing page
+/// are the ones already registered for 结算到账提醒. This does not send money.
+public struct MerchantSettleRemindOptIn: Equatable, Sendable {
+    public static let subscribeKey = "coopSettle"
+    public static let templateID = "Z10x9KV0jciDbFGTS6javEjqz0abOi-ik6x_0e_pt-o"
+    public static let landingPage = "pages/merchant/ledger/index"
+    public static let title = MerchantRemainingGapCopy.settleRemindTitle
+    public var enabled: Bool
+    public init(enabled: Bool = false) { self.enabled = enabled }
+    public func setting(_ enabled: Bool) -> Self { Self(enabled: enabled) }
+}

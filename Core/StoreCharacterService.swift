@@ -131,6 +131,10 @@ public struct StoreCharacterService {
         let data = try await write(StoreCharacterEndpoint.voiceEnroll, body: try enrollment.jsonBody(), token: token)
         do { return try Self.decodeVoice(data).status } catch { throw StoreCharacterFailure.outcomeUnknown }
     }
+    /// MP `_doClearVoice`: POST `api/merchant/npc/voice/reset` with `{}`, then the caller re-reads voice/status.
+    public func resetVoice(token: String) async throws {
+        _ = try await write(StoreCharacterEndpoint.voiceReset, body: Data(#"{}"#.utf8), token: token)
+    }
     public func saveMapPoint(_ point: StoreCharacterMapPointWrite, token: String) async throws {
         _ = try await write(StoreCharacterEndpoint.mapPointSave, body: try point.jsonBody(), token: token)
     }
@@ -155,6 +159,7 @@ extension StoreCharacterReading {
     func save(_ payload: StoreCharacterSavePayload, requestID: UUID) async throws
     func recordVoiceConsent(_ record: StoreCharacterVoiceConsentRecord) async throws
     func enroll(_ enrollment: StoreCharacterVoiceEnrollment, requestID: UUID) async throws -> StoreCharacterVoiceState.Status
+    func resetVoice(requestID: UUID) async throws
     func saveMapPoint(_ point: StoreCharacterMapPointWrite, requestID: UUID) async throws
 }
 
@@ -180,7 +185,7 @@ extension StoreCharacterReading {
         let flag: Bool
         switch path {
         case StoreCharacterEndpoint.save, StoreCharacterEndpoint.mapPointSave: flag = gates.storeCharacterSaves
-        case StoreCharacterEndpoint.consent, StoreCharacterEndpoint.voiceEnroll: flag = gates.storeVoiceEnrollment
+        case StoreCharacterEndpoint.consent, StoreCharacterEndpoint.voiceEnroll, StoreCharacterEndpoint.voiceReset: flag = gates.storeVoiceEnrollment
         default: return false
         }
         return flag && (execution == .injectedOfflineHarness || gates.allows(path, market: market))
@@ -220,17 +225,25 @@ extension StoreCharacterReading {
     public func enroll(_ enrollment: StoreCharacterVoiceEnrollment, requestID: UUID) async throws -> StoreCharacterVoiceState.Status {
         try await runWrite(StoreCharacterEndpoint.voiceEnroll) { try await $0.enroll(enrollment, token: $1) }
     }
+    public func resetVoice(requestID: UUID) async throws {
+        try await runWrite(StoreCharacterEndpoint.voiceReset) { try await $0.resetVoice(token: $1) }
+    }
     public func saveMapPoint(_ point: StoreCharacterMapPointWrite, requestID: UUID) async throws {
         try await runWrite(StoreCharacterEndpoint.mapPointSave) { try await $0.saveMapPoint(point, token: $1) }
     }
 }
 
 /// Production read adapter over the existing merchant operations reader (no credential access).
-/// `npc/profile` and `coop-profile` come through its token-scoped reads; voice status has no
-/// top-level-safe read there, so it is reported unconfirmed rather than guessed.
+/// `npc/profile` and `coop-profile` come through its token-scoped reads. Voice status and
+/// `npc/review` delegate to an injected reader so the page can poll 角色声音 and show the review line.
 @MainActor public final class StoreCharacterOperationsReader: StoreCharacterReading {
     private let reader: any MerchantOperationsReading
-    public init(reader: any MerchantOperationsReading) { self.reader = reader }
+    /// Voice status and review text. Nil keeps production voice unconfirmed and review text empty.
+    private let voiceReader: (any StoreCharacterReading)?
+    public init(reader: any MerchantOperationsReading, voice: (any StoreCharacterReading)? = nil) {
+        self.reader = reader
+        self.voiceReader = voice
+    }
     public var scope: UUID { reader.scope }
     public var isAuthenticated: Bool { reader.isAuthenticated }
     public func access() async throws -> MerchantOperationsAccess { try await reader.access() }
@@ -242,7 +255,14 @@ extension StoreCharacterReading {
         profile.auditStatus = value.auditStatus; profile.auditReason = value.auditReason ?? ""; profile.voiceStatus = nil
         return profile
     }
-    public func voiceStatus() async throws -> StoreCharacterVoiceState { throw StoreCharacterFailure.notConfigured }
+    public func voiceStatus() async throws -> StoreCharacterVoiceState {
+        guard let voiceReader else { throw StoreCharacterFailure.notConfigured }
+        return try await voiceReader.voiceStatus()
+    }
+    public func npcReviewText() async -> String {
+        guard let voiceReader else { return "" }
+        return await voiceReader.npcReviewText()
+    }
     public func mapPoint() async throws -> StoreCharacterMapPointState {
         guard case .draft(.npcMapPoint(let value)) = try await reader.document(.npcMapPoint) else { throw StoreCharacterFailure.malformed }
         return .init(hasPoint: value.coordinate != nil, address: value.address)

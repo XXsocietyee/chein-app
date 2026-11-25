@@ -18,7 +18,7 @@ class MPFirstPlayerContentPins(unittest.TestCase):
         self.assertIn('case .cancelRegistration: return writeApproval().cancel', content)
         self.assertIn('default: return false', content)
         self.assertIn('chapterWithdraw: Bool = false', content)
-        self.assertNotIn('MerchantCoopLiveWrites.cityNode', content)
+        self.assertIn('MerchantCoopLiveWrites.cityNode', content)
         self.assertNotIn('writeApproval().cityNode', content)
         self.assertNotIn('writeApproval().submitNode', content)
         self.assertNotIn('writeApproval().cancelRegistration', content)
@@ -35,7 +35,8 @@ class MPFirstPlayerContentPins(unittest.TestCase):
 
     def test_topic_favorite_is_mounted(self):
         detail = read('App/TopicDetailView.swift')
-        self.assertIn('onToggleFavorite: favoriteHost == nil ? nil : { toggleFavorite(topicID: value.id) }', detail)
+        self.assertIn('favoriteHost == nil ? nil : { toggleFavorite(topicID: value.id) }', detail)
+        self.assertIn('guestSignIn != nil ? { guestSignIn?() }', detail)
         for host in ('App/PlatformConsumerSessionOwner.swift', 'App/SessionTopicBrowserView.swift'):
             self.assertIn('.environment(\\.topicFavoriteHostFactory, { session.makeTopicFavoriteHost() })', read(host))
 

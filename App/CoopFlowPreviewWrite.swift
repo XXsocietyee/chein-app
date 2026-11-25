@@ -3,7 +3,7 @@ import SwiftUI
 /// Parity X1: the cooperation review page (`CoopFlowRequestPreview`) used to end on a disabled 暂不可提交.
 /// Same construction as `WP06ComplaintWrite`: a per-operation `CoopFlowService` approval, the existing fresh-evidence
 /// coordinator and an in-process lock. It opens only where `ReviewedAreaSwitch.merchantWrites` is open (TEST/DEBUG
-/// hosts; the production host stays closed) and the path is not a blocked money route.
+/// hosts, and on the China production host when MP-first gates are on). Money routes stay on `ReleaseMoneyWriteSwitch`.
 @MainActor struct CoopFlowPreviewWriteFactory {
     let make: (CoopFlowMutation) -> CoopFlowCoordinator?
     /// Parity perks P0: an executor for unprotected template writes (perk-template/save, perk-template/delete),
@@ -16,8 +16,10 @@ import SwiftUI
     static func live(_ session: AppSession) -> CoopFlowPreviewWriteFactory {
         var factory = coordinators(session)
         factory.executor = { [weak session] in
-            guard let session, let api = session.regionalConfiguration?.apiConfiguration,
-                  ReviewedAreaSwitch.merchantWrites(apiHost: api.baseURL.host) else { return nil }
+            guard let session, let api = session.regionalConfiguration?.apiConfiguration else { return nil }
+            let host = api.baseURL.host ?? ""
+            let productionChina = MPFirstMerchantApprovals.enabled && host == "www.chengyinhub.com"
+            guard ReviewedAreaSwitch.merchantWrites(apiHost: host) || productionChina else { return nil }
             return CoopFlowDormantExecutor(service: CoopFlowService(configuration: api, transport: session.runtimeHTTPTransport,
                                                                     dormantWritesEnabled: true))
         }
