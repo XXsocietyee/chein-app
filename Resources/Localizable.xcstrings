@@ -230147,19 +230147,19 @@
         }
       }
     },
-    "roam.passport.play.routes.count %@": {
+    "roam.passport.play.routes.count %lld": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ routes"
+            "value": "%lld routes"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 条路线"
+            "value": "%lld 条路线"
           }
         }
       }
