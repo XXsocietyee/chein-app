@@ -67,7 +67,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/club/detail/index"] = Rule(allowed: ["id", "tab", "postId", "scan", "owner", "scope", "topicId"], required: [], ids: ["id", "postId", "topicId"])
         pages["pages/club/customer-detail/index"] = Rule(allowed: ["clubId", "memberId"], required: ["clubId", "memberId"], ids: ["clubId", "memberId"])
         pages["pages/club/checkin-detail/index"] = Rule(allowed: ["clubId", "registrationId"], required: ["clubId", "registrationId"], ids: ["clubId", "registrationId"])
-        pages["pages/club/enroll/index"] = Rule(allowed: ["clubId", "clubName", "topicId"], required: ["clubId"], ids: ["clubId", "topicId"])
+        // CLB-enroll-08: no clubId still opens the page. The screen loads api/club/my and uses the one owned club.
+        pages["pages/club/enroll/index"] = Rule(allowed: ["clubId", "clubName", "topicId", "id"], required: [], ids: ["clubId", "topicId", "id"])
         pages["pages/club/event-ops/index"] = Rule(allowed: ["clubId", "id", "activityId", "topicId", "recurrence"], required: [], ids: ["clubId", "id", "activityId", "topicId"])
         pages["pages/club/group-code/index"] = Rule(allowed: ["activityId", "activityName", "topicId", "topicName"], required: [], ids: ["activityId", "topicId"])
         pages["pages/club/join-requests/index"] = Rule(allowed: ["clubId"], required: ["clubId"], ids: ["clubId"])
@@ -357,4 +358,16 @@ public struct MiniProgramPageLink: Equatable, Sendable {
 public enum TopicCatalogDestination: Equatable, Sendable {
     case topic(Int)
     case home
+}
+
+/// CLB-enroll-08. No club id loads `api/club/my` and opens the one owned club.
+public enum ClubEnrollMissingClubCopy {
+    public static let title = "还没有可管理的俱乐部"
+    public static let body = "成为俱乐部主理人后，可在这里查看报名名册"
+    public static func clubID(explicit: Int?, ownedClubIDs: [Int]) -> Int? {
+        if let explicit, explicit > 0 { return explicit }
+        guard ownedClubIDs.count == 1 else { return nil }
+        let only = ownedClubIDs[0]
+        return only > 0 ? only : nil
+    }
 }

@@ -106,6 +106,7 @@ public enum ChinaReviewedRouteCapability {
         }
         if wp06PartialPagesOwnerGrant.contains(key) { return true }
         if ownerDecisionGuardGrant.contains(key) { return true }
+        if feReferenceSettlementReadGrant.contains(key) { return true }
         if popupCloseOwnerGrant.contains(key) { return true }
         // Owner 2026-11-24: platform-pass order reads are on for players. Not a money write.
         if isPlatformPassOrderPath(key) { return true }
@@ -178,7 +179,7 @@ public enum ChinaReviewedRouteCapability {
     public static let moneyAreaOwnerGrant: [String: ReleaseMoneyWriteKind] = [
         // Owner 2026-11-14: receiver status and the merchant payout-account read are status reads, admitted
         // unconditionally through `ownerDecisionGuardGrant`; only the writes stay behind the payout switch.
-        "/api/club/settlement/mine": .payout,
+        // r8 CLB-settlement-05: `POST api/club/settlement/mine` body `{}` is a read, same grant, not a payout write.
         "/api/club/personal-receiver/bind": .payout, "/api/club/personal-receiver/unbind": .payout,
         "/api/club-direct-merchant/club": .payout, "/api/club-direct-merchant/merchant": .payout,
         "/api/registration/payment-readiness": .payment, "/api/registration/pay": .payment, "/api/registration/pay/app": .payment,
@@ -605,7 +606,17 @@ public enum ChinaReviewedRouteCapability {
     public static let ownerDecisionGuardGrant: Set<String> = [
         "/api/club/personal-receiver/status",
         "/api/club/personal-receiver/unbind",
-        "/api/merchant/payout-account"
+        "/api/merchant/payout-account",
+        // r8 CLB-settlement-05: personal/mine list. Still POST {}. Not a payout, withdraw, or bind.
+        "/api/club/settlement/mine"
+    ]
+
+    /// r8 CLB-G17. Reference-settlement reads. Settle and dispute stay off this set.
+    public static let feReferenceSettlementReadGrant: Set<String> = [
+        "/api/fe/reference-settlement/payer",
+        "/api/fe/reference-settlement/merchant",
+        "/api/fe/reference-settlement/payer/export",
+        "/api/fe/reference-settlement/merchant/export"
     ]
 
     /// Owner correction 2026-11-13. Merchant-gap reads and the writes that stay behind

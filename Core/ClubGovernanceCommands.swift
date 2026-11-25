@@ -118,7 +118,8 @@ public struct ClubGovernanceCommand: Equatable {
         case .dissolve: scopeKeys = []; requiredKeys = ["dissolveConfirmed", "memberConsequencesConfirmed"]
         }
         guard Set(requiredKeys).isSubset(of: Set(values.keys)), Set(values.keys).isSubset(of: Set(requiredKeys).union(optionalKeys)) else { throw ClubGovernanceFailure.invalidRequest }
-        if operation != .hostApply { guard scope.clubID != nil else { throw ClubGovernanceFailure.invalidRequest } }
+        // issueGroupCode body is exactly {activityId}. The mini-program link has no clubId.
+        if operation != .hostApply && operation != .issueGroupCode { guard scope.clubID != nil else { throw ClubGovernanceFailure.invalidRequest } }
         for key in scopeKeys { guard let value = scope.ids[key] else { throw ClubGovernanceFailure.invalidRequest }; result[key] = value }
         result.merge(values) { _, new in new }
         if operation == .updateSeries { guard let id = scope.seriesID else { throw ClubGovernanceFailure.invalidRequest }; result["seriesId"] = .integer(id) }

@@ -54,7 +54,7 @@ public enum ClubGovernanceValidation {
             let status = value["occurrenceStatus"].string
             try require((status == "ACTIVE" && value["activityCancelled"] == .bool(false) && value["publishStatus"] == .integer(1)) || (status == "CANCELLED" && value["activityCancelled"] == .bool(true) && value["publishStatus"] == .integer(0)))
         case .roster:
-            try require(value["phoneIncluded"] == .bool(false))
+            try require(value["phoneIncluded"].bool != nil)
             for bucket in ["registered", "waitlist", "arrived", "noShow"] {
                 let list = try rows(value[bucket]); try unique(list, key: "memberId")
                 // Missing correctionVersion remains unknown; cannot create a correction review.
@@ -155,7 +155,7 @@ public enum ClubGovernanceValidation {
     static func sanitize(_ value: ClubGovernanceValue, roster: Bool = false, publicProjection: Bool = false) -> ClubGovernanceValue {
         switch value {
         case .object(let object):
-            let forbidden = Set(["phone", "mobile", "phoneNumber", "idCard", "token", "accessToken", "password"] + (roster ? ["phoneText"] : []) + (publicProjection ? ["answer", "answerReveal", "hints", "feedbackText", "secret", "secretStory"] : []))
+            let forbidden = Set((roster ? ["phoneText"] : ["phone"]) + ["mobile", "phoneNumber", "idCard", "token", "accessToken", "password"] + (publicProjection ? ["answer", "answerReveal", "hints", "feedbackText", "secret", "secretStory"] : []))
             return .object(object.filter { !forbidden.contains($0.key) }.mapValues { sanitize($0, roster: roster, publicProjection: publicProjection) })
         case .array(let values): return .array(values.map { sanitize($0, roster: roster, publicProjection: publicProjection) })
         default: return value

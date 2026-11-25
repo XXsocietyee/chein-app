@@ -28,6 +28,9 @@ public enum ClubOwnerFundsAvailability: Equatable {
         guard let funds, funds.amountsKnown else { self = .unknown; return }
         self = funds.withdrawable.value > 0 ? .positive : .zero
     }
+    /// Personal withdraw stays disabled unless the funds-stage read is a known positive amount.
+    /// This does not send a withdrawal.
+    public var allowsWithdraw: Bool { self == .positive }
 }
 
 /// Narrow view-facing read seam; it cannot grant a wallet lease or issue a payout.
