@@ -122,17 +122,28 @@ public struct MerchantContentWriteApproval: Equatable {
     public let auditNode: Bool
     /// `api/circle-theme/instance/review` (merchantinfo.js:3227).
     public let reviewCircle: Bool
+    /// `api/merchant/city-node/claim`, `claim/cancel`, `offline` (pages/merchant/citynode/index.js:318,360,483)
+    /// and `city-node/save` (citynode/create/index.js:397).
+    public let cityNode: Bool
+    /// `api/merchant/chapter-node/npc/save`, `npc/voice/enroll`, `npc/voice/reset`
+    /// (pages/topic/components/cy/node-npc-form/index.js:332,518,563).
+    public let npc: Bool
+    /// `api/game/session/command` station commands (utils/game-session-client.js:395 from pages/merchant/game-node).
+    public let station: Bool
     public init(chapterInvite: Bool = true, chapterRespond: Bool = true, chapterApply: Bool = true, chapterWithdraw: Bool = true,
                 register: Bool = true, updateRegistration: Bool = true, cancelRegistration: Bool = true,
-                submitNode: Bool = true, auditApplication: Bool = true, auditNode: Bool = true, reviewCircle: Bool = true) {
+                submitNode: Bool = true, auditApplication: Bool = true, auditNode: Bool = true, reviewCircle: Bool = true,
+                cityNode: Bool = true, npc: Bool = true, station: Bool = true) {
         self.chapterInvite = chapterInvite; self.chapterRespond = chapterRespond
         self.chapterApply = chapterApply; self.chapterWithdraw = chapterWithdraw
         self.register = register; self.updateRegistration = updateRegistration; self.cancelRegistration = cancelRegistration
         self.submitNode = submitNode; self.auditApplication = auditApplication; self.auditNode = auditNode; self.reviewCircle = reviewCircle
+        self.cityNode = cityNode; self.npc = npc; self.station = station
     }
     /// Every write closed. Test-only use; the host default is the MP-first `.init()`.
     public static let closed = MerchantContentWriteApproval(chapterInvite: false, chapterRespond: false, chapterApply: false, chapterWithdraw: false,
-        register: false, updateRegistration: false, cancelRegistration: false, submitNode: false, auditApplication: false, auditNode: false, reviewCircle: false)
+        register: false, updateRegistration: false, cancelRegistration: false, submitNode: false, auditApplication: false, auditNode: false, reviewCircle: false,
+        cityNode: false, npc: false, station: false)
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
@@ -150,9 +161,13 @@ public struct MerchantContentWriteApproval: Equatable {
     public var scope: UUID { let s = currentSession(); if s != previous { previous = s; stamp = UUID() }; return stamp }
     public var isConfigured: Bool { configuration != nil }
     public var isAuthenticated: Bool { currentSession() != nil }
-    public var permitsWrites: Bool { execution == .injectedOfflineHarness && transport is any MerchantContentOfflineTransport && journal != nil }
-    /// Merchant-content writes on the real transport when this approval says so (MP-first: on).
-    /// City node / NPC / station commands stay on `permitsWrites`. The offline harness is not this path.
+    /// Offline harness: the injected offline transport. Real transport (MP-first, owner 2026-11-25): a configured service
+    /// with a journal whose write approval is not `.closed`; each command still checks `permits(_:)`.
+    public var permitsWrites: Bool {
+        if execution == .injectedOfflineHarness { return transport is any MerchantContentOfflineTransport && journal != nil }
+        return configuration != nil && journal != nil && !(transport is any MerchantContentOfflineTransport) && writeApproval() != .closed
+    }
+    /// Every merchant-content write the MP sends, on the real transport, when this approval says so (MP-first: on). The offline harness is not this path.
     public func permits(_ command: MerchantContentCommand) -> Bool {
         if execution == .injectedOfflineHarness { return permitsWrites }
         guard journal != nil, !(transport is any MerchantContentOfflineTransport) else { return false }
@@ -168,8 +183,9 @@ public struct MerchantContentWriteApproval: Equatable {
         case .auditApplication: return writeApproval().auditApplication
         case .auditNode: return writeApproval().auditNode
         case .reviewCircle: return writeApproval().reviewCircle
-        // City node, NPC/voice and station commands keep their own gates (MerchantCityNodeWriteGate / MerchantCityNPCParityGates).
-        default: return false
+        case .claim, .cancelClaim, .cityStatus, .place: return writeApproval().cityNode
+        case .saveNPC, .enrollVoice, .resetVoice: return writeApproval().npc
+        case .station: return writeApproval().station
         }
     }
     public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }, writeApproval: @escaping () -> MerchantContentWriteApproval = { .init() }) {

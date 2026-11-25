@@ -8,7 +8,7 @@ import FoundationNetworking
 
 /// MP-first rule (owner 2026-11-25), rows R7-PC-B2-1 / R7-PC-B3-1: every merchant-content write the mini
 /// program sends from `pages/topic/merchantinfo` and `pages/topic/merchantapply` is open by default on the
-/// real transport; the server decides. City node / NPC / station commands keep their own gates.
+/// real transport (incl. city node, node NPC and station commands); the server decides.
 private final class MPFirstNoNetworkTransport: HTTPTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int) { throw URLError(.notConnectedToInternet) }
 }
@@ -40,12 +40,17 @@ private final class MPFirstNoNetworkTransport: HTTPTransport {
             .auditApplication(id: 3, approve: true, reason: ""), .auditNode(nodeID: 9, approve: true, reason: ""),
             .reviewCircle(topicID: 70, scope: "MERCHANT"),
         ]
-        for command in open { XCTAssertTrue(s.permits(command), command.key) }
-        // Not this approval's rows: city node / NPC stay on their own gates.
-        XCTAssertFalse(s.permits(.claim(poiID: 1)))
-        XCTAssertFalse(s.permits(.saveNPC(nodeID: 9, name: "n", avatar: "a", greeting: "g")))
+        // MP citynode/index.js:318,360,483, citynode/create/index.js:397, node-npc-form/index.js:332,518,563.
+        let cityAndNPC: [MerchantContentCommand] = [
+            .claim(poiID: 1), .cancelClaim(poiID: 1), .cityStatus(poiID: 1, online: false), .place(MerchantCityPlacementDraft()),
+            .saveNPC(nodeID: 9, name: "n", avatar: "a", greeting: "g"), .enrollVoice(nodeID: 9, voiceSample: "s"), .resetVoice(nodeID: 9),
+        ]
+        XCTAssertTrue(a.cityNode && a.npc && a.station)
+        for command in open + cityAndNPC { XCTAssertTrue(s.permits(command), command.key) }
+        XCTAssertTrue(s.permitsWrites)
         let closed = try service(.closed)
-        for command in open { XCTAssertFalse(closed.permits(command), command.key) }
+        for command in open + cityAndNPC { XCTAssertFalse(closed.permits(command), command.key) }
+        XCTAssertFalse(closed.permitsWrites)
     }
 
     /// The protocol requirement lets `any MerchantContentServing` callers (review confirm button) see the real approval.

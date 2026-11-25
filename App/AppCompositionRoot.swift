@@ -3581,6 +3581,10 @@ extension KeychainTokenStore: AppTokenStorage {}
             if orientOfficial == .write {
                 guard deployment.productionGatesEnabled, deployment.regional.market == .china else { throw APIError.notConfigured }
             }
+        } else if MerchantContentMPWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            // MP-first merchant-content writes (merchantinfo / merchantapply / citynode / node NPC / station). Not money.
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if ReviewedProductionFormMutationRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
