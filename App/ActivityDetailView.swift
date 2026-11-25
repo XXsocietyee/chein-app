@@ -88,6 +88,8 @@ struct ActivityDetailView: View {
 }
 
 @MainActor private struct ActivityDetailContentView: View {
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.analyticsEventClient) private var analytics
     let id: Int
     let reader: any ActivityReading
@@ -180,6 +182,11 @@ struct ActivityDetailView: View {
                     clubGate(message)
                 case .allowed(let detail):
                     detailContent(detail)
+                case .cancelled(let canViewOwnOrders):
+                    // MP activity detail: a cancelled activity shows the cancelled state; 查看订单 only for the player's own orders.
+                    ActivityCancelledStateView(canViewOwnOrders: canViewOwnOrders && rootTabSwitch.isAvailable,
+                                               onViewOrders: { rootTabSwitch(.mine) }, onBack: { dismiss() })
+                        .accessibilityIdentifier("activity.detail.cancelled")
                 }
             }
         }

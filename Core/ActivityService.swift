@@ -74,7 +74,7 @@ public struct ActivityService {
                 access = nil
                 return
             }
-            if c.contains(.data) == false || (try c.decodeNil(forKey: .data)) {
+            if try c.contains(.data) == false || c.decodeNil(forKey: .data) {
                 access = nil
                 return
             }

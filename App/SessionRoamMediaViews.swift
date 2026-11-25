@@ -16,10 +16,15 @@ import SwiftUI
     @EnvironmentObject private var session: AppSession
     let showsCaption: Bool
     @State private var coordinator: RoamStampCaptureCoordinator?
+    private var exchange: (@MainActor (Int) async throws -> RoamStampExchangeReceipt)? {
+        guard RoamExperienceCapabilities.stampExchange else { return nil }
+        let session = session
+        return { id in try await session.exchangeStamp(givenStampID: id) }
+    }
     var body: some View {
         RoamStampCameraView(coordinator: coordinator, cameraEnabled: session.stampCameraEnabled,
             album: RoamStampAlbumContinuation(reader: session.roamExperienceReader, camera: { AnyView(SessionRoamStampCameraView()) }),
-            exchange: RoamExperienceCapabilities.stampExchange ? { try await session.exchangeStamp(givenStampID: $0) } : nil, showsCaption: showsCaption)
+            exchange: exchange, showsCaption: showsCaption)
             .id(coordinator.map { ObjectIdentifier($0) })
             .task(id: session.walletCommerceScope) { coordinator?.cancel(); coordinator = session.makeRoamStampCaptureCoordinator() }
             .onChange(of: session.walletCommerceScope) { _, _ in coordinator?.cancel(); coordinator = nil }

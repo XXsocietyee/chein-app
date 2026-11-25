@@ -637,7 +637,7 @@ private struct ProfileOrderHeroSection: View {
     var body: some View {
         Section {
             HStack(alignment: .top, spacing: CYSpacing.md) {
-            OrderCoverTile(size: 72, url: QuestifyCardArtwork.safeURL(order.coverURL), fallback: MPAsset.EmptyState.iconTicketEmpty)
+            OrderCoverTile(url: QuestifyCardArtwork.safeURL(order.coverURL), size: 72, fallback: MPAsset.EmptyState.iconTicketEmpty)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 // Unknown money is an em dash, never ¥0.
                 Text(verbatim: order.actualPaidAmount.map(ProfileOrderYuan.text) ?? "—")

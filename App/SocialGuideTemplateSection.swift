@@ -93,7 +93,6 @@ enum SocialGuideTemplateRows {
 }
 
 @MainActor struct SocialGuideTemplateSection: View {
-    @Environment(\.socialGuideTemplateCatalog) private var catalogDestination
     let reader: (any DiscoveryReading)?
     var body: some View {
         // Without a template reader the section is left out rather than shown as unavailable.
@@ -103,6 +102,7 @@ enum SocialGuideTemplateRows {
 
 @MainActor private struct SocialGuideTemplateContent: View {
     let reader: any DiscoveryReading
+    @Environment(\.socialGuideTemplateCatalog) private var catalogDestination
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @StateObject private var model = SocialGuideTemplateModel()

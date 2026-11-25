@@ -407,3 +407,11 @@ enum ClubDetailR8Route: Hashable, Identifiable {
         }
     }
 }
+
+private enum ClubCloud14HTTPS {
+    static func url(_ raw: String?) -> URL? {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              let url = URL(string: raw), url.scheme?.lowercased() == "https" else { return nil }
+        return url
+    }
+}
