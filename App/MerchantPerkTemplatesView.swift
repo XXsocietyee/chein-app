@@ -95,8 +95,9 @@ import SwiftUI
             .accessibilityIdentifier("merchant.perks.permission")
         case .failed:
             // MC7-21-4: MP title 权益加载失败 above the reason.
-            CYErrorStateView(title: "merchant.perks.failed.title", message: "merchant.perks.failed.detail",
-                             retryTitle: "action.retry", onRetry: { Task { await model.load() } })
+            // MC8-21-1: MP cy-error icon="empty-state" → the shared MP empty art above the title.
+            CYStateLayout(kind: .failure, title: Text("merchant.perks.failed.title"), detail: Text("merchant.perks.failed.detail"),
+                          primary: (title: "action.retry", action: { Task { await model.load() } }), emptyIllustration: .generic)
             .cyDomainPageBackground()
             .themeDomain(.merchant)
             .accessibilityIdentifier("merchant.perks.failed")
