@@ -63,64 +63,24 @@ struct WelcomeView: View {
         .accessibilityIdentifier("welcome.more")
     }
 
+    /// r9 A1-08: MP pages/member/index/index.wxml:6 — signed out, 我的 is the in-page empty state
+    /// `cy-empty kind="no-permission" title="登录后查看我的主页" cta="登录"`, not a welcome / onboarding page.
+    /// The 登录 action keeps the `welcome.player` id and opens the same player sign-in sheet.
     private var classicBody: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                    // Wordmark carries the brand now (no nav title): one quiet line above the hero.
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                        Text(verbatim: isChinese ? "城瘾" : "chein")
-                            .cyText(.dataXL)
-                        if !isChinese { Text(verbatim: "城瘾").cyText(.numericBody).foregroundStyle(CYColor.textSecondary) }
-                    }
-                    .foregroundStyle(CYColor.textPrimary)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityAddTraits(.isHeader)
-                    WelcomeHero()
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text("welcome.title")
-                            .cyText(.dataXL)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
-                        Text("role.player.detail")
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
-                        Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
-                            .cyText(.bodyCompact)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .accessibilityIdentifier("welcome.upgradeRequired")
-                    }
+            ContentUnavailableView {
+                Label("fixr9.ap.mine.signedOutTitle", systemImage: "person.crop.circle.badge.questionmark")
+            } description: {
+                if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
+                    Text(LocalizedStringKey(key))
+                        .accessibilityIdentifier("welcome.upgradeRequired")
                 }
-                .padding(.horizontal, CYSpacing.xxl)
-                .padding(.top, CYSpacing.hero)
-                .frame(maxWidth: 620, alignment: .leading)
-                .frame(maxWidth: .infinity)
+            } actions: {
+                roleButton(.player, title: "fixr9.ap.mine.signIn", primary: true)
+                    .frame(maxWidth: 320)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(CYColor.bgPage)
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: CYSpacing.md) {
-                    // One primary action per screen: players register first; merchants are the outlined secondary.
-                    roleButton(.player, title: "role.player", primary: true)
-                    if Self.showsMerchantChoice { roleButton(.merchant, title: "role.merchant", primary: false) }
-                    if let onBrowse {
-                        Button("welcome.browse", action: onBrowse)
-                            .cyText(.bodyMedium)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
-                            .accessibilityIdentifier("welcome.browse")
-                    }
-                }
-                .padding(.horizontal, CYSpacing.xxl)
-                .padding(.bottom, onBrowse == nil ? 84 : CYSpacing.lg) // clear the floating tab bar when shown as the Me tab
-                .padding(.top, CYSpacing.md)
-                .frame(maxWidth: 620)
-                .frame(maxWidth: .infinity)
-                .background(CYColor.bgPage)
-            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 // Language, saved drafts and settings live in one quiet menu.
