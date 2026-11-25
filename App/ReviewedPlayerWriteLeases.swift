@@ -715,7 +715,7 @@ enum ReviewedPlayerReadRoute {
     /// the topic to PRICING for sale review, not a payment) and the publisher reads it needs. Cancel-with-refund stays off.
     static let publisherLifecyclePaths: Set<String> = [
         "api/topic/pricing/preview", "api/topic/pricing/confirm", "api/topic/xp-budget",
-        "api/topic/cancel_preview", "api/activity/cancel_preview", "api/club/detail", "api/merchant/public-detail"
+        "api/topic/cancel_preview", "api/activity/cancel_preview", "api/club/detail"
     ]
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.

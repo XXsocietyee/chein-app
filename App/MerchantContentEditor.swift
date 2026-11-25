@@ -47,16 +47,8 @@ import SwiftUI
         guard case .registrationEdit(let id) = kind, c.isCurrent, let snapshot = c.snapshot else { return nil }
         return .init(scope: snapshot.scope, registrationID: id, observedAt: snapshot.observedAt)
     }
-    /// MP-first: apply / register / edit go live through `MerchantContentWriteApproval` (default on);
-    /// the boundary shows only when that per-command approval is closed.
     private var registrationWritesGated: Bool {
-        switch kind {
-        case .apply(let chapter): return !service.permits(.apply(chapterID: chapter, message: ""))
-        case .registrationCreate(let topic, let node):
-            return !service.permits(.register(topicID: topic, nodeID: node, draft: registrationDraft(), cooperateDate: ""))
-        case .registrationEdit(let id): return !service.permits(.updateRegistration(id: id, topicID: 0, draft: registrationDraft()))
-        default: return false
-        }
+        switch kind { case .apply, .registrationCreate, .registrationEdit: return true; default: return false }
     }
     private var canEditAvailability: Bool {
         availabilityContext != nil && !c.busy && !c.locked && c.review == nil && c.receipt == nil
@@ -78,7 +70,7 @@ import SwiftUI
                 addressGeneration = UUID()
                 await model.load()
             }) }
-            // Say so up front (not after the review sheet) when this write's approval is closed.
+            // Registration create/edit has no live write grant yet: say so up front instead of after the review sheet.
             if registrationWritesGated, !service.permitsWrites { Section { MerchantContentBoundary() } }
             // Keep this entry mounted while the parent's existing read clears its snapshot.
             if case .placement = kind { Section { MerchantCityTemplateHandoffField(binding: placementTemplateBinding, model: cityTemplateHandoff) } }
