@@ -1,6 +1,150 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "officialRoute.detail.error": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route failed to load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "线路加载失败"
+          }
+        }
+      }
+    },
+    "officialRoute.detail.noNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This route has no stops yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条线路还没有节点"
+          }
+        }
+      }
+    },
+    "officialRoute.detail.notFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This route does not exist or has been taken down"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条线路不存在或已下架"
+          }
+        }
+      }
+    },
+    "officialRoute.detail.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "线路详情"
+          }
+        }
+      }
+    },
+    "officialRoute.list.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No official routes are listed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有上架的官方线路"
+          }
+        }
+      }
+    },
+    "officialRoute.list.error": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Routes failed to load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "线路加载失败"
+          }
+        }
+      }
+    },
+    "officialRoute.list.open %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View route %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看线路 %@"
+          }
+        }
+      }
+    },
+    "officialRoute.share": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享线路"
+          }
+        }
+      }
+    },
+    "officialRoute.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Official routes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "官方线路"
+          }
+        }
+      }
+    },
     "play.tools.scanArrive": {
       "localizations": {
         "en": {
@@ -45,6 +189,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "本店权益"
+          }
+        }
+      }
+    },
+    "playx.poi.answerPlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在这里作答"
+          }
+        }
+      }
+    },
+    "playx.poi.completed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place medal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点勋章"
+          }
+        }
+      }
+    },
+    "playx.poi.photoShoot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍一张"
+          }
+        }
+      }
+    },
+    "playx.poi.submit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交"
           }
         }
       }
@@ -253,6 +461,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前结果还无法确认，请继续查询。"
+          }
+        }
+      }
+    },
+    "roamSub.w208.voucher.defaultName": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点"
+          }
+        }
+      }
+    },
+    "roamSub.w208.voucher.renderFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The QR code could not be generated. Please retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销码二维码没能生成，请重试"
           }
         }
       }

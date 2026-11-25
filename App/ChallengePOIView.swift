@@ -28,18 +28,14 @@ import QuestifyCore
     @Environment(\.cyPalette) private var palette
     @Environment(\.openURL) private var openURL
     @Environment(\.locale) private var locale
-    @State private var showingChoiceSheet = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xl) {
             switch coordinator.state {
             case .loading:
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    // MP poi-challenge loading is the skeleton alone (no line of text); VoiceOver keeps the label.
                     CYSkeleton()
-                    Text("playx.poi.loading")
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel(Text("playx.poi.loading"))
@@ -87,7 +83,7 @@ import QuestifyCore
             let place = node.title.isEmpty ? node.name : node.title
             CYImageCard(
                 verbatim: isRawKey(place) ? "" : place,
-                fallback: "playx.poi.photoStep",
+                fallback: "playx.poi.title",
                 meta: node.description.isEmpty || isRawKey(node.description) ? nil : node.description
             )
             if let dist = coordinator.distanceMeters {
@@ -158,29 +154,8 @@ import QuestifyCore
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                // MP cy-playkit-qa pick mode lists the options inline; no extra 选择答案 sheet.
                 if !node.options.isEmpty {
-                    Button {
-                        showingChoiceSheet = true
-                    } label: {
-                        Text(verbatim: PlayCloseCopy.text("选择答案", "Choose answer", locale))
-                            .cyText(.caption, weight: .semibold)
-                            .foregroundStyle(palette.actionPrimaryBg)
-                    }
-                    .sheet(isPresented: $showingChoiceSheet) {
-                        CYOptionSheet(
-                            title: readable(node.question).isEmpty ? PlayCloseCopy.text("选择答案", "Choose answer", locale) : readable(node.question),
-                            items: Array(node.options.enumerated()).map { idx, opt in
-                                CYOptionSheetItem(id: idx, title: readable(opt))
-                            },
-                            selectedID: coordinator.selectedOptionIndex,
-                            onSelect: { idx in
-                                coordinator.selectedOptionIndex = idx
-                                showingChoiceSheet = false
-                            },
-                            onClose: { showingChoiceSheet = false }
-                        )
-                        .cyDomainSheet(detents: [.half])
-                    }
                     ForEach(Array(node.options.enumerated()), id: \.offset) { idx, option in
                         CYChoiceRow(label: readable(option), selected: coordinator.selectedOptionIndex == idx) {
                             coordinator.selectedOptionIndex = idx
