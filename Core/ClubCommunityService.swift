@@ -52,7 +52,7 @@ public struct ClubCommunityService {
             built.setValue("application/json", forHTTPHeaderField: "Accept")
             request = built
         } else {
-            request = try request(suffix: operation.suffix, fields: operation.fields, session: session)
+            request = try self.request(suffix: operation.suffix, fields: operation.fields, session: session)
         }
         try check(); let (data, status) = try await transport.send(request); try check()
         let value = try await PlayerFeedJSON.perform { try Self.decode(data, status: status) }

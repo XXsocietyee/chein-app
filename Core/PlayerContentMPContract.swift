@@ -395,7 +395,7 @@ public enum PlayerContentMPContract {
             throw Refusal.invalidBase
         }
         guard var parts = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else { throw Refusal.invalidBase }
-        parts.path = "/" + broadcastRecoverPath(id)
+        parts.path = "/" + broadcastRecoverPath(id: id)
         guard let url = parts.url else { throw Refusal.invalidBase }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
