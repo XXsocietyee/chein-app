@@ -77,8 +77,7 @@ public enum RoamExperienceMutation: Equatable {
         case .createStamp(let picture, let caption, let key):
             guard !picture.isEmpty, !key.isEmpty, RoamExperienceMath.validCaption(caption),
                   !key.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else { throw APIError.invalidRequest }
-            var value = ["picUrl": picture, "idempotencyKey": key]
-            if !caption.isEmpty { value["caption"] = caption }; return value
+            return ["picUrl": picture, "caption": caption, "idempotencyKey": key]
         case .exchangeStamp(let id): try positive(id); return ["givenStampId": String(id)]
         }
     }
@@ -96,8 +95,9 @@ public enum RoamExperienceMutation: Equatable {
     var isAvailable: Bool { get }
     func execute(_ mutation: RoamExperienceMutation) async throws -> Data
 }
-/// Complete dormant transport adapter. Every operation is denied BEFORE credentials/request/transport.
-/// Do not enable until endpoint-specific acceptance, durable reconciliation and device consent are implemented.
+/// Dormant transport adapter. Reveal, finish, presence, voucher, and the other still-off mutations
+/// are denied before credentials or transport. Stamp create and exchange pass that gate and then
+/// require a session; a nil session throws unauthorized and does not call the transport.
 @MainActor public final class RoamDormantMutationAdapter: RoamExperienceMutationExecuting {
     public var isAvailable: Bool { false }
     private let configuration: APIConfiguration
@@ -108,7 +108,6 @@ public enum RoamExperienceMutation: Equatable {
     }
     public func execute(_ mutation: RoamExperienceMutation) async throws -> Data {
         guard mutation.productionEnabled else { throw RoamExperienceFailure.capabilityUnavailable }
-        // Credential access is intentionally unreachable under the current capability registry.
         guard let snapshot = currentSession() else { throw APIError.unauthorized }
         guard snapshot.identity.scope.deployment == configuration.baseURL.absoluteString else { throw RoamExperienceFailure.scopeMismatch }
         let request = try mutation.request(configuration: configuration, token: snapshot.mutationToken)

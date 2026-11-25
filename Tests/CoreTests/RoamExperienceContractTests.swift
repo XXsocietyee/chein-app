@@ -109,8 +109,17 @@ final class RoamExperienceContractTests: XCTestCase {
         XCTAssertFalse(RoamExperienceMath.isValidTile("INVALID"))
         XCTAssertFalse(RoamExperienceCapabilities.location); XCTAssertFalse(RoamExperienceCapabilities.presence)
         XCTAssertFalse(RoamExperienceCapabilities.settlement); XCTAssertFalse(RoamExperienceCapabilities.voucherIssue)
-        XCTAssertFalse(RoamExperienceCapabilities.redemption); XCTAssertTrue(RoamExperienceCapabilities.mediaUpload) // MP-first 11-25
+        XCTAssertFalse(RoamExperienceCapabilities.redemption); XCTAssertTrue(RoamExperienceCapabilities.mediaUpload)
         XCTAssertTrue(RoamExperienceCapabilities.stampExchange); XCTAssertFalse(RoamExperienceCapabilities.legacyHangout)
+    }
+    func testPassportTilesUseTheNewestTrackAndTheNewestStampPhoto() throws {
+        let rows = try decode([RoamHistoryRecord].self, RoamExperienceSyntheticFixtures.history)
+        XCTAssertEqual(RoamPassportHome.latestTrackThumbnail(rows), "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzFDMUMxRSIvPjxwb2x5bGluZSBwb2ludHM9IjE2LjAsNjQuNiA1NC45LDQ1LjEgODQuMCwzNS40IiBmaWxsPSJub25lIiBzdHJva2U9IiNDOEYzNkEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PGNpcmNsZSBjeD0iODQuMCIgY3k9IjM1LjQiIHI9IjQiIGZpbGw9IiNDOEYzNkEiLz48L3N2Zz4=")
+        XCTAssertEqual(RoamPassportHome.latestStampImage(rows), "")
+        let withPhoto = #"[{"ts":1,"photos":["older"],"track":[]},{"ts":2,"photos":["",{"path":"newer"}],"track":[{"lat":1,"lng":1}]}]"#
+        let stamped = try decode([RoamHistoryRecord].self, withPhoto)
+        XCTAssertEqual(RoamPassportHome.latestStampImage(stamped), "newer")
+        XCTAssertEqual(RoamPassportHome.latestTrackThumbnail(stamped), "")
     }
     func testRouteSketchRequiresTwoTrackPointsAndIncludesPOIBounds() throws {
         let rows = try decode([RoamHistoryRecord].self, RoamExperienceSyntheticFixtures.history)
