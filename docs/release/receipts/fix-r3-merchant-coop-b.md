@@ -321,3 +321,46 @@ Only system-control glyphs (chevron/arrow-right, close, check, plus, edit, camer
 | nearby | `cy-empty kind="empty"` 附近暂无商家 (wxml:42) | MP empty art | SF mappin.slash | `CYEmptyState("tray")` → MP art |
 | finance | (none) | — | generated `CYCoverArt` thumbnails with yensign | removed |
 | settlement-detail (club) | `cy-empty kind="empty"` 结算记录不可见 + 返回结算列表 (wxml:31) | MP empty art | SF doc.text.magnifyingglass + 返回 | MP empty art (`MerchantCoopActionState(emptyArt:)`) + 返回结算列表 |
+
+## Round 4 · copy (MP text, zh-Hans)
+A read-only sweep of the 17 half-b pages (titles, buttons, empty/error/permission states, toasts, dialogs) found 66 differing pairs. Applied:
+- **Fragment overrides** (`docs/port/strings/fix-r3-merchant-coop-b.json`, existing keys overridden, page-only keys): `merchant.operations.wechat` 门店微信, `merchant.operations.discardTitle` 还没有保存, `merchant.operations.discardBody` 离开后，本次修改不会保留。, `image.galleryBatch.select` 添加相册图片, `merchant.perks.saved` 常备权益已保存, `merchant.perks.deleted` 常备权益已删除, `merchant.perks.form.save` 保存权益, `merchant.perks.discard.title` 还没有保存, `merchantCoop.coopSetting.saved` 已保存, `merchant.business.removeOperator` 移除, `merchant.operatorRoster.unavailable` 团队名单加载失败, `cooperation.list.official.failed` 官方邀约加载失败, `cooperation.list.incomplete` 邀请信息不完整, `cooperation.invite.terms.traffic` 引流合作（不产生现金结算）, `context.coop.chooseTopic` 选择我发布的主题, `cooperation.phone.copyFailed` 没能复制, `cooperation.detail.footer.ongoingFrozen` 合作进行中，条款已锁定, `cooperation.detail.cancelLocked` 已锁价，取消合作需联系客服, `merchantCoop.nearby.signIn` 登录后查看, `nearbyMerchant.locationDenied.title` 当前无法查看附近商家, `nearbyMerchant.locationDenied.detail` 需要定位权限才能找附近商家, `cooperation.nearby.failed` 附近商家加载失败, `cooperation.nearby.empty` 附近暂无商家, `nearbyMerchant.locationFailed` 定位服务暂不可用，请稍后重试, `cooperation.settlement.failed` 结算详情加载失败, `cooperation.settlement.back` 返回, `coopflow.discovery` 发现, `cooprelation.partial` 部分俱乐部资料暂不可用.
+- **Separate tables** (edited in place, like round 1's `hintPrint`; JSON round-trip verified byte-identical before editing):
+  - `Resources/MerchantCityNode.xcstrings`: permission.title / permission.manage 当前身份不能管理节点, permission.verify 当前身份不能核销, create.accessLoading 正在确认经营团队权限…, create.lede (full-width ，), create.accessFallback 商家权限没能读取, create.noCoordinate 请在地图上选择店门口, create.readbackMissing 申请已提交，审核状态更新中, create.leaveBody 玩法或店址还没有提交，确定离开吗？
+  - `Resources/MerchantGameNode.xcstrings`: switchStation 切换, hero.untitled 未命名节点, invite.title 节点邀请, decline.title 拒绝节点邀请, decline.tip 拒绝原因将告知主办方, verify.idPlaceholder 提交编号, runbook.why (full-width ，), pause.noFallbackMessage 其他节点.
+- **Not changed, with reasons:**
+  - Shared keys used on other screens (a page-only key would be needed): `action.retry` (重新载入), `cooperation.refresh` (重试), `cooperation.loading`, `coopflow.read.failed`, `merchantCityNode.title` (成为城市节点), `coopflow.invite.title` (also the invite editor title), `coopflow.nearby.unavailable` (also the workbench).
+  - Values pinned by tests: `merchantCityNode.create.readbackTitle` (test_w2_19_cityNode), `merchantGameNode.recap.completed` 保底完成 (test_play_player_team_status), `merchantGameNode.pause.tip` (MerchantGameNodeFlowTests), `merchantCoopCenter.plaza.error.title` / `official.error.title` / `inbox` (test_w2_19_coopCenter). Cursor owns Tests/; please re-pin to the MP text.
+  - `merchantCityNode.poster.hintPrint` stays 保存后张贴 (round 1, MC7-24-3: the app has a real save button, not long-press).
+  - Direction-specific or numbered MP copy the app does not model 1:1: `cooperation.invitations.empty` (还没有收到/发出协作邀请, needs MC7-30-13), `context.coop.targets` (③ 邀请对象), `context.picker.empty`, `merchantCoopCenter.deadline.open` (format string), `merchant.perks.form.name/cost` (placeholder vs label), `cooperation.phone.copy` (MP visible 复制 sits next to the number; the app button stands alone).
+
+## Round 4 · P2 rows (audit `parity-r7-merchant-coop`, Claude + the Gemini rows for half b)
+| id | what | files |
+|---|---|---|
+| MC7-19-7 | 营业状态 as an inline switch on 品牌中心 (MP cy-switch, no confirm), via the same reviewed `saveReviewed(.businessStatus)` the workbench uses; read back after every attempt; toast 营业状态已保存 / 营业状态保存失败 | MerchantOperationsViews.swift |
+| MC7-19-10 | 口碑 row in the brand group → merchant reviews page. Owner only (access/me does not decode MARKETING_READ yet; Core request) | MerchantOperationsViews.swift, MerchantHomeView.swift, MPReviewedPageScreen.swift, MerchantCoopStateActions.swift |
+| MC7-24-6 (Gemini row) | Poster without a usable image but with a server `code`: monospaced selectable code, 复制验证码 (LocalPasteboard), hint 二维码暂时不可用，可长按复制验证码 | MerchantCityNodeHubView.swift |
+| MC7-25-4 (Gemini row) | The picked address is a button that opens the system map (MP `viewPicked` → openLocation) | MerchantCityNodeCreateView.swift |
+| MC7-30-4 (part) | 核销据点 · {name} line on invite cards | CoopListParitySections.swift |
+| MC7-30-5 | Released contact line (leaderName · phone) on cards; 复制合作方电话 as the card's context menu and a VoiceOver action | CoopListParitySections.swift, CooperationBrowserView.swift |
+| MC7-30-12 (Gemini row) | 去收到的确认 on sent applications with status 3 switches the list to 收到的 | CooperationBrowserView.swift |
+| MC7-31-8 (part) | A single-target send ends on 协作列表 · 我发出的 (flows row 108) | see flows |
+| MC7-31-9 (Gemini row) | After a failed invite send: 主题条款没配好？去编辑主题(票价/内容) → `topicEditorDestination` (pages/publish/fabu?id=&scope=) | CooperationFlowEditors.swift |
+| a11y | `ClubWorkbenchKit.swift:261` share glyph hidden (its ShareLink carries the label) so the lint is back to 0. Club-owned file, one-line change. | ClubKit/ClubWorkbenchKit.swift |
+
+The Gemini parked views in `MPGap/MerchantCoop/MerchantGapRound4Views.swift` (`MerchantGapCityNodePosterAndMapViews`, `CoopGapListAndDepositActionsView`) cover the same rows; they were not mounted because the native screens now do it in place. They can be deleted by the coordinator.
+
+## Round 4 · still left
+- **P2 not done:**
+  - MC7-19-8 (hub counts): the hub reads only `access()`; gallery and perk counts need extra reads.
+  - MC7-19-9 (featured name, 去发布一个活动 in the empty picker): the editor rows are pinned by `test_merchant_decor_tag_picker`-style structure tests, and there is no merchant-scoped activity-publish destination in the editor's environment.
+  - MC7-29-7 header (团队成员 · N 人): `test_merchant_operator_roster` pins the roster key set and the count row.
+  - MC7-30-13 (one all-empty state): the chapter-application and official-invite sections load on their own, so the page cannot tell when every section is empty.
+  - MC7-31-8 (one summary for a multi-target send): needs a batch send; today each draft has its own reviewed submit.
+- **Core requests (new):** decode `merchant:marketing:read` on `MerchantOperationsAccess`/`MerchantAccess` (MC7-19-10); expose `code` on `MerchantCityNodePosterCode` (the App parses it locally for now).
+- **Unchanged from round 3:** the Core list, owner/gate rows, reverted pins (MC7-29-6, MC7-34-1), club F-agent MC7-28-3 (also the relation composer `d_profile`).
+
+## Round 4 checks
+- `tools/check_a11y_lint.py`: **PASS, 0 current.**
+- ContractChecks, run module by module on the base commit vs the branch for every module that references a changed App file, string table or fragment: **0 new failures**. One module goes from failing to passing (`test_merchant_station_submission_import`, `MerchantOperationsViews.swift` re-pinned with a comment). `test_merchant_decor_tag_picker` pins the editor's tag rows, so tag icons are only in the tag sheet.
+- No compiler in the cloud. APIs used were grepped on the tree: `LocalPasteboard.copy`, `CYEmptyIllustration(kind:size:)`, `MerchantTagIcons.image(for:)`, `topicEditorDestination`, `MerchantBusinessPage(reader:journal:query:)`, `MerchantStoreBusinessStatus`, `MKMapItem.openInMaps`.
