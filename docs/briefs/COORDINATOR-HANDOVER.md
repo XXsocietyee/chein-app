@@ -2,7 +2,7 @@
 
 This is the live state of the chengyin-app go-live push and the exact steps to continue it. It is updated on every hourly and half-hourly check. If Claude (the coordinator) is out of credit, anyone (a person, Cursor, Gemini or another Claude) can pick up from here.
 
-**Last updated:** 2026-11-25 05:58 UTC by Claude (coordinator).
+**Last updated:** 2026-11-25 06:24 UTC by Claude (coordinator).
 
 ---
 
@@ -11,11 +11,11 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 | Item | Value |
 |---|---|
 | Product | Native SwiftUI iOS app with full mini-program (MP) parity. Repo `liboyang42-cpu/chengyin-app` (PUBLIC), branches `ui/*`. |
-| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`ebf6c160c`** (adds cov3-a/b, cov3-tests-1..4, r8-wire-2, and all 4 R6 Claude branches: fix/r8-club-a-topic, fix/r8-club-b-ops, fix/r3-member-a, fix/r3-player-content-b). |
+| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`7bd1c0ee1`** (adds Cursor k7e-fixes, ratchet-1 [AppSession 7994], cov4-tests-2). |
 | MP source | `liboyang42-cpu/hengyin`, folder `chengyinhub-xcx` (the mini-program). |
 | Parity (r8 audit, 01:55 UTC) | member 85% · account-publish 86% · merchant 77% · club 77% · player-content 91% · play-roam 98%. Reports: `origin/audit/parity-r8-<area>:docs/audit/parity-r8/<area>.md`. |
-| Acceptance | Runs on the self-hosted runner `fanning-air-5` (owner's Mac), branch `ci/acceptance`. Baselines: Core 27, AppUnit 71, contract 1. The last CHECK (on `0e1cf578a`) found **37 new contract failures + 2 Core test compile errors**; Cursor round 7 fixes them. |
-| MP contract coverage | Checker on cov3-d (05:10): total 1038, matched 784, missing endpoint 115, missing test 251 (was 423 / 130 / 611 at C0). |
+| Acceptance | Runner `fanning-air-5`, branch `ci/acceptance`. Baselines Core 27, AppUnit 71, contract 1. K7e on 6afe54b4a failed on **infrastructure** (GitHub SSL during git fetch, sim 405 already-booted, POSIX 3 terminate), not code; Cursor is hardening the workflow. CHECK on ebf6c160c queued (run 45557373770). |
+| MP contract coverage | Checker (06:10): total 1038, matched 802, missing endpoint 115, missing test 232. Per area on ebf6c160c (matched/endpoint/test): member 103/21/52, account-publish 84/11/27, merchant-coop 134/20/38, club 109/6/14, player-content 183/21/40, play-roam 128/15/26. |
 | Money | All money writes (pay, refund, payout, withdrawal, paid orders) stay **TEST-only** until the owner says "money on". |
 
 ## 2. Owner rules (binding)
@@ -39,15 +39,15 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 - **Merged:** A1, A2-a, A2-c, q9c-composition, r8-merchant-coop, r8-play-roam, r8-club, r8-account-publish, r8-member.
 - **Merged in `6afe54b4a`:** a2-contract-b/d, r8-player-content, r8-wire. a3 goes to `ci/acceptance`.
 - **Merged in `08792c15b`:** cov3-c, cov3-d. **Running:** K7e CHECK (run 45550995140, queued behind 45545406477), r8-wire-2, cov3-a/b, cov3-tests-1..4; then cov3-e (checker: forwarded-url/ternary rows count as matched-indirect).
+- **Merged by 06:24:** k7e-fixes, ratchet-1, cov4-tests-2. **Running:** cov3-e, cov4-tests-1/3/4, CHECK 45557373770, acceptance-hardening (on `ci/acceptance`).
 - **Batch posted 05:50 (base `ebf6c160c`):** K7e, cov3-e (checker indirect-match rule), cov4-tests-1..4 (remaining ~250 missing tests by area), ratchet-1 (AppSession −300 lines), r9-prep (per-area checker table).
 - **Posted 05:02:** K7e CHECK on `6afe54b4a`; r8-wire-2; Phase C `cursor/cov3-a..d` (missing endpoints) and `cursor/cov3-tests-1..4` (P0 missing tests).
 
 **Claude cloud routines** (claude.ai/code/routines):
-- Round 4 and fix-r8 (19 routines) have finished; merged: fix/r8-member, merchant-coop, play-roam, account-publish, mp-first and most r3 branches.
-- **Round 5 "REBASE R5"** (started 04:17 UTC, 7 routines): each merges `f95850a46` into its own branch, resolves conflicts keeping both sides, passes the gate, pushes, then continues its open rows. Branches: `fix/r8-club`, `fix/r8-club-a-topic`, `fix/r8-club-b-ops`, `fix/r8-player-content`, `fix/r3-member-a`, `fix/r3-play-roam-a`, `fix/r3-player-content-b`. Merged in `6afe54b4a`: fix/r8-club, fix/r8-player-content, fix/r3-play-roam-a. R6 branches all merged at 05:58 (no Claude branch is waiting): fix/r8-club-a-topic, fix/r8-club-b-ops, fix/r3-member-a, fix/r3-player-content-b.
-- **Acceptance workflow change** `cursor/a3-screenshot-retry` goes onto `ci/acceptance` (Cursor fast-forwards it), not into `ui/combined-r7`.
+- **Phase B is done**: every round-4/r8/R5/R6 Claude branch is merged.
+- **Phase D started 06:19:** 6 × `cloud AUDIT r9 · <area>` → `audit/parity-r9-<area>:docs/audit/parity-r9/<area>.md` (brief `audit-parity-r9.md`). When they push (~07:20): split each fix queue into Claude App routines (`fix/r9-<area>-<a|b>`) and post the Cursor Core rows in the Cursor thread.
 
-**Gemini:** down. Orca restarted and lost its terminals; the quota resets about 05:50 UTC. Its MP-alignment work moved to the Claude F-agents (`fix-r3-round4.md`).
+**Gemini:** relaunched 06:20 via `orca agent launch --agent antigravity` in DES-ag3 on `gemini/mp-assets-r9` (MP images byte-identical: map every MP image to MPAsset, receipt `docs/release/receipts/gemini-mp-assets-r9.md`). No local builds.
 
 ## 4. How to integrate (the coordinator's loop)
 
