@@ -313,12 +313,23 @@ private struct AccountCollectionFavoriteCard: View {
                     }
                     // A4-05: 取消收藏 sits behind the card's ··· menu (same reviewed removal flow and sheet).
                     .overlay(alignment: .topTrailing) {
-                        if let favoriteRemoval {
-                            ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
-                                isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope && model.state.loadedScope == renderedScope },
-                                onRemoved: { await refresh() }, presentsAsMenu: true)
-                                .padding(.trailing, CYSpacing.xs)
+                        HStack(spacing: 0) {
+                            // r8 A4-05b (MP mylike.wxml:25-27): 分享 on the favourite post card, public posts only.
+                            if let url = PublicContentShareLink.squarePost(PublicContentShareLink.l5Post(from: post)) {
+                                ShareLink(item: url) {
+                                    Image(systemName: "square.and.arrow.up").frame(width: 44, height: 44)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(Text("fixr8.favorites.post.share"))
+                                .accessibilityIdentifier("accountCollection.post.share.\(post.id)")
+                            }
+                            if let favoriteRemoval {
+                                ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
+                                    isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope && model.state.loadedScope == renderedScope },
+                                    onRemoved: { await refresh() }, presentsAsMenu: true)
+                            }
                         }
+                        .padding(.trailing, CYSpacing.xs)
                     }
                     .questifyCardListRow()
                     NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")
