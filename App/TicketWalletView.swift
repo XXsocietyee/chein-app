@@ -111,19 +111,10 @@ import SwiftUI
                         }
                     }
                 }
-                if !companions.isEmpty {
-                    Section {
-                        ForEach(companions, id: \.invitationID) { card in
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(verbatim: card.title.isEmpty ? "—" : card.title).cyText(.cardTitle)
-                                if !card.usableUntil.isEmpty {
-                                    Text(verbatim: card.usableUntil).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                }
-                            }
-                            .accessibilityIdentifier("ticketWallet.companion.\(card.invitationID)")
-                        }
-                    }
-                    .accessibilityIdentifier("ticketWallet.companions")
+                // R8-MEM-21-1: companion seats join the deck as 同伴席位 cards (MP signup index.js:293-300).
+                ForEach(companions, id: \.invitationID) { seat in
+                    TicketWalletCompanionCard(seat: seat)
+                        .questifyCardListRow()
                 }
                 // MP F-R2U-01: one lane failing leaves the other lane's tickets on screen with a quiet note, no red block.
                 if let partial = model.value(owner: key)?.partialFailure {

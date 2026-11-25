@@ -311724,6 +311724,23 @@
           }
         }
       }
+    },
+    "ticketWallet.companion.type": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion seat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同伴席位"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
