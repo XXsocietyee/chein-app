@@ -38,17 +38,28 @@ public struct MerchantEngagementProductionApproval {
     public let deviceGrants: [MerchantEngagementDeviceGrant]
     public let reviewedObligations: Set<MerchantEngagementObligation>
     public let reviewedPolicyVersion: String
+    /// Owner 2026-11-25 MP-first rule: the MP posts `api/merchant/operators/invite/accept {token, requestId}` from
+    /// pages/merchant/team/index.js:806-818 for any signed-in account; the server checks the token.
+    public let mpFirstAcceptInvitation: Bool
+    public static let acceptInvitationPath = "api/merchant/operators/invite/accept"
     public init(market: RegionalMarket, endpoints: OperationEndpointApproval, grants: [MerchantEngagementActionGrant],
-                deviceGrants: [MerchantEngagementDeviceGrant] = [], reviewedObligations: Set<MerchantEngagementObligation> = [], reviewedPolicyVersion: String) throws {
+                deviceGrants: [MerchantEngagementDeviceGrant] = [], reviewedObligations: Set<MerchantEngagementObligation> = [], reviewedPolicyVersion: String,
+                mpFirstAcceptInvitation: Bool = false) throws {
         guard !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.invalidConfiguration }
         self.market = market; self.endpoints = endpoints; self.grants = grants; self.deviceGrants = deviceGrants
         self.reviewedObligations = reviewedObligations; self.reviewedPolicyVersion = reviewedPolicyVersion
+        self.mpFirstAcceptInvitation = mpFirstAcceptInvitation
     }
     public func matches(_ context: RuntimeDependencyContext) -> Bool {
         market == .china && context.market == market && endpoints.baseURL == context.baseURL &&
         endpoints.accountID == context.session.accountID && endpoints.namespace == context.session.namespace
     }
     public func permits(_ command: MerchantEngagementCommand, merchantID: Int, context: RuntimeDependencyContext) -> Bool {
+        if case .acceptInvitation = command {
+            guard mpFirstAcceptInvitation, merchantID >= 0, matches(context),
+                  let request = try? command.request(requestID: "grant-validation") else { return false }
+            return request.path == Self.acceptInvitationPath && endpoints.paths.contains(request.path)
+        }
         guard matches(context), let request = try? command.request(requestID: "grant-validation"), endpoints.paths.contains(request.path),
               grants.contains(where: { $0.merchantID == merchantID && $0.command == command }) else { return false }
         if case .acceptInvitation = command { return false }
@@ -79,7 +90,8 @@ public extension MerchantEngagementCommand {
         switch self {
         case .dispatchCampaign, .retryCampaign:
             guard let task = proof.campaign, task.hasReviewableMessage else { throw MerchantBusinessFailure.disabled }
-        case .acceptInvitation: throw MerchantBusinessFailure.disabled
+        // Gated by `MerchantEngagementProductionApproval.mpFirstAcceptInvitation`; the server checks the token (MP-first).
+        case .acceptInvitation: break
         case .uploadEvidence:
             guard let fields = proof.refund?.rows.first(where: { $0.kind == .refund })?.fields,
                   fields["canRespond"]?.bool == true,

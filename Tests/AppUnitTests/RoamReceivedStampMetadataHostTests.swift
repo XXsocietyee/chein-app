@@ -35,8 +35,8 @@ import UIKit
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }
         XCTAssertTrue(wire.requests.isEmpty)
         let album = RoamStampAlbumView(reader: reader)
-        XCTAssertFalse(album.allowsCapture); XCTAssertFalse(album.allowsRemoteImages)
-        XCTAssertFalse(try scope(reader).allowsRemoteImages)
+        XCTAssertFalse(album.allowsCapture); XCTAssertTrue(album.allowsRemoteImages) // MP-first: MP album shows picUrl
+        XCTAssertTrue(try scope(reader).allowsRemoteImages)
     }
     func testOriginalCompositionSendsOnlyIndependentReceivedMultipartRead() async throws {
         let wire = Wire(), session = try root(wire, Grants()).makeSession(); await login(session); wire.requests = []

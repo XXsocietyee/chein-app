@@ -120,8 +120,9 @@ final class StampAlbumIndexPageModelTests: XCTestCase {
         XCTAssertFalse(StampAlbumIndexPageModel.opensHost)
         XCTAssertFalse(StampAlbumIndexPageModel.showsCapture)
         XCTAssertFalse(StampAlbumIndexPageModel.showsMerchantChoice)
-        XCTAssertFalse(RoamExperienceCapabilities.mediaUpload)
-        XCTAssertFalse(RoamExperienceCapabilities.stampExchange)
+        // MP-first (owner 2026-11-25): the MP uploads, creates and exchanges stamps.
+        XCTAssertTrue(RoamExperienceCapabilities.mediaUpload)
+        XCTAssertTrue(RoamExperienceCapabilities.stampExchange)
         XCTAssertEqual(StampAlbumIndexPageModel.sourcePageSize, 50)
         XCTAssertEqual(StampAlbumIndexPageModel.fixturePageSize, 20)
         XCTAssertEqual(StampAlbumIndexPageModel.accessibilityIdentifiers.first, "roam.experience.album")

@@ -31,10 +31,11 @@ public enum PlayRuntimePortRouteGate {
         #endif
         return storyLockMissingCountsAsLocked
     }
-    /// `GET /api/topic/free-explore/visit-config`. Reviewed (`live-in-production`), default off.
-    public static let freeExploreVisitConfigRead = false
-    /// `POST /api/topic/free-explore/visit-config`. Reviewed, write default off.
-    public static let freeExploreVisitConfigWrite = false
+    /// `GET /api/topic/free-explore/visit-config`. Reviewed (`live-in-production`). C-F6 MP-first (owner 2026-11-25):
+    /// on, as the mini-program reads it (pages/publish/fabu/theme-fe-visit.js:40).
+    public static let freeExploreVisitConfigRead = true
+    /// `POST /api/topic/free-explore/visit-config`. C-F6 MP-first: on, as the mini-program saves it (theme-fe-visit.js:87).
+    public static let freeExploreVisitConfigWrite = true
     public static let visitConfigPath = "/api/topic/free-explore/visit-config"
     public static let visitConfigMark = ChinaReviewedRouteMark.liveInProduction
 }
@@ -107,8 +108,15 @@ public enum ChinaReviewedRouteCapability {
         if popupCloseOwnerGrant.contains(key) { return true }
         // Owner 2026-11-24: platform-pass order reads are on for players. Not a money write.
         if isPlatformPassOrderPath(key) { return true }
+        if mpFirstCMAOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
+
+    /// MP-first rule (owner 2026-11-25): non-money routes the mini-program itself sends. The server's checks decide.
+    /// C-F6: the author's 到访方式 read/save (pages/publish/fabu/theme-fe-visit.js:40, :87).
+    public static let mpFirstCMAOwnerGrant: Set<String> = [
+        "/api/topic/free-explore/visit-config"
+    ]
 
     /// Popup-closure owner grant: reviewed non-money routes surfaced by the popup parity closure pass
     /// (`beta/graduate`, `transfer-to-club`, owned clubs lookup, and official attendance read/commands).

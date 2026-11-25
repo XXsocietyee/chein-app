@@ -642,10 +642,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     var isRoamShareSnapshotApproved: Bool {
         reviewed?.productionGatesEnabled == true && reviewed?.regional.market == .china
     }
-    /// Merchant marketing dashboard + AI insight reads; settlement stays off. Nothing is enabled unless the reviewed China deployment enables production gates.
+    /// Merchant marketing dashboard + AI insight reads, and MC8-18-1 (MP-first, owner 2026-11-25) prediction settle:
+    /// the MP posts `api/merchant/predict/settle {nodeId, playDay, settledOption}` (pages/merchant/predict/index.js:215);
+    /// winners get the store's configured coupons, not cash. Nothing is enabled unless the reviewed China deployment enables production gates.
     var merchantMarketingGates: MerchantMarketingService.Gates {
         guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }
-        return .init(reads: true, insight: true, settlement: false)
+        return .init(reads: true, insight: true, settlement: true)
     }
     /// Merchant decor / cooperation / NPC / perk-template save lease; nil unless the reviewed deployment enables production gates (merchant role only).
     func merchantOperationsWriteApproval(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
@@ -2670,7 +2672,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             return request.httpMethod == expectedMethod
         })
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
-        guard ownMedia || officialPublicEventReadSelection.admitsEarly(request, baseURL: api.baseURL, namespace: deployment.storageScope.service, granted: deployment.regional.market == .china && deployment.reads.contains(.officialPublicEventCatalogAndDetail)) || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || ProjectExactReadRoute(request: request, baseURL: api.baseURL) != nil || admitsPlayerWriteQuery(request, baseURL: api.baseURL) || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || MPFirstMerchantWriteRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || officialPublicEventReadSelection.admitsEarly(request, baseURL: api.baseURL, namespace: deployment.storageScope.service, granted: deployment.regional.market == .china && deployment.reads.contains(.officialPublicEventCatalogAndDetail)) || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || ProjectExactReadRoute(request: request, baseURL: api.baseURL) != nil || admitsPlayerWriteQuery(request, baseURL: api.baseURL) || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         // The canonical `api/template/myinfo` id read satisfies both the reviewed merchant baseline route and the owned-shelf
         // detail route. When this viewer holds a matching shelf read approval the shelf route is the specific claim and is
@@ -3581,7 +3583,15 @@ extension KeychainTokenStore: AppTokenStorage {}
             if orientOfficial == .write {
                 guard deployment.productionGatesEnabled, deployment.regional.market == .china else { throw APIError.notConfigured }
             }
+        } else if MerchantContentMPWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            // MP-first merchant-content writes (merchantinfo / merchantapply / citynode / node NPC / station). Not money.
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if ReviewedProductionFormMutationRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
+        } else if MPFirstMerchantWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            // Owner 2026-11-25 MP-first rule: the merchant writes the MP sends; the server checks the merchant role.
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if ReviewedNearbyTeamWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {

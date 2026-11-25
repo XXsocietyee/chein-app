@@ -94,6 +94,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                         return AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: query).environmentObject(session))
                     }
                     .environment(\.playRuntimeTopicClient, PlayRuntimeGapBridge.topicClient(session: session))
+                    .environment(\.topicFavoriteHostFactory, { session.makeTopicFavoriteHost() })
             }
         }
     }

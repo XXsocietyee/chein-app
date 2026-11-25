@@ -130,7 +130,9 @@ struct DiscoveryTemplateBrowserView: View {
         .cyToast(verbatimMessage: $toastMessage)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                if let publishDestination, templateTabScope != .merchant(canManageProjects: false) {
+                // R7-PC-A2-8 MP-first: pages/template/index.wxml:39 shows the 发布 + only when
+                // `isMerchant && canManageMerchantProjects`; players never see it.
+                if let publishDestination, templateTabScope == .merchant(canManageProjects: true) {
                     NavigationLink { publishDestination() } label: {
                         Label("discovery.templateTab.publish", systemImage: "plus")
                     }.pageTemplateControl(label: Text("discovery.templateTab.publish"), traits: .isButton)

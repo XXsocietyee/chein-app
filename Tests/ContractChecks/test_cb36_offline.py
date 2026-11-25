@@ -85,7 +85,7 @@ class CB36OfflineContract(unittest.TestCase):
     def test_payment_withdrawal_and_launch_defaults_stay_closed(self):
         gates = (ROOT / 'Core/MerchantCityNPCParityGates.swift').read_text()
         self.assertIn('public var stationCommands = false', gates)
-        self.assertRegex(gates, r'reviewedEndpoints: \[RegionalMarket: Set<String>\] \{ \[:\] \}')
+        self.assertIn('public static var reviewedEndpoints: [RegionalMarket: Set<String>] { [.china: mpFirstChinaEndpoints] }', gates)  # MP-first 2026-11-25
         commerce = (ROOT / 'Core/MerchantAICommerceGates.swift').read_text()
         self.assertIn('public var paymentAndCashEnabled: Bool { false }', commerce)
         runtime = (ROOT / 'Core/BusinessRuntimeConfiguration.swift').read_text()

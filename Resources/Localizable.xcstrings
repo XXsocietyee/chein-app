@@ -50709,13 +50709,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No published coupons"
+            "value": "No coupons yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无已发布优惠券"
+            "value": "还没有优惠券"
           }
         }
       }
@@ -51729,13 +51729,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Published coupons"
+            "value": "Coupons"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我发布的券"
+            "value": "优惠券"
           }
         }
       }
@@ -135222,13 +135222,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Month · stop anytime"
+            "value": "30 days · no auto-renewal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "月卡 · 随时停"
+            "value": "30天·不自动续费"
           }
         }
       }
@@ -150774,13 +150774,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collection"
+            "value": "Collectibles"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "藏品册"
+            "value": "藏品"
           }
         }
       }

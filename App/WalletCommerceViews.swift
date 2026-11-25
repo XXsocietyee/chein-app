@@ -230,6 +230,11 @@ enum WalletPayoutCapability {
         if WalletPayoutCapability.isOn, visibility.withdrawalRecords, showsWithdrawalSupport {
             out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open") { AnyView(WithdrawalSupportLandingView(reader: reader)) })
         } else if visibility.withdrawalRecords {
+            // R7-PC-D5-1 MP-first: with payout off the MP 提现 only opens the platform CS popup, no write
+            // (subpackageA/pages/assetcenter/earnings/index.js:61-76).
+            if showsWithdrawalSupport {
+                out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open") { AnyView(WithdrawalSupportContactView()) })
+            }
             // FIN-19-2: 提现记录 is a read; only the apply entry follows the withdrawal switch.
             out.append(.init(title: "wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { AnyView(WithdrawalHistoryView(reader: reader)) })
         }

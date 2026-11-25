@@ -153,10 +153,16 @@ public struct ProjectEditCredentials: Equatable {
                 if intent == .submitServerDraft { guard operation.identity.topicID != nil, operation.baseline?.isServerDraft == true else { return .notSent } }
             }
             try ProjectEditStoryContract.validatePayload(operation.payload, baseline: operation.baseline)
-            guard approval.allows(configuration: configuration, namespace: session.storageNamespace, accountID: session.accountID, path: ProjectEditRequestContract.submitPath) else { return .notSent }
-            let envelope = try ProjectEditRequestContract.Submit(operationID: operation.operationID, originalPath: path, payload: operation.payload)
-            dispatched.serverRequest = envelope
-            request = try OperationAdapterHTTP.json(configuration: configuration, path: ProjectEditRequestContract.submitPath, body: JSONEncoder().encode(envelope), token: credentials.token)
+            if approval.allows(configuration: configuration, namespace: session.storageNamespace, accountID: session.accountID, path: ProjectEditRequestContract.submitPath) {
+                let envelope = try ProjectEditRequestContract.Submit(operationID: operation.operationID, originalPath: path, payload: operation.payload)
+                dispatched.serverRequest = envelope
+                request = try OperationAdapterHTTP.json(configuration: configuration, path: ProjectEditRequestContract.submitPath, body: JSONEncoder().encode(envelope), token: credentials.token)
+            } else {
+                // C-F17 MP-first (owner 2026-11-25): where the edit-request envelope is not granted (China production), send the
+                // original route with the same JSON body, as pages/publish/fabu/index.js:7893-7894 does. No receipt recovery.
+                dispatched.serverRequest = nil
+                request = try OperationAdapterHTTP.json(configuration: configuration, path: path, body: ProjectEditRequestContract.payloadBytes(operation.payload), token: credentials.token)
+            }
             try check(credentials)
             guard try store.pending(session: session, identity: operation.identity) == operation else { return .unknown }
             dispatched.dispatchStarted = true
@@ -173,6 +179,7 @@ public struct ProjectEditCredentials: Equatable {
             try check(credentials)
             guard let saved = try store.pending(session: session, identity: dispatched.identity),
                   ProjectEditLocalStore.exactPending(saved, dispatched) else { return .unknown }
+            if dispatched.serverRequest == nil { return Self.decodeAcknowledgment(data, status: status, operation: dispatched) }
             return Self.decodeRequestReceipt(data, status: status, operation: dispatched)
         } catch { return .unknown }
     }

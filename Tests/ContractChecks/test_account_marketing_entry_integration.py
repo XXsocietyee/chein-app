@@ -19,7 +19,7 @@ class AccountMarketingEntryIntegrationChecks(unittest.TestCase):
         for forbidden in ['CFBundleURLTypes','AssociatedDomains','applinks:']: self.assertNotIn(forbidden,root)
     def test_existing_session_and_explicit_disabled_gates(self):
         s=self.read('App/AppSession.swift')+'\n'+self.read('App/AppSessionDoorEntry.swift')
-        for text in ['readsEnabled: false, writesEnabled: false','legalApproved: { _, _ in false }','authoritativeMerchantID: { nil }','gates: composition.merchantMarketingGates, locks: nil','scanEnabled: false, bindingEnabled: false','retainedCompliance?.invalidate(); retainedMarketing?.sessionChanged()','didSet { synchronizeAccountMarketingEntry() }']:
+        for text in ['readsEnabled: false, writesEnabled: false','legalApproved: { _, _ in false }','authoritativeMerchantID: { nil }','gates: composition.merchantMarketingGates,','scanEnabled: false, bindingEnabled: false','retainedCompliance?.invalidate(); retainedMarketing?.sessionChanged()','didSet { synchronizeAccountMarketingEntry() }']:
             self.assertIn(text,s)
         self.assertIn('self.complianceSession == captured',s)
         self.assertIn('self.token == captured.token',s)
@@ -27,7 +27,7 @@ class AccountMarketingEntryIntegrationChecks(unittest.TestCase):
         gate=comp[comp.index('var merchantMarketingGates'):]
         gate=gate[:gate.index('}\n    /// Merchant decor')]
         self.assertIn('guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }',gate)
-        self.assertIn('settlement: false',gate)
+        self.assertIn('settlement: true',gate)  # MP-first 2026-11-25: MP settles predictions (coupons, not cash)
     def test_referral_storage_is_scoped_and_not_deleted(self):
         s=self.read('App/AppSession.swift')
         self.assertIn('safetyDirectory("DoorReferralSafety/" + namespace)',self.read('App/AppSessionDoorEntry.swift'))
