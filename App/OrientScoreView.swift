@@ -6,7 +6,8 @@ import QuestifyCore
 // MARK: - Orient score (subpackageMember/orient-score) — read-only native screen
 // Shows the player's own round score, per-dimension breakdown, settlement, ledger timeline and
 // appeal/dispute status. Appeal and dispute are offered only when the reports grant supplies a
-// submitter. Sync, settle, purchase, and payout are not offered here. An unknown write stays an em dash.
+// submitter. PLY-25-2: sync and settle follow the MP (`OrientScoreSettlementControls.swift`).
+// Purchase and payout are not offered here. An unknown write stays an em dash.
 
 @available(macOS 14.0, *)
 @MainActor final class OrientScoreModel: ObservableObject {
@@ -95,6 +96,8 @@ import QuestifyCore
 @MainActor struct OrientScoreView: View {
     @StateObject private var model: OrientScoreModel
     @Environment(\.orientScoreSession) private var orientScoreSession
+    /// PLY-25-2: lives above the ready content so a pending write survives a reload.
+    @StateObject private var settlement = OrientScoreSettlementModel()
 
     init(model: OrientScoreModel) {
         _model = StateObject(wrappedValue: model)
@@ -121,8 +124,15 @@ import QuestifyCore
         .sheet(isPresented: $showsSignIn, onDismiss: { Task { await model.load() } }) {
             if let orientScoreSession { LoginView(intent: .player).environmentObject(orientScoreSession) }
         }
-        .task { await model.load() }
+        .task {
+            let reader = model
+            settlement.reload = { [weak reader] in await reader?.load() }
+            await model.load()
+        }
         .refreshable { await model.load() }
+        .onChange(of: model.loadedScore) { _, score in
+            settlement.attach(session: orientScoreSession, score: score)
+        }
     }
 
     @State private var showsSignIn = false
@@ -158,7 +168,8 @@ import QuestifyCore
                          actionIdentifier: "orientScore.retry") { Task { await model.load() } }
         case .ready(let facts)?:
             if case .ready(let summary) = model.state {
-                OrientScoreReadyContent(summary: summary, facts: facts, score: model.loadedScore, session: orientScoreSession)
+                OrientScoreReadyContent(summary: summary, facts: facts, score: model.loadedScore, session: orientScoreSession,
+                                        settlement: settlement)
             }
         }
     }
@@ -171,6 +182,8 @@ import QuestifyCore
     var facts: OrientScorePage.Facts? = nil
     var score: OrientSessionScore? = nil
     var session: AppSession? = nil
+    /// PLY-25-2: sync / settle / receipt (MP orient-score). Nil in fixtures.
+    var settlement: OrientScoreSettlementModel? = nil
     @Environment(\.locale) private var locale
     /// PLY-25-3: MP `boardState` ('' / loading / error); a loaded board is shown in the sheet.
     @State private var boardLoading = false
@@ -186,6 +199,7 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             totalCard
             dimensionsCard
+            if let settlement { OrientScoreSettlementPendingCard(model: settlement) }
             settlementCard
             if session != nil, score != nil { boardCard }
             timelineCard
@@ -253,6 +267,7 @@ import QuestifyCore
                 }
                 Text(summary.settlementNotice).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+                if let settlement { OrientScoreSettlementActions(model: settlement) }
             }
             .foregroundStyle(CYColor.textPrimary)
         }

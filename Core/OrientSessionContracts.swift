@@ -147,16 +147,25 @@ public struct OrientSessionScore: Decodable, Equatable {
     public let disputeRecords: [OrientSessionScoreReviewRecord]
     /// Server `disputeWindowDeadline`, kept as display text. Nil when the key is absent or blank.
     public let disputeWindowDeadline: String?
+    /// Server `pendingReviewCount` (fix-r9 PLY-25-2 thin hook). Nil when absent or not an exact integer.
+    public let pendingReviewCount: Int?
+    /// MP `orient-score-view.js:97`: `!data.settlement && data.status !== 3`.
+    public var canSync: Bool { settlement == nil && status != 3 }
+    /// MP `orient-score-view.js:97`: ended, not settled, and no task still in review.
+    public var canSettle: Bool {
+        (status == 1 || status == 2) && settlement == nil && (pendingReviewCount ?? 0) == 0
+    }
     /// Status 1 or 2, a deadline, and no dispute record still in status 0.
     public var canDispute: Bool {
         (status == 1 || status == 2) && disputeWindowDeadline != nil && !disputeRecords.contains { $0.status == 0 }
     }
     private enum CodingKeys: String, CodingKey {
         case sessionId, topicId, activityId, status, totalCenti, byDimension, timeline, settlement, appeals, disputes
-        case disputeWindowDeadline
+        case disputeWindowDeadline, pendingReviewCount
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
+        pendingReviewCount = (try? c.decodeIfPresent(OrientSessionJSON.self, forKey: .pendingReviewCount))?.exactInteger
         sessionID = try c.orientInt(.sessionId)
         scope = try .init(topicID: c.orientInt(.topicId), activityID: c.orientInt(.activityId), productType: 1)
         status = try c.orientInt(.status); totalCenti = try c.orientInt(.totalCenti)
