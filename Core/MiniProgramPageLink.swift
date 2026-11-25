@@ -104,7 +104,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         // Parity r1 (player-content): pages whose MP `onLoad` reads a query now carry it to the native screen.
         for (page, rule) in queryPages { pages[page] = rule }
         // fix-parity r1 (account-publish X1): the keys each MP page reads in `onLoad`. Values are checked below.
-        pages["pages/userinfo/userinfo"] = Rule(allowed: ["id", "userId", "tab"], required: [], ids: ["id", "userId"])
+        pages["pages/userinfo/userinfo"] = Rule(allowed: ["id", "userId", "tab", "topicId", "chapterId", "scope", "preview"], required: [], ids: ["id", "userId", "topicId", "chapterId"])
         pages["pages/talent/list/index"] = Rule(allowed: ["tab"], required: [], ids: [])
         pages["pages/gerenziliao/gerenziliao"] = Rule(allowed: ["field"], required: [], ids: [])
         pages["pages/addressinfo/addressinfo"] = optionalID
@@ -259,7 +259,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
 
     /// Keys whose MP values are a closed set: anything else would open a state the MP page never shows.
     private static let enumeratedValues: [String: [String: Set<String>]] = [
-        "pages/userinfo/userinfo": ["tab": ["projects", "posts", "achievements", "about"]],
+        "pages/userinfo/userinfo": ["tab": ["projects", "posts", "achievements", "about"], "scope": ["MERCHANT"], "preview": ["1"]],
         "pages/talent/list/index": ["tab": ["feed", "club"]],
         "pages/gerenziliao/gerenziliao": ["field": ["introduction", "category"]],
         "pages/shezhi/shezhi": ["scene": ["settings-deregister", "settings-profile", "settings-feedback", "settings-likes",

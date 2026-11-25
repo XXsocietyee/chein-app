@@ -2,7 +2,7 @@ import Foundation
 
 /// The existing scan authoring contract; mode switches never erase retained fields.
 public struct TemplateScanResponseConfiguration {
-    public enum Kind: String, CaseIterable, Identifiable { case text = "TEXT", voice = "VOICE", image = "IMAGE", overlay = "OVERLAY"
+    public enum Kind: String, CaseIterable, Identifiable { case text = "TEXT", voice = "VOICE", image = "IMAGE", overlay = "OVERLAY", none = "NONE"
         public var id: String { rawValue }
     }
     public enum ARMode: String, CaseIterable, Identifiable { case none = "NONE", plane = "PLANE", marker = "MARKER"
@@ -32,8 +32,9 @@ public struct TemplateScanResponseConfiguration {
     }
     public func text(_ field: TextField) -> String { fields[field.rawValue]?.string ?? "" }
     public var currentTextFields: [TextField] {
+        if kind == .none { return [] }
         var result: [TextField] = [.reply]
-        switch kind { case .text: break; case .voice: result.append(.audioUrl); case .image: result.append(.imageUrl)
+        switch kind { case .text, .none: break; case .voice: result.append(.audioUrl); case .image: result.append(.imageUrl)
         case .overlay:
             result.append(.overlayUrl)
             if arMode == .marker { result.append(.markerUrl) }

@@ -98,6 +98,17 @@ import SwiftUI
                         ForEach(0...3, id: \.self) { Text(String($0)).tag($0) }
                     }
                 }
+            case .gallery, .branch, .line, .divider:
+                Section("projectEdit.rich.content") {
+                    if block.kind == .branch || block.kind == .line {
+                        TextField("projectEdit.story", text: $block.content, axis: .vertical).lineLimit(3...8)
+                    }
+                    if block.kind == .line {
+                        TextField("projectEdit.rich.speaker", text: text("speaker"))
+                    }
+                    Text(LocalizedStringKey("projectEdit.rich.kind." + block.kind.rawValue))
+                        .accessibilityIdentifier("projectEdit.rich.gap." + block.kind.rawValue)
+                }
             }
         }.disabled(!model.fullEdit).navigationTitle(Text(LocalizedStringKey("projectEdit.rich.kind." + block.kind.rawValue)))
             .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)

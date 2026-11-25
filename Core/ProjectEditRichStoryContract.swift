@@ -61,12 +61,12 @@ public extension ProjectEditBlock {
 
 /// Derived contract shapes; does not execute narrative rules, resolve authority or contact a backend.
 public enum ProjectEditRichStoryContract {
-    public static let richKinds: [ProjectEditBlock.Kind] = [.dream, .mood, .thought, .voice, .odd, .reveal]
+    public static let richKinds: [ProjectEditBlock.Kind] = [.dream, .mood, .thought, .voice, .odd, .reveal, .gallery, .branch, .line, .divider]
     public static let voices = ["规矩", "窗外", "心", "精密", "咔哒"]
     public static let moods = ["DEFAULT", "BLUE", "RED", "YELLOW", "WHITE"]
     public static let comparisonOps = ["EQ", "NE", "GT", "GTE", "LT", "LTE"]
     public static let conditionOps = ["HAS_TAG", "NODE_COMPLETED"] + comparisonOps
-    static let extraFields: Set<String> = ["images", "title", "mood", "thoughtKey", "beat", "field", "qid", "npcId", "claimLater"]
+    static let extraFields: Set<String> = ["images", "title", "mood", "thoughtKey", "beat", "field", "qid", "npcId", "claimLater", "layout", "altText", "options", "speaker", "audioUrl", "text", "to", "trust"]
     public static func defaultBlock(_ kind: ProjectEditBlock.Kind) -> ProjectEditBlock {
         var block = ProjectEditBlock(kind: kind)
         switch kind {
@@ -74,7 +74,16 @@ public enum ProjectEditRichStoryContract {
         case .mood: block.setField("mood", .string("DEFAULT"))
         case .voice: block.setField("who", .string(voices[0]))
         case .odd: block.setField("level", .number(0))
-        default: break
+        case .gallery:
+            block.setField("layout", .number(2))
+            block.setField("images", .array([]))
+        case .branch:
+            block.setField("options", .array([
+                .object(["text": .string(""), "to": .string("continue")]),
+                .object(["text": .string(""), "to": .string("continue")])
+            ]))
+        case .line: block.setField("speaker", .string(""))
+        case .divider, .text, .node, .image, .audio, .thought, .reveal: break
         }
         return block
     }
@@ -99,6 +108,10 @@ public enum ProjectEditRichStoryContract {
         case .voice: allowed = ["type", "key", "who", "content", "when"]
         case .odd: allowed = ["type", "key", "level"]
         case .reveal: allowed = ["type", "key", "who", "content"]
+        case .gallery: allowed = ["type", "key", "layout", "images", "altText"]
+        case .branch: allowed = ["type", "key", "content", "options"]
+        case .line: allowed = ["type", "key", "speaker", "content", "audioUrl"]
+        case .divider: allowed = ["type", "key"]
         }
         guard Set(block.keys).isSubset(of: allowed) else { throw ProjectEditError.invalidDraft }
         switch kind {
@@ -120,6 +133,28 @@ public enum ProjectEditRichStoryContract {
         case .reveal:
             guard block["content"]?.text != nil, !trim(block["content"]).isEmpty, trim(block["content"]).utf16.count <= 500 else { throw ProjectEditError.invalidDraft }
             if let who = nonnull(block["who"]) { guard who.text != nil, trim(who).utf16.count <= 20 else { throw ProjectEditError.invalidDraft } }
+        case .gallery:
+            guard let layout = block["layout"]?.integer, (1...4).contains(layout),
+                  let images = block["images"]?.array, (1...9).contains(images.count) else { throw ProjectEditError.invalidDraft }
+            if let alt = nonnull(block["altText"]) { guard alt.text != nil, trim(alt).utf16.count <= 80 else { throw ProjectEditError.invalidDraft } }
+            for raw in images {
+                guard let image = raw.object, Set(image.keys).isSubset(of: ["url"]), let url = image["url"]?.text,
+                      !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, url.utf16.count <= 500 else { throw ProjectEditError.invalidDraft }
+            }
+        case .branch:
+            guard trim(block["content"]).utf16.count <= 200, let options = block["options"]?.array, (2...3).contains(options.count) else { throw ProjectEditError.invalidDraft }
+            for raw in options {
+                guard let option = raw.object, Set(option.keys).isSubset(of: ["text", "to", "trust"]),
+                      let text = option["text"]?.text, text.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count <= 40,
+                      let destination = option["to"]?.text,
+                      destination == "continue" || destination == "end" || matches(destination, "^chapter:[1-9][0-9]*$") else { throw ProjectEditError.invalidDraft }
+                if let trust = nonnull(option["trust"]) { guard let value = trust.integer, (-99...99).contains(value) else { throw ProjectEditError.invalidDraft } }
+            }
+        case .line:
+            guard let speaker = block["speaker"]?.text, !trim(.string(speaker)).isEmpty, trim(.string(speaker)).utf16.count <= 20,
+                  block["content"]?.text != nil, !trim(block["content"]).isEmpty, trim(block["content"]).utf16.count <= 500 else { throw ProjectEditError.invalidDraft }
+            if let audio = nonnull(block["audioUrl"]) { guard let url = audio.text, !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, url.utf16.count <= 500 else { throw ProjectEditError.invalidDraft } }
+        case .divider: break
         default: break
         }
     }
