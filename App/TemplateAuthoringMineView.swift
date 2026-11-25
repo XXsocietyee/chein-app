@@ -32,6 +32,7 @@ import SwiftUI
     private var shelfOperationScope: String? {
         (themeDomain == .merchant || roleTheme == .merchant) ? "MERCHANT" : nil
     }
+    private var pageDomain: ThemeDomain { shelfOperationScope == "MERCHANT" ? .merchant : .player }
     var body: some View {
         List {
             // PLY-26-3: the title is the bar's inline title. X12: no 刷新 pill next to pull-to-refresh.
@@ -118,15 +119,16 @@ import SwiftUI
                 Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus")
             }
             if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
-        }.listStyle(.insetGrouped).cyGroupedSurface().cyDomainScreen(.player)
-            .cyPushedChrome(domain: .player).cyPageTitle("templateAuthor.mine")
+        // PLY-26-5: MP `mytemplate` uses theme-merchant for the merchant scope, theme-dark otherwise.
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyDomainScreen(pageDomain)
+            .cyPushedChrome(domain: pageDomain).cyPageTitle("templateAuthor.mine")
             .refreshable { await refresh() }
             // Stable typed destination survives invalidation of its source list on push.
             .navigationDestination(item: $selectedMember) { id in
                 if let memberDetail { memberDetail(id) }
             }
             .p04LifecycleSurface()
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(pageDomain == .merchant ? nil : .dark)
             .navigationDestination(item: $selectedConfiguration) { id in
                 if let ownerConfiguration { ownerConfiguration(id) }
             }
