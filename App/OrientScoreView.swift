@@ -171,6 +171,11 @@ import QuestifyCore
     var facts: OrientScorePage.Facts? = nil
     var score: OrientSessionScore? = nil
     var session: AppSession? = nil
+    @Environment(\.locale) private var locale
+    /// PLY-25-3: MP `boardState` ('' / loading / error); a loaded board is shown in the sheet.
+    @State private var boardLoading = false
+    @State private var boardFailed = false
+    @State private var board: OrientScoreBoardSheetContent?
 
     private var reviewSubmitter: (submitter: OrientScoreReviewModel.Submitter, makeKey: () -> String)? {
         guard let score, let session else { return nil }
@@ -182,6 +187,7 @@ import QuestifyCore
             totalCard
             dimensionsCard
             settlementCard
+            if session != nil, score != nil { boardCard }
             timelineCard
             reviewsCard(title: "orientScore.appeals", emptyText: "orientScore.appeals.empty", rows: summary.appeals)
             reviewsCard(title: "orientScore.disputes", emptyText: "orientScore.disputes.empty", rows: summary.disputes)
@@ -251,6 +257,46 @@ import QuestifyCore
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(CYColor.textPrimary)
+        }
+    }
+
+    /// MP orient-score wxml:52-64 本场榜单: 看本场榜单 (榜单加载中 while reading), the retry line on failure.
+    private var boardCard: some View {
+        CYCard {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text("orientScore.board.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Button { Task { await loadBoard() } } label: {
+                    Text(LocalizedStringKey(boardLoading ? "orientScore.board.loading" : "orientScore.board.open"))
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.cySecondary(fullWidth: true))
+                .disabled(boardLoading)
+                .accessibilityIdentifier("orientScore.board.open")
+                if boardFailed {
+                    Text("orientScore.board.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("orientScore.board.failed")
+                }
+            }
+        }
+        .sheet(item: $board) { content in
+            OrientScoreLeaderboardSheetView(rows: content.rows, myRow: content.me, onClose: { board = nil })
+        }
+    }
+
+    private func loadBoard() async {
+        guard !boardLoading, let session, let score, let read = OrientScoreBoardRead.make(session: session) else {
+            boardFailed = true; return
+        }
+        boardLoading = true; boardFailed = false
+        defer { boardLoading = false }
+        do {
+            let value = try await read(score.sessionID)
+            guard !Task.isCancelled, value.sessionID == score.sessionID else { return }
+            board = OrientScoreBoardRead.content(value, locale: locale)
+        } catch is CancellationError {
+            return
+        } catch {
+            boardFailed = true
         }
     }
 
@@ -424,3 +470,42 @@ private struct PreviewFailure: Error {}
     NavigationStack { OrientScoreView(model: OrientScoreModel(loader: { throw PreviewFailure() })) }
 }
 #endif
+
+/// PLY-25-3: rows for `OrientScoreLeaderboardSheetView`.
+struct OrientScoreBoardSheetContent: Identifiable {
+    let id: Int
+    let rows: [OrientScoreLeaderboardItem]
+    let me: OrientScoreLeaderboardItem?
+}
+
+/// PLY-25-3: `GET /api/orient/scoring/session/{id}/leaderboard` on the same c6 service and live session token as the
+/// score read (`CloudB3SessionBridge.orientLoader`). Read only.
+@MainActor enum OrientScoreBoardRead {
+    static func make(session: AppSession) -> ((Int) async throws -> OrientSessionLeaderboard)? {
+        guard let configuration = session.regionalConfiguration?.apiConfiguration else { return nil }
+        let service = OrientSessionService(configuration: configuration, transport: session.runtimeHTTPTransport, contract: .currentC6)
+        let access = session.squareGovernanceAccess()
+        return { sessionID in
+            guard let token = access.token, AuthRequestBuilder.isValidToken(token) else { throw APIError.unauthorized }
+            return try await service.leaderboard(sessionID: sessionID, token: token)
+        }
+    }
+
+    /// MP orient-score-view.js `leaderboard`: ROUTE mode shows 已到结局 / 未到结局, SCORE mode the two-decimal score;
+    /// elapsed is `N 毫秒`, or 用时待确认 when the server has none.
+    static func content(_ board: OrientSessionLeaderboard, locale: Locale) -> OrientScoreBoardSheetContent {
+        func item(_ row: OrientSessionLeaderboard.Row) -> OrientScoreLeaderboardItem {
+            let score: String
+            if board.mode == .route {
+                score = row.reachedEnding ? appLocalized("orientScore.board.reached", locale: locale)
+                    : appLocalized("orientScore.board.notReached", locale: locale)
+            } else {
+                score = OrientScoreFormat.centi(row.scoreCenti)
+            }
+            let elapsed = row.elapsedMs.map { appLocalized("orientScore.board.elapsedMs \($0)", locale: locale) }
+                ?? appLocalized("orientScore.board.elapsedUnknown", locale: locale)
+            return OrientScoreLeaderboardItem(id: row.rowKey, rank: row.rank, isMine: row.mine, scoreText: score, elapsedText: elapsed)
+        }
+        return OrientScoreBoardSheetContent(id: board.sessionID, rows: board.list.map(item), me: board.me.map(item))
+    }
+}

@@ -1,4 +1,157 @@
 {
+  "orientScore.board.elapsedMs %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld ms"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld 毫秒"
+        }
+      }
+    }
+  },
+  "orientScore.board.elapsedUnknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Time not confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "用时待确认"
+        }
+      }
+    }
+  },
+  "orientScore.board.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The board didn't load. Tap again to retry."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "榜单没加载出来，再点一次试试"
+        }
+      }
+    }
+  },
+  "orientScore.board.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading board"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "榜单加载中"
+        }
+      }
+    }
+  },
+  "orientScore.board.notReached": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ending not reached"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未到结局"
+        }
+      }
+    }
+  },
+  "orientScore.board.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View this round's board"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "看本场榜单"
+        }
+      }
+    }
+  },
+  "orientScore.board.reached": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reached the ending"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已到结局"
+        }
+      }
+    }
+  },
+  "orientScore.review.appealEntry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal a ledger entry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉这一条"
+        }
+      }
+    }
+  },
+  "orientScore.review.appealMissing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal a missed task"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉漏记任务"
+        }
+      }
+    }
+  },
   "orientScore.review.submittingLabel": {
     "extractionState": "manual",
     "localizations": {
@@ -97,6 +250,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "申诉已提交"
+        }
+      }
+    }
+  },
+  "ticketPass.pager.position %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Swipe to switch · %1$lld/%2$lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "左右滑动切换票券 · %1$lld/%2$lld"
         }
       }
     }

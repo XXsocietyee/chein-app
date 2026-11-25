@@ -294,45 +294,43 @@ struct MerchantSafetyRatingSheet: View {
 
 /// BL-52 text-only report appeal: form → confirm → result. Only RESOLVED/CLOSED reports offer it.
 /// The same reason reuses the same request ID; an unknown result is retried with that ID.
+/// PLY-29-4: MP report-detail wxml:55-93 runs the appeal in one sheet (form → confirm → busy → ok / fail / unknown),
+/// sent through `CommunityTrustPlayerService.appeal` (`community-trust/reports/appeal`).
 struct ReportAppealSection: View {
     let reportID: Int
     let client: PlayerCapabilityClient
     let stageLabel: (String) -> String?
     let readBack: () -> Void
     @Environment(\.locale) private var locale
-    @State private var editing = false
     @State private var reason = ""
     @State private var requestID = ""
     @State private var requestReason = ""
-    @State private var busy = false
-    @State private var confirming = false
+    @State private var phase: ReportAppealSheetPhase = .form
+    @State private var showsSheet = false
     @State private var result: String?
-    @State private var failure: String?
 
     var body: some View {
         Section {
             if let result {
                 Label { if result.isEmpty { Text("report.appeal.submitted") } else { Text(verbatim: result) } } icon: { Image(systemName: "checkmark.circle") }
                     .accessibilityIdentifier("report.appeal.receipt")
-            } else if editing {
-                TextField(PlayerCapabilityCopy.text("请写下申诉理由", "Why do you appeal", locale), text: $reason, axis: .vertical)
-                    .lineLimit(3...8)
-                Text(verbatim: "\(reason.trimmingCharacters(in: .whitespacesAndNewlines).count)/\(CommunityTrustPlayerService.appealMax)")
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                if let failure { Text(verbatim: failure).foregroundStyle(CYColor.dangerText) }
-                Button(PlayerCapabilityCopy.text("提交申诉", "Submit appeal", locale)) { confirming = true }
-                    .disabled(busy || validReason == nil)
-                    .accessibilityIdentifier("report.appeal.submit")
             } else {
-                Button(PlayerCapabilityCopy.text("对处理结果申诉", "Appeal this decision", locale)) { editing = true }
-                    .accessibilityIdentifier("report.appeal.open")
+                Button(PlayerCapabilityCopy.text("对处理结果申诉", "Appeal this decision", locale)) {
+                    if phase != .busy { phase = .form }
+                    showsSheet = true
+                }
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .accessibilityIdentifier("report.appeal.open")
             }
         } header: { Text(verbatim: PlayerCapabilityCopy.text("申诉", "Appeal", locale)) }
-        .sheet(isPresented: $confirming) {
-            MemberReportAppealConfirmSheet {
-                confirming = false
-                Task { await submit() }
-            }
+        .sheet(isPresented: $showsSheet) {
+            ReportAppealSheetView(phase: phase, reason: $reason,
+                onToConfirm: { if validReason != nil { phase = .confirm } },
+                onBackToForm: { phase = .form },
+                onSubmit: { Task { await submit() } },
+                onClose: { if phase != .busy { showsSheet = false } })
+            .interactiveDismissDisabled(phase == .busy)
+            .accessibilityIdentifier("report.appeal.sheet")
         }
     }
 
@@ -342,22 +340,25 @@ struct ReportAppealSection: View {
     }
 
     private func submit() async {
-        guard !busy, let text = validReason else { return }
+        guard phase != .busy, let text = validReason else { return }
         if requestID.isEmpty || requestReason != text {
             requestID = CommunityTrustPlayerService.appealKey(reportID: reportID); requestReason = text
         }
-        busy = true; failure = nil
+        phase = .busy
         do {
-            result = try await CommunityTrustPlayerService(client: client)
+            let receipt = try await CommunityTrustPlayerService(client: client)
                 .appeal(reportID: reportID, reason: text, requestID: requestID, stageLabel: stageLabel)
+            result = receipt
+            phase = .ok(receiptText: receipt)
             readBack()
         } catch PlayerCapabilityFailure.outcomeUnknown {
-            // PLY-29-6: catalog copy instead of raw Chinese literals.
-            failure = appLocalized("report.appeal.outcomeUnknown", locale: locale); readBack()
+            // The same request ID is retried from the sheet; the read-back may already show the appeal.
+            phase = .unknown
+            readBack()
         } catch {
-            failure = PlayerCapabilityCopy.failure(error, fallback: appLocalized("report.appeal.failed", locale: locale))
+            // PLY-29-6: catalog copy instead of raw Chinese literals.
+            phase = .fail(message: PlayerCapabilityCopy.failure(error, fallback: appLocalized("report.appeal.failed", locale: locale)))
         }
-        busy = false
     }
 }
 

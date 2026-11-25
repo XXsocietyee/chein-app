@@ -386,15 +386,17 @@ private struct TicketWalletRow: View {
               url.user == nil, url.password == nil, url.fragment == nil else { return nil }
         return url
     }
-    private var art: [Color] {
+    private var tint: Color {
         let tints: [Color] = [CYColor.brandStrong, CYColor.gameAccent, CYColor.rare, CYColor.coverFallback]
-        return [tints[abs(ticket.id) % tints.count].opacity(0.55), CYColor.bgSurfaceStrong]
+        return tints[abs(ticket.id) % tints.count]
     }
+    private var art: [Color] { [tint.opacity(0.55), CYColor.bgSurfaceStrong] }
     private var coverIllustration: some View {
         ZStack(alignment: .topTrailing) {
             LinearGradient(colors: art, startPoint: .topLeading, endPoint: .bottomTrailing)
-            Image(systemName: "ticket.fill").resizable().scaledToFit().frame(width: 120, height: 120).rotationEffect(.degrees(-14))
-                .foregroundStyle(.white.opacity(0.07)).offset(x: 90, y: -10).accessibilityHidden(true)
+            // MP signup wxml:68 `wc__im--illus`: with no cover the card shows the shipped route illustration (cover-route.svg).
+            MPAsset.BannerCover.coverRoute.resizable().scaledToFit().frame(width: 120, height: 120)
+                .opacity(0.35).offset(x: 90, y: -10).accessibilityHidden(true)
         }
         .frame(maxWidth: .infinity, minHeight: 140)
         .accessibilityHidden(true)
@@ -435,6 +437,14 @@ private struct TicketWalletRow: View {
                 }
                 .padding(CYSpacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .overlay(alignment: .topTrailing) {
+                // MP signup wxml:64 `wc__go`: round tinted badge with the shipped `icon_go.svg` arrow. Decorative; the card is the control.
+                MPAsset.FeatureIcon.iconGo.resizable().scaledToFit().frame(width: 14, height: 14)
+                    .frame(width: 31, height: 31)
+                    .background(Circle().fill(tint))
+                    .padding(CYSpacing.md)
+                    .accessibilityHidden(true)
             }
             .background(GeometryReader { Color.clear.preference(key: TicketTopHeightKey.self, value: $0.size.height) })
             .overlay(alignment: .bottom) { Rectangle().fill(.clear).frame(height: 0) }

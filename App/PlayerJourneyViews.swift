@@ -6,6 +6,19 @@ enum PlayerJourneyRoute: Hashable {
     case ticket(registrationID: Int)
     /// MP mycanyuinfo「我的角色卡」→ `character/index?topicId=` (PLY-23-2). Activity id 0 / nil is a topic registration.
     case characterCard(topicID: Int, activityID: Int?)
+    /// MP mycanyuinfo「自由探索权益」→ `free-explore/index?registrationId=` (flows-g1 member, PLY-23-3): that order's
+    /// detail, which hosts the bundle read.
+    case freeExploreBundle(registrationID: Int)
+}
+
+/// PLY-23-3: whether the 自由探索权益 entry may show. MP gates it on `features.freeExploreBundle`; the app gates it on
+/// the session's bundle read provider (nil while the bundle read is not approved). Default off.
+private struct ParticipationBundleEntryEnabledKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    var participationBundleEntryEnabled: Bool {
+        get { self[ParticipationBundleEntryEnabledKey.self] }
+        set { self[ParticipationBundleEntryEnabledKey.self] = newValue }
+    }
 }
 
 @MainActor struct PlayerJourneyAccountLinks: View {
@@ -36,6 +49,7 @@ enum PlayerJourneyRoute: Hashable {
                 CompletedPlayHistoryView(reader: session.playerJourneyReader, open: { route = .history($0) }, signIn: { login = true })
             }
         }.id(session.sessionRevision).privacySensitive()
+        .environment(\.participationBundleEntryEnabled, session.freeExploreBundleReadProvider != nil)
         .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
         .sheet(isPresented: $login) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
         .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
@@ -52,6 +66,7 @@ enum PlayerJourneyRoute: Hashable {
     var body: some View {
         ParticipationDetailView(id: id, reader: session.playerJourneyReader, lifecycle: session.orderLifecycleCoordinator,
                                 open: { route = $0 })
+            .environment(\.participationBundleEntryEnabled, session.freeExploreBundleReadProvider != nil)
             .id(session.sessionRevision).privacySensitive()
             .cyPushedChrome(domain: .player)
             .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
@@ -93,6 +108,9 @@ enum PlayerJourneyRoute: Hashable {
                 }
             case .ticket(let registrationID):
                 SessionTicketWalletHost(isPushed: true, focusRegistrationID: registrationID)
+            case .freeExploreBundle(let registrationID):
+                // Same host as the `orderinfo?id=` deep link, so the order's bundle read provider is in the environment.
+                SessionOwnedOrderDetailView(session: session, id: registrationID)
             case .characterCard(let topicID, let activityID):
                 let scoped = (activityID ?? 0) > 0 ? activityID : nil
                 if let card = session.characterCardReadback(topicID: topicID, activityID: scoped,
@@ -131,6 +149,7 @@ enum PlayerJourneyRoute: Hashable {
     /// R7-MEM-22-1: MP mycanyu onShow reloads after a pushed play or wallet route; that reload keeps rows and shows no pill.
     @State private var hasAppeared = false
     @State private var quietReload = false
+    @Environment(\.participationBundleEntryEnabled) private var bundleEntryEnabled
     var body: some View {
         List {
             Section {
@@ -207,7 +226,9 @@ enum PlayerJourneyRoute: Hashable {
                         nextRoute = PendingRoute(target: target, scope: selected.scope); self.selected = nil
                     })
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { self.selected = nil }.accessibilityIdentifier("playerJourney.detail.close") } }
-            }.presentationDetents([.large]).presentationDragIndicator(.visible)
+            }
+            .environment(\.participationBundleEntryEnabled, bundleEntryEnabled)
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
     private func resetPresentation() {
@@ -298,6 +319,7 @@ private struct ParticipationCoverPlaceholder: View {
     let reader: any PlayerJourneyReading
     let lifecycle: OrderLifecycleCoordinator
     let open: (PlayerJourneyRoute) -> Void
+    @Environment(\.participationBundleEntryEnabled) private var bundleEntryEnabled
     @State private var detail: ParticipationDetail?
     @State private var issue: ParticipationLoadIssue?
     @State private var loading = false
@@ -307,7 +329,14 @@ private struct ParticipationCoverPlaceholder: View {
             if loading { ProgressView("playerJourney.parity.detailLoading") }
             if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
             if let detail {
+                // PLY-23-6: MP mycanyuinfo `picUrl` cover (cmsTopic/cmsActivity imgUrl || imgArr), https only, none when absent.
+                ParticipationDetailGapSections(coverURL: QuestifyCardArtwork.safeURL(detail.record.cover)?.absoluteString)
                 ParticipationDetailHeader(detail: detail)
+                // PLY-23-3 (flows-g1 member): 自由探索权益 under the info card (MP wxml:64-66, `_bundleEntry`: ownerType 1 +
+                // cmsTopic + purchaseKind 3 or productType 2), behind the bundle switch.
+                ParticipationDetailGapSections(
+                    isFreeExplore: bundleEntryEnabled && detail.record.isFreeExplore && detail.record.order.id > 0,
+                    onOpenFreeExploreBundle: { open(.freeExploreBundle(registrationID: detail.record.order.id)) })
                 ProfileParticipationScheduleSection(start: detail.record.order.ownerStartDate,
                     end: detail.record.order.ownerEndDate)
                 if detail.nodeName != nil || detail.cooperateDate != nil {
