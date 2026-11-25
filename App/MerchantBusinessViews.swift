@@ -1108,7 +1108,7 @@ import SwiftUI
         let isDirectory: Bool = { switch query { case .customers, .aftercare, .batches, .redemptions: return true; default: return false } }()
         if row.isManualCase, let line = MerchantAftercareParity.ListRow(row) {
             // Parity aftercare P0: 人工退款工单 rows open a read-only platform-progress detail.
-            NavigationLink { MerchantManualCaseDetailView(row: line) } label: {
+            NavigationLink { MerchantManualCaseDetailView(row: line, loadDetail: { try await reader.manualCaseDetail(id: Int(line.title.drop(while: { !$0.isNumber })) ?? 0) }) } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     if let group = aftercareDayGroup(opening: row) { MerchantAftercareDayHeader(group: group) }
                     MerchantAftercareRowLabel(row: line)

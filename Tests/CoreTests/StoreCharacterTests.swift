@@ -85,6 +85,20 @@ import XCTest
         let point = try decode(#"{"address":"","locationLat":1.5,"locationLng":"2"}"#)
         XCTAssertTrue(point.hasPoint); XCTAssertNil(point.displayAddress)
     }
+    func testAcceptRecordedSampleFeedsEnrollWithoutSyntheticClip() throws {
+        let transport = StoreCharacterTestTransport()
+        let scope = UUID()
+        let gates = MerchantCityNPCParityGates.mpFirst
+        let backend = backend(transport, gates: gates, scope: { scope })
+        let coordinator = StoreCharacterCoordinator(reader: backend, writer: backend, gates: gates)
+        XCTAssertFalse(coordinator.canRecord)
+        coordinator.setVoiceConsent(true)
+        let clip = try XCTUnwrap(StoreCharacterRecordedSample(url: "https://example.com/voice.m4a", durationSeconds: 12, byteCount: 2048))
+        coordinator.acceptRecordedSample(clip)
+        XCTAssertEqual(coordinator.recording?.url, "https://example.com/voice.m4a")
+        coordinator.prepareEnroll()
+        XCTAssertEqual(coordinator.voiceConfirmation?.sample.url, clip.url)
+    }
     func testConsentAndEnrollmentBodies() throws {
         let id = UUID()
         let record = StoreCharacterVoiceConsentRecord(requestID: id)

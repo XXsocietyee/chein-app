@@ -6,8 +6,8 @@ import XCTest
 import FoundationNetworking
 #endif
 
-/// One flag per gate. Node, NPC, cancel, audit, circle review, register, and update default on.
-/// Chapter invite, respond, apply, and withdraw stay closed. City-node and station commands stay off.
+/// One flag per gate. Node, NPC, cancel, audit, circle review, register, update, and chapter invite default on.
+/// Chapter respond, apply, and withdraw stay closed. City-node writes follow MerchantCoopLiveWrites.cityNode.
 private final class MPFirstNoNetworkTransport: HTTPTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int) { throw URLError(.notConnectedToInternet) }
 }
@@ -27,7 +27,8 @@ private final class MPFirstNoNetworkTransport: HTTPTransport {
 
     func test_mp_first_defaults_open_every_merchantinfo_and_merchantapply_write() throws {
         let a = MerchantContentWriteApproval()
-        XCTAssertFalse(a.chapterInvite || a.chapterRespond || a.chapterApply || a.chapterWithdraw)
+        XCTAssertTrue(a.chapterInvite)
+        XCTAssertFalse(a.chapterRespond || a.chapterApply || a.chapterWithdraw)
         XCTAssertTrue(a.register && a.updateRegistration && a.cancel && a.node && a.audit && a.circleReview && a.npc)
         let s = try service(.init())
         let open: [MerchantContentCommand] = [
@@ -37,10 +38,11 @@ private final class MPFirstNoNetworkTransport: HTTPTransport {
             .auditApplication(id: 3, approve: true, reason: ""), .auditNode(nodeID: 9, approve: true, reason: ""),
             .reviewCircle(topicID: 70, scope: "MERCHANT"),
             .saveNPC(nodeID: 9, name: "n", avatar: "a", greeting: "g"), .enrollVoice(nodeID: 9, voiceSample: "s"), .resetVoice(nodeID: 9),
+            .invite(chapterID: 7, merchantMemberID: 3, replacementOfOfferID: 1, scope: "MERCHANT", message: nil),
+            .claim(poiID: 1), .cancelClaim(poiID: 1), .cityStatus(poiID: 1, online: false), .place(MerchantCityPlacementDraft()),
         ]
         let closedCommands: [MerchantContentCommand] = [
             .apply(chapterID: 7, message: ""), .withdraw(applicationID: 3),
-            .claim(poiID: 1), .cancelClaim(poiID: 1), .cityStatus(poiID: 1, online: false), .place(MerchantCityPlacementDraft()),
         ]
         for command in open { XCTAssertTrue(s.permits(command), command.key) }
         for command in closedCommands { XCTAssertFalse(s.permits(command), command.key) }

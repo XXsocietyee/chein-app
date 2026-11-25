@@ -301,9 +301,9 @@ final class ZzZzZzCov4Tests4PinTests: XCTestCase {
         XCTAssertFalse(MerchantCoopLiveWrites.admits(sku))
         let report = MerchantBusinessMutation.review(
             id: try MerchantBusinessReviewID(81), version: 2, action: .report, content: "ad")
-        XCTAssertFalse(MerchantCoopLiveWrites.admits(report))
+        XCTAssertTrue(MerchantCoopLiveWrites.admits(report))
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.stationCommands)
-        XCTAssertFalse(MerchantCityNPCParityGates.mpFirst.stationCommands)
+        XCTAssertTrue(MerchantCityNPCParityGates.mpFirst.stationCommands)
         XCTAssertFalse(MerchantCityNodeWriteGate.paths.contains("api/merchant/city-node/poster-code"))
         XCTAssertFalse(MerchantCityNodeWriteGate.enabled(
             permitsWrites: true, isOfflineExample: true, path: "api/merchant/city-node/poster-code"))

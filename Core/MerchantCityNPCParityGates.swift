@@ -22,7 +22,9 @@ public struct MerchantCityNPCParityGates: Equatable {
     /// - store character: pages/merchant/decor/ai-npc/index.js:533,744,942,1150
     public static var mpFirst: Self {
         var gates = Self()
-        // City-node claim/cancel/offline/save is `MerchantCoopLiveWrites.cityNode`. Station commands stay off.
+        // City-node claim/cancel/offline/save is `MerchantCoopLiveWrites.cityNode`.
+        // Station commands: pages/merchant/game-node via utils/game-session-client.js (MC9-26-1).
+        gates.stationCommands = true
         gates.storeCharacterSaves = true; gates.storeVoiceEnrollment = true
         return gates
     }
@@ -33,6 +35,7 @@ public struct MerchantCityNPCParityGates: Equatable {
         "api/merchant/city-node/claim", "api/merchant/city-node/claim/cancel",
         "api/merchant/city-node/offline", "api/merchant/city-node/save",
         "api/merchant/npc/save", "api/merchant/decor/save", "api/merchant/npc/voice/enroll", "api/merchant/npc/voice/reset",
+        "api/game/session/command", "api/game/session/receipt",
         "api/compliance/consents"
     ]
     public func allows(_ path: String, market: RegionalMarket) -> Bool {

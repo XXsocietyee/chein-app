@@ -509,7 +509,8 @@ public enum ChinaReviewedRouteCapability {
         "/api/club/post/operation/comment",
         "/api/club/roles",
         "/api/club/workbench",
-        "/api/coop"
+        "/api/coop",
+        "/api/coop/candidates/reject"
     ]
 
     /// Handover 23. Non-money reads and native routes. Merchant intent, marketing order/pay/quote,
@@ -2732,8 +2733,11 @@ public enum ReleaseMoneyWriteSwitch {
         case "/api/cart/cart/add", "/api/cart/add", "/api/cart/update", "/api/cart/delete", "/api/cart/order/settlement":
             return .virtualGoods
         case "/api/registration/cancel-refund", "/api/registration/cancel-by-owner",
-             "/api/free-explore/bundle/order/refund":
+             "/api/free-explore/bundle/order/refund",
+             "/api/coop/deposit/refund/retry":
             return .refund
+        case "/api/coop/deposit/create", "/api/coop/deposit/create/app":
+            return .payment
         case "/api/activity/cancel":
             return .hostCancelRefund
         default:
