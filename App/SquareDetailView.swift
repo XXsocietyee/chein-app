@@ -98,7 +98,11 @@ import SwiftUI
                 // Detail failure never renders orphan comments without their post context.
                 if let post, !(ugcSafety?.isBlocked(memberID: post.memberID, authorName: post.nickname) ?? false) {
                     Section("square.comments") {
-                        if let commentIssue { SquareIssueView(error: commentIssue) { Task { await loadComments(operation: generation, captured: key) } } }
+                        if let commentIssue {
+                            // Round 4 copy (MP square/detail wxml): the comment section failure reads 评论加载失败 / 重试.
+                            SquareIssueView(error: commentIssue, retry: { Task { await loadComments(operation: generation, captured: key) } },
+                                            title: comments.items.isEmpty ? "fixr3.square.commentsFailed" : "fixr3.square.moreCommentsFailed")
+                        }
                         ForEach(SquareComment.threaded(comments.items)) { comment in
                             UGCBlockedFilterContainer(memberID: comment.memberID, authorName: comment.nickname) {
                                 commentRow(comment).accessibilityIdentifier("square.comment.\(comment.id)")
@@ -678,9 +682,18 @@ struct SquareDetailIssueView: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Label(titleKey, systemImage: kind == .failed ? "exclamationmark.circle" : "doc.text.magnifyingglass")
-                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                    .accessibilityIdentifier("square.error")
+                // Round 4 image parity: MP `cy-empty kind="empty"` (社区暂未开放 / 这条帖文暂不可用) draws the two-layer
+                // empty art; 没有找到这条帖文 (missing-param) and 动态加载失败 keep their state glyphs.
+                if kind == .closed || kind == .unavailable {
+                    CYEmptyIllustration(kind: .generic, size: 96).frame(maxWidth: .infinity)
+                    Text(titleKey).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        .frame(maxWidth: .infinity).multilineTextAlignment(.center)
+                        .accessibilityIdentifier("square.error")
+                } else {
+                    Label(titleKey, systemImage: kind == .failed ? "exclamationmark.circle" : "info.circle")
+                        .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityIdentifier("square.error")
+                }
                 if kind == .failed, let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
                     Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
                 }

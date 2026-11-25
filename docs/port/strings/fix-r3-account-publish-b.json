@@ -254,6 +254,23 @@
       }
     }
   },
+  "fixr3.square.commentsFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Comments failed to load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "评论加载失败"
+        }
+      }
+    }
+  },
   "fixr3.square.follow": {
     "extractionState": "manual",
     "localizations": {
@@ -267,6 +284,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "关注"
+        }
+      }
+    }
+  },
+  "fixr3.square.moreCommentsFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "More comments failed to load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更多评论加载失败"
         }
       }
     }
@@ -356,6 +390,23 @@
       }
     }
   },
+  "fixr3.team.seat.captain": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Captain"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队长"
+        }
+      }
+    }
+  },
   "fixr3.team.seats.a11y %lld %lld": {
     "extractionState": "manual",
     "localizations": {
@@ -369,6 +420,176 @@
         "stringUnit": {
           "state": "translated",
           "value": "已入队 %lld 人，空位 %lld 个"
+        }
+      }
+    }
+  },
+  "mp.reveal.linePaid %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Until %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "到 %@"
+        }
+      }
+    }
+  },
+  "team.disband": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Disband team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "解散队伍"
+        }
+      }
+    }
+  },
+  "team.invite.copied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Join code copied"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "加入码已复制"
+        }
+      }
+    }
+  },
+  "team.invite.copy": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy join code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制加入码"
+        }
+      }
+    }
+  },
+  "team.invite.previewOnly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy the join code and send it to your teammates"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制加入码后发给队友"
+        }
+      }
+    }
+  },
+  "team.join.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invitation unavailable for now"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请暂时不可用"
+        }
+      }
+    }
+  },
+  "team.join.emptyDetail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ask the captain to share again, then try again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请让队长重新分享后再试"
+        }
+      }
+    }
+  },
+  "team.leave": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Leave team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退出队伍"
+        }
+      }
+    }
+  },
+  "team.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Confirming team status…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在确认队伍状态…"
+        }
+      }
+    }
+  },
+  "team.member.unnamed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Chengyin player"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城瘾玩家"
         }
       }
     }
