@@ -145,7 +145,7 @@ import XCTest
             MerchantEngagementProductionApproval.customerCatalogPath,
             "api/merchant/crm/segments", "api/merchant/crm/exports", "api/common/uploadOSS"
         ]
-        let endpoints = try OperationEndpointApproval(baseURL: url, namespace: "merchant-cn", accountID: 7, paths: paths)
+        let endpoints = try OperationEndpointApproval(baseURL: url, namespace: "merchant-cn", accountID: 7, paths: Set(paths))
         let open = try MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [],
                                                             reviewedPolicyVersion: MerchantCoopLiveWrites.policyVersion)
         let context = try context()

@@ -43,7 +43,7 @@ import SwiftUI
                                 Text(verbatim: row.contactText).cyText(.meta).foregroundStyle(.secondary)
                             }
                             if let phone = row.phone, !phone.isEmpty {
-                                Button("club.topicMerchants.copyPhone") { UIPasteboard.general.string = phone }
+                                Button("club.topicMerchants.copyPhone") { LocalPasteboard.copy(phone) }
                                     .accessibilityIdentifier("club.topicMerchants.copy.\(row.id)")
                             }
                         }
