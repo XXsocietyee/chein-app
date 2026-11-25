@@ -5,6 +5,8 @@ import FoundationNetworking
 
 public enum OfficialReadFailure: Error, Equatable {
     case noPublisherPermission, unavailable, forbidden, rejected(Int)
+    /// Non-200 broadcast stats or recover, with the server `msg`.
+    case explained(Int, String)
 }
 /// Explicit GET allowlist. No generic public path, mutation, click tracking, purchase or signup.
 public struct OfficialEventService {
@@ -82,13 +84,23 @@ public struct OfficialEventService {
         let (data, status) = try await transport.send(request)
         try Task.checkCancellation()
         if status == 401 { throw APIError.unauthorized }
-        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         let envelope = try? JSONDecoder().decode(Status.self, from: data)
         if envelope?.code == 401 { throw APIError.unauthorized }
-        guard envelope?.code == 200 else { throw OfficialReadFailure.rejected(envelope?.code ?? status) }
+        guard (200..<300).contains(status) else {
+            if let note = Self.trimmedServerNote(envelope?.msg) { throw OfficialReadFailure.explained(status, note) }
+            throw APIError.httpStatus(status)
+        }
+        guard envelope?.code == 200 else {
+            if let note = Self.trimmedServerNote(envelope?.msg) { throw OfficialReadFailure.explained(envelope?.code ?? status, note) }
+            throw OfficialReadFailure.rejected(envelope?.code ?? status)
+        }
     }
     private func requireToken(_ token: String) throws {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+    }
+    private static func trimmedServerNote(_ raw: String?) -> String? {
+        let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? nil : trimmed
     }
     private func complete(_ rows: [OfficialEvent]) -> [OfficialEvent] {
         var seen = Set<Int>()
@@ -114,13 +126,17 @@ public struct OfficialEventService {
         if status == 403 || envelope?.code == 403 { throw OfficialReadFailure.forbidden }
         // Source official-detail: only an explicit "content is gone" is unrecoverable.
         if missingEvent && (status == 404 || status == 410) { throw OfficialReadFailure.unavailable }
-        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        guard (200..<300).contains(status) else {
+            if missingBroadcast, let note = Self.trimmedServerNote(envelope?.msg) { throw OfficialReadFailure.explained(status, note) }
+            throw APIError.httpStatus(status)
+        }
         guard let code = envelope?.code else { throw APIError.malformedResponse }
         guard code == 200 else {
             if missingEvent && (code == 404 || code == 410
                 || envelope?.msg?.trimmingCharacters(in: .whitespacesAndNewlines) == "活动不存在") { throw OfficialReadFailure.unavailable }
             // The stats source intentionally hides ownership behind “not found”. Do not infer deletion.
             if missingBroadcast && envelope?.msg == "通知不存在" { throw OfficialReadFailure.unavailable }
+            if missingBroadcast, let note = Self.trimmedServerNote(envelope?.msg) { throw OfficialReadFailure.explained(code, note) }
             throw OfficialReadFailure.rejected(code)
         }
         do { return try JSONDecoder().decode(Envelope<T>.self, from: data).data }

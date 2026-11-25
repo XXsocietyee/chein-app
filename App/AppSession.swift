@@ -5444,7 +5444,7 @@ final class AppSession: ObservableObject {
     var contentDetailReadAvailability: AppCompositionRoot.ReadAvailability {
         let availability = composition.readAvailability(.contentDetail, identity: compositionTransport.current())
         guard availability == .available else { return availability }
-        return activityService != nil && topicService != nil && currentTopicSession != nil ? .available : .serviceUnavailable
+        return activityService != nil && topicService != nil && currentTopicSession != nil || account == nil && token == nil && activityService != nil && topicService != nil ? .available : .serviceUnavailable
     }
     private let homeFeedService:HomeFeedService?
     private var currentHomeFeedSession:HomeFeedSession? {

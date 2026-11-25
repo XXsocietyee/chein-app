@@ -128,6 +128,8 @@ public struct TopicMerchant: Decodable, Equatable {
     public let name: String
     public let businessTime: String?
     public let imageURL: String?
+    /// Shop gift from `mmsMerchant.derivativeBenefits`. Blank stays nil. This is display, not a claim.
+    public let derivativeBenefits: String?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
         let merchant = try? c.nestedContainer(keyedBy: TopicKey.self, forKey: TopicKey("mmsMerchant"))
@@ -135,6 +137,8 @@ public struct TopicMerchant: Decodable, Equatable {
         name = merchant?.text("name") ?? c.text("name") ?? ""
         businessTime = merchant?.text("businessTime") ?? c.text("businessTime")
         imageURL = c.images("picUrl").first
+        let raw = merchant?.text("derivativeBenefits")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        derivativeBenefits = raw.isEmpty ? nil : raw
     }
 }
 
@@ -163,6 +167,8 @@ public struct TopicNode: Decodable, Equatable, Identifiable {
         template = try c.decodeIfPresent(TopicTemplate.self, forKey: TopicKey("cmsMemberTemplate"))
         merchants = try c.list("registrationMerchantList")
     }
+    /// First stop merchant's 到店礼. Later merchants on the same stop do not count.
+    public var shopGift: String? { merchants.first?.derivativeBenefits }
 }
 
 public struct TopicChapter: Decodable, Equatable, Identifiable {

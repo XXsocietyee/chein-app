@@ -689,7 +689,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         case .contentDetail:
             guard reviewed.contentDetails == .activityAndTopic else { return .detailReadNotApproved }
             guard let identity else { return .sessionUnavailable }
-            if identity.accountID == nil && identity.role == nil && identity.token == nil { return .signInRequired }
+            if identity.accountID == nil && identity.role == nil && identity.token == nil { return .available }
             guard identity.isSignedInContentViewer else { return .sessionUnavailable }
         }
         return .available
@@ -3532,12 +3532,12 @@ extension KeychainTokenStore: AppTokenStorage {}
                 throw APIError.notConfigured
             }
         } else if let route = SignedInContentDetailReadRoute(url: url, baseURL: api.baseURL) {
-            // Activity info accepts a nil token. Topic info stays a signed-in content viewer.
-            let guestActivity = route == .activity && captured.accountID == nil && captured.role == nil
-                && captured.token == nil && request.value(forHTTPHeaderField: "Authorization") == nil
-                && captured.isPublicTemplateViewer
+            // Anonymous activity and topic info use a nil token.
+            // Favorite, buy, and review stay signed in.
+            let guestRead = captured.isPublicTemplateViewer && captured.accountID == nil
+                && request.value(forHTTPHeaderField: "Authorization") == nil
             guard deployment.contentDetails == .activityAndTopic,
-                  (guestActivity || captured.isSignedInContentViewer), route.accepts(request) else { throw APIError.notConfigured }
+                  (guestRead || captured.isSignedInContentViewer), route.accepts(request) else { throw APIError.notConfigured }
         } else if OfficialPublicEventReadRoute.accepts(request, baseURL: api.baseURL) {
             let selection = officialPublicEventReadSelection
             guard deployment.regional.market == .china, deployment.reads.contains(.officialPublicEventCatalogAndDetail),
