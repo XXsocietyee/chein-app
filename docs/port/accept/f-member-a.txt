@@ -32,3 +32,9 @@ e5-invoice-detail-rejected
 e5-invoice-apply
 e5-invoice-titles
 member-popup-invoice-title-delete
+# round 4: copy now equals the MP on these routes (coupons title 优惠券, 有效期至 / 起可用 lines, 出示核销码;
+# merchant-coupons 我发布的优惠券 / 库存数 / 停发该券; e5-invoice-titles editor title 发票抬头). Empty states with MP
+# kind="empty" draw the MP empty_state_bg + figure (t5-library-empty, coupons-empty, e5-invoice-empty, t5-pass-market tabs).
+# t5-pass-detail: the hero seal is the MP cy_logo_mark. member-popup-coupon-code: the QR carries the MP centre mark.
+# round 4: 兑换码 (gift?mode=code) opens in-app from the 通行证 row, which shows only when passRedeemEnabled is wired and
+# returns true. External chein:// links need Cursor to allow `mode` on gift/index. No fixture route yet.
