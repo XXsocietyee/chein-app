@@ -307,16 +307,32 @@ enum CYPassCardPick {
         }
     }
 
-    /// Cover-art band with the status chip top-right and the title on a scrim (same art as the wallet pass), then date
-    /// and place. At accessibility sizes the band shrinks and the chip and title move below it so nothing clips.
+    /// Cover-art band with the title on a scrim (same art as the wallet pass), then date and place. At accessibility
+    /// sizes the band shrinks and the title moves below it so nothing clips.
     private var header: some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack {
-                E1CoverArt(seed: ticket.title ?? "ticket", symbol: "ticket", debugLabel: false, symbolPoint: CGPoint(x: 0.84, y: 0.62))
+                // R8-MEM-21-3: the MP `wImg` cover, else the shipped route illustration (`cover-route.svg`); no generated art.
+                if let url = ticket.walletHTTPSCoverURL {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() } else { CYColor.bgSurfaceStrong }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
+                    .accessibilityHidden(true)
+                } else {
+                    ZStack {
+                        CYColor.bgSurfaceStrong
+                        MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(CYSpacing.md)
+                            .opacity(0.5)
+                            .accessibilityHidden(true)
+                    }
+                    .accessibilityHidden(true)
+                }
                 LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
                 if !typeSize.isAccessibilitySize {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        HStack(spacing: 0) { Spacer(minLength: 0); CYPassStatusChip(state: state, text: LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)) }
+                        // PLY-21-5: MP 票夹 cards carry no status (index.wxml:57-58 「卡上不写状态」).
                         Spacer(minLength: 0)
                         title.foregroundStyle(.white).lineLimit(2)
                     }
@@ -327,7 +343,6 @@ enum CYPassCardPick {
             .clipped()
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if typeSize.isAccessibilitySize {
-                    CYPassStatusChip(state: state, text: LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)).padding(.bottom, CYSpacing.xs)
                     title.foregroundStyle(CYColor.textPrimary).padding(.bottom, CYSpacing.xs)
                 }
                 Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }

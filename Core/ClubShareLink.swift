@@ -18,6 +18,21 @@ public struct ClubShareLink: Equatable, Sendable {
         return value
     }
 
+    /// https universal link when the owner has supplied exactly one verified origin.
+    /// The current origin set is empty, so this returns nil. No host is invented.
+    public func httpsURL(verifiedOrigins: Set<String> = UniversalLinkConfiguration.verifiedHTTPSOrigins) -> URL? {
+        guard verifiedOrigins.count == 1, let raw = verifiedOrigins.first else { return nil }
+        guard let base = URLComponents(string: raw),
+              base.scheme?.lowercased() == "https",
+              let host = base.host?.lowercased(),
+              base.user == nil, base.password == nil, base.port == nil,
+              base.query == nil, base.fragment == nil,
+              base.path.isEmpty || base.path == "/",
+              !host.isEmpty, !host.contains(":") else { return nil }
+        let sharePath = path
+        return URL(string: "https://" + host + sharePath)
+    }
+
     public static func club(id: Int) -> ClubShareLink? {
         guard id > 0 else { return nil }
         return ClubShareLink(clubID: id, postID: nil)

@@ -151,7 +151,10 @@ public struct MerchantOperationsService {
             guard case .npcMapPoint(let original) = baseline, proposed.merchantID == original.merchantID else { throw MerchantOperationsFailure.notSent }
         }
         let previews = try draft.previews()
-        guard !previews.isEmpty, previews.allSatisfy({ approval.allows(configuration: configuration, namespace: namespace, accountID: accountID, path: $0.path) }) else { throw MerchantOperationsFailure.liveWritesDisabled }
+        guard !previews.isEmpty, previews.allSatisfy({ preview in
+            approval.allows(configuration: configuration, namespace: namespace, accountID: accountID, path: preview.path)
+                || MerchantCoopLiveWrites.supplementsOperations(preview.path, approval: approval, configuration: configuration, namespace: namespace, accountID: accountID)
+        }) else { throw MerchantOperationsFailure.liveWritesDisabled }
         let ownerKey = "\(namespace.utf8.count):\(namespace):\(accountID)"
         var record = OperationPendingRecord(ownerKey: ownerKey, targetKey: draft.destination.pendingTarget)
         let requests: [URLRequest]

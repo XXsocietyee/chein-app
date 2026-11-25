@@ -94,11 +94,12 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
         spans = [
             # Parity r2 (X1 / X3): this span runs into bodyNavigation, whose hero row and stacked failure sections were
             # replaced by the inline title and one failure block; the customer filter rows inside it are unchanged.
-            ('            if operation == .customers {', '            if operation == .topicCustomers {', 'd86a4d827cec3f49acc44ce0ea4acec7dd1ddfe9374ad9e37bbad3a0617dd8eb'),  # fix-r8-club: the customer filter is the MP chip row (CLB-customers-07). fix-r3-club-a: apply guest state (CLB-apply-08) and the answer-sheet loading/failure copy (CLB-topic-story-03, round 3) join this span
+            ('            if operation == .customers {', '            if operation == .topicCustomers {', '3ae4851e77ed3945864a3425a9484a7c7fd37ef00422defb2fafac5ca474b8b3'),  # fix-r8-club: the customer filter is the MP chip row (CLB-customers-07). fix-r3-club-a: apply guest state (CLB-apply-08) and the answer-sheet loading/failure copy (CLB-topic-story-03, round 3) join this span; fix-r3-club-b round 4: the check-in read-failure states, the customer 编辑 button key and the 客户 bar title also sit in it (customer filter rows unchanged)
             ('    @MainActor private func loadCustomersNow()', '    @MainActor private func load() async {', '1c8613aec8b47f2cb00ed001f56358eeadc4ae42cb5b3c4792150a1efcd8475a'),
             # fix-r3-club-b: this span also holds the notify retry footnote (CLB-notify-09/-10) and the check-in
-            # error-phase guard (CLB-checkin-detail-03); the customer rows inside it are unchanged.
-            ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', '671148143859a5cef2d9565d1cca838dae94a9dec21d386728a405b09292f51e'),
+            # error-phase guard (CLB-checkin-detail-03); the customer rows inside it are unchanged. Round 4: the customer
+            # 编辑 button keeps 编辑标签与备注 as its VoiceOver label.
+            ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', 'c02e5b5010b6e7d2d97a0da2fdb56079fbccdf326fcf0023763d7640c14b7e44'),
             ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', 'bcd35b8ec7f7bea931be735cb83dd3bd34d3f4aed3fe5a26ff455fc588734fe0'),
         ]
         for start, end, expected in spans:

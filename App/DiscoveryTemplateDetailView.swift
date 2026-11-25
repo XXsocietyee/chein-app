@@ -53,7 +53,7 @@ struct DiscoveryTemplateDetailView: View {
             } else if detail.isLoading || loadedKey != requestKey {
                 CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
             } else if let error = detail.error {
-                DiscoveryErrorView(error: error) { Task { await reload() } }
+                DiscoveryErrorView(error: error, failureTitle: "discovery.play.openFailed") { Task { await reload() } }
             } else if let read = detail.value {
                 let item = read.template
                 let parity = read.extras != nil ? DiscoveryPlayTemplateDetailPresentation(read, ownScope: false) : nil
@@ -74,7 +74,12 @@ struct DiscoveryTemplateDetailView: View {
                                 })
                                 .accessibilityHidden(true)
                             } else {
-                                E1CoverArt(seed: item.title, symbol: "sparkles", debugLabel: false, symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                                // Round 4 image parity (MP templatedetail.wxml:41): no cover → the first scene's 3D icon, else other.png.
+                                TemplateSceneArt.icon(parity?.sceneChips.first).resizable().scaledToFit()
+                                    .accessibilityHidden(true)
+                                    .padding(CYSpacing.sm)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .background(CYColor.bgRaised)
                             }
                         }
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
@@ -291,6 +296,10 @@ struct DiscoveryTopicTemplatePreview: View {
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @Environment(\.topicTemplateCopiedDestination) private var copiedDestination
+    /// Round 4 flow (MP topic-use-flow.js `openDraft`): with no host override the copied draft pushes the topic
+    /// editor (`pages/publish/fabu/index?id=&scope=`) through the shared editor destination.
+    @Environment(\.topicEditorDestination) private var editorDestination
+    @State private var copiedDraft: CopiedTopicDraft?
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var tab: TemplateDetailTab = .details
     @State private var openingExpanded = false
@@ -317,7 +326,7 @@ struct DiscoveryTopicTemplatePreview: View {
                 CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
                     .accessibilityLabel(Text("discovery.loading"))
             } else if let error = detail.error {
-                DiscoveryErrorView(error: error) { Task { await detail.load() } }
+                DiscoveryErrorView(error: error, failureTitle: "discovery.topicTemplate.openFailed") { Task { await detail.load() } }
             } else if let item = detail.value {
                 List {
                     // B78 topic-detail (owner V-24): same chrome as the play detail — head, 应用 + share, 详情 / 能力.
@@ -364,9 +373,9 @@ struct DiscoveryTopicTemplatePreview: View {
                     // Mini topic-detail "应用". Hidden while the write is gated.
                     if TopicTemplateUseFactory.isLive {
                         Section {
-                            TopicTemplateUseSection(templateID: item.id, scope: nil, readOnly: false,
+                            TopicTemplateUseSection(templateID: item.id, scope: scope, readOnly: false,
                                                     plan: TopicTemplateAdoptionPlan(delivery: item.contentDelivery)) { topicID in
-                                copiedDestination?(topicID)
+                                if let copiedDestination { copiedDestination(topicID) } else { copiedDraft = CopiedTopicDraft(id: topicID) }
                             }
                         }.discoveryCardRow()
                     }
@@ -403,6 +412,9 @@ struct DiscoveryTopicTemplatePreview: View {
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(item: $nodeGallery) { selected in
             NativeMediaGallery(snapshot: selected.snapshot, titleKey: "u10.template.nodes", reader: RetainedPublicImageReader())
+        }
+        .navigationDestination(item: $copiedDraft) { draft in
+            if let editorDestination { editorDestination(draft.id, scope) }
         }
         .task { await detail.load() }
         .onDisappear { detail.clear() }
@@ -703,12 +715,40 @@ struct DiscoveryClampedText: View {
 struct DiscoveryTopicTemplateDeckHost: View {
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var showsDetail = false
+    /// Round 4 flow (MP topic-preview js:216 `useTemplate` → topic-use-flow `adopt`): 用这个模板 copies the template
+    /// here and pushes the copied draft into the topic editor; it no longer detours through the detail page.
+    @StateObject private var useModel: TopicTemplateUseModel
+    @State private var copiedDraft: CopiedTopicDraft?
+    @Environment(\.topicTemplateCopiedDestination) private var copiedDestination
+    @Environment(\.topicEditorDestination) private var editorDestination
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     let readonly: Bool
+    let scope: String?
     let makeDetail: () -> PublicTopicTemplateCoordinator
-    init(coordinator: PublicTopicTemplateCoordinator, readonly: Bool, makeDetail: @escaping () -> PublicTopicTemplateCoordinator) {
+    init(coordinator: PublicTopicTemplateCoordinator, readonly: Bool, scope: String? = nil,
+         makeDetail: @escaping () -> PublicTopicTemplateCoordinator) {
         _detail = State(initialValue: coordinator)
+        _useModel = StateObject(wrappedValue: TopicTemplateUseModel(writer: TopicTemplateUseFactory.makeUser(), readOnly: readonly))
         self.readonly = readonly
+        self.scope = scope
         self.makeDetail = makeDetail
+    }
+    private func adopt(_ item: PublicTopicTemplateDetail) {
+        Task {
+            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                environmentSession: offlineWriteSession.session,
+                routes: ["/api/template/topic-template/use"]
+            ) {
+                await useModel.use(id: item.id, scope: scope, plan: TopicTemplateAdoptionPlan(delivery: item.contentDelivery))
+            }
+        }
+    }
+    /// Toast-equivalent line for a refused / unconfirmed copy (MP toasts 使用模板失败 / 网络错误，请重试).
+    private var useFailureMessage: String? {
+        switch useModel.state {
+        case .failed, .unknown, .unavailable, .readOnly: return TopicTemplateUseModel.message(for: useModel.state)
+        default: return nil
+        }
     }
     /// The MP deck reads the raw template JSON; the app re-projects the allowlisted public fields it already decoded.
     static func previewData(_ item: PublicTopicTemplateDetail, readonly: Bool) -> TopicTemplatePreviewData {
@@ -737,21 +777,52 @@ struct DiscoveryTopicTemplateDeckHost: View {
                 ContentUnavailableView("discovery.templateSessionChanged", systemImage: "person.crop.circle.badge.exclamationmark",
                                        description: Text("discovery.templateReopen"))
             } else if let error = detail.error, detail.value == nil {
-                DiscoveryErrorView(error: error) { Task { await detail.load() } }
+                DiscoveryErrorView(error: error, failureTitle: "discovery.topicTemplate.openFailed") { Task { await detail.load() } }
             } else if let item = detail.value {
                 TopicTemplateDeckPreviewView(preview: Self.previewData(item, readonly: readonly),
                                              onViewDetail: { showsDetail = true },
-                                             onUseTemplate: { showsDetail = true })
+                                             onUseTemplate: { adopt(item) })
                     .accessibilityIdentifier("discovery.topicPreview.deck")
+                    .disabled(useModel.state == .using)
+                    .safeAreaInset(edge: .bottom) {
+                        if let message = useFailureMessage {
+                            Label(message, systemImage: "exclamationmark.circle")
+                                .cyText(.bodyCompact)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .padding(CYSpacing.md)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(.ultraThinMaterial)
+                                .accessibilityIdentifier("discovery.topicPreview.useMessage")
+                        }
+                    }
             } else {
-                // MP skeleton, not a centred spinner (R7-PC-A7-2).
+                // MP skeleton, not a centred spinner (R7-PC-A7-2); MP status 正在加载主题模板 (topic-preview/index.wxml:7).
                 CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
-                    .accessibilityLabel(Text("discovery.loading"))
+                    .accessibilityLabel(Text("discovery.topicPreview.loading"))
             }
         }
         .navigationDestination(isPresented: $showsDetail) {
-            DiscoveryTopicTemplatePreview(coordinator: makeDetail())
+            DiscoveryTopicTemplatePreview(coordinator: makeDetail()).scopedForAdoption(scope)
+        }
+        .navigationDestination(item: $copiedDraft) { draft in
+            if let editorDestination { editorDestination(draft.id, scope) }
+        }
+        .onChange(of: useModel.openRequest) { _, request in
+            guard let request else { return }
+            if let copiedDestination { copiedDestination(request.topicId) } else { copiedDraft = CopiedTopicDraft(id: request.topicId) }
         }
         .task { if detail.value == nil { await detail.load() } }
+    }
+}
+
+/// A server-confirmed topic draft copied from a template; pushes the topic editor (MP `pages/publish/fabu/index?id=`).
+struct CopiedTopicDraft: Identifiable, Hashable { let id: Int }
+
+extension DiscoveryTopicTemplatePreview {
+    /// Carries the MP `scope` query into the adoption write and the editor push.
+    func scopedForAdoption(_ scope: String?) -> DiscoveryTopicTemplatePreview {
+        var copy = self
+        copy.scope = scope
+        return copy
     }
 }

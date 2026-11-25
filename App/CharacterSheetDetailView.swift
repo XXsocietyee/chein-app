@@ -208,11 +208,11 @@ import QuestifyCore
     private func rpgContent(_ rpg: CharacterRpgSheet) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             if let momentum = rpg.momentum {
-                meterRow(label: Text("characterCard.momentum"), valueText: "\(momentum.value)/\(momentum.max)",
+                meterRow(label: Text("characterCard.momentum"), valueText: "\(momentum.value) / \(momentum.max)",
                          percent: momentum.percent, tint: CYColor.rare)
             }
             ForEach(rpg.clocks) { clock in
-                meterRow(label: Text(clock.label), valueText: "\(clock.value)/\(clock.segments)",
+                meterRow(label: Text(clock.label), valueText: "\(clock.value) / \(clock.segments)",
                          percent: clock.percent, tint: CYColor.brand)
             }
             ForEach(rpg.facets) { traitRow($0) }

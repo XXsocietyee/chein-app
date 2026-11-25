@@ -205,6 +205,12 @@ import SwiftUI
         }
     }
     @ViewBuilder private func insightSections(_ insight: MerchantMarketingInsight) -> some View {
+        // MC8-11-1: 早上好，店名 + logo from the insight's `profile`.
+        Section { MerchantInsightGreeting(profile: insight.metadata["profile"]) }
+        // MC8-11-2/-3/-4/-8: hero number + 环比, 近7/30/90天, daily heat grid, 到店/打卡/核销 switch (unknown facts: none).
+        if MerchantInsightAttribution(insight.facts).counts != nil {
+            MerchantInsightHeroSection(facts: insight.facts, trends: insight.metadata["trends"])
+        }
         MerchantInsightAttributionSummary(summary: .init(insight.facts),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
                 && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight, facts: insight.facts,
@@ -234,6 +240,8 @@ import SwiftUI
         if let slots = MerchantInsightSlots.build(insight.facts) {
             MerchantInsightSlotsSection(slots: slots)
         }
+        // MC8-11-5: 客源主题 after 到店时段.
+        MerchantInsightSourcesSection(facts: insight.facts)
         MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
                 && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
@@ -244,6 +252,8 @@ import SwiftUI
                     .accessibilityIdentifier("merchant.insightCooperationCenter.open")
             }
         }
+        // MC8-11-6: 俱乐部合作 pool cards under 为你推荐的主题.
+        MerchantInsightPoolCardsSection()
         Section("merchantMarketing.recommendedPartners") {
             recommendationRows(insight.recommendedPartners, kind: .partner, insight: insight)
         }
@@ -300,6 +310,17 @@ import SwiftUI
             }
         }
         insightProfile(insight)
+        // MC8-11-7: 经营优化 cards the current role can act on.
+        MerchantInsightGrowTipsSection(access: model.homeAccess,
+            canOpenCoop: marketingLinks?.coopCenter != nil || cooperationCenterAction(insight: insight) != nil,
+            canOpenCoupons: marketingLinks != nil) { tip in
+            switch tip {
+            case .coop:
+                if marketingLinks?.coopCenter != nil { marketingPush = .coopCenter }
+                else { cooperationCenterAction(insight: insight)?() }
+            case .coupon: marketingPush = .coupons
+            }
+        }
     }
     private func recommendationRows(_ rows: [MerchantMarketingValue], kind: MerchantInsightRecommendationRoute.Kind, insight: MerchantMarketingInsight) -> some View {
         let scope = model.service.scope

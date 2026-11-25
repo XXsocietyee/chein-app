@@ -392,6 +392,40 @@
         }
       }
     },
+    "payoutReceiver.bindFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't bind. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绑定失败，请重试"
+          }
+        }
+      }
+    },
+    "payoutReceiver.unbindFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't unbind. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解除失败，请重试"
+          }
+        }
+      }
+    },
     "payoutReceiver.actionFailed": {
       "extractionState": "manual",
       "localizations": {

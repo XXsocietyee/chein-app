@@ -66,7 +66,7 @@ final class BNDTransport: HTTPTransport {
             _ = try await client.cancelQuote(reservationID: id(31), useWaiver: false)
             XCTFail("expected a business failure")
         } catch {
-            XCTAssertEqual(error as? FreeExploreLaunchFailure, .response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED"))
+            XCTAssertEqual(error as? FreeExploreLaunchFailure, .response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED", message: nil))
             XCTAssertNil(error as? APIError)
         }
         XCTAssertEqual(unauthorizedCalls, 0)
@@ -79,7 +79,7 @@ final class BNDTransport: HTTPTransport {
         transport.handler = { _ in (Data(#"{"code":409,"msg":"请先登录","businessCode":"LOGIN_REQUIRED"}"#.utf8), 200) }
         let writer = try makeClient(transport, session: session, writeAllowed: { true }, onUnauthorized: { _ in unauthorizedCalls += 1 })
         do { _ = try await writer.cancel(reservationID: id(31), useWaiver: false, expectedOutcome: "CANCELLED"); XCTFail("expected refusal") }
-        catch { XCTAssertEqual(error as? FreeExploreLaunchFailure, .response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED")) }
+        catch { XCTAssertEqual(error as? FreeExploreLaunchFailure, .response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED", message: nil)) }
         XCTAssertEqual(unauthorizedCalls, 1)
     }
 

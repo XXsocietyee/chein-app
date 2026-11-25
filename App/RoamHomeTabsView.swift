@@ -22,6 +22,8 @@ struct RoamHomeTabPicker: View {
     let nearby: (() -> AnyView)?
     let myTeams: (() -> AnyView)?
     var officialRoutes: (() -> AnyView)? = nil
+    /// ROAM-13 (MP `introTeamsLive`): 附近 N 支队伍在组队 on the map ticket, only from a successful team read; nil/0 hides it.
+    var teamsLive: Int? = nil
     private struct Spec: Identifiable {
         let id: String
         let title: LocalizedStringKey, sub: LocalizedStringKey
@@ -30,12 +32,13 @@ struct RoamHomeTabPicker: View {
         var art: Image? = nil
         let spine: Color
         let destination: () -> AnyView
+        var live: Int? = nil
     }
     private var specs: [Spec] {
         var list = [Spec(id: "roam.home.intro.start", title: "roam.w208.intro.start", sub: "roam.w208.intro.start.sub",
                          symbol: "point.topleft.down.to.point.bottomright.curvepath", art: MPAsset.FeatureIcon.introTicketRoute, spine: Color(red: 0.36, green: 0.75, blue: 0.42), destination: start)]
         if let nearby { list.append(Spec(id: "roam.home.intro.map", title: "roam.w208.intro.map", sub: "roam.w208.intro.map.sub",
-                                         symbol: "map", art: MPAsset.FeatureIcon.introTicketMap, spine: Color(red: 0.36, green: 0.55, blue: 0.88), destination: nearby)) }
+                                         symbol: "map", art: MPAsset.FeatureIcon.introTicketMap, spine: Color(red: 0.36, green: 0.55, blue: 0.88), destination: nearby, live: teamsLive)) }
         if let myTeams { list.append(Spec(id: "roam.home.intro.teams", title: "roam.w208.intro.teams", sub: "roam.w208.intro.teams.sub",
                                           symbol: "person.3", art: MPAsset.FeatureIcon.introTicketTeam, spine: Color(red: 0.93, green: 0.58, blue: 0.27), destination: myTeams)) }
         if let officialRoutes { list.append(Spec(id: "roam.home.intro.officialRoutes", title: "officialRoute.intro", sub: "officialRoute.intro.sub",
@@ -68,6 +71,11 @@ struct RoamHomeTabPicker: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(spec.title).cyText(.cardTitle).foregroundStyle(.black)
                     Text(spec.sub).cyText(.meta).foregroundStyle(.black.opacity(0.6))
+                    if let live = spec.live, live > 0 {
+                        Text("roam.w208.intro.live \(live)").cyText(.meta, weight: .semibold, monospacedDigit: true)
+                            .foregroundStyle(spec.spine.opacity(0.95))
+                            .accessibilityIdentifier("roam.home.intro.live")
+                    }
                 }
                 .padding(14).frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
             }
@@ -119,6 +127,8 @@ struct RoamHomeTabPicker: View {
     var onOpenSelection: ((RoamNearbyEventsEntrySelection) -> Void)? = nil
     /// Loaded card count (nil while loading / failed / unavailable) for the collapsed sheet line.
     var onCount: ((Int?) -> Void)? = nil
+    /// ROAM-13: team count of the last successful team read at this centre (nil = not read / failed).
+    var onTeamsLive: ((Int?) -> Void)? = nil
     let onOpen: (RoamEntryActivityCard) -> Void
     @State private var model = RoamNearbyEventsEntryState()
     @State private var retryTask: Task<Void, Never>?
@@ -212,8 +222,13 @@ struct RoamHomeTabPicker: View {
     }
     private func load() async {
         guard !Task.isCancelled else { return }
-        onBeginRead?()
-        await model.load(reader: reader, teams: teams)
+        onBeginRead?(); onTeamsLive?(nil)
+        var readCount: Int?
+        var counted: ((RoamSearchArea) async -> [NearbyTeam]?)? = nil
+        if let teams { counted = { area in let rows = await teams(area); readCount = rows?.count; return rows } }
+        await model.load(reader: reader, teams: counted)
+        guard !Task.isCancelled else { return }
+        onTeamsLive?(model.visibleTeamState(reader: reader) == .loaded ? readCount : nil)
     }
 }
 

@@ -29,6 +29,36 @@ public struct JourneyFinishOffer: Equatable, Sendable {
         if kind == .pass { props["planCode"] = id }
         return props
     }
+
+    /// `finish-offer.js` `trackPayload`. `topicId` is a number when it is an id.
+    /// Pass `bizType` is `platform_pass` and `bizID` stays nil. Product `bizType` is `marketing_product`
+    /// and `bizID` is the product id. Name and price are not included.
+    public func trackPayload(topicID: String?) -> JourneyFinishOfferAnalytics {
+        var properties: [String: PlayWireValue] = ["offerKind": .string(kind.rawValue)]
+        if kind == .pass, !id.isEmpty { properties["planCode"] = .string(id) }
+        if let topicID, JourneyLoopSource.isID(topicID), let number = Int(topicID), number <= 9_007_199_254_740_991 {
+            properties["topicId"] = .integer(Int64(number))
+        }
+        let bizType = kind == .pass ? "platform_pass" : "marketing_product"
+        let bizID: Int? = {
+            guard kind == .product, JourneyLoopSource.isID(id), let number = Int(id), number <= 9_007_199_254_740_991 else { return nil }
+            return number
+        }()
+        return JourneyFinishOfferAnalytics(bizType: bizType, bizID: bizID, properties: properties)
+    }
+}
+
+public struct JourneyFinishOfferAnalytics: Equatable, Sendable {
+    public static let shown = "finish_offer_shown"
+    public static let click = "finish_offer_click"
+    public let bizType: String
+    public let bizID: Int?
+    public let properties: [String: PlayWireValue]
+    public init(bizType: String, bizID: Int?, properties: [String: PlayWireValue]) {
+        self.bizType = bizType
+        self.bizID = bizID
+        self.properties = properties
+    }
 }
 
 public struct JourneyFinishOfferPassInput: Equatable, Sendable {

@@ -18,14 +18,21 @@ import SwiftUI
             case .loading:
                 CYLoadingState("characterCard.loading", messageIdentifier: "characterCard.loading")
             case .error:
-                CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failureKey),
+                // R7-MEM-24-1: MP `failure()` states (user-character.js:121-131): 登录 / 无权查看 / 暂时无法查看该主题 /
+                // 链接已失效 / 登录状态已变更 / 请更新 / 角色卡暂时无法读取, each with the MP action or none.
+                let failure = CharacterCardFailure(model.issue)
+                CYEmptyState(systemImage: failure.systemImage, LocalizedStringKey(failure.titleKey),
                              messageIdentifier: "characterCard.error",
-                             // MP offers 登录 on the signed-out state (character/index.js:84-91, PLY-24-3).
-                             actionTitle: model.issue == .unauthorized ? "auth.signIn" : "characterCard.refresh",
-                             actionIdentifier: model.issue == .unauthorized ? "characterCard.signIn" : "characterCard.refresh",
-                             kind: .failure) {
-                    if model.issue == .unauthorized { login = true } else { Task { await model.load() } }
-                }
+                             actionTitle: failure.actionKey.map { LocalizedStringKey($0) },
+                             actionIdentifier: failure.actionIdentifier,
+                             kind: .failure,
+                             action: failure.hasAction ? {
+                                 switch failure {
+                                 case .signIn: login = true
+                                 case .missingLink: dismiss()
+                                 default: Task { await model.load() }
+                                 }
+                             } : nil)
             case .unknown:
                 CYEmptyState(systemImage: "person.text.rectangle", "characterCard.unavailable",
                              detailVerbatim: CharacterCardPageModel.unknownStat, messageIdentifier: "characterCard.unknown",
@@ -54,12 +61,64 @@ import SwiftUI
         .onDisappear { model.dismiss() }
     }
 
-    /// Source failure copy: sign in, no access, or a generic retry.
-    private var failureKey: String {
-        switch model.issue {
-        case .unauthorized?: return "characterCard.failure.unauthorized"
-        case .rejected(let code, _)?: return code == 403 ? "characterCard.failure.forbidden" : "characterCard.failure.error"
-        default: return "characterCard.failure.error"
+}
+
+/// R7-MEM-24-1: the MP character page failure states (`STATES` in character/index.js).
+enum CharacterCardFailure: Equatable {
+    case signIn, forbidden, unavailable, missingLink, sessionChanged, upgrade, error
+    init(_ issue: PlayExperienceError?) {
+        switch issue {
+        case .unauthorized?: self = .signIn
+        case .staleSession?: self = .sessionChanged
+        case .unsupported?: self = .upgrade
+        case .rejected(let code, _)?:
+            switch code {
+            case 401, 2: self = .signIn
+            case 403: self = .forbidden
+            case 404: self = .unavailable
+            case 400: self = .missingLink
+            case 426: self = .upgrade
+            default: self = .error
+            }
+        default: self = .error
+        }
+    }
+    var titleKey: String {
+        switch self {
+        case .signIn: return "characterCard.failure.unauthorized"
+        case .forbidden: return "characterCard.failure.forbidden"
+        case .unavailable: return "characterCard.failure.topicUnavailable"
+        case .missingLink: return "characterCard.empty"
+        case .sessionChanged: return "characterCard.failure.sessionChanged"
+        case .upgrade: return "characterCard.failure.upgrade"
+        case .error: return "characterCard.failure.error"
+        }
+    }
+    var systemImage: String {
+        switch self {
+        case .signIn, .forbidden, .sessionChanged: return "lock"
+        case .unavailable: return "questionmark.folder"
+        case .missingLink: return "link.badge.plus"
+        case .upgrade: return "arrow.down.app"
+        case .error: return "exclamationmark.triangle"
+        }
+    }
+    /// MP: 不可查看 and 请更新 carry no action.
+    var hasAction: Bool { self != .unavailable && self != .upgrade }
+    var actionKey: String? {
+        switch self {
+        case .signIn: return "auth.signIn"
+        case .missingLink: return "characterCard.back"
+        case .unavailable, .upgrade: return nil
+        default: return "characterCard.refresh"
+        }
+    }
+    var actionIdentifier: String? {
+        switch self {
+        case .signIn: return "characterCard.signIn"
+        case .missingLink: return "characterCard.back"
+        case .unavailable, .upgrade: return nil
+        default: return "characterCard.refresh"
         }
     }
 }

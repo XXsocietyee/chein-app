@@ -23,9 +23,15 @@ final class NearbyMerchantPageTests: XCTestCase {
     }
 
     func testStaleRowsAreNotShownOutsideAReadyRead() throws {
-        let loaded = try rows(#"[{"id":1,"name":"Fixture"}]"#)
-        XCTAssertTrue(Page.resolve(phase: .failed, rows: loaded).cards.isEmpty)
-        XCTAssertEqual(Page.resolve(phase: .failed, rows: loaded).totalText, dash)
+        let loaded = try rows(#"[{"id":1,"name":"Fixture","cover":"c","logo":"l","businessTime":"10-22","capacity":4,"chargeType":1,"suitActivityTypes":"1","lat":31.2,"lng":121.5}]"#)
+        XCTAssertTrue(Page.resolve(phase: .idle, rows: loaded).cards.isEmpty)
+        XCTAssertTrue(Page.resolve(phase: .permissionDenied, rows: loaded).cards.isEmpty)
+        let kept = Page.resolve(phase: .failed, rows: loaded)
+        XCTAssertEqual(kept.phase, .ready)
+        XCTAssertEqual(kept.cards.map(\.id), [1])
+        XCTAssertEqual(loaded.first?.cover, "c")
+        XCTAssertEqual(loaded.first?.latitude, 31.2)
+        XCTAssertEqual(loaded.first?.longitude, 121.5)
         let ready = Page.resolve(phase: .ready, rows: loaded)
         XCTAssertEqual(ready.phase, .ready)
         XCTAssertEqual(ready.totalText, "1")

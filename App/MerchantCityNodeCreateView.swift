@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 /// Native counterpart of mini `pages/merchant/citynode/create` (报名成为节点).
 /// The template is configured in the existing full merchant template editor; this page only
@@ -146,6 +147,9 @@ import SwiftUI
             if retry {
                 Button { Task { await model.load(); seedIfNeeded() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
                     .buttonStyle(.bordered).frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("cityNodeCreate.retry")
+            } else if identifier == "cityNodeCreate.noPermission" {
+                // MC8-25-2: MP 申请入驻 when the merchant identity is not active yet.
+                MerchantInactiveApplyAction(identifier: "cityNodeCreate.apply")
             }
         }
         .frame(maxWidth: .infinity).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)
@@ -238,6 +242,18 @@ import SwiftUI
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeCreate.template")
     }
 
+    private static func coordinate(_ picked: Picked) -> CLLocationCoordinate2D? {
+        guard let lat = Double(picked.latitude), let lng = Double(picked.longitude), lat.isFinite, lng.isFinite,
+              (-90...90).contains(lat), (-180...180).contains(lng), !(lat == 0 && lng == 0) else { return nil }
+        return CLLocationCoordinate2D(latitude: lat, longitude: lng)
+    }
+    private func openPickedInMaps(_ picked: Picked) {
+        guard let coordinate = Self.coordinate(picked) else { return }
+        let item = MKMapItem(placemark: MKPlacemark(coordinate: coordinate))
+        item.name = picked.name.isEmpty ? MerchantCityNodeCopy.string("merchantCityNode.create.myStore") : picked.name
+        item.openInMaps()
+    }
+
     @ViewBuilder private var addressCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
@@ -253,9 +269,21 @@ import SwiftUI
             let choose: () -> Void = addressSource.map { addressChoice.openAction($0, provider: placeSearch, current: { addressSource }) } ?? {}
             let canChoose = addressSource != nil && placeSearch != nil
             if let picked {
-                Text(verbatim: picked.name.isEmpty ? MerchantCityNodeCopy.string("merchantCityNode.create.myStore") : picked.name).cyText(.bodyMedium)
-                    .accessibilityIdentifier("cityNodeCreate.address.name")
-                if !picked.address.isEmpty { Text(verbatim: picked.address).cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeCreate.address.line") }
+                // MC7-25-4: MP `viewPicked` (cy-addr-tap → wx.openLocation) — the picked address opens the system map.
+                Button { openPickedInMaps(picked) } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: picked.name.isEmpty ? MerchantCityNodeCopy.string("merchantCityNode.create.myStore") : picked.name).cyText(.bodyMedium)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .accessibilityIdentifier("cityNodeCreate.address.name")
+                        if !picked.address.isEmpty { Text(verbatim: picked.address).cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeCreate.address.line") }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(Self.coordinate(picked) == nil)
+                .accessibilityHint(Text("merchantCoop.cityNode.create.viewOnMap"))
+                .accessibilityIdentifier("cityNodeCreate.address.viewOnMap")
                 if fromProfile && !confirmed {
                     Text(verbatim: MerchantCityNodeCopy.format("merchantCityNode.create.profileHint", 80)).cyText(.bodyCompact).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityNodeCreate.address.hint")

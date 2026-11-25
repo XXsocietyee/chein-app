@@ -604,7 +604,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法显示你的媒体，请刷新重试"
+            "value": "当前账号暂不能读取本人媒体，请刷新重试"
           }
         }
       }
@@ -700,7 +700,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录后查看我的媒体"
+            "value": "登录查看本人媒体"
           }
         }
       }
@@ -812,7 +812,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "3D 模型"
+            "value": "模型"
           }
         }
       }

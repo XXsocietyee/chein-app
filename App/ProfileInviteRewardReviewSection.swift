@@ -18,7 +18,7 @@ import SwiftUI
                         .cyText(.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("profile.inviteRewards.cumulative")
                 } else {
-                    Text("social.invites.synchronizing").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
+                    Text("profile.inviteRewards.heroPending").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("profile.inviteRewards.pending")
                 }
                 Group {

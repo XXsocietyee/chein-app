@@ -40,3 +40,20 @@
 --uitesting-club-operations owner
 --uitesting-club-operations ordinary
 --uitesting-club-operations ordinary --uitesting-club-operations-host-apply
+# Round 4 (2026-11-25)
+# detail: post cards lead with the author avatar (d_profile.png); comments empty 还没有评论，来抢沙发, 写评论…; 查看全部成员; pending chip 等待主理人审核
+--uitesting-club-fixture member
+--club-community-fixture
+# leaderboard rows show the member avatar (d_profile fallback)
+--uitesting-club-fixture owner
+# topic-detail: 去选一场 with 2+ sessions opens 选择场次 (half sheet) → the picked session's event ops
+--uitesting-club-governance
+# governance / roles via MP link with memberId: that member listed first and checked; role picker starts with them
+# (deep link) chein://mp/pages/club/governance/index?clubId=<id>&memberId=<mid>
+# (deep link) chein://mp/pages/club/roles/index?clubId=<id>&memberId=<mid>
+# create: guest 登录后创建俱乐部; failed check 创建资格未确认 + 重新检查; last step 创建中… while submitting; media 封面 · 16:9 横图 / Logo 1:1
+# edit: labels 名称* / 城市* / 关键词 / 风格, MP placeholders, 俱乐部介绍 as the section header only
+--uitesting-club-operations owner
+--uitesting-club-operations ordinary
+# event-ops: denied 当前身份不能运营活动; refund line 集合前 24 小时停止退款
+--uitesting-club-governance

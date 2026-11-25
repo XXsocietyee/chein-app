@@ -52,6 +52,36 @@ public enum PublicContentShareLink {
         return url
     }
 
+    /// Mini-program `subpackageRoam/poi-detail/index?id=`. Nil while that path is not already parsed.
+    public static func poi(id: Int) -> URL? {
+        universalLink(path: NativeContentTarget.Kind.poi.sourcePath, id: id)
+    }
+
+    /// Mini-program `pages/talent/list/index?tab=`. Nil while that page is not already a universal link.
+    public static func clubHub(tab: String) -> URL? {
+        guard tab == "feed" || tab == "club", let origin,
+              let link = MiniProgramPageLink(path: "pages/talent/list/index", query: ["tab": tab]) else { return nil }
+        var components = URLComponents(string: origin)
+        components?.path = "/" + link.page
+        components?.queryItems = [URLQueryItem(name: "tab", value: tab)]
+        guard let url = components?.url,
+              let intent = UniversalLinkParser(verifiedHTTPSOrigins: [origin]).parse(url),
+              case .miniProgramPage(let parsed) = intent, parsed == link else { return nil }
+        return url
+    }
+
+    /// Path text for a POI whose route is not a universal link. Not a URL.
+    public static func poiCopyText(id: Int) -> String? {
+        guard canonicalID(String(id)) != nil, poi(id: id) == nil else { return nil }
+        return "\(NativeContentTarget.Kind.poi.sourcePath)?id=\(id)"
+    }
+
+    /// Path text for the talent club hub when it is not a universal link. Not a URL.
+    public static func clubHubCopyText(tab: String) -> String? {
+        guard tab == "feed" || tab == "club", clubHub(tab: tab) == nil else { return nil }
+        return "/pages/talent/list/index?tab=\(tab)"
+    }
+
     /// Path text for a topic template whose route is not a universal link. Not a URL and not a referral.
     public static func topicTemplateCopyText(id: Int) -> String? {
         guard canonicalID(String(id)) != nil, topicTemplate(id: id) == nil else { return nil }

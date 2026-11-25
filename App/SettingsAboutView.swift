@@ -28,11 +28,7 @@ import UIKit
                         .scaledToFit()
                         .frame(width: 112, height: 112)
                         .accessibilityHidden(true)
-                    appName
-                    Text("settingsNative.about.tagline")
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
-                        .multilineTextAlignment(.center)
+                    appName // MP about.wxml: logo + 城瘾 only, no tagline
                 }
                 .frame(maxWidth: .infinity)
                 .listRowBackground(Color.clear)
@@ -56,14 +52,7 @@ import UIKit
                     NavigationLink {
                         SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
                     } label: {
-                        Label {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(LocalizedStringKey(type.titleKey))
-                                if type == .userAgreement {
-                                    Text("settingsNative.about.agreementHint").cyText(.meta).foregroundStyle(palette.textTertiary)
-                                }
-                            }
-                        } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconAgreement) } // MP about: icon_agreement on both
+                        Label { Text(LocalizedStringKey(type.titleKey)) } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconAgreement) } // MP about: icon_agreement on both
                             .environment(\.settingsTileTint, type == .privacyPolicy ? SettingsTint.blue : SettingsTint.gray)
                     }
                     .accessibilityIdentifier("settingsNative.about.openLegal.\(type.rawValue)")

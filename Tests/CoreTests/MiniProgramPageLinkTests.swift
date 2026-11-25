@@ -153,6 +153,22 @@ final class MiniProgramPageLinkTests: XCTestCase {
         XCTAssertEqual(MiniProgramPageLink(path: link.page, query: link.query), link)
     }
 
+    func testMemberLinksOpenWithoutARequiredIdAndKeepOptionalKeys() {
+        XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/market/pass/index", query: [:])?.page,
+                       "subpackageMember/market/pass/index")
+        XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/market/pass-order/index", query: [:])?.page,
+                       "subpackageMember/market/pass-order/index")
+        XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/invoice-detail/index", query: [:])?.page,
+                       "subpackageMember/invoice-detail/index")
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/invoice-detail/index", query: ["id": "0"]))
+        XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/market/gift/index", query: ["mode": "code"])?.query,
+                       ["mode": "code"])
+        XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/coupon/coupon", query: ["scope": "MERCHANT"])?.query,
+                       ["scope": "MERCHANT"])
+        XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/coupon/coupon", query: [:])?.page,
+                       "subpackageMember/coupon/coupon")
+    }
+
     func testRejectsUnknownPagesKeysAndValues() {
         let rejected = [
             "/subpackageMember/market/checkout/index?id=1",                 // no native screen

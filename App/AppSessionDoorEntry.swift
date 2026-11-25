@@ -9,7 +9,8 @@ extension AppSession {
     var merchantMarketingCoordinator: MerchantMarketingCoordinator {
         if let retainedMarketing { return retainedMarketing }
         let service = MerchantMarketingService(configuration: regionalConfiguration?.apiConfiguration,
-            transport: runtimeHTTPTransport, gates: composition.merchantMarketingGates, locks: nil,
+            transport: runtimeHTTPTransport, gates: composition.merchantMarketingGates,
+            locks: safetyDirectory("MerchantPredictionLocks").map { MerchantPredictionFileLocks(directory: $0) },
             currentSession: { [weak self] in
                 guard let self, let account = self.account, let token = self.token, let namespace = self.storageScope?.service else { return nil }
                 return try? MerchantMarketingScope(namespace: namespace, accountID: account.id, epoch: self.gate.currentStamp, token: token)

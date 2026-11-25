@@ -59,13 +59,15 @@ class AINPCContracts(unittest.TestCase):
     def test_gates_default_off_and_allowlist_empty(self):
         for flag in ['storeCharacterSaves', 'storeVoiceEnrollment', 'themeNPCBinding', 'merchantAIDrafts']:
             self.assertIn(f'public var {flag} = false', GATES)
-        self.assertIn('reviewedEndpoints: [RegionalMarket: Set<String>] { [:] }', GATES)
+        self.assertIn('public static var reviewedEndpoints: [RegionalMarket: Set<String>] { [.china: mpFirstChinaEndpoints] }', GATES)  # MP-first 2026-11-25
         self.assertIn('execution == .injectedOfflineHarness || gates.allows(path, market: market)', SERVICE)
         self.assertIn('publishRouteRegistered = false', ISOLATION)
 
     def test_production_binding_is_read_only(self):
+        # MP-first (owner 2026-11-25): reads stay on the operations reader; the MP's npc/decor/voice writes go
+        # through a real-transport backend admitted by MerchantCityNPCParityGates.mpFirst, never the offline harness.
         self.assertIn('StoreCharacterOperationsReader(reader: reader)', BINDING)
-        self.assertNotIn('writer:', BINDING)
+        self.assertIn('gates: .mpFirst', BINDING)
         self.assertNotIn('injectedOfflineHarness', BINDING)
 
     def test_no_capture_or_picker_execution(self):

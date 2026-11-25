@@ -38,7 +38,7 @@ class CityNodeContractChecks(unittest.TestCase):
     def test_gates_default_off_and_production_binding_is_dormant(self):
         gates = read('Core/MerchantCityNPCParityGates.swift')
         self.assertIn('public var cityNodeWrites = false', gates)
-        self.assertIn('public static var reviewedEndpoints: [RegionalMarket: Set<String>] { [:] }', gates)
+        self.assertIn('public static var reviewedEndpoints: [RegionalMarket: Set<String>] { [.china: mpFirstChinaEndpoints] }', gates)  # MP-first 2026-11-25
         binding = read('App/MerchantCityNodeSessionBinding.swift')
         for forbidden in ['injectedOfflineHarness', 'isOfflineFixture: true', 'MerchantContentService(', 'cityNodeWrites = true', 'enabled: true']:
             self.assertNotIn(forbidden, binding)

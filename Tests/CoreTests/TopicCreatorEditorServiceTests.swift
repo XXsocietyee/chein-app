@@ -197,7 +197,8 @@ import FoundationNetworking
                       "/api/topic/author-saved-detail", "/api/topic/play-setup", "/api/topic/publish-draft",
                       "/api/topic/share-code", "/api/topic/state-keys", "/api/topic/state-keys/named",
                       "/api/topic/state-keys/clue.door", "/api/topic/invite-chapters", "/api/topic/chapter/supply-terms",
-                      "/api/topic/host-qrcode", "/api/invoice/apply", "/api/invoice/request", "/api/invoice/cancel",
+                      "/api/topic/host-qrcode", "/api/topic/free-explore/visit-config",
+                      "/api/invoice/apply", "/api/invoice/request", "/api/invoice/cancel",
                       "/api/invoice/titles/save-request", "/api/invoice/titles/request", "/api/invoice/titles/delete"] {
             XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(route), route)
         }

@@ -212,3 +212,153 @@ All rows for half-b files were applied in round 2 or are recorded as skipped the
 - Targeted (every Journey / PlayerGap / ObjectBadge / MPGap test file, 277 tests): same 4 failures + 2 errors as the base. `test_object_badge_3d_preview`, `test_object_badge_wall_layout`, `test_native_ui_accessibility_semantics`, `test_native_repair_batch_integration`: pass.
 - `tools/check_typography_lint.py`, `tools/check_design_lint.py`: PASS. `tools/check_a11y_lint.py`: no finding in these files.
 - APIs grepped on r7 before use: `PlatformPass.overview(token:viewerIsMerchant:)`, `productList(token:)`, `writesReachable`, `PlatformPassOverview.enabled/holding.active/libraryCount/plans`, `PlatformPassPlan.code/title/priceFen`, `PlatformPassProduct.id/name/productKind/cashPrice/pointsPrice/topicIDs`, `JourneyFinishOfferResolver.resolve`, `JourneyFinishOffer(kind:id:name:priceText:)`, `JourneyFinishOfferPassInput/ProductInput` inits, `AppSession.makePlatformPassReader()/mpViewerIsMerchant`, `MPParityRoute.membership/.pass(productID:)`, `mpParityRouteDestination`, `JourneyNodePhoto.url`, `MPRow(leading:)`, `ObjectBadgePresentation.track(category:)`, `ObjectBadgeDetailParameters(query:fallbackName:)`, `ObjectCardRenameValidator`, `CYColor.dangerText`, `MPAsset.FeatureIcon.coupon`, `MPAsset.BadgeMedal.laurel`.
+
+## Round 4 (2026-11-25)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round4.md` (+ `wave-x10.md`, `owner-decisions-1124.md`). Gemini is out of quota, so this round also covers its MP-alignment work for half-b pages.
+- **Sync:** merged `origin/ui/combined-r7` @ `0e1cf578a` (Cursor round 4: W2 wiring, a11y zero baseline, Swift 6; Gemini round 7) at the start, no conflicts.
+- **Layer:** App/ only. No Core, Tests, `Localizable.xcstrings` or project edits. New / overridden strings in `docs/port/strings/fix-r3-play-roam-b.json` (en + zh-Hans).
+
+### 1 · Flows (`flows-g1.md` / `flows-g2.md`, half-b pages)
+
+Every `navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack` in the half-b MP pages was listed from the MP source and checked against the app.
+
+| MP page | edge | app | status |
+|---|---|---|---|
+| seats | 编辑 → gerenziliao; 去起点 → play; missing ids → back / index | as in r7 | ✅ |
+| report | 结算 → settle; 同行席位 → seats; missing → back / index | as in r7 | ✅ |
+| settle | 完局优惠卡 → `offer.url` (membership / pass detail) | round 3 | ✅ |
+| settle | 完成 / 返回: navigateBack, or reLaunch 票夹 when the page stack is empty | the app always pushes settle onto a stack (report, play end, deep link host), so `dismiss()` always has a page to return to; no 票夹 fallback needed | ✅ (native) |
+| promo | none (reached from 我的 / shezhi 邀请与收益, flows-g2 shezhi.js:167) | `SettingsView` row (account-publish, r7) + 我的 | ✅ |
+| monthly-recap / goals / anniversary / export | no page navigation (in-page only); anniversary 查看当前路线 | as in r7; TANNIV-4 shared reviewed route still has no destination | ✅ / see Left |
+| growthcenter | row → leaderboard (metric, period); 去探索 → switchTab index | GROWTH-6 fallback (round 1) | ✅ |
+| leaderboard | 去探索 → switchTab index | same fallback | ✅ |
+| stamp-album | 打开集邮相机 → stamp-camera | session camera (SALBUM-r7-1) | ✅ |
+| stamp-camera | after 已入册 → redirectTo stamp-album | the created stamp opens in the album (`RoamCreatedStampView`) instead of a timed redirect | ✅ (native) |
+| badge-wall | tap → badge-3d `?name=` / `?style=pin&glyph=` | round 3 | ✅ |
+| badge-wall | empty 去探索 → switchTab index | **new:** the empty wall's CTA now falls back to the root tab switch (首页) when no explore action was injected (same `growthExploreFallback` as GROWTH-6); the duplicate header CTA was removed (MP has one) | ✅ |
+| badge-3d | back, else switchTab roam | system back (pushed page) | ✅ (native) |
+| object-cards | category / rename sheets, pile gather | rename mounted (round 3); category sheet + pile still blocked (see Left) | ⚠️ |
+
+### 2 · Image parity (MP image slots → app)
+
+MP `cy-icon` names are the coolicons line-glyph font (`components/cy/icon/icons.wxss`, generated, no PNG); they have no `MPAsset` and stay SF Symbols, like the system-control glyphs. `cy-empty kind="empty"` / `icon="empty-state"` is the two-layer illustration `empty_state_bg` + `empty_state_figure`, which the app draws through `CYEmptyIllustration(.generic)` when a `CYEmptyState` uses the `tray` symbol.
+
+| MP page | MP slot | app | status |
+|---|---|---|---|
+| seats | `head.cover` (server) | `CYCachedAsyncImage(headCoverURL)` | ✅ |
+| seats | seat `avatar` (server) / initial | `MPAvatar(url:initial:)` | ✅ |
+| seats | 怎么玩 tiles `cy-icon {{item.icon}}` | SF line glyphs | ✅ (cy-icon) |
+| seats | state `cy-empty kind=…` (glyph kinds) | `CYEmptyState` glyph | ✅ |
+| promo | `cy-empty kind="empty"` 暂无可核实记录 | **new:** `tray` → MP empty art | ✅ |
+| settle | `cy-icon coupon` / `chevron-right` (finish offer) | `MPAsset.FeatureIcon.coupon` (round 3) / SF chevron | ✅ |
+| settle | `cy-icon star / star-filled` (rating) | SF star | ✅ (cy-icon) |
+| settle | trophy `cy-illus` | `CYMomentSeal` (owner-approved r7 row 12) | ✅ (intended) |
+| settle | share card image (canvas) | `ImageRenderer` card | ✅ |
+| report | node `photoUrl` thumb + preview | 44 pt thumb + paged viewer (round 3) | ✅ |
+| report | memory `item.pic` | **new:** `CYCachedAsyncImage` (JREPORT-7) | ✅ |
+| report | memory `cy-empty kind="empty"` 这一局还没有回忆 | **new:** `tray` → MP empty art | ✅ |
+| report | rank-board laurel | `MPAsset.BadgeMedal.laurel` (round 3) | ✅ |
+| report | `cy-icon arrow-right` rows | SF chevron (disclosure) | ✅ |
+| monthly-recap | `cy-icon back / chevron-right` month arrows | SF chevrons (system control) | ✅ |
+| goals | `cy-empty kind="empty"` 还没有探索目标 | **new:** `tray` → MP empty art | ✅ |
+| goals | `cy-icon plus` (FAB / new) | SF plus | ✅ (cy-icon) |
+| anniversary / export | no image slot | — | ✅ |
+| growthcenter | avatar `avatarUrl \|\| d_profile.png` | `MPAsset.AvatarDefault.dProfile` (round 2); remote avatar not drawn (`test_growth_source_contract` forbids AsyncImage) | ⚠️ owner |
+| growthcenter | badge `iconUrl` else initial | initial disc (same test) | ⚠️ owner |
+| growthcenter | `cy-icon star / chevron-right` | SF | ✅ (cy-icon) |
+| leaderboard | `avatarUrl` else memoji 1/2/3 | `MPAsset.AvatarDefault.memoji1/2/3` (round 2) | ✅ |
+| leaderboard | `cy-empty kind="empty"` 这张榜还没有人上榜 | **new:** `tray` → MP empty art | ✅ |
+| leaderboard | crown `cy-icon star` | SF star (round 2) | ✅ (cy-icon) |
+| stamp-camera | live camera / shot; `cy-icon close-sm` | AVFoundation preview; SF xmark (mapping: keep) | ✅ |
+| stamp-album | stamp `picUrl` | `RoamStampImage` (https only); **new:** VoiceOver 城市签图片 (SALBUM-8) | ✅ |
+| stamp-album | signed-out `icon="empty-state"` | shared `RoamExperienceIssue` (half a / shared roam component, text + SF) | ⚠️ shared |
+| stamp-album | 还没有邮票 (no kind → no art) | `rectangle.stack` themed glyph | ✅ |
+| stamp-album | `cy-icon plus` FAB | SF plus | ✅ (cy-icon) |
+| badge-wall | `iconUrl` → generated pin → `cy-icon star` | `MPAsset.BadgeMedal.badgeDemo` stand-in (remote art is BWALL-2, Gemini/Cursor) | ⚠️ (see Left) |
+| badge-wall | empty `icon="empty-state"` | `CYEmptyState(systemImage: "medal")` — `test_object_badge_wall_layout` pins that exact line; needs `"tray"` (Cursor) | ⚠️ Cursor |
+| badge-wall | `icon_close_sm.png`, `icon_right.png` | SF xmark / chevron (mapping: keep) | ✅ |
+| badge-3d | `fallbackSrc` → `badge-demo.png` | `MPAsset.BadgeMedal.badgeDemo` (round 2) | ✅ |
+| badge-3d | WebGL matcap `gold_matcap` | SceneKit material (no texture slot) | ⏭ |
+| object-cards | `catIcon[filter]` / sheet `catIcon[key]` | `MPAsset.FeatureIcon.*` (round 2; sheet ready in round 3) | ✅ |
+| object-cards | `cutoutUrl` | `ObjectCardArtwork` (bounded media policy) | ✅ |
+| object-cards | `cy-icon edit / list / gps` | SF pencil / list / location | ✅ (cy-icon) |
+| object-cards | error `icon="empty-state"` 藏品册无法打开 | inline error text (no full-page error state on this screen) | ⚠️ |
+
+### 3 · Copy (MP text → app)
+
+All MP Chinese literals of the 15 half-b pages were extracted (wxml + js, comments stripped) and matched against the catalog. Fixed this round (fragment keys, en + zh-Hans; existing keys overridden where the key is page-specific):
+
+| page | MP text | key |
+|---|---|---|
+| seats | 邀请失败 (OK answer without a token, or no server message) / 撤销失败 | new `mp.seats.invite.failed`, `mp.seats.cancel.failed` |
+| settle | 分数 (overview cell; report keeps 解谜分) | new `mp.settle.score` |
+| settle | 评价暂时无法提交 (non-OK without a message) | new `mp.settle.rate.failed` |
+| growthcenter | 登录后查看成长记录 / 当前身份不能查看成长记录 | new `mp.growth.signInRequired`, `mp.growth.denied` (see note) |
+| growthcenter | 排行榜加载失败 (score card) / 部分成长数据暂时不可用 (足迹) / 成长数据没有加载出来 (徽章) | new `mp.growth.boardFailed`, `mp.growth.overviewFailed`, `mp.growth.badgesFailed` |
+| leaderboard | 排行榜加载失败 / 当前内容无法查看 | `mp.growth.boardFailed`, new `mp.growth.boardDenied` |
+| monthly-recap | 读取下一页记录 (VoiceOver) | new `roam.tools.recap.nextPage.a11y` |
+| anniversary | 读取更早的回忆, 查看当前路线 {title} (VoiceOver) | new `roam.tools.anniversary.more.a11y`, `roam.tools.anniversary.openRoute.a11y %@` |
+| goals | 读取更多目标 (VoiceOver) | new `roam.goals.more.a11y` |
+| export | 分享完整文件 / 保存完整文件 (VoiceOver) | new `roam.export.share.a11y`, `roam.export.save.a11y` |
+| badge-wall | 登录后查看我的勋章, 勋章数据没有到达, tile meta 还没点亮 | override `badgeWall.state.signIn`, `badgeWall.state.error`, `objects.badge.meta.locked` |
+
+Note: the growth keys use an `mp.growth.` prefix on purpose. `test_growth_center_index_page_ready` and `test_growth_source_contract` compare every `"growth.…"` literal in the Growth sources with `docs/growth-center-localizations.json` and the catalog, so overriding `growth.signInRequired` / `growth.denied` / `growth.badges.empty` in a fragment would break those pins after the merge. `growth.badges.empty` (MP 还没有点亮任何徽章) is therefore left; see Left. For the same reason, overrides of keys pinned elsewhere were **not** made (or were removed): `roam.goals.retryOriginal` (以原操作重试), `roam.goals.cancelMessage` (round-2 TGOALS-5, …此操作不可撤销。) and `roam.export.sourceChanged` (来源已变化…) are pinned by `tools/build_roam_private_tools_localizations.py` (`test_roam_private_tools`); `objects.login` (登录后查看自己的册子) and `objects.failed` (藏品册无法打开) by `Resources/ObjectCardLocalizations.fragment.json` (`test_native_repair_batch_integration`); `stampAlbum.denied` (当前身份不能查看) by `Resources/W210GrowthBadgeStampLocalizations.fragment.json`.
+
+Already equal before this round (spot-checked): seats / promo / report / settle state titles, tools page titles and empty lines, leaderboard empty + hint, stamp-album 还没有邮票 / 打开集邮相机, badge-wall 还没有点亮勋章 / 去探索, object-cards category names.
+
+### 4 · P2 rows (audit/parity-r7-play-roam, Claude)
+
+| id | change | files |
+|---|---|---|
+| JSETTLE-8 | an earlier progress dot steps back (MP onBack = previous step), 44 pt targets; VoiceOver adjustable (swipe down = previous step); the system back still leaves 结算 | App/JourneyReportViews.swift |
+| JSETTLE-9 | rank-step heading `.cardTitle` + header trait (MP `st-h`) | App/JourneyReportViews.swift |
+| JSETTLE-10 | overview numbers one line, scale to 0.7 (SE / AX sizes) | App/JourneyReportViews.swift |
+| settle row 25 (L09-059) | an accepted rating is never sent twice (提交 again shows thanks); a different draft after a failed submit drops the kept `request_id` | App/PlayerJourneyReadBindings.swift |
+| JREPORT-7 | memory photos on `CYCachedAsyncImage` (cache, placeholder, failure tile), 16:10 instead of a fixed 180 pt crop | App/JourneyReportViews.swift |
+| JSEAT-10 (part) | invite sheet `[.medium, .large]` for large Dynamic Type. Save-image stays out (photo-library write; privacy gate) | App/JourneyLandingViews.swift |
+| JSEAT-11 (part) | only the expired circle dims; the 已过期 label keeps `textSecondary` contrast | App/JourneyLandingViews.swift |
+| SALBUM-8 | real stamps read 城市签图片; 城市示例插图 only for the offline example | App/RoamStampViews.swift |
+| TRECAP-3 / GROWTH-7 / SALBUM-5 residue | `.font(Theme.Font.body)` ×2, `.font(.headline)`, `.font(.caption.monospaced())` → `cyText` | App/RoamPassportToolsViews.swift, App/RoamMonthlyRecapDetailView.swift, App/GrowthCenterView.swift, App/RoamStampViews.swift |
+| LEADER-4 residue | error title 排行榜加载失败 (above) | App/GrowthLeaderboardView.swift, App/GrowthCenterComponents.swift |
+
+Open P1 for half b: none owned by Claude (SCAM-2 rest, JSEAT-8 are owner rulings).
+
+### 5 · Accessibility lint
+
+`python3 -B tools/check_a11y_lint.py`: **no finding in half-b files.** The one current finding is `App/ClubKit/ClubWorkbenchKit.swift:261` (club area, present on `origin/ui/combined-r7` before this branch); left to the club owner to avoid a cross-area edit.
+
+### Still left (round 4)
+
+| id | why |
+|---|---|
+| SCAM-1, SALBUM-1 (P0); SCAM-2 rest, JSEAT-8, TGOALS-6 | owner (unchanged) |
+| seats 可转赠 / 转赠第 N 席 sheet (MP DEC-F12 B, `api.seatTransferPhone`, `lobby.transferable`) | new MP feature; Core has no seat-transfer contract or `transferable` field — Cursor first, then the App sheet |
+| growth `growth.badges.empty` → 还没有点亮任何徽章 | the value is pinned by the growth catalog tests (`docs/growth-center-localizations.json`); Cursor to re-pin, then a one-value fragment override |
+| goals 以原操作重试 / cancel …此操作不可撤销。, export 来源已变化…, objects 登录后查看自己的册子 / 藏品册无法打开, stamp-album 当前身份不能查看 | catalog values pinned by `tools/build_roam_private_tools_localizations.py`, `Resources/ObjectCardLocalizations.fragment.json`, `Resources/W210GrowthBadgeStampLocalizations.fragment.json`; Cursor to update those sources, then the overrides go in (the round-2 `roam.goals.cancelMessage` override was removed from my fragment for this reason) |
+| growth remote avatar / badge icon | `test_growth_source_contract` forbids `AsyncImage` in Growth*.swift (owner) |
+| badge-wall empty art (`"medal"` → `"tray"`) | `test_object_badge_wall_layout` pins `CYEmptyState(systemImage: "medal", "badgeWall.empty"` (Cursor) |
+| OCARDS-3 category sheet, OCARDS-2 pile, BWALL-2/3 grid | still blocked by the `Menu {` pin and the media-policy issues listed in round 3 |
+| stamp-album / badge-wall signed-out empty art, roam `RoamExperienceIssue` copy (登录后查看自己的册子, 集邮册无法打开) | shared roam / profile components used by half-a pages too |
+| JSEAT-10 save image | photo-library write behind the privacy gate (owner) |
+| SALBUM-6, TGOALS-4, TEXPORT pending retry, GROWTH-9 / LEADER-7 refresh pins, finish-offer analytics | Cursor (unchanged) |
+| TANNIV-4 | shared reviewed route has no destination |
+
+### Requests for Cursor (round 4)
+
+- Seat transfer by phone: `seatTransferPhone(registrationId, seatNo, name, phone, requestId)` contract and `lobby.transferable` decode (MP `subpackageJourney/pages/seats/index.js:150-178`, DEC-F12 B).
+- Update the pinned copy sources above (roam private tools generator, ObjectCard and W210 fragments) to the MP text.
+- Re-pin `growth.badges.empty` in the growth catalog tests to 还没有点亮任何徽章 (MP growthcenter wxml:62).
+- Allow `CYEmptyState(systemImage: "tray", "badgeWall.empty"` in `test_object_badge_wall_layout` (MP badge-wall `icon="empty-state"`).
+- Round 2/3 requests still open (`RoamExplorationGoal.progress: Int?`, Growth refresh pins, `Menu {` pin, finish-offer analytics).
+
+### Checks run here (no compiler in the cloud)
+
+- Full `python3 -m unittest discover -s Tests/ContractChecks`: `origin/ui/combined-r7` (clean worktree) 223 FAIL/ERROR. This branch as pushed: the same set plus two that only read the merged catalog (`test_no_looked_up_key_is_missing_from_every_catalog`, `test_roam_private_tools.test_reviewed_source_contracts_all_pass`: the new fragment keys are not in `Localizable.xcstrings` yet). With the fragment merged into the catalog (simulated, then reverted): **0 new failures** against the base.
+- Targeted growth / badge / object / stamp / journey / roam checks: pass (same as base) with the fragment merged.
+- `tools/check_typography_lint.py` PASS (Theme.Font 7 → 5), `tools/check_design_lint.py` PASS, `tools/check_a11y_lint.py`: no finding in half-b files (the one finding is club, see §5).
+- APIs grepped on r7 before use: `RootTabSwitch.growthExploreFallback(_:)`, `CYEmptyIllustration.kind(matching:)` (`tray` → generic MP art), `CYCachedAsyncImage(_:role:)`, `CYSpacing.minTouchTarget`, `cySheet(detents:)`, `JourneyEnvelope.message/unconfirmed`, `appLocalized(_:locale:)`, `cyText(_:weight:monospacedDigit:)` on `View` and `Text`, `@ObservationIgnored` (used in App already).
+
+### Fixtures / acceptance
+
+No new screen or state this round; the 26 routes in `docs/port/accept/f-play-roam-b.txt` cover the changed pages (settle, report, seats, promo, growth, leaderboard, stamp album, badge wall, tools).

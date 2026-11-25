@@ -58,8 +58,12 @@ public enum NearbyMerchantPage {
 
     public static func resolve(phase: NearbyMerchantCoordinator.Phase, rows: [NearbyMerchantRow]) -> Resolution {
         let mapped = mappedPhase(phase, rowCount: rows.count)
-        let cards = mapped == .ready ? rows.map(card) : []
-        return Resolution(phase: mapped, totalText: totalText(phase: mapped, count: cards.count), cards: cards)
+        // A failed refresh keeps the previous cards. Idle, consent, and permission states still hide them.
+        let retained = (phase == .failed || phase == .locationFailed) && !rows.isEmpty
+        let shown = mapped == .ready || retained
+        let cards = shown ? rows.map(card) : []
+        let display: Phase = retained ? .ready : mapped
+        return Resolution(phase: display, totalText: totalText(phase: display, count: cards.count), cards: cards)
     }
 
     static func mappedPhase(_ phase: NearbyMerchantCoordinator.Phase, rowCount: Int) -> Phase {

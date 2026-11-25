@@ -117,10 +117,10 @@ import FoundationNetworking
 
     func testClaimErrorsAreIndistinguishable() async throws {
         let failures: [FreeExploreLaunchFailure] = [
-            .response(status: 200, code: 400, businessCode: BundleTransferBusinessCode.codeInvalid),
-            .response(status: 404, code: 404, businessCode: BundleTransferBusinessCode.codeInvalid),
-            .response(status: 400, code: 400, businessCode: BundleTransferBusinessCode.phoneMismatch),
-            .response(status: 400, code: 400, businessCode: BundleTransferBusinessCode.selfTransfer)
+            .response(status: 200, code: 400, businessCode: BundleTransferBusinessCode.codeInvalid, message: nil),
+            .response(status: 404, code: 404, businessCode: BundleTransferBusinessCode.codeInvalid, message: nil),
+            .response(status: 400, code: 400, businessCode: BundleTransferBusinessCode.phoneMismatch, message: nil),
+            .response(status: 400, code: 400, businessCode: BundleTransferBusinessCode.selfTransfer, message: nil)
         ]
         var phases: [BundleTransferClaimPhase] = []
         for failure in failures {
@@ -135,7 +135,7 @@ import FoundationNetworking
         XCTAssertEqual(Set(phases.map { "\($0)" }).count, 1)
         XCTAssertEqual(phases.first, .codeNotAccepted)
         // Control: an unrelated server code is NOT collapsed into the generic state.
-        let other = BNDTransferStub(); other.claimResult = .failure(FreeExploreLaunchFailure.response(status: 500, code: 500, businessCode: "OTHER"))
+        let other = BNDTransferStub(); other.claimResult = .failure(FreeExploreLaunchFailure.response(status: 500, code: 500, businessCode: "OTHER", message: nil))
         let model = try claimModel(other, BNDTransferMemoryStorage())
         await model.claim(code: secret)
         XCTAssertEqual(model.phase, .failed(code: "OTHER"))
@@ -153,7 +153,7 @@ import FoundationNetworking
         // The server may also refuse at create time; the model just reports it.
         let late = BNDTransferStub()
         late.previewResult = .success(try preview(eligible: true))
-        late.sendResult = .failure(FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: BundleTransferBusinessCode.notEligible))
+        late.sendResult = .failure(FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: BundleTransferBusinessCode.notEligible, message: nil))
         let lateModel = try sendModel(late, BNDTransferMemoryStorage())
         await lateModel.loadPreview(registrationID: try id(11))
         await lateModel.confirm(phone: phone, channel: .inApp)
@@ -173,7 +173,7 @@ import FoundationNetworking
         await shown.load(registrationID: try id(11))
         XCTAssertEqual(shown.state, .shown(quote))
         let refused = BundleTransferPayerRefundQuoteModel(quote: { _ in
-            throw FreeExploreLaunchFailure.response(status: 200, code: 404, businessCode: "BUNDLE_NOT_FOUND")
+            throw FreeExploreLaunchFailure.response(status: 200, code: 404, businessCode: "BUNDLE_NOT_FOUND", message: nil)
         })
         await refused.load(registrationID: try id(11))
         XCTAssertEqual(refused.state, .unavailable(code: "BUNDLE_NOT_FOUND"))
@@ -225,7 +225,7 @@ import FoundationNetworking
         // Login loss (business 409 + LOGIN_REQUIRED) must not clear the pending command.
         let login = BNDTransferStub(); let loginStorage = BNDTransferMemoryStorage()
         login.previewResult = .success(try preview(eligible: true))
-        login.sendResult = .failure(FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: BundleTransferBusinessCode.loginRequired))
+        login.sendResult = .failure(FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: BundleTransferBusinessCode.loginRequired, message: nil))
         let loginModel = try sendModel(login, loginStorage)
         await loginModel.loadPreview(registrationID: try id(11))
         await loginModel.confirm(phone: phone, channel: .inApp)

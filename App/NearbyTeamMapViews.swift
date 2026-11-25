@@ -65,10 +65,12 @@ struct NearbyTeamMapSection: View {
     let items: [RoamMapItem]
     let selectedExtraID: String?
     let onSelectExtra: ((RoamMapItem) -> Void)?
+    /// RNEAR-2: full-bleed host (CYMapScaffold) instead of the 270 pt inline map.
+    let fillsHeight: Bool
     init(center: RoamSearchArea, teams: [NearbyTeam], focusedID: NearbyTeamID?, items: [RoamMapItem] = [],
-         selectedExtraID: String? = nil, onSelectExtra: ((RoamMapItem) -> Void)? = nil,
+         selectedExtraID: String? = nil, onSelectExtra: ((RoamMapItem) -> Void)? = nil, fillsHeight: Bool = false,
          onFocus: @escaping (NearbyTeamID) -> Void) {
-        self.center = center; self.teams = teams; self.focusedID = focusedID; self.items = items
+        self.center = center; self.teams = teams; self.focusedID = focusedID; self.items = items; self.fillsHeight = fillsHeight
         self.selectedExtraID = selectedExtraID; self.onSelectExtra = onSelectExtra; self.onFocus = onFocus
     }
     private var markers: [NearbyTeamMarker] { NearbyTeamBridge.markers(teams) }
@@ -97,7 +99,7 @@ struct NearbyTeamMapSection: View {
                     let rows = items.filter { "discovery-" + $0.id == id && $0.coordinate != nil }
                     if rows.count == 1, let item = rows.first { onSelectExtra?(item) }
                 }
-            })
+            }, fillsHeight: fillsHeight)
             .accessibilityIdentifier("nearby.w208.map")
     }
 }

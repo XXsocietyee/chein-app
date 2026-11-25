@@ -70,7 +70,28 @@ class ClubCustomerPermissionContracts(unittest.TestCase):
                          b'            fields["pageNum"] = .integer(1); fields["pageSize"] = .integer(ClubOpsCustomerListPresentation.pageSize)\n')
         pre_paging = b'            allowed = ["filter", "keyword"]; fields["filter"] = .string("all"); fields["keyword"] = .string("")\n'
         self.assertEqual(contracts_raw.count(parity_paging), 1)
-        contracts_raw = contracts_raw.replace(parity_paging, pre_paging, 1)
+        # MP pages/club/governance/index.js:270-277: club:member:manage is not enough. The page also requires
+        # CLUB_OWNER or CLUB_CO_OWNER and says 仅主理人与联合主理人可进行成员治理. This tightens allows(); it is
+        # reversed here so the P044 byte restore still proves every other span is the admitted source.
+        governance = (
+            '    /// Member governance (临时封禁) is owner or co-owner only, even when `club:member:manage` is present.\n'
+            '    public var canGovernMembers: Bool {\n'
+            '        permissions.contains("club:member:manage") && (roleCodes.contains("CLUB_OWNER") || roleCodes.contains("CLUB_CO_OWNER"))\n'
+            '    }\n'
+            '    public static let memberGovernanceDenial = "仅主理人与联合主理人可进行成员治理"\n'
+        ).encode()
+        manage = (
+            '        if permission == "club:member:manage" {\n'
+            '            let eventGrant = scope.activityID.map { activityID in\n'
+            '                eventAccesses.contains { $0["activityId"].int == activityID && ($0["permissions"].array ?? []).contains(.string(permission)) }\n'
+            '            } ?? false\n'
+            '            let granted = permissions.contains(permission) || eventGrant\n'
+            '            return granted && (roleCodes.contains("CLUB_OWNER") || roleCodes.contains("CLUB_CO_OWNER"))\n'
+            '        }\n'
+        ).encode()
+        self.assertEqual(contracts_raw.count(governance), 1)
+        self.assertEqual(contracts_raw.count(manage), 1)
+        contracts_raw = contracts_raw.replace(parity_paging, pre_paging, 1).replace(governance, b'', 1).replace(manage, b'', 1)
         self.assertIsInstance(restore_product_source('Core/ClubGovernanceContracts.swift', contracts_raw.replace(r4_uses_form, b'', 1)), bytes)
         self.assertIsInstance(restore_product_source('Core/ClubCustomerHistoryTopicRoute.swift', (ROOT / 'Core/ClubCustomerHistoryTopicRoute.swift').read_bytes()), bytes)
 
@@ -89,7 +110,18 @@ class ClubCustomerPermissionContracts(unittest.TestCase):
     def test_existing_production_fixture_changes_only_allow_evidence(self):
         from tools.club_customer_directory_admission import restore_product_source
         path = 'Tests/CoreTests/ClubGovernanceProductionTests.swift'
-        restored = restore_product_source(path, (ROOT / path).read_bytes())
+        raw = (ROOT / path).read_bytes()
+        # MP pages/club/governance/index.js:466-476 sends durationDays (the server clock owns the expiry;
+        # choices are 7/30/90). index.js:270-277 admits member governance only for CLUB_OWNER or CLUB_CO_OWNER,
+        # so the ban-flow access fixture is CLUB_OWNER. Both edits reverse to the admitted P044 bytes.
+        # The restored baseline hash is unchanged: any other fixture byte still fails the restore.
+        self.assertEqual(raw.count(b'"durationDays": .integer(30)'), 2)
+        raw = raw.replace(b'"durationDays": .integer(30)', b'"expiresAt": .string("2026-10-10")')
+        owner = b'payload = "{\\"active\\":true,\\"club\\":{\\"id\\":81},\\"roleCodes\\":\\(banFlow ? "[\\"CLUB_OWNER\\"]" : "[\\"CLUB_MEMBER\\"]"),\\"permissions\\":\\(allowed ? (chapterFlow ? "[\\"club:content:manage\\"]" : (banFlow ? "[\\"club:member:manage\\"]" : "[\\"club:member:list:read\\",\\"club:member:manage\\"]")) : "[]"),\\"canManageRoles\\":false}"'
+        member = b'payload = "{\\"active\\":true,\\"club\\":{\\"id\\":81},\\"roleCodes\\":[\\"CLUB_MEMBER\\"],\\"permissions\\":\\(allowed ? (chapterFlow ? "[\\"club:content:manage\\"]" : (banFlow ? "[\\"club:member:manage\\"]" : "[\\"club:member:list:read\\",\\"club:member:manage\\"]")) : "[]"),\\"canManageRoles\\":false}"'
+        self.assertEqual(raw.count(owner), 1)
+        raw = raw.replace(owner, member, 1)
+        restored = restore_product_source(path, raw)
         self.assertEqual(hashlib.sha256(restored).hexdigest(), '7ec52b15675c3a14de89bd27b32b28b9079d28fc6da784337e2a1f16fc82aa5f')
 
 

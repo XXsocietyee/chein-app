@@ -9,12 +9,14 @@ import SwiftUI
         return value // points/mall remain false unless existing source gates explicitly supply them.
     }()
     var body: some View {
-        // CoopFlowReading has no coop-finance grant. Session presence is not that grant, so this host does not send api/coop/finance.
+        // R8-PC-D4-1 MP-first: the MP income detail always offers 主办分润 and reads api/coop/finance
+        // (subpackageA/components/scene-asset-income-detail/index.js:35-38); the server decides. A read, not a money write.
+        // The same reader already serves the pages/coop/finance deep link. The pane still needs a session and mount.
         WalletCommerceHomeView(reader: session.walletHistoryReader, visibility: visibility,
             onCooperationFinance: {},
             invitationHistory: WalletInvitationHistoryAccess(session: session),
             showsCooperationFinance: false, // no coop-finance grant here: never render a button whose action is a no-op
-            organizerFinance: WalletOrganizerFinanceAccess(reader: session.cooperationFlowReader, allowsRead: { false }) {
+            organizerFinance: WalletOrganizerFinanceAccess(reader: session.cooperationFlowReader, allowsRead: { true }) {
                 CoopFlowReadView(reader: session.cooperationFlowReader, resource: .finance, title: "coopflow.finance")
             },
             clubSettlement: { AnyView(ClubSettlementMineView().environmentObject(session)) },

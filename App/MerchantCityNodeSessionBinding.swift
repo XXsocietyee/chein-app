@@ -7,6 +7,14 @@ extension AppSession {
         MerchantCityNodeHubView(service: merchantContentService, businessReader: merchantBusinessReader,
                                 businessJournal: merchantBusinessJournal, placeSearch: PublishingMapKitAdapter())
             .id(merchantContentService.scope)
+            .environment(\.merchantIdentityInactive, merchantIdentityInactiveProbe)
+    }
+    /// MC8-24-7 / MC8-25-2: one `access/me` read; true only for an existing but inactive merchant identity.
+    var merchantIdentityInactiveProbe: @MainActor () async -> Bool {
+        { [weak self] in
+            guard let self, let access = try? await self.merchantAccess() else { return false }
+            return !access.active
+        }
     }
 }
 

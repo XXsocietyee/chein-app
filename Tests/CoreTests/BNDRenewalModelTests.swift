@@ -121,11 +121,11 @@ import Foundation
 
     func testDefiniteRefusalClearsPendingAndAllowsNewSubmit() async throws {
         let service = RenewalDouble()
-        service.submitHandler = { _ in throw FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED") }
+        service.submitHandler = { _ in throw FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED", message: nil) }
         let m = try model(service)
         await m.submit(intent: .no, note: nil)
         XCTAssertEqual(m.phase, .failed)
-        XCTAssertEqual(m.failure, .response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED"))
+        XCTAssertEqual(m.failure, .response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED", message: nil))
         XCTAssertTrue(m.canSubmit)
     }
 
