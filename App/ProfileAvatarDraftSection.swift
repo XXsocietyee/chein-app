@@ -263,7 +263,8 @@ import UIKit
                     .accessibilityIdentifier("profile.case.limit")
             } else if kind == .casePicture || staged.isEmpty {
                 Button { guard scenePhase == .active else { return }; presentation.open() } label: {
-                    Label(addKey, systemImage: kind == .casePicture ? "photo.badge.plus" : "qrcode.viewfinder")
+                    // MP gerenziliao.wxml:121/140 upload tile `/pages/gerenziliao/images/d_sctb.png` (works and QR alike).
+                    Label { Text(addKey) } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.dSctb, side: 22) }
                 }
                 .disabled(!presentation.canOpen || model.busy || model.coordinator.isLocked || scenePhase != .active)
                 .accessibilityIdentifier("profile.media.add.\(kind.rawValue)")
