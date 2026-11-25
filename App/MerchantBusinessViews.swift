@@ -449,6 +449,8 @@ import SwiftUI
     @State private var selection: Set<Int> = []
     @State private var pendingMutation: MerchantBusinessMutation?
     @State private var pendingMutationEditorID: UUID?
+    /// MC8-29-3/-4: the MP destructive confirm for 移除成员 / 撤销邀请 (fixed reason, no typed reason).
+    @State private var pendingTeamDanger: MerchantTeamDangerConfirm?
     @State private var reviewSourceDestination: MerchantReviewSourcePage?
     private let reviewSource: MerchantReviewSourcePage?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {
@@ -734,6 +736,10 @@ import SwiftUI
         .cyDomainScreen(.merchant)
         .appNavigationTitle(key: query.titleKey).navigationBarTitleDisplayMode(.inline)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
+        .modifier(MerchantTeamDangerConfirmModifier(pending: $pendingTeamDanger) { mutation in
+            guard editor == nil, pendingMutation == nil, sourcePageCanPrepare(mutation) else { return }
+            model.prepare(mutation)
+        })
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
         .background {
@@ -1230,7 +1236,7 @@ import SwiftUI
                 Menu {
                     Button("merchant.business.changeRole") { editor = .init(kind: .role(row)) }
                     Divider()
-                    Button("merchant.business.removeOperator", role: .destructive) { editor = .init(kind: .removeOperator(row)) }
+                    Button("merchant.business.removeOperator", role: .destructive) { pendingTeamDanger = .init(kind: .removeOperator, row: row) }
                 } label: {
                     Label("merchantCoop.team.memberActions", systemImage: "ellipsis.circle")
                         .frame(minHeight: CYSpacing.minTouchTarget)
@@ -1238,7 +1244,7 @@ import SwiftUI
                 .accessibilityIdentifier("merchant.team.memberActions.\(row.id)")
             }
             if row.kind == .invite, row.fields.mbText("status") == "PENDING" {
-                Button("merchant.business.revokeInvite", role: .destructive) { editor = .init(kind: .revokeInvite(row)) }
+                Button("merchant.business.revokeInvite", role: .destructive) { pendingTeamDanger = .init(kind: .revokeInvite, row: row) }
             }
         }
     }

@@ -1,0 +1,107 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "merchantTeam.danger.removeBody": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Their merchant access ends immediately. Existing business records and transactions are kept. This can't be undone; to restore access, invite them again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除后对方的商家权限立即失效。已经产生的经营记录与流水保留，不会被删掉；此操作不可撤销，要恢复只能重新邀请一次。"
+          }
+        }
+      }
+    },
+    "merchantTeam.danger.removeConfirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove member"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除成员"
+          }
+        }
+      }
+    },
+    "merchantTeam.danger.removeTitle %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove team member \"%@\"?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除团队成员「%@」？"
+          }
+        }
+      }
+    },
+    "merchantTeam.danger.revokeBody": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation links already sent stop working immediately. This can't be undone; to invite again, send a new invitation (its code is shown only once)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销后已经发出的邀请链接立即失效，已经发出去的邀请链接立刻打不开。此操作不可撤销；要重新邀请需要另发一条，凭证只显示一次。"
+          }
+        }
+      }
+    },
+    "merchantTeam.danger.revokeConfirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revoke invitation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销邀请"
+          }
+        }
+      }
+    },
+    "merchantTeam.danger.revokeTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revoke this invitation?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销这条邀请？"
+          }
+        }
+      }
+    }
+  }
+}
