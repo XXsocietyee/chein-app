@@ -452,7 +452,7 @@ struct TopicXcxToolbarActions: View {
                         .frame(width: 22, height: 22)
                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 }
-                .accessibilityLabel(Text(isFavorited == true ? "roam.favorited" : "roamSub.w208.poi.favorite"))
+                .accessibilityLabel(Text(LocalizedStringKey(isFavorited == true ? "topic.favorite.remove" : "topic.favorite.add"))) // MP aria 取消收藏 / 收藏主题
                 .accessibilityIdentifier("topic.cta.favorite")
             }
             if let shareURL {
@@ -460,7 +460,7 @@ struct TopicXcxToolbarActions: View {
                     Image(systemName: "square.and.arrow.up")
                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 }
-                .accessibilityLabel(Text("mp.common.share"))
+                .accessibilityLabel(Text("topic.share.mp")) // MP topic/index.wxml:113 aria 分享主题
                 .accessibilityIdentifier("topic.cta.share")
             }
         }

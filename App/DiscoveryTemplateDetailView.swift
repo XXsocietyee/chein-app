@@ -53,7 +53,7 @@ struct DiscoveryTemplateDetailView: View {
             } else if detail.isLoading || loadedKey != requestKey {
                 CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
             } else if let error = detail.error {
-                DiscoveryErrorView(error: error) { Task { await reload() } }
+                DiscoveryErrorView(error: error, failureTitle: "discovery.play.openFailed") { Task { await reload() } }
             } else if let read = detail.value {
                 let item = read.template
                 let parity = read.extras != nil ? DiscoveryPlayTemplateDetailPresentation(read, ownScope: false) : nil
@@ -326,7 +326,7 @@ struct DiscoveryTopicTemplatePreview: View {
                 CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
                     .accessibilityLabel(Text("discovery.loading"))
             } else if let error = detail.error {
-                DiscoveryErrorView(error: error) { Task { await detail.load() } }
+                DiscoveryErrorView(error: error, failureTitle: "discovery.topicTemplate.openFailed") { Task { await detail.load() } }
             } else if let item = detail.value {
                 List {
                     // B78 topic-detail (owner V-24): same chrome as the play detail — head, 应用 + share, 详情 / 能力.
@@ -777,7 +777,7 @@ struct DiscoveryTopicTemplateDeckHost: View {
                 ContentUnavailableView("discovery.templateSessionChanged", systemImage: "person.crop.circle.badge.exclamationmark",
                                        description: Text("discovery.templateReopen"))
             } else if let error = detail.error, detail.value == nil {
-                DiscoveryErrorView(error: error) { Task { await detail.load() } }
+                DiscoveryErrorView(error: error, failureTitle: "discovery.topicTemplate.openFailed") { Task { await detail.load() } }
             } else if let item = detail.value {
                 TopicTemplateDeckPreviewView(preview: Self.previewData(item, readonly: readonly),
                                              onViewDetail: { showsDetail = true },
@@ -796,9 +796,9 @@ struct DiscoveryTopicTemplateDeckHost: View {
                         }
                     }
             } else {
-                // MP skeleton, not a centred spinner (R7-PC-A7-2).
+                // MP skeleton, not a centred spinner (R7-PC-A7-2); MP status 正在加载主题模板 (topic-preview/index.wxml:7).
                 CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
-                    .accessibilityLabel(Text("discovery.loading"))
+                    .accessibilityLabel(Text("discovery.topicPreview.loading"))
             }
         }
         .navigationDestination(isPresented: $showsDetail) {

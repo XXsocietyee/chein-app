@@ -12,6 +12,8 @@ import SwiftUI
     @State private var revision = 0
     @State private var confirmDiscard = false
     @FocusState private var typing: Bool
+    /// Round 4 copy (MP topic/index.wxml:438/448): the topic sheet is 评价路线 with 请输入您的评价内容...
+    private var isTopic: Bool { if case .topic = target { return true } else { return false } }
     private var state: ContextualReviewState { let _ = revision; return owner?.state ?? .idle }
     var body: some View {
         Form {
@@ -35,7 +37,7 @@ import SwiftUI
                 .accessibilityElement(children: .contain)
                 .accessibilityLabel(Text("context.review.rating"))
                 .accessibilityIdentifier("context.review.rating")
-                TextField("context.review.contents", text: $draft.contents, axis: .vertical)
+                TextField(LocalizedStringKey(isTopic ? "context.review.topicContents" : "context.review.contents"), text: $draft.contents, axis: .vertical)
                     .lineLimit(4...10).focused($typing).accessibilityIdentifier("context.review.contents")
                 Text(verbatim: "\(draft.contents.utf16.count)/500").cyText(.meta)
             }.disabled(busy || state == .unknown || state == .acknowledged)
@@ -55,7 +57,7 @@ import SwiftUI
             }
         }
         .scrollDismissesKeyboard(.interactively)
-        .navigationTitle("context.review.title").navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(Text(LocalizedStringKey(isTopic ? "context.review.topicTitle" : "context.review.title"))).navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("action.cancel") {
                 if draft != ContextualReviewDraft(), state != .acknowledged { confirmDiscard = true } else { dismiss() }
