@@ -100,10 +100,11 @@ struct MerchantTopicGuideChaptersView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         if let name = chapter.name { Text(verbatim: name).cyText(.bodyMedium) }
                         if chapter.hasMeta {
+                            // MP: pages/topic/merchantinfo/merchantinfo.wxml:269-271 (merchant-guide/clock.svg, location.svg, people.svg; .guide-meta image 24rpx)
                             HStack(spacing: 12) {
-                                if let seconds = chapter.totalSeconds { Label { timeText(seconds) } icon: { Image(systemName: "clock") } }
-                                if chapter.nodeCount > 0 { Label { Text("merchant.wire2.meta.nodes \(chapter.nodeCount)") } icon: { Image(systemName: "mappin.and.ellipse") } }
-                                if chapter.playCount > 0 { Label { Text("merchant.wire2.meta.plays \(chapter.playCount)") } icon: { Image(systemName: "person.2") } }
+                                if let seconds = chapter.totalSeconds { Label { timeText(seconds) } icon: { MPAsset.Other.clock.resizable().scaledToFit().frame(width: 12, height: 12).accessibilityHidden(true) } }
+                                if chapter.nodeCount > 0 { Label { Text("merchant.wire2.meta.nodes \(chapter.nodeCount)") } icon: { MPAsset.Other.location.resizable().scaledToFit().frame(width: 12, height: 12).accessibilityHidden(true) } }
+                                if chapter.playCount > 0 { Label { Text("merchant.wire2.meta.plays \(chapter.playCount)") } icon: { MPAsset.Other.people.resizable().scaledToFit().frame(width: 12, height: 12).accessibilityHidden(true) } }
                             }.cyText(.meta).foregroundStyle(.secondary).accessibilityIdentifier("merchant.wire2.chapterMeta")
                         }
                         ForEach(Array(chapter.nodes.enumerated()), id: \.offset) { _, node in
