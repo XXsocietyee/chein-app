@@ -441,8 +441,40 @@ struct TopicXcxToolbarActions: View {
     var shareTitle: String?
     var isFavorited: Bool? = nil
     var onToggleFavorite: (() -> Void)? = nil
+    /// R7-PC-B1-22 (MP index.wxml:545 `cy-share-card`): the share card beside the system share; nil hides it.
+    var posterCover: String? = nil
+    var posterSubtitle: String? = nil
+    @State private var showsPoster = false
     var body: some View {
         HStack(spacing: 0) {
+            if let shareURL, let shareTitle {
+                Button { showsPoster = true } label: {
+                    Image(systemName: "photo.on.rectangle")
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityLabel(Text("topicShare.poster"))
+                .accessibilityIdentifier("topic.cta.poster")
+                .sheet(isPresented: $showsPoster) {
+                    NavigationStack {
+                        ScrollView {
+                            VStack(spacing: CYSpacing.lg) {
+                                TopicSharePosterCardView(coverURL: posterCover, topicName: shareTitle, subtitle: posterSubtitle,
+                                                         shareURLString: shareURL.absoluteString)
+                                ShareLink(item: shareURL, subject: Text(verbatim: shareTitle)) {
+                                    Label("mp.common.share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .accessibilityIdentifier("topic.poster.share")
+                            }
+                            .padding(CYSpacing.pageHorizontal)
+                        }
+                        .navigationTitle(Text("topicShare.poster"))
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("common.done") { showsPoster = false } } }
+                    }
+                    .presentationDetents([.medium, .large])
+                }
+            }
             if let onToggleFavorite {
                 Button(action: onToggleFavorite) {
                     Image(systemName: isFavorited == true ? "bookmark.fill" : "bookmark")
@@ -485,6 +517,24 @@ struct TopicXcxRouteSection: View {
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.openURL) private var openURL
     let topic: TopicDetail
+    private var routeNoteText: String {
+        let zh = locale.language.languageCode?.identifier == "zh"
+        let separator = zh ? "，" : ", "
+        let end = zh ? "。" : "."
+        if topic.productType == 2 {
+            let shops = topic.merchantCount ?? 0
+            return shops > 0 ? appLocalized("topicXcx.routeNote.freeShops \(shops)", locale: locale)
+                             : appLocalized("topicXcx.routeNote.free", locale: locale)
+        }
+        var parts = [appLocalized("topicXcx.routeNote.inOrder", locale: locale)]
+        let stops = topic.chapters.reduce(0) { $0 + $1.nodes.count }
+        if stops > 0 { parts.append(appLocalized("topicXcx.routeNote.stops \(stops)", locale: locale)) }
+        if let km = topic.totalMileage, km > 0 {
+            let value = km.formatted(.number.precision(.fractionLength(0...1)))
+            parts.append(appLocalized("topicXcx.routeNote.walk \(value)", locale: locale))
+        }
+        return parts.joined(separator: separator) + end
+    }
     /// Flow gap PC-B-1-5 (MP index.wxml route `<map>`): every stop with a usable coordinate, numbered in route order.
     static func mapPins(_ topic: TopicDetail) -> [TopicRouteNodePin] {
         var pins: [TopicRouteNodePin] = []
@@ -520,6 +570,12 @@ struct TopicXcxRouteSection: View {
                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                 .background(Capsule().fill(topic.productType == 2 ? CYNight.glassFill : CYNight.lantern))
                 .accessibilityIdentifier("topic.route.note")
+            // R7-PC-B1-18, MP topic-motion.js:270-285 `routeNote`: the sentence after the chip. 到店礼 needs the stop
+            // merchants' `derivativeBenefits`, which Core does not decode yet.
+            Text(verbatim: routeNoteText)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("topic.route.noteText")
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
                 Text("u9cde.topic.routeConfiguring").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("topic.route.empty")

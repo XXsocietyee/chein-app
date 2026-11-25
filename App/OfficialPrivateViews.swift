@@ -261,13 +261,14 @@ private extension Decimal {
         Task {
             do {
                 let stats = try await reader.broadcastStats(id: id)
-                guard reader.scope == scope else { return }
+                // R8-PC-C6-1: a scope change mid-read drops the result but never leaves the row stuck on 正在读取复盘….
+                guard reader.scope == scope else { phase = .idle; return }
                 if let counts = OfficialBroadcastStatsText.counts(stats) { phase = .loaded(counts.reached, counts.clicked) }
                 else { phase = .failed }
             } catch is CancellationError {
                 phase = .idle
             } catch {
-                if reader.scope == scope { phase = .failed }
+                phase = reader.scope == scope ? .failed : .idle
             }
         }
     }

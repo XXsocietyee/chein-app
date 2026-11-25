@@ -253,5 +253,175 @@
         }
       }
     }
+  },
+  "official.bucket.upcoming": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Coming soon"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "即将上线"
+        }
+      }
+    }
+  },
+  "official.detail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Event details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动详情"
+        }
+      }
+    }
+  },
+  "searchMap.categoryFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Categories could not be loaded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "类别加载失败"
+        }
+      }
+    }
+  },
+  "searchMap.citySearch": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Search on the map"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在地图上找"
+        }
+      }
+    }
+  },
+  "topicShare.poster": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Share card"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分享卡片"
+        }
+      }
+    }
+  },
+  "topicXcx.routeNote.free": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Visit them in any order while the pass is valid; each one redeems once."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "有效期内按任意顺序去完，每家核销一次。"
+        }
+      }
+    }
+  },
+  "topicXcx.routeNote.freeShops %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Visit all %lld shops in any order while the pass is valid; each one redeems once."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "有效期内按任意顺序去完 %lld 家，每家核销一次。"
+        }
+      }
+    }
+  },
+  "topicXcx.routeNote.inOrder": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Go stop by stop; arriving at one unlocks the next"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按顺序到站，到一站解锁下一站"
+        }
+      }
+    }
+  },
+  "topicXcx.routeNote.stops %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld stops in all"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全程 %lld 站"
+        }
+      }
+    }
+  },
+  "topicXcx.routeNote.walk %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "about %@ km on foot"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "步行约 %@ 公里"
+        }
+      }
+    }
   }
 }

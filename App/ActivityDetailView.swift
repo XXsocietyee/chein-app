@@ -41,15 +41,21 @@ struct ActivityDetailView: View {
     var opensRegistrationOnLoad = false
     var registrationTicketID: Int? = nil
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    /// R8-PC-C1-1: without a tab switch (a pushed deep link) the guest 立即报名 presents sign-in instead of doing nothing.
+    @State private var showsGuestLogin = false
     var body: some View {
         Group {
             // Sign-in belongs on 立即报名. The detail read itself runs with a nil token.
             if session.account == nil {
-                sessionDetail(guestSignIn: { if rootTabSwitch.isAvailable { rootTabSwitch(.mine) } })
+                sessionDetail(guestSignIn: { if rootTabSwitch.isAvailable { rootTabSwitch(.mine) } else { showsGuestLogin = true } })
             } else {
                 sessionDetail(guestSignIn: nil)
             }
         }
+        .sheet(isPresented: $showsGuestLogin) {
+            Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible)
+        }
+        .onChange(of: session.account == nil) { _, signedOut in if !signedOut { showsGuestLogin = false } }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)

@@ -410,10 +410,10 @@ struct DiscoveryTopicTemplatePreview: View {
     @ViewBuilder private func optionalText(_ value: String?) -> some View {
         if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).cyText(.meta).foregroundStyle(palette.textSecondary).textSelection(.enabled) }
     }
-    /// Mini-program `author || '城瘾'`.
+    /// R8-PC-A8-1, MP topic-detail index.js:182 `author || '创作者'` (PG-012: a missing author never poses as official).
     private func topicAuthor(_ item: PublicTopicTemplateDetail) -> Text {
         if let author = item.author?.trimmingCharacters(in: .whitespacesAndNewlines), !author.isEmpty { return Text(verbatim: author) }
-        return Text("discovery.templateDetail.publisher.platform")
+        return Text("discovery.templateDetail.publisher.creator")
     }
     private func nonempty(_ value: String?) -> String? {
         guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
