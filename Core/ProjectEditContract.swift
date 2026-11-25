@@ -7,7 +7,9 @@ public enum ProjectEditContract {
     public static let sourceDetailPath = "/api/topic/edit-detail"
     public static let sourcePrecheckPath = "/api/ai/safety/precheck"
     public static let chapterCarryOver = ["imgArr", "audioUrl", "atmospherePreset", "recruitEnabled", "termsMode", "categoryId", "category", "maxMerchant", "perkMinValue", "maxPerHeadFee", "allowedValidationMethods", "maxNodeXp", "calculatedDistance"]
-    public static let topicCarryOver = ProjectEditStoryContract.topicFields + ProjectTeamConfiguration.fields + ProjectTopicBudgetCarryOver.fields + ["completeRuleJson", "publishMode", "audioUrl", "audioDuration", "selfPlay", "selfPlayPrice", "selfPlayQuota", "finishMedalName", "finishMedalImg", "completeRewardCouponId"]
+    /// `castConfig` and `look` ride with the topic. The editor stores cast as an object and look as a JSON string;
+    /// `payload` posts both as JSON strings, matching story-cast `serializeCastConfig` and theme-look `serializeLook`.
+    public static let topicCarryOver = ProjectEditStoryContract.topicFields + ProjectTeamConfiguration.fields + ProjectTopicBudgetCarryOver.fields + ["completeRuleJson", "publishMode", "audioUrl", "audioDuration", "selfPlay", "selfPlayPrice", "selfPlayQuota", "finishMedalName", "finishMedalImg", "completeRewardCouponId", "castConfig", "look"]
     public static let whitelist = ["name", "subtitle", "description", "imgUrl", "imgArr", "categoryIds", "scope"]
 
     public static func payload(_ draft: ProjectEditDraft, topicID: Int?, scope: ProjectEditScope, baseline: ProjectEditSnapshot? = nil, intent: ProjectEditSubmissionIntent = .ordinary) throws -> [String: ProjectEditJSON] {
@@ -40,6 +42,9 @@ public enum ProjectEditContract {
         if let clubID = draft.clubID { payload["clubId"] = .number(Decimal(clubID)) }
         if draft.product == .freeExplore, let deadline = ProjectEditValidation.dateTime(draft.recruitDeadline, endOfDay: true) { payload["recruitDeadline"] = .string(deadline) }
         for key in topicCarryOver { if let value = draft.preserved[key] { payload[key] = value } }
+        for key in ["castConfig", "look"] {
+            if let wired = try carriedJSONString(payload[key]) { payload[key] = wired } else { payload.removeValue(forKey: key) }
+        }
         if topicID == nil { payload["xpBudget"] = nil } // Preserve the existing create-body shape.
         if draft.completionRules != nil || draft.preserved["completeRuleJson"] != nil {
             let rules = (draft.completionRules ?? .init(raw: draft.preserved["completeRuleJson"])).forProduct(draft.product)
@@ -71,6 +76,19 @@ public enum ProjectEditContract {
         })
         try ProjectEditStoryContract.validatePayload(payload, baseline: baseline)
         return payload
+    }
+    /// Object values become a JSON string. Strings pass through. Null and absence omit the key.
+    private static func carriedJSONString(_ value: ProjectEditJSON?) throws -> ProjectEditJSON? {
+        guard let value else { return nil }
+        switch value {
+        case .null: return nil
+        case .string: return value
+        case .object:
+            let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+            guard let text = String(data: try encoder.encode(value), encoding: .utf8) else { throw ProjectEditError.invalidDraft }
+            return .string(text)
+        default: throw ProjectEditError.invalidDraft
+        }
     }
     private static func chapterPayload(_ chapter: ProjectEditChapter, product: ProjectEditProduct, storyFlow: Bool, editing: Bool) throws -> [String: ProjectEditJSON] {
         guard ProjectChapterAtmosphere.canSubmit(chapter) else { throw ProjectEditError.invalidDraft }
@@ -126,6 +144,10 @@ public enum ProjectEditContract {
             guard let value = raw.integer, value > 0 else { throw ProjectEditError.invalidContract }; return value
         }
         for key in topicCarryOver { if let value = topic[key] { d.preserved[key] = value } }
+        // edit-detail returns look on data, and castConfig on data or the topic. A present data value wins.
+        for key in ["look", "castConfig"] {
+            if let value = body[key], value != .null { d.preserved[key] = value }
+        }
         d.chapters = try chapters.enumerated().map { index, raw in
             guard let source = raw.object, let nodes = (source["cmsTopicNodeList"] ?? source["nodes"])?.array else { throw ProjectEditError.invalidContract }
             var c = ProjectEditChapter(); c.id = "chapter-\(source["id"]?.integer ?? index + 1)"
