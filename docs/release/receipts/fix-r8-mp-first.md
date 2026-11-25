@@ -75,6 +75,34 @@ These rows are UI/copy/read behaviour the MP already defines, so under the MP-fi
 | GROWTH-5 growth avatar | subpackageP3/pages/growthcenter/index/index.wxml:17-21 (`profile.avatarUrl \|\| d_profile`) | Show the session avatar (reuse `ProfileCurrentAvatarView`), then relax `test_growth_source_contract`. |
 | ROAM-8 passport tiles | pages/roam/index.wxml:186-205 | Latest track thumbnail + latest stamp image, MP tile layout (Cursor Core for the reads). |
 
+## club, member, account-publish — see `docs/release/receipts/fix-r8-mp-first-cma.md`
+Implemented: A3-01 profile image uploads (avatar, 探索作品, 联系二维码 via `uploadOSS`; `App/AppSession+ProfileAvatar.swift`), C-F6 到访方式 read/write gates ON, C-D12 TeamCommandWriter (already built on China; test pins it), C-F17 topic save goes direct to `api/topic/v2/create|update` like the MP on China production, plus MP copy/UI rows CLB-r7-C-04, B-SZ-13, PLY-21-8, MKT-4-1 copy, MKT-10-2, A-OBJ. Test: `Tests/AppUnitTests/MPFirstCMAGrantTests.swift`.
+Money kept TEST-only: MKT-3-1, CLB-payout-receiver-01, CLB-settlement-05, MKT-4-6, R7-MEM-16-1 (refund / unpaid cancel), FIN-19-1.
+Left for area agents (MP has them): **PLY-25-2 (P0) orient-score sync/settle/recovery** (open `ReviewedOrientScoreReviewLease.swift:16-19`, mount `OrientSessionCoordinator`, send `sessionId`), and the UI rows listed in that receipt.
+
+## player-content — see `docs/release/receipts/fix-r8-mp-first-pc.md`
+Implemented: R7-PC-B2-1 / B3-1 every `MerchantContentCommand` the MP sends (incl. city-node claim/cancel/offline/save, npc, station) — `MerchantContentWriteApproval` defaults ON, `permitsWrites` true on the real transport with a journal, firewall `App/MerchantContentMPWriteRoute.swift`; R7-PC-B1-1 topic 收藏; R7-PC-B4-1 / B1-2 pricing (a price save, not a payment), graduation, ownership grants; R8-PC-D4-1 主办分润 read; R7-PC-D5-1 提现 → customer-service contact; R7-PC-C1-10; R7-PC-C6-1; UI rows A3-1, R8-PC-A1-1, A2-8, D7-1, D3-5.
+Money kept TEST-only: R8-PC-C1-2 host cancel with refunds; publisher cancellation refunds.
+Left for area agents / Cursor: R7-PC-B1-4 guest topic read, R7-PC-D9-1 (`api/im/read` needs an MP-shaped IM Core path, not a grant flip), A1-9, D8-1, D2-4, merchant body gaps (`scope`, `templateId`, `limitNum: null`).
+
+## Genuinely needs the owner — all areas (consolidated)
+| id | area | MP evidence | why |
+|---|---|---|---|
+| RPOI-4 POI share | play-roam | subpackageRoam/poi-detail/index.js:52-66 | WeChat share card; iOS needs a universal-link domain + AASA. |
+| MC8-06-4 结算到账提醒 | merchant-coop | pages/merchant/ledger/index.wxml:121-124 | WeChat subscribe message; iOS twin needs an APNs backend contract. |
+| CLB-detail-11 带票分享 attribution | club | pages/club/detail wxml:497-504, js:3509-3545 | WeChat share attribution; needs universal links or "MP-only". |
+| FIN-20-6 invite share | member | subpackageMember/myinvite/myinvite.js:22-28 | WeChat-only share attribution; no invite URL. |
+| A3-05 phone bind | account-publish | gerenziliao.wxml:54-56, js:840-883 | WeChat `getPhoneNumber` doesn't exist on iOS; SMS bind is a new flow. |
+| B-MK-01 master marketing toggle | account-publish | marketing-consent/index.wxml:18,24 | The MP has no master toggle (hand-off only). |
+| R7-MEM-24-2 此刻环境 / 掷骰 | member | — (MP has neither) | App-only sections: keep or drop. |
+| B-AG-04 legal wording | account-publish | — | Legal text, not an MP flow. |
+| R7-PC-C4-4 activity-start reminder | player-content | pages/activity/official-detail/index.js:604-610 | WeChat subscribe message; choose APNs push or a local reminder. |
+
+## Merge notes
+- Two firewall branches now admit merchant writes: `MPFirstMerchantWriteRoute` (coordinator) and `MerchantContentMPWriteRoute` (player-content, stricter on `game/session/command` actions). Both are exact-path, POST-only, China + production gates + signed-in.
+- One conflict in `App/ReviewedPlayerWriteLeases.swift` play paths: kept both the C-F6 visit-config path and `publisherLifecyclePaths`.
+- Re-pin needed: `test_merchant_station_submission_import` hash of `Core/MerchantContentService.swift` (already failing on the base).
+
 ## For Cursor
 - `MerchantContentService.permits` / `permitsWrites` still decide whether the city-node claim/cancel/offline/save **commands** dispatch (the gate above only stops hiding them). See the player-content section for `MerchantContentWriteApproval`.
 - Game-node pending index is memory-only (`MerchantGameNodeMemoryJournal`): a durable journal would let a relaunch reconcile an unknown command.
