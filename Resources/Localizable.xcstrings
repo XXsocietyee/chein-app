@@ -311282,6 +311282,57 @@
           }
         }
       }
+    },
+    "fixr9.ap.consent.readAndAgree": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have read and agree to the User Service Agreement and the Privacy Protection Guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已阅读并同意《用户服务协议》《隐私保护指引》"
+          }
+        }
+      }
+    },
+    "fixr9.ap.consent.checked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已勾选"
+          }
+        }
+      }
+    },
+    "fixr9.ap.consent.unchecked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未勾选"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
