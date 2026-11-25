@@ -74,7 +74,12 @@ struct DiscoveryTemplateDetailView: View {
                                 })
                                 .accessibilityHidden(true)
                             } else {
-                                E1CoverArt(seed: item.title, symbol: "sparkles", debugLabel: false, symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                                // Round 4 image parity (MP templatedetail.wxml:41): no cover → the first scene's 3D icon, else other.png.
+                                TemplateSceneArt.icon(parity?.sceneChips.first).resizable().scaledToFit()
+                                    .accessibilityHidden(true)
+                                    .padding(CYSpacing.sm)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .background(CYColor.bgRaised)
                             }
                         }
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))

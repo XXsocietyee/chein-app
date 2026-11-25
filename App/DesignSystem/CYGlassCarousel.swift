@@ -21,6 +21,25 @@ struct CYCarouselSlide: Identifiable, Hashable {
     var imageURL: URL?
     var kind: Kind = .event
     var dimmed = false
+    /// MP default cover when the slide has no https cover (round 4 image parity); nil keeps the generated art.
+    var fallback: CYCarouselFallback? = nil
+}
+
+/// Shipped MP default covers a carousel slide can fall back to (Hashable stand-in for `Image`).
+enum CYCarouselFallback: Hashable {
+    /// `/images/index-figma/reco-hero.jpg` (MP index.wxml:105, 编辑精选).
+    case recoHero
+    /// `/images/route_city_cover.png` (MP index.wxml:151/188, 附近活动 / 即将上线).
+    case routeCityCover
+    /// `/images/home-route-city-placeholder.jpg` (MP index.wxml:216/253, the stream cards).
+    case homeRouteCityPlaceholder
+    var image: Image {
+        switch self {
+        case .recoHero: return MPAsset.BannerCover.recoHero
+        case .routeCityCover: return MPAsset.BannerCover.routeCityCover
+        case .homeRouteCityPlaceholder: return MPAsset.BannerCover.homeRouteCityPlaceholder
+        }
+    }
 }
 
 // MARK: - State machine
@@ -195,7 +214,7 @@ struct CYCarouselCard: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            CYCarouselArt(seed: slide.seed, imageURL: slide.imageURL)
+            CYCarouselArt(seed: slide.seed, imageURL: slide.imageURL, fallback: slide.fallback)
             LinearGradient(stops: [.init(color: .clear, location: 0.55),
                                    .init(color: .black.opacity(contrast == .increased ? 0.92 : 0.78), location: 1)],
                            startPoint: .top, endPoint: .bottom)
@@ -236,6 +255,7 @@ struct CYCarouselCard: View {
 struct CYCarouselArt: View {
     let seed: String
     var imageURL: URL?
+    var fallback: CYCarouselFallback? = nil
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         let reduced = reduceMotion
@@ -248,10 +268,19 @@ struct CYCarouselArt: View {
     @ViewBuilder private var art: some View {
         if let imageURL, imageURL.scheme?.lowercased() == "https" {
             AsyncImage(url: imageURL) { phase in
-                if let image = phase.image { image.resizable().scaledToFill() } else { CYCoverArt(seed: seed, showsDebugLabel: false) }
+                if let image = phase.image { image.resizable().scaledToFill() } else { placeholder }
             }
+        } else if let fallback {
+            fallback.image.resizable().scaledToFill().accessibilityHidden(true)
         } else {
             CYCoverArt(seed: seed, showsDebugLabel: false).drawingGroup()
+        }
+    }
+    @ViewBuilder private var placeholder: some View {
+        if let fallback {
+            fallback.image.resizable().scaledToFill().accessibilityHidden(true)
+        } else {
+            CYCoverArt(seed: seed, showsDebugLabel: false)
         }
     }
 }

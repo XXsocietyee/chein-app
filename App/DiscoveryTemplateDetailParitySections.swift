@@ -49,7 +49,7 @@ struct DiscoveryTemplateDetailParitySections: View {
                 }
             } header: { DiscoverySectionHeader("discovery.templateDetail.howVerified", art: MPAsset.FeatureIcon.magnifier) }.discoveryCardRow()
         }
-        chipSection("discovery.templateDetail.scenes", chips: presentation.sceneChips, id: "discovery.templateDetail.scenes", art: MPAsset.FeatureIcon.city)
+        sceneSection(presentation.sceneChips)
         chipSection("discovery.templateDetail.materials", chips: presentation.materialChips, id: "discovery.templateDetail.materials", art: MPAsset.FeatureIcon.flashlight)
         if let rating = presentation.rating {
             Section {
@@ -102,6 +102,27 @@ struct DiscoveryTemplateDetailParitySections: View {
         Text("discovery.templateDetail.publisher.official").cyText(.caption, weight: .bold)
             .padding(.horizontal, 6).padding(.vertical, 2)
             .background(.tint.opacity(0.15), in: Capsule())
+    }
+    /// Round 4 image parity (MP templatedetail.wxml:140-152): 分类与适用场景 is a row of 3D category icons, one per chip.
+    @ViewBuilder private func sceneSection(_ chips: [String]) -> some View {
+        if !chips.isEmpty {
+            Section {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                        ForEach(Array(chips.enumerated()), id: \.offset) { _, chip in
+                            VStack(spacing: CYSpacing.xs) {
+                                TemplateSceneArt.icon(chip).resizable().scaledToFit()
+                                    .accessibilityHidden(true)
+                                    .frame(width: 44, height: 44)
+                                Text(verbatim: chip).cyText(.meta).foregroundStyle(palette.textSecondary).lineLimit(1)
+                            }
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
+                }
+                .accessibilityIdentifier("discovery.templateDetail.scenes")
+            } header: { DiscoverySectionHeader("discovery.templateDetail.scenes", art: MPAsset.FeatureIcon.city) }.discoveryCardRow()
+        }
     }
     @ViewBuilder private func chipSection(_ title: LocalizedStringKey, chips: [String], id: String, art: Image? = nil) -> some View {
         if !chips.isEmpty {
@@ -208,5 +229,34 @@ struct TemplateNodePreviewSheet: View {
             if state.canComplete { close() } else { hint = true }
         }
         .accessibilityIdentifier("discovery.templateDetail.preview.complete")
+    }
+}
+
+/// MP templatedetail.js:92-106 `SCENE_ICON_RULES` / `sceneIcon`: a category or place name picks its 3D category art;
+/// anything else is `art/cat/other.png`. Also the cover when a play template has none (templatedetail.wxml:41).
+enum TemplateSceneArt {
+    private static let rules: [(String, () -> Image)] = [
+        ("运动|健身|徒步|户外|跑", { MPAsset.FeatureIcon.pagesTemplatedetailArtCatSport }),
+        ("科技|数码|电子", { MPAsset.FeatureIcon.tech }),
+        ("咖啡|茶饮|饮品", { MPAsset.FeatureIcon.pagesTemplatedetailArtCatCoffee }),
+        ("美食|烹饪|餐|吃", { MPAsset.FeatureIcon.food }),
+        ("娱乐|游戏|达人|电竞", { MPAsset.FeatureIcon.fun }),
+        ("宠物", { MPAsset.FeatureIcon.pet }),
+        ("商务|职场|办公", { MPAsset.FeatureIcon.biz }),
+        ("世界|旅行|旅游", { MPAsset.FeatureIcon.world }),
+        ("出行|交通|驾", { MPAsset.FeatureIcon.travel }),
+        ("戏剧|演出|剧场|表演|话剧", { MPAsset.FeatureIcon.stage }),
+        ("文化|历史|人文|博物|古迹", { MPAsset.FeatureIcon.culture }),
+        ("设计|美学|艺术|文艺|手作", { MPAsset.FeatureIcon.art }),
+        ("衣物|洗护|服饰", { MPAsset.FeatureIcon.cloth }),
+        ("家政|维修", { MPAsset.FeatureIcon.repair }),
+        ("亲子|家庭|儿童", { MPAsset.FeatureIcon.family }),
+        ("摄影|拍照|影像", { MPAsset.FeatureIcon.photo }),
+        ("城市|街区|城区|商圈", { MPAsset.FeatureIcon.pagesTemplatedetailArtCatCity }),
+    ]
+    static func icon(_ name: String?) -> Image {
+        let text = name ?? ""
+        for (pattern, image) in rules where text.range(of: pattern, options: .regularExpression) != nil { return image() }
+        return MPAsset.FeatureIcon.other
     }
 }

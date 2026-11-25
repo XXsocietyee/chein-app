@@ -16,10 +16,25 @@ import SwiftUI
     var body: some View {
         Form {
             Section("context.review.rating") {
-                Picker("context.review.rating", selection: $draft.rating) {
-                    Text("context.review.chooseRating").tag(0)
-                    ForEach(1...5, id: \.self) { Text(verbatim: String($0)).tag($0) }
-                }.accessibilityIdentifier("context.review.rating")
+                // Round 4 image parity (MP topic/index.wxml:441-446 评价路线): five MP stars, icon_star2 filled / icon_star1 empty.
+                HStack(spacing: CYSpacing.sm) {
+                    ForEach(1...5, id: \.self) { star in
+                        Button { draft.rating = star } label: {
+                            (star <= draft.rating ? MPAsset.FeatureIcon.iconStar2 : MPAsset.FeatureIcon.iconStar1)
+                                .resizable().scaledToFit()
+                                .accessibilityHidden(true)
+                                .frame(width: 32, height: 32)
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("context.review.starLabel \(star)"))
+                        .accessibilityAddTraits(star <= draft.rating ? .isSelected : [])
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(Text("context.review.rating"))
+                .accessibilityIdentifier("context.review.rating")
                 TextField("context.review.contents", text: $draft.contents, axis: .vertical)
                     .lineLimit(4...10).focused($typing).accessibilityIdentifier("context.review.contents")
                 Text(verbatim: "\(draft.contents.utf16.count)/500").cyText(.meta)

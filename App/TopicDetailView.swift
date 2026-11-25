@@ -249,9 +249,10 @@ struct TopicDetailView: View {
                     CYCard(variant: .elevated, radius: CYRadius.lg, padding: CYSpacing.xl) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             // verify-r1 PL-14: the type is a fact, not a link or a status, so it is ink, not blue.
-                            Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-                                .font(.title2.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                            // Round 4 image parity: the route mark is the MP `/images/cover-route.svg` (topic/index.wxml:49/78).
+                            MPAsset.BannerCover.coverRoute.resizable().scaledToFit()
                                 .accessibilityHidden(true)
+                                .frame(width: 40, height: 40)
                             Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
                                 .cyText(.label, weight: .semibold).foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: value.name).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)

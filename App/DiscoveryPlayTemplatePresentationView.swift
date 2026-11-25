@@ -64,7 +64,8 @@ import SwiftUI
                         .discoveryPresentationRow()
                 }
             } header: {
-                DiscoverySectionHeader("discovery.template.story")
+                // Round 4 image parity: MP 创作者说 header art (templatedetail.wxml:196 `art/3d/bulb.png`).
+                DiscoverySectionHeader("discovery.template.story", art: MPAsset.FeatureIcon.bulb)
             }
             .discoveryCardRow()
         }

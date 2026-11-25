@@ -445,7 +445,11 @@ struct TopicXcxToolbarActions: View {
         HStack(spacing: 0) {
             if let onToggleFavorite {
                 Button(action: onToggleFavorite) {
-                    Image(systemName: isFavorited == true ? "bookmark.fill" : "bookmark")
+                    // Round 4 image parity: MP hero-fav `icon_bm_on.svg` / `icon_bm.svg` (topic/index.wxml:97).
+                    (isFavorited == true ? MPAsset.FeatureIcon.iconBmOn : MPAsset.FeatureIcon.iconBm)
+                        .resizable().scaledToFit()
+                        .accessibilityHidden(true)
+                        .frame(width: 22, height: 22)
                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 }
                 .accessibilityLabel(Text(isFavorited == true ? "roam.favorited" : "roamSub.w208.poi.favorite"))
