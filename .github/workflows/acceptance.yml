@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Acceptance mode
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Acceptance mode
@@ -64,7 +64,7 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Print Xcode version
@@ -97,7 +97,7 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Print Xcode version
@@ -144,7 +144,7 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 25
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Print Xcode version
@@ -218,7 +218,7 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 25
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Print Xcode version
@@ -289,7 +289,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - uses: actions/download-artifact@v4
@@ -325,7 +325,7 @@ jobs:
     outputs:
       needed: ${{ steps.plan.outputs.needed }}
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Look for DEBUG fixture routes
@@ -342,7 +342,7 @@ jobs:
     outputs:
       needed: ${{ steps.plan.outputs.needed }}
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Look for Accept XCUITests
@@ -362,7 +362,7 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Print Xcode version
@@ -389,7 +389,7 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           persist-credentials: 'false'
       - name: Print Xcode version
@@ -427,7 +427,7 @@ jobs:
       contents: write
     timeout-minutes: 20
     steps:
-      - uses: ./.github/actions/acceptance-checkout
+      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
         with:
           ref: ci/acceptance
           persist-credentials: 'true'

@@ -1466,8 +1466,11 @@ def workflow_contract():
     pin = "actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
     if action.count(pin) != 3 or "sleep 10" not in action or "sleep 20" not in action:
         raise SystemExit("checkout must retry git fetch and checkout 3 times with backoff")
-    if text.count("./.github/actions/acceptance-checkout") != 12:
+    checkout_ref = "liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43"
+    if text.count(checkout_ref) != 12:
         raise SystemExit("every acceptance job must retry checkout")
+    if "./.github/actions/acceptance-checkout" in text:
+        raise SystemExit("a local checkout action is not on disk before checkout")
     if "actions/checkout@" in text:
         raise SystemExit("checkout retries belong in the acceptance checkout action")
     if text.count("persist-credentials: 'false'") != 11 or text.count("persist-credentials: 'true'") != 1:
