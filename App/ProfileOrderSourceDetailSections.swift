@@ -59,27 +59,47 @@ struct ProfileOrderSourceDetailSections: View {
 }
 
 /// Team, open seats, and club from the order. Follow posts `api/user/follow/action` and does not pay.
+/// FIN-17-4: MP order detail 和队友一起出发 (D:125-145, `startOrderTeam` → team create), 同行席位
+/// (D:205-214, `goSeats` → `subpackageJourney/pages/seats`) and the host club follow (`followClub` → /api/user/follow/action).
 struct ProfileOrderTeamSeatClubSection: View {
     let order: ProfileOrder
     @EnvironmentObject private var session: AppSession
+    @Environment(\.mpParity) private var bindings
     @State private var followed = false
 
     var body: some View {
-        if order.teamOpen || order.seatsOpen || order.club != nil {
-            Section {
-                if order.teamOpen { Text("profile.order.teamOpen").accessibilityIdentifier("profile.order.teamOpen") }
-                if order.seatsOpen { Text("profile.order.seatsOpen").accessibilityIdentifier("profile.order.seatsOpen") }
-                if let club = order.club {
+        Group {
+            if order.teamOpen, let activityID = order.ownerID, activityID > 0 {
+                Section {
+                    NavigationLink { SessionTeamCreateView(activityID: activityID, registrationID: order.id) } label: {
+                        Label("orderDetail.inviteTeammates", systemImage: "person.2.badge.plus")
+                    }
+                    .accessibilityIdentifier("profile.order.teamOpen")
+                } header: {
+                    Text("orderDetail.teamAndSeats")
+                } footer: {
+                    Text("orderDetail.team.note")
+                }
+            }
+            if order.seatsOpen, bindings.journeySeats != nil {
+                Section("orderDetail.seatsEntry") {
+                    NavigationLink { MPParityDestination(route: .journeySeats(registrationID: String(order.id))) } label: {
+                        LabeledContent("orderDetail.seats.manage") {
+                            Text("orderDetail.seats.count \(order.orderNum ?? 0)")
+                        }
+                    }
+                    .accessibilityIdentifier("profile.order.seatsOpen")
+                }
+            }
+            if let club = order.club {
+                Section("orderDetail.club.section") {
                     LabeledContent("profile.order.club") {
                         Text(verbatim: club.name.isEmpty ? "—" : club.name)
                     }
                     .accessibilityIdentifier("profile.order.club")
-                    if let leader = club.leaderMemberID, leader > 0 {
-                        Button(followed ? "profile.order.follow" : "profile.order.follow") {
-                            Task { await follow(leader) }
-                        }
-                        .disabled(followed)
-                        .accessibilityIdentifier("profile.order.follow")
+                    if let leader = club.leaderMemberID, leader > 0, !followed {
+                        Button("orderDetail.club.follow") { Task { await follow(leader) } }
+                            .accessibilityIdentifier("profile.order.follow")
                     }
                 }
             }

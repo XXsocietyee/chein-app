@@ -1193,6 +1193,74 @@
           }
         }
       }
+    },
+    "orderDetail.team.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teaming up doesn't affect whether the event runs, and doesn't change the order or refund rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组队与否不影响活动举行，也不改变订单与退款规则。"
+          }
+        }
+      }
+    },
+    "orderDetail.seats.manage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage seats"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理席位"
+          }
+        }
+      }
+    },
+    "orderDetail.seats.count %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld-person ticket"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 人票"
+          }
+        }
+      }
+    },
+    "orderDetail.club.follow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow host club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关注主办俱乐部"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
