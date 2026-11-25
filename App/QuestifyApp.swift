@@ -471,6 +471,7 @@ struct SessionRootView: View {
             send: { request in try await session.runtimeHTTPTransport.send(request) }
         ))
         .environment(\.challengePOIPhotoUploader, { session.makeChallengePOIPhotoUploader(poiID: $0) })
+        .environment(\.playerContentImageUploader, session.makePlayerContentImageUploader())
         .environment(\.roamShareSnapshotPublisher, { session.makeRoamShareSnapshotPublisher() })
         .environment(\.externalGameSession, ExternalGameSessionRead.bridge(session))
         .modifier(MPParityPassEnvironment(session: session))
