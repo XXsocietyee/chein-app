@@ -656,6 +656,12 @@ struct ClubGovernanceReadView: View {
                 if let message = failure.message {
                     Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("club.story.answer.reason")
                 }
+            } else if case .checkin = operation, let failure, failure != .signedOut {
+                // Round 4 (CLB-checkin-detail-03): a failed read clears the snapshot, so the MP full-page states
+                // (核销记录不可见 / the server sentence + 返回 / 核销凭证加载失败 + 重新加载) are drawn here, not the generic block.
+                ClubCheckinRailView(rail: .init(railStep: .null, statusCode: .null),
+                                    stateKind: ClubCheckinRail.stateKind(for: failure) ?? .error,
+                                    onReload: loading ? nil : { Task { await load() } }, reason: failure.message)
             } else if let failure, let copy = ClubOpsFailureCopy(operation: operation, failure: failure) {
                 ClubOpsFailureSection(copy: copy, reason: failureReason(failure)) { Task { await load() } }
             } else if let failure, let copy = ClubOpsPageFailureCopy(operation: operation, failure: failure) {
@@ -739,7 +745,8 @@ struct ClubGovernanceReadView: View {
             ClubOpsEventView(scope: target, identity: identity, access: access, coordinator: coordinator)
         }
         .cyGroupedSurface()
-        .cyPageTitle(String.LocalizationValue(stringLiteral: "club.gov." + operation.rawValue))
+        // Round 4 copy: MP customer-detail bar title is 客户 (wxml:8); the member action sheet keeps 客户详情.
+        .cyPageTitle(String.LocalizationValue(stringLiteral: operation == .customer ? "clubR3b.customer.title" : "club.gov." + operation.rawValue))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
         // CLB-r7-D-02 (fix-r3-club-b): MP customers onShow re-reads the list, so a tag/remark saved on the
         // customer page shows when the owner comes back.
@@ -1309,7 +1316,8 @@ struct ClubGovernanceReadView: View {
         let source = roleManagementSource
         let settingsSource = topicSettingsSource
         let bansSource = banRemovalSource
-        return Button(LocalizedStringKey("club.gov.action." + operation.rawValue)) {
+        // Round 4 copy: MP customer-detail button reads 编辑 (wxml:96); 编辑标签与备注 stays its VoiceOver label and the editor title.
+        return Button(LocalizedStringKey(operation == .saveCustomer ? "clubR3b.customer.edit" : "club.gov.action." + operation.rawValue)) {
             if operation == .updateSeries, self.operation == .seriesDetail {
                 seriesUpdateReturn.open(seriesUpdateSource, visible: seriesHostVisible, active: scenePhase == .active)
             } else if operation == .createSeries, self.operation == .eventTopics {
@@ -1663,7 +1671,7 @@ struct ClubGovernanceReadView: View {
             if let detail = customerPage.detail ?? (try? ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID)) {
                 ClubOpsCustomerDetailContent(detail: detail, page: customerPage, topicAction: { record in
                     customerTopicRoute(record.source).map { target in (id: target.topicID, open: { selectCustomerTopic(target) }) }
-                }, editButton: detail.canEdit ? AnyView(edit(.saveCustomer, seed: ["remark": value["remark"], "tags": value["tags"]])) : nil)
+                }, editButton: detail.canEdit ? AnyView(edit(.saveCustomer, seed: ["remark": value["remark"], "tags": value["tags"]]).accessibilityLabel(Text("club.gov.action.saveCustomer"))) : nil)
             } else if !customerPage.hidden, let metrics = customerPage.metrics {
                 Section {
                     ClubOpsCustomerMetricTile(value: metrics.arrived, label: "clubOps.customer.arrived")
