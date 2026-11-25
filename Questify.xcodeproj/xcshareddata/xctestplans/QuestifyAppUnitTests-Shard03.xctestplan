@@ -183,6 +183,7 @@
         "LocalizationCompletenessSectionViewTests",
         "LocalizationPluralAndFormatterConsistencySectionViewTests",
         "LocationShareAndSideQuestViewTests",
+        "MPFirstCMAGrantTests",
         "MPParityDeepLinkRouteTests",
         "MPParityPassBindingTests",
         "ManualMapCompositionTests",

@@ -559,6 +559,7 @@ import SwiftUI
                 AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
             } else if query["scene"] == "settings-profile", session.account != nil {
                 ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session,
+                                avatarDependencies: session.profileAvatarDependencies,
                                 currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader,
                                 savedMedia: session.profileSavedMediaReaders)
             } else if query["scene"] == "settings-feedback" {
@@ -596,6 +597,7 @@ import SwiftUI
             // A3-08: `?field=introduction|category` opens that editor after the first load.
             if session.account != nil {
                 ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session,
+                                avatarDependencies: session.profileAvatarDependencies,
                                 currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader,
                                 savedMedia: session.profileSavedMediaReaders, initialField: query["field"])
             } else { unavailable }
