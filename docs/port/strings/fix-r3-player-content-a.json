@@ -544,6 +544,23 @@
           }
         }
       }
+    },
+    "merchantApply.success.progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View hosting progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看承接进度"
+          }
+        }
+      }
     }
   }
 }

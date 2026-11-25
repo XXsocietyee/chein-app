@@ -37,6 +37,9 @@ import SwiftUI
     @State private var discard = false
     @State private var placementTemplateReturnReadback = false
     @State private var placementTemplateProtectedReadback: Date?
+    /// Round 4 flow (MP merchantapply.js:737 `goProgress`): after a saved registration, 查看承接进度 opens the
+    /// merchantinfo 承接 view for that topic (`merchantinfo?topicId=&scope=MERCHANT`).
+    @State private var showsRegistrationProgress = false
     @Environment(\.dismiss) private var dismiss
     init(service: any MerchantContentServing, query: MerchantContentQuery, kind: Kind, placeSearch: (any PublishingPlaceSearching)? = nil) {
         self.service = service; self.query = query; self.kind = kind; self.placeSearch = placeSearch
@@ -49,6 +52,13 @@ import SwiftUI
     }
     private var registrationWritesGated: Bool {
         switch kind { case .apply, .registrationCreate, .registrationEdit: return true; default: return false }
+    }
+    private var registrationTopicID: Int? {
+        switch kind {
+        case .registrationCreate(let topicID, _): return topicID
+        case .registrationEdit: return c.snapshot?.value["topicId"].integer
+        default: return nil
+        }
     }
     private var canEditAvailability: Bool {
         availabilityContext != nil && !c.busy && !c.locked && c.review == nil && c.receipt == nil
@@ -106,8 +116,20 @@ import SwiftUI
                     } else { Text("merchant.content.completeFields").foregroundStyle(.secondary) }
                 }
             } else if c.busy { ProgressView("merchant.loading") }
+            if registrationWritesGated, c.receipt != nil, registrationTopicID != nil {
+                Section {
+                    Button("merchantApply.success.progress") { showsRegistrationProgress = true }
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("merchantApply.success.progress")
+                }
+            }
         }
         .accessibilityIdentifier("merchant.content.editor")
+        .navigationDestination(isPresented: $showsRegistrationProgress) {
+            if let topicID = registrationTopicID {
+                MerchantContentDocumentView(service: service, query: .project(topicID: topicID), focusedTopicID: topicID)
+            }
+        }
         .modifier(MerchantRegistrationAvailabilityPresentation(editor: $availabilityEditor,
             context: currentAvailabilityContext, source: currentAvailabilitySource,
             replacement: availabilityReplacement, canEdit: canEditAvailability,
