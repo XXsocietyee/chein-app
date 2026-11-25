@@ -264,3 +264,113 @@ I checked every round-1 and round-2 commit of this branch, hunk by hunk, against
   - `.navigationDestination(isPresented:)` on `ActivityPublishingView`. Every host pushes it inside a NavigationStack: the publish menu, the deep link and the fixtures.
   - `if let account, let service, let openResource { … }` inside that destination's `@ViewBuilder`.
   - `PublishingProjectsView(…, readOnly: true, initialType: "activity")`: the argument order follows the declaration, and `designPreview` is DEBUG-only and sits after `initialType`.
+
+---
+
+## Round 4 (2026-11-25)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round4.md`, plus `wave-x10.md` and `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` at `4ef0a2840`. The merge had no conflicts.
+- **Scope:** the same pages 12–22. Gemini is out of quota, so this round also covers MP alignment (flows, images, copy) for these pages.
+- **Layer:** App only. No Core types were changed.
+
+### 1. Flows (`flows-g1.md`, `flows-g2.md`)
+
+| Edge | Status |
+|---|---|
+| `subpackagePass/reveal/index.js:120` `redirectTo ?` (MISSING-ROUTE for Claude) | **Fixed.** In the MP, both 跳过 and 开始 call `_go()`, which redirects to membership (or to the library after a paid order). In the app, 跳过 only jumped to the end of the animation. Now 跳过 opens the same page as 开始. With no destination bound, it still ends the intro. |
+| reveal `redirectTo` = no way back to the interstitial (B-PR-03, P2) | **Fixed.** Once 开始 or 跳过 has opened membership or the library, coming back from that page also closes the reveal, so the user lands on the page underneath. The parity router still only pushes, so the reveal briefly shows before it closes; a real replace-top would need a router change. |
+| `square/detail/index.js:161` `navigateTo ?` (goUserInfo → `userinfo`) | Already covered. The avatar opens the MP menu: 关注 when known not following, then 访问个人主页, which pushes `SocialPublicProfileView`. **Changed:** the extra `查看作者主页` row under the post is removed; the MP has none, and the avatar menu is the only entry. |
+| `publish/fabu/index.js:3363` `navigateTo ?` / `:8500` `redirectTo ?` | Unchanged from round 3. `:8500` (result sheet → next) is covered by `ProjectEditView.submissionResult`. `:3363` (复制为新草稿 on a mode switch) still needs a Core draft-copy API. **Cursor.** |
+| `publish/temp/index.js:3520` `reLaunch myproject?type=template` | Covered (round 3). |
+| `publish/activity/index.js:738` `redirectTo ?` | Fixed in round 3. |
+| `agreement/index.js:52` `redirectTo ?` | No change needed (round 3). |
+| privacy, deregister, team detail, team join | `OK` in flows-g2; checked again, nothing to change. |
+
+### 2. Image parity
+
+The MP's `cy-icon` glyphs (`plus`, `clock`, `tab-me`, `lock`, `info`, `warning`, `check`, `more`) are drawn line icons. They are not shipped images and have no row in `docs/mp-assets/mapping.md`, so they stay SF Symbols. The table lists every image slot (`src=`, default and fallback images, and `cy-empty` art).
+
+| Page | MP image slot | App now | Status |
+|---|---|---|---|
+| privacy | `mediaPreviewUrl` (own media, remote) | remote image | ok (no default) |
+| agreement | none | — | — |
+| deregister | `cy-empty kind="no-permission"` (glyph `lock`) | `CYEmptyState` glyph | ok (glyph, not an image) |
+| pass reveal | `cy-frames` intro / idle sheets (`frames.js`) | `MPAsset.Other.keyIntro0…13`, `keyIdle0…11` | ok (round 2) |
+| pass reveal | merchant `cy-empty kind="empty"` → `empty_state_bg` + `empty_state_figure` | `MPAsset.EmptyState.emptyStateBg` + `emptyStateFigure` (via `CYEmptyState(systemImage: "tray")`) | **fixed** (was the SF Symbol `key`) |
+| fabu | remote node, story, cast and material images via `img.fit` | remote images | ok (no default asset) |
+| fabu | route map pins | numbered circles | ok (MP draws numbered pins; `map-pin.png` is only a fallback; round 2) |
+| temp | `/pages/publish/images/icon_tag_check.svg` | `MPAsset.FeatureIcon.iconTagCheck` | ok (round 2) |
+| temp | `formData.imgUrl \|\| defaultCover` (`gameTemplateCover` → `/images/interaction-templates/*.svg`) | `MPAsset.BannerCover.blindTaste`, `silentOrder`, `diyDrink`, `musicCorner`, `midnightRadio`, `lowCarbon`, `dailyCitySign` | **fixed.** Matched by title first, then by the first enabled mechanic section, as in the MP (`TemplateInteractionDefaultCover`). |
+| temp | option, question, medal and scene images (`choice.img`, `questionImg`, `medalImg`, …) | remote images / pickers | ok (user content) |
+| activity | `/images/icon_right.png` | SF `chevron.right` | ok (system-control glyph per mapping) |
+| activity | `d_mbico1.png` / `d_mbico2.png` | `MPAsset.FeatureIcon.dMbico1` / `dMbico2` | ok (round 2) |
+| activity | `icon_date3.png` | system `DatePicker` | kept (native iOS rule, round 2) |
+| activity | `subpackageMember/images/icon_star.png` | — | commented out in the MP |
+| activity | collaborator `item.avatar \|\| d_profile.png` | — | **open.** The app's 合作者 row shows a count only; the draft holds member ids and no profile data. Rendering rows needs a collaborator profile read (**Cursor**). |
+| activity | template row `item.imgUrl` | remote image | ok |
+| template-intro | featured covers (remote) | remote | ok |
+| square detail | post avatar `memberAvatar \|\| d_profile.png` | `MPAsset.AvatarDefault.dProfile` fallback | ok (round 2) |
+| square detail | comment avatar + `icon_jia` | `dProfile`, `MPAsset.FeatureIcon.iconJia` | ok (round 2) |
+| square detail | `cy-empty kind="empty"` (社区暂未开放, 这条帖文暂不可用) | `CYEmptyIllustration(kind: .generic)` | **fixed** (was `doc.text.magnifyingglass`) |
+| square detail | `cy-completion-share-card` medal gold/silver/bronze | — | open (C-S10; `SquarePost` has no medal fields; **Cursor**) |
+| square detail | share `icon_share` | SF `square.and.arrow.up` | ok (system-control glyph) |
+| team detail | seat strip `memberAvatar \|\| d_profile.png` + 队长 crown | `TeamDetailSeatStrip` with `MPAsset.AvatarDefault.dProfile` | **fixed** (new; the detail page had no seat strip) |
+| team detail | member rows `memberAvatar \|\| d_profile.png` | `dProfile` | ok (round 2; Core decodes no avatar) |
+| team detail | QR `qrSheet.qr` | remote | ok |
+| team join | seats `cy-icon tab-me` / `plus` | SF `person.fill` / `plus` | ok (glyphs) |
+
+### 3. Copy
+
+Overrides are in `docs/port/strings/fix-r3-account-publish-b.json` (en + zh-Hans). One feature-table edit was made in place, as in round 1.
+
+| Key | Was | Now (MP) | Where in the MP |
+|---|---|---|---|
+| `mp.reveal.linePaid %@` | 到 %@ · 价格都是 ¥0 | 到 %@ | reveal/index.js `_paidCopy` |
+| `fixr3.square.commentsFailed` (new) | (generic 加载失败) | 评论加载失败 | square/detail wxml |
+| `fixr3.square.moreCommentsFailed` (new) | (generic) | 更多评论加载失败 | square/detail wxml |
+| `team.member.unnamed` | 玩家 | 城瘾玩家 | team/detail wxml + js |
+| `team.loading` | 正在核对队伍状态… | 正在确认队伍状态… | team/detail wxml |
+| `team.leave` | 查看退队确认 | 退出队伍 | team/detail wxml |
+| `team.disband` | 查看解散确认 | 解散队伍 | team/detail wxml |
+| `team.invite.copy` | 复制邀请码 | 复制加入码 | team/detail QR sheet |
+| `team.invite.copied` | 邀请码已复制，尚未发送邀请。 | 加入码已复制 | team/detail js |
+| `team.invite.previewOnly` | 复制邀请码后发给队友 | 复制加入码后发给队友 | (same term as the MP) |
+| `team.join.empty` / `.emptyDetail` | 没有找到这支队伍 / 请让邀请你的人重新发送邀请链接 | 邀请暂时不可用 / 请让队长重新分享后再试 | team/join js |
+| `fixr3.team.seat.captain` (new) | — | 队长 | team/detail seat crown |
+| `settingsNative.legal.effectiveDate` | 生效日期 | 生效日期： | agreement wxml footer |
+| `member.media.denied` (MemberProfile table, edited in place) | 暂时无法显示你的媒体，请刷新重试 | 当前账号暂不能读取本人媒体，请刷新重试 | privacy wxml |
+| `member.media.signedOut` (MemberProfile) | 登录后查看我的媒体 | 登录查看本人媒体 | privacy wxml |
+| `member.media.type.model` (MemberProfile) | 3D 模型 | 模型 | privacy js |
+| activity section header (inline `CoreLoopCopy`) | 活动介绍 | 活动说明 | activity wxml |
+
+Checked and already equal to the MP: deregister (rounds 1–3), the square detail error shells and the avatar menu, template-intro, the pass reveal copy (other than the paid line), and the team recovery buttons.
+
+Not done: **fabu** (about 2,000 lines of wxml), plus the temp editor's game-module sub-forms. A full pass is size L. I compared titles and primary buttons only, and those match.
+
+### 4. P2 / P1 rows
+
+- **B-PR-03:** closed (see Flows).
+- **Pass reveal timeline:** the MP DOM timeline is gradient 3000, eyebrow 3400, title 3550, line 3750 and button 4050 ms. The app used the old shard timings (1500–2450 ms), so the text showed before the key had formed. It now matches the MP. 跳过 shows at 600 ms and goes away when the 83-frame intro ends (MP `idleOn`).
+- **Still open, unchanged from round 3 (Core/Cursor or test-coordinated):** C-F14, C-F16-r7, C-A8, C-S10, B-PV-07-r7, and the P1s B-DR-06 (rest), C-T2/C-T12, C-T6/C-T13/C-I8, C-F2/C-F4/C-T5 (rest) and C-F8.
+- **C-A9-r7 and C-I9-r7:** unchanged, for the reasons given in round 3.
+
+### 5. Accessibility lint
+
+`python3 -B tools/check_a11y_lint.py` reports 1 new finding: `App/ClubKit/ClubWorkbenchKit.swift:261`, an unlabeled share `Image` inside `glyph`. It is already on `origin/ui/combined-r7` `4ef0a2840` and sits in the club area, so I did not change it, to avoid a cross-area conflict. **Club F-agent:** add `.accessibilityHidden(true)` after `.contentShape` (the parent button has a label). Every image added this round is `.accessibilityHidden(true)`, placed after the Image-only modifiers. The seat strips read as one combined label.
+
+### Not compiled. The coordinator should check:
+
+- `.onChange(of: route) { _, next in … }` on `PassRevealView`. `MPParityRoute` is `Hashable`.
+- `@Environment(\.dismiss)` added to `PassRevealView`.
+- `SquareIssueView(error:retry:title:)`: the new `title` var (default nil) comes after `retry`. Existing trailing-closure calls still bind to `retry`.
+- `TemplateAuthoringCoverHeader(…, defaultCover:)` and `TemplateInteractionDefaultCover` (uses the public `TemplateAdvancedDraft.enabled(_:)`).
+- `TeamDetailSeatStrip`: `ForEach(Array(members.enumerated()), id: \.offset)` inside the file-private `FlowSeats` layout.
+
+### Checks run in the cloud (round 4)
+
+- `contract_ratchet.py --check`: this branch fails 223 (new 39). `origin/ui/combined-r7` `4ef0a2840` fails 222 (new 38), and the two name sets are identical except for one test. That test is `test_localization_key_catalog_contract`, which fails only because `fixr3.team.seat.captain` is still only in this branch's string fragment, as the fragment rule requires. It passes once the coordinator merges `docs/port/strings/fix-r3-account-publish-b.json`.
+- Touched-file suites: `test_team_*`, `test_square_*`, `test_settings_native`, `test_native_ui_accessibility_semantics`, `test_pages_agreement_index`, `test_accessibility_identifier_boundaries`, `test_activity_publishing_wizard` and `test_bk_backend_sync`. Every failing test name is identical to the base, so these changes add no failures.
+- `check_typography_lint.py`: PASS.
+- `check_appsession_ratchet.py`: PASS.
+- `check_a11y_lint.py`: 1 finding, which is already on the base (see section 5).

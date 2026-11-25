@@ -55,6 +55,10 @@ public enum JourneyRequestKey {
     /// `landing/index.js` `storeKey('gift', token)` → `journey-claim:gift:` + the last 24 characters.
     public static func giftClaim(_ token: String) -> String { "journey-claim:gift:" + String(token.suffix(24)) }
     public static func seatCancel(_ invitationID: String) -> String { "journey-seat-cancel:" + invitationID }
+    /// One id per registration, seat, trimmed name, and normalized phone. A form edit mints a new id.
+    public static func seatTransferPhone(registrationID: String, seatNo: Int, name: String, phone: String) -> String {
+        "journey-seat-phone:" + registrationID + ":" + String(seatNo) + ":" + name + ":" + phone
+    }
     /// U08-02: one retained id per run until the server gives a finished answer.
     public static func runFeedback(_ runID: String) -> String { "journey-run-feedback:" + runID }
 }
@@ -250,6 +254,39 @@ public struct JourneyLoopSource {
         }
     }
 
+    /// `POST /api/play/seat-invitations/transfer-phone` JSON `{registrationId, seatNo, name, phone, requestId}`.
+    /// `registrationId` and `seatNo` are numbers. `name` is trimmed (1–20). `phone` is the normalized mainland mobile.
+    /// Not a money write. A same-form retry reuses the saved request id.
+    public func seatTransferPhone(registrationID: String, seatNo: Int, name: String, phone: String, token: String) async throws -> JourneyEnvelope {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard Self.isID(registrationID), let registration = Int(registrationID),
+              registration > 0, registration <= 9_007_199_254_740_991, seatNo > 1 else { throw JourneyRefusal.invalidRequest }
+        guard (1...20).contains(trimmed.unicodeScalars.count), let mobile = Self.normalizeMobile(phone) else { throw JourneyRefusal.invalidRequest }
+        let key = JourneyRequestKey.seatTransferPhone(registrationID: registrationID, seatNo: seatNo, name: trimmed, phone: mobile)
+        guard let requestID = retainedOrNew(key: key, prefix: "seatphone") else { throw JourneyRefusal.invalidRequest }
+        store.write(key, requestID)
+        let body: [String: Any] = [
+            "name": trimmed,
+            "phone": mobile,
+            "registrationId": NSNumber(value: registration),
+            "requestId": requestID,
+            "seatNo": NSNumber(value: seatNo)
+        ]
+        let result = try await postJSONObject(.seatTransferPhone, body: body, token: token, receiptReread: false)
+        return settle(key: key, result: result)
+    }
+
+    /// `POST /api/play/seat-invitations/claim-phone/{token}` JSON `{}`. Not a money write.
+    public func seatClaimPhone(token credential: String, sessionToken: String) async throws -> JourneyEnvelope {
+        guard Self.acceptableToken(credential), !credential.contains("/") else { throw JourneyRefusal.invalidRequest }
+        return try await postJSONObject(.seatClaimPhone, tokenSegment: credential, body: [:], token: sessionToken, receiptReread: false)
+    }
+
+    /// `GET /api/play/seat-invitations/mine`. Not a money write.
+    public func seatMine(token: String) async throws -> JourneyEnvelope {
+        try await get(.seatMine, query: [], token: token)
+    }
+
     public func seatCancel(invitationID: String, token: String) async throws -> JourneyEnvelope {
         try await write(.seatCancel, key: JourneyRequestKey.seatCancel(invitationID), prefix: "seatcxl", token: token, invitationID: invitationID) { requestID in
             ["requestId": requestID]
@@ -330,6 +367,19 @@ public struct JourneyLoopSource {
         }
     }
 
+    /// Mainland mobile after stripping spaces, dashes, and parentheses, and a leading +86 / 0086 / 86.
+    public static func normalizeMobile(_ raw: String) -> String? {
+        var digits = raw
+        for mark in [" ", "-", "(", ")", "（", "）", "\u{00A0}"] {
+            digits = digits.replacingOccurrences(of: mark, with: "")
+        }
+        if digits.hasPrefix("+86") { digits = String(digits.dropFirst(3)) }
+        else if digits.hasPrefix("0086") { digits = String(digits.dropFirst(4)) }
+        else if digits.count == 13, digits.hasPrefix("86") { digits = String(digits.dropFirst(2)) }
+        guard digits.range(of: #"^1[3-9]\d{9}$"#, options: .regularExpression) != nil else { return nil }
+        return digits
+    }
+
     /// Positive canonical id, the page's `isId` for a string (no leading zero, at most 19 digits).
     public static func isID(_ value: String) -> Bool {
         guard (1...19).contains(value.utf8.count), value.utf8.first != 48 else { return false }
@@ -354,12 +404,12 @@ public struct JourneyLoopSource {
 
     // MARK: Private send
 
-    private func get(_ name: Self.Journey, invitationID: String? = nil, query: [URLQueryItem], token: String) async throws -> JourneyEnvelope {
+    private func get(_ name: Self.Journey, invitationID: String? = nil, tokenSegment: String? = nil, query: [URLQueryItem], token: String) async throws -> JourneyEnvelope {
         let binding = Self.journey(name)
         if productionLease != nil, JourneyProductionLease.refused.contains(name) { throw JourneyRefusal.moneyOff }
         guard !binding.money else { throw JourneyRefusal.moneyOff }
         guard AuthRequestBuilder.isValidToken(token) else { throw JourneyRefusal.invalidRequest }
-        let path = try resolve(binding, invitationID: invitationID)
+        let path = try resolve(binding, invitationID: invitationID, tokenSegment: tokenSegment)
         let request = try make(method: "GET", path: path, query: query, token: token, body: nil, contentType: nil)
         return await perform(request, receiptReread: false)
     }
@@ -370,6 +420,17 @@ public struct JourneyLoopSource {
         guard !binding.money, binding.json else { throw JourneyRefusal.moneyOff }
         guard AuthRequestBuilder.isValidToken(token) else { throw JourneyRefusal.invalidRequest }
         let path = try resolve(binding, invitationID: invitationID)
+        let data = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        let request = try make(method: "POST", path: path, query: [], token: token, body: data, contentType: "application/json")
+        return await perform(request, receiptReread: receiptReread)
+    }
+
+    private func postJSONObject(_ name: Self.Journey, tokenSegment: String? = nil, body: [String: Any], token: String, receiptReread: Bool) async throws -> JourneyEnvelope {
+        let binding = Self.journey(name)
+        if productionLease != nil, JourneyProductionLease.refused.contains(name) { throw JourneyRefusal.moneyOff }
+        guard !binding.money, binding.json else { throw JourneyRefusal.moneyOff }
+        guard AuthRequestBuilder.isValidToken(token) else { throw JourneyRefusal.invalidRequest }
+        let path = try resolve(binding, tokenSegment: tokenSegment)
         let data = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
         let request = try make(method: "POST", path: path, query: [], token: token, body: data, contentType: "application/json")
         return await perform(request, receiptReread: receiptReread)
@@ -429,7 +490,11 @@ public struct JourneyLoopSource {
         return result
     }
 
-    private func resolve(_ binding: Self.JourneyCase, invitationID: String?) throws -> String {
+    private func resolve(_ binding: Self.JourneyCase, invitationID: String? = nil, tokenSegment: String? = nil) throws -> String {
+        if binding.path.contains("{token}") {
+            guard let tokenSegment, Self.acceptableToken(tokenSegment), !tokenSegment.contains("/") else { throw JourneyRefusal.invalidRequest }
+            return binding.path.replacingOccurrences(of: "{token}", with: tokenSegment)
+        }
         guard binding.path.contains("{invitationId}") else { return binding.path }
         guard let invitationID, Self.isID(invitationID), !invitationID.contains("/") else { throw JourneyRefusal.invalidRequest }
         return binding.path.replacingOccurrences(of: "{invitationId}", with: invitationID)
@@ -542,6 +607,9 @@ extension JourneyLoopSource {
         case seatInvitation
         case seatClaim
         case seatCancel
+        case seatTransferPhone
+        case seatClaimPhone
+        case seatMine
         case giftClaim
         /// Not a `journey-api.js` export: U08-02 problem feedback, backend `ApiPlayFeedbackController`.
         case runFeedback
@@ -575,6 +643,9 @@ extension JourneyLoopSource {
         JourneyCase(name: .seatInvitation, method: "GET", path: "/api/play/seat-invitations/{invitationId}", json: false, form: false, money: false),
         JourneyCase(name: .seatClaim, method: "POST", path: "/api/play/seat-invitations/claim", json: true, form: false, money: false),
         JourneyCase(name: .seatCancel, method: "POST", path: "/api/play/seat-invitations/{invitationId}/cancel", json: true, form: false, money: false),
+        JourneyCase(name: .seatTransferPhone, method: "POST", path: "/api/play/seat-invitations/transfer-phone", json: true, form: false, money: false),
+        JourneyCase(name: .seatClaimPhone, method: "POST", path: "/api/play/seat-invitations/claim-phone/{token}", json: true, form: false, money: false),
+        JourneyCase(name: .seatMine, method: "GET", path: "/api/play/seat-invitations/mine", json: false, form: false, money: false),
         JourneyCase(name: .giftClaim, method: "POST", path: "/api/marketing/product/gifts/claim", json: true, form: false, money: true),
         JourneyCase(name: .runFeedback, method: "POST", path: "/api/play/feedback/submit", json: true, form: false, money: false)
     ]
@@ -685,6 +756,33 @@ public enum JourneyHeldSeatInviteRule {
         let match = seats.first { $0.invitationID == hold.invitationID }
         guard let match, match.state == "INVITED" else { return nil }
         return hold
+    }
+}
+
+/// DEC-F12 B phone transfer. Validation matches `journey-view.js` `transferErrors` / `normalizePhone`.
+/// The write itself is `JourneyLoopSource.seatTransferPhone`. This does not send.
+public enum JourneySeatPhoneTransfer {
+    public static func nameError(_ name: String) -> String? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return "请填写称呼" }
+        if trimmed.unicodeScalars.count > 20 { return "最多 20 个字" }
+        return nil
+    }
+
+    public static func phoneError(_ phone: String) -> String? {
+        JourneyLoopSource.normalizeMobile(phone) == nil ? "手机号格式不对" : nil
+    }
+
+    /// `seatsView` `who`: PHONE channel and INVITED or CLAIMED, name then masked phone.
+    public static func who(channel: String?, state: String?, name: String?, maskedPhone: String?) -> String {
+        guard channel == "PHONE", state == "INVITED" || state == "CLAIMED" else { return "" }
+        let parts = [name, maskedPhone].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        return parts.joined(separator: " ")
+    }
+
+    /// Empty seat above seat 1, and the server said phone transfer is supported, and the buyer is the caller, and the page is not read-only.
+    public static func canTransfer(state: String, seatNo: Int, phoneTransferSupported: Bool, buyerIsCaller: Bool, readOnly: Bool) -> Bool {
+        state == "AVAILABLE" && seatNo > 1 && phoneTransferSupported && buyerIsCaller && !readOnly
     }
 }
 

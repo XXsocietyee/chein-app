@@ -12,7 +12,10 @@ class ProjectOriginalRequestRecoveryContract(unittest.TestCase):
   self.assertLess(s.index('persisted.dispatchStarted == true'),s.index('approval.allows'))
   for v in ['path: path)','path: ProjectEditRequestContract.submitPath)','dispatched.serverRequest = envelope','dispatched.dispatchStarted = true','ProjectEditLocalStore.exactPending(saved, dispatched)']:self.assertIn(v,s)
   self.assertLess(s.index('try store.savePending(dispatched'),s.index('transport.send(request)'))
-  self.assertNotIn('path: path, body:',s)
+  # C-F17 MP-first (owner 2026-11-25): without the edit-request grant the original route is sent directly, as the MP
+  # (fabu/index.js:7893-7894) does. Was assertNotIn; the direct send stays behind the same original-route guard.
+  self.assertIn('path: path, body: ProjectEditRequestContract.payloadBytes(operation.payload)',s)
+  self.assertLess(s.index('approval.allows'),s.index('path: path, body:'))
  def test_recovery_is_read_only_without_fallback(self):
   s=self.text('Core/ProjectEditHTTPService.swift').split('public func retrySameRequest(',1)[1].split('public func resumePostProcessing',1)[0]
   self.assertIn('terminalReceipt(operation: operation',s);self.assertIn('catch { return .unknown }',s)

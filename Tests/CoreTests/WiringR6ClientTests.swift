@@ -247,6 +247,11 @@ final class WiringR6TopicClubShareLinkTests: XCTestCase {
         XCTAssertEqual(https, link)
         let chein = TopicClubShareLinkParser.parse("chein://mp/pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST")
         XCTAssertEqual(chein, link)
+        let fields = TicketSourceRegistrationFields.payload(topicID: 8, link: link)
+        XCTAssertEqual(fields["sourceClubId"] as? Int, 42)
+        XCTAssertEqual(fields["sourceChannelCode"] as? String, "EAST")
+        XCTAssertTrue(TicketSourceRegistrationFields.payload(topicID: 9, link: link).isEmpty)
+        XCTAssertNil(ClubShareLink.club(id: 7)?.httpsURL())
     }
 
     func testParserKeepsClubFactsWhenTheCodeIsAbsent() {

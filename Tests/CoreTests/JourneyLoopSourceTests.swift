@@ -135,6 +135,59 @@ final class JourneyLoopSourceTests: XCTestCase {
         XCTAssertTrue(wire.requests.isEmpty)
     }
 
+    func testSeatPhoneTransferSendsJSONAndGiftClaimStillSendsNothing() async throws {
+        let wire = Wire(body: Data(#"{"code":200,"data":{"ok":true}}"#.utf8))
+        let source = try make(wire)
+        XCTAssertEqual(JourneySeatPhoneTransfer.nameError("  "), "请填写称呼")
+        XCTAssertEqual(JourneySeatPhoneTransfer.nameError(String(repeating: "字", count: 21)), "最多 20 个字")
+        XCTAssertNil(JourneySeatPhoneTransfer.nameError(" 阿宁 "))
+        XCTAssertEqual(JourneySeatPhoneTransfer.phoneError("123"), "手机号格式不对")
+        XCTAssertEqual(JourneyLoopSource.normalizeMobile("+86 138-0013-8000"), "13800138000")
+        XCTAssertEqual(JourneySeatPhoneTransfer.who(channel: "PHONE", state: "INVITED", name: "阿宁", maskedPhone: "138****8000"), "阿宁 138****8000")
+        XCTAssertEqual(JourneySeatPhoneTransfer.who(channel: "LINK", state: "INVITED", name: "阿宁", maskedPhone: "138****8000"), "")
+        XCTAssertTrue(JourneySeatPhoneTransfer.canTransfer(state: "AVAILABLE", seatNo: 2, phoneTransferSupported: true, buyerIsCaller: true, readOnly: false))
+        XCTAssertFalse(JourneySeatPhoneTransfer.canTransfer(state: "AVAILABLE", seatNo: 1, phoneTransferSupported: true, buyerIsCaller: true, readOnly: false))
+        do {
+            _ = try await source.seatTransferPhone(registrationID: "15", seatNo: 2, name: "阿宁", phone: "123", token: "session-token")
+            XCTFail("bad phone")
+        } catch JourneyRefusal.invalidRequest {}
+        XCTAssertTrue(wire.requests.isEmpty)
+        wire.body = Data(#"{"code":503}"#.utf8)
+        let sent = try await source.seatTransferPhone(registrationID: "15", seatNo: 2, name: " 阿宁 ", phone: "+86 138-0013-8000", token: "session-token")
+        XCTAssertTrue(sent.unconfirmed)
+        XCTAssertEqual(wire.requests[0].httpMethod, "POST")
+        XCTAssertEqual(wire.requests[0].url?.path, "/api/play/seat-invitations/transfer-phone")
+        XCTAssertEqual(wire.requests[0].value(forHTTPHeaderField: "Content-Type"), "application/json")
+        let object = try JSONSerialization.jsonObject(with: wire.requests[0].httpBody ?? Data()) as? [String: Any]
+        XCTAssertEqual(object?["name"] as? String, "阿宁")
+        XCTAssertEqual(object?["phone"] as? String, "13800138000")
+        XCTAssertEqual((object?["registrationId"] as? NSNumber)?.intValue, 15)
+        XCTAssertEqual((object?["seatNo"] as? NSNumber)?.intValue, 2)
+        XCTAssertEqual(object?["requestId"] as? String, "seatphone-loyw3v28-abcd1234")
+        let again = try await source.seatTransferPhone(registrationID: "15", seatNo: 2, name: "阿宁", phone: "13800138000", token: "session-token")
+        XCTAssertTrue(again.unconfirmed)
+        let retry = try JSONSerialization.jsonObject(with: wire.requests[1].httpBody ?? Data()) as? [String: Any]
+        XCTAssertEqual(retry?["requestId"] as? String, "seatphone-loyw3v28-abcd1234")
+        wire.body = Data(#"{"code":200,"data":{}}"#.utf8)
+        let claimed = try await source.seatClaimPhone(token: "seat-token", sessionToken: "session-token")
+        XCTAssertTrue(claimed.ok)
+        XCTAssertEqual(wire.requests[2].url?.path, "/api/play/seat-invitations/claim-phone/seat-token")
+        XCTAssertEqual(wire.requests[2].httpBody, Data("{}".utf8))
+        _ = try await source.seatMine(token: "session-token")
+        XCTAssertEqual(wire.requests[3].httpMethod, "GET")
+        XCTAssertEqual(wire.requests[3].url?.path, "/api/play/seat-invitations/mine")
+        XCTAssertNil(wire.requests[3].httpBody)
+        let before = wire.requests.count
+        XCTAssertThrowsError(try source.giftClaim(token: "gift-token", requestID: "req-1", sessionToken: "session-token")) { error in
+            XCTAssertEqual(error as? JourneyRefusal, .moneyOff)
+        }
+        XCTAssertEqual(wire.requests.count, before)
+        XCTAssertFalse(JourneyLoopSource.journey(.seatTransferPhone).money)
+        XCTAssertFalse(JourneyLoopSource.journey(.seatClaimPhone).money)
+        XCTAssertFalse(JourneyLoopSource.journey(.seatMine).money)
+        XCTAssertFalse(JourneyLoopSource.moneyWritesEnabled)
+    }
+
     func testProductionHostsAndTheProductionClassAreRefused() throws {
         let wire = Wire()
         for host in ["https://chengyinhub.com", "https://api.chengyinhub.cn", "https://47.103.124.64"] {

@@ -62,7 +62,7 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
         expected = {
             'clubOpsGov.denied.title': '当前身份不能管理成员', 'clubOpsGov.denied.body': '仅主理人和管理员可用',
             'clubOpsGov.roles.denied.title': '当前身份不能管理角色', 'clubOpsGov.roles.denied.body': '仅主理人可分配角色',
-            'clubOpsGov.roles.empty': '还没有可委派的成员', 'clubOpsGov.roles.emptyBody': '先邀请成员加入俱乐部，再为他们分配运营角色。',
+            'clubOpsGov.roles.empty': '暂无成员', 'clubOpsGov.roles.emptyBody': '先邀请成员加入俱乐部，再为他们分配运营角色。',
             'clubOpsGov.members.empty': '暂无可治理成员', 'clubOpsGov.members.emptyBody': '成员加入后可在这里进行安全治理；历史记录也会保留。',
             'clubOpsGov.bans.empty': '暂无治理记录', 'clubOpsGov.cases.empty': '暂无已提交工单',
             'clubOpsGov.appeal.current': '封禁中的这条', 'clubOpsGov.appeal.empty': '当前没有可申诉的封禁',

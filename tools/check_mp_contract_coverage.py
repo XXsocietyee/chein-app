@@ -9,20 +9,21 @@ are not rows. subscribe.request([...]) is not an HTTP row, and neither is
 require("...subscribe.js").request([...]).
 
 This extracts literal arguments only. It does not parse JavaScript.
-A path, method, or field list that is not a literal is left unknown, and
-the row stays MISSING. A call that only forwards url, with no path string,
-stays missing-endpoint. A spread or Object.assign source that follows a
-url literal can replace it, so that literal is not kept. Same-file request
-helpers are used only when the helper body contains one literal /api URL
-or one literal method.
+A path or method that is not a literal is left unknown. A call that only
+forwards url, with no path string, stays missing-endpoint. A spread or
+Object.assign source that follows a url literal can replace it, so that
+literal is not kept. Same-file request helpers are used only when the
+helper body contains one literal /api URL or one literal method.
 
 Columns, tab-separated:
   MP file:line    Core symbol or MISSING    test or MISSING
 
 A Core symbol is a type.member in Core/ whose string literal is that path.
-A test pins the row only when one Tests/CoreTests function contains the
-path, the method, and every literal field name. Unknown fields are not
-treated as pinned.
+A test pins the row when one Tests/CoreTests function contains the path
+and the quoted method. Literal field names are still required when this
+scan can read them. A body passed through jsonBody(...), JSON.stringify(...),
+a forwarded data value, Object.assign, a spread, a variable, or no data
+object stays unread and does not block the pin.
 
 usage:
   python3 tools/check_mp_contract_coverage.py --mp-root /path/to/chengyinhub-xcx
@@ -854,7 +855,7 @@ def path_boundary(haystack, needle):
 
 
 def test_pins(body, pattern, templated, method, fields):
-    if not pattern or not method or fields is None:
+    if not pattern or not method:
         return False
     if templated:
         segments = [segment for segment in pattern.split("{}") if segment]
@@ -864,7 +865,7 @@ def test_pins(body, pattern, templated, method, fields):
         return False
     if '"%s"' % method not in body and "'%s'" % method not in body:
         return False
-    for field in fields:
+    for field in fields or []:
         if '"%s"' % field not in body and "'%s'" % field not in body:
             return False
     return True

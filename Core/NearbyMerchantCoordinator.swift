@@ -12,6 +12,14 @@ public struct NearbyMerchantRow: Identifiable, Equatable {
     public let phone: String?
     /// Rows the server marks `coopOpen == 0` are not offered (source filter).
     public let cooperationClosed: Bool
+    public let cover: String?
+    public let logo: String?
+    public let businessTime: String?
+    public let capacity: Int?
+    public let chargeType: Int?
+    public let suitActivityTypes: String?
+    public let latitude: Double?
+    public let longitude: Double?
     public var callablePhone: String? { memberID == nil ? phone : nil }
     public init(_ value: CoopFlowJSON) throws {
         guard let id = value["id"].integer, id > 0, let name = value["name"].text, !name.isEmpty else { throw CoopFlowFailure.malformed }
@@ -21,6 +29,14 @@ public struct NearbyMerchantRow: Identifiable, Equatable {
         let dial = value["phone"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         phone = value["canCall"].flag == true && !dial.isEmpty ? dial : nil
         cooperationClosed = value["coopOpen"].integer == 0
+        cover = value["cover"].text ?? value["coverImage"].text
+        logo = value["logo"].text
+        businessTime = value["businessTime"].text
+        capacity = value["capacity"].integer
+        chargeType = value["chargeType"].integer
+        suitActivityTypes = value["suitActivityTypes"].text
+        latitude = value["lat"].text.flatMap(Double.init) ?? value["latitude"].text.flatMap(Double.init)
+        longitude = value["lng"].text.flatMap(Double.init) ?? value["longitude"].text.flatMap(Double.init)
     }
     /// Distance ascending with unknown distances last; server order breaks ties.
     public static func ordered(_ rows: [NearbyMerchantRow]) -> [NearbyMerchantRow] {
@@ -78,7 +94,7 @@ public struct NearbyMerchantRow: Identifiable, Equatable {
         guard purposeAccepted else { phase = .consentRequired; return }
         guard available, let session = reader.session else { phase = .unavailable; return }
         generation &+= 1; let stamp = generation
-        owner = nil; storedRows = []; phase = .locating
+        phase = .locating
         defer {
             if stamp == generation {
                 location.stop()

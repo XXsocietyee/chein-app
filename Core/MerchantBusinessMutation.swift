@@ -77,8 +77,9 @@ public enum MerchantBusinessMutation: Equatable {
             return .json("api/merchant/crm/customers/\(id.rawValue)/tags/remove", ["tagId": .int(tag), "requestId": rid])
         case .batchTag(let ids, let name, let color):
             guard !ids.isEmpty, ids.count <= 100, Set(ids).count == ids.count else { throw MerchantBusinessFailure.invalid }
-            let values = try tag(name, color)
-            return .json("api/merchant/crm/customers/tags/batch", ["customerMemberIds": .array(ids.map { .int($0.rawValue) }), "tagName": .string(values.0), "tagColor": .string(values.1), "requestId": rid])
+            let labeled = try tag(name, color)
+            // Mini-program batch tag sends customerMemberIds, tagName, and requestId. It does not send tagColor.
+            return .json("api/merchant/crm/customers/tags/batch", ["customerMemberIds": .array(ids.map { .int($0.rawValue) }), "tagName": .string(labeled.0), "requestId": rid])
         case .aftercare(let id, let decision, let content, let evidence):
             let content = try text(content, min: decision == .reject ? 1 : 0, max: 500)
             let evidence = evidence?.trimmingCharacters(in: .whitespacesAndNewlines)

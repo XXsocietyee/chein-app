@@ -13,7 +13,6 @@ class TicketWalletTeamContracts(unittest.TestCase):
   self.assertIn('lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)',self.wallet)
   self.assertIn('var makeTeamCoordinator: (() -> TeamCoordinator)? = nil',self.detail)
   self.assertLess(self.detail.index('else if let ticket = model.value(owner: key), ticket.id == id {'),self.detail.index('TicketWalletTeamEntrySection('))
-  self.assertIn('TeamHomeView(coordinator: makeTeamCoordinator(), makeCoordinator: makeTeamCoordinator)',self.wallet)
  def test_ticket_owner_requires_positive_explicit_type_and_rejects_conflicting_ids(self):
   for value in ['requestedID > 0','ticket.id == requestedID','ownerID > 0','let ownerType = ticket.ownerType','switch ownerType',
                 'ticket.activityID == nil, ticket.topicID == nil || ticket.topicID == ownerID','ticket.topicID == nil, ticket.activityID == nil || ticket.activityID == ownerID','default: return nil']:

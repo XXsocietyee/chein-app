@@ -36,7 +36,10 @@ class SocialReaderProductionContracts(unittest.TestCase):
         self.assertIn('(try? SocialMessageMedia(message: row)) == media', code)
         self.assertEqual(service.count('try await authorize?(media)'), 2)
         first = service.index('try await authorize?(media)')
-        send = service.index('try await transport.send(request)')
+        # Image messages are msgType 2 and content is the URL
+        # (subpackageB/pages/im/chat/index.js:443, index.wxml:55). The fetch closure
+        # names self.transport; authorize still runs before and after those bytes.
+        send = service.index('try await self.transport.send(request)')
         last = service.rindex('try await authorize?(media)')
         self.assertLess(first, send)
         self.assertGreater(last, send)

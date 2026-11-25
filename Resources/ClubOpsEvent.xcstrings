@@ -332,7 +332,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你没有活动运营的权限"
+            "value": "当前身份不能运营活动"
           }
         }
       }
@@ -828,7 +828,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退款窗口按「集合时刻前 24 小时」计算。"
+            "value": "集合前 24 小时停止退款"
           }
         }
       }

@@ -112,6 +112,15 @@ import SwiftUI
                     return loaded
                 }) { profile in
                     Section {
+                        // MP cy-profile `.pc-hero-bg`: default cover `/subpackageMember/images/mer1.jpg` (index.js:399) over the head. Decorative.
+                        MPAsset.BannerCover.subpackageMemberImagesMer1
+                            .resizable()
+                            .scaledToFill()
+                            .accessibilityHidden(true)
+                            .frame(height: 120)
+                            .frame(maxWidth: .infinity)
+                            .clipped()
+                            .listRowInsets(EdgeInsets())
                         // Mini-program cy-profile identity head: round avatar beside name and level.
                         HStack(spacing: CYSpacing.lg) {
                             ProfilePublicAvatar(source: profile.avatar, name: profile.nickname)
@@ -205,6 +214,10 @@ import SwiftUI
                             ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)
                         }
                     case .posts:
+                        // r8 A1-01: own profile only.
+                        if let actions, actions.identity.accountID == memberID {
+                            OwnProfileComposerHost(actions: actions, offline: reader.isOfflineExample)
+                        }
                         UGCBlockedFilterContainer(memberID: profile.id, authorName: profile.nickname) {
                             ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader,
                                 actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)
@@ -215,6 +228,8 @@ import SwiftUI
                                 authorName: profile.nickname
                             )
                         }
+                        // r8 A2-08 (MP cy/profile loadMyClubPosts): own club posts follow the community posts.
+                        if let actions, actions.identity.accountID == memberID { OwnProfileClubPostsSection() }
                     case .achievements:
                         // Points come first under 成就, as in the mini-program.
                         if let weeklyPointsAccess {

@@ -717,7 +717,7 @@ struct JourneyMemoryTimeline: View {
             CYStateLayout(kind: .failure, title: message.map { Text(verbatim: $0) } ?? Text("mp.report.memory.error"),
                           primary: (title: "action.retry", action: onRetry), primaryStyle: .secondary, primaryIdentifier: "journeyMemory.retry", artSize: 96)
         case .empty:
-            CYEmptyState(systemImage: "photo.on.rectangle", "mp.report.memory.empty", messageIdentifier: "journeyMemory.empty")
+            CYEmptyState(systemImage: "tray", "mp.report.memory.empty", messageIdentifier: "journeyMemory.empty")
         case .ready(let memory):
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if let count = memory.participants, count > 1 {
@@ -749,9 +749,9 @@ struct JourneyMemoryTimeline: View {
                                 }
                                 if let text = moment.text { Text(verbatim: text).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                                 if let url = moment.pictureURL {
-                                    AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYNight.ink2 }
-                                        .frame(height: 180).frame(maxWidth: .infinity)
-                                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                                    // JREPORT-7: cached, with the shared placeholder / failure tile; 16:10 instead of a fixed 180 pt crop.
+                                    CYCachedAsyncImage(url.absoluteString, role: .cover)
+                                        .frame(maxWidth: .infinity)
                                         // JREPORT-9: the photo is described, not silently hidden.
                                         .accessibilityLabel(Text("mp.report.memory.photo \(moment.name ?? "")"))
                                 }
@@ -901,7 +901,7 @@ struct JourneySettleView: View {
         .navigationTitle(Text("mp.settle.title"))
         .navigationBarTitleDisplayMode(.inline)
         // consist-1 type-and-chrome: the system back stays; no custom chevron replaces it. The steps only go forward
-        // (each has its own next or skip), and back leaves 结算 as it does on every pushed page.
+        // (each has its own next or skip; an earlier progress dot steps back, JSETTLE-8), and back leaves 结算 as it does on every pushed page.
         .cyDomainScreen(.player)
     }
 
@@ -910,12 +910,18 @@ struct JourneySettleView: View {
             HStack(spacing: CYSpacing.xs) {
                 ForEach(Step.allCases, id: \.rawValue) { item in
                     Capsule().fill(item.rawValue <= step.rawValue ? CYColor.selection : CYColor.borderSubtle).frame(height: 4)
+                        // JSETTLE-8 (MP onBack = previous step): an earlier dot steps back; the system back still leaves 结算.
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                        .onTapGesture { if item.rawValue < step.rawValue { go(item) } }
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.sm)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("mp.settle.progress \(step.rawValue + 1)"))
+            .accessibilityAdjustableAction { direction in
+                if direction == .decrement, let previous = Step(rawValue: step.rawValue - 1) { go(previous) }
+            }
             .cyAnimation(value: step)
             ZStack {
                 switch step {
@@ -923,7 +929,9 @@ struct JourneySettleView: View {
                 case .rank:
                     ScrollView {
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisStage")).cyText(.sectionTitle)
+                            // JSETTLE-9: MP `st-h` (32 rpx) is a card title.
+                            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisStage")).cyText(.cardTitle)
+                                .accessibilityAddTraits(.isHeader)
                             JourneyRankBoardView(state: rank, onScope: onRankScope, onPeriod: onRankPeriod, onRetry: onLoadRank)
                         }
                         .padding(CYSpacing.lg)
@@ -987,18 +995,19 @@ struct JourneySettleView: View {
             HStack(spacing: CYSpacing.xxxl) {
                 if let score = report.score {
                     VStack(spacing: CYSpacing.xxs) {
-                        Text(verbatim: String(shownScore)).cyText(.data2XL)
+                        Text(verbatim: String(shownScore)).cyText(.data2XL).lineLimit(1).minimumScaleFactor(0.7)
                             .cyNumericRoll(Double(shownScore))
-                        Text("mp.report.stat.score").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        // MP settle wxml:26 labels this cell 分数 (the report's stat is 解谜分).
+                        Text("mp.settle.score").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("mp.report.stat.score") + Text(verbatim: " \(score)"))
+                    .accessibilityLabel(Text("mp.settle.score") + Text(verbatim: " \(score)"))
                     .accessibilityIdentifier("journeySettle.score")
                     .task(id: skipped) { await countUp(to: score) }
                 }
                 // The stop count under the seal (6 / 6); unknown is a dash, never 0.
                 VStack(spacing: CYSpacing.xxs) {
-                    Text(verbatim: MPText.orDash(report.nodesText)).cyText(.data2XL).monospacedDigit()
+                    Text(verbatim: MPText.orDash(report.nodesText)).cyText(.data2XL).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
                     Text("mp.settle.nodes").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityElement(children: .combine)
@@ -1006,7 +1015,7 @@ struct JourneySettleView: View {
                 // The words are the report's own labels (桌面完成 / 替代站开局).
                 if report.showsAssistedCount {
                     VStack(spacing: CYSpacing.xxs) {
-                        Text(verbatim: String(report.assistedCount)).cyText(.data2XL).monospacedDigit()
+                        Text(verbatim: String(report.assistedCount)).cyText(.data2XL).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
                         Text("mp.settle.assisted").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     .accessibilityElement(children: .combine)

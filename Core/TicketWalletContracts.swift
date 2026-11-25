@@ -133,7 +133,17 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
         let manual = TicketWalletKey("manualRefundCaseStatus")
         hasManualRefundCase = c.contains(manual) && (try? c.decodeNil(forKey: manual)) == false
         coverURL = activity?.imgUrl ?? topic?.imgUrl
+        // Missing activity object has a game. Otherwise topicId or templateId must be positive.
+        if let activity {
+            activityHasGame = (activity.topicID ?? 0) > 0 || (activity.templateID ?? 0) > 0
+        } else {
+            activityHasGame = true
+        }
     }
+    /// MP `activityHasGame`. A missing `cmsActivity` is treated as having a game.
+    public let activityHasGame: Bool
+    /// MP `ticketHasGame`: only an activity ticket (`ownerType` 2) can be no-game.
+    public var hasGame: Bool { ownerType != 2 || activityHasGame }
 }
 
 /// Source `refundApplication`. Unknown numbers stay nil; nothing here is a money write.
@@ -328,12 +338,16 @@ private struct TicketWalletOwner: Decodable {
     let endDate: String?
     let addressName: String?
     let imgUrl: String?
+    let topicID: Int?
+    let templateID: Int?
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TicketWalletKey.self)
         id = try c.integer("id")
         name = try c.text("name"); productType = try c.integer("productType")
         startDate = try c.text("startDate"); endDate = try c.text("endDate"); addressName = try c.text("addressName")
         imgUrl = try c.text("imgUrl")
+        topicID = (try? c.integer("topicId")) ?? nil
+        templateID = (try? c.integer("templateId")) ?? nil
     }
 }
 private struct TicketWalletKey: CodingKey {

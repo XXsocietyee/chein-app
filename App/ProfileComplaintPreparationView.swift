@@ -139,7 +139,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                             // Native restyle r1 (spec §3.5): empty source list as a ContentUnavailableView.
                             ContentUnavailableView {
                                 Label { Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty") } icon: {
-                                    Image(systemName: "tray")
+                                    CYEmptyIllustration(kind: .generic, size: 96)
                                 }
                             } description: {
                                 Text("profile.complaint.sourceEmptyHint")
@@ -314,6 +314,6 @@ private struct ProfileComplaintPresentationKey: Hashable {
     }
     private func topicLabel(_ topic: ProfileComplaintTopic) -> Text {
         if let name = topic.name?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { return Text(verbatim: name) }
-        return Text("profile.complaint.unnamed") + Text(verbatim: " #\(topic.id)")
+        return Text("profile.complaint.unnamed")
     }
 }

@@ -76,6 +76,7 @@ struct RoamBrowserView: View {
     @State private var retainedRead = RoamRetainedRead()
     @State private var toolbarRoute: RoamBrowserToolbarRoute?
     @State private var peekCount: Int?
+    @State private var introTeamsLive: Int?
     @State private var confirmingUnsavedExit = false
     @State private var roamToastMessage: String?
     /// Map-first layout: map fills the screen, the segmented tabs / search / lists live in the bottom sheet.
@@ -396,7 +397,8 @@ struct RoamBrowserView: View {
         if let locationSettings { RoamHomeLocationNotice(provider: locationSettings) }
         if nearbyTeamsDestination != nil || liveDestination != nil {
             // MP intro: three tickets (NO.01–03). 官方路线 lives on the 漫游护照 tab as a play card (MP _loadOfficialRoutes).
-            RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination)
+            RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination,
+                               teamsLive: introTeamsLive)
         }
         if let recoveryBanner, let experienceReader {
             let rendered = recoveryEntry.revision
@@ -409,7 +411,7 @@ struct RoamBrowserView: View {
         }
         if let entryReader {
             RoamEntryPeekView(reader: entryReader, teams: entryTeams, onSignIn: onOpenAccount, onOpenMap: nearbyTeamsDestination,
-                onChooseArea: onChooseArea, onBeginRead: { entryCard = nil }, onOpenSelection: { entryCard = $0 }, onCount: { peekCount = $0 }, onOpen: { _ in })
+                onChooseArea: onChooseArea, onBeginRead: { entryCard = nil }, onOpenSelection: { entryCard = $0 }, onCount: { peekCount = $0 }, onTeamsLive: { introTeamsLive = $0 }, onOpen: { _ in })
         }
     }
     private func startDestination() -> AnyView {

@@ -139,12 +139,8 @@ extension EnvironmentValues {
     private func row(_ topic: CoopFinanceProfit.Topic) -> some View {
         let settled = topic.status != .unsettled && topic.status != .settlementUnknown
         return VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            CYListRow(verbatim: topicName(topic), trailing: .none) {
-                CYCoverArt(seed: topicName(topic), symbol: "yensign.circle", showsDebugLabel: false)
-                    .frame(width: 40, height: 40)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                    .accessibilityHidden(true)
-            }
+            // Image parity: MP coop/finance rows carry no artwork, so no generated thumbnail here.
+            CYListRow(verbatim: topicName(topic), trailing: .none)
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     topicAmount(topic)

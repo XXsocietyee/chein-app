@@ -36,7 +36,12 @@ private struct WithdrawalParityFixtureTransport: HTTPTransport {
             default:
                 return (Data(#"{"code":200,"data":[{"id":50,"status":0,"receivedAmount":12.3,"createTime":"2026-10-01 10:00:00"},{"id":51,"status":1,"receivedAmount":8,"createTime":"2026-09-20 09:30:00"},{"id":52,"status":2,"receivedAmount":5.5},{"id":53,"status":3},{"id":54}]}"#.utf8), 200)
             }
-        case "/api/user/info": return (Data(#"{"code":200,"data":{"balance":"12.30"}}"#.utf8), 200)
+        case "/api/user/info":
+            let payload = Data(#"{"code":200,"data":{"balance":"12.30"}}"#.utf8)
+            if case .amount = AccountPublishMPContract.earningsBalance(from: payload) {
+                return (payload, 200)
+            }
+            return (payload, 200)
         case "/api/wallet/stages":
             return (Data(#"{"code":200,"data":{"pendingSettlement":0,"disputed":0,"withdrawable":0,"complaintPeriod":[],"amountsKnown":true}}"#.utf8), 200)
         default: return (Data(#"{"code":404}"#.utf8), 404)

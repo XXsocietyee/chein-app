@@ -10,6 +10,8 @@ public enum StoreCharacterEndpoint {
     public static let consent = "api/compliance/consents"
     public static let mapPointRead = "api/merchant/coop-profile"
     public static let mapPointSave = "api/merchant/decor/save"
+    /// GET. Not a JSON POST, so it stays out of `reads`.
+    public static let review = "api/merchant/npc/review"
     public static let reads: [String] = [access, profile, voiceStatus, mapPointRead]
     public static let writes: [String] = [save, consent, voiceEnroll, mapPointSave]
     /// Required by the page gate (`need="canWriteProfile"`) and by every npc route on the server.
@@ -238,6 +240,28 @@ public struct StoreCharacterConsentRow: Decodable, Equatable, Sendable {
     public let scene: String?
     public let eventType: String?
     public let docVersion: String?
+}
+
+/// GET `/api/merchant/npc/review` display line. Same sentences as mini-program `merchantNpcText`.
+public enum StoreCharacterNPCReviewText {
+    public static func merchant(_ receipt: [String: Any]) -> String {
+        guard (receipt["hasProfile"] as? Bool) == true else { return "" }
+        var parts: [String] = []
+        switch receipt["review"] as? String {
+        case "PENDING": parts.append("审核通过前玩家看不到这个形象")
+        case "REJECTED": parts.append("未通过审核，玩家看不到这个形象")
+        case "APPROVED":
+            parts.append((receipt["playerVisible"] as? Bool) == true ? "玩家现在能看到这个形象" : "形象已过审，但当前未启用")
+        default: break
+        }
+        switch receipt["avatarReview"] as? String {
+        case "PENDING": parts.append("形象图片安全复核中")
+        case "REJECTED": parts.append("形象图片未通过安全复核，请换一张")
+        case "APPROVED": parts.append("形象图片已通过安全复核")
+        default: break
+        }
+        return parts.joined(separator: "；")
+    }
 }
 
 /// `npc/voice/enroll` body: `{voiceSample, voiceConsent:true}`. The sample must be an uploaded reference.

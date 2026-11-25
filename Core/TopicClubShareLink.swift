@@ -21,6 +21,19 @@ public struct TopicClubShareLink: Equatable, Sendable {
     }
 }
 
+/// Registration fields from a topic share card. Paid registration stays off and sends nothing.
+/// `clubCode` is sent as `sourceChannelCode` only when the card is for this topic.
+public enum TicketSourceRegistrationFields {
+    public static func payload(topicID: Int, link: TopicClubShareLink?) -> [String: Any] {
+        guard let link, link.topicID == topicID else { return [:] }
+        var fields: [String: Any] = ["sourceClubId": link.sourceClubId]
+        if let code = link.clubCode, !code.isEmpty {
+            fields[TopicClubShareLink.laterRegistrationField] = code
+        }
+        return fields
+    }
+}
+
 public enum TopicClubShareLinkParser {
     public static func parse(_ raw: String) -> TopicClubShareLink? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)

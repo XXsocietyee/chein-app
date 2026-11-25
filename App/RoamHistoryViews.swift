@@ -38,6 +38,7 @@ import SwiftUI
                 }
                 else if !loaded { CYSkeleton().accessibilityLabel(Text("roamSub.w208.history.loading")) }
                 else if records.isEmpty {
+                    RoamHistoryRemoteStatusBanner()   // RHIST-2
                     if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
                     if let keys = localWalk.noticeKeys(reader: reader) {
                         CYEmptyState(systemImage: "pause.circle", LocalizedStringKey(keys.title), detail: LocalizedStringKey(keys.hint),
@@ -66,6 +67,7 @@ import SwiftUI
                 } else {
                     // RHIST-7: the local-unreadable warning also shows above existing rows (MP index.wxml:7).
                     if localWalk.failed(reader: reader) { unreadableNotice }
+                    RoamHistoryRemoteStatusBanner()   // RHIST-2: server page unreadable, local rows only
                     let summary = RoamHistorySummary(records)
                     // Mini-program order: total (big km, then trips and shops), tools, then run cards.
                     RoamExperienceCard { VStack(alignment: .leading, spacing: 12) {

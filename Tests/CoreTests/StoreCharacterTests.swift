@@ -106,9 +106,15 @@ import XCTest
         let off = backend(transport, scope: { UUID() })
         let payload = StoreCharacterSavePayload(name: "A", greeting: "", persona: "", knowledge: "", avatar: "px1:p01")
         do { try await off.save(payload, requestID: UUID()); XCTFail() } catch { XCTAssertEqual(error as? StoreCharacterFailure, .writesDisabled) }
-        let gatedButNotReviewed = backend(transport, gates: saveGates, scope: { UUID() })
-        XCTAssertFalse(gatedButNotReviewed.permits(StoreCharacterEndpoint.save))
-        XCTAssertTrue(MerchantCityNPCParityGates.reviewedEndpoints.isEmpty)
+        // MP-first (owner 2026-11-25): China reviews the MP's npc/save, decor/save and voice/enroll paths.
+        let gated = backend(transport, gates: saveGates, scope: { UUID() })
+        XCTAssertTrue(gated.permits(StoreCharacterEndpoint.save))
+        XCTAssertTrue(gated.permits(StoreCharacterEndpoint.mapPointSave))
+        XCTAssertFalse(gated.permits(StoreCharacterEndpoint.voiceEnroll)) // its own flag stays off here
+        XCTAssertEqual(MerchantCityNPCParityGates.reviewedEndpoints[.china], MerchantCityNPCParityGates.mpFirstChinaEndpoints)
+        XCTAssertNil(MerchantCityNPCParityGates.reviewedEndpoints[.unitedStates])
+        XCTAssertTrue(MerchantCityNPCParityGates.mpFirst.storeVoiceEnrollment)
+        XCTAssertFalse(MerchantCityNPCParityGates.mpFirst.storeDayProofWrites)
         XCTAssertTrue(transport.requests.isEmpty)
     }
     func testWriteClassificationRejectedVersusUnknown() async {

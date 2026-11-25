@@ -78,6 +78,8 @@ public struct ParticipationDetail: Decodable, Equatable, Identifiable {
     /// `cmsActivity.productType` when that object is present, otherwise `cmsTopic.productType`.
     /// Only an exact integer is kept.
     public let productType: Int?
+    /// First image of `topicImgArr`, else the first image of `cmsTopic.imgArr`.
+    public let templateBannerURL: String?
     public func canCancel(now: Date = Date()) -> Bool {
         // Current mini replaced Flutter's obsolete three-day heuristic with order status.
         let state = record.order.summary(now: now).state
@@ -104,6 +106,15 @@ public struct ParticipationDetail: Decodable, Equatable, Identifiable {
         topicID = score.topicID
         activityID = score.activityID
         productType = score.productType
+        templateBannerURL = Self.firstBanner(raw["topicImgArr"]) ?? Self.firstBanner(raw["cmsTopic"]["imgArr"])
+    }
+    private static func firstBanner(_ value: PlayWireValue) -> String? {
+        if let text = ParticipationRecord.text(value) { return text }
+        guard let array = value.array else { return nil }
+        for item in array {
+            if let text = ParticipationRecord.text(item) { return text }
+        }
+        return nil
     }
 }
 public struct CompletedPlayRecord: Decodable, Equatable {

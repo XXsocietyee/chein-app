@@ -46,7 +46,7 @@ public struct OrientScoreLeaderboardSheetView: View {
             Text("\(row.rank)")
                 .cyText(.numericBody, monospacedDigit: true)
                 .frame(width: 32, alignment: .leading)
-            Text(row.isMine ? "本人" : "参赛玩家")
+            (row.isMine ? Text("orientScore.board.mine") : Text("orientScore.board.player"))
                 .cyText(.bodyMedium)
             Spacer()
             Text("\(row.scoreText) · \(row.elapsedText)")
@@ -85,7 +85,7 @@ public struct OrientScoreAppealSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: Text(verbatim: kind.title), style: .player, onClose: onClose)
+            CYSheetHeader(title: kind == .appeal ? Text("orientScore.review.appeal") : Text("orientScore.review.dispute"), style: .player, onClose: onClose)
             Form {
                 if entryID != nil {
                     Section {
@@ -129,7 +129,7 @@ public struct OrientScoreAppealSheetView: View {
                         let parsedNode = entryID == nil ? Int(nodeIDText.trimmingCharacters(in: .whitespacesAndNewlines)) : nil
                         onSubmit(parsedNode, reason.trimmingCharacters(in: .whitespacesAndNewlines))
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.cyPrimary)
                     .frame(maxWidth: .infinity)
                     .disabled(isBusy || !OrientAppealValidator.isValid(kind: kind, entryID: entryID, nodeIDText: nodeIDText, reason: reason))
                 }
@@ -171,7 +171,7 @@ public struct OrientScoreSettlementGapSection: View {
         if canSync || canSettle || pendingReviewCount > 0 {
             Section {
                 if pendingReviewCount > 0 {
-                    Text("还有 \(pendingReviewCount) 项任务在审核")
+                    Text("orientScore.pendingReview \(pendingReviewCount)")
                         .cyText(.meta, monospacedDigit: true)
                         .foregroundStyle(CYColor.textSecondary)
                 }
@@ -186,7 +186,7 @@ public struct OrientScoreSettlementGapSection: View {
                 }
                 if canSettle {
                     Button("orientScore.settleRun") { confirmSettle = true }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.cyPrimary)
                         .disabled(!settlementActionsEnabled)
                         .confirmationDialog("orientScore.settleRun.confirmTitle", isPresented: $confirmSettle, titleVisibility: .visible) {
                             Button("orientScore.settleRun", action: onSettle)

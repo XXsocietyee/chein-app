@@ -147,3 +147,62 @@ private struct FlowSeats: Layout {
         }
     }
 }
+
+/// Round 4 image parity (MP team/detail wxml:38-46, U06-01 `tm-seat-strip`): on the team page each member is a seat
+/// showing `memberAvatar || /images/d_profile.png`, the captain's seat carries 队长, and open seats are dashed circles.
+/// Core decodes no member avatar yet, so every seat shows the MP default `d_profile`. Open seats use the same server
+/// facts as `TeamJoinSeatRow` (`seats.available`, else max − joined); unknown counts draw no open seat.
+struct TeamDetailSeatStrip: View {
+    let detail: TeamDetail
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var shown = false
+    @ScaledMetric(relativeTo: .body) private var seat: CGFloat = 44
+
+    private var members: [TeamMember] { Array(detail.members.prefix(12)) }
+    private var open: Int {
+        if let available = detail.seats?.available { return min(max(available, 0), 12) }
+        guard let maxMembers = detail.team.maxMembers, let count = detail.team.joinedCount else { return 0 }
+        return min(max(maxMembers - count, 0), 12)
+    }
+
+    var body: some View {
+        if !members.isEmpty || open > 0 {
+            FlowSeats(spacing: CYSpacing.sm) {
+                ForEach(Array(members.enumerated()), id: \.offset) { index, member in
+                    VStack(spacing: CYSpacing.xs) {
+                        MPAsset.AvatarDefault.dProfile
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: seat, height: seat)
+                            .clipShape(Circle())
+                            .accessibilityHidden(true)
+                        if member.isCaptain {
+                            Text("fixr3.team.seat.captain").cyText(.caption, weight: .semibold).foregroundStyle(CYColor.brand)
+                        }
+                    }
+                    .seatPop(shown: shown, reduceMotion: reduceMotion, index: index)
+                }
+                ForEach(0..<open, id: \.self) { index in
+                    ZStack {
+                        Circle().strokeBorder(CYColor.textSecondary, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                        Image(systemName: "plus").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                    }
+                    .frame(width: seat, height: seat)
+                    .seatPop(shown: shown, reduceMotion: reduceMotion, index: members.count + index)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("fixr3.team.seats.a11y \(members.count) \(open)"))
+            .accessibilityIdentifier("teamDetail.seats")
+            .onAppear { shown = true }
+        }
+    }
+}
+
+private extension View {
+    func seatPop(shown: Bool, reduceMotion: Bool, index: Int) -> some View {
+        opacity(shown || reduceMotion ? 1 : 0)
+            .scaleEffect(shown || reduceMotion ? 1 : 0.6)
+            .animation(reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.6).delay(Double(index) * 0.07), value: shown)
+    }
+}

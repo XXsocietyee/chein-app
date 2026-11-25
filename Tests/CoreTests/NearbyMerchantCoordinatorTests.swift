@@ -109,6 +109,16 @@ import FoundationNetworking
         XCTAssertNotEqual(selection.id, reopened.id)
         XCTAssertEqual(reopened.target, selection.target)
     }
+    func testRefreshFailureKeepsPreviousRows() async throws {
+        let reader = try NearbyTestReader(), location = NearbyTestLocation(try fix())
+        let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { true }, now: { self.date })
+        await model.search(purposeAccepted: true)
+        XCTAssertEqual(model.rows.count, 2)
+        reader.result = .object([:])
+        await model.search(purposeAccepted: true)
+        XCTAssertEqual(model.phase, .failed)
+        XCTAssertEqual(model.rows.map(\.id), [91, 92])
+    }
     func testLeavingBrowserWithoutDestinationClearsResultAndInvalidatesSelection() async throws {
         let reader = try NearbyTestReader(), location = NearbyTestLocation(try fix())
         let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { true }, now: { self.date })

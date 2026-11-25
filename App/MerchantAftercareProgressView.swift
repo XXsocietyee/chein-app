@@ -128,13 +128,9 @@ struct MerchantAftercareProgressView: View {
                 .accessibilityIdentifier("merchantOps.aftercare.step.\(index)")
             }
         }
-        Section {
-            Label {
-                Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.help")).cyText(.meta)
-            } icon: { Image(systemName: "questionmark.circle") }
-            .foregroundStyle(CYColor.textSecondary)
-            .accessibilityIdentifier("merchantOps.aftercare.help")
-        }
+        // MC8-17-2 (aftercare/detail/index.wxml:119-121): 联系平台客服 is a tappable row (MP open-type="contact") that opens
+        // the in-app support page; the description stays under the title.
+        MerchantAftercareSupportSection()
         .onAppear { phoneTimeZone = .current }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
             phoneTimeZone = .current

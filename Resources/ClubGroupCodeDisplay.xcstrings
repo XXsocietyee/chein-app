@@ -22,13 +22,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原回执未提供可显示的二维码图片。"
+            "value": "团码二维码生成失败，请稍后重试"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original receipt has no displayable QR image."
+            "value": "Couldn't generate the group code image. Please try again later."
           }
         }
       }

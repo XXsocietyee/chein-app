@@ -161,7 +161,7 @@ struct VideoBountyView: View {
                     }
                 }
                 .transition(.opacity)
-                if tab == .submissions { campaignAttribution }
+                // R7-PC-D7-1 MP-first: subpackageA/pages/video-bounty/index.wxml has no campaign-ID attribution block.
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -271,12 +271,7 @@ struct VideoBountyView: View {
             }
             if let end = row.windowEndText { Text("mp.vb.windowEnd \(end)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             if let note = row.reviewNote, !note.isEmpty { Text(verbatim: note).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-            Button("mp.vb.attribution") {
-                attributionID = row.id
-                onSubmissionAttribution(row.id)
-            }
-            .cyText(.label).frame(minHeight: CYSpacing.minTouchTarget)
-            .accessibilityIdentifier("videoBounty.attribution.\(row.id)")
+            // R7-PC-D7-1 MP-first: the MP submission row has no 成交归因 action.
             if row.canAppeal || row.canCancel {
                 HStack(spacing: CYSpacing.lg) {
                     if row.canAppeal {

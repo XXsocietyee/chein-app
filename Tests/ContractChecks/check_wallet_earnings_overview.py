@@ -35,7 +35,8 @@ class WalletEarningsOverviewContracts(unittest.TestCase):
     def test_account_host_reuses_finance_view_without_a_detour_or_ungranted_read(self):
         host = read("App/SessionWalletCommerceView.swift").split("@MainActor struct SessionWalletCommerceView", 1)[1].split("@MainActor struct WalletInvitationHistoryAccess", 1)[0]
         self.assertIn("CoopFlowReadView(reader: session.cooperationFlowReader, resource: .finance, title: \"coopflow.finance\")", host)
-        self.assertIn("allowsRead: { false }", host)
+        # MP-first (owner 2026-11-25, R8-PC-D4-1): was `allowsRead: { false }`; the MP always reads api/coop/finance.
+        self.assertIn("allowsRead: { true }", host)
         self.assertNotIn("navigationDestination", host)
         self.assertNotIn("value.points = true", host)
         self.assertNotIn("value.mall = true", host)

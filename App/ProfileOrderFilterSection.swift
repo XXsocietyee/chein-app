@@ -23,7 +23,8 @@ struct ProfileOrderFilterSection: View {
                 // Native restyle r1 (spec §3.5): the filtered-empty state is a ContentUnavailableView with its one action.
                 ContentUnavailableView {
                     Label { Text("profile.orderFilter.empty").accessibilityIdentifier("profile.orderFilter.empty") } icon: {
-                        Image(systemName: "line.3.horizontal.decrease.circle")
+                        // Round 4: MP filtered-empty is cy-empty kind=empty (empty_state_bg + figure).
+                        CYEmptyIllustration(kind: .generic, size: 96)
                     }
                 } description: {
                     Text("profile.orderParity.filterEmptyHint")

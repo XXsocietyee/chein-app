@@ -31,6 +31,8 @@ final class DiscoveryLoader<Value>: ObservableObject {
 
 struct DiscoveryErrorView: View {
     let error: Error
+    /// Round 4 copy: the page's own MP failure title (玩法没能打开 / 主题模板没能打开); nil keeps 加载失败.
+    var failureTitle: LocalizedStringKey? = nil
     let retry: () -> Void
     private var reason: DiscoveryTemplateUnavailable? { error as? DiscoveryTemplateUnavailable }
     private var isUnauthorized: Bool { (error as? APIError) == .unauthorized }
@@ -40,7 +42,7 @@ struct DiscoveryErrorView: View {
         case .notFound, .deleted: return "discovery.templateMissing"
         case .underReview: return "discovery.templateReview"
         case .offline: return "discovery.templateOffline"
-        default: return "discovery.loadFailed"
+        default: return failureTitle ?? "discovery.loadFailed"
         }
     }
     var body: some View {

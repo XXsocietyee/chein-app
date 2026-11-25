@@ -819,7 +819,7 @@ private actor T5OrderCenterTransport: HTTPTransport {
             try JSONDecoder().decode(T.self, from: JSONSerialization.data(withJSONObject: value))
         }
         func catalog(topicID: FreeExploreLaunchID) async throws -> FreeExploreLaunchCatalog {
-            if failed { throw FreeExploreLaunchFailure.response(status: 503, code: 503, businessCode: nil) }
+            if failed { throw FreeExploreLaunchFailure.response(status: 503, code: 503, businessCode: nil, message: nil) }
             return try decode(["topicId": 88, "topicName": "示例自由探索套票：河坊街茶韵线", "productType": 2, "saleEnabled": false, "reservationEnabled": true,
                                "items": [["chapterId": 3, "name": "老城茶街章节", "unitsPerHolder": 1,
                                           "stores": [["offerId": 29, "merchantName": "清河坊示范茶馆", "validEnd": "2026-12-31"]]]]])

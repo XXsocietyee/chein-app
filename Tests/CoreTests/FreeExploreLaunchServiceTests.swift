@@ -141,7 +141,7 @@ enum FX {
         }
         let service = FreeExploreLaunchService(session: session, transport: transport, currentSession: { session })
         do { _ = try await service.order(registrationID: FX.id(11)); XCTFail("disabled") }
-        catch { XCTAssertEqual(error as? FreeExploreLaunchFailure, .response(status: 200, code: 409, businessCode: "BUNDLE_DISABLED")) }
+        catch { XCTAssertEqual(error as? FreeExploreLaunchFailure, .response(status: 200, code: 409, businessCode: "BUNDLE_DISABLED", message: nil)) }
     }
     func testRefundQuotePreservesServerAmountAndUnknownRoute() async throws {
         let transport = FXTransport(), session = try FX.session()

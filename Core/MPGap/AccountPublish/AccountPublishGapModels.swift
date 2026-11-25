@@ -147,16 +147,25 @@ public struct AccountPublishGapClient {
         )
     }
 
-    /// `POST /api/team/handle` JSON `{ teamId, memberId, approved }`, matching `NearbyTeamService.handle`.
+    /// `POST api/team/command` via `teamHandleRequest`. `memberId` is the applicant, `targetId` is the team.
     public func handleTeamApplication(teamID: Int, memberID: Int, approved: Bool, token: String) async throws {
-        guard teamID > 0, memberID > 0 else { throw APIError.invalidRequest }
-        try await MPGapHTTP.postAction(
-            configuration: configuration,
-            transport: transport,
-            path: "api/team/handle",
-            body: ["teamId": teamID, "memberId": memberID, "approved": approved],
-            token: token
-        )
+        guard teamID > 0, memberID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        let requestID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        var request = try AccountPublishMPContract.teamHandleRequest(
+            baseURL: configuration.baseURL,
+            memberID: String(memberID),
+            approved: approved,
+            targetID: String(teamID),
+            requestID: requestID,
+            token: token)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (data, status) = try await transport.send(request)
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        if let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = root["code"] as? Int {
+            if code == 401 { throw APIError.unauthorized }
+            if code != 200 { throw MPGapServerRefusal(code: code, message: root["msg"] as? String) }
+        }
     }
 }
 

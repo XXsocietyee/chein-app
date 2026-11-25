@@ -262,3 +262,132 @@ Every round-2 hunk was compared with the new base (`git diff 5f7e01dbf b0ac0108d
 - Contract checks for every changed file, run here and on the base: no new failures. Three pins moved on purpose: the `test_club_leaderboard_member_navigation` span hash (the answer-sheet states join that span), `Resources/ClubStoryLocalizations.fragment.json` gained the two answer keys (`test_club_story_navigation`), and the answer-sheet reason line uses its own id so `ClubOpsFailureCopy` stays ahead of `club.gov.error` (`test_club_ops_customer`). Failing identically on the base: `club_customer_directory_remote_admission`, `club_customer_keyword_debounce`, `club_customer_permissions`, `club_operations_contracts`, `category_roam_registration`, `profile_read_failure_remote_admission`, `ugc_1_2_completeness` (AppSession ratchet), `tools/tests/test_readiness_contract_parse_cache`.
 - `tools/check_typography_lint.py`: PASS.
 - No Swift build here. APIs used, grepped on b0ac0108d: `ClubShareLink.club(id:)/.post(clubID:postID:)/.path`, `ClubShareURL.url(_:)`, `OpsR3Text.string(_:locale:)`, `Locale.pick`, `ClubTopicDetailPort.Primary` (Equatable, `.none`), `ClubGroupCodePort.formatStart(date:time:)`, `ClubGroupCodeCount.displayText`, `CYStatusChip(_:tone:)` / `(verbatim:tone:)`, `CYEmptyState(systemImage:_:messageIdentifier:actionTitle:actionIdentifier:actionStyle:kind:action:)`, `CYStateKind.generic/.failure`, `CYColor.warningText/bgRaised/borderSubtle`, `ClubOperationsWriteAvailability`, `ClubOperationsReview.command`, `ClubRoleActivityLabel.entry`.
+
+## Round 4 (2026-11-25)
+
+- **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round4.md`, with `wave-x10.md` and `owner-decisions-1124.md`. Gemini is out of quota, so this round also covers Gemini's MP-alignment work (flows, images, copy) for this half's pages.
+- **Base:** `origin/ui/combined-r7` at `4ef0a2840` (F-agent round 3 + Cursor round 4 + Gemini round 7). Merged at the start; re-checked before the last push (no newer commit).
+- **MP source:** `hengyin/chengyinhub-xcx` at `3a131849`. Its line numbers have moved since `docs/mp-gap/flows-g2.md` was written, so the edges below cite the current lines.
+- **Pages:** detail, topic-detail, topic-story, event-ops, governance, roles, apply, create, enroll, edit (`components/cy/scene-club-edit`).
+
+### 1. Flows (MP `wx.navigateTo / redirectTo / navigateBack` on each page)
+
+| MP edge (current line) | app | state |
+|---|---|---|
+| detail:937-938 → `coop/list[?tab=sent]` | `MPParityKit` `.coopList` | OK (doc's MISSING-ROUTE is a false positive, as in round 3) |
+| detail:943/950/956/1107 → customers / enroll / event-ops / notify | routed (`MPReviewedPageScreen`) | OK |
+| detail:991 scan → `scan.path` after confirm; `submitClubScan` | CLB-G02 parked view `ClubGapActivityAndScanActions` has no scan service in Core (`ClubScanCopy` only) | **left**: needs a Core scan contract (Cursor) before it can be mounted |
+| detail:1072 → `club/settlement?clubId=` | `MPParityDestination.clubSettlement` | OK |
+| detail:2686/2692/2708 → badges / roles / governance | routed | OK |
+| detail:2701 → `roles?clubId&memberId`, 2717 → `governance?clubId&memberId` | **new (CLB-G16):** `memberId` reaches the page: the member is listed first and checked on 成员治理; the role picker starts with that member chosen | fixed |
+| detail:2729/2767/2814 → `governance?mode=report&targetType=…` | `ClubGovernanceEntryRoute` report form seeded (round 1, CLB-governance-11) | OK |
+| detail:2824 → `governance?mode=appeal` | cases read | OK |
+| detail:2850 → `event-ops?recurrence=ONCE` | event-ops opens on the hub; MP's default recurrence is already `ONCE` (event-ops js:416, 477) | OK (no-op parameter) |
+| detail:2907/2914/2980 → play / topic / club topic-detail (managers) | routed (CLB-r7-A-01) | OK |
+| topic-detail:812/818/864/872/903/912 → story / event-ops / enroll / detail / settlement | routed | OK |
+| topic-detail:1109-1122 → group-code | routed | OK |
+| topic-detail:1303/1309/1317/1324 → fabu?id / pricing / merchantinfo scope=CLUB | 修改并重新提交 → fabu?id (round 1). The 更多 menu (编辑主题内容 / 确认终价 / 承接审核) is CLB-G12, parked in `App/MPGap/Club/ClubGapTopicDirectorViews.swift` | parked (integrator/Gemini mount) |
+| topic-detail sessionPick → `event-ops?activityId` | **new (CLB-topic-detail-07):** 去选一场 with 2+ sessions opens a 选择场次 sheet; a pick opens that session's event ops | fixed |
+| topic-story:240 → `templatedetail?scope=my` | 看看模板 (template selection) | OK |
+| governance:613-614 back / redirect detail after transfer | form leaves after 1.5 s (round 1, CLB-governance-12) | OK |
+| apply:162-163 merchant reLaunch / merchant apply; apply:465 → create | 查看商家入驻 / routed | OK (切换到商家端 still has no account-switch API) |
+| create:196 → apply (no permission), 205 / 487 → `detail?id=&tab=manage` or `owner=1&tab=manage` | 进入俱乐部管理 (`club.ops.enterManagement`) on the success card; 管理我的俱乐部 on the limit state (round 2) | OK |
+| enroll:470 → `checkin-detail?registrationId` | person tap keeps the profile (CLB-enroll-02 left: pinned XCUITest) | unchanged |
+| edit:38 → governance | routed | OK |
+| every page: back / `switchTab talent/list` fallback | system back | OK |
+
+### 2. Image parity (MP image slots per page)
+
+| page | MP slot (wxml) | app | state |
+|---|---|---|---|
+| detail | cover `club.cover` ‖ `club_cover_default.png` (:33-35) | `MPAsset.BannerCover.clubCoverDefault` | ✓ (r2/r3) |
+| detail | logo `club.logo ‖ /images/d_logo.png` (:48) | `MPAsset.BrandLogo.dLogo` | ✓ |
+| detail | 活动 card `item.imgUrl ‖ route_free_cover.png` (:169, :459) | `MPAsset.BannerCover.routeFreeCover` | ✓ |
+| detail | composer `myAvatar ‖ d_profile` (:102) | the app composer is a sheet with no avatar slot | n/a |
+| detail | members `item.avatar ‖ d_profile` (:295) | `ClubMPAvatar` in `ClubPublicRosterView` / `ClubMembersView` | ✓ |
+| detail | leaderboard `item.avatar ‖ d_profile` (:323) | **new:** `ClubMPAvatar(url: row.avatar)` on each leaderboard row | ✓ |
+| detail | avatar strip `item.avatar` (:271) | CLB-G08, parked | parked |
+| detail (cy-post-card) | author `memberAvatar ‖ d_profile` (post-card :12-13) | **new:** `ClubMPAvatar` before the author name (`ClubPostAuthorProfile`); `ClubCommunityPost` has no `memberAvatar`, so the MP default face shows | ✓ default; **Cursor request:** decode `memberAvatar` |
+| detail (cy-post-card) | verified `icon_rz.png` when `post.rz` (:25) | `MPAsset.FeatureIcon.iconRz` exists, but `ClubCommunityPost` has no `rz` | **Cursor request:** decode `rz` |
+| topic-detail | `topic.cover`, `topic.merchantLogo` (:31, :38, :117), no MP default | AsyncImage, no block when missing (CLB-topic-detail-08) | ✓ |
+| topic-story | stop `stop.cover` (:34), play `item.cover` (:90), no MP default | `ClubStoryGameplayCard` image reader | ✓ |
+| governance | member `item.avatar ‖ d_profile` (:149) | `ClubMPAvatar(url: nil)` → `d_profile` | ✓ default; Core has no avatar (round-2 Cursor request stands) |
+| roles | member `item.avatar ‖ d_profile` (:87) | `ClubMPAvatar` in the role picker | ✓ default; same Cursor request |
+| create | tag icons `item.icon` (:82) | `MPAsset.FeatureIcon.*` (tag-library) | ✓ (r2) |
+| create / edit | uploaded cover / logo previews (:91, :98; edit :30, :41) | `ClubProfileMediaSection` | ✓ (no MP default) |
+| edit | direction icons `dirIcons[item]` (:198) | `MPAsset.FeatureIcon.*` in `ClubProfileChoiceEditor` | ✓ (r2) |
+| enroll | team `team.imgUrl ‖ /images/route_city_cover.png` (:37) | `MPAsset.BannerCover.routeCityCover` | ✓ |
+| enroll | registrant `r.avatar ‖ d_profile` (:76) | `MPAsset.AvatarDefault.dProfile` | ✓ |
+| apply, event-ops | no image slots | — | — |
+| all | `cy-icon` glyphs (settings, share, more, arrow-right, plus, scan, qr, phone, copy, calendar, clock, gps, lock, check, star, finance, tab-club…) | SF Symbols | kept: `components/cy/icon` is the coolicons UI glyph font (`icons.wxss`, generated), not MP artwork, and has no `MPAsset` entry |
+
+### 3. Copy (MP text, en + zh-Hans in the fragment unless noted)
+
+Method: every Chinese literal in the ten pages' wxml/js was compared with every zh value in `Resources/*.xcstrings`, the fragments and Swift literals. 843 match exactly. The remaining visible ones that belong to screens the app has were aligned:
+
+| key | was | MP | where |
+|---|---|---|---|
+| `club.ops.create.signedOut` (new) | 登录后管理俱乐部。 | 登录后创建俱乐部 | create guest (wxml:20) |
+| `club.ops.create.checkFailed` (new) | — | 创建资格未确认 (title above the reason, 重新检查) | create wxml:17 |
+| `club.ops.create.submitting` (new) | 创建俱乐部 | 创建中… while the create is in flight | create wxml:141 |
+| `club.ops.edit.label.*` (new) | 俱乐部名称 / 城市 / 核心关键词（选填） / 风格/调性（选填） / 俱乐部介绍（选填） | 名称* / 城市* / 关键词 / 风格; 俱乐部介绍 only as the section header | scene-club-edit wxml:51-69 |
+| `club.ops.edit.placeholder.*` (new) | create's placeholders | 俱乐部名称 / 所在城市 / 如：城市探索、解谜（选填） / 如：轻松、沉浸、硬核（选填） / 简单介绍你的俱乐部，以及你希望创造怎样的活动体验。 | same |
+| `ClubProfileMedia.xcstrings` `media.title` / `selectLogo` / `selectCover` (edited in place) | 俱乐部图片 / 选择标志 · 1:1 / 选择封面 · 16:9 | 俱乐部形象 / Logo 1:1 / 封面 · 16:9 横图 | create wxml:94-101, edit :25 |
+| `club.gov.field.hasGuideCert` | 持导游/旅游资质 | 持导游 / 旅游资质 | apply wxml:146 |
+| `club.ops.createDescription`, `club.ops.keywords` | 一句话介绍（选填） / 核心关键词（选填） | **unchanged**, pinned in this fragment | create wxml:111, :124 — see the integrator note |
+| `club.community.noComments` | 暂无评论 | 还没有评论，来抢沙发 | detail wxml:145 |
+| `club.community.commentContent` | 写评论 | 写评论… | detail wxml:147 |
+| `club.community.loading` | 加载中 | 正在加载帖文 | detail wxml:155 |
+| `club.viewMembers` | 查看成员 | 查看全部成员 | detail wxml:270 |
+| `club.membership.pending` | 入会申请待审批 | 等待主理人审核 | detail wxml:1035 |
+| `club.enroll.loading` / `.detailLoading` / `.stale` | 正在加载报名名册… / 正在加载报名者… / 暂未更新，当前显示上次的内容。 | 正在加载报名名册 / 正在加载报名详情 / 报名名册暂未更新 | enroll wxml:19, 23, 47 |
+| `club.story.loading` | 正在加载剧情与玩法… | 正在加载剧情与玩法 | topic-story wxml:17 |
+| `club.topicMerchants.empty` | 这个主题还没有承接商家。 | 这个主题还没有承接商家 | topic-detail wxml:552 |
+| `club.topic.sessionPicker.title`, `.a11y %@` (new) | — | 选择场次 / 管理<时间>这一场 | topic-detail wxml:684-690 |
+| `ClubOpsEvent.xcstrings` `clubOpsEvent.denied.title` (edited in place) | 你没有活动运营的权限 | 当前身份不能运营活动 | event-ops wxml:16 |
+| `ClubOpsEvent.xcstrings` `clubOpsEvent.refundAnchor` (edited in place) | 退款窗口按「集合时刻前 24 小时」计算。 | 集合前 24 小时停止退款 | event-ops wxml:234 |
+| `ClubOpsGovernance.xcstrings` `clubOpsGov.roles.empty` (edited in place) | 还没有可委派的成员 | 暂无成员 | roles wxml:18 |
+
+- **Integrator note (conflict with `docs/port/strings/gap-g2-copy.json`):** Gemini's fragment sets `club.ops.createDescription` → 一句话介绍，选填 and `club.ops.keywords` → 核心关键词，选填, and `context.ai.style` → 俱乐部风格，选填. Those are the MP **aria-labels**; the visible MP labels are 一句话介绍（选填） / 核心关键词（选填） (create wxml:111, :124). This fragment pins the visible text, so let `fix-r3-club-a.json` win for those two keys. `context.ai.style` is not on this half's pages.
+- **Two Python pins changed with the copy:** `test_club_ops_event` (`clubOpsEvent.denied.title`) and `test_club_ops_governance` (`clubOpsGov.roles.empty`).
+- **Copy left, with reasons:**
+  - The limit state keeps 你已创建 N 个俱乐部… (verify-r1 2.3 owner rule, pinned by `test_club_create_host_application`) where MP says 每位主理人最多创建 2 个俱乐部. This needs an owner call.
+  - `club.membersUnavailable` (暂未获取到成员名单) vs MP 加入俱乐部后可查看成员: the key is the shared membership-required title in `ClubReadScreen`. Left.
+  - 「(仅图片动态)」 is a Core literal (`Core/SquareStravaCard.swift:431`); MP uses full-width （仅图片动态）. **Cursor request.**
+  - 主理人状态未确认 (apply done-state error) has no separate app state; the bootstrap error 主理人资格未确认 already matches MP.
+  - About 500 other MP literals have no app counterpart. Most are in the director (`topic-detail/director.js`, CLB-G13, parked), the AI 策划 / coop pool / merchant suggestions on detail (G-features), the edit-draft recovery and dissolve-blocker flow (Core `ClubProfileLocalDraftFlow`), and event-ops cancel/refund toasts that Core words itself (`ClubOpsEvent` copy). They are listed by `copy.py` in the session scratchpad, not in the repo.
+
+### 4. P2 / P1 rows
+
+| id | state |
+|---|---|
+| CLB-G16 | **fixed:** `memberId` preselect (governance members first and checked; the role picker starts with them). Files: `App/ClubMPAssetViews.swift` (`clubFocusMemberID` key, `ClubFocusMember.ordered`), `App/ClubOpsGovernanceSections.swift`, `App/ClubRoleAssignmentPicker.swift`, `App/MPReviewedPageScreen.swift`. |
+| CLB-topic-detail-07 | **fixed (picker part):** 选择场次 sheet. `App/ClubGovernanceViews.swift`. The gate part was done in round 1. |
+| CLB-event-ops-09 | **no change:** each hub row is a `NavigationLink` inside a `List`, so the system already draws the disclosure chevron (`trailing: .chevron` would draw two). The hub keeps the grouped style (native-iOS rule for a sectioned hub); only the workspace reads use `.plain`. |
+| CLB-topic-story-09 (play card scrim) | left: the play card is a shared `ClubStoryGameplayCard`; the image-with-scrim layout is visual (M) and the `.meta` part was done in round 1. |
+| CLB-topic-story-08 | left (M timeline layout), unchanged. |
+| CLB-r7-C-03 | left: `load()` clears the snapshot by design (fenced reads), unchanged. |
+| CLB-r7-A-06 | left: depends on CLB-G06 being mounted. |
+| CLB-r7-A-08, CLB-enroll-08 | left: Core (`api/club/my` read / `MiniProgramPageLink` clubId requirement), unchanged Cursor requests. |
+| CLB-apply-10, CLB-create-07 | left: Core literals (Cursor). |
+| CLB-edit-03, CLB-enroll-02 | left: pinned XCUITests (Cursor). |
+| P1 rows from round 3's "left" table | unchanged; same reasons. |
+
+### 5. Accessibility lint
+- `python3 -B tools/check_a11y_lint.py`: **PASS, 0 / 0** on this branch. It was 1 on the merged base, from this branch's round-3 `ClubHeaderShareButton` glyph: the share glyph inside the labelled `ShareLink` is now `.accessibilityHidden(true)`. The `.accessibilityHidden` calls added this round come after the Image-only modifiers.
+- `tools/check_typography_lint.py`: PASS.
+
+### Cursor requests (round 4)
+- `ClubCommunityPost`: decode `memberAvatar` and `rz` (the post-card avatar and 认证 badge; `ClubMPAvatar(url:)` and `MPAsset.FeatureIcon.iconRz` are ready).
+- A club-scoped scan contract (`submitClubScan`, detail js:991) so CLB-G02 can be mounted.
+- `Core/SquareStravaCard.swift:431`: 「（仅图片动态）」 with full-width parentheses (MP detail wxml:909).
+- Still open from earlier rounds: member avatars on governance and role rows, merchant and roster phone fields, the `api/club/my` read, and Core copy literals.
+
+### Round-4 strings (fragment)
+New: `club.ops.create.{submitting,signedOut,checkFailed}`, `club.ops.edit.label.{name,city,keywords,style,description}`, `club.ops.edit.placeholder.{name,city,keywords,style,description}`, `club.topic.sessionPicker.title`, `club.topic.sessionPicker.a11y %@`.
+Value overrides: `club.gov.field.hasGuideCert`, `club.ops.createDescription`, `club.ops.keywords`, `club.community.noComments`, `club.community.commentContent`, `club.community.loading`, `club.viewMembers`, `club.membership.pending`, `club.enroll.loading`, `club.enroll.detailLoading`, `club.enroll.stale`, `club.story.loading`, `club.topicMerchants.empty`.
+Edited in place (other tables, not in the fragment): `Resources/ClubProfileMedia.xcstrings` (`media.title`, `media.selectLogo`, `media.selectCover`), `Resources/ClubOpsEvent.xcstrings` (`clubOpsEvent.denied.title`, `clubOpsEvent.refundAnchor`), `Resources/ClubOpsGovernance.xcstrings` (`clubOpsGov.roles.empty`).
+
+### Checks (round 4)
+- All 826 `Tests/ContractChecks/test_*.py` were run on this branch and on `origin/ui/combined-r7` (`4ef0a2840`): 67 fail here and 66 on the base. The only new one is `test_localization_key_catalog_contract`, because the fragment keys are not yet in `Resources/Localizable.xcstrings`. It passes once the integrator merges the fragment.
+- No Swift build here. New APIs used, grepped on the base: `EnvironmentValues` key pattern (as `clubRoleActivityLabel`), `ClubOpsGovernanceMember` / `ClubRoleAssignableMember` (`Identifiable`, `id: Int`), `ClubRoleAssignmentOptions: Equatable` (`model.options` is `@Published`), `ClubGovernanceEntryRoute.Mode.manage(focusMemberID:)`, `ClubGovernanceScope: Hashable`, `navigationDestination(item:)`, `ClubGroupCodePort.formatStart(date:time:)`, `ClubOpsEventView(scope:identity:access:coordinator:)`, `ClubMPAvatar(url:name:size:)`, `QuestifyCardArtwork.safeURL(_:)`, `ClubGovernanceValue.string`, `CYColor.brand/textTertiary`, `CYSpacing.minTouchTarget`, `ClubCreateStepBar.step`. The `switch` uses a `case .chooseSession where …:` pattern inside a `@ViewBuilder`; if the compiler rejects it there, move the session-count test into the case body.

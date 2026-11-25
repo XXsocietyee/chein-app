@@ -244,7 +244,8 @@ struct SettingsView: View {
                 .environment(\.settingsTileTint, SettingsTint.blue)
                 MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
-                Section {
+                // B-SZ-13 MP-first: MP shezhi.wxml has no 商家工具 row for players (only 成为商家, :19); merchants keep it.
+                if session.account?.effectiveRole == "merchant" { Section {
                     NavigationLink {
                         BeGapMerchantHubView()
                     } label: {
@@ -252,7 +253,7 @@ struct SettingsView: View {
                     }
                     .accessibilityIdentifier("settings.beGapMerchant")
                 }
-                .environment(\.settingsTileTint, SettingsTint.teal)
+                .environment(\.settingsTileTint, SettingsTint.teal) }
                 NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 SettingsPostGovernanceEntry(session: session).environment(\.settingsTileTint, SettingsTint.red)
                 // MP V1-P53 (B-SZ-01): 投诉建议 sits in Settings, after 帖文处置与申诉.
