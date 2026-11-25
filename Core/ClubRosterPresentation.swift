@@ -9,6 +9,8 @@ public struct ClubRosterMember: Equatable, Identifiable {
     public let nickname: String?
     public let waitlistState: String?
     public let correctionVersion: Int?
+    /// Mainland mobile when `phoneIncluded` is true and the value matches `^1\\d{10}$`. Otherwise nil.
+    public let phone: String?
 }
 
 /// A projection of one authorized roster response. Missing arrays never become empty success.
@@ -26,7 +28,7 @@ public struct ClubRosterPresentation: Equatable {
               let club = context.scope.clubID, club > 0, let activity = context.scope.activityID, activity > 0,
               (context.identity?.accountID ?? 0) > 0 else { throw ClubGovernanceFailure.targetChanged }
         guard snapshot.permissions?.allows(ClubGovernanceRead.roster.permission, scope: context.scope) == true else { throw ClubGovernanceFailure.forbidden }
-        guard snapshot.value["phoneIncluded"] == .bool(false) else { throw ClubGovernanceFailure.malformed }
+        guard let phoneIncluded = snapshot.value["phoneIncluded"].bool else { throw ClubGovernanceFailure.malformed }
         var groups: [ClubRosterBucket: [ClubRosterMember]] = [:]
         for bucket in ClubRosterBucket.allCases {
             guard let rows = snapshot.value[bucket.rawValue].array else { throw ClubGovernanceFailure.malformed }
@@ -37,8 +39,11 @@ public struct ClubRosterPresentation: Equatable {
                       row["activityId"] == .null || ClubCustomerHistoryTopicRoute.positiveID(row["activityId"]) == activity else { throw ClubGovernanceFailure.malformed }
                 let version = row["correctionVersion"].int
                 guard row["correctionVersion"] == .null || (version != nil && version! >= 0) else { throw ClubGovernanceFailure.malformed }
+                let callable = Self.callablePhone(row["phone"])
+                if !phoneIncluded, callable != nil { throw ClubGovernanceFailure.malformed }
                 members.append(.init(id: id, nickname: Self.nonempty(row["nickname"]),
-                                     waitlistState: bucket == .waitlist ? Self.nonempty(row["state"]) : nil, correctionVersion: version))
+                                     waitlistState: bucket == .waitlist ? Self.nonempty(row["state"]) : nil,
+                                     correctionVersion: version, phone: phoneIncluded ? callable : nil))
             }
             groups[bucket] = members
         }
@@ -52,6 +57,12 @@ public struct ClubRosterPresentation: Equatable {
     private static func nonempty(_ value: ClubGovernanceValue) -> String? {
         guard let raw = value.string else { return nil }
         let text = raw.trimmingCharacters(in: .whitespacesAndNewlines); return text.isEmpty ? nil : text
+    }
+    /// `pages/club/utils/club-phone-call.js` `callableNumber`: 11-digit mainland mobile, or nothing.
+    static func callablePhone(_ value: ClubGovernanceValue) -> String? {
+        let raw = (value.string ?? value.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard raw.count == 11, raw.hasPrefix("1"), raw.allSatisfy(\.isNumber) else { return nil }
+        return raw
     }
     public func members(in bucket: ClubRosterBucket) -> [ClubRosterMember] { groups[bucket] ?? [] }
     public func count(in bucket: ClubRosterBucket) -> Int { members(in: bucket).count }
