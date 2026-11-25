@@ -433,11 +433,14 @@ import SwiftUI
             }
             Text("merchantApplyXcx.locationPurpose").font(.caption).foregroundStyle(.secondary)
             Text("merchantApplyXcx.photosHint").font(.caption).foregroundStyle(.secondary)
-            if let missing = MerchantApplyXcx.firstMissing(address: text["address"] ?? "", startDay: registrationDraft().createStartDay,
-                                                           endDay: registrationDraft().createEndDay, description: text["activityDesc"] ?? "",
-                                                           photoCount: (text["picUrl"] ?? "").split(separator: ",").count) {
-                Text(LocalizedStringKey("merchantApplyXcx.missing." + String(describing: missing))).font(.footnote).foregroundStyle(CYColor.warningText)
-                    .accessibilityIdentifier("merchantApply.firstMissing")
+            let draft = registrationDraft()
+            let missing = MerchantApplyXcx.allMissing(
+                address: text["address"] ?? "", startDay: draft.createStartDay, endDay: draft.createEndDay,
+                cooperateDate: text["cooperateDate"] ?? "", description: text["activityDesc"] ?? "",
+                photoCount: (text["picUrl"] ?? "").split(separator: ",").count)
+            ForEach(Array(missing.enumerated()), id: \.offset) { _, failure in
+                Text(verbatim: failure.message).font(.footnote).foregroundStyle(CYColor.warningText)
+                    .accessibilityIdentifier("merchantApply.missing." + String(describing: failure.kind))
             }
         } header: { Text("merchantApplyXcx.timeGroup") } footer: { Text("merchantApplyXcx.notAWin") }
         .onChange(of: applyStart) { _, start in if applyEnd < start { applyEnd = start }; if applyDays != nil { applyDays = start...max(start, applyEnd); dirty = true } }

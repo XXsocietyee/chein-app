@@ -8,6 +8,7 @@ public struct TopicTemplateDeckPreviewView: View {
     public var onUseTemplate: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
     @State private var selectedIndex = 0
     @State private var flippedCardID: String?
 
@@ -41,10 +42,10 @@ public struct TopicTemplateDeckPreviewView: View {
                         .cyText(.pageTitle)
                         .foregroundStyle(CYColor.textPrimary)
 
-                    ForEach(preview.checks, id: \.self) { check in
+                    ForEach(Array(checkLines.enumerated()), id: \.offset) { _, check in
                         // Round 4 image parity: MP `art/tab/check.svg` (topic-preview/index.wxml:40).
                         Label {
-                            Text(check)
+                            Text(verbatim: check)
                         } icon: {
                             MPAsset.FeatureIcon.pagesTemplatedetailArtTabCheck.resizable().scaledToFit()
                                 .accessibilityHidden(true)
@@ -140,8 +141,8 @@ public struct TopicTemplateDeckPreviewView: View {
                 Text(card.isCover ? preview.name : card.title)
                     .cyText(.sectionTitle)
                     .foregroundStyle(CYColor.textPrimary)
-                if !card.footText.isEmpty {
-                    Text(card.footText)
+                if !footLine(card).isEmpty {
+                    Text(verbatim: footLine(card))
                         .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                 }
@@ -178,10 +179,10 @@ public struct TopicTemplateDeckPreviewView: View {
 
             Spacer(minLength: 0)
 
-            if !card.footText.isEmpty {
+            if !footLine(card).isEmpty {
                 // Round 4 image parity: MP `art/tab/clock.svg` (topic-preview/index.wxml:30).
                 Label {
-                    Text(card.footText)
+                    Text(verbatim: footLine(card))
                 } icon: {
                     MPAsset.FeatureIcon.pagesTemplatedetailArtTabClock.resizable().scaledToFit()
                         .accessibilityHidden(true)
@@ -194,5 +195,25 @@ public struct TopicTemplateDeckPreviewView: View {
         .padding(CYSpacing.md)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .rotation3DEffect(.degrees(reduceMotion ? 0 : 180), axis: (x: 0, y: 1, z: 0))
+    }
+
+    /// Catalog `footCopy` / `checkCopies`. An unresolved key keeps the Chinese sentence already on the model.
+    private func rendered(_ copy: TopicTemplatePreviewCopy, fallback: String) -> String {
+        let format = appLocalized(String.LocalizationValue(copy.key), locale: locale)
+        guard format != copy.key else { return fallback }
+        guard !copy.arguments.isEmpty else { return format }
+        return String(format: format, locale: locale, arguments: copy.arguments.map { $0 as CVarArg })
+    }
+
+    private var checkLines: [String] {
+        let renderedLines = preview.checkCopies.enumerated().map { index, copy in
+            let fallback = preview.checks.indices.contains(index) ? preview.checks[index] : ""
+            return rendered(copy, fallback: fallback)
+        }.filter { !$0.isEmpty }
+        return renderedLines.isEmpty ? preview.checks : renderedLines
+    }
+
+    private func footLine(_ card: TopicTemplatePreviewCard) -> String {
+        rendered(card.footCopy, fallback: card.footText)
     }
 }

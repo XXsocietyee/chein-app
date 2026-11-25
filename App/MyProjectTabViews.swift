@@ -55,11 +55,16 @@ enum MyProjectReceivedAppliesRule {
     }
 }
 
-/// MP `open-address.js` without coordinates (the my-project row carries only the address text).
+/// MP `open-address.js`. Address-only search stays a query. Both coordinates also set `ll` so Maps drops a pin.
 enum MyProjectAddressLink {
-    @MainActor static func open(address: String, name: String?, openURL: OpenURLAction) {
+    @MainActor static func open(address: String, name: String?, latitude: Double? = nil, longitude: Double? = nil, openURL: OpenURLAction) {
+        var items = [URLQueryItem]()
+        if let latitude, let longitude, latitude.isFinite, longitude.isFinite {
+            items.append(URLQueryItem(name: "ll", value: "\(latitude),\(longitude)"))
+        }
+        items.append(URLQueryItem(name: "q", value: address))
         var components = URLComponents(string: "https://maps.apple.com/")
-        components?.queryItems = [URLQueryItem(name: "q", value: address)]
+        components?.queryItems = items
         if let url = components?.url { openURL(url) }
     }
 }
@@ -166,7 +171,10 @@ extension EnvironmentValues {
         }
         if let address = project.addressName {
             // R7-PC-D1-6 (MP myproject/index.wxml:47 `onAddressTap`): the address opens Maps.
-            Button { MyProjectAddressLink.open(address: address, name: project.title, openURL: openURL) } label: {
+            Button {
+                MyProjectAddressLink.open(address: address, name: project.title,
+                                          latitude: project.latitude, longitude: project.longitude, openURL: openURL)
+            } label: {
                 Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
                     .cyText(.meta).foregroundStyle(.secondary)
                     .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)

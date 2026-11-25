@@ -9,6 +9,7 @@ import SwiftUI
                 { topicID in AnyView(PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)) }
             })
             .environment(\.playRuntimeTopicClient, PlayRuntimeGapBridge.topicClient(session: session))
+            .environment(\.playOrientSafety, PlayRuntimeGapBridge.orientSafety(session: session))
             .environment(\.topicFavoriteHostFactory, { session.makeTopicFavoriteHost() })
             .id(session.topicReader.scope)
     }

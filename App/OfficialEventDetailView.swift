@@ -119,6 +119,10 @@ enum OfficialDetailID {
                         if let intro = presentation.intro { Text(verbatim: intro).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(OfficialDetailID.overview)
                 }
+                if let board = event.leaderboard {
+                    OfficialEventLeaderboardSection(rows: board.rows, chipText: board.chipText, myRank: board.myRank, isFinal: board.isFinal)
+                        .accessibilityIdentifier("official.leaderboard")
+                }
                 if !presentation.cards.isEmpty {
                     Section("official.detailParity.cardsHeading") {
                         ForEach(presentation.cards, id: \.index) { card in

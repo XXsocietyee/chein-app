@@ -161,13 +161,36 @@ public final class PlayerContentGapService {
     }
 
     /// `pages/topic/index/index.js`: `POST /api/orient/safety/check` JSON `{topicId}`.
-    public func checkOrientSafety(topicID: Int) async -> PlayerGapReply {
+    /// `PlayerGapReply` drops `errorCode`, so the decision is read from the same body.
+    public func checkOrientSafety(topicID: Int) async -> OrientSafetyCheck {
         guard let req = try? makeRequest(
             "api/orient/safety/check",
             method: "POST",
             json: ["topicId": .integer(Int64(topicID))]
-        ) else { return .unauthorized }
-        return await send(req)
+        ) else {
+            return OrientSafetyCheck(reply: .unauthorized, decision: .retry(PlayerOrientSafetyDecision.retryLine))
+        }
+        do {
+            let (data, status) = try await transport.send(req)
+            let reply = PlayerGapReply.classify(data: data, status: status)
+            let raw = (try? JSONDecoder().decode(PlayWireValue.self, from: data)) ?? .null
+            let code = raw["code"].text ?? raw["code"].tolerantInteger.map(String.init)
+            let decision = PlayerOrientSafetyDecision.decide(
+                code: code, errorCode: raw["errorCode"].text, allowed: raw["data"]["allowed"].bool)
+            return OrientSafetyCheck(reply: reply, decision: decision)
+        } catch {
+            return OrientSafetyCheck(reply: .unknown, decision: .retry(PlayerOrientSafetyDecision.retryLine))
+        }
+    }
+}
+
+/// Safety-check reply plus the play-button decision. The reply alone cannot see `errorCode`.
+public struct OrientSafetyCheck: Equatable, Sendable {
+    public let reply: PlayerGapReply
+    public let decision: PlayerOrientSafetyDecision
+    public init(reply: PlayerGapReply, decision: PlayerOrientSafetyDecision) {
+        self.reply = reply
+        self.decision = decision
     }
 }
 
