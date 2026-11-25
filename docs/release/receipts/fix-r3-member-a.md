@@ -301,3 +301,37 @@ Kept, with reasons: app-only safety lines with no MP counterpart (`couponCode.au
 ### Checks
 - `tools/check_a11y_lint.py` 0, `tools/check_typography_lint.py` PASS, `tools/check_design_lint.py` PASS.
 - No compiler in the cloud; the coordinator's build is the first real check.
+
+## Round 5 (2026-11-25)
+
+Brief: `design/handoff-r2:docs/briefs/COORDINATOR-HANDOVER.md` §4/§8, `owner-decisions-1124.md` (MP-first rule) and `fix-r3-round4.md`.
+
+### Step 1: merge `origin/ui/combined-r7` `f95850a46`
+- One conflict: `App/ClubKit/ClubWorkbenchKit.swift` share glyph. Both sides added `.accessibilityHidden(true)`; the integration side is kept.
+- Gate fixes after the merge: `AccountCollectionCouponRow` used `String(localized: "couponWallet.validFrom \(day)")` / `validUntil`. It now uses `appLocalized(_:locale:)` with `@Environment(\.locale)`. 13 fragment keys that were missing from the catalog (`couponWallet.validFrom/validUntil %@`, `mp.redeem.*`) were added.
+- `App/ObjectBadgeTileArtwork.swift:30` (from the integration branch) has an unlabeled image. It gets `.accessibilityHidden(true)` after `.resizable().scaledToFit()`, so the a11y lint is 0 again.
+- `check_scaffold.py` prints `PASS structural checks`. Merge commit `f2f418b0a`.
+
+### Fixed in Round 5
+| Row | MP | Change |
+|---|---|---|
+| R8-MEM-1-1 / R8-MEM-3-1 (App part) | `market/passes/index.js:40,53-59`; `market/gift/index.js:59-80` | Cursor landed `ChannelRedeemSource.status(token:)`, `redeemPlatformCode` and `mode` on the gift link rule. `AppSession.loadPassRedeemEnabled()` now fills `MPParityBindings.passRedeemEnabled`: signed-in only; closed, refused or unreadable is false. The 兑换码 row and the `gift?mode=code` input now go live when the server switch is on. The page posts through `redeemPlatformCode`, so the request id is the MP `code_<ms>_<8>`. The clock and entropy are pinned per code, so a network-unknown retry resends the same id (MP `_reqId`, cleared when the code changes). |
+| MKT-4-1 | `utils/platform-pass.js:79-86,101-108`; `passes/index.js:84` | Only the `MONTH` plan is shown, as the MP does (`saleablePlans`). Its price reads 首发价 ¥X (`mp.member.plan.launchPrice %@`) on the membership card and the passes 会员 side line, and its line is 30天·不自动续费. This was an owner row, but the MP already encodes the owner's 2026-11-13 ruling, so the MP-first rule applies. |
+| MKT-4-6 | `market/membership/index.wxml:62-65`; `platform-pass.js:138` | One footer pill for both states: 开通通行证 ¥X, or 续买30天 ¥X when active (`mp.member.buy.open.price` / `renew.price`). It is still disabled with the purchase gate note, because paying is money. 去主题库 stays on the library row, and the active-state footer button is removed. |
+| Copy (round 4, never reached the catalog) | `coupon-qr/index.json:2`, `coupon/coupon.json:17`, `coupon.wxml:69`, `platform-pass.js:68,138`, `reveal/index.js:100`, … | The merge tool does not overwrite existing keys, so the round-4 overrides for 21 existing keys were only in the fragment (the same failure as R7-MEM-16-3). They are now written into `Localizable.xcstrings`. Examples: 优惠券出示, 出示核销码, 我发布的优惠券, 停发后不可领取，已领券仍可用, 当前设备暂不支持开通, 续买30天, `到 %@`. |
+
+Declarations grepped before use: `ChannelRedeemSource(configuration:transport:store:nowMillis:entropy:)`, `.status(token:)`, `.redeemPlatformCode(code:token:)`, `JourneyLoopSource.randomEntropy()`, `PlatformPassPlan.code`, `yuanFen`, `appLocalized`. New names (`loadPassRedeemEnabled`, `saleablePlans`, `planPriceText`, `PassMembershipContent.buyPrice`) are not declared anywhere else.
+
+Test updated: `Tests/AppUnitTests/MPParityPassBindingTests.swift:31`. The passes side line is now the month plan's 首发价 text, and new asserts check month-only plans, the `.month` line and `buyPrice`.
+
+### Not done, with reasons
+- **MKT-9-2** (coupon-qr confirm step). The MP issues the code on show with no confirm (`coupon-qr/index.js:59-84`), and the MP-first rule says to drop the confirm. But `Tests/ContractChecks/test_owned_coupon_lifecycle.py:108-112` requires `couponCode.review` and the `Cancel` sheet in `OwnedCouponCodeJourneyUITests`, and `NativeNavigationCompletionUITests.testCouponReviewPrecedesSyntheticQRCode` tests the review step. Request to Cursor: retire those review-step asserts. After that, the App change is to auto-confirm on `.review` (`offerConfirmation` → `confirmPresentation`) and delete the button and sheet.
+- **MKT-3-1** (gift claim). Claiming grants a pass (a `virtualGoods` grant), and Core `PlatformPass.claim` throws `Never`. It stays money, TEST-only, until "money on".
+- **MKT-5-3**: Cursor TEST gate (unchanged).
+
+### Requests for Cursor (Round 5)
+1. MKT-9-2: retire the coupon review-step asserts listed above, so the App can match the MP.
+2. Optional: an MP-shaped device reason on `PlatformPassOverview` (`platform-pass.js:66-71`: 当前设备暂不支持开通 / 请升级后再试 / 暂未开放开通). The App has only the first.
+
+### Checks
+- `check_scaffold.py` PASS, `check_a11y_lint.py` 0, typography and design lints PASS. No compiler in the cloud.
