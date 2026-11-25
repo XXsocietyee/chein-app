@@ -311265,6 +311265,23 @@
           }
         }
       }
+    },
+    "club.ops.create.editName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change the name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去改名称"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -527,6 +527,11 @@ struct ClubOperationsWorkspaceView: View {
                             .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
                             .disabled(loading || identity == nil)
                             .accessibilityIdentifier("club.ops.create.retry")
+                    } else {
+                        // CLB-r8-create-01 (r9, MP create wxml:135 action 去改名称, js:482 refreshStep(3)).
+                        Button("club.ops.create.editName") { createStepBar.editName() }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                            .accessibilityIdentifier("club.ops.create.editName")
                     }
                 } else if !editSaveFailed {
                     Text("club.ops.rejected")
@@ -1165,16 +1170,14 @@ private struct ClubOperationsProfileForm: View {
             }
             .onChange(of: draft.city) { _, _ in createCityError = nil }
             .onChange(of: draft.clubType) { _, _ in createTypeError = nil }
+            // CLB-r8-create-01 (r9, MP create wxml:133-135): a taken name shows the inline 创建没有完成 block with
+            // 去改名称; the wizard only goes back to the name step when the user taps it (no auto-jump).
             .onChange(of: createNameTaken) { _, message in
                 guard let message else { return }
                 createNameError = message
-                setCreateStep(3)
             }
             .onAppear {
-                if let createNameTaken {
-                    createNameError = createNameTaken
-                    createStep = 3
-                }
+                if let createNameTaken { createNameError = createNameTaken }
             }
     }
     @ViewBuilder private var createTypeSection: some View {
@@ -1281,6 +1284,8 @@ private struct ClubOperationsProfileForm: View {
         createBar.backTitle = ChannelCopy.text("上一步", "Back", locale: formLocale)
         createBar.advance = { advanceCreate() }
         createBar.back = { setCreateStep(max(1, createStep - 1)) }
+        // CLB-r8-create-01 (r9, MP create js:481-483): 去改名称 → refreshStep(3).
+        createBar.editName = { setCreateStep(3) }
     }
     private func setCreateStep(_ next: Int) {
         if reduceMotion { createStep = next } else { withAnimation(.smooth(duration: 0.35)) { createStep = next } }
@@ -1611,6 +1616,7 @@ private struct ClubOperationsProfileForm: View {
     @Published var backTitle = ""
     var advance: () -> Void = {}
     var back: () -> Void = {}
+    var editName: () -> Void = {}
 }
 
 struct ClubCreateStepBarView: View {
