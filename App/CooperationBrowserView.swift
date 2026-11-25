@@ -201,6 +201,18 @@ import SwiftUI
                         .accessibilityElement(children: .combine)
                         .accessibilityAddTraits(.isButton)
                     }.accessibilityIdentifier("cooperation.invite.\(direction.rawValue).\(row.id).\(index)")
+                    .contextMenu {
+                        // MC7-30-5: MP `copyPartnerPhone` on a card whose contact is released. Local-only, expiring copy.
+                        if case .visible = CooperationInvitePresentation(invite: row, direction: direction).contact,
+                           let phone = row.partner?.phone?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty {
+                            Button { LocalPasteboard.copy(phone) } label: { Label("merchantCoop.list.copyPhone", systemImage: "doc.on.doc") }
+                                .accessibilityIdentifier("cooperation.invite.copyPhone.\(row.id)")
+                        }
+                    }
+                    .accessibilityAction(named: Text("merchantCoop.list.copyPhone")) {
+                        if case .visible = CooperationInvitePresentation(invite: row, direction: direction).contact,
+                           let phone = row.partner?.phone?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty { LocalPasteboard.copy(phone) }
+                    }
                 }
             }
         }

@@ -339,6 +339,57 @@
       }
     }
   },
+  "merchantCoop.decor.businessStatus.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business status was not saved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "营业状态保存失败"
+        }
+      }
+    }
+  },
+  "merchantCoop.decor.businessStatus.saved": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business status saved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "营业状态已保存"
+        }
+      }
+    }
+  },
+  "merchantCoop.decor.businessStatus.toggle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Business status"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "切换营业状态"
+        }
+      }
+    }
+  },
   "merchantCoop.decor.denied.title": {
     "extractionState": "manual",
     "localizations": {
@@ -607,6 +658,40 @@
         "stringUnit": {
           "state": "translated",
           "value": "去收到的确认商家回的邀约"
+        }
+      }
+    }
+  },
+  "merchantCoop.list.copyPhone": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Copy partner phone"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "复制合作方电话"
+        }
+      }
+    }
+  },
+  "merchantCoop.list.supplyStation %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Redemption spot · %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "核销据点 · %@"
         }
       }
     }

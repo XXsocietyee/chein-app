@@ -12,6 +12,7 @@ struct MerchantOperationsHomeView: View {
     @State private var issue: MerchantOperationsIssue?
     @State private var loadedScope: UUID?
     @State private var loading = false
+    @State private var toast: String?
     @State private var generation = 0
     @StateObject private var readLifetime = MerchantOperationsHomeReadLifetime()
     @Environment(\.scenePhase) private var scenePhase
@@ -64,6 +65,11 @@ struct MerchantOperationsHomeView: View {
                     if !visible.isEmpty || perks != nil || reviews != nil {
                         Section(group.titleKey) {
                             ForEach(visible) { destination in
+                                if destination == .businessStatus, reader.canSave, !reader.isOfflineExample,
+                                   let merchantID = access.identity.merchantID, merchantID > 0 {
+                                    // MC7-19-7: MP decor `dc-status` cy-switch (toggleBusiness) — inline, no pushed editor.
+                                    MerchantDecorBusinessStatusToggle(reader: reader, merchantID: merchantID) { toast = $0 }
+                                } else {
                                 NavigationLink {
                                     if destination == .cityNodes, let cityNodeHub { cityNodeHub() }
                                     else if let destinationFactory { destinationFactory(destination, access) }
@@ -72,6 +78,7 @@ struct MerchantOperationsHomeView: View {
                                     Label(LocalizedStringKey(destination.titleKey), systemImage: symbol(destination))
                                 }
                                 .accessibilityIdentifier("merchant.operations.entry." + destination.id)
+                                }
                             }
                             if let reviews {
                                 NavigationLink { reviews() } label: {
@@ -109,6 +116,7 @@ struct MerchantOperationsHomeView: View {
             } else { CYSkeleton(variant: .formSection).listRowBackground(Color.clear) }
         }
         .scrollContentBackground(.hidden)
+        .cyToast(verbatimMessage: $toast)
         .cyDomainScreen(.merchant)
         .cyPageTitle("merchant.operations.title")
         .refreshable { await load(readPermit) }
@@ -512,4 +520,48 @@ enum MerchantDecorEditorTarget: String, CaseIterable {
     }
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
     nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
+
+/// MC7-19-7: 营业状态 as an inline switch on 品牌中心 (MP decor index.wxml:75-82, index.js `toggleBusiness`/`saveBusinessStatus`).
+/// The write is the same reviewed `saveReviewed(.businessStatus)` the workbench header uses; the value is read back after
+/// every attempt, so the switch always shows what the server holds. Receipt 营业状态已保存 / failure 营业状态保存失败.
+@MainActor private struct MerchantDecorBusinessStatusToggle: View {
+    let reader: any MerchantOperationsReading
+    let merchantID: Int
+    @Environment(\.locale) private var locale
+    @State private var status: MerchantBusinessStatus?
+    @State private var busy = false
+    let onResult: (String) -> Void
+    var body: some View {
+        Toggle(isOn: Binding(get: { status == .open }, set: { on in Task { await save(on ? .open : .closed) } })) {
+            Label {
+                Text(LocalizedStringKey((status ?? .open).titleKey))
+            } icon: { Image(systemName: "storefront") }
+        }
+        .disabled(status == nil || busy)
+        .accessibilityLabel(Text("merchantCoop.decor.businessStatus.toggle"))
+        .accessibilityValue(Text(LocalizedStringKey((status ?? .closed).titleKey)))
+        .accessibilityIdentifier("merchant.operations.entry.businessStatus.toggle")
+        .task(id: reader.scope) { await load() }
+    }
+    private func load() async {
+        let scope = reader.scope
+        guard let doc = try? await reader.document(.businessStatus), !Task.isCancelled, scope == reader.scope,
+              case .draft(.businessStatus(let state)) = doc else { return }
+        status = state.status
+    }
+    private func save(_ next: MerchantBusinessStatus) async {
+        guard !busy, let current = status, current != next,
+              let draft = try? MerchantStoreBusinessStatus(merchantID: merchantID, status: next),
+              let baseline = try? MerchantStoreBusinessStatus(merchantID: merchantID, status: current) else { return }
+        busy = true
+        defer { busy = false }
+        var failed = false
+        do { try await reader.saveReviewed(.businessStatus(draft), baseline: .businessStatus(baseline)) }
+        catch is CancellationError { return }
+        catch { failed = true }
+        await load()
+        if !failed && status == next { onResult(appLocalized("merchantCoop.decor.businessStatus.saved", locale: locale)) }
+        else { onResult(appLocalized("merchantCoop.decor.businessStatus.failed", locale: locale)) }
+    }
 }
