@@ -482,6 +482,14 @@ struct MerchantContentFields: View {
             Text("merchant.content.joining").font(.headline)
             MerchantContentFields(value: value["join"]["registration"], names: ["addressName", "status", "auditStatus"])
             if !readOnly { NavigationLink("merchant.content.registrations") { MerchantContentDocumentView(service: service, query: .registrations(filter: 0)) } }
+            // R7-PC-B2-2, MP merchantinfo.js:3092-3104: 联系主办 = `coop/contact {id: hostInviteId}` → the returned chat. It goes
+            // through the reviewed coop preview (`coopFlowPreviewWrite` + `coopConversationDestination`), never a raw write.
+            if !readOnly, let inviteID = value["join"]["hostInviteId"].integer ?? value["join"]["coopInvite"]["inviteId"].integer, inviteID > 0 {
+                NavigationLink { CoopFlowRequestPreview(operation: .contact(inviteID: inviteID)) } label: {
+                    Label("merchant.content.contactHost", systemImage: "message")
+                }
+                .accessibilityIdentifier("merchant.content.contactHost")
+            }
             // Source merchantinfo 更多 rows (这一站怎么接待 / 暂停接待) open game-node through the topic's sessions.
             if !readOnly, let topicID, let gameNodeDestination {
                 NavigationLink { gameNodeDestination(service, .entries(topicID: topicID, focusPause: false)) } label: { MerchantGameNodeCopy.text("merchantGameNode.title") }

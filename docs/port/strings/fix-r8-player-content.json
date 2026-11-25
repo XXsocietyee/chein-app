@@ -101,6 +101,23 @@
       }
     }
   },
+  "merchant.content.contactHost": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Contact the host"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "联系主办"
+        }
+      }
+    }
+  },
   "merchantApply.location.placeholder": {
     "extractionState": "manual",
     "localizations": {

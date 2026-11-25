@@ -29,6 +29,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     var makeProfessional: ((ProjectEditProduct) -> AnyView)? = nil
     /// Mini-program publish menu card 互动: template intro, naming, then the template editor.
     var makeTemplateAuthoring: (() -> AnyView)? = nil
+    /// R7-PC-D1-1 (MP subpackageA/pages/myproject): the session 我的项目 screen; nil keeps the legacy list (fixtures).
+    var makeProjects: (() -> AnyView)? = nil
     /// Mini-program: activity publishing is for club leaders; other roles never see the entry.
     private var showsActivity: Bool { account == nil || account?.role == "club" }
     /// Home plus AI quota for the simple page. Nil keeps the form visible and the quota as an em dash.
@@ -68,7 +70,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                             CYListRow("publishModes.activity", card: true) { CYRowIcon(systemImage: "calendar.badge.plus") }
                         }.buttonStyle(.plain)
                     }
-                    NavigationLink { PublishingProjectsView(service: service, account: account, openResource: openResource) } label: {
+                    NavigationLink { if let makeProjects { makeProjects() } else { PublishingProjectsView(service: service, account: account, openResource: openResource) } } label: {
                         CYListRow("publishModes.projects", card: true) { CYRowIcon(systemImage: "square.stack") }
                     }.buttonStyle(.plain)
                     NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {

@@ -63,7 +63,17 @@ import SwiftUI
                         SocialInformationCover(id: article.id, title: article.title, created: page.createTimeDisplay)
                             .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
                             .onAppear { articleTitle = article.title }
-                        if let contents = article.contents, page.bodyKey == nil { SocialArticleContentView(contents: contents) }
+                        if let contents = article.contents, page.bodyKey == nil {
+                            SocialArticleContentView(contents: contents)
+                            // R7-PC-D3-2 (MP infomationdetail.js:116-125 rich-text keeps <img> and <a>): the text renderer stays
+                            // literal; the article's https images and links follow it as native blocks.
+                            let media = SocialArticleMediaBlocks.extract(contents)
+                            if !media.isEmpty {
+                                SocialArticleRichBlocksView(blocks: media)
+                                    .listRowBackground(Color.clear)
+                                    .accessibilityIdentifier("social.article.media")
+                            }
+                        }
                         else { CYEmptyState(systemImage: "doc.text", LocalizedStringKey(InformationDetailPageModel.Copy.noContent)) }
                     case .empty(.removed):
                         // R7-PC-D3-4 (MP infomationdetail.wxml:21-23): the removed state leads back to the list.
@@ -143,5 +153,37 @@ private struct SocialInformationTitle: ViewModifier {
         } else {
             content.cyPageTitle("guideXcx.detailTitle")
         }
+    }
+}
+
+/// R7-PC-D3-2: `<img src>` and `<a href>` from a CMS article, https only, capped. Text stays with `SocialArticleContent`.
+enum SocialArticleMediaBlocks {
+    static let maximumBlocks = 24
+    static func extract(_ html: String) -> [SocialArticleRichBlock] {
+        guard html.utf16.count <= 65_536 else { return [] }
+        let pattern = #"<img\b[^>]*?\bsrc\s*=\s*["']([^"']+)["'][^>]*>|<a\b[^>]*?\bhref\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else { return [] }
+        let ns = html as NSString
+        var blocks: [SocialArticleRichBlock] = []
+        for match in regex.matches(in: html, range: NSRange(location: 0, length: ns.length)) {
+            if blocks.count >= maximumBlocks { break }
+            func group(_ index: Int) -> String? {
+                let range = match.range(at: index)
+                return range.location == NSNotFound ? nil : ns.substring(with: range)
+            }
+            if let src = group(1).flatMap(secureURL) {
+                blocks.append(.image(id: "img-\(blocks.count)", url: src))
+            } else if let href = group(2).flatMap(secureURL) {
+                let label = (group(3) ?? "").replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                blocks.append(.link(id: "a-\(blocks.count)", title: label.isEmpty ? href : String(label.prefix(120)), url: href))
+            }
+        }
+        return blocks
+    }
+    private static func secureURL(_ raw: String) -> String? {
+        let value = raw.replacingOccurrences(of: "&amp;", with: "&").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard value.utf8.count <= 2_048, let url = URL(string: value), url.scheme?.lowercased() == "https", url.host != nil else { return nil }
+        return value
     }
 }
