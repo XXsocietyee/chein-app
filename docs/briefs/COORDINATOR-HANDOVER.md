@@ -2,7 +2,7 @@
 
 This is the live state of the chengyin-app go-live push and the exact steps to continue it. It is updated on every hourly and half-hourly check. If Claude (the coordinator) is out of credit, anyone (a person, Cursor, Gemini or another Claude) can pick up from here.
 
-**Last updated:** 2026-11-25 05:24 UTC by Claude (coordinator).
+**Last updated:** 2026-11-25 05:58 UTC by Claude (coordinator).
 
 ---
 
@@ -11,7 +11,7 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 | Item | Value |
 |---|---|
 | Product | Native SwiftUI iOS app with full mini-program (MP) parity. Repo `liboyang42-cpu/chengyin-app` (PUBLIC), branches `ui/*`. |
-| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`08792c15b`** (6afe54b4a + Cursor cov3-c/d). |
+| Integration branch | `ui/combined-r7`. Last pushed and built clean: **`ebf6c160c`** (adds cov3-a/b, cov3-tests-1..4, r8-wire-2, and all 4 R6 Claude branches: fix/r8-club-a-topic, fix/r8-club-b-ops, fix/r3-member-a, fix/r3-player-content-b). |
 | MP source | `liboyang42-cpu/hengyin`, folder `chengyinhub-xcx` (the mini-program). |
 | Parity (r8 audit, 01:55 UTC) | member 85% · account-publish 86% · merchant 77% · club 77% · player-content 91% · play-roam 98%. Reports: `origin/audit/parity-r8-<area>:docs/audit/parity-r8/<area>.md`. |
 | Acceptance | Runs on the self-hosted runner `fanning-air-5` (owner's Mac), branch `ci/acceptance`. Baselines: Core 27, AppUnit 71, contract 1. The last CHECK (on `0e1cf578a`) found **37 new contract failures + 2 Core test compile errors**; Cursor round 7 fixes them. |
@@ -39,11 +39,12 @@ This is the live state of the chengyin-app go-live push and the exact steps to c
 - **Merged:** A1, A2-a, A2-c, q9c-composition, r8-merchant-coop, r8-play-roam, r8-club, r8-account-publish, r8-member.
 - **Merged in `6afe54b4a`:** a2-contract-b/d, r8-player-content, r8-wire. a3 goes to `ci/acceptance`.
 - **Merged in `08792c15b`:** cov3-c, cov3-d. **Running:** K7e CHECK (run 45550995140, queued behind 45545406477), r8-wire-2, cov3-a/b, cov3-tests-1..4; then cov3-e (checker: forwarded-url/ternary rows count as matched-indirect).
+- **Batch posted 05:50 (base `ebf6c160c`):** K7e, cov3-e (checker indirect-match rule), cov4-tests-1..4 (remaining ~250 missing tests by area), ratchet-1 (AppSession −300 lines), r9-prep (per-area checker table).
 - **Posted 05:02:** K7e CHECK on `6afe54b4a`; r8-wire-2; Phase C `cursor/cov3-a..d` (missing endpoints) and `cursor/cov3-tests-1..4` (P0 missing tests).
 
 **Claude cloud routines** (claude.ai/code/routines):
 - Round 4 and fix-r8 (19 routines) have finished; merged: fix/r8-member, merchant-coop, play-roam, account-publish, mp-first and most r3 branches.
-- **Round 5 "REBASE R5"** (started 04:17 UTC, 7 routines): each merges `f95850a46` into its own branch, resolves conflicts keeping both sides, passes the gate, pushes, then continues its open rows. Branches: `fix/r8-club`, `fix/r8-club-a-topic`, `fix/r8-club-b-ops`, `fix/r8-player-content`, `fix/r3-member-a`, `fix/r3-play-roam-a`, `fix/r3-player-content-b`. Merged in `6afe54b4a`: fix/r8-club, fix/r8-player-content, fix/r3-play-roam-a. Still conflicting with `6afe54b4a`; **R6 routines started 05:19** to merge the tip: fix/r8-club-a-topic, fix/r8-club-b-ops, fix/r3-member-a, fix/r3-player-content-b.
+- **Round 5 "REBASE R5"** (started 04:17 UTC, 7 routines): each merges `f95850a46` into its own branch, resolves conflicts keeping both sides, passes the gate, pushes, then continues its open rows. Branches: `fix/r8-club`, `fix/r8-club-a-topic`, `fix/r8-club-b-ops`, `fix/r8-player-content`, `fix/r3-member-a`, `fix/r3-play-roam-a`, `fix/r3-player-content-b`. Merged in `6afe54b4a`: fix/r8-club, fix/r8-player-content, fix/r3-play-roam-a. R6 branches all merged at 05:58 (no Claude branch is waiting): fix/r8-club-a-topic, fix/r8-club-b-ops, fix/r3-member-a, fix/r3-player-content-b.
 - **Acceptance workflow change** `cursor/a3-screenshot-retry` goes onto `ci/acceptance` (Cursor fast-forwards it), not into `ui/combined-r7`.
 
 **Gemini:** down. Orca restarted and lost its terminals; the quota resets about 05:50 UTC. Its MP-alignment work moved to the Claude F-agents (`fix-r3-round4.md`).
