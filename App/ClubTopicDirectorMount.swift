@@ -51,6 +51,9 @@ extension EnvironmentValues {
 
     @ViewBuilder private func content(_ model: PlayDirectorCoordinator, host: ClubTopicDirectorHost) -> some View {
         if let projection = model.projection {
+            // CLB-G13a: 通用玩法现场运营 and 默认结局收尾 (MP topic-detail wxml:198-243) ride on the same director read.
+            ClubTopicGenericOpsSection(activityID: activityID, revision: projection.revision) { _ in openingTool = true }
+            ClubTopicPlanFallbackSection(activityID: activityID, revision: projection.revision) { Task { await model.load() } }
             ClubGapTopicDirectorEmbeddedSection(
                 summary: Self.summary(projection, model: model, locale: locale),
                 onConfirmUnknownWrite: { Task { await model.recover() } },
