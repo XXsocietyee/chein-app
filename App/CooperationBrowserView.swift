@@ -335,6 +335,12 @@ func coopCoverSeed(_ name: String?, fallback: String) -> String {
     return fallback
 }
 
+/// Image parity: the MP has no default cover art here. A missing or failed cover is the plain `.inv-cover`
+/// box (`--cy-bg-card-2`), not generated art.
+struct CoopCoverPlaceholder: View {
+    var body: some View { Rectangle().fill(CYColor.bgRaised) }
+}
+
 struct CoopCloudCoverBanner: View {
     let url: URL?
     let seed: String
@@ -345,10 +351,10 @@ struct CoopCloudCoverBanner: View {
                 if let url {
                     AsyncImage(url: url) { phase in
                         if let image = phase.image { image.resizable().scaledToFill() }
-                        else { CYCoverArt(seed: seed) }
+                        else { CoopCoverPlaceholder() }
                     }
                 } else {
-                    CYCoverArt(seed: seed)
+                    CoopCoverPlaceholder()
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
@@ -365,10 +371,10 @@ struct CoopCloudCoverThumb: View {
             if let url {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() }
-                    else { CYCoverArt(seed: seed) }
+                    else { CoopCoverPlaceholder() }
                 }
             } else {
-                CYCoverArt(seed: seed)
+                CoopCoverPlaceholder()
             }
         }
         .frame(width: side, height: side)

@@ -150,10 +150,8 @@ extension EnvironmentValues {
                     }
                     if value.rows(tab).isEmpty && !value.hasInvalidRows(tab) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Image(systemName: tab == .merchants ? "storefront" : "person.3")
-                                .cyText(.sectionTitle)
-                                .foregroundStyle(CYColor.textSecondary)
-                                .accessibilityHidden(true)
+                            // Image parity: MP relation cy-empty kind="empty" → the shared MP empty art (MPAsset.EmptyState).
+                            CYEmptyIllustration(kind: .generic, size: 72)
                             Text(tab == .merchants ? "cooprelation.emptyMerchants" : "cooprelation.emptyClubs")
                                 .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)

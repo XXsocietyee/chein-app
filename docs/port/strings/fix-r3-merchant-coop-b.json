@@ -1,4 +1,21 @@
 {
+  "cooperation.nearby.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No merchants nearby"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "附近暂无商家"
+        }
+      }
+    }
+  },
   "merchantCoop.aiNpc.intro.avatar.line": {
     "extractionState": "manual",
     "localizations": {

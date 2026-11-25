@@ -228,7 +228,8 @@ struct MerchantCityNodeInlineError: View {
         ForEach(p.applications) { applicationRow($0) }
         if p.isEmpty {
             VStack(spacing: 10) {
-                Image(systemName: "mappin.slash").accessibilityHidden(true).font(.largeTitle).foregroundStyle(.secondary)
+                // Image parity: MP cy-empty kind="empty" → the shared MP empty art (MPAsset.EmptyState).
+                CYEmptyIllustration(kind: .generic, size: 96)
                 MerchantCityNodeCopy.text("merchantCityNode.empty.title").cyText(.cardTitle)
                 MerchantCityNodeCopy.text("merchantCityNode.empty.sub").font(.subheadline).foregroundStyle(.secondary)
                 if p.showsEmptyPlacementAction && showsProjectActions {

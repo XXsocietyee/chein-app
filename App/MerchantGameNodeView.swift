@@ -192,7 +192,12 @@ enum MerchantGameNodeCopy {
     }
     private func stateView(icon: String, title: String, message: MerchantGameNodeMessage, retry: Bool) -> some View {
         ContentUnavailableView {
-            Label { MerchantGameNodeCopy.text(title) } icon: { Image(systemName: icon) }
+            if icon == "tray" {
+                // Image parity: MP cy-empty kind="empty" → the shared MP empty art (MPAsset.EmptyState).
+                VStack(spacing: CYSpacing.md) { CYEmptyIllustration(kind: .generic, size: 96); MerchantGameNodeCopy.text(title) }
+            } else {
+                Label { MerchantGameNodeCopy.text(title) } icon: { Image(systemName: icon) }
+            }
         } description: {
             MerchantGameNodeCopy.text(message)
         } actions: {
