@@ -546,6 +546,10 @@ import SwiftUI
                     AnyView(MerchantPerkTemplatesHost(reader: session.cooperationFlowReader, executor: coopFlowWrite?.executor()))
                 })
                 .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+                // MC8-19-1: 看公开主页 previews the store's own public home.
+                .environment(\.merchantPublicHomePreview, { owner in
+                    AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext))
+                })
                 .environment(\.merchantReviewsDestination, {
                     AnyView(MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .reviews(page: 1))
                         .cyPushedChrome(domain: .merchant))
@@ -567,6 +571,7 @@ import SwiftUI
         case "pages/merchant/citynode/create/index":
             MerchantCityNodeCreateView(service: session.merchantContentService, placeSearch: PublishingMapKitAdapter())
                 .id(session.merchantContentService.scope)
+                .environment(\.merchantIdentityInactive, session.merchantIdentityInactiveProbe)
                 .cyPushedChrome(domain: .merchant)
         case "pages/merchant/game-node/index":
             // The link rule is query-free today, so `activityId` cannot arrive yet: the entry list (选择场次) opens instead.
