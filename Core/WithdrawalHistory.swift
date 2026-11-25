@@ -111,11 +111,20 @@ public struct WithdrawalHistoryRow: Decodable, Equatable {
 }
 
 public struct WithdrawalHistoryPage: Equatable {
+    /// MP `app.getPageSize()`.
+    public static let pageSize = 10
     public let rows: [WithdrawalHistoryRow]
     /// Present only when the server returns a table; the current source returns a bare list.
     public let total: Int?
     public init(rows: [WithdrawalHistoryRow], total: Int?) { self.rows = rows; self.total = total }
     public var mayHaveMore: Bool { total.map { $0 > rows.count } ?? false }
+    /// MP `getTotalPage(total, pageSize) > pageNum`. A missing total uses the row count.
+    public func showsFurtherPage(pageNum: Int, pageSize: Int = WithdrawalHistoryPage.pageSize) -> Bool {
+        let count = total ?? rows.count
+        guard pageSize > 0, pageNum > 0, count >= 0 else { return false }
+        let pages = count / pageSize + (count % pageSize > 0 ? 1 : 0)
+        return pages > pageNum
+    }
     /// `data` must be an array, `{rows}` or `{list}`; any other shape is a load failure, not empty.
     public static func decode(envelope bytes: Data) throws -> WithdrawalHistoryPage {
         let envelope = try JSONDecoder().decode(Envelope.self, from: bytes)
@@ -145,29 +154,57 @@ public struct WithdrawalHistoryPage: Equatable {
     public enum Phase: Equatable { case idle, loading, ready, empty, login, denied, unavailable, failed }
     public private(set) var phase: Phase = .idle
     public private(set) var page: WithdrawalHistoryPage?
+    public private(set) var pageNumber = 0
+    public private(set) var loadMoreFailed = false
     private let reader: WalletCommerceReader
     private var generation = 0
     private var loadedScope: WalletCommerceScope?
     public init(reader: WalletCommerceReader) { self.reader = reader }
     /// Rows are visible only while they still belong to the reader's current owner.
     public var rows: [WithdrawalHistoryRow] { loadedScope != nil && loadedScope == reader.scope ? page?.rows ?? [] : [] }
+    public var hasMore: Bool {
+        guard loadedScope != nil, loadedScope == reader.scope, let loaded = page, pageNumber > 0 else { return false }
+        return loaded.showsFurtherPage(pageNum: pageNumber)
+    }
     public var canRetry: Bool { phase == .failed || phase == .login }
     public func cancel() { generation += 1; if phase == .loading { phase = .idle } }
     public func load() async {
         generation += 1; let ticket = generation
         let scope = reader.scope
-        page = nil; loadedScope = nil
+        page = nil; loadedScope = nil; pageNumber = 0; loadMoreFailed = false
         guard reader.isConfigured else { phase = .unavailable; return }
         guard scope != nil else { phase = .login; return }
         phase = .loading
         do {
-            let value = try await reader.read { try await $0.withdrawalHistory(token: $1) }
+            let value = try await reader.read { try await $0.withdrawalHistory(pageNum: 1, token: $1) }
             guard ticket == generation, scope == reader.scope else { return }
-            page = value; loadedScope = scope; phase = value.rows.isEmpty ? .empty : .ready
+            page = value; loadedScope = scope; pageNumber = 1
+            phase = value.rows.isEmpty ? .empty : .ready
         } catch {
             guard ticket == generation else { return }
             if error is CancellationError { phase = .idle; return }
             phase = Self.phase(for: error)
+        }
+    }
+    /// Next MP page. Rows already on screen stay. A failure sets `loadMoreFailed` and does not clear them.
+    public func loadMore() async {
+        guard hasMore, phase == .ready, let scope = reader.scope, loadedScope == scope else { return }
+        let next = pageNumber + 1
+        generation += 1; let ticket = generation
+        loadMoreFailed = false
+        do {
+            let fetched = try await reader.read { try await $0.withdrawalHistory(pageNum: next, token: $1) }
+            guard ticket == generation, scope == reader.scope else { return }
+            let existing = page?.rows ?? []
+            let accumulated = existing + fetched.rows
+            let count = fetched.total ?? accumulated.count
+            page = WithdrawalHistoryPage(rows: accumulated, total: count)
+            pageNumber = next
+            phase = accumulated.isEmpty ? .empty : .ready
+        } catch {
+            guard ticket == generation else { return }
+            if error is CancellationError { return }
+            loadMoreFailed = true
         }
     }
     public static func phase(for error: Error) -> Phase {

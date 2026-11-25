@@ -245,8 +245,9 @@ public struct OrientScorePage: Equatable, Sendable {
     public var showsMerchantChoice: Bool { false }
     public var appealEnabled: Bool { false }
     public var disputeEnabled: Bool { false }
-    public var settleEnabled: Bool { false }
-    public var syncEnabled: Bool { false }
+    /// MP sync and settle are open. Payment, payout, and withdrawal stay off.
+    public var settleEnabled: Bool { true }
+    public var syncEnabled: Bool { true }
     public var paymentEnabled: Bool { false }
     public var payoutEnabled: Bool { false }
     public var withdrawalEnabled: Bool { false }

@@ -176,4 +176,19 @@ final class FreeExploreBundlePageReadyTests: XCTestCase {
         XCTAssertFalse(account.contains("FreeExploreBundle"))
         XCTAssertTrue(orders.contains("FreeExploreBundleReadEntry"))
     }
+
+    func testBundleKeepsUnitValidityHoldExitAndShopName() throws {
+        let raw = #"{"registrationId":1,"bundle":{"order":{"registrationId":1,"holderMemberId":2,"topicId":3},"units":[{"id":4,"registrationId":1,"holderMemberId":2,"chapterId":5,"status":"AVAILABLE","validTo":"2026-12-31"}],"reservations":[{"id":6,"registrationId":1,"holderMemberId":2,"unitId":4,"chapterId":5,"offerId":7,"merchantId":8,"startAt":"t","status":"BOOKED","idempotencyKey":"k","requestFingerprint":"f"}],"chapters":[{"chapterId":5,"name":"章","content":"正文","stores":[{"offerId":7,"merchantName":"店"}]}],"refundHold":{"state":"PREPARED","refundId":9},"exitCases":[{"id":10,"decision":"SWAP_CONSENTED","unitId":4}]}}"#
+        let decoded = try order(raw)
+        let bundle = try XCTUnwrap(decoded.bundle)
+        XCTAssertEqual(bundle.units.first?.validTo, "2026-12-31")
+        XCTAssertEqual(bundle.chapterContent(chapterID: try .init(5)), "正文")
+        XCTAssertEqual(bundle.shopName(offerID: try .init(7)), "店")
+        XCTAssertEqual(bundle.refundHold?.state, "PREPARED")
+        XCTAssertEqual(bundle.refundHold?.refundId, "9")
+        XCTAssertEqual(bundle.exitCases.first?.decision, "SWAP_CONSENTED")
+        XCTAssertTrue(bundle.reservations.first?.canCancel == true)
+        let legacy = try order(#"{"registrationId":1}"#)
+        XCTAssertNil(legacy.bundle)
+    }
 }

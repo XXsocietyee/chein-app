@@ -197,7 +197,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "subpackageMember/couponInfo/couponInfo",
         "subpackageMember/mycanyu/mycanyu",
         "subpackageMember/myinvite/myinvite",
-        "subpackageMember/mytemplate/mytemplate",
         "subpackageMember/order/order",
         "subpackageMember/points-history/index",
         "subpackageMember/report-mine/index",
@@ -282,11 +281,17 @@ public struct MiniProgramPageLink: Equatable, Sendable {
     ]
 
     public init?(path: String, query: [String: String]) {
-        let page = path.hasPrefix("/") ? String(path.dropFirst()) : path
+        var page = path.hasPrefix("/") ? String(path.dropFirst()) : path
+        var incoming = query
+        // R8-MEM-26-1: MP removed mytemplate from app.json. Open 我的发布 and drop the query.
+        if page == "subpackageMember/mytemplate/mytemplate" {
+            page = "pages/activity/official-mine/index"
+            incoming = [:]
+        }
         guard let rule = Self.reviewedPages[page] else { return nil }
         // Empty values are absent (the mini-program reads `options.x || ''`).
-        let present = query.filter { !$0.value.isEmpty }
-        guard Set(query.keys).isSubset(of: rule.allowed), rule.required.isSubset(of: Set(present.keys)) else { return nil }
+        let present = incoming.filter { !$0.value.isEmpty }
+        guard Set(incoming.keys).isSubset(of: rule.allowed), rule.required.isSubset(of: Set(present.keys)) else { return nil }
         for (key, value) in present {
             guard value.utf16.count <= 512, value.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }) else { return nil }
             if rule.ids.contains(key), Self.positiveID(value) == nil { return nil }
