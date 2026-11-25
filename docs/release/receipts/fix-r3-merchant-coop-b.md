@@ -279,7 +279,7 @@ The MP `redirectTo /pages/merchant/decor/index` after a sub-page save (rows 150,
 
 - **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round4.md` (plus `wave-x10.md`, `owner-decisions-1124.md`). Gemini is out of quota, so its MP-alignment rows for half-b pages were taken here.
 - **Sync:** `git merge origin/ui/combined-r7` @ 4ef0a2840 fast-forwarded (r7 already held round 3).
-- **Strings:** `docs/port/strings/fix-r3-merchant-coop-b.json`, now 74+ keys (en + zh-Hans). Overrides of existing keys are listed under Copy.
+- **Strings:** `docs/port/strings/fix-r3-merchant-coop-b.json`, now 100 keys (en + zh-Hans). Overrides of existing keys are listed under Copy.
 - **No Core changes.** No new Swift files (no generator change).
 
 ## Round 4 · flows (`docs/mp-gap/flows-g2.md`, half-b rows still marked for Claude)
