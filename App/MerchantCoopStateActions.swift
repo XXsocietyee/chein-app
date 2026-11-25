@@ -34,10 +34,17 @@ struct MerchantCoopActionState: View {
     var actionTitle: LocalizedStringKey? = nil
     var action: (() -> Void)? = nil
     var identifier: String
+    /// Image parity: true for an MP `cy-empty kind="empty"` state, which draws the shared MP empty art
+    /// (MPAsset.EmptyState) instead of a glyph.
+    var emptyArt = false
 
     var body: some View {
         ContentUnavailableView {
-            Label(title, systemImage: systemImage)
+            if emptyArt {
+                VStack(spacing: CYSpacing.md) { CYEmptyIllustration(kind: .generic, size: 96); Text(title) }
+            } else {
+                Label(title, systemImage: systemImage)
+            }
         } description: {
             if let message { Text(message) }
         } actions: {

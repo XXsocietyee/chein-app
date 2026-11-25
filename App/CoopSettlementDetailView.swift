@@ -267,9 +267,10 @@ import SwiftUI
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .accessibilityIdentifier("cooperation.settlement.club.loading")
         case .missing:
+            // MP settlement-detail wxml:31: cy-empty kind="empty" 结算记录不可见 + 返回结算列表.
             MerchantCoopActionState(systemImage: "doc.text.magnifyingglass", title: "merchantCoop.settlement.missing",
-                                    actionTitle: "merchantCoop.settlement.back", action: { dismiss() },
-                                    identifier: "cooperation.settlement.club.missing")
+                                    actionTitle: "merchantCoop.settlement.backToList", action: { dismiss() },
+                                    identifier: "cooperation.settlement.club.missing", emptyArt: true)
         case .failed(let message):
             MerchantCoopActionState(systemImage: "exclamationmark.triangle", title: "merchantCoop.settlement.failed",
                                     message: message.map { LocalizedStringKey(stringLiteral: $0) },

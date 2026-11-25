@@ -934,6 +934,23 @@
       }
     }
   },
+  "merchantCoop.settlement.backToList": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back to settlements"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "返回结算列表"
+        }
+      }
+    }
+  },
   "merchantCoop.settlement.clubPerspective": {
     "extractionState": "manual",
     "localizations": {

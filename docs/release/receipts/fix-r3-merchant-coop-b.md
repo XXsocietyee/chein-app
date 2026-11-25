@@ -272,3 +272,52 @@ The MP `redirectTo /pages/merchant/decor/index` after a sub-page save (rows 150,
 - `tools/check_a11y_lint.py`: no finding in any file changed here. The 17 new findings are on the r7 base in other areas' files.
 - **Fixture routes:** no new design fixtures exist for the new deep links, so `docs/port/accept/f-merchant-coop-b.txt` is unchanged. The deep links can be exercised with the MP page paths listed above.
 - No compiler in the cloud. Every API used was grepped on the merged tree (`MerchantOperationsReading.access()`, `MerchantOperationsAccess.allows`, `AppSession.merchantOperationsDestination` / `merchantCityNodeHub()` / `merchantGameNodeService`, `MerchantPerkTemplatesHost`, `MerchantCityNodeCreateView(service:placeSearch:)`, `MerchantGameNodeEntryView(service:topicID:)`, `SessionMerchantGameNodeView`, `MerchantSettlementDetailLink.recordKey`, `CoopFlowPreviewWriteFactory.stationAccept`).
+
+---
+
+# Round 4 (2026-11-25)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round4.md` (plus `wave-x10.md`, `owner-decisions-1124.md`). Gemini is out of quota, so its MP-alignment rows for half-b pages were taken here.
+- **Sync:** `git merge origin/ui/combined-r7` @ 4ef0a2840 fast-forwarded (r7 already held round 3).
+- **Strings:** `docs/port/strings/fix-r3-merchant-coop-b.json`, now 74+ keys (en + zh-Hans). Overrides of existing keys are listed under Copy.
+- **No Core changes.** No new Swift files (no generator change).
+
+## Round 4 · flows (`docs/mp-gap/flows-g2.md`, half-b rows still marked for Claude)
+| row | MP edge | app now | files |
+|---|---|---|---|
+| 108 | coop/invite `onResultSheetClose` → `redirectTo /pages/coop/list/index?tab=sent` | 协作列表's 发起邀约 is a programmatic push; 完成 on a sent single-target invite pops the invite page and switches the list to 我发出的 (`coopInviteSent` hook). Batch of several targets, deep link and workbench entries keep 完成 → dismiss. | CooperationBrowserView, CooperationContextualViews, CooperationFlowEditors, MerchantCoopStateActions |
+| 105 | invite-detail `goDeposit` → back to the list (sent box stays on 我发出的) | already `dismiss()` back to the list, whose segment state is kept | — (checked) |
+| 109 / 110 | `_navigateTo(url)` helpers (`?`) | invite → topic / merchantinfo, list → invite / invite-detail / nearby are all native pushes | — (checked) |
+| 111 | nearby `openMerchantHome` → merchant public home | already `PublicMerchantHomeView` (sheet) | — (checked) |
+| 131 | citynode/create `goConfigTemplate` → `publish/temp?from=citynode` | already `MerchantCityTemplateHandoff` | — (checked) |
+| 166 | decor `onDenyBack` → back / reLaunch merchant index | system back; a deep-linked root sits on a pushed stack | — (N/A) |
+| 114 / 115 / 138 | settlement-detail / coop-center `onNavBack` reLaunch fallbacks when the page is the stack root | the app never opens these as a stack root (deep links push), so system back covers them | — (N/A) |
+| 222 | relation `goClub` → club detail `?id=&scope=MERCHANT` | already the relation profile destination (rows 218–221 OK) | — (checked) |
+
+## Round 4 · image parity (MP image slots per half-b page)
+Only system-control glyphs (chevron/arrow-right, close, check, plus, edit, camera, back, bell, clock, route, pin, qr-scan, lock/info/warning state glyphs) stay SF Symbols, as the handbook allows. `cy-empty` draws its bitmap art **only for `kind="empty"`** (components/cy/empty/index.js `KIND_DEFAULTS`); every other kind is a glyph.
+
+| page | MP slot (file:line) | MP asset / fallback | app before | app now |
+|---|---|---|---|---|
+| decor | store logo `m.logo` (wxml:64) | server image, else first letter | profile editor | unchanged (no default asset) |
+| decor | cover `m.coverImage` (wxml:71) | server image, else text 添加店铺封面 | profile editor | unchanged |
+| decor | tag chip `dc-tag-ico` (wxml:146) | `pages/merchant/images/tags/*` via tag-library | text only | `MerchantTagIcons.image(for:)` (MPAsset.FeatureIcon.*) in the tag sheet's selected list and every option (MerchantDecorTagEditor) |
+| decor | `wechatQr` (wxml:372) | server image | — | unchanged |
+| gallery | photos (wxml:23) | server images | grid | unchanged |
+| perks | `cy-empty kind="empty"` (wxml:51) | `empty_state_bg` + `empty_state_figure` | SF gift | `CYEmptyState("tray")` → `MPAsset.EmptyState` art |
+| ai-npc | intro art `npc-intro/{a,b}.png` (wxml:131-132) | MPAsset.FeatureIcon.* | done in round 2 | unchanged |
+| ai-npc | photo avatar (wxml:27) | server image, else canvas | AsyncImage (round 1) | unchanged |
+| citynode | poster `qrcodeUrl` (wxml:126) | server image, else `cy-code-text` | grey SF qrcode on failure | `code` text fallback (MC7-24-6, below) |
+| citynode | `cy-empty kind="empty"` 还没有节点 (wxml:67) | MP empty art | SF mappin.slash | `CYEmptyIllustration(.generic)` |
+| game-node | `cy-empty kind="empty"` (wxml:21) | MP empty art | SF tray | `CYEmptyIllustration(.generic)` |
+| coop-center | route cover (wxml:30) | server image, else bare gradient | AsyncImage, else plain fill | unchanged |
+| coop-center | `cy-empty kind="empty"` ×2 (wxml:54,75) | MP empty art | SF tray | `CYEmptyIllustration(.generic)` |
+| relation | composer avatar `myAvatar \|\| d_profile` (wxml:24) | MPAsset.AvatarDefault.dProfile | club-owned composer (MC7-28-3) | not touched (club F-agent) |
+| relation | `cy-empty kind="empty"` 暂无可合作俱乐部 (wxml:65) | MP empty art | SF storefront / person.3 | `CYEmptyIllustration(.generic)` |
+| team | member avatar `avatar \|\| d_profile` | MPAsset.AvatarDefault.dProfile | done in round 2 | unchanged |
+| coop/list | invite/registration/pool cover (wxml:65,136,160) | server image, else blank `.inv-cover` box (`--cy-bg-card-2`) | generated `CYCoverArt` with an SF glyph | `CoopCoverPlaceholder` (plain `CYColor.bgRaised`) |
+| coop/invite | target logo `logo \|\| d_logo` (wxml:84,93,146) | MPAsset.BrandLogo.dLogo | done in round 2 | unchanged |
+| invite-detail | `invite.cover` (wxml:41-42) | server image; **no cover block** without one | generated art hero | real cover only; without one the topic name is a plain title |
+| nearby | `cy-empty kind="empty"` 附近暂无商家 (wxml:42) | MP empty art | SF mappin.slash | `CYEmptyState("tray")` → MP art |
+| finance | (none) | — | generated `CYCoverArt` thumbnails with yensign | removed |
+| settlement-detail (club) | `cy-empty kind="empty"` 结算记录不可见 + 返回结算列表 (wxml:31) | MP empty art | SF doc.text.magnifyingglass + 返回 | MP empty art (`MerchantCoopActionState(emptyArt:)`) + 返回结算列表 |
