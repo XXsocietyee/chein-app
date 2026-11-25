@@ -58,7 +58,7 @@ final class MemberPageContractPinTests: XCTestCase {
     }
 
     func testCouponSummaryPinsPost() {
-        XCTAssertEqual(MerchantBusinessMutation.couponSummary, "api/merchant/coupon-summary")
+        XCTAssertEqual(MerchantOpsWp03Catalog.couponSummary, "api/merchant/coupon-summary")
         XCTAssertEqual("POST", "POST")
     }
 
