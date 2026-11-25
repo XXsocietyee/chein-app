@@ -233,43 +233,34 @@ extension ProfileLocalCoverOwner {
     }
 }
 
+/// r9 A7-02: MP app.js:617-700 routes every crop through pages/crop; the local cover uses `ratio=16:9`
+/// (rect frame, pinch / pan, 还原, 使用原图). The picked source rectangle maps onto the existing
+/// `MerchantImageCropRect(aspect: .gallery)` render primitive, so the save path is unchanged.
 @MainActor private struct ProfileLocalCoverCropView: View {
     let draft: MerchantImageCropDraft
     let hasError: Bool
     let confirm: (UUID, MerchantImageCropRect) -> Void
     let cancel: () -> Void
     let isCurrent: () -> Bool
-    @State private var position = ProfileCoverCropPosition()
-    private var rect: MerchantImageCropRect? {
-        try? position.rect(sourceWidth: draft.source.width, sourceHeight: draft.source.height)
-    }
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("profile.localCover.crop")
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if hasError {
                 Text("profile.localCover.cropFailed")
                     .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("profile.localCover.cropFailure")
             }
-            if let rect {
-                ProfileCoverGesturePreview(draftID: draft.id, source: draft.source, position: $position, isCurrent: isCurrent)
-                    .aspectRatio(16.0 / 9.0, contentMode: .fit).frame(maxHeight: 240)
-                Slider(value: $position.horizontal, in: 0...1).accessibilityLabel("image.crop.horizontal")
-                Slider(value: $position.vertical, in: 0...1).accessibilityLabel("image.crop.vertical")
-                Slider(value: $position.zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
-                // Mini-program pages/crop offers 还原 next to the crop action.
-                Button("profile.localCover.cropReset") { position = ProfileCoverCropPosition() }
-                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
-                Button {
-                    guard isCurrent() else { return }; confirm(draft.id, rect)
-                } label: {
-                    if hasError { Text("profile.localCover.cropRetry") }
-                    else { Text("reviewLocalSave", tableName: "ProfileLocalCoverCrop") }
-                }
-                    .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
-                    .accessibilityIdentifier("profile.localCover.cropConfirm")
+            if let image = UIImage(data: draft.source.jpeg) {
+                MiniCropView(images: [image], ratio: "16:9", onFinish: { results in
+                    guard isCurrent(), let rect = R9MiniCropRect.merchantRect(results.first, source: draft.source, aspect: .gallery) else { return }
+                    confirm(draft.id, rect)
+                }, onCancel: cancel)
+                .frame(minHeight: 360)
+                .accessibilityIdentifier("profile.localCover.crop")
+            } else {
+                Text("profile.localCover.cropFailed")
+                Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.localCover.cropCancel")
             }
-            Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.localCover.cropCancel")
         }
+        .listRowInsets(EdgeInsets())
     }
 }

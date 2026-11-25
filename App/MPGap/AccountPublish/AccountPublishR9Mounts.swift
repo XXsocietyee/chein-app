@@ -122,3 +122,27 @@ extension AppSession {
         return coordinator
     }
 }
+
+// MARK: - A7-02 MiniCropView → MerchantImageCropRect (generalises the r8 avatar mapping to any aspect)
+
+enum R9MiniCropRect {
+    /// Inverse of `MerchantImageCropRect(sourceWidth:sourceHeight:aspect:horizontal:vertical:zoom:)`.
+    /// 使用原图 (`.original`) is the centred, unzoomed frame of that aspect.
+    static func merchantRect(_ result: MiniCropView.Result?, source: RetainedSelectedImage,
+                             aspect: MerchantImageCropAspect) -> MerchantImageCropRect? {
+        let w = source.width, h = source.height
+        guard case .crop(let picked)? = result else {
+            return try? MerchantImageCropRect(sourceWidth: w, sourceHeight: h, aspect: aspect)
+        }
+        let available = min(w / aspect.widthUnits, h / aspect.heightUnits)
+        guard available > 0 else { return nil }
+        let pickedUnits = max(1, min(picked.width / Double(aspect.widthUnits), picked.height / Double(aspect.heightUnits)))
+        let zoom = min(4, max(1, Double(available) / pickedUnits))
+        let units = max(1, Int((Double(available) / zoom).rounded(.down)))
+        let travelX = Double(w - units * aspect.widthUnits), travelY = Double(h - units * aspect.heightUnits)
+        let horizontal = travelX > 0 ? min(1, max(0, picked.x / travelX)) : 0.5
+        let vertical = travelY > 0 ? min(1, max(0, picked.y / travelY)) : 0.5
+        return try? MerchantImageCropRect(sourceWidth: w, sourceHeight: h, aspect: aspect,
+                                          horizontal: horizontal, vertical: vertical, zoom: zoom)
+    }
+}
