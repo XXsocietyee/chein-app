@@ -109,12 +109,13 @@ struct InvoiceLaunchApplyGroup: Identifiable {
                         }
                         .buttonStyle(.plain)
                         .disabled(!model.allows(.apply))
-                        .accessibilityLabel(invoiceText("chooseTitle"))
+                        .accessibilityLabel(invoiceText("chooseTitleSheet"))
                         .accessibilityValue(Text(verbatim: title?.titleName ?? InvoiceLaunchApplyPage.unknownDisplay))
                     }
                 } header: { invoiceText("titles") }
                 if overview.eligibleOrders.isEmpty {
-                    Section { invoiceText("noOrders") } header: { invoiceText("orders") }
+                    // MP: only `cy-empty title="暂无可开票订单"`, with no section title.
+                    Section { invoiceText("noOrders") }
                 } else {
                     ForEach(InvoiceLaunchApplyGroup.make(overview.eligibleOrders)) { group in
                         Section {

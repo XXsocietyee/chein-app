@@ -60,7 +60,6 @@ import SwiftUI
                             CYEmptyState(
                                 systemImage: "ticket",
                                 "accountCollection.coupons.empty",
-                                detail: "accountCollection.coupons.empty.detail",
                                 messageIdentifier: "accountCollection.coupons.empty",
                                 kind: .orders
                             )
@@ -69,7 +68,6 @@ import SwiftUI
                             CYEmptyState(
                                 systemImage: "line.3.horizontal.decrease.circle",
                                 "accountCollection.coupons.filteredEmpty",
-                                detail: "accountCollection.coupons.filteredEmpty.detail",
                                 messageIdentifier: "accountCollection.coupons.filteredEmpty",
                                 kind: .search
                             )
@@ -179,7 +177,8 @@ struct AccountCollectionCouponRow: View {
                 Text("accountCollection.coupon.startsLater").cyText(.meta)
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
                 // Mini-program date line: {day} 起可用.
-                QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
+                QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: String(localized: "couponWallet.validFrom \(day)"),
+                                     systemImage: "calendar.badge.clock")
             }
             // MP: an invalid coupon replaces the date line with 该券已被平台手动失效.
             if coupon.status == .invalid {
@@ -187,8 +186,10 @@ struct AccountCollectionCouponRow: View {
             }
             // Otherwise an unknown end date is an em dash, as in the mini-program.
             if coupon.status != .invalid {
+                // MP `有效期至 {day}`; an unknown end date stays the bare em dash.
                 QuestifyMetadataLine(label: "accountCollection.coupon.validUntil",
-                                     value: AccountCollectionCoupon.calendarDay(coupon.endTime) ?? "—", systemImage: "calendar")
+                                     value: AccountCollectionCoupon.calendarDay(coupon.endTime).map { String(localized: "couponWallet.validUntil \($0)") } ?? "—",
+                                     systemImage: "calendar")
             }
             if coupon.shopName != nil || coupon.shopAddress != nil {
                 AccountCollectionCouponShopLine(coupon: coupon)

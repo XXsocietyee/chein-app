@@ -588,7 +588,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发票号码"
+            "value": "发票号"
           }
         }
       }
@@ -1212,7 +1212,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请填写完整税号：15～20 位数字或大写字母，不能使用掩码"
+            "value": "请重新填写完整税号，不能使用掩码"
           }
         }
       }

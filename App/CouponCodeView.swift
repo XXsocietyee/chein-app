@@ -44,8 +44,8 @@ extension EnvironmentValues {
                     }
                 }
                 if model.historyID <= 0 {
-                    CYEmptyState(systemImage: "ticket", "couponCode.missing", detail: "couponCode.missing.detail",
-                                 messageIdentifier: "couponCode.missing", kind: .orders)
+                    // MP coupon-qr missing-param (index.wxml:31-39): 链接已失效 · 返回.
+                    MemberMissingLinkState(identifier: "couponCode.missing")
                 } else { content(presentation: presentation, appearance: appearance) }
                 if model.pollDelayed { Text("couponCode.pollDelayed").cyText(.meta) }
                 Text("couponCode.authority").cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -125,7 +125,8 @@ extension EnvironmentValues {
         case .waiting:
             Label("couponCode.waiting", systemImage: "clock")
             if let start = AccountCollectionCoupon.calendarDay(model.receipt?.startTime) {
-                LabeledContent("accountCollection.coupon.validFrom") { Text(verbatim: start) }
+                // MP sub line: `{start} 起可用`.
+                Text("couponWallet.validFrom \(start)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("couponCode.waiting.start")
             }
             retryButton("couponCode.fetchAgain", identifier: "couponCode.fetchAgain", presentation: presentation, appearance: appearance)
