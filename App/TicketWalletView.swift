@@ -135,9 +135,7 @@ import SwiftUI
             .cyHideTabBar()
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
-                if completionReader != nil, reader.isAuthenticated, model.value(owner: key)?.tickets.isEmpty == false {
-                    ToolbarItem(placement: .principal) { filterMenu }
-                }
+                // PLY-21-8 MP-first: signup/index.wxml:16-18 (F13) has no status filter; one list, so no 票夹 ▾ menu.
                 if let onExplore {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: onExplore) { Label { Text("mpfresh.ticketWallet.explore", tableName: "MpFresh") } icon: { Image(systemName: "plus") } }
