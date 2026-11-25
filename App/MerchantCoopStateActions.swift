@@ -138,6 +138,19 @@ extension EnvironmentValues {
     }
 }
 
+/// flows-g2 row 108 (MP coop/invite/index.js `onResultSheetClose`): after a successful single invite, closing the result
+/// goes to 协作列表 on 我发出的 (`redirectTo /pages/coop/list/index?tab=sent`). Set by the coop list around its 发起邀约
+/// push. Nil (deep link, workbench, batch of several) keeps the preview ending on 完成 → dismiss.
+private struct CoopInviteSentKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> Void)? = nil
+}
+extension EnvironmentValues {
+    var coopInviteSent: (@MainActor () -> Void)? {
+        get { self[CoopInviteSentKey.self] }
+        set { self[CoopInviteSentKey.self] = newValue }
+    }
+}
+
 /// MC7-32-5: opens the IM conversation `coop/contact` returned (MP invite-detail index.js:435-460 navigates to the chat).
 /// Nil keeps the preview ending on 已提交.
 private struct CoopConversationDestinationKey: EnvironmentKey {

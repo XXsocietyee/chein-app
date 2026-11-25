@@ -22,6 +22,7 @@ import SwiftUI
     @State private var topicFilter: CooperationInboxTopicFilter?
     /// Parity coop/list P0: the row's two-button `inv-acts` open the reviewed submit page (X1) as a sheet.
     @State private var rowAction: CoopListRowAction?
+    @State private var composingInvite = false
     private var selectedTopicID: Int? {
         guard reader.isConfigured, reader.isAuthenticated else { return nil }
         return topicFilter?.selectedTopic(owner: ObjectIdentifier(reader), scope: reader.scope)
@@ -49,12 +50,11 @@ import SwiftUI
                     }
                     .accessibilityIdentifier("cooperation.pool.open")
                     if let peerReader, listPage.showsNewInvite {
-                        NavigationLink {
-                            CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope)
-                                .cyPushedChrome(domain: .merchant)
-                        } label: {
-                            CYListRow("cooperation.list.newInvite", trailing: .none) { CYRowIcon(systemImage: "plus.circle") }
+                        // flows-g2 108: programmatic push so a sent invite can pop back here on 我发出的 (MP redirectTo ?tab=sent).
+                        Button { composingInvite = true } label: {
+                            CYListRow("cooperation.list.newInvite", trailing: .chevron) { CYRowIcon(systemImage: "plus.circle") }
                         }
+                        .buttonStyle(.plain)
                         .accessibilityIdentifier("cooperation.list.newInvite")
                     }
                 }
@@ -89,6 +89,13 @@ import SwiftUI
             .onChange(of: ObjectIdentifier(reader)) { _, _ in topicFilter = nil }
             .onChange(of: reader.isAuthenticated) { _, _ in topicFilter = nil }
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
+            .navigationDestination(isPresented: $composingInvite) {
+                if let peerReader {
+                    CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope)
+                        .cyPushedChrome(domain: .merchant)
+                        .environment(\.coopInviteSent, { direction = .sent; composingInvite = false })
+                }
+            }
             .sheet(item: $rowAction) { action in
                 Group {
                     NavigationStack { CoopFlowRequestPreview(operation: action.operation) }

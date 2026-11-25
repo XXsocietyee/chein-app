@@ -277,6 +277,7 @@ import SwiftUI
     @State private var editing: [CoopFlowInvitationContext] = []
     @State private var showEditor = false
     @State private var sendOutcomeUnknown = false
+    @Environment(\.coopInviteSent) private var inviteSent
     @Environment(\.cooperationNearbyDestination) private var nearbyDestination
     @Environment(\.scenePhase) private var scenePhase
     init(reader: any CoopFlowReading, operationScope: String?) {
@@ -387,6 +388,8 @@ import SwiftUI
             .sheet(isPresented: $showEditor) {
                 NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) }
                     .environment(\.coopInviteOutcomeUnknown, { sendOutcomeUnknown = true })
+                    // flows-g2 108: only a one-target send leaves the page; with several drafts the others stay sendable.
+                    .environment(\.coopInviteSent, editing.count == 1 ? inviteSent.map { sent in { showEditor = false; sent() } } : nil)
                     .cyDomainSheet(detents: [.half, .full])
             }
     }

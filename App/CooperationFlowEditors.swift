@@ -6,6 +6,7 @@ struct CoopFlowRequestPreview: View {
     @Environment(\.coopFlowPreviewWrite) private var write
     @Environment(\.dismiss) private var dismiss
     @Environment(\.coopInviteOutcomeUnknown) private var reportUnknownOutcome
+    @Environment(\.coopInviteSent) private var reportInviteSent
     @Environment(\.coopConversationDestination) private var conversationDestination
     @State private var openedConversation: Int?
     private let review: CoopFlowRequestReviewContext?
@@ -25,7 +26,10 @@ struct CoopFlowRequestPreview: View {
             case .sent:
                 Label("coopflow.submit.sent", systemImage: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
                     .accessibilityIdentifier("coopflow.submit.sent")
-                Button("coopflow.submit.done") { dismiss() }
+                Button("coopflow.submit.done") {
+                    // flows-g2 108: a sent invite ends on 协作列表 · 我发出的 when the list pushed the invite page.
+                    if case .invite = operation, let reportInviteSent { reportInviteSent() } else { dismiss() }
+                }
             case .unknown:
                 Label("coopflow.submit.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("coopflow.submit.unknown")
