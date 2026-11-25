@@ -70,6 +70,18 @@ import Observation
                     .cyText(.bodyCompact).foregroundStyle(.secondary)
                     .accessibilityIdentifier("profile.avatar.current.unavailable")
             }
+            // A3-10 (gerenziliao.wxml:31 `.rv-name`): the saved nickname under the centred avatar, 城瘾玩家 when empty.
+            Group {
+                if let name = model.coordinator.snapshot?.nickname.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
+                    Text(verbatim: name)
+                } else {
+                    Text("member.card.defaultName", tableName: "MemberProfile")
+                }
+            }
+            .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("profile.avatar.current.name")
             Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI").cyText(.meta).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
