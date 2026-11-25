@@ -14,8 +14,13 @@ One ``build-for-testing`` is published under a commit-and-run key. Lane2 runs
 AppUnit shards 0 then 1. W2 runs shards 2 then 3. Each lane clones that build
 into its own DerivedData directory. Simulators are chosen by name, then by
 device type. UDIDs are not hardcoded.
+
+The screenshot step retries a failed simulator boot once. Lane2, W2,
+screenshots, and ui-smoke take one shared lock so two lanes do not boot or
+launch at the same time.
 """
 import argparse
+import fcntl
 import json
 import os
 import plistlib
@@ -25,6 +30,7 @@ import shutil
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
@@ -39,6 +45,10 @@ LANES = {
 LANE_SHARDS = {"lane2": (0, 1), "w2": (2, 3)}
 ACCEPT_UI_ROOT = Path("Tests/AppUITests/Accept")
 DERIVED_ROOT = Path("/private/tmp/chengyin-acceptance-derived")
+# One file on the shared Mac. Lane2, W2, screenshots, and ui-smoke flock it
+# for the whole boot and launch, not a per-ref concurrency group.
+SIMULATOR_LOCK = Path("/private/tmp/chengyin-acceptance-simulator.lock")
+BOOT_STATUS_TIMEOUT = 240
 # The one contract-ratchet failure RECORD may add. Do not replace the file.
 KNOWN_CONTRACT_FAILURE = "test_workshop_paid_professional.PaidProfessionalContracts.test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging"
 
@@ -515,6 +525,201 @@ def screenshot_needed():
     return bool(routes_from_accept(accept))
 
 
+def simulator_lock_path():
+    override = os.environ.get("ACCEPTANCE_SIMULATOR_LOCK")
+    return Path(override) if override else SIMULATOR_LOCK
+
+
+@contextmanager
+def simulator_use_lock(path=None):
+    """Exclusive lock for one boot and launch session on the shared Mac."""
+    target = Path(path) if path is not None else simulator_lock_path()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        fd = os.open(target, os.O_CREAT | os.O_RDWR, 0o666)
+    except PermissionError:
+        fd = os.open(target, os.O_RDONLY)
+    try:
+        try:
+            os.chmod(target, 0o666)
+        except OSError:
+            pass
+        print(f"waiting for simulator lock {target}", flush=True)
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        print(f"acquired simulator lock {target}", flush=True)
+        try:
+            yield
+        finally:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+    finally:
+        os.close(fd)
+
+
+def run_with_simulator_lock(argv):
+    """Run a lane or ui-smoke command while holding the simulator lock."""
+    if argv[:1] == ["--"]:
+        argv = argv[1:]
+    if not argv:
+        raise SystemExit("simulator-lock needs a command")
+    with simulator_use_lock():
+        return subprocess.call(argv)
+
+
+def process_text(completed):
+    parts = []
+    for value in (getattr(completed, "stdout", None), getattr(completed, "stderr", None)):
+        if value is None or value == "":
+            continue
+        if isinstance(value, bytes):
+            value = value.decode("utf-8", "replace")
+        parts.append(value)
+    return "\n".join(parts)
+
+
+def retryable_simulator_failure(text):
+    """CoreSimulator 405 and NSPOSIX 3 or 60 are boot or launch timeouts.
+
+    405 while the phone is already Booted is not a timeout. POSIX 3 from
+    terminate when nothing is running is not a timeout.
+    """
+    if not text:
+        return False
+    if re.search(r"domain=NSPOSIXErrorDomain,\s*code=60\b", text):
+        return True
+    if re.search(r"domain=com\.apple\.CoreSimulator\.SimError,\s*code=405\b", text):
+        if "current state: Shutdown" in text or "Unable to lookup" in text:
+            return True
+        if "current state: Booted" in text:
+            return False
+        return True
+    if re.search(r"domain=NSPOSIXErrorDomain,\s*code=3\b", text):
+        return "found nothing to terminate" not in text
+    return False
+
+
+def should_reboot(detail):
+    return detail == "timeout" or retryable_simulator_failure(detail)
+
+
+def run_process(argv, timeout=None):
+    return subprocess.run(argv, text=True, capture_output=True, timeout=timeout, check=False)
+
+
+def run_simctl(argv, timeout=None, echo=True):
+    try:
+        result = run_process(argv, timeout=timeout)
+    except subprocess.TimeoutExpired as error:
+        text = process_text(error)
+        if echo and text.strip():
+            print(text, flush=True)
+        print("simulator command timed out", flush=True)
+        return None, text
+    text = process_text(result)
+    if echo and text.strip():
+        print(text, flush=True)
+    return result, text
+
+
+def note_boot_retry():
+    print("retrying simulator boot once", flush=True)
+
+
+def shutdown_simulator(udid):
+    run_simctl(["xcrun", "simctl", "shutdown", udid])
+
+
+def boot_simulator_once(udid):
+    """Boot one phone. Already booted plus a successful bootstatus counts as up."""
+    boot, _text = run_simctl(["xcrun", "simctl", "boot", udid])
+    if boot is None:
+        print("simulator boot timed out", flush=True)
+        return False
+    status, _text = run_simctl(["xcrun", "simctl", "bootstatus", udid, "-b"], timeout=BOOT_STATUS_TIMEOUT)
+    if status is None:
+        print("simulator boot timed out", flush=True)
+        return False
+    return status.returncode == 0
+
+
+def boot_simulator(udid, state):
+    """Boot, and retry that boot once if it does not come up."""
+    if boot_simulator_once(udid):
+        return True
+    if state["retried"]:
+        print("simulator did not boot", flush=True)
+        return False
+    state["retried"] = True
+    note_boot_retry()
+    shutdown_simulator(udid)
+    if boot_simulator_once(udid):
+        return True
+    print("simulator did not boot", flush=True)
+    return False
+
+
+def install_app(udid, app):
+    result, text = run_simctl(["xcrun", "simctl", "install", udid, str(app)])
+    if result is None or result.returncode != 0:
+        print("simctl install failed", flush=True)
+        return False, result, text
+    return True, result, text
+
+
+def relaunch_after_boot(udid, app, state):
+    """Use the step's one boot retry after the phone shuts down mid-launch."""
+    if state["retried"]:
+        return False
+    state["retried"] = True
+    note_boot_retry()
+    shutdown_simulator(udid)
+    if not boot_simulator_once(udid):
+        print("simulator did not boot", flush=True)
+        return False
+    installed, _result, _text = install_app(udid, app)
+    return installed
+
+
+def take_screenshot(udid, png):
+    result, text = run_simctl(["xcrun", "simctl", "io", udid, "screenshot", str(png)])
+    ok = result is not None and result.returncode == 0 and png_ok(png)
+    return ok, result, text
+
+
+def capture_route(udid, bundle, route, png, handle, can_reboot):
+    args = fixture_launch_args(route)
+    run_simctl(["xcrun", "simctl", "terminate", udid, bundle])
+    launch, launch_text = run_simctl(
+        ["xcrun", "simctl", "launch", "--terminate-running-process", udid, bundle, *args],
+        echo=False,
+    )
+    code = "timeout" if launch is None else launch.returncode
+    stdout = "" if launch is None else (launch.stdout or "")
+    stderr = "" if launch is None else (launch.stderr or "")
+    handle.write(f"route {route}\nargv {args}\nexit {code}\n{stdout}\n{stderr}\n")
+    handle.flush()
+    if launch is None:
+        return False, launch_text or "timeout"
+    if launch.returncode != 0:
+        return False, launch_text if retryable_simulator_failure(launch_text) else ""
+    time.sleep(5)
+    ok, shot, shot_text = take_screenshot(udid, png)
+    if ok:
+        print(f"wrote {png}", flush=True)
+        return True, ""
+    # A boot or launch timeout burns the one boot retry. Any other miss still
+    # gets the existing second screenshot attempt.
+    if can_reboot and (shot is None or retryable_simulator_failure(shot_text)):
+        return False, shot_text or "timeout"
+    time.sleep(3)
+    ok, second, shot_text = take_screenshot(udid, png)
+    if ok:
+        print(f"wrote {png}", flush=True)
+        return True, ""
+    if second is None or retryable_simulator_failure(shot_text):
+        return False, shot_text or "timeout"
+    return False, ""
+
+
 def capture_screenshots(destination_file, shots, derived):
     accept = Path("docs/port/accept")
     if not accept.is_dir():
@@ -528,6 +733,11 @@ def capture_screenshots(destination_file, shots, derived):
     if not routes:
         print("docs/port/accept package files have no fixture routes; skipping screenshots")
         return 0
+    with simulator_use_lock():
+        return _capture_screenshots_locked(destination_file, shots, derived, routes)
+
+
+def _capture_screenshots_locked(destination_file, shots, derived, routes):
     destination = destination_file.read_text(errors="replace").strip()
     udid = udid_from_destination(destination)
     shots.mkdir(parents=True, exist_ok=True)
@@ -536,14 +746,11 @@ def capture_screenshots(destination_file, shots, derived):
         print(f"reused debug build did not produce {app}")
         return 1
     bundle = bundle_identifier(app)
-    subprocess.run(["xcrun", "simctl", "boot", udid], check=False, text=True)
-    boot = subprocess.run(["xcrun", "simctl", "bootstatus", udid, "-b"], text=True, timeout=240)
-    if boot.returncode != 0:
-        print("simulator did not boot")
+    state = {"retried": False}
+    if not boot_simulator(udid, state):
         return 1
-    install = subprocess.run(["xcrun", "simctl", "install", udid, str(app)], text=True)
-    if install.returncode != 0:
-        print("simctl install failed")
+    installed, result, text = install_app(udid, app)
+    if not installed and not (should_reboot(text if result is not None else "timeout") and relaunch_after_boot(udid, app, state)):
         return 1
     launch_log = shots / "launch.log"
     picture_dir = shots / "screenshots"
@@ -551,33 +758,131 @@ def capture_screenshots(destination_file, shots, derived):
     failures = []
     with launch_log.open("w") as handle:
         for index, route in enumerate(routes, start=1):
-            args = fixture_launch_args(route)
             png = picture_dir / safe_png_name(route, index)
-            subprocess.run(["xcrun", "simctl", "terminate", udid, bundle], check=False, text=True)
-            launch = subprocess.run(
-                ["xcrun", "simctl", "launch", "--terminate-running-process", udid, bundle, *args],
-                text=True, capture_output=True,
-            )
-            handle.write(f"route {route}\nargv {args}\nexit {launch.returncode}\n{launch.stdout}\n{launch.stderr}\n")
-            handle.flush()
-            if launch.returncode != 0:
+            ok, detail = capture_route(udid, bundle, route, png, handle, can_reboot=not state["retried"])
+            if not ok and should_reboot(detail) and relaunch_after_boot(udid, app, state):
+                ok, detail = capture_route(udid, bundle, route, png, handle, can_reboot=False)
+            if not ok:
                 failures.append(route)
-                continue
-            time.sleep(5)
-            shot = subprocess.run(["xcrun", "simctl", "io", udid, "screenshot", str(png)], text=True)
-            if shot.returncode != 0 or not png_ok(png):
-                time.sleep(3)
-                shot = subprocess.run(["xcrun", "simctl", "io", udid, "screenshot", str(png)], text=True)
-            if shot.returncode != 0 or not png_ok(png):
-                failures.append(route)
-                continue
-            print(f"wrote {png}")
     if failures:
         print("screenshot failed for routes:")
         for route in failures:
             print(route)
         return 1
     return 0
+
+
+def check_simulator_retry(root):
+    """One boot retry, and the shared lock keeps two sessions from overlapping."""
+    shutdown = (
+        "An error was encountered processing the command (domain=com.apple.CoreSimulator.SimError, code=405):\n"
+        "Unable to lookup in current state: Shutdown\n"
+    )
+    already = (
+        "An error was encountered processing the command (domain=com.apple.CoreSimulator.SimError, code=405):\n"
+        "Unable to boot device in current state: Booted\n"
+    )
+    timed_out = (
+        "An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=60):\n"
+        "Timeout waiting for screen surfaces\n"
+    )
+    missing = (
+        "An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):\n"
+        "Simulator device failed to launch the application.\n"
+    )
+    nothing = (
+        "An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):\n"
+        "found nothing to terminate\n"
+    )
+    assert retryable_simulator_failure(shutdown)
+    assert retryable_simulator_failure(timed_out)
+    assert retryable_simulator_failure(missing)
+    assert not retryable_simulator_failure(already)
+    assert not retryable_simulator_failure(nothing)
+    assert should_reboot("timeout")
+    assert not should_reboot("The application failed to launch.")
+
+    global run_process
+    real = run_process
+    calls = []
+
+    def fake_timeout(argv, timeout=None):
+        calls.append(list(argv))
+        if argv[1:3] == ["simctl", "bootstatus"] and sum(item[1:3] == ["simctl", "bootstatus"] for item in calls) == 1:
+            raise subprocess.TimeoutExpired(argv, timeout or BOOT_STATUS_TIMEOUT)
+        return subprocess.CompletedProcess(argv, 0, "", "")
+
+    def fake_ok(argv, timeout=None):
+        calls.append(list(argv))
+        stderr = already if argv[1:3] == ["simctl", "boot"] else ""
+        return subprocess.CompletedProcess(argv, 0, "", stderr)
+
+    def fake_down(argv, timeout=None):
+        calls.append(list(argv))
+        if argv[1:3] == ["simctl", "bootstatus"]:
+            return subprocess.CompletedProcess(argv, 1, "", shutdown)
+        return subprocess.CompletedProcess(argv, 0, "", "")
+
+    try:
+        run_process = fake_timeout
+        state = {"retried": False}
+        assert boot_simulator("PHONE", state) is True
+        assert state["retried"] is True
+        assert sum(item[1:3] == ["simctl", "bootstatus"] for item in calls) == 2
+        assert ["xcrun", "simctl", "shutdown", "PHONE"] in calls
+        calls.clear()
+        run_process = fake_ok
+        state = {"retried": False}
+        assert boot_simulator("PHONE", state) is True
+        assert state["retried"] is False
+        assert sum(item[1:3] == ["simctl", "bootstatus"] for item in calls) == 1
+        assert ["xcrun", "simctl", "shutdown", "PHONE"] not in calls
+        calls.clear()
+        run_process = fake_down
+        state = {"retried": False}
+        assert boot_simulator("PHONE", state) is False
+        assert state["retried"] is True
+        assert sum(item[1:3] == ["simctl", "bootstatus"] for item in calls) == 2
+    finally:
+        run_process = real
+
+    log = root / "lock-order.txt"
+    script = root / "hold_lock.py"
+    script.write_text(
+        "import importlib.util, sys, time\n"
+        "spec = importlib.util.spec_from_file_location('acceptance_support_lock', sys.argv[1])\n"
+        "module = importlib.util.module_from_spec(spec)\n"
+        "spec.loader.exec_module(module)\n"
+        "with module.simulator_use_lock(sys.argv[2]):\n"
+        "    with open(sys.argv[3], 'a', encoding='utf-8') as handle:\n"
+        "        handle.write('enter ' + sys.argv[4] + '\\n')\n"
+        "    time.sleep(float(sys.argv[5]))\n"
+        "    with open(sys.argv[3], 'a', encoding='utf-8') as handle:\n"
+        "        handle.write('leave ' + sys.argv[4] + '\\n')\n"
+    )
+    lock_path = root / "simulator.lock"
+    first = subprocess.Popen(
+        [sys.executable, str(script), str(Path(__file__).resolve()), str(lock_path), str(log), "a", "0.4"],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        if log.exists() and "enter a" in log.read_text():
+            break
+        if first.poll() is not None:
+            raise AssertionError(first.stdout.read())
+        time.sleep(0.05)
+    else:
+        raise AssertionError("simulator lock was not acquired")
+    second = subprocess.Popen(
+        [sys.executable, str(script), str(Path(__file__).resolve()), str(lock_path), str(log), "b", "0"],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    first_out, _ = first.communicate(timeout=10)
+    second_out, _ = second.communicate(timeout=10)
+    assert first.returncode == 0, first_out
+    assert second.returncode == 0, second_out
+    assert log.read_text().splitlines() == ["enter a", "leave a", "enter b", "leave b"]
 
 
 def self_check():
@@ -681,6 +986,7 @@ def self_check():
         args_path = root / "ui.args"
         assert write_ui_smoke_args(accept, args_path) == "-only-testing:QuestifyUITests/AcceptFlowTests"
         check_lanes_and_derived(root)
+        check_simulator_retry(root)
     groups = []
     for shard in (0, 1, 2, 3):
         args = only_testing_args(shard).split()
@@ -777,6 +1083,23 @@ def check_lanes_and_derived(root):
     try:
         choose_simulator(only_pro, "lane2")
         raise AssertionError("iPhone 17 Pro must not satisfy Lane2")
+    except SystemExit as error:
+        assert "lane2" in str(error)
+    named_like_shorter_type = {
+        "devices": {
+            "rt": [
+                {
+                    "name": "iPhone-17",
+                    "udid": "PRO-NAME",
+                    "isAvailable": True,
+                    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+                }
+            ]
+        }
+    }
+    try:
+        choose_simulator(named_like_shorter_type, "lane2")
+        raise AssertionError("iPhone-17 must not select iPhone-17-Pro")
     except SystemExit as error:
         assert "lane2" in str(error)
     try:
@@ -904,6 +1227,8 @@ def workflow_contract():
             raise SystemExit(f"{lane} name artifacts stay required")
         if "build-for-testing" in body or "actions/cache" in body:
             raise SystemExit(f"{lane} must not compile or share a cache path")
+        if body.count("simulator-lock --") != 1:
+            raise SystemExit(f"{lane} must take the simulator lock around boot and launch")
     if "group: acceptance-lane2-" in w2 or "group: acceptance-w2-" in lane2:
         raise SystemExit("the two lanes must not share a concurrency group")
     debug = job_block(text, "debug-build")
@@ -916,9 +1241,19 @@ def workflow_contract():
     shots = job_block(text, "screenshots")
     if "xcodebuild -project" in shots or "--derived" not in shots or "restore-derived" not in shots:
         raise SystemExit("screenshots must reuse the published build")
+    if "acceptance_support.py screenshots" not in shots:
+        raise SystemExit("screenshots must launch DEBUG fixtures through acceptance_support.py")
+    if "with simulator_use_lock()" not in selection:
+        raise SystemExit("screenshots must hold the simulator lock while booting and launching")
+    if "retrying simulator boot once" not in selection:
+        raise SystemExit("screenshots must retry the simulator boot once")
+    if selection.count("/private/tmp/chengyin-acceptance-simulator.lock") != 1:
+        raise SystemExit("simulator boot and launch must share one lock")
     ui = job_block(text, "ui-smoke")
     if "test-without-building" not in ui or "-xctestrun" not in ui or "restore-derived" not in ui:
         raise SystemExit("ui-smoke must reuse the published build")
+    if ui.count("simulator-lock --") != 1:
+        raise SystemExit("ui-smoke must take the simulator lock around boot and launch")
     if "xcodebuild -project" in ui:
         raise SystemExit("ui-smoke must not compile")
     if "ubuntu-latest" not in job_block(text, "ui-smoke-plan"):
@@ -985,6 +1320,9 @@ def main(argv):
     shots.add_argument("--derived", type=Path, required=True)
     shots.add_argument("--out", type=Path, default=Path("acceptance-shots"))
 
+    locked = sub.add_parser("simulator-lock")
+    locked.add_argument("command", nargs=argparse.REMAINDER)
+
     sub.add_parser("screenshot-needed")
     sub.add_parser("ui-smoke-needed")
 
@@ -1022,6 +1360,8 @@ def main(argv):
         return 0
     if args.cmd == "screenshots":
         return capture_screenshots(args.destination_file, args.out, args.derived)
+    if args.cmd == "simulator-lock":
+        return run_with_simulator_lock(args.command)
     if args.cmd == "screenshot-needed":
         print("true" if screenshot_needed() else "false")
         return 0

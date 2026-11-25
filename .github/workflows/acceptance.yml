@@ -164,7 +164,7 @@ jobs:
             python3 -B .github/acceptance_support.py only-testing --shard "$shard" > "only-testing-${shard}.args"
             set +e
             set -o pipefail
-            xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
+            python3 -B .github/acceptance_support.py simulator-lock -- xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
             code="${PIPESTATUS[0]}"
             set -e
             echo "$code" > "appunit-${shard}-exit.txt"
@@ -235,7 +235,7 @@ jobs:
             python3 -B .github/acceptance_support.py only-testing --shard "$shard" > "only-testing-${shard}.args"
             set +e
             set -o pipefail
-            xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
+            python3 -B .github/acceptance_support.py simulator-lock -- xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath "appunit-${shard}.xcresult" -parallel-testing-enabled NO -skip-testing:QuestifyUITests $(cat "only-testing-${shard}.args") | tee "appunit-${shard}.log"
             code="${PIPESTATUS[0]}"
             set -e
             echo "$code" > "appunit-${shard}-exit.txt"
@@ -402,7 +402,7 @@ jobs:
           run="$(python3 -B .github/acceptance_support.py xctestrun --derived "$RUNNER_TEMP/derived-ui")"
           read -r -a only <<< "$(tr -d '\n' < ui-smoke-only-testing.args)"
           test "${#only[@]}" -gt 0
-          xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath ui-smoke.xcresult -parallel-testing-enabled NO -skip-testing:QuestifyAppUnitTests "${only[@]}" | tee ui-smoke.log
+          python3 -B .github/acceptance_support.py simulator-lock -- xcodebuild test-without-building -xctestrun "$run" -destination "$dest" -resultBundlePath ui-smoke.xcresult -parallel-testing-enabled NO -skip-testing:QuestifyAppUnitTests "${only[@]}" | tee ui-smoke.log
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         continue-on-error: true
