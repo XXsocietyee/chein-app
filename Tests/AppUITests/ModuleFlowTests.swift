@@ -310,10 +310,9 @@ final class ModuleFlowTests: XCTestCase {
         tap(name);name.typeText("Fixture Added Person")
         let phone=app.textFields["participant.form.phone"]
         tap(phone);phone.typeText("13800000001")
+        // r9 A6-02: MP addressinfo.wxml:49 saves on tap; no confirm alert.
         tap(app.buttons["participant.form.save"])
-        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout:5))
-        XCTAssertFalse(app.buttons["profile.participant.912"].exists)
-        tap(app.alerts.buttons["Save participant"])
+        XCTAssertFalse(app.alerts.firstMatch.exists)
         XCTAssertTrue(app.buttons["profile.participant.912"].waitForExistence(timeout:10),app.debugDescription)
         XCTAssertTrue(app.buttons["profile.participant.912"].label.contains("Fixture Added Person"))
         capture("Participant create – synthetic memory-only store")

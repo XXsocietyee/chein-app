@@ -13,14 +13,15 @@ import XCTest
         XCTAssertTrue(app.staticTexts["profile.participantValidation.issue.name"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.alerts.firstMatch.exists)
     }
+    /// r9 A6-02: MP addressinfo.wxml:49 saves on tap, so a valid form saves without an alert.
     func testNameCorrectionThenPhoneCorrectionReachesExistingConfirmation() {
         app.buttons["participant.form.save"].tap()
         app.textFields["participant.form.name"].typeText("Fixture Added")
         XCTAssertTrue(app.staticTexts["profile.participantValidation.issue.phone"].exists)
         app.buttons["participant.form.save"].tap(); app.textFields["participant.form.phone"].typeText("13800000001")
         XCTAssertFalse(app.staticTexts["profile.participantValidation.issue.phone"].exists)
-        app.buttons["participant.form.save"].tap(); XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 3))
-        app.alerts.buttons["Cancel"].tap(); XCTAssertEqual(app.textFields["participant.form.name"].value as? String, "Fixture Added")
+        app.buttons["participant.form.save"].tap(); XCTAssertFalse(app.alerts.firstMatch.waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["participant.list.add"].waitForExistence(timeout: 10))
     }
     func testRepeatedCheckDoesNotCreateRowOrAlert() {
         for _ in 0..<3 { app.buttons["participant.form.save"].tap() }
