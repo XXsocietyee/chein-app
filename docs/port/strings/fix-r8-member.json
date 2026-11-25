@@ -492,6 +492,125 @@
       }
     }
   },
+  "mp.passOrder.cancel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cancel order"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "取消订单"
+        }
+      }
+    }
+  },
+  "mp.passOrder.refundApply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Request a refund"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申请退款"
+        }
+      }
+    }
+  },
+  "mp.passOrder.refundApply.placeholder": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter a refund reason"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写退款原因"
+        }
+      }
+    }
+  },
+  "mp.passOrder.refundApply.reason": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund reason"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退款原因"
+        }
+      }
+    }
+  },
+  "mp.passOrder.refundApply.submit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submit request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交申请"
+        }
+      }
+    }
+  },
+  "mp.passOrder.refused": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not available in the app yet. Nothing was changed."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂未在 App 开放，订单未作改动"
+        }
+      }
+    }
+  },
+  "mp.passOrder.resume": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Continue payment"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续付款"
+        }
+      }
+    }
+  },
   "profile.orderParity.error.title": {
     "extractionState": "manual",
     "localizations": {
