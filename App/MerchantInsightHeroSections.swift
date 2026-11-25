@@ -288,7 +288,6 @@ struct MerchantInsightGrowTipsSection: View {
     enum Tip: String, CaseIterable, Identifiable {
         case coop, coupon
         var id: String { rawValue }
-        var cover: Image { self == .coop ? MPAsset.BannerCover.oldMovie : MPAsset.BannerCover.midlifeDay }
     }
     let access: MerchantMarketingAccess?
     let canOpenCoop: Bool
@@ -314,7 +313,7 @@ struct MerchantInsightGrowTipsSection: View {
                         ForEach(visible) { tip in
                             Button { open(tip) } label: {
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    tip.cover.resizable().scaledToFill()
+                                    (tip == .coop ? MPAsset.BannerCover.oldMovie : MPAsset.BannerCover.midlifeDay).resizable().scaledToFill()
                                         .frame(width: 220, height: 110).clipped()
                                         .clipShape(RoundedRectangle(cornerRadius: 12))
                                         .accessibilityHidden(true)
