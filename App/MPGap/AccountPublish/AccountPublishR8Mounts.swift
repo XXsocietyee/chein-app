@@ -50,8 +50,8 @@ private struct TeamApplicantsEnvelope: Decodable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let code = (try? c.decode(Int.self, forKey: .code)) ?? (try? c.decode(String.self, forKey: .code)).flatMap(Int.init)
         ok = code == 200
-        data = (try? c.decode([NearbyApplicant].self, forKey: .data)) ?? []
-        if ok, !c.contains(.data) { throw DecodingError.keyNotFound(CodingKeys.data, .init(codingPath: [], debugDescription: "data")) }
+        // MP: `code == 200 && Array.isArray(res.data)`, otherwise the error state (never a silent 暂无申请).
+        data = ok ? try c.decode([NearbyApplicant].self, forKey: .data) : []
     }
 }
 
@@ -329,7 +329,7 @@ enum ProjectEditLook {
         if look["params"]?.object == nil || (newStyle != nil && newStyle != current) {
             let target = newStyle ?? current
             let defaults = styles.first { $0.value == target }?.params ?? [:]
-            look["params"] = .object(defaults.mapValues { .string($0) })
+            look["params"] = .object(defaults.mapValues { ProjectEditJSON.string($0) })
         }
         if let newStyle { look["style"] = .string(newStyle) }
         if let palette { if palette.isEmpty { look["palette"] = nil } else { look["palette"] = .string(palette) } }
