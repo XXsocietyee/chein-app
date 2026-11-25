@@ -62,6 +62,8 @@ private struct CreatorContentIssueView: View {
     var entryScope: String? = nil
     /// True only after access/me reported `merchant:project:manage` for this entry. Default closed.
     var canManageProjects: Bool = false
+    /// MP myproject onLoad `type=`: the tab shown first. Applied once; the user's own tab taps win after that.
+    var initialType: String = "topic"
     /// Third value is the entry scope, never `data.scope`.
     var onOpenProject: ((CreatorContentProject, UUID, String?) -> Void)? = nil
     let onOpen: (CreatorContentDestination) -> Void
@@ -71,6 +73,7 @@ private struct CreatorContentIssueView: View {
     /// Nil while my-project writes are gated; then no row offers a write.
     @State private var mutation: MyProjectMutationModel?
     @State private var query = CreatorContentQuery(type: "topic")
+    @State private var appliedInitialType = false
     @State private var toastMessage: String?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
@@ -140,6 +143,11 @@ private struct CreatorContentIssueView: View {
         .environment(\.myProjectMutation, loadedAccess.isBrowseOnly ? nil : mutation)
         .task(id: entryScope) { mutation = MyProjectMutationFactory.liveModel(scope: entryScope) }
         .cyPageTitle("creatorContent.projects") // PC-D-1-7
+        .onAppear {
+            guard !appliedInitialType else { return }
+            appliedInitialType = true
+            if ["topic", "activity", "template"].contains(initialType), initialType != query.type { query.type = initialType }
+        }
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
         .onChange(of: listRefresh) { _, request in
             guard let request, request.readerScope == reader.scope, reader.isAuthenticated else { return }

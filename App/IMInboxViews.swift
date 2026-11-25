@@ -97,7 +97,12 @@ struct IMInboxRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             IMRemoteAvatar(url: conversation.kind == .system ? nil : IMRemoteAvatar<EmptyView>.url(conversation.counterparty?.avatar)) {
-                CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
+                // MP im/list/index.wxml:138-141: the system row keeps its glyph; a person falls back to `/images/d_profile.png`.
+                if conversation.kind == .system || conversation.kind == .group {
+                    CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
+                } else {
+                    MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                }
             }
                 .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)
                 .clipShape(Circle())

@@ -37,3 +37,6 @@ e3-inbox-error
 e3-chat
 e3-chat-rich
 d2-inbox
+# Round 3: D8/D9 d_profile default re-applied after the r7 merge (same e3-inbox / e3-chat routes above).
+# Round 3: D1 deep links (route only, no new fixture): subpackageA/pages/myproject/index?type=template starts on 模板;
+#          ?scope=MERCHANT opens the merchant entry (browse-only until access/me grants merchant:project:manage).
