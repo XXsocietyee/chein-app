@@ -1190,6 +1190,23 @@
           }
         }
       }
+    },
+    "official.inbox.submitting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitting, please wait"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在提交，请稍候"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
