@@ -463,17 +463,14 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
                                                            identity: identity, viewerRevision: governance.viewerRevision)
         }
     }
-    private func boardCopy(_ key: String) -> String {
-        String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "ClubPublicRoster", locale: locale))
-    }
     @ViewBuilder private var choiceSheet: some View {
         if let choice, current(choice) {
             CYOptionSheet(
-                title: boardCopy("club.detail.leaderboard.member.open"),
+                title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.open", table: "ClubPublicRoster", locale: locale)),
                 items: [
-                    CYOptionSheetItem(id: "public", title: boardCopy("club.detail.leaderboard.member.public"),
+                    CYOptionSheetItem(id: "public", title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.public", table: "ClubPublicRoster", locale: locale)),
                                       systemImage: "person.crop.circle", identifier: "club.detail.leaderboard.choice.public"),
-                    CYOptionSheetItem(id: "customer", title: boardCopy("club.detail.leaderboard.member.customer"),
+                    CYOptionSheetItem(id: "customer", title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.customer", table: "ClubPublicRoster", locale: locale)),
                                       systemImage: "person.text.rectangle", identifier: "club.detail.leaderboard.choice.customer")
                 ],
                 onSelect: { selected in
