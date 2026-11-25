@@ -84,7 +84,8 @@ struct CYClubMemberStrip: View {
             E3AvatarStack(seeds: (0..<min(n, 5)).map { "\(seed)-m\($0)" }, extra: n > 5 ? n - 5 : nil, size: avatarSize)
                 .accessibilityHidden(true)
         } else {
-            Image(systemName: "person.2").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+            // MP: components/cy/club-card/index.wxml:15 (cards/members.svg, .cc__members 26rpx)
+            MPAsset.FeatureIcon.members.resizable().scaledToFit().frame(width: 13, height: 13).accessibilityHidden(true)
         }
     }
 

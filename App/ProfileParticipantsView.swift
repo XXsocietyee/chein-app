@@ -18,8 +18,11 @@ struct ProfileParticipantsView: View {
     @Environment(\.locale) private var locale
     /// r8 A5-01: the pages/address "select" mode had no caller; 报名 keeps its one participant sheet
     /// (RegistrationSheetView 选择参与人信息), so this list only manages participants.
-    init(reader: any ProfileReading, coordinator: ParticipantMutationCoordinator? = nil) {
-        self.reader = reader; self.coordinator = coordinator
+    /// r9 A6-01b: forwarded to the add/edit form (MP addressinfo.js:59-72 `loadBoundPhone`).
+    let boundPhoneLoader: (() async -> String?)?
+    init(reader: any ProfileReading, coordinator: ParticipantMutationCoordinator? = nil,
+         boundPhoneLoader: (() async -> String?)? = nil) {
+        self.reader = reader; self.coordinator = coordinator; self.boundPhoneLoader = boundPhoneLoader
     }
     var body: some View {
         let _ = recoveryRevision
@@ -157,7 +160,7 @@ struct ProfileParticipantsView: View {
         }
         .sheet(isPresented: $showsCreate, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { Group {
             if let coordinator {
-                NavigationStack { ParticipantFormView(reader: reader, coordinator: coordinator) }
+                NavigationStack { ParticipantFormView(reader: reader, coordinator: coordinator, boundPhoneLoader: boundPhoneLoader) }
             }
         }
         .presentationDetents([.large])
@@ -165,7 +168,7 @@ struct ProfileParticipantsView: View {
         }
         .sheet(item: $editing, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { target in Group {
             if let coordinator {
-                NavigationStack { ParticipantFormView(id: target.id, reader: reader, coordinator: coordinator) }
+                NavigationStack { ParticipantFormView(id: target.id, reader: reader, coordinator: coordinator, boundPhoneLoader: boundPhoneLoader) }
             }
         }
         .presentationDetents([.large])

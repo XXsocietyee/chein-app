@@ -581,6 +581,8 @@ enum ReviewedPlayerReadRoute {
     private var roamPrivateToolsWriteByContext: [String: RoamPrivateToolsAccess] = [:]
     private var roamPassportToolsByContext: [String: RoamPassportToolsReadAccess] = [:]
     private var roamPassportHistoryByContext: [String: RoamPassportHistoryReadAccess] = [:]
+    private var roamEntryNearbyByContext: [String: RoamEntryNearbyReadAccess] = [:]
+    private var roamNearbyPlayersByContext: [String: RoamNearbyPlayersReadAccess] = [:]
     private var teamReadByContext: [String: TeamReadApproval] = [:]
     private var growthNormalReadByContext: [String: GrowthNormalReadApproval] = [:]
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
@@ -1200,6 +1202,30 @@ enum ReviewedPlayerReadRoute {
               let access = try? RoamPassportHistoryReadAccess(context: context, approval: endpoints) else { return nil }
         roamPassportHistoryByContext[key] = access
         return access
+    }
+
+    /// ROAM-7: `GET /api/roam/entry/nearby`. China player/club/merchant only. A public guest uses the composition path, not this lease.
+    func roamEntryNearby(_ context: RuntimeDependencyContext) -> RoamEntryNearbyReadAccess? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamEntryNearbyByContext[key], existing.matches(context) { return existing }
+        roamEntryNearbyByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamEntryNearbyRoute.path]),
+              let issued = try? RoamEntryNearbyReadAccess(context: context, approval: endpoints) else { return nil }
+        roamEntryNearbyByContext[key] = issued
+        return issued
+    }
+
+    /// ROAM-7: `POST /api/roam/nearby-runners`. Signed-in China player/club/merchant. Not a guest read.
+    func roamNearbyPlayers(_ context: RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamNearbyPlayersByContext[key], existing.matches(context) { return existing }
+        roamNearbyPlayersByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamNearbyPlayersReadRoute.path]),
+              let issued = try? RoamNearbyPlayersReadAccess(context: context, approval: endpoints) else { return nil }
+        roamNearbyPlayersByContext[key] = issued
+        return issued
     }
 
     func teamRead(_ context: RuntimeDependencyContext) -> TeamReadApproval? {

@@ -354,7 +354,13 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                     Button {
                         localClear.invalidate()
                         timeRange.open(account: account, draftID: draftID, draft: draft, now: Date(), timeZoneID: TimeZone.autoupdatingCurrent.identifier)
-                    } label: { chooserRow("publishModes.chooseTimeRange", value: nil, icon: "calendar") }
+                    } label: {
+                        CYListRow("publishModes.chooseTimeRange", trailing: .valueChevron("—")) {
+                            // MP: pages/publish/activity/index.wxml:62 (icon_date3.png, .picker_group image 24rpx)
+                            MPAsset.FeatureIcon.iconDate3.resizable().scaledToFit().frame(width: 12, height: 12)
+                                .accessibilityHidden(true)
+                        }
+                    }
                         .disabled(!mayEditTimeRange || !timeRange.canOpen(account: account, draftID: draftID, draft: draft, now: Date()))
                         .accessibilityIdentifier("publishModes.activity.timeRange.open")
                     // C-A2 (MP index.wxml:53-70): start / end come from 选择时间段 only; shown read-only.

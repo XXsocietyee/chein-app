@@ -417,7 +417,7 @@ extension AppSession {
         bindings.revealAccountKey = { [weak self] in self?.account.map { String($0.id) } }
         bindings.passMarket = { [weak self] in MPParityPassMarketModel(session: self) }
         bindings.passDetail = { [weak self] id in MPParityPassDetailModel(session: self, productID: id) }
-        bindings.passGift = { [weak self] _ in MPParityPassGiftModel(session: self) }
+        bindings.passGift = { [weak self] token in MPParityPassGiftModel(session: self, giftToken: token) }
         bindings.membership = { [weak self] in MPParityPassMembershipModel(session: self) }
         bindings.passLibrary = { [weak self] in MPParityPassLibraryModel(session: self) }
         bindings.passOrder = { [weak self] orderNo in MPParityPassOrderModel(session: self, orderNo: orderNo) }
@@ -682,13 +682,61 @@ struct MPParityRegistrationOrder: View {
 @MainActor @Observable final class MPParityPassGiftModel: PassGiftClaimBinding {
     private(set) var state = PassGiftClaimState()
     private weak var session: AppSession?
+    private let giftToken: String
+    /// MP `this._reqId`: made on the first tap and resent unchanged on every retry (`market/gift/index.js:106`).
+    private var requestID: String?
 
-    init(session: AppSession?) { self.session = session }
+    init(session: AppSession?, giftToken: String) {
+        self.session = session
+        self.giftToken = giftToken
+    }
 
-    /// Claim stays off. This does not build a request and does not touch the network.
+    /// MKT-3-1: `POST /api/marketing/product/gifts/claim {token, requestId}` (`market/gift/index.js:101-123`).
+    /// The claimer sends only the gift token, so this is not a money write (MP-first, owner rule 2026-11-25).
     func claim() {
-        _ = session
+        guard !state.claiming else { return }
+        guard let session, let token = session.passReadToken(),
+              let base = session.currentRuntimeDependencyContext?.baseURL,
+              let configuration = try? APIConfiguration(baseURL: base) else {
+            state.phase = .failed(reason: MPParityBindings.giftClaimReason(nil))
+            return
+        }
+        let id = requestID ?? PlatformPassGiftClaimSource.requestID()
+        requestID = id
+        state.claiming = true
+        let source = PlatformPassGiftClaimSource(configuration: configuration, transport: session.composition.makeTransport())
+        let gift = giftToken
+        Task { [weak self] in
+            let outcome = await source.claim(giftToken: gift, requestID: id, token: token)
+            self?.apply(outcome)
+        }
+    }
+
+    private func apply(_ outcome: PlatformPassGiftClaimOutcome) {
         state.claiming = false
+        switch outcome {
+        case .claimed(let registrationID): state.phase = .claimed(registrationID: registrationID)
+        case .missing: state.phase = .missing
+        case .failed(let code): state.phase = .failed(reason: MPParityBindings.giftClaimReason(code))
+        case .unknown: state.phase = .unknown
+        }
+    }
+}
+
+extension MPParityBindings {
+    /// MP `claimReasonText` (`subpackageMember/utils/market-view.js:200-219`); default 礼品当前不可领取.
+    static func giftClaimReason(_ code: String?) -> String {
+        let key: String.LocalizationValue
+        switch code {
+        case "GIFT_CLAIM_EXPIRED": key = "mp.gift.reason.claimExpired"
+        case "GIFT_NOT_FOUND": key = "mp.gift.reason.notFound"
+        case "GIFT_NOT_FOR_YOU": key = "mp.gift.reason.notForYou"
+        case "GIFT_ALREADY_CLAIMED": key = "mp.gift.reason.alreadyClaimed"
+        case "GIFT_SOURCE_EXPIRED": key = "mp.gift.reason.sourceExpired"
+        case "GIFT_SOURCE_ALREADY_USED": key = "mp.gift.reason.sourceUsed"
+        default: key = "mp.gift.reason.unavailable"
+        }
+        return appLocalized(key, locale: Locale.current)
     }
 }
 
