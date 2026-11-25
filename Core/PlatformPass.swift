@@ -46,6 +46,8 @@ public struct PlatformPass: @unchecked Sendable {
     public static let productOrderDetailPath = "api/marketing/product/orders/{}"
     /// POST `api/marketing/product/orders/{orderNo}/pay`. No `data` key. Compiled, never sent.
     public static let productOrderPayPath = "api/marketing/product/orders/{}/pay"
+    /// POST `api/platform-pass/orders/{orderNo}/pay` (`platform-pass-pay.js`). Field `jsCode`. Compiled, never sent.
+    public static let passOrderPayPath = "api/platform-pass/orders/{}/pay"
 
     public static var writesReachable: Bool {
         moneyEnabled && ReleaseMoneyWriteSwitch.paymentEnabled && ReleaseMoneyWriteSwitch.payoutEnabled
@@ -191,6 +193,13 @@ public struct PlatformPass: @unchecked Sendable {
     /// The page sends no `data` key. Compiled, never sends. `moneyEnabled` stays false.
     public func payProductOrder(orderNo: String, token: String) throws -> Never {
         _ = (orderNo, token, Self.moneyEnabled, Self.writesReachable, Self.productOrderPayPath)
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Virtual-payment pay for a platform-pass order. Field `jsCode`. Compiled, never sends.
+    /// `moneyEnabled` stays false.
+    public func payPassOrder(orderNo: String, jsCode: String, token: String) throws -> Never {
+        _ = (orderNo, jsCode, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderPayPath)
         throw PlatformPassWriteRefusal.unreachable
     }
 

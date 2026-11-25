@@ -2688,6 +2688,7 @@ public enum ReleaseMoneyWriteSwitch {
         case "/api/registration/pay", "/api/registration/pay/app", "/api/pay/create",
             "/api/merchant/commerce/order", "/api/merchant/commerce/order/status",
             "/api/marketing/group-checkout/create", "/api/marketing/product/activate",
+            "/api/marketing/product/orders/{}/pay", "/api/platform-pass/orders/{}/pay",
             "/api/external-game/orders", "/api/external-game/orders/{}/confirm-test":
             return .payment
         case "/api/club/settlement/withdraw",
