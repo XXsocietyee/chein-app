@@ -93,8 +93,9 @@ struct MerchantPosterImageShareButton: View {
     @State private var image: UIImage?
     var body: some View {
         Group {
-            if let image {
-                let picture = Image(uiImage: image)
+            if let cgImage = image?.cgImage {
+                // A share payload, not on-screen content; the button's label carries the meaning.
+                let picture = Image(decorative: cgImage, scale: image?.scale ?? 1)
                 ShareLink(item: picture, preview: SharePreview(Text(verbatim: title), image: picture)) { label }
             } else {
                 ShareLink(item: url) { label }
