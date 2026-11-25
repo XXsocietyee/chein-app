@@ -76,60 +76,18 @@ import SwiftUI
     }
     private var coordinator: NearbyTeamCoordinator { model.coordinator }
     var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
-                Picker("nearby.section", selection: $tab) {
-                    Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
-                }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
-                notice
-                if tab == 0 {
-                    let renderedDiscovery = discovery.snapshotID
-                    contextControls
-                    if discoverySources != nil {
-                        NearbyMapDiscoveryControls(filter: $discoveryFilter, items: currentDiscoveryItems)
-                        NearbyMapDiscoveryStatusView(model: discovery, filter: discoveryFilter) { reloadDiscovery(force: true) }
-                    }
-                    if discoverySources == nil || discoveryFilter.includesTeams {
-                    NearbyTeamCountLine(loaded: discoverySources == nil ? (coordinator.authenticated && !model.running && coordinator.context != nil && coordinator.messageKey == nil) : nearbyCurrentReadSucceeded, count: visibleTeams.count)
-                    if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.loading")) }
-                    if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
-                        NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
-                    } else if !model.running && coordinator.authenticated && coordinator.context != nil && coordinator.messageKey == nil && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) {
-                        CYEmptyState(systemImage: "person.3", "nearby.empty", detail: "nearby.w208.listEmpty")
-                    }
-                    }
-                    if viewMode == .map {
-                        if let center = mapCenter {
-                            NearbyTeamMapSection(center: center, teams: visibleTeams, focusedID: focusedTeamID,
-                                items: discoveryItems, selectedExtraID: discoverySelection?.item.id,
-                                onSelectExtra: { openDiscovery($0, rendered: renderedDiscovery) }) { id in
-                                    guard scenePhase == .active, visibleTeams.contains(where: { $0.id == id }) else { return }
-                                    focusedTeamID = id
-                                }
-                        }
-                        ForEach(orderedTeams) { team in teamCard(team) }
-                    } else {
-                        if discoverySources == nil || discoveryFilter.includesTeams && nearbyCurrentReadSucceeded {
-                            NearbyTeamListHeader(radius: displayedRadius, count: visibleTeams.count)
-                        }
-                        ForEach(visibleTeams) { team in
-                            NearbyTeamListRow(team: team, expanded: focusedTeamID == team.id) { focusedTeamID = focusedTeamID == team.id ? nil : team.id }
-                            if focusedTeamID == team.id { teamCard(team) }
-                        }
-                    }
-                    ForEach(discoveryItems) { item in
-                        NearbyMapDiscoveryRow(item: item) { openDiscovery(item, rendered: renderedDiscovery) }
-                    }
-                    if discoverySources != nil, discoveryFilter.layer != .team, discoveryItems.isEmpty,
-                       discovery.placesPhase == .loaded,
-                       discoveryFilter.layer == .shop || discovery.eventsPhase == .loaded {
-                        CYEmptyState(systemImage: "map", LocalizedStringKey("nearby.map.empty"), tableName: "NearbyMapDiscovery", messageIdentifier: "nearby.discovery.empty")
-                    }
-                    NearbyTeamCornerBar(radius: displayedRadius,
-                                        mineCount: joinedTeamsStatus.isLoaded ? NearbyTeamBridge.activeCount(NearbyTeamBridge.myRows(joined: joinedTeams, applications: coordinator.myApplications)) : 0) { tab = 1 }
-                    if discoverySources == nil || discoveryFilter.includesTeams { applicantSection }
-                } else { mineSection }
-            }.padding()
+        Group {
+            // RNEAR-2 (MP nearby wxml:14-18): map first, full bleed, with the team list in a draggable in-view panel
+            // (compact / medium / large). In-view, not a system sheet, so the review / range / style / discovery sheets keep working.
+            if mapFirst, let center = mapCenter {
+                CYMapScaffold(detent: .medium, peek: AnyView(mapPeek)) {
+                    teamMap(center, fills: true)
+                } controls: { EmptyView() } floating: { EmptyView() } panel: {
+                    ScrollView { listContent }
+                }
+            } else {
+                ScrollView { listContent }
+            }
         }
         .refreshable { if coordinator.authenticated && !model.running { await refresh() } }
         // RNEAR-3 / RTEAMS-2: one inline bar title, no page-type header in the content.
@@ -209,6 +167,70 @@ import SwiftUI
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
             }
+    }
+    /// Tab 0 in map mode with a centre: the map fills the screen and the list rides in the panel.
+    private var mapFirst: Bool { tab == 0 && viewMode == .map && mapCenter != nil }
+    @ViewBuilder private var listContent: some View {
+        LazyVStack(alignment: .leading, spacing: 20) {
+            Picker("nearby.section", selection: $tab) {
+                Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
+            }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
+            notice
+            if tab == 0 {
+                let renderedDiscovery = discovery.snapshotID
+                contextControls
+                if discoverySources != nil {
+                    NearbyMapDiscoveryControls(filter: $discoveryFilter, items: currentDiscoveryItems)
+                    NearbyMapDiscoveryStatusView(model: discovery, filter: discoveryFilter) { reloadDiscovery(force: true) }
+                }
+                if discoverySources == nil || discoveryFilter.includesTeams {
+                NearbyTeamCountLine(loaded: discoverySources == nil ? (coordinator.authenticated && !model.running && coordinator.context != nil && coordinator.messageKey == nil) : nearbyCurrentReadSucceeded, count: visibleTeams.count)
+                if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.loading")) }
+                if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
+                    NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
+                } else if !model.running && coordinator.authenticated && coordinator.context != nil && coordinator.messageKey == nil && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) {
+                    CYEmptyState(systemImage: "person.3", "nearby.empty", detail: "nearby.w208.listEmpty")
+                }
+                }
+                if viewMode == .map {
+                    if let center = mapCenter, !mapFirst { teamMap(center, fills: false) }
+                    ForEach(orderedTeams) { team in teamCard(team) }
+                } else {
+                    if discoverySources == nil || discoveryFilter.includesTeams && nearbyCurrentReadSucceeded {
+                        NearbyTeamListHeader(radius: displayedRadius, count: visibleTeams.count)
+                    }
+                    ForEach(visibleTeams) { team in
+                        NearbyTeamListRow(team: team, expanded: focusedTeamID == team.id) { focusedTeamID = focusedTeamID == team.id ? nil : team.id }
+                        if focusedTeamID == team.id { teamCard(team) }
+                    }
+                }
+                ForEach(discoveryItems) { item in
+                    NearbyMapDiscoveryRow(item: item) { openDiscovery(item, rendered: renderedDiscovery) }
+                }
+                if discoverySources != nil, discoveryFilter.layer != .team, discoveryItems.isEmpty,
+                   discovery.placesPhase == .loaded,
+                   discoveryFilter.layer == .shop || discovery.eventsPhase == .loaded {
+                    CYEmptyState(systemImage: "map", LocalizedStringKey("nearby.map.empty"), tableName: "NearbyMapDiscovery", messageIdentifier: "nearby.discovery.empty")
+                }
+                NearbyTeamCornerBar(radius: displayedRadius,
+                                    mineCount: joinedTeamsStatus.isLoaded ? NearbyTeamBridge.activeCount(NearbyTeamBridge.myRows(joined: joinedTeams, applications: coordinator.myApplications)) : 0) { tab = 1 }
+                if discoverySources == nil || discoveryFilter.includesTeams { applicantSection }
+            } else { mineSection }
+        }.padding()
+    }
+    private func teamMap(_ center: RoamSearchArea, fills: Bool) -> some View {
+        let renderedDiscovery = discovery.snapshotID
+        return NearbyTeamMapSection(center: center, teams: visibleTeams, focusedID: focusedTeamID,
+            items: discoveryItems, selectedExtraID: discoverySelection?.item.id,
+            onSelectExtra: { openDiscovery($0, rendered: renderedDiscovery) }, fillsHeight: fills) { id in
+                guard scenePhase == .active, visibleTeams.contains(where: { $0.id == id }) else { return }
+                focusedTeamID = id
+            }
+    }
+    /// Collapsed panel line: the same 附近的队伍 · N 支在招募 count the list shows.
+    private var mapPeek: some View {
+        NearbyTeamCountLine(loaded: discoverySources == nil ? (coordinator.authenticated && !model.running && coordinator.context != nil && coordinator.messageKey == nil) : nearbyCurrentReadSucceeded, count: visibleTeams.count)
+            .padding(.horizontal, CYSpacing.xl).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
     }
     private var discoveryInput: NearbyMapDiscoveryInput { .init(sources: discoverySources, query: submittedContext) }
     private var currentDiscoveryItems: [RoamMapItem] {
