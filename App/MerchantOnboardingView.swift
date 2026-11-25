@@ -64,7 +64,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         }
         .cyDomainScreen(.merchant)
         .cyHideTabBar(true)
-        .appNavigationTitle("merchant.onboarding.title")
+        .appNavigationTitle(key: navigationTitleKey)
         .navigationBarTitleDisplayMode(.inline)
         // type-and-chrome §3: one exit guard (system back until there are edits, then the discard confirm).
         .cyGuardedBack(when: hasUnsavedChanges) { showsDiscardModal = true }
@@ -174,6 +174,15 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         .onChange(of: showSubmitConfirmation) { _, shown in
             if !shown, model.confirmation != nil, !model.isBusy { model.cancelConfirmation() }
         }
+    }
+    /// MP apply/index.wxml cy-nav-bar title: 审核状态 in status mode, 提交成功 after a submit, else the 商家入驻 bar.
+    private var navigationTitleKey: String {
+        if model.coordinator.submission == .acknowledged { return "merchant.onboarding.submittedTitle" }
+        if case .loaded(let snapshot) = model.coordinator.loadState, case .application(let application) = snapshot,
+           !model.isEditing || !application.canReapply {
+            return "merchant.onboarding.statusTitle"
+        }
+        return "merchant.onboarding.title"
     }
     @ViewBuilder private var content: some View {
         switch model.coordinator.loadState {

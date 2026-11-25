@@ -298,3 +298,107 @@ New Swift file: `App/MerchantMPLinkScreens.swift` (`SessionMerchantMarketingLink
 - `check_typography_lint` passes.
 - `check_a11y_lint` fails on the base, with no new merchant findings from this branch. The only merchant hit is Gemini's parked `MPGap/MerchantCoop/MerchantGapAIInsightViews.swift:146`.
 - **Fixture routes:** unchanged (`docs/port/accept/f-merchant-coop-a.txt`). `cur9-ledger` and `t12-ledger-batches` cover the 结算 paging, and `t12-aftercare`, `t12-reviews`, `t12-marketing` and `merchant-customers` cover the deep-linked screens.
+
+---
+
+## Round 4 (2026-11-25)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round4.md`, plus `wave-x10.md` and `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` at `4ef0a2840` (clean). Gemini is out of quota, so this round also covers the MP alignment (flows, images, copy) for half a.
+- **No compiler here.** Every type and initializer used below was grepped on the base first (`CYEmptyState`, `CYEmptyIllustration`, `MerchantMPAvatar`, `CYAvatarView(url:name:size:)`, `MerchantMarketingValue.subscript/.text`, `appNavigationTitle(key:)`, `MerchantOnboardingCoordinator.submission/loadState`). No new type names.
+
+### 1 · Flows (`docs/mp-gap/flows-g2.md`, half a, rows marked "for Claude")
+
+| MP edge | App now | Note |
+|---|---|---|
+| `aftercare/detail` invalid id → `redirectTo aftercare/index` | lands on the list (round 3) | link rule admits no query yet (Cursor) |
+| `aftercare/index` row → detail | native list row → refund detail | unchanged |
+| `apply` 状态页 primary → `reLaunch merchant/index` | 进入经营台 / 重新申请 (MP copy, was 进入商家中心 / 修改并重新申请); bar title 审核状态 in status mode, 提交成功 after a submit | MerchantOnboardingView |
+| `components/cy/club-pool-cards` → coop-center `?topicId=` | not mounted | lives on ai-insight, owned by Gemini's parked `MerchantGapRound4Views` |
+| `customer/detail` cold-start back → `reLaunch customer/index` | system back (pushed screen) | iOS deep links always have a stack |
+| `customer/index` row → detail | native | unchanged |
+| `customer/index` → `crm-campaigns` (probe-gated) | left (owner rule B, probe needs MC7-12-1 Core) | see round 3 |
+| `index` → aftercare / bundle-reservations / payout-account / predict / customer / `myproject?scope=MERCHANT` / `ledger?view=` | 更多 rows, reminders, records section; deep links from round 3 | unchanged |
+| `ledger/batch-detail` back → `ledger?view=settlement` | system back to the 结算 segment | unchanged |
+| `ledger` 收入明细 → `coop/settlement-detail?source=ledger` | round 3 (MC7-06-9) | unchanged |
+| `ledger` → `?view=settlement&source=coop` | the 合作分润 row opens CoopFinanceProfitView (round 1, MC7-06-3) | same target content |
+| `ledger/order-detail` back → `ledger?view=redemptions` | system back | unchanged |
+| `marketing/ai-insight` back → `marketing` | system back | unchanged |
+| `ai-insight` 推荐主题 → sheet → coop-center `?topicId=` | sheet (MC7-11-4) → recruiting list focused on that topic (`MerchantInsightRecruitingFocus`) | unchanged |
+| `marketing` 发布第一个主题 → `topic/create` | opens 项目与据点内容 (content home) | direct create needs the content create route on this surface; left |
+| `marketing` → `ai-insight` | 店铺参谋 segment / deep link | unchanged |
+| `reviews` cold-start back fallback | system back | unchanged |
+| `profile` → `redirectTo` merchant home | `PublicMerchantHomeView(.legacyMerchantRowID)` (round 1) | unchanged |
+
+### 2 · Image parity (every image slot on the half-a MP pages)
+
+`cy-icon` is the MP's coolicons line-glyph set (`components/cy/icon/icons.wxss`, 78 glyphs, not shipped as images and not in `docs/mp-assets/mapping.md`). Those stay SF Symbols as system-control glyphs.
+
+| MP page · slot | MP source | App |
+|---|---|---|
+| all pages · `cy-empty kind="empty"` | `/images/empty_state_bg.svg` + `empty_state_figure.svg` | **now** `CYEmptyIllustration(.generic)` (`MPAsset.EmptyState.emptyStateBg/Figure`) on: verify-records empty, bundle-reservations empty, ledger 收入明细/结算批次/核销 empty, order-detail 核销记录不可见, batch 结算批次不可见, payout-account 还没有开通 / 暂未开放, marketing 还没有主题和活动, crm-campaigns empty, reviews / customer empty, customer detail 找不到这位客户 + 暂无参与记录, aftercare empty, predict empty |
+| all pages · `cy-empty` no-permission / missing-param / error | cy-icon `lock` / `info` / `warning` | SF Symbols (system glyphs) |
+| index · header `cy-avatar` | `merchantInfo.logo` | `CYAvatarView` monogram (no logo field in `MerchantAccess`) — Core request |
+| index · project thumb fallback | `/images/cy_logo_mark.png` | not shown: `MerchantProject` has no `thumb` — Core request; then `MPAsset.BrandLogo.cyLogoMark` |
+| index · 更多 协作邀请 / 核销记录 / 品牌中心 | `nav_msg.svg` / `icon_calendar.svg` / `icon_shop.svg` | `MPAsset.Other.navMsg` / `FeatureIcon.iconCalendar` / `FeatureIcon.iconShop` (round 2) |
+| marketing · coop banner | `merchant_coop_banner.jpg` | `MPAsset.BannerCover.merchantCoopBanner` (round 2) |
+| ai-insight · greet `cy-avatar` | store logo | not on the native insight page (Gemini's MC-G07 dashboard) |
+| ai-insight · visitor avatar | `item.avatar || /images/d_profile.png` | **now** `MerchantMPAvatar` → `MPAsset.AvatarDefault.dProfile` (Core row has no `avatar` yet — Core request) |
+| ai-insight · topic card cover | `item.coverUrl` (only when present) | **now** https `AsyncImage` from the row's `coverUrl` |
+| ai-insight · partner logo | `item.logo`, else the initial | **now** `CYAvatarView(url: logo, name:)` (initial fallback) |
+| ai-insight · 经营优化 covers | `flavorTour` … `treasureHunter` | Gemini's parked `MerchantGapAIInsightViews.swift` (skipped) |
+| reviews · stars, metric icons, 核销已验证 | `reviews/*.svg` | `MPAsset.FeatureIcon.*` (round 2) |
+| reviews · author avatar | `authorAvatar`, else 城 | `MerchantReviewAuthorLine` (round 1) |
+| reviews · send | `icon-send.svg` | **left**: `MerchantBusinessEditor.swift` still hash-pinned (10 tests) |
+| customer / customer detail · avatar | `avatar || d_profile.png` | `MerchantMPAvatar` → `dProfile` (round 2) |
+| customer · 复制电话 | `icon_copy.svg` | **left**: `MerchantBusinessRecordViews.swift` still hash-pinned (3 tests) |
+| apply · license / derivative photos | user uploads | user content (unchanged) |
+| aftercare detail · evidence preview | `evidencePreviewUrl` | **left**: MC7-17-3, Core has no evidence URLs |
+| apply 行业类型 sheet · tag icons | `tag-library` icons | `MPAsset.FeatureIcon.*` (round 2) |
+
+### 3 · Copy (MP text, fragment `docs/port/strings/fix-r3-merchant-coop-a.json`, now 125 keys, en + zh-Hans)
+
+Method: a script collected every Chinese literal from the 18 half-a MP pages (wxml/js/json) and compared it with the effective zh-Hans value (catalogs + all fragments) of every key referenced from `App/Merchant*.swift`. Near-misses (same text after removing punctuation) and missing titles / CTAs / empty / error / toast strings were then checked by hand.
+
+| Key | Was | Now (MP) | MP source |
+|---|---|---|---|
+| `merchant.home.signIn` (new) | 登录后查看商家信息 | 登录后查看经营台 | index.wxml:12 |
+| `merchant.home.denied` (new) | 当前岗位无权查看这些信息 | 当前身份不能查看经营台 | index.wxml:16 |
+| `merchant.home.loadFailed` (new) | the raw error key | 商家工作台加载失败 (+ reason, 重新加载) | index.wxml:21-24 |
+| `merchant.home.dashboardFailed` / `reloadPart` (new) | generic error + 重试 | 收入没更新成功 + 重新加载此部分 | index.wxml:82-85 |
+| `merchant.home.projectsFailed` (new) | generic error | 项目和待办加载失败 | index.wxml:216 |
+| home 登录 button | `merchant.gate.signIn` (fragment value 登录后查看 — a title key used as a button) | `auth.signIn` 登录 | index.wxml:12 cta |
+| `merchant.gate.{verifyRecords,reviews,customers,aftercare,refund}.loadFailed` (new) | generic error text | 核销记录加载失败 / 评价加载失败 / 客户名单加载失败 / 售后列表加载失败 / 退款售后加载失败 | verify-records:12, reviews:27, customer:59, aftercare:18, aftercare/detail:15 |
+| `merchant.gate.batch.missingRecord` | 这条结算批次不存在或已不可见 | 结算批次不可见 | batch-detail:52 |
+| `merchant.ledger.title.redemptions` / `.settlement` (new) | 结算概览 | 核销与退款 / 结算 (follows the segment) | ledger/index.js:82 |
+| `merchant.business.refund` | 售后详情 | 退款售后 | aftercare/detail/index.js:22 |
+| `merchant.onboarding.title` | 商家入驻申请 | 商家入驻 | apply/index.json |
+| `merchant.onboarding.statusTitle` / `submittedTitle` (new) | — | 审核状态 / 提交成功 | apply/index.wxml nav title |
+| `merchant.onboarding.openMerchant` | 进入商家中心 | 进入经营台 | apply/index.wxml:304 |
+| `merchant.onboarding.reapply` | 修改并重新申请 | 重新申请 | apply/index.wxml:304 |
+| `merchant.onboarding.stateUnavailable` | 暂时无法确认申请状态。 | 暂时无法确认申请状态 | apply/index.wxml |
+| `merchant.predict.backToWorkbench` (new) | (no action) | 返回工作台 | predict/index.wxml:18 |
+| `merchant.customerFilters.*` (new) | — | 筛选 / 筛选 · n / 筛选客户 / 取消 / 重置 / 查看结果 | customer/index.wxml:16-17,132-178 |
+
+Checked and already equal: page titles 核销记录, 套票预约, 核销详情, 收款账户, 触达记录, 客户, 退款售后, 对公结算, 预测待答, 口碑; the gate titles from rounds 1–3; `gap-g2-copy.json` covers 正在加载更多…, 11位手机号 and 正在更新营销数据.
+
+Not changed on purpose:
+- `merchant.customerDetail.refundTimeBoundary` (MC7-15-6): the MP has no such line, but `test_merchant_customer_detail.py` requires the key under `latest.kind == .refunded`.
+- Strings that only exist on screens Cursor/Gemini own (club pool cards, ai-insight dashboard, customer 分群 / 导出 toasts in the X6-gated tools).
+
+### 4 · P2 / P1 rows
+
+- **P2 (Claude, MC7-01…18):** all 46 rows are fixed in rounds 1–3, or left with the reasons already listed (hash-pinned: MC7-13-7 `version`, MC7-15-6, MC7-17-4; Core: MC7-17-3; Gemini: MC7-11-7). The pins were re-checked on r7 and are still in place.
+- **P1 MC7-14-1 (fixed):** the customer filter `DisclosureGroup` is now a 筛选 button (筛选 · n when source / tag / date filters are active) that opens a medium/large sheet: 取消 · 筛选客户 · 重置, the 客户来源 / 客户标签 / 来源时间 controls, then 查看结果 (applies and closes). The 客户类型 segmented picker, search field, 清除筛选 and 管理已应用筛选 rows stay on the page, so their guards and identifiers are unchanged.
+- **Still open P1:** MC7-14-2 (我的分群 / 存为分群 in the sheet: needs the engagement segment read on this page), MC7-14-5 (管理 menu; the 触达记录 item needs MC7-12-1's probe), MC7-14-6 (one-tap phone, privacy flow in a pinned file), MC7-14-7 (accumulator), MC7-15-2 (X6), MC7-12-1 / MC7-13-3 platform tab (Core).
+
+### 5 · Accessibility
+
+- `python3 -B tools/check_a11y_lint.py`: the only finding is `App/ClubKit/ClubWorkbenchKit.swift:261`, and it fails identically on `origin/ui/combined-r7`. It is club's file, so I left it for the club agent. No merchant findings.
+- Every new image is decorative and hidden (`CYEmptyIllustration` and `MerchantMPAvatar` hide themselves; the recommendation cover and logo add `.accessibilityHidden(true)`). The participation empty state reads as one element. New buttons have a minimum height of 44 pt.
+- `check_typography_lint`: passes.
+
+### Requests for Cursor (Core), new this round
+
+- `MerchantInsightRecentVisitor.avatar`, `MerchantProject.thumb`, and the store logo on `MerchantAccess`. The App falls back to the MP default images until then.
+- **Fixture routes:** unchanged (`docs/port/accept/f-merchant-coop-a.txt`). These routes cover round 4: `merchant-home` (gates and inline errors), `merchant-customers` (the filter sheet), `t12-marketing-empty` (empty art), `cur9-ledger` (segment titles), `cur3-payout-closed` (payout empty art), `t12-aftercare` / `t12-reviews` (list errors and empty states), and `t12-ledger-batches` (batch missing).
