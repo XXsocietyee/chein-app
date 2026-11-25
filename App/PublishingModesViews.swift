@@ -196,6 +196,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     @State private var abandonConfirm = false
     @State private var draftSaveState: CYPublishSaveState = .unsavedChanges
     @State private var showResultSheet = false
+    /// MP activity/index.js onResultSheetClose: closing the result lands on 我的项目 › 活动.
+    @State private var openProjectsAfterResult = false
     @State private var toastMessage: String?
     private var busy: Bool { submission.busy }
     @State private var message = ""
@@ -238,9 +240,19 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 message: MerchantCloseCopy.text("可在项目管理查看活动状态与审核进度。", "Track activity status in your project list.", locale),
                 detail: nil,
                 closeIdentifier: cyAccessibilityID(id: "publishModes.activity.result.close"),
-                onClose: { showResultSheet = false }
+                onClose: {
+                    showResultSheet = false
+                    if resultProjectsAvailable { openProjectsAfterResult = true }
+                }
             )
             .themeDomain(.topicEditor)
+        }
+        .navigationDestination(isPresented: $openProjectsAfterResult) {
+            if let account, let service, let openResource {
+                PublishingProjectsView(service: service, account: account, openResource: { resource in
+                    guard service.currentSession == account else { return }; openResource(resource)
+                }, readOnly: true, initialType: "activity").id(account.epoch)
+            }
         }
         .cyToast(verbatimMessage: $toastMessage)
         // C-A7: one creator domain for the whole activity form and its sheets.
@@ -700,6 +712,11 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         } else if submission.lockUnavailable {
             Text("publishModes.readFailed").accessibilityIdentifier("publishModes.activity.result.lockUnavailable")
         }
+    }
+    /// The same condition as the result card's 项目 link: a signed-in owner that can read its projects.
+    private var resultProjectsAvailable: Bool {
+        guard let account, let service, openResource != nil else { return false }
+        return submission.canReadProjects && service.currentSession == account
     }
     private func processingLabel(_ code: String) -> String {
         if chinese { return ProjectEditPostProcessingReceipt.label(code) }
