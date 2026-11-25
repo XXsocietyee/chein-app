@@ -394,6 +394,8 @@ public enum ChinaReviewedRouteCapability {
         "/api/referral/landing/gift",
         "/api/play/seat-invitations/invite",
         "/api/play/seat-invitations/claim",
+        "/api/play/seat-invitations/claim-phone",
+        "/api/play/seat-invitations/mine",
         "/api/play/seat-invitations/{}",
         "/api/play/seat-invitations/{}/cancel",
         "/api/public-catalog/city/list",
@@ -439,6 +441,7 @@ public enum ChinaReviewedRouteCapability {
         "/api/video-bounty/submission/{}/attribution",
         "/api/video-bounty/campaign/{}/attribution",
         "/api/channel/redeem",
+        "/api/channel/redeem/status",
         "/api/content-landing/info",
         "/api/content-landing/save",
         "/api/content-landing/translation/save"
@@ -726,12 +729,16 @@ public enum ChinaReviewedRouteCapability {
     }
 
     /// POST (or any non-read) to the platform-pass order path. The GET stays a player read.
+    /// Cancel, confirm, and refund-apply stay refused unless a TEST derivation for that
+    /// kind is on. Pay and every other write stay refused. Release has no derivation.
     public static func isPlatformPassOrderWrite(_ request: URLRequest) -> Bool {
         guard let url = request.url else { return false }
         let key = normalized(relativePath(url).map { "/" + $0 } ?? url.path)
         guard isPlatformPassOrderPath(key) else { return false }
         let method = request.httpMethod?.uppercased() ?? "GET"
-        return method != "GET" && method != "HEAD"
+        if method == "GET" || method == "HEAD" { return false }
+        if PlatformPass.admitsTestOrderWrite(key) { return false }
+        return true
     }
 
     /// Password login, bank withdrawal, and virtual goods stay off even when the route is live.

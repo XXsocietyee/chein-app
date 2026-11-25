@@ -186,7 +186,7 @@ private struct BundleAppealList: Decodable { let items: [BundleAppeal] }
         if header?.code == 401 { onUnauthorized(session); throw APIError.unauthorized }
         guard (200..<300).contains(status), header?.code == 200 else {
             if write, status >= 500 || header == nil { throw FreeExploreLaunchFailure.outcomeUnknown }
-            throw FreeExploreLaunchFailure.response(status: status, code: header?.code ?? status, businessCode: header?.businessCode)
+            throw FreeExploreLaunchFailure.response(status: status, code: header?.code ?? status, businessCode: header?.businessCode, message: nil)
         }
         guard let value = try? JSONDecoder().decode(Envelope<T>.self, from: data).data else { throw unknown }
         return value

@@ -119,6 +119,8 @@ final class PlayerJourneyProductionLeaseTests: XCTestCase {
             "/api/referral/landing/gift",
             "/api/play/seat-invitations/invite",
             "/api/play/seat-invitations/claim",
+            "/api/play/seat-invitations/claim-phone",
+            "/api/play/seat-invitations/mine",
             "/api/play/seat-invitations/44",
             "/api/play/seat-invitations/44/cancel",
             "/api/public-catalog/city/list",

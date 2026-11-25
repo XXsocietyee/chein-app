@@ -108,7 +108,7 @@ import Observation
             guard current, generation == captured else { return }
             // Cancellation is not evidence that a dispatched request failed.
             failure = error as? FreeExploreLaunchFailure ??
-                (coordinator.state == .outcomeUnknown ? .outcomeUnknown : .response(status: 0, code: 0, businessCode: nil))
+                (coordinator.state == .outcomeUnknown ? .outcomeUnknown : .response(status: 0, code: 0, businessCode: nil, message: nil))
         }
     }
 }

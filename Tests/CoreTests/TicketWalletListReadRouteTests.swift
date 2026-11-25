@@ -22,6 +22,13 @@ final class TicketWalletListReadRouteTests: XCTestCase {
         }
         XCTAssertNil(TicketWalletListReadRoute(request: try request([:]), baseURL: base))
     }
+    func testPagedListKeepsOwnerTypeAndPageSizeTen() throws {
+        XCTAssertEqual(TicketWalletListReadRoute(request: try request(["owner_type": "1", "pageNum": "1", "pageSize": "10"]), baseURL: base), .route)
+        XCTAssertEqual(TicketWalletListReadRoute(request: try request(["owner_type": "2", "pageNum": "3", "pageSize": "10"]), baseURL: base), .activity)
+        XCTAssertNil(TicketWalletListReadRoute(request: try request(["owner_type": "1", "pageNum": "1", "pageSize": "20"]), baseURL: base))
+        XCTAssertNil(TicketWalletListReadRoute(request: try request(["owner_type": "1", "pageNum": "0", "pageSize": "10"]), baseURL: base))
+        XCTAssertNil(TicketWalletListReadRoute(request: try request(["owner_type": "1", "pageNum": "01", "pageSize": "10"]), baseURL: base))
+    }
     func testExtraPaginationStatusMemberAndOnlineFieldsAreRejected() throws {
         for key in ["pageNum","pageSize","status","memberId","member_id","is_online","id","owner_id"] {
             XCTAssertNil(TicketWalletListReadRoute(request: try request(["owner_type":"1",key:"1"]), baseURL: base), key)

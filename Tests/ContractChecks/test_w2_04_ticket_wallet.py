@@ -64,8 +64,12 @@ class W204TicketWalletParity(unittest.TestCase):
         self.assertIn('if ticket.action == .detail && !ticket.isWalletLocked {\n                            NavigationLink {\n                                TicketWalletDetailView(', self.view)
         self.assertNotIn('ticketWalletPlayProvider', self.view)
 
-    def test_list_request_body_is_unchanged(self):
-        self.assertNotIn('pageNum', read('Core/TicketWalletService.swift'))
+    def test_list_request_sends_page_size_ten(self):
+        # PLY-21-14: the wallet list sends pageNum and pageSize 10, matching signup.js.
+        service = read('Core/TicketWalletService.swift')
+        self.assertIn('"pageNum": String(page)', service)
+        self.assertIn('"pageSize": String(Self.pageSize)', service)
+        self.assertIn('public static let pageSize = 10', service)
 
 
 if __name__ == '__main__':
