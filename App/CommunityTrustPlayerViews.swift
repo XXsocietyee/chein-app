@@ -315,7 +315,7 @@ struct ReportAppealSection: View {
                 Label { if result.isEmpty { Text("report.appeal.submitted") } else { Text(verbatim: result) } } icon: { Image(systemName: "checkmark.circle") }
                     .accessibilityIdentifier("report.appeal.receipt")
             } else {
-                Button(PlayerCapabilityCopy.text("对处理结果申诉", "Appeal this decision", locale)) {
+                Button(PlayerCapabilityCopy.text("提交申诉", "Submit appeal", locale)) {
                     if phase != .busy { phase = .form }
                     showsSheet = true
                 }

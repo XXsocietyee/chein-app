@@ -61,7 +61,7 @@ import SwiftUI
                             Label {
                                 Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
                                     .accessibilityIdentifier("ticketWallet.empty")
-                            } icon: { Image(systemName: "ticket") }
+                            } icon: { CYEmptyIllustration(kind: .generic, size: 96) } // MP state-shell empty art
                         }
                         .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
                         .listRowBackground(Color.clear)

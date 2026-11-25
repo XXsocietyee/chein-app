@@ -532,7 +532,7 @@ extension EnvironmentValues {
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
                     if income || points {
-                        CYEmptyState(systemImage: "list.bullet", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
+                        CYEmptyState(systemImage: points ? "tray" : "list.bullet", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
                             .accessibilityIdentifier("wallet.ledger.empty")
                     } else {
                         Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points))).accessibilityIdentifier("wallet.ledger.empty")
@@ -712,7 +712,7 @@ extension EnvironmentValues {
                             .background(CYColor.bgElevated, in: Capsule())
                             .accessibilityIdentifier("wallet.income.badge.\(row.id)")
                     }
-                    Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+                    Text(verbatim: row.changeReason ?? (points ? appLocalized("wallet.points.entryFallback", locale: locale) : appLocalized("wallet.entry", locale: locale)))
                 }
                 if income { Text(LocalizedStringKey(row.incomeEventKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).cyText(.caption).foregroundStyle(CYColor.textSecondary) }

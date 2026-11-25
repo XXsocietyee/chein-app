@@ -636,7 +636,8 @@ import SwiftUI
             // A5-02: the link gets the same coordinator as 我的 › 参与人信息, so add / edit / delete stay available.
             ProfileParticipantsView(reader: session.participantReader, coordinator: session.participantCoordinator)
         case "subpackageMember/order/order":
-            if session.account?.effectiveRole == "merchant" { SubscribeMessageProjectsEntry(session: session) }
+            // Round 4: MP order.js:20-21 redirects to myproject?scope=MERCHANT.
+            if session.account?.effectiveRole == "merchant" { SubscribeMessageProjectsEntry(session: session, entryScope: "MERCHANT") }
             else { SessionOwnedOrdersView(session: session) }
         case "subpackageMember/signup/index", "subpackageMember/signupInfo/signupInfo", "subpackageMember/signupInfo2/signupInfo2":
             // One shared wallet host: 开始游戏, pending orders, sign-in; `focusId` lands on that registration.
