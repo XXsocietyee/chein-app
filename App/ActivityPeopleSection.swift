@@ -13,13 +13,14 @@ import SwiftUI
     var onOpenProfile: ((Int) -> Void)? = nil
     /// PC-C-1-4: shop-hosted activity → the shop is the 主办方 (no member profile link).
     var organizerShopName: String? = nil
+    /// `organizerShopLogo` when the shop name is present. https only; otherwise the storefront mark.
+    var organizerShopLogo: String? = nil
 
     var body: some View {
         if let shop = organizerShopName {
             Section("activity.people.organizerShop") {
                 HStack(spacing: 12) {
-                    Image(systemName: "storefront.circle.fill").cyText(.sectionTitle)
-                        .foregroundStyle(.secondary).accessibilityHidden(true)
+                    PeopleMark(url: MemberIdentityCardSection.remoteAvatarURL(organizerShopLogo), systemImage: "storefront.circle.fill")
                     Text(verbatim: shop)
                 }
                 .accessibilityElement(children: .combine)
@@ -57,8 +58,7 @@ import SwiftUI
     }
     private func label(_ person: ActivityPerson) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: "person.crop.circle.fill").font(.title2)
-                .foregroundStyle(.secondary).accessibilityHidden(true)
+            PeopleMark(url: MemberIdentityCardSection.remoteAvatarURL(person.avatarURL), systemImage: "person.crop.circle.fill")
             if let name = person.name { Text(verbatim: name) }
             else { Text("activity.people.unnamed") }
             Spacer(minLength: 8)
@@ -67,5 +67,27 @@ import SwiftUI
             }
         }.frame(minHeight: 44).contentShape(Rectangle())
             .accessibilityElement(children: .combine)
+    }
+}
+
+/// Host `avatarURL` is `memberAvatar`. A registrant `avatarURL` is `avatar`. https only.
+private struct PeopleMark: View {
+    let url: URL?
+    let systemImage: String
+    var body: some View {
+        Group {
+            if let url {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() }
+                    else { Image(systemName: systemImage) }
+                }
+            } else {
+                Image(systemName: systemImage)
+            }
+        }
+        .frame(width: 32, height: 32)
+        .clipShape(Circle())
+        .foregroundStyle(.secondary)
+        .accessibilityHidden(true)
     }
 }

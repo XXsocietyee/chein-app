@@ -37,6 +37,8 @@ struct OfficialIssueView: View {
     var retry: (() -> Void)?
     var copy: OfficialIssueCopy? = nil
     var onBack: (() -> Void)? = nil
+    /// Round 4 copy: a page may name an issue in its own MP words (nil keeps `issue.key`).
+    var label: LocalizedStringKey? = nil
     var body: some View {
         ScrollView {
         VStack(alignment: .leading, spacing: 16) {
@@ -46,7 +48,7 @@ struct OfficialIssueView: View {
                     Text(copy.detail).foregroundStyle(.secondary)
                 }.fixedSize(horizontal: false, vertical: true)
             }
-            Label(issue.key, systemImage: symbol).font(copy == nil ? .headline : .footnote)
+            Label(label ?? issue.key, systemImage: symbol).font(copy == nil ? .headline : .footnote)
                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("official.issue")
             if case .unauthorized = issue, let onLogin {
                 Button("official.signIn", action: onLogin).frame(minHeight: 44)
@@ -84,6 +86,8 @@ struct OfficialIssueView: View {
     var onLogin: (() -> Void)? = nil
     var issueCopy: ((Error) -> OfficialIssueCopy?)? = nil
     var onBack: (() -> Void)? = nil
+    /// Round 4 copy: page wording for an issue label (MP activity/list 我的, official-mine); nil keeps the shared key.
+    var issueLabel: ((OfficialScreenIssue) -> LocalizedStringKey?)? = nil
     let load: () async throws -> Value
     @ViewBuilder let content: (Value) -> Content
     @StateObject private var sourceObservation = OfficialReadInvalidationObserver()
@@ -116,10 +120,11 @@ struct OfficialIssueView: View {
         // branches, which can restart the initial read when an error appears.
         CYLoadSlot(isLoading: isShowingLoad, label: "official.loading", announces: true) {
             ZStack(alignment: .topLeading) {
-                if isPrivate && !reader.isAuthenticated { OfficialIssueView(issue: .unauthorized, onLogin: onLogin) }
+                if isPrivate && !reader.isAuthenticated { OfficialIssueView(issue: .unauthorized, onLogin: onLogin, label: issueLabel?(.unauthorized)) }
                 else if !reader.isConfigured { OfficialIssueView(issue: .unconfigured) }
                 else if loadedKey != key || loading { Color.clear }
-                else if let issue { OfficialIssueView(issue: issue, onLogin: onLogin, retry: { Task { await refresh() } }, copy: copy, onBack: onBack) }
+                else if let issue { OfficialIssueView(issue: issue, onLogin: onLogin, retry: { Task { await refresh() } }, copy: copy, onBack: onBack,
+                                                     label: issueLabel?(issue)) }
                 else if let value {
                     VStack(alignment: .leading, spacing: 0) {
                         if refreshing || refreshFailed {

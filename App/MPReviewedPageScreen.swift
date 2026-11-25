@@ -287,7 +287,11 @@ import SwiftUI
             if let id = reviewedID(query) {
                 clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil },
                            postID: positiveID(query["postId"]))
-            } else if query["owner"] != nil { ownedClubs } else { unavailable }
+            } else if query["owner"] != nil {
+                // MP club/detail/index.js:798-819 resolveOwnerEntry: exactly one owned club opens it (on `tab`); several → picker.
+                let tab = ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil }
+                ClubSingleOwnedEntry(reader: session, single: { clubDetail($0, tab: tab) }, fallback: { ownedClubs })
+            } else { unavailable }
         case "pages/club/workbench/index":
             // CLB-workbench-01/02: the workbench is the club page's 管理 tab; no id → my own club.
             // CLB-r7-D-05 (fix-r3-club-b round 4): no id → MP `detail?owner=1&tab=manage`, which opens the viewer's only
@@ -352,6 +356,9 @@ import SwiftUI
                         ClubGovernanceReadView(operation: .topicOverview, scope: scope, identity: session.clubIdentity,
                                                access: g.access, coordinator: g.coordinator, opensStoryOnLoad: true)
                     }
+                    // CLB-topic-story-05 (MP topic-story/index.js:160-162, 273-285): a merchant link has `scope` and no
+                    // clubId, so its answers read `api/topic/host-node-answer`; a club link never carries a host scope.
+                    .environment(\.clubStoryHostAnswer, session.clubStoryHostAnswerContext(scope: scope.clubID == nil ? query["scope"] : nil))
                 } else {
                     // CLB-G13: with `activityId` the topic page carries the director block (session-owned host).
                     clubRead(.topicOverview, scope, needsClub: false)

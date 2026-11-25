@@ -78,7 +78,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原预约结果尚未确定，回读核实前不能新建预约。"
+            "value": "预约结果确认中"
           }
         }
       }
@@ -257,7 +257,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此记录没有套票账本，仅可查看。"
+            "value": "这笔订单没有套票权益"
           }
         }
       }

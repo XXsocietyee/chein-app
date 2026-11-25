@@ -525,6 +525,8 @@ struct SessionRootView: View {
         .environment(\.coopWalletReader, session.walletCommerceReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))
         .environment(\.ugcSafetyContext, session.makeUGCSafetyContext())
+        // R8-PC-D9-1: chat 举报对方 (MP cy-report-sheet MEMBER).
+        .environment(\.communityMemberReportContext, session.makeCommunityMemberReportContext())
     }
 
     private func chain3<V: View>(_ v: V) -> some View {

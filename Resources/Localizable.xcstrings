@@ -16118,13 +16118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You cannot view this check-in record."
+            "value": "This check-in record is not visible"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无权查看该核销记录"
+            "value": "核销记录不可见"
           }
         }
       }
@@ -16135,13 +16135,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load this check-in."
+            "value": "Couldn't load this check-in voucher"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销详情加载失败"
+            "value": "核销凭证加载失败"
           }
         }
       }
@@ -16355,13 +16355,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write a comment"
+            "value": "Write a comment…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "写评论"
+            "value": "写评论…"
           }
         }
       }
@@ -16743,13 +16743,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading posts"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载中"
+            "value": "正在加载帖文"
           }
         }
       }
@@ -16777,13 +16777,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No comments yet"
+            "value": "No comments yet. Be the first."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无评论"
+            "value": "还没有评论，来抢沙发"
           }
         }
       }
@@ -18198,13 +18198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading registrants…"
+            "value": "Loading sign-up details"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载报名者…"
+            "value": "正在加载报名详情"
           }
         }
       }
@@ -18310,13 +18310,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading enrollment roster…"
+            "value": "Loading the sign-up roster"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载报名名册…"
+            "value": "正在加载报名名册"
           }
         }
       }
@@ -18505,13 +18505,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't refresh. Showing the previous information."
+            "value": "Sign-up roster not updated"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂未更新，当前显示上次的内容。"
+            "value": "报名名册暂未更新"
           }
         }
       }
@@ -18785,13 +18785,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal a platform case"
+            "value": "State your reason and appeal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交封禁申诉"
+            "value": "填写理由并提交申诉"
           }
         }
       }
@@ -18819,13 +18819,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ban member"
+            "value": "Ban"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "封禁成员"
+            "value": "封禁"
           }
         }
       }
@@ -18989,13 +18989,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit a platform report"
+            "value": "State the facts and report to the platform"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交平台举报"
+            "value": "填写事实并提交平台"
           }
         }
       }
@@ -19023,13 +19023,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry failed recipients"
+            "value": "Retry failed only"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重试失败收件人"
+            "value": "只重试失败项"
           }
         }
       }
@@ -19142,13 +19142,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove club ban"
+            "value": "Unban"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "解除俱乐部封禁"
+            "value": "解封"
           }
         }
       }
@@ -21451,13 +21451,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Holds a guide or travel qualification"
+            "value": "Guide / travel certificate"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "持导游/旅游资质"
+            "value": "持导游 / 旅游资质"
           }
         }
       }
@@ -23285,13 +23285,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can't issue group codes"
+            "value": "Your current role can't show a code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你没有出码权限"
+            "value": "当前身份不能出码"
           }
         }
       }
@@ -27204,13 +27204,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Join request pending"
+            "value": "Waiting for the host to approve"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "入会申请待审批"
+            "value": "等待主理人审核"
           }
         }
       }
@@ -28160,7 +28160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "One-line intro (optional)"
+            "value": "One-line introduction (optional)"
           }
         },
         "zh-Hans": {
@@ -28391,13 +28391,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leave form"
+            "value": "Discard"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离开表单"
+            "value": "确认放弃"
           }
         }
       }
@@ -28423,13 +28423,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leave this form?"
+            "value": "Discard these changes?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离开此表单？"
+            "value": "放弃本轮修改？"
           }
         }
       }
@@ -28942,7 +28942,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keywords (optional)"
+            "value": "Core keywords (optional)"
           }
         },
         "zh-Hans": {
@@ -30792,13 +30792,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keep registration"
+            "value": "Cancel"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保留报名"
+            "value": "取消"
           }
         }
       }
@@ -31048,13 +31048,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel and refund"
+            "value": "Refund and remove"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "清退并退款"
+            "value": "退款并清退"
           }
         }
       }
@@ -31705,13 +31705,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check current record"
+            "value": "Check again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新查询记录"
+            "value": "重新查询"
           }
         }
       }
@@ -31753,13 +31753,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review"
+            "value": "Cancel and refund"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对"
+            "value": "清退并退款"
           }
         }
       }
@@ -33555,13 +33555,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Address not provided"
+            "value": "No address"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂未提供地址"
+            "value": "未填写地址"
           }
         }
       }
@@ -33603,13 +33603,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answers are visible only to the club for judging on site whether players pass. Players never see this section."
+            "value": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "答案只对俱乐部开放，用于现场判定玩家能否通过。玩家端看不到这一段。"
+            "value": "答案只给主办方和这一站的接待方看，用于现场判定玩家能否通过。玩家端看不到这一段。"
           }
         }
       }
@@ -33795,13 +33795,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading story and gameplay…"
+            "value": "Loading story and gameplay"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载剧情与玩法…"
+            "value": "正在加载剧情与玩法"
           }
         }
       }
@@ -33891,13 +33891,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This club has not arranged a route yet."
+            "value": "No route yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这个团还没有排出路线。"
+            "value": "暂无路线"
           }
         }
       }
@@ -33913,7 +33913,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这一章还没有站点"
+            "value": "这一章还没有节点"
           }
         }
       }
@@ -35109,13 +35109,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No merchants have taken a station for this topic yet."
+            "value": "No merchants have taken this topic yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这个主题还没有承接商家。"
+            "value": "这个主题还没有承接商家"
           }
         }
       }
@@ -35274,13 +35274,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View members"
+            "value": "View all members"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看成员"
+            "value": "查看全部成员"
           }
         }
       }
@@ -309953,6 +309953,1230 @@
           "stringUnit": {
             "state": "translated",
             "value": "步行约 %@ 公里"
+          }
+        }
+      }
+    },
+    "club.ops.createdStatus.resubmitted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resubmitted, awaiting review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已重新提交，等待审核"
+          }
+        }
+      }
+    },
+    "club.roles.refreshFailedToast": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The list didn't refresh. Pull down to retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表没刷新成功，下拉重试"
+          }
+        }
+      }
+    },
+    "couponWallet.validFrom %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available from %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 起可用"
+          }
+        }
+      }
+    },
+    "couponWallet.validUntil %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid until %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效期至 %@"
+          }
+        }
+      }
+    },
+    "mp.redeem.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeem code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码"
+          }
+        }
+      }
+    },
+    "mp.redeem.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入兑换码"
+          }
+        }
+      }
+    },
+    "mp.redeem.submit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换"
+          }
+        }
+      }
+    },
+    "mp.redeem.success": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeemed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换成功"
+          }
+        }
+      }
+    },
+    "mp.redeem.replayed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You already redeemed this code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已兑换过这个码"
+          }
+        }
+      }
+    },
+    "mp.redeem.play": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去玩"
+          }
+        }
+      }
+    },
+    "mp.redeem.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码无效"
+          }
+        }
+      }
+    },
+    "mp.redeem.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code has expired"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码已过期"
+          }
+        }
+      }
+    },
+    "mp.redeem.usedByOther": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Someone else already used this code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码已被他人使用"
+          }
+        }
+      }
+    },
+    "mp.redeem.mismatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code doesn't belong to this account"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该兑换码不属于当前账号"
+          }
+        }
+      }
+    },
+    "mp.redeem.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeem codes are unavailable right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码暂不可用"
+          }
+        }
+      }
+    },
+    "mp.member.plan.launchPrice %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Launch price %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首发价 %@"
+          }
+        }
+      }
+    },
+    "mp.member.buy.open.price %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the pass %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开通通行证 %@"
+          }
+        }
+      }
+    },
+    "mp.member.buy.renew.price %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renew for 30 days %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "续买30天 %@"
+          }
+        }
+      }
+    },
+    "myProject.accessDenied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current role can't view these projects"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看这些项目"
+          }
+        }
+      }
+    },
+    "myProject.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projects didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目加载失败"
+          }
+        }
+      }
+    },
+    "official.mine.forbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current role can't view these events"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看这些活动"
+          }
+        }
+      }
+    },
+    "official.mine.signInRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see your events"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看我的活动"
+          }
+        }
+      }
+    },
+    "official.published.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publishing history didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布记录加载失败"
+          }
+        }
+      }
+    },
+    "wallet.earnings.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current role can't view earnings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看收益"
+          }
+        }
+      }
+    },
+    "wallet.earnings.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earnings didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收益加载失败"
+          }
+        }
+      }
+    },
+    "wallet.earnings.signInRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see your earnings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看账户收益"
+          }
+        }
+      }
+    },
+    "wallet.income.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current role can't view income details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看收益明细"
+          }
+        }
+      }
+    },
+    "wallet.income.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Income details didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收益明细加载失败"
+          }
+        }
+      }
+    },
+    "wallet.income.signInRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see income details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看收益明细"
+          }
+        }
+      }
+    },
+    "im.reportPeer.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "im.reportPeer.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading report reasons"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取举报原因"
+          }
+        }
+      }
+    },
+    "im.reportPeer.loadFailed.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't report right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法举报"
+          }
+        }
+      }
+    },
+    "im.reportPeer.loadFailed.taxonomy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The report reasons didn't load. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报原因没有读取成功，请稍后再试"
+          }
+        }
+      }
+    },
+    "im.reportPeer.loadFailed.network": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network problem: the report reasons didn't load."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络异常，举报原因没有读取成功"
+          }
+        }
+      }
+    },
+    "im.reportPeer.invalidTarget": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The report target is incomplete, so you can't report right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报对象信息不完整，暂时无法举报"
+          }
+        }
+      }
+    },
+    "im.reportPeer.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        }
+      }
+    },
+    "im.reportPeer.pickHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择举报原因"
+          }
+        }
+      }
+    },
+    "im.reportPeer.reasonPrefix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reason: "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报原因："
+          }
+        }
+      }
+    },
+    "im.reportPeer.detailLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "具体说明"
+          }
+        }
+      }
+    },
+    "im.reportPeer.detailPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe what happened so the platform can check it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写一下具体发生了什么，便于平台核实"
+          }
+        }
+      }
+    },
+    "im.reportPeer.detailRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe what happened"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请写一下具体发生了什么"
+          }
+        }
+      }
+    },
+    "im.reportPeer.detailTooLong": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details can be at most 2000 characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说明最多 2000 字"
+          }
+        }
+      }
+    },
+    "im.reportPeer.anonymous": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The reported person can't see who you are."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被举报方看不到你的身份。"
+          }
+        }
+      }
+    },
+    "im.reportPeer.changeReason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "换个原因"
+          }
+        }
+      }
+    },
+    "im.reportPeer.submit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交举报"
+          }
+        }
+      }
+    },
+    "im.reportPeer.busy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitting report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在提交举报"
+          }
+        }
+      }
+    },
+    "im.reportPeer.ok.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报已提交"
+          }
+        }
+      }
+    },
+    "im.reportPeer.ok.receiptPrefix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受理编号 "
+          }
+        }
+      }
+    },
+    "im.reportPeer.ok.receiptSuffix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ". "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "。"
+          }
+        }
+      }
+    },
+    "im.reportPeer.ok.sub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You'll get progress updates in system messages."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理进度会通过系统消息通知你。"
+          }
+        }
+      }
+    },
+    "im.reportPeer.ok.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道了"
+          }
+        }
+      }
+    },
+    "im.reportPeer.failed.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The report wasn't submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报没有提交成功"
+          }
+        }
+      }
+    },
+    "im.reportPeer.failed.default": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The report wasn't submitted. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报没有提交成功，请稍后再试"
+          }
+        }
+      }
+    },
+    "im.reportPeer.backToForm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回修改"
+          }
+        }
+      }
+    },
+    "im.reportPeer.signInRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后才能举报"
+          }
+        }
+      }
+    },
+    "im.reportPeer.unknown.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交结果未知"
+          }
+        }
+      }
+    },
+    "im.reportPeer.unknown.why": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network problem: we don't know whether the report was submitted. Trying again won't submit it twice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络异常，暂时不知道举报是否已提交。再试一次不会重复提交。"
+          }
+        }
+      }
+    },
+    "im.reportPeer.unknown.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再试一次"
+          }
+        }
+      }
+    },
+    "im.reportPeer.unknown.later": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稍后再说"
+          }
+        }
+      }
+    },
+    "im.reportPeer.noPeerMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The other person hasn't sent a message yet, so you can't report them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方还没发过消息，暂不能举报"
+          }
+        }
+      }
+    },
+    "im.reportPeer.unit.minutes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "min"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分钟"
+          }
+        }
+      }
+    },
+    "im.reportPeer.unit.hours": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "h"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小时"
+          }
+        }
+      }
+    },
+    "im.reportPeer.response.prefix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The platform aims to respond within about "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台目标在约 "
+          }
+        }
+      }
+    },
+    "im.reportPeer.response.urgentPrefix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This kind of report is handled first. The platform aims to respond within about "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此类举报会优先处理，平台目标在约 "
+          }
+        }
+      }
+    },
+    "im.reportPeer.response.suffix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内首次响应。"
+          }
+        }
+      }
+    },
+    "official.inbox.submitting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitting, please wait"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在提交，请稍候"
+          }
+        }
+      }
+    },
+    "im.list.box.inbox": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inbox"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收件箱"
+          }
+        }
+      }
+    },
+    "im.list.box.outbox": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outbox"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发件箱"
+          }
+        }
+      }
+    },
+    "im.list.box.outboxEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No invites sent yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有发出的邀请"
+          }
+        }
+      }
+    },
+    "activity.detail.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity not found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动不存在"
+          }
+        }
+      }
+    },
+    "official.broadcast.recover.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restores the original recipients only. Unknown results and historical rows waiting for review are not resent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只会按原收件人恢复，结果不明或历史待核的不会重发。"
+          }
+        }
+      }
+    },
+    "official.broadcast.recover": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore the original delivery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全恢复原投递"
           }
         }
       }

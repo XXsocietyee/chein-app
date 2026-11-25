@@ -22,7 +22,7 @@ import SwiftUI
             List {
                 // PC-C-5-3: the current MP inbox has only the page title (drawn by the bar); the stale oi-hero preamble is gone.
                 if page == .empty {
-                    CYEmptyState(systemImage: "envelope.open", "official.inbox.empty", detail: "official.inbox.emptyDetail")
+                    CYEmptyState(systemImage: "tray", "official.inbox.empty")
                         .accessibilityIdentifier("official.inbox" + ".empty")
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
@@ -92,7 +92,9 @@ import SwiftUI
     var onLogin: (() -> Void)? = nil
     @Environment(\.cyPalette) private var palette
     var body: some View {
-        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "published", onLogin: onLogin, load: { try await reader.myPublished() }) { value in
+        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "published", onLogin: onLogin,
+                           issueLabel: { $0 == .failed ? "official.published.loadFailed" : nil },
+                           load: { try await reader.myPublished() }) { value in
             List {
                 // R7-PC-C6-1 MP-first: the MP has no 发起 / 官方通知 editor here (pages/activity/list/index.wxml:77-80,
                 // ruling 2026-09-03: official events are uploaded from the Web admin), so 我发布的 is read-only.
@@ -169,12 +171,18 @@ import SwiftUI
     let id: Int
     let reader: any OfficialEventReading
     var onLogin: (() -> Void)? = nil
+    @State private var reload = 0
+    @State private var confirmingRecover = false
+    @State private var recoverNote: String?
     var body: some View {
-        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "stats.\(id)", onLogin: onLogin, load: { try await reader.broadcastStats(id: id) }) { stats in
+        OfficialReadScreen(reader: reader, isPrivate: true, requestID: "stats.\(id).\(reload)", onLogin: onLogin, load: { try await reader.broadcastStats(id: id) }) { stats in
             List {
+                if let line = stats.summaryLine {
+                    Text(verbatim: line).accessibilityIdentifier("official.broadcast.summary")
+                }
                 // R7-PC-C6-3: only the stats the page can name; an unknown key is never printed raw.
                 let known = stats.rows.filter { OfficialBroadcastStatsText.knownIDs.contains($0.id) }
-                if known.isEmpty { Text("official.emptyStats") }
+                if known.isEmpty && stats.summaryLine == nil { Text("official.emptyStats") }
                 ForEach(known) { row in
                     LabeledContent {
                         switch row.value {
@@ -192,9 +200,33 @@ import SwiftUI
                         }
                     }
                 }
+                if stats.canRecoverInapp {
+                    Section {
+                        Button("official.broadcast.recover") { confirmingRecover = true }
+                            .accessibilityIdentifier("official.broadcast.recover")
+                        if let recoverNote { Text(verbatim: recoverNote).foregroundStyle(CYColor.dangerText) }
+                    }
+                }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
             }.accessibilityIdentifier("official.stats.content")
-        }.appNavigationTitle("official.stats").navigationBarTitleDisplayMode(.inline)
+        }
+        .confirmationDialog("official.broadcast.recover", isPresented: $confirmingRecover, titleVisibility: .visible) {
+            Button("official.broadcast.recover") { Task { await recover() } }
+            Button("action.cancel", role: .cancel) {}
+        } message: {
+            Text("official.broadcast.recover.body")
+        }
+        .appNavigationTitle("official.stats").navigationBarTitleDisplayMode(.inline)
+    }
+    private func recover() async {
+        do {
+            try await reader.recoverBroadcast(id: String(id))
+            recoverNote = nil
+            reload += 1
+        } catch is CancellationError {
+        } catch {
+            recoverNote = OfficialBroadcastStats.failureLine(serverMessage: nil)
+        }
     }
 }
 
@@ -225,47 +257,87 @@ private extension Decimal {
     let id: Int
     let reader: any OfficialEventReading
     @ViewBuilder let label: () -> Content
-    private enum Phase: Equatable { case idle, loading, loaded(String, String), failed }
+    private enum Phase: Equatable { case idle, loading, loaded(OfficialBroadcastStats), failed(String?) }
     @State private var phase: Phase = .idle
+    @State private var confirmingRecover = false
+    @State private var recovering = false
     @Environment(\.cyPalette) private var palette
     var body: some View {
-        Button { load() } label: {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                label()
-                switch phase {
-                case .idle: EmptyView()
-                case .loading:
-                    Text("official.published.statsLoading").cyText(.caption).foregroundStyle(palette.textSecondary)
-                case .loaded(let reached, let clicked):
-                    Text("official.published.statsLine \(reached) \(clicked)").cyText(.caption).monospacedDigit()
-                        .foregroundStyle(palette.textSecondary)
-                case .failed:
-                    Text("official.published.statsFailed").cyText(.caption).foregroundStyle(CYColor.dangerText)
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Button { load() } label: {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    label()
+                    switch phase {
+                    case .idle: EmptyView()
+                    case .loading:
+                        Text("official.published.statsLoading").cyText(.caption).foregroundStyle(palette.textSecondary)
+                    case .loaded(let stats):
+                        if let line = stats.summaryLine {
+                            Text(verbatim: line).cyText(.caption).foregroundStyle(palette.textSecondary)
+                                .accessibilityIdentifier("official.broadcast.summary")
+                        } else if let counts = OfficialBroadcastStatsText.counts(stats) {
+                            Text("official.published.statsLine \(counts.reached) \(counts.clicked)").cyText(.caption).monospacedDigit()
+                                .foregroundStyle(palette.textSecondary)
+                        }
+                    case .failed(let line):
+                        if let line { Text(verbatim: line).cyText(.caption).foregroundStyle(CYColor.dangerText) }
+                        else { Text("official.published.statsFailed").cyText(.caption).foregroundStyle(CYColor.dangerText) }
+                    }
                 }
+                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .disabled(phase == .loading || recovering)
+            .accessibilityHint(Text("official.published.statsHint"))
+            if case .loaded(let stats) = phase, stats.canRecoverInapp {
+                Button("official.broadcast.recover") { confirmingRecover = true }
+                    .disabled(recovering)
+                    .accessibilityIdentifier("official.broadcast.recover.\(id)")
+            }
         }
-        .buttonStyle(.plain)
-        .disabled(phase == .loading)
-        .accessibilityHint(Text("official.published.statsHint"))
+        .confirmationDialog("official.broadcast.recover", isPresented: $confirmingRecover, titleVisibility: .visible) {
+            Button("official.broadcast.recover") { Task { await recover() } }
+            Button("action.cancel", role: .cancel) {}
+        } message: {
+            Text("official.broadcast.recover.body")
+        }
     }
     private func load() {
-        guard phase != .loading else { return }
+        guard phase != .loading, !recovering else { return }
         phase = .loading
         let scope = reader.scope
         Task {
             do {
                 let stats = try await reader.broadcastStats(id: id)
-                // R8-PC-C6-1: a scope change mid-read drops the result but never leaves the row stuck on 正在读取复盘….
+                // R8-PC-C6-1 (MP official-mine/index.js:150-178 drops a stale reply): the row goes back to idle,
+                // so it is not left disabled on 正在读取复盘….
                 guard reader.scope == scope else { phase = .idle; return }
-                if let counts = OfficialBroadcastStatsText.counts(stats) { phase = .loaded(counts.reached, counts.clicked) }
-                else { phase = .failed }
+                if stats.summaryLine != nil || OfficialBroadcastStatsText.counts(stats) != nil || stats.canRecoverInapp {
+                    phase = .loaded(stats)
+                } else { phase = .failed(nil) }
             } catch is CancellationError {
                 phase = .idle
             } catch {
-                phase = reader.scope == scope ? .failed : .idle
+                phase = reader.scope == scope ? .failed(nil) : .idle
             }
+        }
+    }
+    /// Confirm, then `recoverBroadcast(id:token:)` through the reader, then re-read stats.
+    private func recover() async {
+        recovering = true
+        defer { recovering = false }
+        let scope = reader.scope
+        do {
+            try await reader.recoverBroadcast(id: String(id))
+            guard reader.scope == scope else { phase = .idle; return }
+            let stats = try await reader.broadcastStats(id: id)
+            guard reader.scope == scope else { phase = .idle; return }
+            phase = .loaded(stats)
+        } catch is CancellationError {
+            phase = .idle
+        } catch {
+            phase = reader.scope == scope ? .failed(OfficialBroadcastStats.failureLine(serverMessage: nil)) : .idle
         }
     }
 }

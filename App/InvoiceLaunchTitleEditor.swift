@@ -103,7 +103,8 @@ import SwiftUI
         }
         .cyPushedChrome(domain: .player)
         .cyDomainPageBackground()
-        .cyPageTitle(verbatim: invoiceString(title == nil ? "addTitle" : "editTitle"))
+        // MP invoice-title-edit: `cy-page-title title="发票抬头"` for both new and edit.
+        .cyPageTitle(verbatim: invoiceString("titles"))
         .onChange(of: type) { _, _ in tax = "" }
         // Source limits: 抬头名称 100, 税号 20 (FIN-15-4).
         .onChange(of: name) { _, value in if value.count > 100 { name = String(value.prefix(100)) } }

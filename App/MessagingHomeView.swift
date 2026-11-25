@@ -15,12 +15,39 @@ struct MessagingHomeView: View {
     private let identity: MessagingReadIdentity?
     @Environment(\.imCoopInviteStrip) private var coopInviteStrip
     init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil,squareDestination:((@escaping () -> Void) -> AnyView)?=nil,predictionEntry:(() -> AnyView)?=nil,merchantChrome:Bool=false) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;self.squareDestination=squareDestination;self.predictionEntry=predictionEntry;self.merchantChrome=merchantChrome;identity=reader.identity }
+    /// R7-PC-D8-1 MP-first (subpackageB/pages/im/list/index.js:268-281, index.wxml:11): one tab row, 收件箱 / 发件箱.
+    /// 收件箱 = received invites + every conversation; 发件箱 = only the invites I sent (no conversations).
+    @State private var box: MessagingBox = .inbox
     var body: some View {
         VStack(spacing: 0) {
+            Picker("messaging.scope", selection: $box) {
+                Text("im.list.box.inbox").tag(MessagingBox.inbox)
+                Text("im.list.box.outbox").tag(MessagingBox.outbox)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .accessibilityLabel(Text("messaging.scope"))
+            .padding(.horizontal)
+            .padding(.vertical, CYSpacing.xs)
+            .accessibilityIdentifier("messaging.list.scope")
             if let predictionEntry { predictionEntry().padding(.horizontal) }
-            if let coopInviteStrip { coopInviteStrip().padding(.horizontal) }
-            MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
-        }.cyPageTitle("messaging.title") // PC-D-8-2
+            switch box {
+            case .inbox:
+                if let coopInviteStrip { coopInviteStrip().environment(\.imCoopInviteDirection, .received).padding(.horizontal) }
+                MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
+            case .outbox:
+                ScrollView {
+                    if let coopInviteStrip {
+                        coopInviteStrip().environment(\.imCoopInviteDirection, .sent).padding(.horizontal)
+                    } else {
+                        CYEmptyState(systemImage: "tray", "im.list.box.outboxEmpty", messageIdentifier: "messaging.list.outboxEmpty")
+                            .padding(.top, CYSpacing.lg)
+                    }
+                }
+            }
+        }
+        .onChange(of: identity) { _, _ in box = .inbox }
+        .cyPageTitle("messaging.title") // PC-D-8-2
         .themeDomain(merchantChrome ? .merchant : .player)
         .cyHideTabBar()
     }
@@ -51,21 +78,7 @@ private struct MessagingConversationListView: View {
             let summary = IMInboxSummary(conversations: conversations)
             let tab = currentTab
             List {
-                Section {
-                    Picker("messaging.scope", selection: Binding(get: { currentTab }, set: { selectedTab = $0 })) {
-                        ForEach(MessagingSegment.allCases, id: \.self) { item in
-                            item.label(badgeText: item.badgeText(conversations)).tag(item)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .accessibilityLabel(Text("messaging.scope"))
-                    .padding(.horizontal, CYSpacing.sm)
-                    .padding(.vertical, CYSpacing.xs)
-                    .accessibilityIdentifier("messaging.list.scope")
-                }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
+                // R7-PC-D8-1: the 全部/频道/私信 picker is gone; the MP 收件箱 lists every conversation (`MessagingHomeView.box`).
                 let rows = filtered(conversations, tab: tab)
                 if tab.rows(conversations).isEmpty {
                     emptyState(tab: tab, conversations: conversations)
@@ -342,6 +355,9 @@ private struct MessagingConversationListView: View {
 
 /// Messages list segments: All, Channels and Direct. System notices travel
 /// with Direct under the assistant name; channels are the server's group rows.
+/// R7-PC-D8-1: the MP list's two tabs (`im/list/index.js:276-279`).
+enum MessagingBox: Hashable { case inbox, outbox }
+
 enum MessagingSegment: String, CaseIterable, Hashable {
     case all, channels, direct
 

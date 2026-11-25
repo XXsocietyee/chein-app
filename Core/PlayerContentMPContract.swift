@@ -65,6 +65,28 @@ public enum PlayerContentMPContract {
     public static let pricingPreviewPath = "api/topic/pricing/preview"
     public static let pricingConfirmPath = "api/topic/pricing/confirm"
 
+    /// `utils/checkout/selfplay-xpay-pay.js:48` at hengyin `25eb6a0c`.
+    /// POST `{id}`. Virtual-payment confirm. This constant does not build or send a request.
+    /// `moneyEnabled` stays false.
+    public static let xpayConfirmPath = "api/registration/xpay/confirm"
+
+    /// `utils/fe-author-sale.js:92`. GET `{topicId}`. Sale-readiness read. Does not send.
+    public static let feSaleReadinessPath = "api/topic/fe/sale-readiness"
+
+    /// `utils/fe-author-sale.js:106`. POST. The body is `JSON.stringify`, so the checker
+    /// records no literal field list. Price publish. This constant does not build or send.
+    /// `pricingGrantEnabled` stays false.
+    public static let fePublishForSalePath = "api/topic/fe/publish-for-sale"
+
+    /// `utils/fe-author-sale.js:120`. POST. The body is `JSON.stringify`, so the checker
+    /// records no literal field list. Does not send.
+    public static let chapterSelfSupplyPath = "api/topic/chapter/self-supply"
+
+    /// `utils/fe-author-sale.js:133`. POST. The body is `JSON.stringify`, so the checker
+    /// records no literal field list. This withdraws a self-supply offer. It is not a
+    /// wallet or settlement withdrawal, and it does not send.
+    public static let chapterSelfSupplyWithdrawPath = "api/topic/chapter/self-supply/withdraw"
+
     /// `subpackageB/pages/im/chat/index.js` audit detail. GET, no body.
     /// One path segment: `/api/audit/${auditTaskId}/detail`.
     public static func auditTaskDetailPath(auditTaskID: String) -> String {

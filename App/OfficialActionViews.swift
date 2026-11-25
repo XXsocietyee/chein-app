@@ -68,7 +68,14 @@ import SwiftUI
                     if !coordinator.enabled { Text("officialAction.disabled").foregroundStyle(.secondary) }
                 }
             }
-            if model.busy { CYSkeletonBlock(height: 18).accessibilityLabel(Text("officialAction.working")) }
+            if model.busy {
+                CYSkeletonBlock(height: 18).accessibilityLabel(Text("officialAction.working"))
+                // R7-PC-C5-2 (MP official-inbox/index.wxml:32): the inbox card's polite busy line while the write runs.
+                if noticeTitleKey != nil {
+                    Text("official.inbox.submitting").cyText(.caption).foregroundStyle(.secondary)
+                        .accessibilityAddTraits(.updatesFrequently).accessibilityIdentifier("official.inbox.submitting")
+                }
+            }
             if let message = model.message {
                 Text(LocalizedStringKey(message)).accessibilityIdentifier("officialAction.message")
                 if model.canReview {

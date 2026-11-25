@@ -28,7 +28,13 @@ import FoundationNetworking
         XCTAssertFalse(MPParityBindings.viewerIsMerchant(role: "", userType: "2", debugView: "user"))
 
         let selling = overview(active: false, coverageEnd: nil, libraryCount: 12, plans: plans)
-        XCTAssertEqual(MPParityBindings.memberSide(viewerIsMerchant: false, overview: selling), .plans("¥299.00 · ¥39.00"))
+        // MKT-4-1: month plan only, priced 首发价 ¥X (platform-pass.js:84-86,108).
+        XCTAssertEqual(MPParityBindings.memberSide(viewerIsMerchant: false, overview: selling),
+                       .plans(appLocalized("mp.member.plan.launchPrice \("¥39.00")", locale: .current)))
+        let sellingContent = MPParityBindings.membershipContent(selling)
+        XCTAssertEqual(sellingContent.plans.map(\.code), ["MONTH"])
+        XCTAssertEqual(sellingContent.plans.first?.line, .month)
+        XCTAssertEqual(sellingContent.buyPrice, "¥39.00")
         XCTAssertNil(MPParityBindings.memberSide(viewerIsMerchant: true, overview: selling))
         let held = overview(active: true, coverageEnd: "2027-12-10 12:00:00", libraryCount: nil, plans: plans)
         XCTAssertEqual(MPParityBindings.memberSide(viewerIsMerchant: false, overview: held), .activeUntil("2027.12.10"))

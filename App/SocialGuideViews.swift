@@ -22,7 +22,7 @@ import SwiftUI
                     // PlayGuideInformationListPage keeps only usable rows; an all-unusable list is the empty phase.
                     let rows = decoded.filter(\.isUsable)
                     if rows.isEmpty {
-                        CYEmptyState(systemImage: "doc.text", "guideXcx.docsEmpty", messageIdentifier: "social.guide.docsEmpty")
+                        CYEmptyState(systemImage: "tray", "guideXcx.docsEmpty", messageIdentifier: "social.guide.docsEmpty")
                             .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                     }
                     ForEach(rows) { row in
@@ -94,10 +94,24 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .modifier(SocialInformationTitle(articleTitle: articleTitle))
+        .toolbar {
+            if id > 0 { ToolbarItem(placement: .topBarTrailing) { informationShare } }
+        }
         .cyDomainPageBackground()
         .themeDomain(.player)
         .tint(CYDomainPalette(.player).brand)
         .accessibilityIdentifier("social.information.detail")
+    }
+
+    /// Parsed information path shares its URL. Otherwise the mini-program path text. Both nil hides the key.
+    @ViewBuilder private var informationShare: some View {
+        if let url = PublicContentShareLink.information(id: id) {
+            ShareLink(item: url) { Label("activity.share", systemImage: "square.and.arrow.up") }
+                .accessibilityIdentifier("social.information.share")
+        } else if let copy = PublicContentShareLink.informationCopyText(id: id), !copy.isEmpty {
+            ShareLink(item: copy) { Label("activity.share", systemImage: "square.and.arrow.up") }
+                .accessibilityIdentifier("social.information.share")
+        }
     }
 }
 

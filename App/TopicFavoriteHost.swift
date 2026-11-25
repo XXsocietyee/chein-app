@@ -65,7 +65,6 @@ extension AppSession {
     func makeTopicFavoriteHost() -> TopicFavoriteHost? {
         guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
               composition.topicUnlikeApproval(context) != nil else { return nil }
-        let factory = TopicLikeOperationFactory(configuration: api)
         let transport = runtimeHTTPTransport
         let fresh: () -> RuntimeDependencyContext? = { [weak self] in
             guard let self, let now = self.currentRuntimeDependencyContext, ContentDraftContextFence.matches(context, now) else { return nil }
@@ -73,7 +72,14 @@ extension AppSession {
         }
         let controller = TopicLikeHostController(
             likeGrantEnabled: true,
-            requestBuilder: { topicID, direction, token in try factory.request(topicID: topicID, direction: direction, token: token) },
+            requestBuilder: { topicID, direction, token in
+                // Mini-program body (`id` then `type`, urlencoded). The contract builder omits Authorization.
+                var request = try TopicLikeHostController.miniProgramLikeRequest(
+                    baseURL: api.baseURL, topicID: topicID, direction: direction, token: token)
+                request.setValue("application/json", forHTTPHeaderField: "Accept")
+                request.setValue(token, forHTTPHeaderField: "Authorization")
+                return request
+            },
             transport: transport,
             currentScope: { fresh().flatMap { try? TopicLikeScope(accountID: $0.session.accountID, epoch: $0.session.epoch, namespace: $0.session.namespace) } },
             token: { fresh()?.session.token })

@@ -35,7 +35,7 @@ import SwiftUI
                     }
                 }
                 if rows.isEmpty {
-                    CYEmptyState(systemImage: "doc.text", LocalizedStringKey(InvoiceLaunchHistoryRules.emptyKey(total: overview.applications.count, filter: filter)),
+                    CYEmptyState(systemImage: "tray", LocalizedStringKey(InvoiceLaunchHistoryRules.emptyKey(total: overview.applications.count, filter: filter)),
                                  tableName: "InvoiceLaunchUI")
                         .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                 }

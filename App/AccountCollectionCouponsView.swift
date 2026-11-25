@@ -58,20 +58,18 @@ import SwiftUI
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
                             CYEmptyState(
-                                systemImage: "ticket",
+                                systemImage: "tray",
                                 "accountCollection.coupons.empty",
-                                detail: "accountCollection.coupons.empty.detail",
                                 messageIdentifier: "accountCollection.coupons.empty",
-                                kind: .orders
+                                kind: .generic
                             )
                             .listRowBackground(Color.clear)
                         } else {
                             CYEmptyState(
-                                systemImage: "line.3.horizontal.decrease.circle",
+                                systemImage: "tray",
                                 "accountCollection.coupons.filteredEmpty",
-                                detail: "accountCollection.coupons.filteredEmpty.detail",
                                 messageIdentifier: "accountCollection.coupons.filteredEmpty",
-                                kind: .search
+                                kind: .generic
                             )
                             .listRowBackground(Color.clear)
                         }
@@ -166,6 +164,7 @@ struct AccountCollectionCouponRow: View {
     let coupon: AccountCollectionCoupon
     /// MKT-8-1: list rows that open the code directly say so (出示核销码 / 查看可用时间).
     var showsCodeFooter = false
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             AccountCollectionCouponBadge(status: coupon.status)
@@ -179,7 +178,8 @@ struct AccountCollectionCouponRow: View {
                 Text("accountCollection.coupon.startsLater").cyText(.meta)
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
                 // Mini-program date line: {day} 起可用.
-                QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
+                QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: appLocalized("couponWallet.validFrom \(day)", locale: locale),
+                                     systemImage: "calendar.badge.clock")
             }
             // MP: an invalid coupon replaces the date line with 该券已被平台手动失效.
             if coupon.status == .invalid {
@@ -187,8 +187,10 @@ struct AccountCollectionCouponRow: View {
             }
             // Otherwise an unknown end date is an em dash, as in the mini-program.
             if coupon.status != .invalid {
+                // MP `有效期至 {day}`; an unknown end date stays the bare em dash.
                 QuestifyMetadataLine(label: "accountCollection.coupon.validUntil",
-                                     value: AccountCollectionCoupon.calendarDay(coupon.endTime) ?? "—", systemImage: "calendar")
+                                     value: AccountCollectionCoupon.calendarDay(coupon.endTime).map { appLocalized("couponWallet.validUntil \($0)", locale: locale) } ?? "—",
+                                     systemImage: "calendar")
             }
             if coupon.shopName != nil || coupon.shopAddress != nil {
                 AccountCollectionCouponShopLine(coupon: coupon)
