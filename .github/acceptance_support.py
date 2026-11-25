@@ -1461,19 +1461,12 @@ def workflow_contract():
         raise SystemExit("record must retry git fetch and checkout")
     if "\n          git fetch origin refs/heads/ci/acceptance\n" in record:
         raise SystemExit("record must not fetch ci/acceptance only once")
-    checkout_action = Path(".github/actions/acceptance-checkout/action.yml")
-    action = checkout_action.read_text()
     pin = "actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
-    if action.count(pin) != 3 or "sleep 10" not in action or "sleep 20" not in action:
+    if text.count(pin) != 36 or text.count("run: sleep 10") != 12 or text.count("run: sleep 20") != 12:
         raise SystemExit("checkout must retry git fetch and checkout 3 times with backoff")
-    checkout_ref = "liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43"
-    if text.count(checkout_ref) != 12:
-        raise SystemExit("every acceptance job must retry checkout")
-    if "./.github/actions/acceptance-checkout" in text:
-        raise SystemExit("a local checkout action is not on disk before checkout")
-    if "actions/checkout@" in text:
-        raise SystemExit("checkout retries belong in the acceptance checkout action")
-    if text.count("persist-credentials: 'false'") != 11 or text.count("persist-credentials: 'true'") != 1:
+    if "./.github/actions/acceptance-checkout" in text or "chengyin-app/.github/actions/acceptance-checkout@" in text:
+        raise SystemExit("checkout must use actions/checkout directly")
+    if text.count("persist-credentials: 'false'") != 33 or text.count("persist-credentials: 'true'") != 3:
         raise SystemExit("checkout credentials must stay read-only except for record")
     if KNOWN_CONTRACT_FAILURE not in support:
         raise SystemExit("known contract failure id drifted")

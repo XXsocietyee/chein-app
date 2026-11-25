@@ -15,9 +15,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Acceptance mode
         run: echo "ACCEPTANCE_MODE=$ACCEPTANCE_MODE ref=$GITHUB_REF"
       - name: Check mode requires baseline files
@@ -40,9 +64,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Acceptance mode
         run: echo "ACCEPTANCE_MODE=$ACCEPTANCE_MODE ref=$GITHUB_REF"
       - name: Scaffold
@@ -64,9 +112,33 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Simulator destination
@@ -97,9 +169,33 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Core package tests
@@ -144,9 +240,33 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 25
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Restore DerivedData
@@ -218,9 +338,33 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 25
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Restore DerivedData
@@ -289,9 +433,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - uses: actions/download-artifact@v4
         with:
           pattern: appunit-failures-*
@@ -325,9 +493,33 @@ jobs:
     outputs:
       needed: ${{ steps.plan.outputs.needed }}
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Look for DEBUG fixture routes
         id: plan
         run: |
@@ -342,9 +534,33 @@ jobs:
     outputs:
       needed: ${{ steps.plan.outputs.needed }}
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Look for Accept XCUITests
         id: plan
         run: |
@@ -362,9 +578,33 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Restore DerivedData
@@ -389,9 +629,33 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
           persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'false'
+          fetch-depth: 1
       - name: Print Xcode version
         run: xcodebuild -version
       - name: Restore DerivedData
@@ -427,10 +691,36 @@ jobs:
       contents: write
     timeout-minutes: 20
     steps:
-      - uses: liboyang42-cpu/chengyin-app/.github/actions/acceptance-checkout@9bdac9b5b5f49d242d35f3c3ae7f835846ab1b43
+      - name: Checkout
+        id: checkout_try1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
         with:
-          ref: ci/acceptance
           persist-credentials: 'true'
+          fetch-depth: 1
+          ref: ci/acceptance
+      - name: Back off before checkout retry
+        if: steps.checkout_try1.outcome == 'failure'
+        run: sleep 10
+      - name: Checkout retry
+        id: checkout_try2
+        if: steps.checkout_try1.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        continue-on-error: true
+        with:
+          persist-credentials: 'true'
+          fetch-depth: 1
+          ref: ci/acceptance
+      - name: Back off before the last checkout retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        run: sleep 20
+      - name: Checkout last retry
+        if: steps.checkout_try1.outcome == 'failure' && steps.checkout_try2.outcome == 'failure'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: 'true'
+          fetch-depth: 1
+          ref: ci/acceptance
       - name: Acceptance mode
         run: echo "ACCEPTANCE_MODE=$ACCEPTANCE_MODE ref=$GITHUB_REF"
       - uses: actions/download-artifact@v4
