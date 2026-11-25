@@ -42,6 +42,12 @@ public struct PlatformPass: @unchecked Sendable {
     public static let quotePath = "api/marketing/product/quote"
     public static let orderPath = "api/marketing/product/order"
     public static let claimPath = "api/marketing/product/gifts/claim"
+    /// GET `api/marketing/product/orders/{orderNo}` (`market/pass` `_verify`). Read only. Pay stays off.
+    public static let productOrderDetailPath = "api/marketing/product/orders/{}"
+    /// POST `api/marketing/product/orders/{orderNo}/pay`. No `data` key. Compiled, never sent.
+    public static let productOrderPayPath = "api/marketing/product/orders/{}/pay"
+    /// POST `api/platform-pass/orders/{orderNo}/pay` (`platform-pass-pay.js`). Field `jsCode`. Compiled, never sent.
+    public static let passOrderPayPath = "api/platform-pass/orders/{}/pay"
 
     public static var writesReachable: Bool {
         moneyEnabled && ReleaseMoneyWriteSwitch.paymentEnabled && ReleaseMoneyWriteSwitch.payoutEnabled
@@ -180,6 +186,20 @@ public struct PlatformPass: @unchecked Sendable {
     /// Gift claim. Compiled, never sends.
     public func claim(giftToken: String, requestID: String, token: String) throws -> Never {
         _ = (giftToken, requestID, token, Self.moneyEnabled, Self.writesReachable, Self.claimPath)
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Cash pay for a marketing product order (`market/pass` `_payCash`).
+    /// The page sends no `data` key. Compiled, never sends. `moneyEnabled` stays false.
+    public func payProductOrder(orderNo: String, token: String) throws -> Never {
+        _ = (orderNo, token, Self.moneyEnabled, Self.writesReachable, Self.productOrderPayPath)
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Virtual-payment pay for a platform-pass order. Field `jsCode`. Compiled, never sends.
+    /// `moneyEnabled` stays false.
+    public func payPassOrder(orderNo: String, jsCode: String, token: String) throws -> Never {
+        _ = (orderNo, jsCode, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderPayPath)
         throw PlatformPassWriteRefusal.unreachable
     }
 

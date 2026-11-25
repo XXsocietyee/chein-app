@@ -55,6 +55,9 @@ public enum ChannelRedeemPresentation: Equatable, Sendable {
 /// `POST /api/channel/redeem`. Provider-off answers stay unavailable. The body has the code and a request id only.
 public struct ChannelRedeemSource {
     public static let path = "/api/channel/redeem"
+    /// GET `api/channel/redeem/status` (`market/gift` `loadCodeStatus`, `market/passes` `loadRedeem`).
+    /// Reads `platformCodeEnabled`. This is not the redeem write.
+    public static let statusPath = "api/channel/redeem/status"
 
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
