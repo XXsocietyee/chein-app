@@ -426,6 +426,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                      onEditClub: { r8Route = .workspace },
                                      onTransferOwner: { r8Route = management?.governance == nil ? nil : .transferOwner },
                                      onDissolveClub: { r8Route = .workspace })
+                    .clubTools(customers: management?.governance == nil ? nil : { r8Route = .customers },
+                               enroll: management?.governance == nil ? nil : { r8Route = .enroll },
+                               eventOps: management?.governance == nil ? nil : { r8Route = .eventOps },
+                               roles: management?.governance == nil ? nil : { r8Route = .roles })
                     .presentationDetents([.medium, .large])
             }
             .navigationDestination(item: $r8Route) { route in

@@ -127,6 +127,8 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     case transferOwner
     /// CLB-G01: 邀约承接 → that topic's merchant project page (MP merchantinfo?topicId=&scope=MERCHANT).
     case undertake(topicID: Int)
+    /// CLB-r7-A-06: 俱乐部设置 · 客户与项目.
+    case customers, enroll, eventOps, roles
     /// CLB-detail-20: 发布主题 from the empty 活动 state.
     case publish
     var id: Self { self }
@@ -193,6 +195,16 @@ enum ClubDetailR8Route: Hashable, Identifiable {
             case .tool(_, let activityID, .notifySessionMembers, _):
                 ClubGovernanceCommandForm(route: .init(operation: .sendNotification, scope: .init(clubID: clubID, activityID: activityID)),
                                           identity: identity, access: governance.access, coordinator: governance.coordinator)
+            case .customers:
+                ClubGovernanceReadView(operation: .customers, scope: .init(clubID: clubID), identity: identity,
+                                       access: governance.access, coordinator: governance.coordinator)
+            case .enroll:
+                ClubEnrollmentView(clubID: clubID, focusTopicID: nil, identity: identity, access: governance.access, coordinator: governance.coordinator)
+            case .eventOps:
+                ClubOpsEventView(scope: .init(clubID: clubID), identity: identity, access: governance.access, coordinator: governance.coordinator)
+            case .roles:
+                ClubGovernanceReadView(operation: .roles, scope: .init(clubID: clubID), identity: identity,
+                                       access: governance.access, coordinator: governance.coordinator)
             case .transferOwner:
                 ClubGovernanceReadView(operation: .members, scope: .init(clubID: clubID), identity: identity,
                                        access: governance.access, coordinator: governance.coordinator)
