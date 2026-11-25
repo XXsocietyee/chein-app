@@ -203,7 +203,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             .accessibilityIdentifier("club.detail.events.publish")
                         }
                     }
-                    SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn, embedded: { openedTopicID = $0 })
+                    SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn, embedded: { openedTopicID = $0 },
+                        undertake: viewerDomain == .merchant ? { r8Route = .undertake(topicID: $0) } : nil,
+                        onPublish: canManageActivities(club) ? { r8Route = .publish } : nil)
                 }
                 // V2 governance has its own access/me model, including delegated event staff.
                 if tab == .events, let governance = management?.governance {
@@ -404,7 +406,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     .presentationDetents([.medium, .large])
             }
             .navigationDestination(item: $r8Route) { route in
-                ClubDetailR8Destination(route: route, clubID: id, identity: reader.clubIdentity,
+                ClubDetailR8Destination(route: route, club: club, identity: reader.clubIdentity,
                                         session: reader as? AppSession, management: management)
             }
             .task(id: r8Key(club, tab: tab)) { await loadR8Mounts(club: club, tab: tab) }
@@ -604,7 +606,8 @@ private struct ClubDetailHeader: View {
                             .accessibilityIdentifier("club.detail.name")
                             .cyHeroTitleRise()
                         if !metaLine.isEmpty {
-                            Text(verbatim: metaLine).cyText(.meta).foregroundStyle(palette.textSecondary)
+                            // CLB-detail-37 (MP .profile-meta-text 16 pt): bodyCompact (15) is the nearest step on the type scale.
+                            Text(verbatim: metaLine).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("club.detail.fact.memberCount")
                         }

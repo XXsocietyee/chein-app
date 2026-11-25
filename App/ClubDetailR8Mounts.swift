@@ -125,6 +125,10 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     /// 成员治理, where the transfer lives (MP scene-club-edit 危险操作 → governance members).
     case workspace
     case transferOwner
+    /// CLB-G01: 邀约承接 → that topic's merchant project page (MP merchantinfo?topicId=&scope=MERCHANT).
+    case undertake(topicID: Int)
+    /// CLB-detail-20: 发布主题 from the empty 活动 state.
+    case publish
     var id: Self { self }
 }
 
@@ -167,10 +171,11 @@ enum ClubDetailR8Route: Hashable, Identifiable {
 
 @MainActor struct ClubDetailR8Destination: View {
     let route: ClubDetailR8Route
-    let clubID: Int
+    let club: ClubRecord
     let identity: ClubReadIdentity
     let session: AppSession?
     let management: ClubManagementContext?
+    private var clubID: Int { club.id }
     var body: some View {
         if let governance = management?.governance {
             switch route {
@@ -191,7 +196,7 @@ enum ClubDetailR8Route: Hashable, Identifiable {
             case .transferOwner:
                 ClubGovernanceReadView(operation: .members, scope: .init(clubID: clubID), identity: identity,
                                        access: governance.access, coordinator: governance.coordinator)
-            case .myCoop, .workspace:
+            case .myCoop, .workspace, .undertake, .publish:
                 nonGovernance
             }
         } else {
@@ -210,6 +215,13 @@ enum ClubDetailR8Route: Hashable, Identifiable {
                 ClubOperationsWorkspaceView(target: .club(clubID), identity: identity, access: operations.access,
                                             coordinator: operations.coordinator, hostApplication: management.governance)
             }
+        case .undertake(let topicID):
+            if let session {
+                MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID)
+                    .cyPushedChrome()
+            }
+        case .publish:
+            if let session { SessionClubProjectLaunchView(session: session, club: club) }
         default:
             EmptyView()
         }

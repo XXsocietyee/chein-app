@@ -6,12 +6,14 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var onSignIn: (() -> Void)? = nil
     var embedded: ((Int) -> Void)? = nil
+    var undertake: ((Int) -> Void)? = nil
+    var onPublish: (() -> Void)? = nil
     @State private var source: ClubPublicTopicsReader?
     @State private var capturedScope: ClubPublicTopicsScope?
     private var scope: ClubPublicTopicsScope? { session.clubPublicTopicsScope(clubID: clubID) }
     var body: some View {
         ClubPublicActivityListView(clubID: clubID, session: session, onSignIn: onSignIn,
-            source: capturedScope == scope ? source : nil, embedded: embedded)
+            source: capturedScope == scope ? source : nil, embedded: embedded, undertake: undertake, onPublish: onPublish)
             .task(id: scope) {
                 source = nil; capturedScope = nil
                 guard !Task.isCancelled, let expected = scope,

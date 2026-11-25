@@ -19,6 +19,12 @@ final class DesignR1ClubKitTests: XCTestCase {
         XCTAssertEqual(ClubMemberAction.menu(canGovern: true, targetIsOwner: false, targetIsAdmin: true), [.report, .tempBan, .remove])
     }
 
+    /// CLB-r7-A-07: an administrator without member governance is not offered 临时封禁.
+    func testMemberMenuHidesTempBanWithoutMemberGovernance() {
+        XCTAssertEqual(ClubMemberAction.menu(canGovern: true, targetIsOwner: false, targetIsAdmin: false, canTempBan: false),
+                       [.report, .makeAdmin, .remove])
+    }
+
     func testHeavyActionsNeedTheConsequenceSheet() {
         XCTAssertTrue(ClubMemberAction.remove.needsConsequenceSheet)
         XCTAssertTrue(ClubMemberAction.tempBan.needsConsequenceSheet)
