@@ -11,9 +11,34 @@ extension GlobalSearchKind {
 /// PC-A-4-1: one template result (MP discover-search.js `tplRow`): cover, title, 主题模板 / 玩法模板 label.
 struct GlobalTemplateResultRow: View {
     let row: GlobalTemplateSearchRow
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
+        // R7-PC-A4-2 (r8): MP search2/result draws template results as cover cards too; accessibility sizes keep the row.
+        if typeSize.isAccessibilitySize { rowLayout } else { coverLayout }
+    }
+    private var coverLayout: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            E1CoverArt(seed: row.title, symbol: row.kind == .topicTemplate ? "map" : "puzzlepiece.extension",
+                       imageURL: row.imageURL, debugLabel: false)
+                .frame(maxWidth: .infinity)
+                .frame(height: 160)
+                .clipped()
+            textColumn.padding(CYSpacing.md)
+        }
+        .background(CYColor.bgElevated)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+    private var rowLayout: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             DiscoveryTopicCoverThumb(urlString: row.imageURL, seed: row.title)
+            textColumn
+            Spacer(minLength: 0)
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .accessibilityElement(children: .combine)
+    }
+    private var textColumn: some View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(row.kind == .topicTemplate ? "searchMap.kind.topicTemplate" : "searchMap.kind.playTemplate")
                     .cyText(.caption).foregroundStyle(CYColor.textSecondary)
@@ -24,10 +49,6 @@ struct GlobalTemplateResultRow: View {
                 }
                 if row.previewOnly { Text("searchMap.template.previewOnly").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
             }
-            Spacer(minLength: 0)
-        }
-        .frame(minHeight: CYSpacing.minTouchTarget)
-        .accessibilityElement(children: .combine)
     }
 }
 struct SearchMapIssue: View {

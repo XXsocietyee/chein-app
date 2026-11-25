@@ -16,6 +16,8 @@ struct DiscoveryTemplateDetailView: View {
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
     @State private var adoption: Adoption?
+    @State private var pendingAdoption: Adoption?
+    @State private var showsAdoptLogin = false
     @State private var tab: TemplateDetailTab = .details
     @State private var capabilityPreview: TemplateNodePreviewState?
     @State private var toastMessage: String?
@@ -31,6 +33,12 @@ struct DiscoveryTemplateDetailView: View {
         let key: RequestKey
         nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
         nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    }
+    private func resumePendingAdoption() {
+        guard let pending = pendingAdoption, loadedKey == requestKey, pending.source.id == id,
+              (reader as? AppSession)?.isSignedIn == true else { return }
+        pendingAdoption = nil
+        adoption = Adoption(source: pending.source, key: requestKey)
     }
     private struct RequestKey: Hashable {
         let id: Int
@@ -92,9 +100,11 @@ struct DiscoveryTemplateDetailView: View {
                                         return
                                     }
                                     // R7-PC-A6-2 (r1 PC-A-6-3): MP `ensureLogin` before 应用 — a guest goes to sign-in.
+                                    // R7-PC-A6-2 (r8, MP `ensureLoginFor` callback): sign in over this page, then resume 应用.
                                     if (reader as? AppSession)?.isSignedIn == false {
                                         toastMessage = appLocalized("discovery.adopt.signIn", locale: locale)
-                                        if rootTabSwitch.isAvailable { (reader as? AppSession)?.dismissNativeEntry(); rootTabSwitch(.mine) }
+                                        pendingAdoption = Adoption(source: item, key: requestKey)
+                                        showsAdoptLogin = true
                                         return
                                     }
                                     adoption = Adoption(source: item, key: requestKey)
@@ -171,6 +181,16 @@ struct DiscoveryTemplateDetailView: View {
         .appNavigationTitle("discovery.playDetails")
         .navigationBarTitleDisplayMode(.inline)
         .cyToast(verbatimMessage: $toastMessage)
+        .sheet(isPresented: $showsAdoptLogin, onDismiss: {
+            // Resume once signed in. Signing in changes the read scope, so wait for the re-read of this template if needed.
+            guard (reader as? AppSession)?.isSignedIn == true else { pendingAdoption = nil; return }
+            resumePendingAdoption()
+        }) {
+            if let session = reader as? AppSession {
+                Group { LoginView(intent: .player).environmentObject(session) }
+                    .presentationDetents([.large]).presentationDragIndicator(.visible)
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 UGCSafetyMenuButton(
@@ -186,6 +206,7 @@ struct DiscoveryTemplateDetailView: View {
         .task(id: requestKey) { if reader.isConfigured { await reload() } }
         .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
         .onChange(of: requestKey) { _, _ in adoption = nil; tab = .details }
+        .onChange(of: loadedKey) { _, _ in if !showsAdoptLogin { resumePendingAdoption() } }
         .sheet(item: $capabilityPreview) { state in
             TemplateNodePreviewSheet(state: state) { capabilityPreview = nil }
                 .cyDomainSheet(detents: [.half, .full])
