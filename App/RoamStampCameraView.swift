@@ -26,7 +26,9 @@ import UIKit
     @State private var exchangeStarted = Date()
     private enum Focus: Hashable { case capture, status }
     @AccessibilityFocusState private var focusedControl: Focus?
-    @State private var purposeAccepted = false
+    /// SCAM-2 (MP-first, owner 2026-11-25): the MP stamp camera has no consent switch and opens the camera at once
+    /// (subpackageP3/pages/stamp-camera/index/index.wxml:9-34); iOS still shows its own camera permission prompt.
+    @State private var purposeAccepted = true
     @State private var showingCamera = false
     @State private var cameraIssue = false
     @State private var revision = 0
@@ -59,7 +61,6 @@ import UIKit
                     Button("action.back") { dismiss() }.frame(minHeight: 44)
                         .accessibilityIdentifier("media.stamp.cameraIssue.back")
                 }
-                Toggle("media.stamp.consent", isOn: $purposeAccepted).tint(.green).disabled(isBusy || showingCamera)
             } footer: { Text("media.stamp.purpose") }
             if showsCaption { captionSection }
             if let coordinator {
@@ -188,7 +189,11 @@ import UIKit
                     }.ignoresSafeArea()
                 }
             }
-            .onAppear { coordinator?.changed = { revision += 1 } }
+            .onAppear {
+                coordinator?.changed = { revision += 1 }
+                // SCAM-2: open the viewfinder on arrival, as the MP page does.
+                if coordinator?.selection == nil, coordinator?.pending == nil { requestCamera() }
+            }
             .onDisappear { if !showingCamera { stop() } }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .background { invalidateCapture() }
