@@ -732,6 +732,23 @@
         }
       }
     },
+    "merchantR8.onboarding.introTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put your store on players' routes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把你的店放进玩家的路线里"
+          }
+        }
+      }
+    },
     "merchantR8.onboarding.pickAddress": {
       "extractionState": "manual",
       "localizations": {
@@ -745,6 +762,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "点击选择位置"
+          }
+        }
+      }
+    },
+    "merchantR8.onboarding.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始入驻"
           }
         }
       }

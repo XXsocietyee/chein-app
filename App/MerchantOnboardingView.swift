@@ -23,6 +23,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @State private var showHours = false
     /// MC8-02-1: the 店铺地址 map picker (MP wx.chooseLocation) writes address + locationLat/locationLng.
     @State private var showsAddressPicker = false
+    /// MC8-02-4: the 开场屏 shows once before step 1 of a fresh application (no /merchant/info application).
+    @State private var introDismissed = false
     @State private var hoursEditor: MerchantOnboardingHoursSession?
     @State private var showUploadConfirmation = false
     @State private var showSubmitConfirmation = false
@@ -226,8 +228,27 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                         refreshButton
                     }
                 }
+            } else if snapshot == .none, !introDismissed, model.step == 1, !model.isBusy {
+                introScreen
             } else { applicationForm }
         }
+    }
+    /// MC8-02-4 (apply/index.wxml:22-31): 把你的店放进玩家的路线里 + 开始入驻. 认领已有门店 is not offered until the
+    /// claim flow exists (MC8-02-3, for Cursor), so there is no dead link.
+    private var introScreen: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xl) {
+            Spacer(minLength: 0)
+            Text("merchantR8.onboarding.introTitle")
+                .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            CYPillButton("merchantR8.onboarding.start") { introDismissed = true }
+                .accessibilityIdentifier("merchant.onboarding.intro.start")
+        }
+        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .padding(.bottom, CYSpacing.xxl)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        .accessibilityIdentifier("merchant.onboarding.intro")
     }
     private var onboardingHero: some View {
         Section {
