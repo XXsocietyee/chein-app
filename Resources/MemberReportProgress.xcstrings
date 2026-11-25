@@ -358,7 +358,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "状态暂时无法识别"
+            "value": "—"
           }
         },
         "en": {
@@ -614,7 +614,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源隐私标记：向被举报方隐藏。"
+            "value": "被举报方看不到你的身份和举报内容"
           }
         },
         "en": {
@@ -812,7 +812,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录后查看你的举报"
+            "value": "登录后查看"
           }
         },
         "en": {
