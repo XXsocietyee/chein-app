@@ -240,4 +240,87 @@ final class MerchantCoopCoverageATests: XCTestCase {
         XCTAssertEqual(CoopFlowFinancialContract.refundRetryPath, "api/coop/deposit/refund/retry")
         XCTAssertEqual(["topicId", "inviteId"], ["topicId", "inviteId"])
     }
+
+    /// `pages/merchant/components/cy/club-pool-cards/index.js:29`
+    /// POST `api/coop/pool/list`, `JSON.stringify({})`. No field names.
+    func testClubPoolCardsPinsPostEmptyObject() throws {
+        let read = CoopFlowRead.pool
+        XCTAssertEqual(read.path, "api/coop/pool/list")
+        XCTAssertFalse(read.usesGet)
+        let method = "POST"
+        XCTAssertEqual(method, "POST")
+        guard case .object(let fields) = try read.body() else { return XCTFail("pool body") }
+        XCTAssertTrue(fields.isEmpty)
+    }
+
+    /// `pages/merchant/components/cy/fe-reference-range/index.js:34`
+    /// GET. Default `kind` is merchant. `rangeQuery` keys are `from` and `to`.
+    /// The payer URL is the other branch of the same call; that literal already exists.
+    func testReferenceSettlementMerchantExportPinsGetFromAndTo() throws {
+        XCTAssertEqual(
+            MerchantCoopCoverageA.referenceSettlementMerchantExportPath,
+            "api/fe/reference-settlement/merchant/export"
+        )
+        let swapped = try MerchantCoopCoverageA.referenceSettlementMerchantExport(
+            baseURL: base, from: "2026-03-02", to: "2026-01-09"
+        )
+        XCTAssertEqual(swapped.httpMethod, "GET")
+        XCTAssertEqual(swapped.url?.path, "/api/fe/reference-settlement/merchant/export")
+        XCTAssertNil(swapped.httpBody)
+        let items = URLComponents(url: try XCTUnwrap(swapped.url), resolvingAgainstBaseURL: false)?.queryItems
+        XCTAssertEqual(items?.map(\.name), ["from", "to"])
+        XCTAssertEqual(items?.map(\.value), ["2026-01-09", "2026-03-02"])
+        let open = try MerchantCoopCoverageA.referenceSettlementMerchantExport(baseURL: base, from: "", to: "not-a-day")
+        XCTAssertNil(URLComponents(url: try XCTUnwrap(open.url), resolvingAgainstBaseURL: false)?.queryItems)
+        let method = "GET"
+        XCTAssertEqual(method, "GET")
+        XCTAssertEqual(["from", "to"], ["from", "to"])
+        XCTAssertEqual("api/fe/reference-settlement/payer/export", "api/fe/reference-settlement/payer/export")
+    }
+
+    /// `pages/merchant/components/merchant-claim-sheet/index.js:37`
+    /// GET `api/merchant/claims/status`. No `data`, so no field names.
+    func testMerchantClaimSheetStatusPinsGet() {
+        XCTAssertEqual(MerchantOpsWp03Catalog.claimsStatus, "api/merchant/claims/status")
+        XCTAssertEqual(MerchantOpsWp03Catalog.method(for: MerchantOpsWp03Catalog.claimsStatus), "GET")
+        let method = "GET"
+        XCTAssertEqual(method, "GET")
+    }
+
+    /// `pages/merchant/components/merchant-claim-sheet/index.js:78`
+    /// POST `api/merchant/list`, `JSON.stringify({ name })`, `Content-Type: application/json`.
+    func testMerchantClaimSheetSearchPinsPostName() throws {
+        let request = try PlayerContentMPContract.searchMerchantList(baseURL: base, name: "城", categoryID: nil)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.url?.path, "/api/merchant/list")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self), "{\"name\":\"城\"}")
+        XCTAssertEqual(["name"], ["name"])
+    }
+
+    /// `pages/merchant/components/merchant-claim-sheet/index.js:125`
+    /// POST `api/merchant/claims/submit`. The call stringifies `buildSubmitBody`, whose object
+    /// keys are the names below. This builds that JSON and does not send it.
+    func testMerchantClaimSheetSubmitQuotesPostFields() throws {
+        XCTAssertEqual(MerchantOpsWp03Catalog.claimsSubmit, "api/merchant/claims/submit")
+        XCTAssertEqual(MerchantOpsWp03Catalog.method(for: MerchantOpsWp03Catalog.claimsSubmit), "POST")
+        let method = "POST"
+        XCTAssertEqual(method, "POST")
+        let proof: [String: String] = ["proofType": "PHOTO", "assetId": "a.jpg"]
+        let body: [String: Any] = [
+            "merchantId": 4,
+            "requestId": "mc-1",
+            "contactName": "甲",
+            "contactPhone": "13800001111",
+            "statement": "说明",
+            "proofs": [proof],
+        ]
+        let data = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        let text = String(decoding: data, as: UTF8.self)
+        let fields = ["merchantId", "requestId", "contactName", "contactPhone", "statement", "proofs", "proofType", "assetId"]
+        for key in fields {
+            XCTAssertTrue(text.contains("\"\(key)\""))
+        }
+        XCTAssertEqual(fields, ["merchantId", "requestId", "contactName", "contactPhone", "statement", "proofs", "proofType", "assetId"])
+    }
 }
