@@ -2162,7 +2162,8 @@ struct ClubGovernanceEventView: View {
             }
             ForEach(chapter.gameplay) { play in
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    ClubStoryGameplayCard(play: play, imageReader: templates.imageReader)
+                    ClubStoryGameplayCard(play: play, imageReader: templates.imageReader,
+                                          order: (chapter.gameplay.firstIndex(of: play) ?? 0) + 1)
                     // CLB-topic-story-02 (MP wxml:97-104): one row of borderless actions; 查看答案 opens one sheet.
                     HStack(spacing: CYSpacing.lg) {
                         if let selection = templateSelection(play) {
