@@ -732,6 +732,23 @@
         }
       }
     },
+    "merchantR8.onboarding.pickAddress": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to choose a location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击选择位置"
+          }
+        }
+      }
+    },
     "merchantR8.projects.all %lld": {
       "extractionState": "manual",
       "localizations": {

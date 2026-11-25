@@ -21,6 +21,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @State private var showBrandUploadConfirmation = false
     @State private var showPhotos = false
     @State private var showHours = false
+    /// MC8-02-1: the 店铺地址 map picker (MP wx.chooseLocation) writes address + locationLat/locationLng.
+    @State private var showsAddressPicker = false
     @State private var hoursEditor: MerchantOnboardingHoursSession?
     @State private var showUploadConfirmation = false
     @State private var showSubmitConfirmation = false
@@ -347,8 +349,25 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     }
     private var businessSection: some View {
         Section("merchant.onboarding.step.2") {
-            TextField("merchant.onboarding.address", text: $model.draft.address, axis: .vertical)
-                .accessibilityIdentifier("merchant.onboarding.address")
+            // MC8-02-1 (apply/index.js:509-540, index.wxml:140-142): the address is picked on the map, not typed.
+            Button { showsAddressPicker = true } label: {
+                LabeledContent("merchant.onboarding.address") {
+                    if model.draft.address.isEmpty { Text("merchantR8.onboarding.pickAddress").foregroundStyle(CYColor.textTertiary) }
+                    else { Text(verbatim: model.draft.address).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.trailing) }
+                }
+                .frame(minHeight: CYSpacing.minTouchTarget)
+            }
+            .disabled(model.isBusy || model.coordinator.submission.isLocked)
+            .accessibilityIdentifier("merchant.onboarding.address")
+            .sheet(isPresented: $showsAddressPicker) {
+                PublishingPlacePicker(provider: PublishingMapKitAdapter()) { place in
+                    model.draft.address = place.address.isEmpty ? place.name : place.address
+                    model.draft.locationLat = place.latitude
+                    model.draft.locationLng = place.longitude
+                    showsAddressPicker = false
+                }
+                .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            }
             CYListRow("merchant.onboarding.hours", trailing: .value(model.draft.businessTime.isEmpty ? "—" : displayHours(model.draft.businessTime)))
             Button("merchant.onboarding.chooseHours") {
                 hoursEditor = MerchantOnboardingHoursSession(model: model)
