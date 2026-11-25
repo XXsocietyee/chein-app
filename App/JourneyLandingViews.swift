@@ -518,14 +518,21 @@ enum JourneySeatsPhase: Equatable {
     func cancelInvitation(_ id: String)
     func goToStart()
     func editMe()
+    /// JSEAT-r8-1b (MP seats index.js:161-180): 转赠第 N 席 by phone. nil hides 转赠给同伴.
+    var transferSeat: ((Int, String, String) async -> JourneySeatTransferOutcome)? { get }
 }
 
 @MainActor struct JourneySeatsHost: View {
     let binding: any JourneySeatsBinding
+    /// JSEAT-r8-1b: the sheet's request id is ignored; Core keeps the MP retained id per form (JourneyLoopSource.swift:265).
+    private var transferHandler: ((Int, String, String, String) async -> JourneySeatTransferOutcome)? {
+        guard let transfer = binding.transferSeat else { return nil }
+        return { seatNo, name, phone, _ in await transfer(seatNo, name, phone) }
+    }
     var body: some View {
         JourneySeatsView(phase: binding.phase, onRetry: { binding.load() }, onInvite: { binding.requestInvite() },
                          onCancel: { binding.cancelInvitation($0) }, onStart: { binding.goToStart() }, onEditMe: { binding.editMe() },
-                         onSignIn: { PlayerJourneySignInBridge.shared.request() })
+                         onSignIn: { PlayerJourneySignInBridge.shared.request() }, onTransfer: transferHandler)
             .task { binding.load() }
             // JSEAT-6: re-read once the shared sign-in sheet closes (MP onShow re-reads after login).
             .onChange(of: PlayerJourneySignInBridge.shared.presented) { was, now in if was && !now { binding.load() } }
