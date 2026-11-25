@@ -1091,11 +1091,16 @@ enum PlayerJourneyProjection {
         let free = int(object["freeSeats"])
         let canInvite = object["buyerIsCaller"] as? Bool == true && object["readOnly"] as? Bool == false && (free ?? 0) > 0
         let cancelSupported = object["seatCancelSupported"] as? Bool == true
+        // JSEAT-r8-1 (MP journey-view.seatsView `canTransfer`): open seat, not seat 1, server says phone transfer is supported.
+        let transferSupported = object["seatPhoneTransferSupported"] as? Bool == true && object["buyerIsCaller"] as? Bool == true
+            && object["readOnly"] as? Bool == false
+        var transferable: [Int] = []
         let rows = (object["seats"] as? [Any] ?? []).compactMap { $0 as? [String: Any] }
         var circles: [JourneySeatCircle] = []
         var invited: [JourneyInvitedRow] = []
         for row in rows {
             guard let no = int(row["seatNo"]), let kind = seatKind(string(row["state"])) else { continue }
+            if kind == .open && no > 1 && transferSupported { transferable.append(no) }
             circles.append(JourneySeatCircle(no: no, kind: kind, avatarURL: kind == .me ? me?.avatarURL : nil,
                                              initial: kind == .me ? me.flatMap { $0.initial.isEmpty ? nil : $0.initial } : nil,
                                              tappable: kind == .open && canInvite))
@@ -1104,7 +1109,8 @@ enum PlayerJourneyProjection {
             let invitation = idText(row["invitationId"])
             invited.append(JourneyInvitedRow(invitationID: invitation ?? "seat-\(no)", no: no, kind: kind,
                                              expiresText: kind == .invited ? timeText(row["invitationExpiresAt"]) : nil,
-                                             canCancel: kind == .invited && cancelSupported && invitation != nil))
+                                             canCancel: kind == .invited && cancelSupported && invitation != nil,
+                                             who: seatRecipient(row, kind: kind)))
         }
         let count = int(object["seatCount"])
         let taken = circles.filter { [.me, .verified, .claimed, .reserved].contains($0.kind) }.count
@@ -1116,8 +1122,15 @@ enum PlayerJourneyProjection {
                                           openCount: circles.filter { $0.kind == .open }.count, invited: invited,
                                           multi: (count ?? 0) > 1,
                                           tiles: tiles(choices), canGoToStart: idText(object["topicId"]) != nil,
-                                          actionError: nil, inviteShareURL: nil)
+                                          actionError: nil, inviteShareURL: nil, transferable: transferable)
         return .ready(content)
+    }
+
+    /// MP `who`: PHONE channel, INVITED / CLAIMED → recipientName + recipientPhoneMasked (only the buyer gets them).
+    private static func seatRecipient(_ row: [String: Any], kind: JourneySeatKind) -> String? {
+        guard string(row["invitationChannel"]) == "PHONE", kind == .invited || kind == .claimed else { return nil }
+        let parts = [string(row["recipientName"]), string(row["recipientPhoneMasked"])].compactMap { $0 }.filter { !$0.isEmpty }
+        return parts.isEmpty ? nil : parts.joined(separator: " ")
     }
 
     private static func seatKind(_ state: String?) -> JourneySeatKind? {
