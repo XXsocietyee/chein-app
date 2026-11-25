@@ -285,8 +285,10 @@ import SwiftUI
         case "pages/club/detail/index":
             // MP detail onLoad: `tab` = manage | overview; `owner` without an id resolves my own club.
             if let id = reviewedID(query) {
-                clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil },
-                           postID: positiveID(query["postId"]))
+                // CLB-G02: `scan=1` (MP js:754-755) lands on 管理, where 扫码 lives, and starts the scanner.
+                let scan = query["scan"] == "1"
+                clubDetail(id, tab: scan ? .manage : ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil },
+                           postID: positiveID(query["postId"]), autoScan: scan)
             } else if query["owner"] != nil {
                 // MP club/detail/index.js:798-819 resolveOwnerEntry: exactly one owned club opens it (on `tab`); several → picker.
                 let tab = ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil }
@@ -821,10 +823,10 @@ import SwiftUI
 
     @Environment(\.clubBadgeHostFactory) private var badgeHost
 
-    private func clubDetail(_ id: Int, tab: ClubDetailTab?, postID: Int? = nil) -> some View {
+    private func clubDetail(_ id: Int, tab: ClubDetailTab?, postID: Int? = nil, autoScan: Bool = false) -> some View {
         ClubDetailView(id: id, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
                        management: session.clubManagementContext, community: session.clubCommunityContext,
-                       publicRoster: session.clubPublicRosterReader, requestedTab: tab, focusPostID: postID)
+                       publicRoster: session.clubPublicRosterReader, requestedTab: tab, focusPostID: postID, autoScan: autoScan)
     }
 
     private var ownedClubs: some View {

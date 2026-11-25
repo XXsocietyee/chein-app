@@ -14,6 +14,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     var requestedTab: ClubDetailTab? = nil
     /// CLB-detail-31: MP `postId` deep link; lands on 帖文 and scrolls the feed to that post.
     var focusPostID: Int? = nil
+    /// CLB-G02: MP `scan=1` (detail js:754-755) starts 扫码核销 once the page has loaded and the viewer may scan.
+    var autoScan = false
     @State private var selectedTab: ClubDetailTab? = nil
     @State private var manageGrant: ClubDetailManageGrant? = nil
     @State private var actionDetail: ClubRecord? = nil
@@ -125,6 +127,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                          ownerStage: ownerStage,
                                          onApprovals: management == nil ? nil : { showsApprovals = true },
                                          onEvents: { selectedTab = tabs.select(.events, from: tab) })
+                }
+                // MP quick-acts (wxml:367-395): 扫码 (CLB-G02).
+                if tab == .manage {
+                    ClubManageQuickActions(canScan: club.canGovern || canManageActivities(club), canGovern: club.canGovern,
+                                           canManageActivities: canManageActivities(club), autoStartScan: autoScan,
+                                           submitScan: (reader as? AppSession)?.clubScanSubmit)
                 }
                 // CLB-detail-09 / CLB-r7-A-04 (MP wxml:452-475): 管理中的项目 with 活动导演台 and 场次工具.
                 if tab == .manage, club.canGovern || canManageActivities(club), management?.governance != nil {
