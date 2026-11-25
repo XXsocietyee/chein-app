@@ -22,7 +22,7 @@ public struct MerchantCityNPCParityGates: Equatable {
     /// - store character: pages/merchant/decor/ai-npc/index.js:533,744,942,1150
     public static var mpFirst: Self {
         var gates = Self()
-        gates.cityNodeWrites = true; gates.stationCommands = true
+        // City-node claim/cancel/offline/save is `MerchantCoopLiveWrites.cityNode`. Station commands stay off.
         gates.storeCharacterSaves = true; gates.storeVoiceEnrollment = true
         return gates
     }
@@ -32,7 +32,6 @@ public struct MerchantCityNPCParityGates: Equatable {
     public static let mpFirstChinaEndpoints: Set<String> = [
         "api/merchant/city-node/claim", "api/merchant/city-node/claim/cancel",
         "api/merchant/city-node/offline", "api/merchant/city-node/save",
-        "api/game/session/command", "api/game/session/receipt",
         "api/merchant/npc/save", "api/merchant/decor/save", "api/merchant/npc/voice/enroll", "api/merchant/npc/voice/reset",
         "api/compliance/consents"
     ]

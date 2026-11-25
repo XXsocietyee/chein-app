@@ -72,8 +72,11 @@ import XCTest
             XCTAssertTrue(approval.permits(mutation, merchantID: 31, context: context), "\(mutation.action)")
             XCTAssertFalse(approval.permits(mutation, merchantID: 0, context: context), "\(mutation.action)")
         }
-        XCTAssertEqual(MerchantBusinessAction.mpFirst.count, 16)
-        XCTAssertFalse(MerchantBusinessAction.mpFirst.contains(.saveSku))
+        let report = MerchantBusinessMutation.review(id: try MerchantBusinessReviewID(81), version: 2, action: .report, content: "广告")
+        XCTAssertFalse(approval.permits(report, merchantID: 9, context: context))
+        let sku = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2,
+            originalPrice: nil, pic: nil, bookable: false, slotMinutes: 60, capacityPerSlot: 0, ruleVersion: 4)
+        XCTAssertFalse(approval.permits(sku, merchantID: 9, context: context))
     }
 
     func testMPFirstApprovalStillPinsAccountAndHost() throws {
@@ -90,8 +93,10 @@ import XCTest
         let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: try approval(),
                                                         transport: MPFirstNoWire(), current: { context })
         XCTAssertNotNil(factory.service(for: .inviteOperator(role: "MERCHANT_MANAGER"), merchantID: 9))
-        XCTAssertNil(MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: nil, transport: MPFirstNoWire(), current: { context })
-            .service(for: .inviteOperator(role: "MERCHANT_MANAGER"), merchantID: 9))
+        let open = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: nil, transport: MPFirstNoWire(), current: { context })
+        XCTAssertNotNil(open.service(for: .inviteOperator(role: "MERCHANT_MANAGER"), merchantID: 9))
+        let report = MerchantBusinessMutation.review(id: try MerchantBusinessReviewID(81), version: 2, action: .report, content: "广告")
+        XCTAssertNil(open.service(for: report, merchantID: 9))
     }
 
     /// pages/merchant/team/index.js:806-818: POST api/merchant/operators/invite/accept {token, requestId}.
@@ -104,12 +109,13 @@ import XCTest
         let endpoints = try OperationEndpointApproval(baseURL: url, namespace: "merchant-cn", accountID: 7,
                                                       paths: [MerchantEngagementProductionApproval.acceptInvitationPath])
         let open = try MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [],
-                                                            reviewedPolicyVersion: "mp-first-2026-11-25", mpFirstAcceptInvitation: true)
-        XCTAssertTrue(open.permits(command, merchantID: 0, context: try context()))
+                                                            reviewedPolicyVersion: MerchantCoopLiveWrites.policyVersion)
+        XCTAssertFalse(open.permits(command, merchantID: 0, context: try context()))
         XCTAssertTrue(open.permits(command, merchantID: 9, context: try context()))
-        XCTAssertFalse(open.permits(command, merchantID: 0, context: try context(account: 8)))
-        let closed = try MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [], reviewedPolicyVersion: "reviewed")
-        XCTAssertFalse(closed.permits(command, merchantID: 0, context: try context()))
+        XCTAssertFalse(open.permits(command, merchantID: 9, context: try context(account: 8)))
+        let other = try OperationEndpointApproval(baseURL: url, namespace: "merchant-cn", accountID: 7, paths: ["api/merchant/crm/segments"])
+        let closed = try MerchantEngagementProductionApproval(market: .china, endpoints: other, grants: [], reviewedPolicyVersion: "reviewed")
+        XCTAssertFalse(closed.permits(command, merchantID: 9, context: try context()))
     }
 }
 

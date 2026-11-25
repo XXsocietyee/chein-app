@@ -28,7 +28,7 @@ import XCTest
     }
     func test_station_command_only_for_merchant_station_actions() throws {
         let station = try request("api/game/session/command", body: ["action": .string("STATION_ACCEPT"), "activityId": .integer(1)])
-        XCTAssertTrue(MerchantContentMPWriteRoute.accepts(station, baseURL: base, token: "synthetic-token"))
+        XCTAssertFalse(MerchantContentMPWriteRoute.accepts(station, baseURL: base, token: "synthetic-token"))
         let team = try request("api/game/session/command", body: ["action": .string("USE_ITEM")])
         XCTAssertFalse(MerchantContentMPWriteRoute.accepts(team, baseURL: base, token: "synthetic-token"))
     }

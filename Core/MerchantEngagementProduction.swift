@@ -14,8 +14,7 @@ public struct MerchantEngagementActionGrant: Equatable {
     public init(merchantID: Int, command: MerchantEngagementCommand) throws {
         guard merchantID > 0 else { throw APIError.invalidConfiguration }
         _ = try command.request(requestID: "grant-validation")
-        // The source has no invitation destination/role preview. A token is not identity proof.
-        if case .acceptInvitation = command { throw MerchantBusinessFailure.disabled }
+        // Accept sends the same body as the mini-program: {token, requestId}. It is not a role preview.
         self.merchantID = merchantID; self.command = command
     }
 }
@@ -38,31 +37,24 @@ public struct MerchantEngagementProductionApproval {
     public let deviceGrants: [MerchantEngagementDeviceGrant]
     public let reviewedObligations: Set<MerchantEngagementObligation>
     public let reviewedPolicyVersion: String
-    /// Owner 2026-11-25 MP-first rule: the MP posts `api/merchant/operators/invite/accept {token, requestId}` from
-    /// pages/merchant/team/index.js:806-818 for any signed-in account; the server checks the token.
-    public let mpFirstAcceptInvitation: Bool
     public static let acceptInvitationPath = "api/merchant/operators/invite/accept"
     public init(market: RegionalMarket, endpoints: OperationEndpointApproval, grants: [MerchantEngagementActionGrant],
-                deviceGrants: [MerchantEngagementDeviceGrant] = [], reviewedObligations: Set<MerchantEngagementObligation> = [], reviewedPolicyVersion: String,
-                mpFirstAcceptInvitation: Bool = false) throws {
+                deviceGrants: [MerchantEngagementDeviceGrant] = [], reviewedObligations: Set<MerchantEngagementObligation> = [], reviewedPolicyVersion: String) throws {
         guard !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.invalidConfiguration }
         self.market = market; self.endpoints = endpoints; self.grants = grants; self.deviceGrants = deviceGrants
         self.reviewedObligations = reviewedObligations; self.reviewedPolicyVersion = reviewedPolicyVersion
-        self.mpFirstAcceptInvitation = mpFirstAcceptInvitation
     }
     public func matches(_ context: RuntimeDependencyContext) -> Bool {
         market == .china && context.market == market && endpoints.baseURL == context.baseURL &&
         endpoints.accountID == context.session.accountID && endpoints.namespace == context.session.namespace
     }
     public func permits(_ command: MerchantEngagementCommand, merchantID: Int, context: RuntimeDependencyContext) -> Bool {
-        if case .acceptInvitation = command {
-            guard mpFirstAcceptInvitation, merchantID >= 0, matches(context),
-                  let request = try? command.request(requestID: "grant-validation") else { return false }
+        if grants.isEmpty, MerchantCoopLiveWrites.admitsAccept(command, merchantID: merchantID) {
+            guard matches(context), let request = try? command.request(requestID: "grant-validation") else { return false }
             return request.path == Self.acceptInvitationPath && endpoints.paths.contains(request.path)
         }
         guard matches(context), let request = try? command.request(requestID: "grant-validation"), endpoints.paths.contains(request.path),
               grants.contains(where: { $0.merchantID == merchantID && $0.command == command }) else { return false }
-        if case .acceptInvitation = command { return false }
         return command.productionObligation.map { reviewedObligations.contains($0) } ?? true
     }
     public func permitsDevice(_ action: MerchantEngagementDeviceGrant.Action, merchantID: Int, context: RuntimeDependencyContext) -> Bool {
@@ -90,8 +82,6 @@ public extension MerchantEngagementCommand {
         switch self {
         case .dispatchCampaign, .retryCampaign:
             guard let task = proof.campaign, task.hasReviewableMessage else { throw MerchantBusinessFailure.disabled }
-        // Gated by `MerchantEngagementProductionApproval.mpFirstAcceptInvitation`; the server checks the token (MP-first).
-        case .acceptInvitation: break
         case .uploadEvidence:
             guard let fields = proof.refund?.rows.first(where: { $0.kind == .refund })?.fields,
                   fields["canRespond"]?.bool == true,
@@ -162,13 +152,14 @@ public extension MerchantEngagementCommand {
     func withDispatchBarrier(_ barrier: @escaping @MainActor () async -> Void) -> Self { var copy = self; copy.beforeForward = barrier; return copy }
     func withDownloadTestingTransport(_ transport: any HTTPTransport) -> Self { var copy = self; copy.downloadTestingTransport = transport; return copy }
     public func service(for command: MerchantEngagementCommand, merchantID: Int) -> MerchantEngagementService? {
-        guard let approval, let captured = current(), api.baseURL == captured.baseURL,
-              approval.permits(command, merchantID: merchantID, context: captured) else { return nil }
+        let issued = approval ?? MerchantCoopLiveWrites.engagementApproval(command: command, merchantID: merchantID, context: current())
+        guard let issued, let captured = current(), api.baseURL == captured.baseURL,
+              issued.permits(command, merchantID: merchantID, context: captured) else { return nil }
         let wire: any HTTPTransport
         if case .downloadExport = command {
             wire = downloadTestingTransport ?? ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: Self.maximumDownloadBytes)
         } else { wire = transport }
-        let scoped = MerchantEngagementProductionTransport(api: api, approval: approval, captured: captured, command: command,
+        let scoped = MerchantEngagementProductionTransport(api: api, approval: issued, captured: captured, command: command,
             merchantID: merchantID, transport: wire, current: current, beforeForward: beforeForward)
         return .init(productionConfiguration: api, productionTransport: scoped)
     }

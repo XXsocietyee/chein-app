@@ -12,7 +12,7 @@ enum MPFirstMerchantApprovals {
     static let businessPaths: Set<String> = [
         "api/merchant/crm/customers/tags/batch", "api/merchant/aftercare/respond",
         "api/merchant/reviews/reply", "api/merchant/reviews/reply/update", "api/merchant/reviews/reply/delete",
-        "api/merchant/reviews/manage/report", "api/merchant/operators/invite", "api/merchant/operators/role",
+        "api/merchant/operators/invite", "api/merchant/operators/role",
         "api/merchant/operators/remove", "api/merchant/operators/invite/revoke"
     ]
 
@@ -29,7 +29,7 @@ enum MPFirstMerchantApprovals {
                                                              accountID: context.session.accountID,
                                                              paths: [MerchantEngagementProductionApproval.acceptInvitationPath]) else { return nil }
         return try? MerchantEngagementProductionApproval(market: .china, endpoints: endpoints, grants: [],
-                                                         reviewedPolicyVersion: "mp-first-2026-11-25", mpFirstAcceptInvitation: true)
+                                                         reviewedPolicyVersion: MerchantCoopLiveWrites.policyVersion)
     }
 }
 

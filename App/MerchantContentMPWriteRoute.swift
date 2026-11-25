@@ -6,7 +6,7 @@ import QuestifyCore
 /// MP-first (owner 2026-11-25, R7-PC-B2-1 / R7-PC-B3-1): composition admission for the merchant-content writes
 /// `MerchantContentService` sends once `MerchantContentWriteApproval` permits them. Exact paths from
 /// `MerchantContentCommand.request()`; chapter invite / respond keep their own `ChapterWriteExit`.
-/// `api/game/session/command` is admitted here only for merchant station actions; team item commands keep the play lease.
+/// Station commands are not admitted. Team item commands keep the play lease.
 /// None of these is money; the server's own permission checks decide.
 enum MerchantContentMPWriteRoute {
     static let paths: Set<String> = [
@@ -20,8 +20,6 @@ enum MerchantContentMPWriteRoute {
         "api/merchant/chapter-node/npc/save", "api/merchant/chapter-node/npc/voice/enroll",
         "api/merchant/chapter-node/npc/voice/reset"
     ]
-    static let stationPath = "api/game/session/command"
-    static let stationActions: Set<String> = Set(MerchantStationAction.allCases.map(\.rawValue))
 
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
         guard let token, AuthRequestBuilder.isValidToken(token), request.httpMethod == "POST",
@@ -31,9 +29,7 @@ enum MerchantContentMPWriteRoute {
               url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port else { return false }
         func exact(_ path: String) -> Bool { url.path == baseURL.appendingPathComponent(path).path }
         if paths.contains(where: exact) { return true }
-        guard exact(stationPath),
-              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
-              let action = object["action"] as? String else { return false }
-        return stationActions.contains(action)
+        // Station commands stay off. Team item commands keep the play lease.
+        return false
     }
 }
