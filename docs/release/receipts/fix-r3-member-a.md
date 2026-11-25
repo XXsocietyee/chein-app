@@ -186,7 +186,7 @@ Every `navigateTo` / `redirectTo` / `navigateBack` / `switchTab` in `market/*`, 
 |---|---|---|---|
 | flows-g1 free-explore `?topicId=` / `?requestId=` | catalog / receipt | `FreeExploreTopicCatalogScreen` / `FreeExploreReceiptResolveScreen` (round 3) | OK |
 | flows-g1 coupon/coupon forbidden CTA + summary tiles | `merchant/apply`, tiles | round 3 (`denyAction`, `CouponPageSummary`) | OK |
-| flows-g2 `talent/list:122 → market/passes` (MISSING-ROUTE for Claude) | `goStore` | Already present: `PassExploreStoreCard` (`App/MPPassEntries.swift:42`) pushes `MPParityDestination(route: .passes(tab: .shop))`. The audit tool missed the App mount | OK, no change |
+| flows-g2 `talent/list:122 → market/passes` (MISSING-ROUTE for Claude) | `goStore` | Already present: `MPPassExploreCard` (`App/MPPassEntries.swift:42`) pushes `MPParityDestination(route: .passes(tab: .shop))`. The audit tool missed the App mount | OK, no change |
 | passes `goRedeem` → `gift?mode=code` | 兑换码 row | **was missing**. Added (see 4) | fixed |
 | passes → gift / reveal / points-history / pass / pass-order / library | navigateTo | `PassMarketHost` routes | OK |
 | membership → pass-order / reveal / topic / library | navigateTo / redirectTo | `PassMembershipViews` routes | OK |
