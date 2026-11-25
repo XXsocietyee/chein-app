@@ -55,55 +55,64 @@ public struct SocialPublicProfileGapCoopBar: View {
 public struct ProjectEditGapCastAndLookSection: View {
     @Binding public var castEnabled: Bool
     public let castMembers: [TopicCastMemberDraft]
-    @Binding public var selectedLookID: String
+    /// nil hides the look row (r8: the 画面风格 picker is mounted on its own, see `ProjectEditLookHost`).
+    public let selectedLookID: Binding<String>?
     public let onOpenCastEditor: () -> Void
 
     public init(
         castEnabled: Binding<Bool>,
         castMembers: [TopicCastMemberDraft],
-        selectedLookID: Binding<String>,
+        selectedLookID: Binding<String>?,
         onOpenCastEditor: @escaping () -> Void
     ) {
         self._castEnabled = castEnabled
         self.castMembers = castMembers
-        self._selectedLookID = selectedLookID
+        self.selectedLookID = selectedLookID
         self.onOpenCastEditor = onOpenCastEditor
     }
 
     public var body: some View {
         Group {
+            // r8 C-F5 (MP fabu wxml:172-187): one card, 角色 + stacked faces + 「N 位」 + switch; the row opens the list.
             Section {
-                Toggle("启用角色", isOn: $castEnabled)
-                    .cyText(.body)
+                Toggle(isOn: $castEnabled) {
+                    Text("fixr8.cast.title").cyText(.body)
+                }
+                .accessibilityIdentifier("projectEdit.cast.switch")
                 if castEnabled {
                     Button(action: onOpenCastEditor) {
-                        HStack {
-                            Text(verbatim: "角色列表")
-                                .cyText(.body)
-                                .foregroundStyle(CYColor.textPrimary)
+                        HStack(spacing: CYSpacing.sm) {
+                            Text("fixr8.cast.list").cyText(.body).foregroundStyle(CYColor.textPrimary)
                             Spacer()
-                            Text(verbatim: "\(castMembers.count) 位")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                            if !castMembers.isEmpty {
+                                Text("fixr8.cast.count \(castMembers.count)")
+                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            }
                             Image(systemName: "chevron.right")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                .accessibilityHidden(true)
                         }
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                     }
+                    .accessibilityLabel(Text("fixr8.cast.open"))
+                    .accessibilityIdentifier("projectEdit.cast.open")
                 }
             } header: {
-                Text(verbatim: "角色").cyText(.sectionTitle)
+                Text("fixr8.cast.title").cyText(.sectionTitle)
             }
 
-            Section {
-                Picker(TopicLookStyleCopy.paletteTitle, selection: $selectedLookID) {
-                    ForEach(TopicLookStyleCopy.presets, id: \.id) { preset in
-                        Text(verbatim: preset.name).tag(preset.id)
+            if let selectedLookID {
+                Section {
+                    Picker(TopicLookStyleCopy.paletteTitle, selection: selectedLookID) {
+                        ForEach(TopicLookStyleCopy.presets, id: \.id) { preset in
+                            Text(verbatim: preset.name).tag(preset.id)
+                        }
                     }
+                    .cyText(.body)
+                } header: {
+                    Text(verbatim: TopicLookStyleCopy.sectionTitle).cyText(.sectionTitle)
                 }
-                .cyText(.body)
-            } header: {
-                Text(verbatim: TopicLookStyleCopy.sectionTitle).cyText(.sectionTitle)
             }
         }
     }
@@ -191,54 +200,119 @@ public struct TeamDetailGapApplicantsSection: View {
         self.onApprove = onApprove
     }
 
+    @State private var rejecting: TeamApplicantItem?
+    @State private var handlingID: Int?
+    @State private var commandNotice: String?
+
     public var body: some View {
+        // r8 C-D2 (MP team/detail wxml:76-95): 入队申请 · N, skeleton, inline error + 重试, 暂无申请,
+        // rows with avatar (d_profile default), name, message, 拒绝 (danger confirm) and 同意.
         Section {
             switch state {
             case .loading:
-                HStack {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                }
+                CYLoadingState("fixr8.team.applicants.loading", messageIdentifier: "team.applicants.loading")
             case .error(let msg):
-                CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: TeamGapCopy.applicantsLoadFailed, verbatimSubtitle: msg, action: onRetry)
+                CYEmptyState(systemImage: "exclamationmark.triangle", "fixr8.team.applicants.loadFailed",
+                             detailVerbatim: msg.isEmpty ? nil : msg, actionTitle: "重试",
+                             actionIdentifier: "team.applicants.retry", action: onRetry)
             case .ready(let items):
-                if items.isEmpty {
-                    CYEmptyState(systemImage: "person.2", verbatimTitle: TeamGapCopy.applicantsEmpty)
-                } else {
-                    ForEach(items) { item in
-                        HStack(spacing: CYSpacing.sm) {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(verbatim: item.nickname).cyText(.cardTitle)
-                                if let message = item.message, !message.isEmpty {
-                                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                }
-                            }
-                            Spacer()
-                            Button(TeamGapCopy.reject) {
-                                let memberID = String(item.userID)
-                                let targetID = String(teamID)
-                                Task {
-                                    let outcome = await AccountPublishContractLane.handleApplicant(memberID: memberID, teamID: targetID, approved: false)
-                                    if outcome != .failed { onReject(item) }
-                                }
-                            }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
-                            Button(TeamGapCopy.approve) {
-                                let memberID = String(item.userID)
-                                let targetID = String(teamID)
-                                Task {
-                                    let outcome = await AccountPublishContractLane.handleApplicant(memberID: memberID, teamID: targetID, approved: true)
-                                    if outcome != .failed { onApprove(item) }
-                                }
-                            }
-                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+                CYCard(padding: CYSpacing.md) {
+                    VStack(spacing: 0) {
+                        if items.isEmpty {
+                            Text("fixr8.team.applicants.empty")
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                            applicantRow(item)
+                            if index < items.count - 1 { Divider().overlay(CYColor.borderSubtle) }
+                        }
+                        if let commandNotice, !commandNotice.isEmpty {
+                            Text(verbatim: commandNotice)
+                                .cyText(.meta).foregroundStyle(CYColor.dangerText)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .accessibilityAddTraits(.updatesFrequently)
                         }
                     }
                 }
             }
         } header: {
-            Text(verbatim: TeamGapCopy.applicantsTitle).cyText(.sectionTitle)
+            Group {
+                if case .ready(let items) = state, !items.isEmpty {
+                    Text("fixr8.team.applicants.titleCount \(items.count)")
+                } else {
+                    Text("fixr8.team.applicants.title")
+                }
+            }
+            .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+        }
+        .confirmationDialog(Text("fixr8.team.applicants.rejectTitle \(rejecting?.nickname ?? "")"),
+                            isPresented: Binding(get: { rejecting != nil }, set: { if !$0 { rejecting = nil } }),
+                            titleVisibility: .visible, presenting: rejecting) { item in
+            Button("fixr8.team.applicants.rejectConfirm", role: .destructive) { handle(item, approved: false) }
+            Button("common.cancel", role: .cancel) { rejecting = nil }
+        } message: { _ in
+            Text("fixr8.team.applicants.rejectMessage")
+        }
+    }
+
+    @ViewBuilder private func applicantRow(_ item: TeamApplicantItem) -> some View {
+        HStack(spacing: CYSpacing.sm) {
+            applicantAvatar(item.avatarURL)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text(verbatim: item.nickname).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                if let message = item.message, !message.isEmpty {
+                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: CYSpacing.xs)
+            Button("fixr8.team.applicants.reject") { rejecting = item }
+                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                .frame(minHeight: 44)
+                .accessibilityLabel(Text("fixr8.team.applicants.rejectA11y \(item.nickname)"))
+                .accessibilityIdentifier("team.applicants.reject.\(item.userID)")
+            Button("fixr8.team.applicants.approve") { handle(item, approved: true) }
+                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+                .frame(minHeight: 44)
+                .accessibilityLabel(Text("fixr8.team.applicants.approveA11y \(item.nickname)"))
+                .accessibilityIdentifier("team.applicants.approve.\(item.userID)")
+        }
+        .disabled(handlingID != nil)
+        .padding(.vertical, CYSpacing.xs)
+    }
+
+    @ViewBuilder private func applicantAvatar(_ raw: String?) -> some View {
+        Group {
+            if let raw, let url = URL(string: raw), url.scheme == "https" {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() }
+                    else { MPAsset.AvatarDefault.dProfile.resizable().scaledToFill() }
+                }
+            } else {
+                MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+            }
+        }
+        .frame(width: 32, height: 32)
+        .clipShape(Circle())
+        .accessibilityHidden(true)
+    }
+
+    private func handle(_ item: TeamApplicantItem, approved: Bool) {
+        guard handlingID == nil, teamID > 0 else { return }
+        rejecting = nil
+        handlingID = item.userID
+        let memberID = String(item.userID)
+        let targetID = String(teamID)
+        Task {
+            let outcome = await AccountPublishContractLane.handleApplicant(memberID: memberID, teamID: targetID, approved: approved)
+            handlingID = nil
+            if case .sent(let receipt) = outcome {
+                commandNotice = receipt?.rejectNotice
+                if approved { onApprove(item) } else { onReject(item) }
+            } else {
+                onRetry()
+            }
         }
     }
 }

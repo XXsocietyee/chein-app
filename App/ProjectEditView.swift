@@ -390,6 +390,10 @@ import SwiftUI
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("projectEdit.settings.tickets")
                 } header: { OpsR3Text.text("editor.settings") }
+                // r8 C-F5 (MP fabu wxml:172): 角色 card, city themes only, never in the whitelist scope.
+                if model.draft.product == .city, model.coordinator.snapshot?.scope != .whitelist {
+                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly)
+                }
                 if canvas == .list {
                     chapterStructure(opening: opening).id("project-issue-anchor-chapters")
                 } else {

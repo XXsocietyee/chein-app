@@ -168,6 +168,8 @@ extension EnvironmentValues {
                                 .accessibilityIdentifier("team.mode.current")
                         }
                         }
+                        // r8 C-D2 (MP team/detail wxml:76-95, js:340-376): the leader sees and handles 入队申请 here.
+                        if !readOnly, invitationCode == nil { TeamDetailApplicantsHost(teamID: detail.team.id) }
                     }
                     Text("team.members.title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                     // Mini `.team-card`: members share one card, hairline between rows.

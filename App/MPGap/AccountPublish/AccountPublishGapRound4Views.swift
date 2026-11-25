@@ -62,12 +62,13 @@ public struct ProjectEditGapRichStoryBlocksSection: View {
 /// Cast editor sheet with add/remove roles + voice preview action.
 public struct ProjectEditGapCastEditorSheet: View {
     @Binding public var members: [TopicCastMemberDraft]
-    public let onPreviewVoice: (TopicCastMemberDraft) -> Void
+    /// nil hides 试听 (owner decision 2026-11-24 #7: no live cast calls; the MP also hides it when TTS is off).
+    public let onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
     @Environment(\.dismiss) private var dismiss
 
     public init(
         members: Binding<[TopicCastMemberDraft]>,
-        onPreviewVoice: @escaping (TopicCastMemberDraft) -> Void
+        onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
     ) {
         self._members = members
         self.onPreviewVoice = onPreviewVoice
@@ -76,29 +77,55 @@ public struct ProjectEditGapCastEditorSheet: View {
     public var body: some View {
         NavigationStack {
             List {
+                if members.isEmpty {
+                    Text("fixr8.cast.empty").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
                 ForEach($members) { $member in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        TextField("角色名", text: $member.name).cyText(.cardTitle)
-                        TextField("身份/简介", text: $member.roleTitle).cyText(.meta)
-                        Button("试听音色") {
-                            onPreviewVoice(member)
+                        TextField("fixr8.cast.name", text: $member.name)
+                            .cyText(.cardTitle)
+                            .onChange(of: member.name) { _, value in
+                                if value.count > ProjectEditCastConfig.nameMax { member.name = String(value.prefix(ProjectEditCastConfig.nameMax)) }
+                            }
+                        TextField("fixr8.cast.identity", text: $member.roleTitle, axis: .vertical)
+                            .cyText(.meta)
+                            .onChange(of: member.roleTitle) { _, value in
+                                if value.count > ProjectEditCastConfig.identityMax { member.roleTitle = String(value.prefix(ProjectEditCastConfig.identityMax)) }
+                            }
+                        Picker(selection: Binding(get: { member.voiceID ?? "none" },
+                                                  set: { member.voiceID = $0 == "none" ? nil : $0 })) {
+                            ForEach(ProjectEditCastConfig.voicePresets, id: \.value) { preset in
+                                Text(LocalizedStringKey(preset.labelKey)).tag(preset.value)
+                            }
+                            Text("fixr8.cast.voice.none").tag("none")
+                        } label: {
+                            Text("fixr8.cast.voice")
                         }
-                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                        .cyText(.body)
+                        if let onPreviewVoice, member.voiceID != nil {
+                            Button("fixr8.cast.preview") { onPreviewVoice(member) }
+                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                        }
                     }
                     .padding(.vertical, CYSpacing.xs)
                 }
                 .onDelete { offsets in
                     members.remove(atOffsets: offsets)
                 }
-                Button("添加角色") {
-                    members.append(TopicCastMemberDraft(id: UUID().uuidString, name: "", roleTitle: ""))
+                if members.count < ProjectEditCastConfig.maxCast {
+                    Button("fixr8.cast.add") {
+                        members.append(TopicCastMemberDraft(id: ProjectEditCastConfig.freshID(existing: members), name: "", roleTitle: ""))
+                    }
+                    .cyText(.body)
+                    .accessibilityIdentifier("projectEdit.cast.add")
+                } else {
+                    Text("fixr8.cast.max \(ProjectEditCastConfig.maxCast)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
-                .cyText(.body)
             }
-            .cyPageTitle(verbatim: "编辑角色")
+            .cyPageTitle("fixr8.cast.list")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("完成") { dismiss() }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("fixr8.common.done") { dismiss() }
                 }
             }
         }
