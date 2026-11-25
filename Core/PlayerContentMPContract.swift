@@ -383,6 +383,23 @@ public enum PlayerContentMPContract {
         return try json(baseURL, pricingConfirmPath, fields)
     }
 
+    /// `pages/activity/official-mine/index.js` recover. POST, no data. Builds the request and does not send it.
+    public static func broadcastRecover(baseURL: URL, id: String) throws -> URLRequest {
+        guard !id.isEmpty, id.rangeOfCharacter(from: CharacterSet(charactersIn: "/?#")) == nil else {
+            throw Refusal.invalidBase
+        }
+        guard var parts = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else { throw Refusal.invalidBase }
+        parts.path = "/" + broadcastRecoverPath(id)
+        guard let url = parts.url else { throw Refusal.invalidBase }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        return request
+    }
+
+    public static func broadcastRecoverPath(id: String) -> String {
+        "api/official/broadcast/\(id)/recover"
+    }
+
     private enum Wire {
         case int(Int)
         case text(String)
