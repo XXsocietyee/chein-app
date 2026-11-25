@@ -85,6 +85,7 @@ final class MPGapG1Tests: XCTestCase {
         _ = await mb.fetchMerchantCouponSummary()
         _ = await mb.submitReportAppeal(reportID: 3, reason: "复核", requestID: "req-1")
 
+        XCTAssertEqual(String(data: transport.requests[2].httpBody ?? Data(), encoding: .utf8), "lat=31.23&lng=121.47&radius=3000")
         let urls = transport.requests.compactMap { $0.url?.path }
         XCTAssertEqual(urls, [
             "/api/play/nodes",
@@ -94,5 +95,37 @@ final class MPGapG1Tests: XCTestCase {
             "/api/merchant/coupon-summary",
             "/api/community-trust/reports/appeal"
         ])
+    }
+
+    func testRunnersPreferencesAndNoGreetPath() throws {
+        let wire = try JSONDecoder().decode(PlayWireValue.self, from: Data(#"[{"memberId":2,"lat":"31.2","lng":121.4,"elapsedSec":30,"shopPhotos":[{"name":"店","image":"a"},{"name":"空"}]}]"#.utf8))
+        let runners = RoamNearbyRunner.normalized(wire.array ?? [])
+        XCTAssertEqual(runners.count, 1)
+        XCTAssertEqual(runners[0].nickname, "漫游者")
+        XCTAssertEqual(runners[0].elapsedLabel, "00:30")
+        XCTAssertEqual(runners[0].sinceLabel, "刚出发")
+        XCTAssertEqual(runners[0].shopPhotos.map(\.image), ["a"])
+        XCTAssertFalse(runners[0].greeted)
+        let source = PlayRoamGapService.paths
+        XCTAssertTrue(source.contains("api/roam/nearby-runners"))
+        XCTAssertFalse(source.contains("api/roam/greet"))
+        let defaults = UserDefaults(suiteName: "r8-play-roam-prefs")!
+        defaults.removePersistentDomain(forName: "r8-play-roam-prefs")
+        XCTAssertTrue(PlatformBGMPreference.isEnabled(in: defaults))
+        PlatformBGMPreference.set(false, in: defaults)
+        XCTAssertFalse(PlatformBGMPreference.isEnabled(in: defaults))
+        XCTAssertTrue(PlatformNarrationAutoplayPreference.isEnabled(in: defaults))
+        XCTAssertFalse(RoamFogPreference.fogOff(in: defaults))
+        XCTAssertTrue(RoamFogPreference.setFogOff(true, in: defaults))
+        XCTAssertTrue(RoamFogPreference.fogOff(in: defaults))
+        XCTAssertEqual(FreeMapKind.read(in: defaults), .black)
+        XCTAssertTrue(FreeMapKind.save(.year2077, in: defaults))
+        XCTAssertEqual(FreeMapKind.read(in: defaults), .year2077)
+        XCTAssertEqual(FreeMapKind.year2077.label, "2077")
+        XCTAssertFalse(PlayReducedMotionPreference.isEnabled(in: defaults))
+        defaults.set(true, forKey: PlayReducedMotionPreference.legacyKey)
+        XCTAssertTrue(PlayReducedMotionPreference.isEnabled(in: defaults))
+        PlayReducedMotionPreference.set(false, in: defaults)
+        XCTAssertFalse(PlayReducedMotionPreference.isEnabled(in: defaults))
     }
 }

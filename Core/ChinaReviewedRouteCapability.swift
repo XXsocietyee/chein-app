@@ -72,6 +72,7 @@ public enum ChinaReviewedRouteCapability {
         if TestHostOnlyRouteAdmission.admits(key) { return true }
         if let kind = moneyAreaOwnerGrant[key], ReleaseMoneyWriteSwitch.isEnabled(kind) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
+        if let claimPhone = seatClaimPhoneGrantKey(key), playerJourneyOwnerGrant.contains(claimPhone) { return true }
         // Owner approval of the non-money player writes: the CITY board (gaps A). Member game
         // points only; no CITY route moves money.
         if CityGameProductionLease.paths.contains(key) { return true }
@@ -404,6 +405,9 @@ public enum ChinaReviewedRouteCapability {
         "/api/play/seat-invitations/claim",
         "/api/play/seat-invitations/{}",
         "/api/play/seat-invitations/{}/cancel",
+        "/api/play/seat-invitations/transfer-phone",
+        "/api/play/seat-invitations/claim-phone/{}",
+        "/api/play/seat-invitations/mine",
         "/api/public-catalog/city/list",
         "/api/public-catalog/list",
         "/api/public-catalog/filters",
@@ -782,6 +786,16 @@ public enum ChinaReviewedRouteCapability {
         guard let baseURL else { return false }
         if targetsChinaProduction(baseURL) { return admitsChinaProductionCall(path) }
         return true
+    }
+
+    /// Claim-phone tokens are not all digits, so `normalized` leaves them in place.
+    /// Fold any single token segment onto the granted `claim-phone/{}` pattern.
+    private static func seatClaimPhoneGrantKey(_ key: String) -> String? {
+        let prefix = "/api/play/seat-invitations/claim-phone/"
+        guard key.hasPrefix(prefix) else { return nil }
+        let token = String(key.dropFirst(prefix.count))
+        guard !token.isEmpty, !token.contains("/") else { return nil }
+        return prefix + "{}"
     }
 
     public static func literalKey(_ path: String) -> String {
