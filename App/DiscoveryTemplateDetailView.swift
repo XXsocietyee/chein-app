@@ -19,8 +19,12 @@ struct DiscoveryTemplateDetailView: View {
     @State private var tab: TemplateDetailTab = .details
     @State private var capabilityPreview: TemplateNodePreviewState?
     @State private var toastMessage: String?
+    @State private var rulesExpanded = false
     /// Caller override. Nil uses `PublicContentShareLink.discoveryTemplate` when that path is already parsed.
     var shareURL: URL? = nil
+    /// R8-PC-A6-1, MP templatedetail.js:202,465: a `readonly=1` link keeps 应用 visible but answers 当前身份不能编辑模板.
+    private(set) var readonly = false
+    func readonlyLink(_ value: Bool) -> DiscoveryTemplateDetailView { var copy = self; copy.readonly = value; return copy }
     private struct Adoption: Identifiable, Hashable {
         let id = UUID()
         let source: DiscoveryPlayTemplate
@@ -83,6 +87,10 @@ struct DiscoveryTemplateDetailView: View {
                                 Button {
                                     guard loadedKey == requestKey, reader.isConfigured,
                                           authoringCompletion?.isCurrent() != false else { return }
+                                    if readonly {
+                                        toastMessage = appLocalized("discovery.templateDetail.readonly", locale: locale)
+                                        return
+                                    }
                                     // R7-PC-A6-2 (r1 PC-A-6-3): MP `ensureLogin` before 应用 — a guest goes to sign-in.
                                     if (reader as? AppSession)?.isSignedIn == false {
                                         toastMessage = appLocalized("discovery.adopt.signIn", locale: locale)
@@ -110,7 +118,9 @@ struct DiscoveryTemplateDetailView: View {
                         textSection(parity?.isTopicTemplate == true ? "u10.template.story" : "discovery.introduction", text: item.description, art: MPAsset.FeatureIcon.book)
                         if let parity, !parity.ruleSteps.isEmpty {
                             Section {
-                                ForEach(Array(parity.ruleSteps.enumerated()), id: \.offset) { index, step in
+                                // R7-PC-A6-4 (MP templatedetail.wxml:96-110): the step list clamps (3 steps) with 更多 / 收起.
+                                let clampsRules = parity.ruleSteps.count > 3
+                                ForEach(Array(parity.ruleSteps.enumerated().prefix(clampsRules && !rulesExpanded ? 3 : parity.ruleSteps.count)), id: \.offset) { index, step in
                                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
                                         Text(verbatim: String(index + 1)).cyText(.label, monospacedDigit: true)
                                             .frame(width: 28, height: 28).background(CYColor.bgSurfaceStrong, in: Circle())
@@ -119,6 +129,11 @@ struct DiscoveryTemplateDetailView: View {
                                     }
                                     .accessibilityElement(children: .combine)
                                     .accessibilityIdentifier("discovery.templateDetail.rule.\(index)")
+                                }
+                                if clampsRules {
+                                    Button(rulesExpanded ? "discovery.text.less" : "discovery.text.more") { rulesExpanded.toggle() }
+                                        .cyText(.label).frame(minHeight: CYSpacing.minTouchTarget)
+                                        .accessibilityIdentifier("discovery.templateDetail.rules.more")
                                 }
                             } header: { DiscoverySectionHeader("discovery.rules", art: MPAsset.FeatureIcon.interaction) }
                                 .discoveryCardRow()

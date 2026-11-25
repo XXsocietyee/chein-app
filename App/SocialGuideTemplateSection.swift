@@ -93,6 +93,7 @@ enum SocialGuideTemplateRows {
 }
 
 @MainActor struct SocialGuideTemplateSection: View {
+    @Environment(\.socialGuideTemplateCatalog) private var catalogDestination
     let reader: (any DiscoveryReading)?
     var body: some View {
         // Without a template reader the section is left out rather than shown as unavailable.
@@ -209,7 +210,9 @@ enum SocialGuideTemplateRows {
                 if scenePhase == .active, model.destination(reader: reader)?.id == destination.id {
                     switch destination.target {
                     case .detail(let id): DiscoveryTemplateDetailView(id: id, reader: reader)
-                    case .catalog: DiscoveryTemplateBrowserView(reader: reader)
+                    // R7-PC-A2-7: the host may supply the full template tab (应用 / 发布 / 搜索); otherwise the read-only browser.
+                    case .catalog:
+                        if let catalogDestination { catalogDestination() } else { DiscoveryTemplateBrowserView(reader: reader) }
                     }
                 } else { Text("social.guideTemplates.unavailable") }
             }

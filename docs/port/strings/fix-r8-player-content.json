@@ -16,6 +16,23 @@
       }
     }
   },
+  "discovery.templateDetail.readonly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your current role can't edit templates"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能编辑模板"
+        }
+      }
+    }
+  },
   "im.composer.plus": {
     "extractionState": "manual",
     "localizations": {

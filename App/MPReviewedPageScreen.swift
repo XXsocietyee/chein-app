@@ -145,6 +145,7 @@ import SwiftUI
                                     rootTabSwitch(destination == .roam ? .roam : .home)
                                 } : nil,
                                 templateReader: session)
+            .socialGuideSessionCatalog(session)
             // R7-PC-D2-1: 去发布广场 / 更多玩法 leave this entry for the 发布 tab, like the mode cards.
             .environment(\.rootTabSwitch, rootTabSwitch.isAvailable ? RootTabSwitch { tab in
                 session.dismissNativeEntry()
@@ -384,6 +385,7 @@ import SwiftUI
             } else if let id = reviewedID(query) {
                 DiscoveryTemplateDetailView(id: id, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
                                             authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
+                    .readonlyLink(query["readonly"] == "1")
                     .id(session.templateAuthoringViewIdentity)
             } else { unavailable }
         case "pages/square/detail/index":
