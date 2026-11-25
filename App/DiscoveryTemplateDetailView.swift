@@ -341,6 +341,8 @@ struct DiscoveryTopicTemplatePreview: View {
     @State private var openingExpanded = false
     /// Stop-pill prop art follows Dynamic Type with the caption beside it (MP `cap-card__pill-img`).
     @ScaledMetric(relativeTo: .caption) private var stopMark: CGFloat = 16
+    /// The stop index is a label, so it grows with the label style instead of staying a fixed 32-point disc.
+    @ScaledMetric(relativeTo: .label) private var stopIndex: CGFloat = 32
     /// R7-PC-A8-2 (MP topic-detail js:281 `previewNode`): a node image opens the full-screen gallery over all node images.
     @State private var nodeGallery: NodeGallerySelection?
     private struct NodeGallerySelection: Identifiable { let id = UUID(); let snapshot: MediaGallerySnapshot }
@@ -635,7 +637,9 @@ struct DiscoveryTopicTemplatePreview: View {
     private func stopRow(_ stop: NumberedStop) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             Text(verbatim: String(stop.number)).cyText(.label, monospacedDigit: true)
-                .frame(width: 32, height: 32).background(CYNight.ink0, in: Circle())
+                .foregroundStyle(palette.textPrimary)
+                .frame(width: stopIndex, height: stopIndex)
+                .background(palette.bgElevated, in: Circle())
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 if let name = stop.name { Text(verbatim: name).cyText(.label).cyWrapText() }
                 if let game = stop.game {
@@ -647,14 +651,15 @@ struct DiscoveryTopicTemplatePreview: View {
                         } else {
                             Image(systemName: "play")
                                 .imageScale(.small)
+                                .foregroundStyle(palette.textSecondary)
                                 .accessibilityHidden(true)
                         }
-                        Text(verbatim: game).cyText(.caption).cyWrapText()
+                        Text(verbatim: game).cyText(.caption).foregroundStyle(palette.textSecondary).cyWrapText()
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number).game")
                 } else if let play = stop.interactionType {
-                    Text(verbatim: play).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: play).cyText(.caption).foregroundStyle(palette.textSecondary)
                 }
                 if let teaser = stop.hookTeaser {
                     Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textSecondary)
@@ -663,6 +668,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     HStack(spacing: CYSpacing.xxs) {
                         Image(systemName: "clock")
                             .imageScale(.small)
+                            .foregroundStyle(palette.textSecondary)
                             .accessibilityHidden(true)
                         Text("topic.chapterCard.minutes \(minutes)")
                             .cyText(.caption)
