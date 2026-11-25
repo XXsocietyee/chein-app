@@ -523,3 +523,23 @@ enum ProjectEditLook {
         }
     }
 }
+
+// MARK: - C-I9-r7 floating covers (MP pages/publish/template-intro/index.wxml:9-11, orbit.js)
+
+/// The intro's featured covers drift slowly, each on its own period. Reduce Motion keeps them still.
+struct TemplateIntroFloatingCover: ViewModifier {
+    let index: Int
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var lifted = false
+
+    func body(content: Content) -> some View {
+        content
+            .offset(y: reduceMotion ? 0 : (lifted ? -6 : 6))
+            .rotationEffect(.degrees(reduceMotion ? 0 : (lifted ? 0.8 : -0.8) * (index.isMultiple(of: 2) ? 1 : -1)))
+            .onAppear {
+                guard !reduceMotion else { return }
+                withAnimation(.easeInOut(duration: 2.6 + Double(index % 3) * 0.7).repeatForever(autoreverses: true)) { lifted = true }
+            }
+            .onChange(of: reduceMotion) { _, reduced in if reduced { lifted = false } }
+    }
+}
