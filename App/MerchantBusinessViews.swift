@@ -1161,6 +1161,12 @@ import SwiftUI
                 } else if row.kind == .review {
                     // MC7-13-7 (reviews/index.wxml:145-169): avatar + nickname, time and 平台复审中 above the card.
                     MerchantReviewAuthorLine(fields: row.fields, fallbackTitle: row.title)
+                } else if row.kind == .operatorMember {
+                    // MC8-29-9 (team/index.wxml:65): `item.avatar || /images/d_profile.png` leads the member row.
+                    HStack(spacing: CYSpacing.sm) {
+                        MerchantCoopMPThumb(urlString: row.fields.mbText("avatar"), fallback: .avatar)
+                        Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    }
                 } else {
                 Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }

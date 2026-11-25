@@ -310,6 +310,10 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     /// 品牌中心 (MerchantOperationsHomeView), shared by the header avatar and the 更多 row.
     @ViewBuilder private func operationsHome(_ operationsReader: any MerchantOperationsReading) -> some View {
         MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
+            // MC8-19-1: 看公开主页 from the workbench 品牌中心 too.
+            .environment(\.merchantPublicHomePreview, (reader as? AppSession).map { s in
+                { owner in AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: s.publicMerchantHomeContext)) }
+            })
             .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
                 { AnyView(MerchantPerkTemplatesHost(reader: flowReader, executor: coopFlowWrite?.executor())) }
             })
