@@ -1609,6 +1609,7 @@ def main(argv):
     shots.add_argument("--out", type=Path, default=Path("acceptance-shots"))
 
     locked = sub.add_parser("simulator-lock")
+    locked.add_argument("--prepare-from", type=Path)
     locked.add_argument("command", nargs=argparse.REMAINDER)
 
     sub.add_parser("screenshot-needed")
@@ -1656,7 +1657,10 @@ def main(argv):
     if args.cmd == "screenshots":
         return capture_screenshots(args.destination_file, args.out, args.derived)
     if args.cmd == "simulator-lock":
-        return run_with_simulator_lock(args.command)
+        command = list(args.command)
+        if args.prepare_from is not None:
+            command = ["--prepare-from", str(args.prepare_from), *command]
+        return run_with_simulator_lock(command)
     if args.cmd == "screenshot-needed":
         print("true" if screenshot_needed() else "false")
         return 0
