@@ -334,7 +334,9 @@ import SwiftUI
                                                access: g.access, coordinator: g.coordinator, opensStoryOnLoad: true)
                     }
                 } else {
+                    // CLB-G13: with `activityId` the topic page carries the director block (session-owned host).
                     clubRead(.topicOverview, scope, needsClub: false)
+                        .environment(\.clubTopicDirectorHost, scope.activityID == nil ? nil : session.clubTopicDirectorHost)
                 }
             } else { unavailable }
         case "pages/club/governance/index":

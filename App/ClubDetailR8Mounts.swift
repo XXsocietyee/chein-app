@@ -185,6 +185,8 @@ enum ClubDetailR8Route: Hashable, Identifiable {
                 ClubGovernanceReadView(operation: .topicOverview, scope: .init(clubID: clubID, topicID: topicID, activityID: activityID),
                                        identity: identity, access: governance.access, coordinator: governance.coordinator)
                     .environment(\.clubEnrollmentProfile, governance.enrollmentProfile)
+                    // CLB-G13: the director block reads the session's PlayDirectorCoordinator for this activity.
+                    .environment(\.clubTopicDirectorHost, session?.clubTopicDirectorHost)
             case .tool(let topicID, let activityID, .rosterAndVerify, _):
                 ClubOpsEventView(scope: .init(clubID: clubID, topicID: topicID, activityID: activityID), identity: identity,
                                  access: governance.access, coordinator: governance.coordinator)
