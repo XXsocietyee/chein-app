@@ -35,6 +35,23 @@
         }
       }
     },
+    "merchantCoop.decor.featured.publish": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish an activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去发布一个活动"
+          }
+        }
+      }
+    },
     "merchantCoop.decor.gallery.inactive": {
       "extractionState": "manual",
       "localizations": {

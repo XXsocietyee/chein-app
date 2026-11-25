@@ -543,6 +543,7 @@ import SwiftUI
         case "pages/merchant/citynode/create/index":
             MerchantCityNodeCreateView(service: session.merchantContentService, placeSearch: PublishingMapKitAdapter())
                 .id(session.merchantContentService.scope)
+                .environment(\.merchantIdentityInactive, session.merchantIdentityInactiveProbe)
                 .cyPushedChrome(domain: .merchant)
         case "pages/merchant/game-node/index":
             // The link rule is query-free today, so `activityId` cannot arrive yet: the entry list (选择场次) opens instead.

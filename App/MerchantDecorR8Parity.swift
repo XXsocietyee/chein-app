@@ -45,6 +45,78 @@ struct MerchantInactiveApplyState: View {
     }
 }
 
+private struct MerchantIdentityInactiveProbeKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () async -> Bool)? = nil
+}
+extension EnvironmentValues {
+    /// True when the signed-in member's merchant identity exists but is not active (MP `merchantAccess.active === false`).
+    /// The session binding injects it; nil means the host cannot tell, and no 申请入驻 is offered.
+    var merchantIdentityInactive: (@MainActor () async -> Bool)? {
+        get { self[MerchantIdentityInactiveProbeKey.self] }
+        set { self[MerchantIdentityInactiveProbeKey.self] = newValue }
+    }
+}
+
+/// MC8-24-7 / MC8-25-2: the 申请入驻 action under a city-node no-permission state, shown only for an inactive identity.
+struct MerchantInactiveApplyAction: View {
+    let identifier: String
+    @Environment(\.merchantIdentityInactive) private var probe
+    @Environment(\.merchantOpenApplication) private var openApplication
+    @State private var inactive = false
+    var body: some View {
+        Group {
+            if inactive {
+                if let openApplication {
+                    Button(action: openApplication) { Text("merchant.gate.apply").frame(minHeight: CYSpacing.minTouchTarget) }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier(identifier)
+                } else {
+                    NavigationLink {
+                        MPReviewedPageScreen(page: "pages/merchant/apply/index", query: [:])
+                    } label: { Text("merchant.gate.apply").frame(minHeight: CYSpacing.minTouchTarget) }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier(identifier)
+                }
+            }
+        }
+        .task { inactive = await probe?() ?? false }
+    }
+}
+
+// MARK: - 保存打卡码 (MC8-24-9)
+
+/// MP citynode 保存打卡码 saves the poster picture. The app downloads the same https image once and shares it as an
+/// `Image` (the share sheet offers 存储图像 / 打印); until the bytes arrive, or if they cannot be decoded, it shares the URL.
+struct MerchantPosterImageShareButton: View {
+    let url: URL
+    let title: String
+    @State private var image: UIImage?
+    var body: some View {
+        Group {
+            if let image {
+                let picture = Image(uiImage: image)
+                ShareLink(item: picture, preview: SharePreview(Text(verbatim: title), image: picture)) { label }
+            } else {
+                ShareLink(item: url) { label }
+            }
+        }
+        .buttonStyle(.borderedProminent)
+        .accessibilityIdentifier("cityNodeHub.poster.save")
+        .task(id: url) {
+            image = nil
+            guard url.scheme?.lowercased() == "https",
+                  let (data, response) = try? await URLSession.shared.data(from: url), !Task.isCancelled,
+                  (response as? HTTPURLResponse).map({ (200..<300).contains($0.statusCode) }) ?? false,
+                  data.count <= 8 * 1024 * 1024 else { return }
+            image = UIImage(data: data)
+        }
+    }
+    private var label: some View {
+        Label("merchantCoop.cityNode.poster.save", systemImage: "square.and.arrow.down")
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+    }
+}
+
 // MARK: - 看公开主页 (MC8-19-1)
 
 private struct MerchantPublicHomePreviewKey: EnvironmentKey {
@@ -211,6 +283,29 @@ struct MerchantContactOperationsRow: View {
             WithdrawalSupportContactView()
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)
+        }
+    }
+}
+
+// MARK: - 招牌主推 name (MC8-19-9)
+
+/// MP decor shows the chosen featured activity by name (`featuredName`). The app resolves it from the first page of
+/// the same `featuredActivities` read the picker uses; without a match it keeps 已选择主推.
+struct MerchantFeaturedActivityName: View {
+    let reader: any MerchantOperationsReading
+    let featuredType: Int?
+    let featuredID: Int?
+    @State private var name: String?
+    var body: some View {
+        Group {
+            if let name { Text(verbatim: name) } else { Text("merchant.operations.featured.set") }
+        }
+        .task(id: "\(reader.scope)|\(featuredType ?? 0)|\(featuredID ?? 0)") {
+            name = nil
+            guard featuredType == 1, let featuredID, featuredID > 0 else { return }
+            let scope = reader.scope
+            guard let page = try? await reader.featuredActivities(page: 1), !Task.isCancelled, scope == reader.scope else { return }
+            name = page.rows.first { $0.id == featuredID }?.name
         }
     }
 }
