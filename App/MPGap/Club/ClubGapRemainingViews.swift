@@ -1,101 +1,113 @@
 import SwiftUI
 
-/// Mount hook for `ClubCommunityViews` (post composer) — `CLB-G05`:
-/// 带上一次游玩记录 picker sheet & attached row.
-public struct ClubGapPlayRecordPickerRow: View {
-    public let selected: ClubPostRefOption?
-    public let options: [ClubPostRefOption]
-    public let isLoading: Bool
-    public let errorText: String?
-    public let onSelect: (ClubPostRefOption?) -> Void
-    public let onRetryLoad: () -> Void
+/// CLB-G05: 「带上一次游玩记录」 in the club composer (MP `pages/square/components/cy/post-compose/index.wxml:63-92`
+/// chip + tool, picker sheet `pages/club/detail/index.wxml:669-686`, load `index.js:1975-2004`).
+/// The picker reads lazily the first time it opens, like `openPostRefPicker`.
+struct ClubGapPlayRecordPickerRow: View {
+    @Binding var selected: ClubPostRefOption?
+    let load: () async throws -> [ClubPostRefOption]
 
+    private enum LoadState: Equatable { case idle, loading, ready([ClubPostRefOption]), failed(String?) }
     @State private var showPicker = false
+    @State private var state: LoadState = .idle
 
-    public init(
-        selected: ClubPostRefOption?,
-        options: [ClubPostRefOption],
-        isLoading: Bool = false,
-        errorText: String? = nil,
-        onSelect: @escaping (ClubPostRefOption?) -> Void,
-        onRetryLoad: @escaping () -> Void
-    ) {
-        self.selected = selected
-        self.options = options
-        self.isLoading = isLoading
-        self.errorText = errorText
-        self.onSelect = onSelect
-        self.onRetryLoad = onRetryLoad
-    }
-
-    public var body: some View {
-        Button {
-            showPicker = true
-        } label: {
-            HStack {
-                MPAsset.FeatureIcon.introTicketMap
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 18, height: 18)
-                Text(verbatim: ClubPostRefCopy.pickerTitle)
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
-                Spacer()
-                if let selected {
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            if let selected {
+                // MP cmp-chip: the picked record with an ✕ that clears it.
+                HStack(spacing: CYSpacing.sm) {
+                    Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                        .foregroundStyle(CYColor.brand)
+                        .accessibilityHidden(true)
                     Text(verbatim: selected.title)
                         .cyText(.meta)
-                        .foregroundStyle(CYColor.brand)
+                        .foregroundStyle(CYColor.textPrimary)
                         .lineLimit(1)
+                    Spacer(minLength: 0)
+                    Button { self.selected = nil } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(CYColor.textSecondary)
+                    }
+                    .buttonStyle(.borderless)
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityLabel(Text("club.postRef.clear"))
                 }
-                Image(systemName: "chevron.right")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                .accessibilityElement(children: .combine)
             }
+            Button {
+                showPicker = true
+                if case .ready = state { return }
+                Task { await reload() }
+            } label: {
+                Label("club.postRef.pick", systemImage: "flag")
+                    .cyText(.body)
+            }
+            .buttonStyle(.borderless)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .accessibilityIdentifier("club.community.postRef")
         }
         .sheet(isPresented: $showPicker) {
             NavigationStack {
-                List {
-                    pickerContent
-                }
-                .cyPageTitle(verbatim: ClubPostRefCopy.pickerTitle)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("关闭") { showPicker = false }
+                List { pickerContent }
+                    .navigationTitle(Text("club.postRef.pick"))
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("common.close") { showPicker = false }
+                        }
                     }
-                }
             }
+            .presentationDetents([.medium, .large])
         }
     }
 
     @ViewBuilder
     private var pickerContent: some View {
-        if selected != nil {
-            Button(ClubPostRefCopy.clearSelection) {
-                onSelect(nil)
-                showPicker = false
-            }
-            .cyText(.body)
-        }
-        if isLoading {
+        switch state {
+        case .idle, .loading:
             HStack { Spacer(); ProgressView(); Spacer() }
-        } else if let errorText, !errorText.isEmpty {
-            CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: ClubPostRefCopy.loadFailed, verbatimSubtitle: errorText, action: onRetryLoad)
-        } else if options.isEmpty {
-            CYEmptyState(systemImage: "tray", verbatimTitle: ClubPostRefCopy.emptyTitle)
-        } else {
-            ForEach(options) { option in
-                Button {
-                    onSelect(option)
-                    showPicker = false
-                } label: {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: option.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                        if let sub = option.subtitle, !sub.isEmpty {
-                            Text(verbatim: sub).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        case let .failed(message):
+            ContentUnavailableView {
+                Label("club.postRef.loadFailed", systemImage: "exclamationmark.triangle")
+            } description: {
+                if let message, !message.isEmpty { Text(verbatim: message) } else { Text("club.postRef.readFailed") }
+            } actions: {
+                Button("action.reload") { Task { await reload() } }
+            }
+        case let .ready(options):
+            if options.isEmpty {
+                ContentUnavailableView { Label("club.postRef.empty", systemImage: "tray") }
+            } else {
+                ForEach(options) { option in
+                    Button {
+                        selected = option
+                        showPicker = false
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                Text(verbatim: option.title).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                                Text(LocalizedStringKey(option.refType == 1 ? "club.postRef.kind.activity" : "club.postRef.kind.topic"))
+                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            }
+                            Spacer(minLength: 0)
+                            if selected == option {
+                                Image(systemName: "checkmark").foregroundStyle(CYColor.brand).accessibilityHidden(true)
+                            }
                         }
                     }
+                    .accessibilityAddTraits(selected == option ? .isSelected : [])
                 }
             }
+        }
+    }
+
+    private func reload() async {
+        state = .loading
+        do {
+            state = .ready(try await load())
+        } catch let refusal as MPGapServerRefusal {
+            state = .failed(refusal.message)
+        } catch {
+            state = .failed(nil)
         }
     }
 }

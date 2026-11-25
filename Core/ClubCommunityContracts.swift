@@ -118,7 +118,9 @@ public struct ClubCommunitySnapshot {
 }
 public enum ClubCommunityOperation: Equatable {
     /// CLB-detail-12: `notice` posts a 公告 (type 2), offered to the owner and administrators only (MP canAnnounce).
-    case create(content: String, images: [String], notice: Bool = false)
+    /// CLB-G05 (MP `pages/club/detail/index.js:1969-2004`, `cy-post-compose` publish): `ref` is the play record picked
+    /// from `/api/registration/my-joined`; it travels as `refType` / `refId` on `api/club/post/create`.
+    case create(content: String, images: [String], notice: Bool = false, ref: ClubPostRefOption? = nil)
     case update(content: String, images: [String], requestID: String)
     case pin(Bool, requestID: String), delete, report, toggleLike
     /// CLB-detail-03: `true` reposts (api/club/post/repost), `false` undoes it (repost/undo); body `{ postId }`.
@@ -149,7 +151,7 @@ public struct ClubCommunityEvidence: Equatable {
         let mine = post?.authorMemberID == viewer
         let manager = owner || administrator || post?.viewerCanManage == true
         switch operation {
-        case let .create(_, _, notice):
+        case let .create(_, _, notice, _):
             if notice { return owner || administrator }
             if owner || administrator { return true }
             return joined && memberPostAllowed != false
@@ -179,10 +181,11 @@ public struct ClubCommunityReview: Equatable, Identifiable {
         }
         let postID = evidence.post?.id ?? 0, commentID = evidence.comment?.id ?? 0
         switch operation {
-        case let .create(content, images, notice):
+        case let .create(content, images, notice, ref):
             try body(content, images); var fields: [String: Any] = ["clubId": evidence.clubID, "content": content]
             if !images.isEmpty { fields["images"] = images.joined(separator: ";") }
             if notice { fields["type"] = 2 }
+            if let ref, ref.refID > 0 { fields["refType"] = ref.refType; fields["refId"] = ref.refID }
             return fields
         case let .update(content, images, key):
             try body(content, images); guard !key.isEmpty else { throw ClubCommunityFailure.invalid }

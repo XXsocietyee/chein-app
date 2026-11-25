@@ -10,6 +10,8 @@ struct ClubCommunityContext {
     let evidence: (Int, ClubCommunityPost?, ClubCommunityComment?) async throws -> ClubCommunityEvidence
     var images: any ClubCommunityImageUploading = ClubCommunityDisabledImages()
     var postImagePicker: ClubPostImagePickerContext = .disabled
+    /// CLB-G05: `/api/registration/my-joined` for 「带上一次游玩记录」. Nil hides the row.
+    var loadPostRefs: (() async throws -> [ClubPostRefOption])? = nil
     var onAuthor: ((Int) -> Void)? = nil
     var onTopic: ((Int) -> Void)? = nil
     var feedSourceScope: () -> ClubCommunityFeedSourceContext? = { nil }
@@ -834,6 +836,7 @@ struct ClubCommunityComposer: View {
     @State private var uploading = false
     @State private var canAnnounce = false
     @State private var asAnnouncement = false
+    @State private var postRef: ClubPostRefOption?
     @StateObject private var imageBridge: ClubPostImageComposerBridge
     init(model: ClubCommunityViewModel, clubID: Int, post: ClubCommunityPost?) {
         self.model = model
@@ -877,13 +880,17 @@ struct ClubCommunityComposer: View {
                         uploading: $uploading,
                         notice: $model.notice
                     )
+                    if post == nil, let loadPostRefs = model.context.loadPostRefs {
+                        // CLB-G05: MP cy-post-compose club mode (index.wxml:63-92) — one play record per post.
+                        ClubGapPlayRecordPickerRow(selected: $postRef, load: loadPostRefs)
+                    }
                     if post == nil, canAnnounce {
                         // MP post-compose 作为公告发布 (owner / content managers only).
                         Toggle(isOn: $asAnnouncement) { Text("club.community.asNotice") }
                             .accessibilityIdentifier("club.community.asNotice")
                     }
                     CYPillButton("club.community.review") {
-                        let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images, notice: canAnnounce && asAnnouncement) : .update(content: content, images: images, requestID: UUID().uuidString)
+                        let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images, notice: canAnnounce && asAnnouncement, ref: postRef) : .update(content: content, images: images, requestID: UUID().uuidString)
                         model.stageDraft(operation, clubID: clubID, post: post)
                         dismiss()
                     }
@@ -983,7 +990,7 @@ struct ClubCommunityReviewView: View {
                 }
 
                 switch review.operation {
-                case let .create(content, images, _), let .update(content, images, _):
+                case let .create(content, images, _, _), let .update(content, images, _):
                     Text(verbatim: content)
                         .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)

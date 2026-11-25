@@ -123,3 +123,35 @@ public struct ClubRemainingGapClient {
         )
     }
 }
+
+extension ClubRemainingGapClient {
+    /// CLB-G05: MP `loadPostRefOptions` (`pages/club/detail/index.js:1982-1998`) posts `{}` as JSON to
+    /// `/api/registration/my-joined` and keeps rows that have a name (`buildPostRefOptions`, js:406-424).
+    public func fetchPostRefOptions(token: String) async throws -> [ClubPostRefOption] {
+        let rows: [PlayWireValue] = try await MPGapHTTP.postJSON(
+            configuration: configuration,
+            transport: transport,
+            path: "api/registration/my-joined",
+            body: [:],
+            token: token
+        )
+        return ClubPostRefOption.options(fromJoinedRows: rows)
+    }
+}
+
+extension ClubPostRefOption {
+    /// MP `buildPostRefOptions`: ownerType 2 → 活动 (refType 1), otherwise 主题 (refType 2); unnamed rows are dropped.
+    public static func options(fromJoinedRows rows: [PlayWireValue]) -> [ClubPostRefOption] {
+        var seen = Set<String>()
+        return rows.compactMap { row -> ClubPostRefOption? in
+            let ownerType = row["ownerType"].tolerantInteger ?? 0
+            let isActivity = ownerType == 2
+            let target = isActivity ? row["cmsActivity"] : row["cmsTopic"]
+            let name = (target["name"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty, let refID = row["ownerId"].tolerantInteger,
+                  let option = fromJoinedRecord(ownerType: ownerType, refID: refID, title: name),
+                  seen.insert(option.id).inserted else { return nil }
+            return option
+        }
+    }
+}
