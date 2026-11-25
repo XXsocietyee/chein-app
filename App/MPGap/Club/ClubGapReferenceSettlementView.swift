@@ -83,7 +83,7 @@ public struct ClubGapFEReferenceSettlementSection: View {
                 set: { if !$0 { settlingIDs = nil } }
             )
         ) {
-            TextField("转账凭证号（选填）", text: $voucherNo)
+            TextField("club.settlement.voucherOptional", text: $voucherNo)
             Button("取消", role: .cancel) { settlingIDs = nil }
             Button(FEReferenceSettlementCopy.markSettled) {
                 if let ids = settlingIDs {
