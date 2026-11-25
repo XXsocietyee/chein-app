@@ -286,3 +286,37 @@ APIs grepped on r7 before use: `CYEmptyIllustration(kind:size:)`, `CYStateArt(ki
 - Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`, 6064 tests): `origin/ui/combined-r7` `4ef0a2840` has 222 FAIL/ERROR, and this branch has 223. Nothing was fixed-then-broken. The one new failure is the expected fragment check, `test_official_event_contracts…test_every_static_user_facing_key_has_two_languages`: `official.mine.signInRequired`, `official.mine.forbidden` and `official.published.loadFailed` live only in the strings fragment until the integrator merges it.
 - `tools/check_typography_lint.py`: PASS. `tools/check_a11y_lint.py`: no new finding from this branch (the one current finding is on the base; see §5).
 - No compiler in the cloud. The coordinator compiles.
+
+## Round 5 (2026-11-25, brief `design/handoff-r2:docs/briefs/COORDINATOR-HANDOVER.md` §4/§8, MP-first rule in `owner-decisions-1124.md`)
+
+### Step 1 · merge `origin/ui/combined-r7` (f95850a46) — `44d7bb26e`
+- One conflict: `App/WalletCommerceViews.swift` ledger empty state. My side used MP empty_state art (`tray`) for income; the integration side used it for points. Kept both: `tray` for income and points.
+- The gate failed on 9 missing keys because my round-4 fragment was a plain map. Fix: `docs/port/strings/fix-r3-player-content-b.json` now has the xcstrings shape, and its entries were applied to the catalog, including the round-4 overrides (`registration.form.title` 结算, `official.detail` 活动详情, `official.bucket.upcoming` 即将上线 (closes R7-PC-C3-3 / C4-5), `messaging.accessDenied`).
+- The a11y lint failed on the base (`App/ObjectBadgeTileArtwork.swift:30`). Fix: the decorative thumbnail is hidden.
+- Checks: no conflict markers; no new duplicate type names (diffed against the base); `check_scaffold` PASS.
+
+### Step 2 · rows fixed (MP-first)
+| row | MP (`file:line`) | app change | commit |
+|---|---|---|---|
+| **R8-PC-D9-1 (P0)** / R7-PC-D9-2 | `subpackageB/pages/im/chat/index.js:961-968`, `index.wxml:250`; `subpackageMember/components/cy/report-sheet/index.js:56-150`, `model.js` | Before: 举报对方 was a dead end. Now it sends the MP member report. The peer is the sender of the latest message that is not mine; with none, the alert says 对方还没发过消息，暂不能举报. The flow: GET `community-trust/reports/taxonomy` → pick a reason → 具体说明 (1–2000) → POST `community-trust/reports/submit` `{targetType: MEMBER, targetId, reasonCode, policyVersion, description, requestId}`. On success it shows 受理编号. A business reject shows the server `msg` and gets a new requestId. A transport failure shows 提交结果未知, and 再试一次 replays the same requestId. New `App/CommunityMemberReportSheet.swift`; the Core `CommunityMemberReportClient` is composed with `writesEnabled: true`. The audit's "contract mismatch" note is wrong: the MP uses the same `community-trust` endpoints. | `ad5cd3e22` |
+| R7-PC-D9-1 | `im/chat/index.js:861-867` `markRead` | When the reviewed ordinary-read path is unavailable (it needs `read-receipt` / `read-state` GETs that the MP never calls), the chat posts the plain `api/im/read` after the first page if the row has unread messages. It stays silent on failure, like the MP. `imExpandedWriter` turns on `inboxConversationReadEnabled`; the route grant was already in the lease. Gap: `read_to` is not sent, because Core's inbox request has only `conversation_id`. **Core request (Cursor):** add `read_to` to `merchantInboxMarkReadRequest`, or add an MP-shaped chat read. | `e0189a1c7` |
+| R8-PC-C6-1 | `official-mine/index.js:150-178` | A stats reply that arrives after a scope change resets the row to idle. Before, the row stayed on 正在读取复盘…. | `f87e85227` |
+| R7-PC-C5-2 | `official-inbox/index.wxml:32` | 正在提交，请稍候 shows while the inbox write runs. It is in the review sheet because the write runs there and the sheet can't be dismissed while busy. | `f87e85227` |
+| R7-PC-D8-1 | `im/list/index.wxml:11`, `index.js:268-281`, `:106` | One 收件箱 / 发件箱 picker replaces 全部/频道/私信 and the strip's own 收到/发出 picker. 收件箱 = received invites + every conversation; 发件箱 = sent invites only (empty: 还没有发出的邀请). The UI tests are updated to two tabs. | `4f8a3b7c6` |
+
+Already closed on the integration branch by `fix/r8-mp-first`: R8-PC-D4-1, R7-PC-D5-1, R7-PC-C6-1, R7-PC-D7-1, R7-PC-D3-5.
+
+### Left, with reasons (round 5)
+| id | reason / request |
+|---|---|
+| R7-PC-D8-1 tab badge | The MP 收件箱 badge (unread + pending received invites) is not shown yet. The unread count lives inside the list view and the invite count lives inside the strip. Next round. |
+| R7-PC-D9-3 composer `+` | Under MP-first, the image, location and route sends should be turned on like the MP (`im/chat/index.wxml:196`). They are still off in `IMExpandedService` (`canSendOrdinaryImage`, `canSendStaticLocation`, `canSendRoute`), and the static-location and route paths need Core receipts. Next round, together with Cursor. |
+| R7-PC-D9-1 `read_to` | Core request (above). |
+| R7-PC-C2-1, C2-2, C4-1, C6-2, D3-2, D3-3, D1-6 | Core requests (Cursor), unchanged from round 4. |
+| R7-PC-D1-1, D1-4, D2-1, C4-3 | Blocked by SHA or hash test pins, unchanged. |
+
+### Verification (round 5)
+- `python3 tools/check_scaffold.py`: PASS structural checks. `check_a11y_lint`: 0. `check_typography_lint`: PASS. `check_appsession_ratchet`: PASS.
+- Contract checks for every module that references the touched files were run before and after, module by module (171 for messaging/AppSession, 5 for official, 8 for the message list). There are no new failures. Failures that were already on the base and stay the same: `test_profile_avatar` (AppSession hash) and `test_c07_fulfillment_projections`.
+- Every declaration used was checked with grep first: `CommunityMemberReportClient.taxonomyRequest/submitRequest`, `CommunityMemberReportDraft.requestID`/`descriptionMax`, `IMExpandedWriter.canWriteInboxConversationRead`/`markInboxConversationRead`, `MessagingMessage.senderID: Int?`, `MessagingReadIdentity.accountID`, `AppSession.regionalConfiguration`/`runtimeHTTPTransport`/`token`, `CooperationDirection`, `CYEmptyState(systemImage:_:messageIdentifier:)`, `CYPillButton`, `CYOptionSheetItem`.
+- There is no compiler in the cloud; the coordinator builds. New Swift file: `App/CommunityMemberReportSheet.swift` (the project was regenerated).
