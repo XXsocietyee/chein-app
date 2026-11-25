@@ -138,6 +138,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 if tab == .manage, club.canGovern || canManageActivities(club), management?.governance != nil {
                     ClubManagedProjectsMount(model: r8Mounts) { r8Route = $0 }
                 }
+                // CLB-detail-11 (MP wxml:484-511): 自由探索期次 with 带票分享, owner only.
+                if tab == .manage, club.isOwner, let governance = management?.governance {
+                    ClubEditionsShareSection(clubID: club.id, access: governance.access)
+                }
                 // CLB-G04 (MP js:3780-3847): 可对接的活动 + 我的合作, owner only.
                 if tab == .manage, club.isOwner, let session = reader as? AppSession {
                     ClubCoopPoolMount(session: session, model: r8Mounts, reloadKey: r8Key(club, tab: tab), clubID: club.id) { r8Route = $0 }
