@@ -26,3 +26,23 @@ extension AppSession {
         }
     }
 }
+
+// MARK: - A4-04b share 据点 / club hub (MP mylike.wxml:49-53 open-type="share"; talent/list/index.js:585-600)
+
+/// One system share entry for a public page. Uses the universal link when Core types one; otherwise it
+/// shares the MP page path text from the matching `PublicContentShareLink.*CopyText` helper.
+struct R9PublicShareButton: View {
+    let url: URL?
+    let copyText: String?
+    var identifier: String = "r9.share"
+
+    var body: some View {
+        if let url {
+            ShareLink(item: url) { Label("fixr9.ap.share", systemImage: "square.and.arrow.up") }
+                .accessibilityIdentifier(identifier)
+        } else if let copyText {
+            ShareLink(item: copyText) { Label("fixr9.ap.share", systemImage: "square.and.arrow.up") }
+                .accessibilityIdentifier(identifier)
+        }
+    }
+}
