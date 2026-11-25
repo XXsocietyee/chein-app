@@ -1,6 +1,74 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "merchantCoop.nearby.topic.chapters %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can take · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可承接 · %@"
+          }
+        }
+      }
+    },
+    "merchantCoop.nearby.topic.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the merchants for this topic. Pull to refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个主题的可邀商家没能读取，请刷新后重试"
+          }
+        }
+      }
+    },
+    "merchantCoop.nearby.topic.replacement": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite as replacement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请补位"
+          }
+        }
+      }
+    },
+    "merchantCoop.nearby.topic.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite merchants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请商家"
+          }
+        }
+      }
+    },
     "merchantTeam.danger.removeBody": {
       "extractionState": "manual",
       "localizations": {

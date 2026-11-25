@@ -553,7 +553,10 @@ import SwiftUI
         case "pages/merchant/coop-center/index":
             session.merchantCoopCenterDestination()
         case "pages/coop/nearby/index":
-            SessionNearbyMerchantsView(session: session)
+            // MC8-33-3 (topic/merchantinfo.js:3194,3217): `topicId/topicName` scope the page to that topic (邀请商家).
+            SessionNearbyMerchantsView(session: session, topic: positiveID(query["topicId"]).map {
+                CoopNearbyTopicContext(topicID: $0, topicName: (query["topicName"] ?? "").removingPercentEncoding ?? query["topicName"] ?? "")
+            })
         case "pages/square/list/index":
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
