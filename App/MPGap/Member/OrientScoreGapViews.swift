@@ -139,12 +139,14 @@ public struct OrientScoreAppealSheetView: View {
     }
 }
 
+/// MP 结算结果 actions (`orient-score/index.wxml:39-41`, `index.js:268-283` confirm modal).
+/// PLY-25-2: mounted by `OrientScoreSettlementActions`; no app-only gate (MP-first).
 public struct OrientScoreSettlementGapSection: View {
     public let canSync: Bool
     public let canSettle: Bool
     public let pendingReviewCount: Int
-    /// Owner-gated: sync/settle stay disabled until owner enables orient settlement.
-    public let settlementActionsEnabled: Bool
+    /// MP `busy || !!pending`.
+    public let busy: Bool
     public var onSync: () -> Void = {}
     public var onSettle: () -> Void = {}
 
@@ -155,48 +157,53 @@ public struct OrientScoreSettlementGapSection: View {
         canSync: Bool,
         canSettle: Bool,
         pendingReviewCount: Int = 0,
-        settlementActionsEnabled: Bool = false,
+        busy: Bool = false,
         onSync: @escaping () -> Void = {},
         onSettle: @escaping () -> Void = {}
     ) {
         self.canSync = canSync
         self.canSettle = canSettle
         self.pendingReviewCount = pendingReviewCount
-        self.settlementActionsEnabled = settlementActionsEnabled
+        self.busy = busy
         self.onSync = onSync
         self.onSettle = onSettle
     }
 
     public var body: some View {
         if canSync || canSettle || pendingReviewCount > 0 {
-            Section {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                if canSync {
+                    Button { confirmSync = true } label: {
+                        Text("orientScore.syncTasks").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(.cySecondary(fullWidth: true))
+                    .disabled(busy)
+                    .accessibilityIdentifier("orientScore.sync")
+                    .confirmationDialog("orientScore.sync.confirmTitle", isPresented: $confirmSync, titleVisibility: .visible) {
+                        Button("orientScore.write.confirm", action: onSync)
+                        Button("common.cancel", role: .cancel) {}
+                    } message: {
+                        Text("orientScore.sync.confirmMessage")
+                    }
+                }
                 if pendingReviewCount > 0 {
                     Text("orientScore.pendingReview \(pendingReviewCount)")
                         .cyText(.meta, monospacedDigit: true)
                         .foregroundStyle(CYColor.textSecondary)
                 }
-                if canSync {
-                    Button("orientScore.syncTasks") { confirmSync = true }
-                        .buttonStyle(.bordered)
-                        .disabled(!settlementActionsEnabled)
-                        .confirmationDialog("orientScore.syncTasks.confirmTitle", isPresented: $confirmSync, titleVisibility: .visible) {
-                            Button("orientScore.syncTasks", action: onSync)
-                            Button("common.cancel", role: .cancel) {}
-                        }
-                }
                 if canSettle {
-                    Button("orientScore.settleRun") { confirmSettle = true }
-                        .buttonStyle(.cyPrimary)
-                        .disabled(!settlementActionsEnabled)
-                        .confirmationDialog("orientScore.settleRun.confirmTitle", isPresented: $confirmSettle, titleVisibility: .visible) {
-                            Button("orientScore.settleRun", action: onSettle)
-                            Button("common.cancel", role: .cancel) {}
-                        }
-                }
-            } footer: {
-                if !settlementActionsEnabled {
-                    Text("orientScore.settlementGated")
-                        .cyText(.meta)
+                    Button { confirmSettle = true } label: {
+                        Text("orientScore.settleRun").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(.cyPrimary)
+                    .disabled(busy)
+                    .accessibilityIdentifier("orientScore.settle")
+                    .confirmationDialog("orientScore.settle.confirmTitle", isPresented: $confirmSettle, titleVisibility: .visible) {
+                        Button("orientScore.write.confirm", action: onSettle)
+                        Button("common.cancel", role: .cancel) {}
+                    } message: {
+                        Text("orientScore.settle.confirmMessage")
+                    }
                 }
             }
         }
