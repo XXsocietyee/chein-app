@@ -516,6 +516,8 @@ struct SessionRootView: View {
             return management.operations.map { ($0, management.governance) }
         })
         .environment(\.playerGapService, session.playerGapService)
+        // r8 A2-03b: 发消息 opens the chat in place from every SocialPublicProfileView host (square, club, activity…).
+        .environment(\.socialConversationDestination, session.socialConversationDestination)
         .environment(\.analyticsEventClient, session.analyticsEventClient)
         .environment(\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })
         .environment(\.cityNodeReceiptFactory, { session.makeCityNodeReceiptReader() })
