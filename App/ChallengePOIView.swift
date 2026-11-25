@@ -243,7 +243,7 @@ import QuestifyCore
                 .fallbackArtwork(MPAsset.BadgeMedal.micKey)
             }
             // MP _finish sub: 勋章已放进徽章墙, or 再完成一次不会重复发放 when it was already collected.
-            Text(coordinator.alreadyClaimed ? "playx.poi.claimedAgain" : "playx.poi.medalStored")
+            Text(LocalizedStringKey(coordinator.alreadyClaimed ? "playx.poi.claimedAgain" : "playx.poi.medalStored"))
                 .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             // MP medal screen: primary 写一张城市签 (citystamp kind=sign), secondary 查看徽章墙.

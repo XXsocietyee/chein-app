@@ -321,6 +321,22 @@
         }
       }
     },
+    "playx.answer.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type the characters you found here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把你找到的字填在这里"
+          }
+        }
+      }
+    },
     "playx.circle.loading": {
       "localizations": {
         "en": {

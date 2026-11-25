@@ -212,7 +212,7 @@ Brief: `design/handoff-r2:docs/briefs/fix-r3-round4.md` (+ `wave-x10.md`, `owner
 
 - **Sync:** checked out `origin/fix/r3-play-roam-a`, merged `origin/ui/combined-r7` 4ef0a2840 (clean). Merged again before the final push.
 - **MP source:** `hengyin/chengyinhub-xcx` 3a131849.
-- **Strings:** fragment `docs/port/strings/fix-r3-play-roam-a.json` now 63 keys (en + zh-Hans). It includes **15 rows from Gemini's `docs/mp-gap/copy-diff-g1.md` that never reached the catalog** (every one checked against the MP file:line; `Resources/Localizable.xcstrings` still had the old value). The store-day page uses its own table, so its MP copy is in `tools/build_play_store_day_catalog.py` and the regenerated `Resources/PlayStoreDay.xcstrings` (a fragment cannot reach that table; `test_w2_19_playMerchant` passes).
+- **Strings:** fragment `docs/port/strings/fix-r3-play-roam-a.json` now 64 keys (en + zh-Hans). It includes **15 rows from Gemini's `docs/mp-gap/copy-diff-g1.md` that never reached the catalog** (every one checked against the MP file:line; `Resources/Localizable.xcstrings` still had the old value). The store-day page uses its own table, so its MP copy is in `tools/build_play_store_day_catalog.py` and the regenerated `Resources/PlayStoreDay.xcstrings` (a fragment cannot reach that table; `test_w2_19_playMerchant` passes).
 - **Method for copy:** a script compared every catalog key and literal used by the 15 pages' App files with the MP text of the page, its `usingComponents` (recursive) and its `require`d utils. 293 strings were not verbatim; each was paired with its closest MP line, and the 40 that are the same message worded differently were changed. The rest are app-only states (gates, permissions, native share / photo-save, TEST-only writes) with no MP counterpart and stay as they are.
 
 ### 1. Flows (flows-g1 / flows-g2 edges for half a)
@@ -281,7 +281,7 @@ System-control glyphs (✕, back, share, ⋯, search, chevrons) and `cy-icon` li
 | history / session | `roam.historyLocal.finishPending` 上次漫游需要确认 · `roam.experience.noTrack` 这次没有记录到轨迹 · `roam.share.prepare` 生成足迹卡 · `roam.share.photoPermissionDenied` 在设置里允许保存到相册，返回后点“重试保存”。 · `roamSub.w208.shared.errorTitle` 这条足迹无法打开 (no sub) · history empty without the hint line |
 | poi-detail | `roamSub.w208.poi.offline` / `offlineVoucher` 节点已下线，保留历史记录(，已打卡待核销的券仍可出码领取) · `poi.missing` 找不到这个节点 · `poi.unavailable` 节点未开放或已下线 (both without sub) · `roam.poi.location.unavailable` 暂时无法获取位置，请稍后重试。 |
 | roam live | `roam.live.consentCard.body` …结束漫游即停止。 · `roam.live.locationQuality` 定位精度不足，请到开阔处等待定位稳定后重试。 · `roam.live.finishing` 正在结算 |
-| play/index | `playHelp.skipped` 跳过 · 记 0 分 · 辅助完成 · `playx.node.untitled` 未命名地点 |
+| play/index | `playHelp.skipped` 跳过 · 记 0 分 · 辅助完成 · `playx.node.untitled` 未命名地点 · `playx.answer.placeholder` 把你找到的字填在这里 (MP play/index.wxml:1228, vm 1 text answer) |
 | citystamp | 你是第几位 removed (MP slip: 签号 + number) |
 | Gemini copy-diff-g1 rows carried (15) | `playx.merchant.stat.wait`, `u10.roamFinish.medals`, `playx.circle.notice`, `playx.circle.loading`, `roamTools.clearCache.confirmTitle`, `templateVenue.park`, `nearby.error.apply.{ALREADY_JOINED,APPLY_BLOCKED,APPLY_PENDING}`, `nearby.error.handle.APPLY_BLOCKED`, `nearby.rejected.foot`, `roam.historyLocal.unfinishedHint`, `playkit.photo.fallbackRecorded`, `roam.live.finishing`, `nearby.actionFailed`. The other 6 rows of that file belong to other areas (baoming, report-detail, orient-score, playkit reaction, order lifecycle). |
 
