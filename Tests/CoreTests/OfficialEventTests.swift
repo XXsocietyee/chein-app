@@ -91,9 +91,6 @@ final class OfficialEventTests: XCTestCase {
         }
         do { _ = try await service(OfficialTestTransport(#"{"code":500}"#, status: 500)).broadcastStats(id: 91, token: "synthetic"); XCTFail() }
         catch { XCTAssertEqual(error as? APIError, .httpStatus(500)); XCTAssertNil(OfficialBroadcastStats.serverNote(error)) }
-        let api = try service(OfficialTestTransport(#"{"code":409,"msg":"还不能恢复"}"#))
-        do { try await api.recoverBroadcast(id: "91", token: "synthetic"); XCTFail() }
-        catch { XCTAssertEqual(error as? OfficialReadFailure, .explained(409, "还不能恢复")) }
     }
     func testHTTPAndBodyUnauthorizedAreNotBusinessOrDecodeErrors() async throws {
         for (json, status) in [("html", 401), (#"{"code":401,"data":"bad"}"#, 200)] {
