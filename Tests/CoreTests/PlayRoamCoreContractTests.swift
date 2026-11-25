@@ -30,7 +30,7 @@ final class PlayRoamCoreContractTests: XCTestCase {
     }
 
     @MainActor
-    func testRankListQueryMatchesMiniProgram() async {
+    func testRankListQueryMatchesMiniProgram() async throws {
         let transport = PlayRoamContractTransport()
         let service = PlayRoamRound2Service(baseURL: URL(string: "https://example.test")!, token: { "tok-1234" }, transport: transport)
         _ = await service.fetchLeaderboard(JourneyLeaderboardScopeQuery(scope: "city", topicID: 9, cityCode: "310100", scopeID: "310100", period: "week"))
