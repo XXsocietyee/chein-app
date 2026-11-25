@@ -142,7 +142,8 @@ extension RootTabSwitch {
                 GrowthCenterMetricRow("profile.selfGrowth.points") { GrowthCenterInteger(value: overview.center.value?.points) }
                     .accessibilityIdentifier("growth.normal.points")
                 if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }
-                else { GrowthCenterIssueView(issue: issue, retry: reload) }
+                // MP growthcenter index.js:337-354: the score card's failure reads 排行榜加载失败.
+                else { GrowthCenterIssueView(issue: issue, retry: reload, failedTitle: "mp.growth.boardFailed") }
                 if reader.offersLeaderboard { leaderboardRow(rank: nil, showsRank: false) }
             }
         }
@@ -208,8 +209,9 @@ extension RootTabSwitch {
                     }
                 } else { Text("growth.unknown").accessibilityLabel(Text("growth.unknownValue")) }
             }.accessibilityIdentifier("growth.mileage")
-            if let issue = overview.progress.issue { GrowthCenterIssueView(issue: issue, retry: reload) }
-            if let issue = overview.completed.issue { GrowthCenterIssueView(issue: issue, retry: reload) }
+            // MP index.js:501 overviewError: 部分成长数据暂时不可用.
+            if let issue = overview.progress.issue { GrowthCenterIssueView(issue: issue, retry: reload, failedTitle: "mp.growth.overviewFailed") }
+            if let issue = overview.completed.issue { GrowthCenterIssueView(issue: issue, retry: reload, failedTitle: "mp.growth.overviewFailed") }
         } header: {
             HStack {
                 growthHeader("growth.overview")
@@ -239,7 +241,8 @@ extension RootTabSwitch {
     }
     @ViewBuilder private func badgeRows(_ overview: GrowthCenterOverview) -> some View {
         Group {
-            if let issue = overview.center.issue { GrowthCenterIssueView(issue: issue, retry: reload) }
+            // MP wxml:69-70 (L09-050): 成长数据没有加载出来 + 重试.
+            if let issue = overview.center.issue { GrowthCenterIssueView(issue: issue, retry: reload, failedTitle: "mp.growth.badgesFailed") }
             else if let center = overview.center.value {
                 if center.badges.isEmpty {
                     CYEmptyState(systemImage: "star", "growth.badges.empty", messageIdentifier: "growth.badges.empty")

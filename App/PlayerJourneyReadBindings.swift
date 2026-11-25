@@ -386,7 +386,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
                     heldInvite = nil
                     inviteURL = nil
                     content.inviteShareURL = nil
-                    content.actionError = appLocalized("mp.seats.invite.linkFailed", locale: .current)
+                    // MP seats index.js:125: an OK answer without a token reads 邀请失败.
+                    content.actionError = appLocalized("mp.seats.invite.failed", locale: .current)
                     phase = .ready(content)
                     return
                 }
@@ -402,8 +403,13 @@ struct PlayerJourneySignInSheet: ViewModifier {
         // JSEAT-7: an unknown answer (sent, result not read back) says so instead of a network error.
         if let envelope, envelope.unconfirmed {
             content.actionError = appLocalized("mp.seats.unconfirmed", locale: .current)
+        } else if let envelope {
+            // MP seats index.js:125 / :143: the server message, else 邀请失败 / 撤销失败.
+            let message = envelope.message?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            content.actionError = message.isEmpty
+                ? appLocalized(invite ? "mp.seats.invite.failed" : "mp.seats.cancel.failed", locale: .current) : message
         } else {
-            content.actionError = envelope?.message ?? JourneyEnvelope.networkFailure.message
+            content.actionError = JourneyEnvelope.networkFailure.message
         }
         phase = .ready(content)
     }
@@ -633,6 +639,9 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private(set) var rate: JourneyRateState = .idle
     /// One settle-rating intent. Cleared only after a confirmed write so a retry reuses it.
     private var rateRequestID: String?
+    /// L09-059: the accepted rating, and the last draft sent (a different draft drops the kept request id).
+    @ObservationIgnored private var rated = false
+    @ObservationIgnored private var lastRateDraft: (stars: Int, text: String)?
     /// JSETTLE-1: set once the run is ready, so the share step always has 分享 (topic link fallback).
     private(set) var shareURL: URL?
     private(set) var topicName: String?
@@ -774,6 +783,11 @@ struct PlayerJourneySignInSheet: ViewModifier {
     }
 
     private func sendRating(stars: Int, text: String) async {
+        // MP settle L09-059: once this run's rating is accepted, 提交 again shows thanks and sends nothing;
+        // a changed draft after a failed submit is a new intent and gets a new request_id.
+        if rated { rate = .thanks; return }
+        if let last = lastRateDraft, last.stars != stars || last.text != text { rateRequestID = nil }
+        lastRateDraft = (stars, text)
         // JSETTLE-2, mini-program settle `submitRate`: owner type 2 + the activity id when the run has an activity,
         // else owner type 1 + the topic id. A run id is never an owner.
         guard let owner = PlayerJourneyProjection.ratingOwner(report: readyReport, scope: scope) else {
@@ -793,11 +807,14 @@ struct PlayerJourneySignInSheet: ViewModifier {
             let envelope = try await source.rate(ownerType: owner.type, ownerID: owner.id, rating: stars, contents: text, requestID: requestID, token: session)
             if envelope.ok, !envelope.unconfirmed {
                 rateRequestID = nil
+                rated = true
                 rate = .thanks
             } else if envelope.netFail {
                 rate = .error(appLocalized("mp.settle.rate.netKept", locale: .current))
             } else {
-                rate = .error(envelope.message ?? appLocalized("mp.settle.rate.netKept", locale: .current))
+                // MP settle index.js:212: the server text, else 评价暂时无法提交.
+                let message = envelope.message?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                rate = .error(message.isEmpty ? appLocalized("mp.settle.rate.failed", locale: .current) : message)
             }
         } catch {
             rate = .error(appLocalized("mp.settle.rate.netKept", locale: .current))

@@ -62,7 +62,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "尚未点亮"
+          "value": "还没点亮"
         }
       }
     }
@@ -284,6 +284,397 @@
         "stringUnit": {
           "state": "translated",
           "value": "轻点翻回正面"
+        }
+      }
+    }
+  },
+  "mp.seats.invite.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invite failed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请失败"
+        }
+      }
+    }
+  },
+  "mp.seats.cancel.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Couldn't withdraw"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "撤销失败"
+        }
+      }
+    }
+  },
+  "mp.settle.score": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Score"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分数"
+        }
+      }
+    }
+  },
+  "mp.settle.rate.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Couldn't submit the review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "评价暂时无法提交"
+        }
+      }
+    }
+  },
+  "roam.tools.anniversary.openRoute.a11y %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View current route %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看当前路线 %@"
+        }
+      }
+    }
+  },
+  "roam.tools.anniversary.more.a11y": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Load earlier memories"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取更早的回忆"
+        }
+      }
+    }
+  },
+  "roam.tools.recap.nextPage.a11y": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Load the next page of records"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取下一页记录"
+        }
+      }
+    }
+  },
+  "roam.goals.more.a11y": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Load more goals"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读取更多目标"
+        }
+      }
+    }
+  },
+  "roam.export.share.a11y": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Share the complete file"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分享完整文件"
+        }
+      }
+    }
+  },
+  "roam.export.save.a11y": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Save the complete file"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存完整文件"
+        }
+      }
+    }
+  },
+  "roam.export.sourceChanged": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The source changed and the parts read are incomplete. Prepare again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "来源已变化，已有部分不完整，请重新准备"
+        }
+      }
+    }
+  },
+  "roam.goals.retryOriginal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry the original request"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "以原操作重试"
+        }
+      }
+    }
+  },
+  "objects.login": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to view your collection"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看自己的册子"
+        }
+      }
+    }
+  },
+  "objects.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Could not open your collection"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "藏品册无法打开"
+        }
+      }
+    }
+  },
+  "badgeWall.state.signIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to see your badges"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看我的勋章"
+        }
+      }
+    }
+  },
+  "badgeWall.state.error": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Badge data didn't arrive"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "勋章数据没有到达"
+        }
+      }
+    }
+  },
+  "stampAlbum.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This account cannot view this album."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看"
+        }
+      }
+    }
+  },
+  "mp.growth.boardFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Leaderboard could not be loaded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "排行榜加载失败"
+        }
+      }
+    }
+  },
+  "mp.growth.boardDenied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This content can't be viewed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前内容无法查看"
+        }
+      }
+    }
+  },
+  "mp.growth.overviewFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Some growth data is unavailable for now"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "部分成长数据暂时不可用"
+        }
+      }
+    }
+  },
+  "mp.growth.badgesFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Growth data didn't load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "成长数据没有加载出来"
+        }
+      }
+    }
+  },
+  "mp.growth.signInRequired": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to see your growth and rankings"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看成长记录"
+        }
+      }
+    }
+  },
+  "mp.growth.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This account cannot view growth records. Check its access and refresh."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看成长记录"
         }
       }
     }

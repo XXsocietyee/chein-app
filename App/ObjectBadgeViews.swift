@@ -74,9 +74,11 @@ struct ObjectBadgeWallLayoutSelection {
                 }
                 if wall.isEmpty {
                     // Mini-program badge-wall empty: 还没有点亮勋章 with 去探索 when a home route is supplied.
+                    // BWALL flows (MP goExplore → switchTab index): without an injected action the root tab switch (首页) is the fallback.
+                    let explore = rootTabSwitch.growthExploreFallback(onExploreHome)
                     CYEmptyState(systemImage: "medal", "badgeWall.empty",
-                                 actionTitle: onExploreHome == nil ? nil : "growthExplore.openHome",
-                                 actionIdentifier: "badgeWall.empty.explore", action: onExploreHome)
+                                 actionTitle: explore == nil ? nil : "badgeWall.explore",
+                                 actionIdentifier: "badgeWall.empty.explore", action: explore)
                         .accessibilityIdentifier("profile.badges.emptyState")
                         .listRowBackground(palette.bgElevated)
                 }

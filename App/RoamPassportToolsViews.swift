@@ -261,6 +261,8 @@ struct RoamAnniversaryReadIntent {
                                 _ = navigation.open(target, memory: item, currentRows: state.rows, owner: reader?.identity)
                             } label: { Text("roam.tools.anniversary.openRoute") }
                                 .disabled(state.isLoading)
+                                // MP aria-label 查看当前路线 {title}.
+                                .accessibilityLabel(Text("roam.tools.anniversary.openRoute.a11y \(anniversaryTitle(item.title))"))
                                 .accessibilityIdentifier("roam.tools.anniversary.openRoute")
                         }
                     case .invalidTopicID, .noDestination:
@@ -276,6 +278,7 @@ struct RoamAnniversaryReadIntent {
             }
             if unavailableError == nil, let page = state.page, page.hasMore, !state.isLoading, state.error == nil {
                 Button("roam.tools.loadMore") { enqueue(more) }
+                    .accessibilityLabel(Text("roam.tools.anniversary.more.a11y"))
                     .accessibilityIdentifier("roam.tools.anniversary.more")
             }
         }.cyGroupedSurface()
@@ -716,6 +719,7 @@ struct RoamAnniversaryReadIntent {
                 }
                 if page.hasMore, !loading {
                     Button("roam.tools.recap.nextPage") { lifetime.run(reader) { await $0.nextPage() } }
+                        .accessibilityLabel(Text("roam.tools.recap.nextPage.a11y"))
                         .accessibilityIdentifier("roam.tools.recap.more")
                 }
             }
