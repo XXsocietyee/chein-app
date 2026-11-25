@@ -210,7 +210,11 @@ import SwiftUI
         do {
             let ticket = try await reader.ticketDetail(id: id)
             guard !Task.isCancelled, focusPhase == .resolving, focusRegistrationID == id else { return }
-            guard ticket.id == id else { focusPhase = .missing; return }
+            // R8-MEM-21-2: MP index.js:200-203 also needs a paid registration (`registrationStatus == 2`) on a
+            // topic or activity (`ownerType` 1/2); anything else is 未定位到原报名凭证. (`memberId` is not decoded yet.)
+            guard ticket.id == id, ticket.registrationStatus == 2, ticket.ownerType == 1 || ticket.ownerType == 2 else {
+                focusPhase = .missing; return
+            }
             focusPhase = .found
             carouselTicketID = id
         } catch is CancellationError {
@@ -304,7 +308,8 @@ extension TicketWalletView {
     /// Glass carousel entry over the openable tickets (detail action only, same destination as the rows below). Two or more tickets;
     /// accessibility Dynamic Type sizes skip it and keep the vertical rows.
     @ViewBuilder fileprivate func ticketCarousel(_ tickets: [TicketWalletTicket]) -> some View {
-        let openable = Array(tickets.enumerated()).filter { $0.element.action == .detail }.prefix(12)
+        // R7-MEM-21-2: locked tickets never open from the carousel (MP index.wxml:59-61).
+        let openable = Array(tickets.enumerated()).filter { $0.element.action == .detail && !$0.element.isWalletLocked }.prefix(12)
         if openable.count >= 2 && !dynamicTypeSize.isAccessibilitySize {
             let slides = openable.map { offset, ticket in
                 CYCarouselSlide(id: "\(offset)-\(ticket.id)", seed: "ticket-\(ticket.id)",
@@ -367,16 +372,10 @@ private struct TicketTopHeightKey: PreferenceKey {
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
-private struct TicketWalletRow: View {
-    let ticket: TicketWalletTicket
-    var showsPendingOrderAction = false
-    @Environment(\.ticketWalletCompletionReader) private var completionReader
-    @Environment(\.dynamicTypeSize) private var typeSize
-    @State private var topHeight: CGFloat = 140
-    /// R7-MEM-21-3: activity image, else topic image. The illustration stays only when that URL is absent.
-    /// PLY-21-15: token colours only, one tint per id so neighbouring cards still differ.
-    private var httpsCover: URL? {
-        guard let raw = ticket.coverURL?.trimmingCharacters(in: .whitespacesAndNewlines),
+extension TicketWalletTicket {
+    /// The wallet cover (`coverURL`) only when it is a plain https URL; shared by the row and the pass sheet (R8-MEM-21-3).
+    var walletHTTPSCoverURL: URL? {
+        guard let raw = coverURL?.trimmingCharacters(in: .whitespacesAndNewlines),
               !raw.isEmpty, raw.utf8.count <= 512,
               !raw.contains("\\"),
               !raw.contains(where: \.isWhitespace),
@@ -386,6 +385,17 @@ private struct TicketWalletRow: View {
               url.user == nil, url.password == nil, url.fragment == nil else { return nil }
         return url
     }
+}
+
+private struct TicketWalletRow: View {
+    let ticket: TicketWalletTicket
+    var showsPendingOrderAction = false
+    @Environment(\.ticketWalletCompletionReader) private var completionReader
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @State private var topHeight: CGFloat = 140
+    /// R7-MEM-21-3: activity image, else topic image. The illustration stays only when that URL is absent.
+    /// PLY-21-15: token colours only, one tint per id so neighbouring cards still differ.
+    private var httpsCover: URL? { ticket.walletHTTPSCoverURL }
     private var tint: Color {
         let tints: [Color] = [CYColor.brandStrong, CYColor.gameAccent, CYColor.rare, CYColor.coverFallback]
         return tints[abs(ticket.id) % tints.count]
