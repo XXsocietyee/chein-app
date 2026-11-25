@@ -13,6 +13,8 @@ public struct ClubRoleAssignmentApproval: Equatable {
     public let grants: Set<ClubGovernanceActionGrant>
     public let reviewedPolicyVersion: String
     public let reads: Bool, writes: Bool
+    /// MP-first: any positive club (and optional positive activity). Exact scopes stay narrow.
+    public let admitsAnyPositiveClub: Bool
     public init(endpoints: OperationEndpointApproval, scopes: Set<ClubGovernanceScope>, grants: Set<ClubGovernanceActionGrant>, reviewedPolicyVersion: String, reads: Bool = false, writes: Bool = false) throws {
         guard !scopes.isEmpty, scopes.allSatisfy({ scope in
             guard let club = scope.clubID, club > 0 else { return false }
@@ -20,10 +22,23 @@ public struct ClubRoleAssignmentApproval: Equatable {
         }), grants.allSatisfy({ $0.operation == .assignRole && scopes.contains($0.scope) }),
             !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !writes || reads else { throw APIError.invalidConfiguration }
         self.endpoints = endpoints; self.scopes = scopes; self.grants = grants; self.reviewedPolicyVersion = reviewedPolicyVersion; self.reads = reads; self.writes = writes
+        self.admitsAnyPositiveClub = false
+    }
+    public init(mpFirstEndpoints endpoints: OperationEndpointApproval) throws {
+        guard endpoints.paths.isSuperset(of: ClubRoleAssignmentRoute.paths),
+              ClubMPFirstGovernance.paths(for: [.assignRole]).isSubset(of: endpoints.paths) else { throw APIError.invalidConfiguration }
+        self.endpoints = endpoints; self.scopes = []; self.grants = []
+        self.reviewedPolicyVersion = ClubMPFirstGovernance.policyVersion; self.reads = true; self.writes = true
+        self.admitsAnyPositiveClub = true
     }
     public func permits(_ context: RuntimeDependencyContext, scope: ClubGovernanceScope, writing: Bool) -> Bool {
         let required = writing ? ClubRoleAssignmentRoute.paths : ClubRoleAssignmentRoute.readPaths
-        return context.market == .china && reads && (!writing || writes) && scopes.contains(scope)
+        let scopeAdmitted: Bool
+        if admitsAnyPositiveClub {
+            guard let club = scope.clubID, club > 0, scope.activityID == nil || (scope.activityID ?? 0) > 0 else { return false }
+            scopeAdmitted = true
+        } else { scopeAdmitted = scopes.contains(scope) }
+        return context.market == .china && reads && (!writing || writes) && scopeAdmitted
             && context.baseURL == endpoints.baseURL && context.session.accountID == endpoints.accountID
             && context.session.namespace == endpoints.namespace && required.isSubset(of: endpoints.paths)
     }
@@ -32,6 +47,9 @@ public struct ClubRoleAssignmentApproval: Equatable {
     }
     public var productionApproval: ClubGovernanceProductionApproval? {
         guard writes else { return nil }
+        if admitsAnyPositiveClub {
+            return try? ClubGovernanceProductionApproval(mpFirstMarket: .china, endpoints: endpoints, operations: [.assignRole])
+        }
         return try? .init(market: .china, endpoints: endpoints, grants: grants, reviewedPolicyVersion: reviewedPolicyVersion)
     }
 }
@@ -63,6 +81,11 @@ public struct ClubRoleAssignmentRoute {
             guard Self.positive(fields["targetMemberId"]) != nil,
                   let role = fields["roleCode"] as? String, ClubRoleRevocationRoute.roles(activity).contains(role),
                   let id = fields["requestId"] as? String, ClubRoleRevocationRoute.requestID(id) else { return nil }
+            if fields["customerPhoneVisible"] != nil {
+                guard path == Self.writePath, role == "EVENT_CHECKIN",
+                      let flag = fields["customerPhoneVisible"] as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() else { return nil }
+                keys.insert("customerPhoneVisible")
+            }
             if path == Self.receiptPath { keys.insert("expiresAtEpochMs"); guard fields["expiresAtEpochMs"] is NSNull else { return nil } }
         }
         guard Set(fields.keys) == keys else { return nil }

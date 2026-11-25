@@ -29,6 +29,30 @@ import FoundationNetworking
             ClubGovernanceProductionFactory(api: api, approval: approval, transport: wire, current: current).service(for: command)
         }, runtimeContext: current)
     }
+    func testLiveCatalogPermitsNamedOperationsWithoutAPreboundTarget() throws {
+        let player = try context()
+        let endpoints = try OperationEndpointApproval(baseURL: url, namespace: "test-cn", accountID: 701, paths: ClubMPFirstGovernance.paths(for: ClubMPFirstGovernance.governance))
+        let live = try ClubGovernanceProductionApproval(mpFirstMarket: .china, endpoints: endpoints, operations: ClubMPFirstGovernance.governance)
+        let ban = try ClubGovernanceCommand(operation: .ban, scope: .init(clubID: 81), values: [
+            "targetMemberId": .integer(704), "reason": .string("reviewed"), "requestId": .string("ban-1"), "durationDays": .integer(7)
+        ])
+        XCTAssertTrue(live.permits(ban, context: player))
+        let dissolve = try ClubGovernanceCommand(operation: .dissolve, scope: .init(clubID: 81), values: [
+            "dissolveConfirmed": .bool(true), "memberConsequencesConfirmed": .bool(true)
+        ])
+        XCTAssertTrue(live.permits(dissolve, context: player))
+        XCTAssertFalse(live.liveOperations.contains(.reportHours))
+        XCTAssertFalse(live.liveOperations.contains(.cancelOccurrence))
+        XCTAssertFalse(live.liveOperations.contains(.assignRole))
+        XCTAssertThrowsError(try ClubGovernanceProductionApproval(mpFirstMarket: .china, endpoints: endpoints, operations: [.reportHours]))
+        let exact = try approval(try command())
+        XCTAssertTrue(exact.liveOperations.isEmpty)
+        XCTAssertTrue(exact.permits(try command(), context: player))
+        XCTAssertFalse(exact.permits(ban, context: player))
+        let factory = ClubGovernanceProductionFactory(api: try .init(baseURL: url), approval: live, transport: Wire(), current: { player })
+        XCTAssertNotNil(factory.service(for: ban))
+        XCTAssertNil(factory.service(for: try command()))
+    }
     func testDefaultFactoryDoesNotDispatch() throws {
         let c = try context(), command = try self.command(), wire = Wire()
         let factory = ClubGovernanceProductionFactory(api: try .init(baseURL: url), transport: wire, current: { c })

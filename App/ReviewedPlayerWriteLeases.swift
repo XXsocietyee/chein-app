@@ -1423,7 +1423,7 @@ enum ReviewedPlayerReadRoute {
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             couponCodeApproval: couponCodeApproval,
-            merchantBusinessApproval: MPFirstMerchantApprovals.business(context),
+            merchantBusinessApproval: MPFirstMerchantApprovals.business(context), clubGovernanceApproval: playerWritesEnabled ? MPFirstClubApprovals.governance(context) : nil,
             merchantEngagementApproval: MPFirstMerchantApprovals.engagement(context),
             orderLifecycleConfiguration: orderConfiguration,
             nonCashRewardApproved: rewardPledge, nonCashRewardClaimApproved: rewardPledge,
