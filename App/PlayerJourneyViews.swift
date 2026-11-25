@@ -362,7 +362,8 @@ private struct ParticipationCoverPlaceholder: View {
             if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
             if let detail {
                 // PLY-23-6: MP mycanyuinfo `picUrl` cover (cmsTopic/cmsActivity imgUrl || imgArr), https only, none when absent.
-                ParticipationDetailGapSections(coverURL: QuestifyCardArtwork.safeURL(detail.record.cover)?.absoluteString)
+                ParticipationDetailGapSections(coverURL: QuestifyCardArtwork.safeURL(detail.templateBannerURL)?.absoluteString
+                    ?? QuestifyCardArtwork.safeURL(detail.record.cover)?.absoluteString)
                 ParticipationDetailHeader(detail: detail)
                 // PLY-23-3 (flows-g1 member): 自由探索权益 under the info card (MP wxml:64-66, `_bundleEntry`: ownerType 1 +
                 // cmsTopic + purchaseKind 3 or productType 2), behind the bundle switch.

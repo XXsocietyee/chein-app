@@ -30,6 +30,8 @@ import SwiftUI
     @State private var pendingOrderReadOwner: TicketWalletPendingOrderOwner?
     @State private var didFocusTopic = false
     @State private var focusPhase = TicketWalletFocusPhase.idle
+    @EnvironmentObject private var session: AppSession
+    @State private var companions: [WalletSeatInvitation] = []
     private var key: TicketWalletLoadKey { TicketWalletLoadKey(reader: reader) }
     var body: some View {
         let offeredPresentation = model.presentation
@@ -109,16 +111,19 @@ import SwiftUI
                         }
                     }
                 }
-                if reader.isAuthenticated, let makeTeamCoordinator {
+                if !companions.isEmpty {
                     Section {
-                        NavigationLink {
-                            TeamHomeView(coordinator: makeTeamCoordinator(), makeCoordinator: makeTeamCoordinator)
-                                .cyPushedChrome(domain: .player)
-                        } label: {
-                            Label("team.title", systemImage: "person.3")
+                        ForEach(companions, id: \.invitationID) { card in
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                Text(verbatim: card.title.isEmpty ? "—" : card.title).cyText(.cardTitle)
+                                if !card.usableUntil.isEmpty {
+                                    Text(verbatim: card.usableUntil).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                }
+                            }
+                            .accessibilityIdentifier("ticketWallet.companion.\(card.invitationID)")
                         }
-                        .accessibilityIdentifier("ticketWallet.teams")
                     }
+                    .accessibilityIdentifier("ticketWallet.companions")
                 }
                 // MP F-R2U-01: one lane failing leaves the other lane's tickets on screen with a quiet note, no red block.
                 if let partial = model.value(owner: key)?.partialFailure {
@@ -162,6 +167,7 @@ import SwiftUI
                 let current = model.presentation ?? model.beginPresentation(owner: key)
                 if let current, model.accepts(current, currentOwner: key) { retirePendingOrder() }
                 await model.refresh(presentation: current, currentOwner: key) { await load(presentation: $0) }
+                await loadCompanions()
             }
             .onAppear { isVisible = true; refreshOnActive = false; pendingOrderEntry.appear(); replacePresentation() }
             .onDisappear { isVisible = false; model.endPresentation(); pendingOrderEntry.disappear() }
@@ -180,6 +186,7 @@ import SwiftUI
             .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy); focusRegistration(proxy) }
             .onChange(of: model.isLoading) { _, loading in if !loading { focusRegistration(proxy) } }
             .task { await followFocusedRegistration() }
+            .task(id: reader.isAuthenticated) { await loadCompanions() }
         }
         }
     }
@@ -260,6 +267,18 @@ import SwiftUI
         if let permit, model.accepts(permit, currentOwner: key) { retirePendingOrder() }
         model.schedule(presentation: permit, currentOwner: key) { await load(presentation: $0) }
     }
+    /// R8-MEM-21-1: companion cards on the wallet. A failed read shows no error and no entry code.
+    private func loadCompanions() async {
+        guard reader.isAuthenticated,
+              let token = session.token, AuthRequestBuilder.isValidToken(token),
+              let base = session.currentRuntimeDependencyContext?.baseURL,
+              let configuration = try? APIConfiguration(baseURL: base) else {
+            companions = []
+            return
+        }
+        companions = await WalletSeatInvitationSource(configuration: configuration, transport: session.runtimeHTTPTransport).load(token: token)
+    }
+
     private func load(presentation: TicketWalletReadPresentation) async {
         guard isVisible, scenePhase == .active, !Task.isCancelled,
               model.accepts(presentation, currentOwner: key) else { return }

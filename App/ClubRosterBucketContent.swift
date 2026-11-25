@@ -55,6 +55,10 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 8) {
                     if let name = member.nickname { Text(verbatim: name).cyText(.cardTitle) } else { Text("club.roster.unnamed").cyText(.cardTitle) }
                     Text("club.memberNumber \(member.id)").cyText(.meta).foregroundStyle(.secondary)
+                    if let phone = member.phone, let url = URL(string: "tel:\(phone)") {
+                        Link(destination: url) { Text(verbatim: phone) }
+                            .accessibilityIdentifier("club.roster.call.\(member.id)")
+                    }
                     if let state = member.waitlistState { Text(verbatim: state) }
                     if let route = roster.correctionRoute(memberID: member.id, bucket: selected, context: context,
                                                           snapshotGeneration: snapshotGeneration, namespace: namespace) {

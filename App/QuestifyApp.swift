@@ -647,7 +647,7 @@ struct SessionRootView: View {
             guard let configuration = session.regionalConfiguration?.apiConfiguration, let token = session.token else {
                 throw MerchantBusinessFailure.disabled
             }
-            return try await MerchantDeskManualCodeClient(configuration: configuration, transport: session.runtimeHTTPTransport, gate: .off)
+            return try await MerchantDeskManualCodeClient(configuration: configuration, transport: session.runtimeHTTPTransport, gate: .live)
                 .resolve(code: code, token: token)
         })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })

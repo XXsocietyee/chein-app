@@ -19,6 +19,9 @@ import SwiftUI
                         legalReader: session.legalReader,
                         disablePresence: (session.isSignedIn && session.isConfigured) ? {
                             await session.disableRoamPresenceVisibility()
+                        } : nil,
+                        readPresence: (session.isSignedIn && session.isConfigured) ? {
+                            await session.readRoamPresenceVisibility()
                         } : nil
                     )
                 } label: {
@@ -39,12 +42,15 @@ import SwiftUI
     var modelPreview: OwnMediaModelPreviewAccess? = nil
     var legalReader: any SettingsLegalReading = SettingsBundledLegalReader()
     var disablePresence: (() async -> RoamPresenceDisableOutcome)? = nil
+    /// Nil means the read did not answer. `false` means sharing is already off, so the off control stays hidden.
+    var readPresence: (() async -> Bool?)? = nil
     @Environment(\.locale) private var locale
     @State private var showsRoam = false
     @State private var disablingPresence = false
     @State private var toastMessage: LocalizedStringKey?
     @State private var toastTone: CYToastTone = .info
     @State private var lastRoamCleanup: ComplianceRoamCleanup = .idle
+    @State private var presenceSharing: Bool?
 
     var body: some View {
         Form {
@@ -65,6 +71,7 @@ import SwiftUI
             } header: { Text("member.privacy.homeCity.title", tableName: "MemberProfile") }
             Section {
                 Text("member.privacy.presence.detail", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                if presenceSharing != false {
                 Button {
                     guard let disablePresence, !disablingPresence else { return }
                     disablingPresence = true
@@ -95,6 +102,7 @@ import SwiftUI
                 } label: { Text("member.privacy.presence.off", tableName: "MemberProfile") }
                     .disabled(disablePresence == nil || disablingPresence)
                     .accessibilityIdentifier("member.privacy.presence.off")
+                }
             } header: { Text("member.privacy.presence.title", tableName: "MemberProfile") } footer: {
                 if disablePresence == nil {
                     Text("member.privacy.presence.unavailable", tableName: "MemberProfile")
@@ -133,6 +141,7 @@ import SwiftUI
         .onAppear {
             if let compliance { lastRoamCleanup = compliance.state.roamCleanup }
         }
+        .task { presenceSharing = await readPresence?() }
         .sheet(isPresented: $showsRoam, onDismiss: {
             guard let compliance else { return }
             let feedback = RoamConsentWithdrawalFeedback.evaluate(

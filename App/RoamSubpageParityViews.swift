@@ -447,7 +447,7 @@ struct RoamPOIMissingView: View {
                 .buttonStyle(.questifyPrimary).disabled(!canSend && fixtureReceipt == nil)
                 .accessibilityIdentifier("roamSub.w208.stamp.send")
             if failed { Text("roamSub.w208.stamp.retry").cyText(.bodyCompact).foregroundStyle(.red).accessibilityIdentifier("roamSub.w208.stamp.failed") }
-            if exchange == nil && fixtureReceipt == nil {
+            if exchange == nil && fixtureReceipt == nil && !RoamExperienceCapabilities.stampExchange {
                 Text("roamSub.w208.stamp.dormant").cyText(.meta).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("roamSub.w208.stamp.dormant")
             }
