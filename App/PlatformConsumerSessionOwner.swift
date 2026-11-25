@@ -45,14 +45,15 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     .accessibilityIdentifier("topic.detail.configurationUnavailable")
             } else {
                 TopicDetailView(id: id, reader: topicReaderOverride ?? session.topicReader, preferSession: preferSession,
-                    guestSignIn: session.account == nil ? { promptGuestSignIn() } : nil,
                     activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)) },
                     publicMerchant: session.publicMerchantHomeContext,
                     makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,
                     publisherDestination: { detail in
                         guard detail.isOwner, let resource = try? PublishedResource(kind: .topic, value: detail.id) else { return AnyView(EmptyView()) }
                         return AnyView(PublisherLifecycleNavigationLink(session: session, resource: resource))
-                    }, reviewOwner: session.contextualReviews?.coordinator(.topic(id)),
+                    },
+                    reviewOwner: session.contextualReviews?.coordinator(.topic(id)),
+                    guestSignIn: session.account == nil ? { promptGuestSignIn() } : nil,
                     selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) },
                     ticketWalletDestination: { topicID in
                         AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
