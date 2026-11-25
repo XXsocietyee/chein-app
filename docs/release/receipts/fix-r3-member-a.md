@@ -171,3 +171,167 @@ APIs grepped on the new base before use: `MemberGapService(baseURL:token:transpo
 - `tools/check_a11y_lint.py` fails with the same 17 findings with and without this round's changes. They are pre-existing and none is in my files.
 - `tools/check_missing_string_keys.py` lists only this round's four new keys, which are in the fragment file.
 - No compiler in the cloud; the coordinator's build is the first real check.
+
+## Round 4 (2026-11-25)
+
+Brief: `design/handoff-r2:docs/briefs/fix-r3-round4.md`, with `wave-x10.md` and `owner-decisions-1124.md`. Base: `origin/ui/combined-r7` `4ef0a2840` merged into this branch (clean). Gemini is out of quota, so this round also covers Gemini's MP-alignment work for pages 1–15.
+
+APIs grepped on the base before use: `ChannelRedeemSource(configuration:transport:)`, `.redeem(code:token:)`, `ChannelRedeemEnvelope.ok/confirmed/reasonCode/dataJSON`, `ChannelRedeemRefusal.invalidRequest/notAdmitted`, `APIConfiguration(baseURL:)`, `AuthRequestBuilder.isValidToken`, `AppSession.token/currentRuntimeDependencyContext/composition.makeTransport()`, `CYMorphButton(_:state:action:)`, `CYPillButton(_:action:)`, `SessionTopicDetailView(id:session:)`, `MPParityDestination(route:)`, `MPAsset.BrandLogo.cyLogoMark`, `MPAsset.EmptyState.noData`, `CYEmptyIllustration.kind(matching:)` (`"tray"` → MP empty art), `CYStateKind.generic`, `MemberMissingLinkState(identifier:)`, `QuestifyMetadataLine(label:value:systemImage:)`. New names (`PassRedeemCodeView`, `PassRedeemCodeOutcome`, `PassSealMark`, `CouponQRLogoMark`, `CouponQRRenderFailed`, `MPParityRoute.passRedeemCode`, `MPParityBindings.passRedeemEnabled`) were grepped first and are not declared elsewhere. The new file is `App/PassRedeemCodeView.swift`, which `tools/generate_project.py` already globs.
+
+### 1. Flows (flows-g1 / flows-g2 edges for pages 1–15)
+
+Every `navigateTo` / `redirectTo` / `navigateBack` / `switchTab` in `market/*`, `free-explore`, `coupon*`, `invoice*` was listed from the MP and checked against the app.
+
+| edge | MP | app | status |
+|---|---|---|---|
+| flows-g1 free-explore `?topicId=` / `?requestId=` | catalog / receipt | `FreeExploreTopicCatalogScreen` / `FreeExploreReceiptResolveScreen` (round 3) | OK |
+| flows-g1 coupon/coupon forbidden CTA + summary tiles | `merchant/apply`, tiles | round 3 (`denyAction`, `CouponPageSummary`) | OK |
+| flows-g2 `talent/list:122 → market/passes` (MISSING-ROUTE for Claude) | `goStore` | Already present: `MPPassExploreCard` (`App/MPPassEntries.swift:42`) pushes `MPParityDestination(route: .passes(tab: .shop))`. The audit tool missed the App mount | OK, no change |
+| passes `goRedeem` → `gift?mode=code` | 兑换码 row | **was missing**. Added (see 4) | fixed |
+| passes → gift / reveal / points-history / pass / pass-order / library | navigateTo | `PassMarketHost` routes | OK |
+| membership → pass-order / reveal / topic / library | navigateTo / redirectTo | `PassMembershipViews` routes | OK |
+| pass → seats / passes?tab=orders / baoming / passes?tab=gifts | redirectTo / navigateTo | round 1–3 | OK |
+| pass-order → im/list (联系城瘾小助手) | navigateTo | `PassOrderDetailView` → `MPReviewedPageScreen("subpackageB/pages/im/list/index")` | OK |
+| gift (claim) → orderinfo / passes?tab=gifts; code mode → topic / library | redirectTo | claim: round 2; code mode: `PassRedeemCodeView.play()` | OK |
+| coupon-qr back → member tab | navigateBack / reLaunch | system back; missing link has 返回 | OK |
+| invoice list → apply / detail / titles → title-edit; after save back | navigateTo / navigateBack | `InvoiceLaunch*` | OK |
+| all pages: back with no stack → member tab | switchTab | system back (pushed) / 返回 on deep-link sheets | OK |
+
+### 2. Image parity (MP image slots on pages 1–15)
+
+| page | MP slot | MP source | app | status |
+|---|---|---|---|---|
+| 1 passes | empty (shop / orders / gifts) | `cy-empty kind="empty"` → `/images/empty_state_bg.svg` + `empty_state_figure.svg` | `CYEmptyState(systemImage: "tray")` → `MPAsset.EmptyState.emptyStateBg/Figure` | **fixed** (was ticket / doc / gift art) |
+| 1 passes | 通行证 member card | text only (`mk-member`) | SF `key.fill` emblem removed | **fixed** |
+| 1 passes | row chevrons, error | `cy-icon chevron-right`, `cy-error` glyph | SF `chevron.right`, `exclamationmark` | system glyph |
+| 2 pass | hero seal | `cy-pass-object` `po__mark` `/images/cy_logo_mark.png` (sepia, dark gold) | `PassSealMark` (`MPAsset.BrandLogo.cyLogoMark` template, ember tint, gold disc + ring) | **fixed** (was SF `key.fill`) |
+| 2 pass | unlock dial core | `cy-pass-unlock` `pu__core-mark` `/images/cy_logo_mark.png` | `PassUnlockStepsView` uses `PassTicketHero` → `PassSealMark` | **fixed** |
+| 3 gift | hero icon | `cy-icon gift` / `check` (icon font) | SF `gift.fill` / `checkmark` | system glyph |
+| 3 gift | missing link | `cy-empty kind="missing-param"` → glyph `info` | `MemberMissingLinkState` (SF) | system glyph |
+| 4 membership | glass key | `cy-frames` `/subpackageMember/images/frames/glass-key.webp` | `MPAsset.Other.glassKey` (round 2) | OK |
+| 4 membership | library row seal | `cy-illus name="seal"` (SVG drawn in `art.js`, no catalog file) | SF `seal.fill` | no asset to map |
+| 4 membership | merchant / off states | `cy-empty kind="empty"` art | `"tray"` → MP art | **fixed** (was SF key) |
+| 5 pass-order | missing / error | `missing-param` / `cy-error` glyphs | SF | system glyph |
+| 6 library | cover default | `/images/route_city_cover.png` | `MPAsset.BannerCover.routeCityCover` (round 2) | OK |
+| 6 library | city pin | `/images/cards/pin.svg` | `MPAsset.FeatureIcon.pin` (round 2) | OK |
+| 6 library | chevron | `/images/cards/chevron.svg` | SF `chevron.right` (mapping: disclosure glyph) | system glyph |
+| 6 library | empty | `cy-empty kind="empty"` art | `"tray"` → MP art | **fixed** (was SF map) |
+| 7 free-explore | missing / legacy / reservations empty | `missing-param` glyph; `kind="empty"` art | `MemberMissingLinkState`; bundle empty already `"tray"` | OK |
+| 8 coupon-wallet | empty / filtered empty | `cy-empty kind="empty"` art | `"tray"`, `.generic` → MP art | **fixed** (was ticket / filter art) |
+| 8 coupon-wallet | shop pin, row arrow | `cy-icon pin` / `arrow-right` (icon font) | SF | system glyph |
+| 9 coupon-qr | QR centre mark | `cy-qr-voucher` `qr__logo` `/images/cy_logo_mark.png`, `brightness(0)` on a white disc | `CouponQRLogoMark` (`cyLogoMark` black template, 48 pt white disc). Local QR error correction raised M → H for the covered centre | **fixed** |
+| 9 coupon-qr | QR error | `/images/no_data.svg` + 二维码未加载 | `CouponQRRenderFailed` (`MPAsset.EmptyState.noData`) | **fixed** (was text only) |
+| 9 coupon-qr | used check | `cy-icon check` | SF `checkmark.circle` | system glyph |
+| 10 coupon | empty | `cy-empty kind="empty"` art | `"tray"` → MP art | **fixed** |
+| 10 coupon | detail icon | `cy-icon coupon` (icon font) | none on a pushed page | system glyph slot |
+| 11 invoice | row icons | `/subpackageMember/images/d_orderIcon.png`, `d_orderIcon2.png` | `MPAsset.FeatureIcon.dOrderIcon/dOrderIcon2` (round 2) | OK |
+| 11 invoice | empty | `kind="empty"` art | `"tray"` → MP art | **fixed** |
+| 12 invoice-detail | missing / login / off | glyphs | SF via `CYStateLayout` | system glyph |
+| 13 invoice-apply | title chevron | `cy-icon arrow-right` | SF | system glyph |
+| 13 invoice-apply | no-titles sheet empty | `kind="empty"` art | `"tray"` → MP art | **fixed** |
+| 14 invoice-titles | delete | `/subpackageMember/images/d_close.png` | SF `xmark` (mapping: system close glyph) | system glyph |
+| 14 invoice-titles | empty | `kind="empty"` art | `"tray"` → MP art | **fixed** |
+| 15 invoice-title-edit | — | no image slot | — | — |
+
+### 3. Copy (zh-Hans = MP)
+
+A script compared each zh-Hans value used by the page files (Localizable + the `InvoiceLaunchUI` / `FreeExploreBundleLaunch` tables + all fragments) with the Chinese text of the matching MP wxml/js/json. Changed:
+
+| key | was | now (MP) | MP source |
+|---|---|---|---|
+| `mp.member.plan.month` | 月卡 · 随时停 | 30天·不自动续费 | `utils/platform-pass.js:80` |
+| `mp.member.buy.device` | 当前设备暂不可开通 | 当前设备暂不支持开通 | `platform-pass.js:68` |
+| `mp.member.buy.renew` | 续期通行证 | 续买30天 | `platform-pass.js:138` |
+| `mp.reveal.linePaid %@` | 到 %@ · 价格都是 ¥0 | 到 %@ | `subpackagePass/reveal/index.js:100` |
+| `accountCollection.coupons.title` (MKT-8-2) | 我的优惠券 | 优惠券 | `coupon-wallet/index.json:3` |
+| `accountCollection.coupon.validUntil` | 截止日期 | 有效期至 | `scene-game-coupon-wallet/index.js:49` |
+| `accountCollection.coupon.startsLater` | 尚未到使用日期 | 还没到可用时间 | `coupon-qr/index.wxml:48` |
+| `couponCode.show` | 出示券码 | 出示核销码 | `scene-game-coupon-wallet/index.wxml:16` |
+| new `couponWallet.validFrom %@` / `.validUntil %@` | (date only) | %@ 起可用 / 有效期至 %@ | `scene-game-coupon-wallet/index.js:48-49`, `coupon-qr/index.wxml:49` |
+| `couponCode.title` | 优惠券码 | 优惠券出示 | `coupon-qr/index.json` |
+| `couponCode.renderFailed` | 券码暂时无法显示，请更新后再出示。 | 二维码未加载 | `coupon-qr/index.wxml:66` |
+| `couponCode.waiting` | 此优惠券尚未到可使用时间。 | 还没到可用时间 | `coupon-qr/index.wxml:48` |
+| `couponCode.expired` / `.invalid` | 优惠券已过期 / 优惠券已失效 | 该券已过期 / 该券已失效 | `coupon-qr/index.wxml:98,102` |
+| `couponCode.unavailable` | 此优惠券已不可用。 | 优惠券已撤销或不存在 | `coupon-qr/index.js:292` |
+| `couponCode.serviceDisabled` (+ `.detail`) | 优惠券出示码暂未开放 | 优惠券出示码暂不可用（，请联系管理员） | `coupon-qr/index.js:301` |
+| `couponCode.login` | 请重新登录后出示此优惠券。 | 登录已过期，请重新进入 | `coupon-qr/index.js:149` |
+| `couponCode.pollDelayed` | 核销状态暂时更新延迟，稍后会再次检查。 | 核销状态暂未更新 | `coupon-qr/index.wxml:77` |
+| `couponManagement.title` (MKT-10-2) | 我发布的券 | 我发布的优惠券 | `coupon/coupon.json` |
+| `couponManagement.empty` (MKT-10-2) | 暂无已发布优惠券 | 还没有优惠券 | `coupon.wxml:42` |
+| `couponManagement.remaining` | 库存 | 库存数 | `coupon.wxml:34` |
+| `couponManagement.stopPolicy` | 停发不可撤销。停发后不能再被领取、发放；… | 停发后不可领取，已领券仍可用 | `coupon.wxml:69` |
+| `couponManagement.reviewStop` | 确认停发 | 停发该券 | `coupon.wxml:68` |
+| `InvoiceLaunchUI` `taxInvalid` | 请填写完整税号：15～20 位数字或大写字母，不能使用掩码 | 请重新填写完整税号，不能使用掩码 | `utils/user-invoice.js:53` |
+| `InvoiceLaunchUI` `invoiceNo` | 发票号码 | 发票号 | `invoice-detail/index.wxml:42` |
+| `FreeExploreBundleLaunch` `legacy` | 此记录没有套票账本，仅可查看。 | 这笔订单没有套票权益 | `free-explore/index.wxml:37` |
+| `FreeExploreBundleLaunch` `unknown` | 原预约结果尚未确定，回读核实前不能新建预约。 | 预约结果确认中 | `free-explore/index.wxml:62` |
+| new `mp.redeem.*` (11 keys) | — | 兑换码 / 输入兑换码 / 兑换 / 兑换成功 / 你已兑换过这个码 / 去玩 / 兑换码无效 / 兑换码已过期 / 兑换码已被他人使用 / 该兑换码不属于当前账号 / 兑换码暂不可用 | `market/gift/index.{wxml,js}` |
+
+Code-side copy changes: the title-edit page title is 发票抬头 for new and edit (`invoice-title-edit/index.wxml:8`, was 新增抬头 / 编辑抬头); the apply page title row reads 选择发票抬头 to VoiceOver (`invoice-apply/index.wxml:16`); the no-orders section lost its 订单明细 header (MP shows only 暂无可开票订单); the wallet empty states lost the two detail lines the MP does not have; the coupon-qr missing link is the MP 链接已失效 · 返回 (`MemberMissingLinkState`) instead of 缺少券信息.
+
+Fragment: `docs/port/strings/fix-r3-member-a.json` (Localizable keys, en + zh-Hans). Table keys (`InvoiceLaunchUI`, `FreeExploreBundleLaunch`) cannot be overridden by a Localizable fragment, so those four values were edited in place in `Resources/*.xcstrings` (one line each). `tools/check_missing_string_keys.py` lists only the new keys, which are all in the fragment.
+
+Kept, with reasons: app-only safety lines with no MP counterpart (`couponCode.authority`, `couponCode.paused`, `couponCode.stale`, `couponManagement.chinaTime`, the TEST-only gate notes `mp.gate.*`, `mp.passOrder.gated`); `mp.member.plan.year` (the MP sells month only, MKT-4-1 owner ruling); `mp.member.toLibrary` on the active footer (MKT-4-6 owner ruling; MP shows 续买30天 there); free-explore reservation / swap / review copy belongs to MP features the app does not have (MKT-7-3, Gemini).
+
+### 4. P2 / P1 rows
+
+- All Claude P2 rows for pages 1–15 in `audit/parity-r7-member` were closed in rounds 1–3, except MKT-8-2 and MKT-10-2, which waited on copy. The round-4 brief says copy must equal the MP, so both are now closed (see 3).
+- MKT-10-3 (detail as a sheet) stays the recorded native-iOS deviation.
+- New gap found and fixed: **passes 兑换码 / `gift?mode=code`** (MP `passes/index.wxml:47`, `gift/index.js:35-98`). `PassRedeemCodeView` posts through the existing `ChannelRedeemSource` (no money; the body holds only `code` + `requestId`), keeps one source per code so a network-unknown retry resends the same request id, maps the MP six results, and 去玩 opens the one topic or the theme library. The row shows only for a signed-in player when `MPParityBindings.passRedeemEnabled` returns true; that binding is nil by default, so the feature is off until Cursor wires the status read (request 1 below). The route `MPParityRoute.passRedeemCode` comes from `gift/index?mode=code`.
+- No open P1 on pages 1–15 (the open member P1s are pages 16–30, half b).
+
+### 5. Accessibility lint
+
+`python3 -B tools/check_a11y_lint.py` was failing on the base with 1 finding outside this area (`App/ClubKit/ClubWorkbenchKit.swift:261`, the club share glyph). The glyph sits inside a `ShareLink` / button that already carries `r4club.header.share`, so it now has `.accessibilityHidden(true)` (after the frame / content-shape modifiers). The lint is at **0**. Typography and design lints pass.
+
+### Requests for Cursor (Round 4)
+1. **Redeem status read:** `GET /api/channel/redeem/status` → `data.platformCodeEnabled === true` (signed-in only; closed or unreadable is false). Fill `MPParityBindings.passRedeemEnabled` with it at the player root (`MPParityPassSession`).
+2. **`MiniProgramPageLink` gift/index:** allow `mode` (value `code`) so external links open the redeem page.
+3. `ChannelRedeemSource.presentation` decodes an OTA receipt; the platform code reply is `{topicIds, replayed}`. The App decodes those two fields itself (`PassRedeemCodeOutcome.from`); a Core decoder would be cleaner.
+4. Still open from Round 3: reviewedPages `required: []` for `market/pass`, `market/pass-order`, `invoice-detail` plus `scope` on `coupon/coupon`; `FreeExploreLaunchCatalog.Item.Store.available`; `MerchantCouponSummary.fromWire` shape; Core two decimals; MKT-5-3 TEST-only gate; `FreeExploreLaunchFailure.response` message; zero `unitsPerHolder`.
+
+### Tests to check (Cursor / coordinator)
+- `Tests/AppUITests/AccountCollectionFlowTests.swift:190-214` reads `accountCollection.coupon.futureStart`; the element and its en text (Not yet started) are unchanged, only zh-Hans moved to 还没到可用时间.
+- Any snapshot of `couponCode.missing` should now expect the 链接已失效 · 返回 state.
+
+### Still left
+- MKT-3-1, MKT-4-1, MKT-4-6, MKT-9-2: owner rulings. MKT-5-3: Cursor gate. MKT-7-3 (free-explore reservation / swap / reviews / refund quote): Gemini feature.
+- 首发价 ¥39 on the month plan card (`platform-pass.js:85`) waits on MKT-4-1.
+
+### Checks
+- `tools/check_a11y_lint.py` 0, `tools/check_typography_lint.py` PASS, `tools/check_design_lint.py` PASS.
+- No compiler in the cloud; the coordinator's build is the first real check.
+
+## Round 5 (2026-11-25)
+
+Brief: `design/handoff-r2:docs/briefs/COORDINATOR-HANDOVER.md` §4/§8, `owner-decisions-1124.md` (MP-first rule) and `fix-r3-round4.md`.
+
+### Step 1: merge `origin/ui/combined-r7` `f95850a46`
+- One conflict: `App/ClubKit/ClubWorkbenchKit.swift` share glyph. Both sides added `.accessibilityHidden(true)`; the integration side is kept.
+- Gate fixes after the merge: `AccountCollectionCouponRow` used `String(localized: "couponWallet.validFrom \(day)")` / `validUntil`. It now uses `appLocalized(_:locale:)` with `@Environment(\.locale)`. 13 fragment keys that were missing from the catalog (`couponWallet.validFrom/validUntil %@`, `mp.redeem.*`) were added.
+- `App/ObjectBadgeTileArtwork.swift:30` (from the integration branch) has an unlabeled image. It gets `.accessibilityHidden(true)` after `.resizable().scaledToFit()`, so the a11y lint is 0 again.
+- `check_scaffold.py` prints `PASS structural checks`. Merge commit `f2f418b0a`.
+
+### Fixed in Round 5
+| Row | MP | Change |
+|---|---|---|
+| R8-MEM-1-1 / R8-MEM-3-1 (App part) | `market/passes/index.js:40,53-59`; `market/gift/index.js:59-80` | Cursor landed `ChannelRedeemSource.status(token:)`, `redeemPlatformCode` and `mode` on the gift link rule. `AppSession.loadPassRedeemEnabled()` now fills `MPParityBindings.passRedeemEnabled`: signed-in only; closed, refused or unreadable is false. The 兑换码 row and the `gift?mode=code` input now go live when the server switch is on. The page posts through `redeemPlatformCode`, so the request id is the MP `code_<ms>_<8>`. The clock and entropy are pinned per code, so a network-unknown retry resends the same id (MP `_reqId`, cleared when the code changes). |
+| MKT-4-1 | `utils/platform-pass.js:79-86,101-108`; `passes/index.js:84` | Only the `MONTH` plan is shown, as the MP does (`saleablePlans`). Its price reads 首发价 ¥X (`mp.member.plan.launchPrice %@`) on the membership card and the passes 会员 side line, and its line is 30天·不自动续费. This was an owner row, but the MP already encodes the owner's 2026-11-13 ruling, so the MP-first rule applies. |
+| MKT-4-6 | `market/membership/index.wxml:62-65`; `platform-pass.js:138` | One footer pill for both states: 开通通行证 ¥X, or 续买30天 ¥X when active (`mp.member.buy.open.price` / `renew.price`). It is still disabled with the purchase gate note, because paying is money. 去主题库 stays on the library row, and the active-state footer button is removed. |
+| Copy (round 4, never reached the catalog) | `coupon-qr/index.json:2`, `coupon/coupon.json:17`, `coupon.wxml:69`, `platform-pass.js:68,138`, `reveal/index.js:100`, … | The merge tool does not overwrite existing keys, so the round-4 overrides for 21 existing keys were only in the fragment (the same failure as R7-MEM-16-3). They are now written into `Localizable.xcstrings`. Examples: 优惠券出示, 出示核销码, 我发布的优惠券, 停发后不可领取，已领券仍可用, 当前设备暂不支持开通, 续买30天, `到 %@`. |
+
+Declarations grepped before use: `ChannelRedeemSource(configuration:transport:store:nowMillis:entropy:)`, `.status(token:)`, `.redeemPlatformCode(code:token:)`, `JourneyLoopSource.randomEntropy()`, `PlatformPassPlan.code`, `yuanFen`, `appLocalized`. New names (`loadPassRedeemEnabled`, `saleablePlans`, `planPriceText`, `PassMembershipContent.buyPrice`) are not declared anywhere else.
+
+Test updated: `Tests/AppUnitTests/MPParityPassBindingTests.swift:31`. The passes side line is now the month plan's 首发价 text, and new asserts check month-only plans, the `.month` line and `buyPrice`.
+
+### Not done, with reasons
+- **MKT-9-2** (coupon-qr confirm step). The MP issues the code on show with no confirm (`coupon-qr/index.js:59-84`), and the MP-first rule says to drop the confirm. But `Tests/ContractChecks/test_owned_coupon_lifecycle.py:108-112` requires `couponCode.review` and the `Cancel` sheet in `OwnedCouponCodeJourneyUITests`, and `NativeNavigationCompletionUITests.testCouponReviewPrecedesSyntheticQRCode` tests the review step. Request to Cursor: retire those review-step asserts. After that, the App change is to auto-confirm on `.review` (`offerConfirmation` → `confirmPresentation`) and delete the button and sheet.
+- **MKT-3-1** (gift claim). Claiming grants a pass (a `virtualGoods` grant), and Core `PlatformPass.claim` throws `Never`. It stays money, TEST-only, until "money on".
+- **MKT-5-3**: Cursor TEST gate (unchanged).
+
+### Requests for Cursor (Round 5)
+1. MKT-9-2: retire the coupon review-step asserts listed above, so the App can match the MP.
+2. Optional: an MP-shaped device reason on `PlatformPassOverview` (`platform-pass.js:66-71`: 当前设备暂不支持开通 / 请升级后再试 / 暂未开放开通). The App has only the first.
+
+### Checks
+- `check_scaffold.py` PASS, `check_a11y_lint.py` 0, typography and design lints PASS. No compiler in the cloud.

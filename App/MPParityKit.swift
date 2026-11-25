@@ -61,6 +61,9 @@ struct MPParityBindings {
     var isSignedIn: (@MainActor () -> Bool)?
     /// Explore store card (`utils/discover-store-card.js`): nil result = nothing on sale, card hidden.
     var passStoreCard: (@MainActor () async -> PassStoreCard?)?
+    /// 通行证 兑换码 row and `gift?mode=code` input (MP `GET /api/channel/redeem/status` → `platformCodeEnabled === true`).
+    /// Nil (the default) or false hides the row and leaves the code page at 兑换码暂不可用.
+    var passRedeemEnabled: (@MainActor () async -> Bool)?
     /// Theme checkout (`self-play-checkout`): pass coverage of one topic + on-sale city passes that cover it.
     var passCheckoutCover: (@MainActor (_ topicID: Int) async -> PassCheckoutCover?)?
     /// Order detail (`subpackageMember/orderinfo?id=`), used by gift claim "view" when the claim returned a registration.
@@ -108,6 +111,8 @@ enum MPParityRoute: Hashable, Identifiable {
     case gift(token: String)
     /// `subpackageMember/market/gift/index?mode=code`. Platform redeem, not a gift claim.
     case platformCode
+    /// The same MP page (member-a variant, `PassRedeemCodeView`); deep links parse to `.platformCode`.
+    case passRedeemCode
     case membership
     case library(kind: PassLibraryKind)
     /// `subpackageMember/market/pass-order/index?orderNo=`: one city-pass order, read only.
@@ -287,6 +292,8 @@ enum MPParityRoute: Hashable, Identifiable {
             } else if let make = bindings.passGift { PassGiftClaimHost(binding: make(token)) } else { unavailable }
         case .platformCode:
             PlatformCodeRedeemPage()
+        case .passRedeemCode:
+            PassRedeemCodeView()
         case .membership:
             if let make = bindings.membership { PassMembershipHost(binding: make()) } else { unavailable }
         case .library(let kind):
