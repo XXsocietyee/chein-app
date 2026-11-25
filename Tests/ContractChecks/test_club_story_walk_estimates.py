@@ -60,7 +60,8 @@ class ClubStoryWalkEstimateContracts(unittest.TestCase):
         host = (ROOT / 'App/ClubGovernanceViews.swift').read_text()
         self.assertIn('club.gov.openStory', host)
         self.assertIn('ClubStoryStopCard(stop: stop, imageReader: templates.imageReader)', host)
-        self.assertIn('ClubStoryPresentation(snapshot: snapshot)', host)
+        # CLB-topic-story-05: a clubless (merchant) snapshot passes the link's host scope; a club snapshot ignores it.
+        self.assertIn('ClubStoryPresentation(snapshot: snapshot, hostScope: snapshot.scope.clubID == nil ? hostAnswer.scope : nil)', host)
         source = self.core()
         self.assertIn('snapshot.permissions?.allows(ClubGovernanceRead.topicOverview.permission, scope: snapshot.scope) == true', source)
         self.assertIn('ClubGovernanceValidation.validate(snapshot.value, operation: .topicOverview, scope: snapshot.scope)', source)
