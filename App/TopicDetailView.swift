@@ -82,7 +82,8 @@ struct TopicDetailView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     TopicXcxToolbarActions(shareURL: PublicContentShareLink.topic(id: value.id), shareTitle: value.name,
                                            isFavorited: favorited,
-                                           onToggleFavorite: favoriteHost == nil ? nil : { toggleFavorite(topicID: value.id) })
+                                           onToggleFavorite: favoriteHost == nil ? nil : { toggleFavorite(topicID: value.id) },
+                                           posterCover: value.imageURL, posterSubtitle: value.subtitle)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     UGCSafetyMenuButton(
@@ -481,7 +482,13 @@ struct TopicDetailView: View {
             // reviews (MP `det6`: 还没有评价 card, else rating + 基于 N 条评论 + list).
             Section("topic.comments") {
                 CYPillButton("context.review.title", style: .secondary) { showsReview = true }.accessibilityIdentifier("topic.openReview")
+                // R8-PC-B1-2 (MP `det6`): the 还没有评价 card itself is the write entry; the content view stays read-only.
+                let emptyWrite = value.reviews.hasConfirmedNoReviews && value.reviews.preview.isEmpty
                 TopicReviewsContent(reviews: value.reviews)
+                    .contentShape(Rectangle())
+                    .onTapGesture { if emptyWrite { showsReview = true } }
+                    .accessibilityAddTraits(emptyWrite ? .isButton : [])
+                    .accessibilityHint(emptyWrite ? Text("context.review.title") : Text(verbatim: ""))
             }
             .environment(\.ugcSafetySubjectID, value.id)
             Section {
@@ -588,7 +595,10 @@ struct TopicDetailView: View {
         }
         .sheet(isPresented: $showsPricing, onDismiss: { barSheetOrigin = nil }) {
             if let pricingDestination {
-                NavigationStack { pricingDestination(value.id) }
+                NavigationStack {
+                    pricingDestination(value.id)
+                        .environment(\.topicPricingScope, { () -> String? in if case .pricing(let scope) = TopicXcxFacts.ownerSaleRoute(value) { return scope }; return nil }())
+                }
                     .modifier(TopicBarHeroDestination(sheet: .pricing, origin: barSheetOrigin, namespace: barHero))
                     .cyPlayerSheetGlass()
                     .cyDomainSheet(detents: [.half, .full])

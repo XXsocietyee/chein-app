@@ -41,15 +41,21 @@ struct ActivityDetailView: View {
     var opensRegistrationOnLoad = false
     var registrationTicketID: Int? = nil
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    /// R8-PC-C1-1: without a tab switch (a pushed deep link) the guest 立即报名 presents sign-in instead of doing nothing.
+    @State private var showsGuestLogin = false
     var body: some View {
         Group {
             // Sign-in belongs on 立即报名. The detail read itself runs with a nil token.
             if session.account == nil {
-                sessionDetail(guestSignIn: { if rootTabSwitch.isAvailable { rootTabSwitch(.mine) } })
+                sessionDetail(guestSignIn: { if rootTabSwitch.isAvailable { rootTabSwitch(.mine) } else { showsGuestLogin = true } })
             } else {
                 sessionDetail(guestSignIn: nil)
             }
         }
+        .sheet(isPresented: $showsGuestLogin) {
+            Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible)
+        }
+        .onChange(of: session.account == nil) { _, signedOut in if !signedOut { showsGuestLogin = false } }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
@@ -373,8 +379,8 @@ struct ActivityDetailView: View {
                 .accessibilityIdentifier("activity.requiredClub.unavailable")
         }
     }
-    /// First fold: hero, three action tiles, info card, map, people, tickets, reviews, one "More info" row.
-    /// Everything else (topic, about, plays, journeys) sits behind the disclosure; host cancel stays its own section.
+    /// First fold: hero, three action tiles, info card, map, about, people, tickets, reviews, one "More info" row.
+    /// Everything else (plays, journeys) sits behind the disclosure; host cancel stays its own section.
     private func detailContent(_ detail:ActivityDetail) -> some View {
         ScrollViewReader { proxy in
         List {
@@ -441,6 +447,17 @@ struct ActivityDetailView: View {
                     NavigationLink { topicDestination(topicID) } label: {
                         CYListRow("activity.viewTopic", trailing: .none) { CYRowIcon(systemImage: "map") }
                     }.accessibilityIdentifier("activity.openTopic")
+                }
+            }
+            // R7-PC-C1-7, MP scene-play-activity-detail index.wxml:41-44: 关于这场活动 sits in the first fold, above the people.
+            if let text=ActivityPresentation.nonempty(detail.summary.description) {
+                Section("activity.about") {
+                    Text(verbatim:text)
+                        .cyText(.body)
+                        .fixedSize(horizontal:false,vertical:true)
+                        .textSelection(.enabled)
+                        .questifyCardSurface()
+                        .questifyCardListRow()
                 }
             }
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail), organizerShopName: detail.organizerShopName)
@@ -528,16 +545,6 @@ struct ActivityDetailView: View {
     /// Secondary sections behind the "More info" disclosure.
     @ViewBuilder private func moreInfoSections(_ detail: ActivityDetail) -> some View {
         // Source meta block (分类 / 集合点 / 已报名) sits after the cancellation notice.
-        if let text=ActivityPresentation.nonempty(detail.summary.description) {
-            Section("activity.about") {
-                Text(verbatim:text)
-                    .cyText(.body)
-                    .fixedSize(horizontal:false,vertical:true)
-                    .textSelection(.enabled)
-                    .questifyCardSurface()
-                    .questifyCardListRow()
-            }
-        }
         // Only this successful, current allowed response supplies these rows.
         // A scope/reader/activity/reread invalidation immediately removes them.
         if gateScope != nil, detail.summary.id == id {

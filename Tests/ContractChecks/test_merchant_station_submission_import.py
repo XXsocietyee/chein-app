@@ -5,7 +5,8 @@ ROOT=Path(__file__).resolve().parents[2]
 OLD_EDITOR_HUNK = b'            Section { field("submissionId"); Toggle("merchant.content.approve", isOn: Binding(get: { approve }, set: { approve = $0; dirty = true; model.cancel() }))\n                if !approve { reasonPicker(["ANSWER_MISMATCH", "EVIDENCE_UNCLEAR", "DUPLICATE_SUBMISSION"]) }\n'
 NEW_EDITOR_HUNK = b'            MerchantStationSubmissionImportView(owner: model, snapshot: snapshot, nodeID: station["nodeId"].safeInteger ?? 0, text: $text, approve: $approve) {\n                dirty = true; model.cancel()\n'
 # combined-r5: re-pinned for fix-parity player-content chrome (MerchantContentEditor one exit guard, cyGuardedBack).
-EDITOR_BASE_SHA = '2d16e26877743f4c5ccfb7d42e3f40f348af2b2080861eede2c945aaad718a6a'
+# fix/r8-player-content: re-pinned for merchantapply picker mount + 承接标的 (R7-PC-B3-2/B3-3) only.
+EDITOR_BASE_SHA = 'fd44d1b7bf271896ff16be40c3be68eace763afd969266550a56c7ebef552280'
 # combined-r5: MerchantContentViews / MerchantOperationsViews (merchant-coop X0 probe panel removed, decor chrome + cyGuardedBack),
 # fix-parity2 merchant-coop: MerchantOperationsViews re-pinned for decor P1 per-page load-failure titles only.
 # fix/r3-merchant-coop-b: MerchantOperationsViews re-pinned for decor apply/denied/failed-title states (MC7-19-3/5/6) only.

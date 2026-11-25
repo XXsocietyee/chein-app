@@ -34,13 +34,11 @@ class OfficialPreferenceUIRegressions(unittest.TestCase):
 
     def test_official_price_assertion_is_exact_semantic_unknown_value(self):
         text = source('App/OfficialEventDetailView.swift')
-        for required in ['.accessibilityLabel(Text("official.price"))',
-                         '.accessibilityValue(Text("official.priceNotProvided"))',
-                         '.accessibilityIdentifier("official.price")']:
-            self.assertIn(required, text)
+        # R7-PC-C4-3 (r8): the MP official detail has no price row, so the app shows none (no 暂无价格信息, no Free).
+        self.assertNotIn('.accessibilityIdentifier("official.price")', text)
         tests = source('Tests/AppUITests/OfficialEventFlowTests.swift')
-        self.assertEqual(tests.count('        expectUnspecifiedPrice()'), 2)
-        self.assertIn('XCTAssertEqual(price.value as? String, "Price not available")', tests)
+        self.assertEqual(tests.count('        expectNoPriceRow()'), 2)
+        self.assertIn('XCTAssertFalse(app.descendants(matching: .any)["official.price"].exists)', tests)
         self.assertIn('XCTAssertFalse(app.staticTexts["Free"].exists)', tests)
         self.assertIn('XCTAssertFalse(app.buttons["Sign up"].exists)', tests)
 

@@ -762,11 +762,6 @@
       "pattern": "leaf(\"ctaTopic\")"
     },
     {
-      "id": "official.price",
-      "source": "App/OfficialEventDetailView.swift",
-      "pattern": ".accessibilityIdentifier(\"official.price\")"
-    },
-    {
       "id": "official.mission.{index}",
       "source": "App/OfficialEventDetailView.swift",
       "pattern": "\"official.mission.\\(mission.index)\""

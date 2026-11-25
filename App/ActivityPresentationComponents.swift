@@ -154,6 +154,12 @@ struct ActivityTicketCard: View {
                 CYStatusChip(verbatim: copy.t("余票待确认", "Availability unconfirmed"), systemImage: "questionmark.circle")
                     .accessibilityIdentifier("activity.ticket.inventoryUnknown.\(ticket.id)")
             }
+            // R7-PC-C1-5 (r8, MP utils/ticket-window.js): a session that has started / ended / closed says so on its card.
+            let window = TicketWindowRule.state(for: ticket)
+            if window != .available {
+                CYStatusChip(verbatim: window.label, tone: .neutral, systemImage: "clock.badge.xmark")
+                    .accessibilityIdentifier("activity.ticket.window.\(ticket.id)")
+            }
             // R7-PC-C1-5 (r1 PC-C-1-6): MP 场次时间 from the ticket's own start / end, then 报名截止 and 集合点.
             if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) {
                 Label { Text(verbatim: session).monospacedDigit() } icon: { Image(systemName: "clock") }
