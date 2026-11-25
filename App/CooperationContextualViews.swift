@@ -321,6 +321,8 @@ import SwiftUI
     var lockedTarget: CoopInviteLockedTarget? = nil
     /// MC8-31-2: a fixed topic (`topicId`).
     var initialTopicID: Int? = nil
+    /// MP `originApplyId` on the new-invitation page.
+    var originApplyID: Int? = nil
     private struct Identity: Hashable { let reader: ObjectIdentifier; let scope: String? }
     var body: some View {
         if reader.session == nil {
@@ -332,7 +334,7 @@ import SwiftUI
             .cyMiniListScreen().navigationTitle("context.coop.new").navigationBarTitleDisplayMode(.inline)
         } else {
             CoopInvitationReadContent(reader: reader, operationScope: operationScope, initialType: lockedTarget?.type ?? initialType,
-                                      lockedTarget: lockedTarget, initialTopicID: initialTopicID)
+                                      lockedTarget: lockedTarget, initialTopicID: initialTopicID, originApplyID: originApplyID)
                 .id(Identity(reader: ObjectIdentifier(reader), scope: operationScope))
         }
     }
