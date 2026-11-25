@@ -7,6 +7,8 @@ import FoundationNetworking
 public struct MerchantDeskManualCodeGate: Equatable {
     public var enabled: Bool
     public static let off = Self(enabled: false)
+    /// Production hosts pass this so 手输码 can resolve `api/merchant/desk/redeem/resolve`. It does not redeem.
+    public static let live = Self(enabled: true)
     public init(enabled: Bool = false) { self.enabled = enabled }
 }
 

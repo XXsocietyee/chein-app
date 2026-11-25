@@ -76,6 +76,7 @@ struct RoamBrowserView: View {
     @State private var retainedRead = RoamRetainedRead()
     @State private var toolbarRoute: RoamBrowserToolbarRoute?
     @State private var peekCount: Int?
+    @State private var introTeamsLive: Int?
     @State private var confirmingUnsavedExit = false
     @State private var roamToastMessage: String?
     /// Map-first layout: map fills the screen, the segmented tabs / search / lists live in the bottom sheet.
@@ -395,7 +396,7 @@ struct RoamBrowserView: View {
         if let locationSettings { RoamHomeLocationNotice(provider: locationSettings) }
         if nearbyTeamsDestination != nil || liveDestination != nil {
             RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination,
-                officialRoutes: officialRouteReader.map { reader in { AnyView(OfficialRouteListView(reader: reader)) } })
+                officialRoutes: officialRouteReader.map { reader in { AnyView(OfficialRouteListView(reader: reader)) } }, teamsLive: introTeamsLive)
         }
         if let recoveryBanner, let experienceReader {
             let rendered = recoveryEntry.revision
@@ -408,7 +409,7 @@ struct RoamBrowserView: View {
         }
         if let entryReader {
             RoamEntryPeekView(reader: entryReader, teams: entryTeams, onSignIn: onOpenAccount, onOpenMap: nearbyTeamsDestination,
-                onChooseArea: onChooseArea, onBeginRead: { entryCard = nil }, onOpenSelection: { entryCard = $0 }, onCount: { peekCount = $0 }, onOpen: { _ in })
+                onChooseArea: onChooseArea, onBeginRead: { entryCard = nil }, onOpenSelection: { entryCard = $0 }, onCount: { peekCount = $0 }, onTeamsLive: { introTeamsLive = $0 }, onOpen: { _ in })
         }
     }
     private func startDestination() -> AnyView {

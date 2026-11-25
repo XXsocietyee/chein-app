@@ -1,7 +1,8 @@
 import SwiftUI
 import Combine
 
-/// Reuses the real detail readers and screens without passing AppSession or any writer to them.
+/// Reuses the real detail readers and screens. Topics keep the exact-target facade; activities use the session detail
+/// so 报名 works from this entry like the MP (R7-PC-C1-10).
 /// The entry card keeps its existing topic-first route; a map activity keeps its activity ID.
 @MainActor struct RoamNearbyEventsDetailHost: View {
     let target: RoamEventDestination
@@ -16,7 +17,9 @@ import Combine
             } else {
                 switch target {
                 case .activity(let id):
-                    RoamNearbyEventsActivityDetail(id: id, base: session)
+                    // R7-PC-C1-10 MP-first: pages/activity/detail offers 报名 from every entry, roam-nearby included,
+                    // so this entry uses the same session-backed detail as search (SessionGlobalSearchView).
+                    ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)
                         .id(session.activityPresentationIdentity)
                 case .topic(let id):
                     RoamNearbyEventsTopicDetail(id: id, base: session.topicReader)

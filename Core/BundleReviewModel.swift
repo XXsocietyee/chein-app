@@ -214,7 +214,7 @@ public enum BundleReviewComposeState: Equatable {
             switch failure {
             case .disabled:
                 try? pendingStore?.clear(); state = .unavailable
-            case .response(_, _, let code) where code != "LOGIN_REQUIRED":
+            case .response(_, _, let code, _) where code != "LOGIN_REQUIRED":
                 try? pendingStore?.clear(); state = .rejected(code: code)
             default:
                 state = .outcomeUnknown

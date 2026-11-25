@@ -80,24 +80,26 @@ final class StampCameraPageReadyTests: XCTestCase {
         XCTAssertEqual(StampCameraPageReady.screen(coordinatorPhase: .created(29), hasSelection: false).reason, "ready")
     }
 
+    /// MP-first (owner 2026-11-25): create and exchange are shown like the MP (stamp-camera/index/index.js:391,
+    /// citystamp/index.js:288-296); the list path still needs an album reader and no route is registered.
     func testWritesStayHiddenAndListStaysUnregistered() {
-        XCTAssertFalse(RoamExperienceCapabilities.mediaUpload)
-        XCTAssertFalse(RoamExperienceCapabilities.stampExchange)
+        XCTAssertTrue(RoamExperienceCapabilities.mediaUpload)
+        XCTAssertTrue(RoamExperienceCapabilities.stampExchange)
         XCTAssertEqual(StampCameraPageReady.createPath, "api/roam/stamp/create")
         XCTAssertEqual(StampCameraPageReady.exchangePath, "api/roam/stamp/exchange")
         XCTAssertEqual(StampCameraPageReady.listPath, RoamAlbumMetadataReadRoute.path)
         let hidden = StampCameraPageContract(hasAlbumReader: false)
-        XCTAssertFalse(hidden.showsCreate)
-        XCTAssertFalse(hidden.showsExchange)
-        XCTAssertNil(hidden.createPath)
-        XCTAssertNil(hidden.exchangePath)
+        XCTAssertTrue(hidden.showsCreate)
+        XCTAssertTrue(hidden.showsExchange)
+        XCTAssertEqual(hidden.createPath, "api/roam/stamp/create")
+        XCTAssertEqual(hidden.exchangePath, "api/roam/stamp/exchange")
         XCTAssertNil(hidden.listPath)
         XCTAssertFalse(hidden.registersRoute)
         XCTAssertFalse(hidden.marksRouteLive)
         let read = StampCameraPageContract(hasAlbumReader: true)
         XCTAssertEqual(read.listPath, "api/roam/stamp/list")
-        XCTAssertNil(read.createPath)
-        XCTAssertNil(read.exchangePath)
+        XCTAssertEqual(read.createPath, "api/roam/stamp/create")
+        XCTAssertEqual(read.exchangePath, "api/roam/stamp/exchange")
         XCTAssertFalse(read.registersRoute)
         XCTAssertFalse(read.marksRouteLive)
         XCTAssertFalse(StampCameraPageReady.showsMerchantChoice)
@@ -119,10 +121,10 @@ final class StampCameraPageReadyTests: XCTestCase {
         XCTAssertEqual(StampCameraPageFixtureData.failed.phase, .error)
         XCTAssertEqual(StampCameraPageFixtureData.createdUnknown.phase, .unknown)
         XCTAssertNotEqual(StampCameraPageFixtureData.createdUnknown.text, "0")
-        XCTAssertNil(StampCameraPageFixtureData.hiddenContract.createPath)
+        XCTAssertEqual(StampCameraPageFixtureData.hiddenContract.createPath, StampCameraPageReady.createPath)
         XCTAssertNil(StampCameraPageFixtureData.hiddenContract.listPath)
         XCTAssertEqual(StampCameraPageFixtureData.readContract.listPath, StampCameraPageReady.listPath)
-        XCTAssertNil(StampCameraPageFixtureData.readContract.exchangePath)
+        XCTAssertEqual(StampCameraPageFixtureData.readContract.exchangePath, StampCameraPageReady.exchangePath)
         XCTAssertFalse(StampCameraPageFixtureData.readContract.registersRoute)
     }
     #endif

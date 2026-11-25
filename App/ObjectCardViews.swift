@@ -20,6 +20,11 @@ extension EnvironmentValues {
     @Environment(\.objectCardMedia) private var envMedia
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+    /// OCARDS-2: card opened from the pile (offset into the loaded collection, with the scope it was tapped in).
+    @State private var pileSelection: PileSelection?
+    private struct PileSelection: Hashable, Identifiable { let id = UUID(); let offset: Int; let scope: UUID }
     @Namespace private var hero
     private var scope: UUID { reader.scope }
     private var effectiveMedia: (any ObjectCardImageLoading)? { media ?? envMedia }
@@ -68,7 +73,16 @@ extension EnvironmentValues {
                                 .accessibilityIdentifier("objects.empty")
                         }
                     }
-                    if !collection.cards.isEmpty {
+                    if !collection.cards.isEmpty, !reduceMotion, !voiceOverEnabled {
+                        // OCARDS-2: the MP heap of the latest 40; the grid below stays for VoiceOver and Reduce Motion.
+                        Section {
+                            ObjectCardPileView(cards: collection.cards) { offset in
+                                pileSelection = .init(offset: offset, scope: model.loadedScope ?? scope)
+                            }
+                            .environment(\.objectCardMedia, effectiveMedia)
+                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        }
+                    } else if !collection.cards.isEmpty {
                         Section {
                             // Collection grid (one grid for every collection). Duplicate source rows keep their offset identity.
                             LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
@@ -99,6 +113,13 @@ extension EnvironmentValues {
             }
         }
         .refreshable { await model.load(category: model.category, reader: reader) }
+        .navigationDestination(item: $pileSelection) { selected in
+            if selected.scope == reader.scope, model.loadedScope == selected.scope,
+               let cards = model.collection?.cards, cards.indices.contains(selected.offset) {
+                ObjectCardDetailView(card: cards[selected.offset], reader: reader, expectedScope: selected.scope, media: effectiveMedia)
+            } else { Text("objects.sessionChanged") }
+        }
+        .onChange(of: scope) { _, _ in pileSelection = nil }
         .onDisappear { model.cancel() }
         .accessibilityIdentifier("objects.collection")
     }

@@ -263,6 +263,119 @@ public struct ClubGroupCodePage: Equatable {
     }
 }
 
+/// Issue body is `{activityId}` only. A link with no club id can build this command.
+public enum ClubGroupCodeIssueBody {
+    public static func command(activityID: Int) throws -> ClubGovernanceCommand {
+        try ClubGovernanceCommand(operation: .issueGroupCode, scope: ClubGovernanceScope(activityID: activityID), values: [:])
+    }
+}
+
+/// Club-scoped scan router from `utils/verification-scan.js`. Invalid codes send nothing.
+public struct ClubScanReady: Equatable {
+    public let kind: String
+    public let path: String
+    public let body: [String: String]
+    public let loadingTitle: String
+    public let successTitle: String
+}
+
+public enum ClubScanResolution: Equatable {
+    case ready(ClubScanReady)
+    case invalid(message: String, path: String?, confirmText: String?)
+    public var readyPath: String? {
+        if case .ready(let matched) = self { return matched.path }
+        return nil
+    }
+    public var readyBody: [String: String]? {
+        if case .ready(let matched) = self { return matched.body }
+        return nil
+    }
+}
+
+public enum ClubScanRoute {
+    public static func resolve(_ raw: String) -> ClubScanResolution {
+        let code = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !code.isEmpty else { return invalid() }
+        if code.hasPrefix("v1.") {
+            let parts = code.split(separator: ".", omittingEmptySubsequences: false).map(String.init)
+            let type = parts.count >= 3 ? parts[2] : ""
+            if type.hasPrefix("group_") {
+                return ready("group", code, "api/verify/groupcode/redeem", ["code": code], "核销中...", "已记录接待该团")
+            }
+            if isSeat(type, prefix: "topic_seat_") {
+                return invalid("这是主题席位码，请由本场带队者从带队核销入口扫码")
+            }
+            if type == "activity" || type == "topic" || isSeat(type, prefix: "activity_seat_") {
+                return ready("dynamic-ticket", code, "api/registration/scan_dynamic_code", ["code": code], "验票中...", "验票成功")
+            }
+            if type.hasPrefix("citynode_") {
+                return .invalid(message: "这是节点核销码，请从「城市节点」页扫码核销", path: "/pages/merchant/citynode/index", confirmText: "去节点页")
+            }
+            return invalid("暂不支持此动态码")
+        }
+        if code.hasPrefix("cq1."), code.split(separator: ".", omittingEmptySubsequences: false).count == 4 {
+            return ready("coupon", code, "api/coupon/verification", ["code": code], "核销中...", "核销成功")
+        }
+        if let data = code.data(using: .utf8),
+           let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let kind = object["type"] as? String, !kind.isEmpty,
+           let inner = object["code"] as? String, !inner.isEmpty {
+            if kind == "coupon" {
+                return ready("coupon", inner, "api/coupon/verification", ["code": inner], "核销中...", "核销成功")
+            }
+            if kind == "activity" || kind == "topic" {
+                return ready("legacy-ticket", inner, "api/registration/scan_qr_code", ["type": kind, "code": inner], "验票中...", "验票成功")
+            }
+        }
+        return invalid()
+    }
+
+    private static func isSeat(_ type: String, prefix: String) -> Bool {
+        guard type.hasPrefix(prefix) else { return false }
+        let rest = type.dropFirst(prefix.count)
+        guard let first = rest.first, ("1"..."9").contains(first) else { return false }
+        return rest.dropFirst().allSatisfy(\.isNumber)
+    }
+
+    private static func ready(_ kind: String, _ code: String, _ path: String, _ body: [String: String], _ loading: String, _ success: String) -> ClubScanResolution {
+        .ready(.init(kind: kind, path: path, body: body, loadingTitle: loading, successTitle: success))
+    }
+
+    private static func invalid(_ message: String = "二维码格式错误") -> ClubScanResolution {
+        .invalid(message: message, path: nil, confirmText: nil)
+    }
+}
+
+/// Non-money club verify. On. Pay, refund, payout, and withdrawal are not this switch.
+public enum ClubScanWrite {
+    public static let enabled = true
+    public static func mayScan(canGovern: Bool, canManageActivities: Bool) -> Bool {
+        canGovern || canManageActivities
+    }
+}
+
+public struct ClubScanClient {
+    private let configuration: APIConfiguration
+    private let transport: any HTTPTransport
+
+    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+        self.configuration = configuration
+        self.transport = transport
+    }
+
+    /// Posts the mini-program body when the scan is a real verify route and the caller may scan.
+    /// Returns false and sends nothing for an invalid code, a closed switch, or a viewer who cannot scan.
+    public func submit(_ raw: String, token: String, canGovern: Bool, canManageActivities: Bool) async throws -> Bool {
+        guard ClubScanWrite.enabled, ClubScanWrite.mayScan(canGovern: canGovern, canManageActivities: canManageActivities) else { return false }
+        guard case .ready(let matched) = ClubScanRoute.resolve(raw) else { return false }
+        let payload = matched.body.mapValues { $0 as Any }
+        try await MPGapHTTP.postAction(
+            configuration: configuration, transport: transport,
+            path: matched.path, body: payload, token: token)
+        return true
+    }
+}
+
 #if DEBUG
 /// Offline group-code documents. Compiled only in DEBUG. Not a live account and not a code image.
 public enum ClubGroupCodePageFixtureData {

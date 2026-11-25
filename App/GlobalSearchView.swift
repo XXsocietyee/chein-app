@@ -9,8 +9,9 @@ import SwiftUI
     @FocusState private var keywordFocused: Bool
     /// The field's body size, so the 首页 placeholder (14 pt) scales into it rather than cross-fading.
     @ScaledMetric(relativeTo: .body) private var fieldTextSize: CGFloat = 17
-    /// Player-first: shops/merchants are not a player search target (no chip, no wording, no rows).
-    private var hidesMerchants: Bool { themeDomain == .player }
+    /// R7-PC-A3-1 MP-first: MP search2 searches 主题、活动、俱乐部、商家 for every viewer (pages/search2/index.wxml:13;
+    /// utils/discover-search.js:199-210 always requests the merchant lane), so players keep the merchant lane and copy.
+    private var hidesMerchants: Bool { false }
     private var searchKinds: [GlobalSearchKind] { GlobalSearchKind.allCases.filter { !(hidesMerchants && $0 == .merchant) } }
     let reader: any SearchMapReading
     var historyNamespace: String? = nil

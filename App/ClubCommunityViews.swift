@@ -583,14 +583,15 @@ struct ClubCommunityPostTile: View {
             }
             // CLB-detail-43 (MP cy-post-card): inside a club the counts ride on 赞 / 评论 in the one action bar; the
             // cross-club feed has no action bar, so it keeps the count row.
-            if clubID == nil, post.likeCount > 0 || post.commentCount > 0 {
+            // MC8-28-3: a cross-club post that names its club gets the full action bar below instead.
+            if clubID == nil, post.clubID == nil, post.likeCount > 0 || post.commentCount > 0 {
                 tileActions {
                     countLabel(post.likeCount, symbol: "heart")
                     countLabel(post.commentCount, symbol: "bubble")
                 }
                 .accessibilityElement(children: .combine)
             }
-            if let clubID {
+            if let clubID = clubID ?? post.clubID.flatMap({ $0 > 0 ? $0 : nil }) {
                 tileActions {
                     Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: {
                         Label { countedTitle("club.community.like", count: post.likeCount) } icon: { Image(systemName: post.liked ? "heart.fill" : "heart") }

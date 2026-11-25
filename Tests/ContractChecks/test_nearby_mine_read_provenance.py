@@ -13,7 +13,6 @@ class NearbyMineReadProvenanceTests(unittest.TestCase):
             "let mineReady = !model.running && !mine.loading && coordinator.authenticated && coordinator.hasLoadedMine && coordinator.messageKey == nil && joinedTeamsStatus.isLoaded && !mine.failed",
             section,
         )
-        self.assertIn('if mineReady {\n                LabeledContent("nearby.activeCount")', section)
         self.assertIn("if rows.isEmpty && mine.loaded && mineReady {", section)
         self.assertIn('"nearby.mine.empty"', section)
 

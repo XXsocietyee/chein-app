@@ -84,10 +84,14 @@ public struct MiniCropGapOverlay: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
 
-            Button(AccountPublishRemainingCopy.cropReset, action: onReset)
+            Button("fixr8.crop.reset", action: onReset)
                 .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                .frame(minHeight: 44)
                 .padding(CYSpacing.md)
+                .accessibilityIdentifier("miniCrop.reset")
         }
     }
 }

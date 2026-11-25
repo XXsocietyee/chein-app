@@ -449,6 +449,8 @@ import SwiftUI
     @State private var selection: Set<Int> = []
     @State private var pendingMutation: MerchantBusinessMutation?
     @State private var pendingMutationEditorID: UUID?
+    /// MC8-29-3/-4: the MP destructive confirm for 移除成员 / 撤销邀请 (fixed reason, no typed reason).
+    @State private var pendingTeamDanger: MerchantTeamDangerConfirm?
     @State private var reviewSourceDestination: MerchantReviewSourcePage?
     private let reviewSource: MerchantReviewSourcePage?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {
@@ -566,7 +568,7 @@ import SwiftUI
                     }
                 } else if query != .operators, query != .verificationRecords, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     if case .aftercare(let bucket, _) = query {
-                        CYEmptyState(systemImage: "arrow.uturn.backward.circle", LocalizedStringKey(MerchantOpsCopy.text(MerchantAftercareParity.emptyKey(bucket.rawValue))))
+                        CYEmptyState(systemImage: "tray", LocalizedStringKey(MerchantOpsCopy.text(MerchantAftercareParity.emptyKey(bucket.rawValue))))
                             .listRowBackground(Color.clear)
                             .accessibilityIdentifier("merchant.business.empty")
                     } else {
@@ -734,6 +736,10 @@ import SwiftUI
         .cyDomainScreen(.merchant)
         .appNavigationTitle(key: query.titleKey).navigationBarTitleDisplayMode(.inline)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
+        .modifier(MerchantTeamDangerConfirmModifier(pending: $pendingTeamDanger) { mutation in
+            guard editor == nil, pendingMutation == nil, sourcePageCanPrepare(mutation) else { return }
+            model.prepare(mutation)
+        })
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
         .background {
@@ -904,27 +910,67 @@ import SwiftUI
                     ForEach(["all", "repeat", "new", "noted"], id: \.self) { Text(LocalizedStringKey("merchant.business.segment." + String($0))).tag($0) }
                 }.accessibilityIdentifier("merchant.business.segment")
                 let expansion = customerFilterExpansion
-                DisclosureGroup(isExpanded: expansion) {
-                    Picker("merchant.business.sourceType", selection: $sourceType) {
-                        Text("merchant.business.segment.all").tag(0)
-                        Text("merchant.business.state.TOPIC").tag(1)
-                        Text("merchant.business.state.ACTIVITY").tag(2)
+                // MC7-14-1 (customer/index.wxml:16-18,132-181): 筛选 (筛选 · n when active) opens a sheet —
+                // 取消 · 筛选客户 · 重置, the filter groups, then 查看客户 applies and closes.
+                let activeFilterCount = (sourceType != 0 ? 1 : 0) + (tagID != 0 ? 1 : 0)
+                    + (sourceStart.isEmpty && sourceEnd.isEmpty ? 0 : 1)
+                Button { expansion.wrappedValue = true } label: {
+                    Label {
+                        if activeFilterCount > 0 { Text("merchant.customerFilters.buttonCount \(activeFilterCount)") }
+                        else { Text("merchant.customerFilters.button") }
+                    } icon: { Image(systemName: activeFilterCount > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle") }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityLabel(Text("merchant.customerFilters.sheetTitle"))
+                .accessibilityIdentifier("merchant.business.customers.filterDisclosure")
+                .sheet(isPresented: expansion) {
+                    NavigationStack {
+                        Form {
+                            Section {
+                            Picker("merchant.business.sourceType", selection: $sourceType) {
+                                Text("merchant.business.segment.all").tag(0)
+                                Text("merchant.business.state.TOPIC").tag(1)
+                                Text("merchant.business.state.ACTIVITY").tag(2)
+                            }
+                            Picker("merchant.business.tag", selection: $tagID) {
+                                Text("merchant.business.segment.all").tag(0)
+                                ForEach(availableTags, id: \.self) { id in Text(tagName(id)).tag(id) }
+                            }
+                            // MC7-14-9: the date range is picked only (no free-text 开始/结束 fields).
+                            MerchantCRMDateRangePicker(context: state.isCurrent && !state.isBusy
+                                ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: state.snapshot?.access.merchantID) : nil,
+                                start: sourceStart, end: sourceEnd) { value in
+                                sourceStart = value.start; sourceEnd = value.end
+                            }
+                            }
+                            Section {
+                                // The picker never applies by itself; this footer button applies and closes (MP 查看结果).
+                                Button("merchant.business.applyFilter") {
+                                    applyCustomerFilter()
+                                    expansion.wrappedValue = false
+                                }
+                                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                .buttonStyle(.borderedProminent)
+                                .listRowBackground(Color.clear)
+                                .accessibilityIdentifier("merchant.business.customers.applyFilters")
+                            }
+                        }
+                        .navigationTitle(Text("merchant.customerFilters.sheetTitle"))
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("merchant.customerFilters.cancel") { expansion.wrappedValue = false }
+                                    .accessibilityIdentifier("merchant.business.customers.closeFilters")
+                            }
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button("merchant.customerFilters.reset") { sourceType = 0; tagID = 0; sourceStart = ""; sourceEnd = "" }
+                                    .disabled(activeFilterCount == 0)
+                                    .accessibilityIdentifier("merchant.business.customers.resetFilters")
+                            }
+                        }
                     }
-                    Picker("merchant.business.tag", selection: $tagID) {
-                        Text("merchant.business.segment.all").tag(0)
-                        ForEach(availableTags, id: \.self) { id in Text(tagName(id)).tag(id) }
-                    }
-                    // MC7-14-9: the date range is picked only (no free-text 开始/结束 fields).
-                    MerchantCRMDateRangePicker(context: state.isCurrent && !state.isBusy
-                        ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: state.snapshot?.access.merchantID) : nil,
-                        start: sourceStart, end: sourceEnd) { value in
-                        sourceStart = value.start; sourceEnd = value.end
-                    }
-                    Button("merchant.business.applyFilter", action: applyCustomerFilter)
-                    Button("action.close") { expansion.wrappedValue = false }
-                        .accessibilityIdentifier("merchant.business.customers.closeFilters")
-                } label: { Text("merchant.business.filters") }
-                    .accessibilityIdentifier("merchant.business.customers.filterDisclosure")
+                    .presentationDetents([.medium, .large])
+                }
                 if let expected = state.snapshot, expected.document.query == query, state.isCurrent,
                    case .customers(let applied) = query,
                    customerFilterDraft.hasWorkspaceFilters || applied.hasWorkspaceFilters {
@@ -1115,6 +1161,12 @@ import SwiftUI
                 } else if row.kind == .review {
                     // MC7-13-7 (reviews/index.wxml:145-169): avatar + nickname, time and 平台复审中 above the card.
                     MerchantReviewAuthorLine(fields: row.fields, fallbackTitle: row.title)
+                } else if row.kind == .operatorMember {
+                    // MC8-29-9 (team/index.wxml:65): `item.avatar || /images/d_profile.png` leads the member row.
+                    HStack(spacing: CYSpacing.sm) {
+                        MerchantCoopMPThumb(urlString: row.fields.mbText("avatar"), fallback: .avatar)
+                        Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    }
                 } else {
                 Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }
@@ -1158,7 +1210,13 @@ import SwiftUI
                 ForEach(MerchantReviewReplyAction.allCases, id: \.self) { action in
                     let key = action == .reply ? "canReply" : action == .report ? "canReport" : "canEditReply"
                     if row.fields[key]?.bool == true {
-                        Button(LocalizedStringKey("merchant.business.review." + String(action.rawValue))) { editor = .init(kind: .review(row, action)) }
+                        Button { editor = .init(kind: .review(row, action)) } label: {
+                            // MC8-13-7 (reviews/index.wxml:193,223): 回复 carries the MP send glyph.
+                            HStack(spacing: CYSpacing.xs) {
+                                if action == .reply { MerchantMPIcon(image: MPAsset.FeatureIcon.iconSend, size: 18) }
+                                Text(LocalizedStringKey("merchant.business.review." + String(action.rawValue)))
+                            }
+                        }
                     }
                 }
             } else if reviewSource == nil, let destination = model.reviewSourcePage(for: row) {
@@ -1190,7 +1248,7 @@ import SwiftUI
                 Menu {
                     Button("merchant.business.changeRole") { editor = .init(kind: .role(row)) }
                     Divider()
-                    Button("merchant.business.removeOperator", role: .destructive) { editor = .init(kind: .removeOperator(row)) }
+                    Button("merchant.business.removeOperator", role: .destructive) { pendingTeamDanger = .init(kind: .removeOperator, row: row) }
                 } label: {
                     Label("merchantCoop.team.memberActions", systemImage: "ellipsis.circle")
                         .frame(minHeight: CYSpacing.minTouchTarget)
@@ -1198,7 +1256,7 @@ import SwiftUI
                 .accessibilityIdentifier("merchant.team.memberActions.\(row.id)")
             }
             if row.kind == .invite, row.fields.mbText("status") == "PENDING" {
-                Button("merchant.business.revokeInvite", role: .destructive) { editor = .init(kind: .revokeInvite(row)) }
+                Button("merchant.business.revokeInvite", role: .destructive) { pendingTeamDanger = .init(kind: .revokeInvite, row: row) }
             }
         }
     }

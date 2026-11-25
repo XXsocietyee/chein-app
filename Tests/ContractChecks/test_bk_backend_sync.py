@@ -34,7 +34,16 @@ class BackendSyncSourceTests(unittest.TestCase):
   # App/ReviewedProductionRoutes.swift hosts the reviewed-route body validator that pins the same explicit type "0"
   # (moved out of AppCompositionRoot for the glue-file ratchet). The lease file names the path in the approved like set.
   # The type "0" body stays in TopicUnlike.
-  self.assertEqual(users, ['App/ReviewedPlayerWriteLeases.swift', 'App/ReviewedProductionRoutes.swift', 'Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
+  # PlayerContentMPContract only records the MP body. pages/topic/index/index.js:628-629 posts
+  # api/topic/like {id, type: next ? 1 : 0}. It is not called from App screens, and moneyEnabled stays false.
+  self.assertEqual(users, ['App/ReviewedPlayerWriteLeases.swift', 'App/ReviewedProductionRoutes.swift', 'Core/PlayerContentMPContract.swift', 'Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
+  contract = (ROOT/'Core/PlayerContentMPContract.swift').read_text()
+  self.assertIn('public static let moneyEnabled = false', contract)
+  self.assertNotIn('URLSession', contract)
+  self.assertIn('public static func like(baseURL: URL, id: Int, type: Int) throws -> URLRequest {\n        try form(baseURL, likePath, [("id", String(id)), ("type", String(type))])', contract)
+  for p, value in self.swift().items():
+   if p.parts[0] != 'App': continue
+   self.assertNotIn('PlayerContentMPContract.like(', value, p)
   root = (ROOT/'App/ReviewedProductionRoutes.swift').read_text()
   self.assertIn('case baseURL.appendingPathComponent("api/topic/like").absoluteString:\n            requiredKeys = ["id", "type"]; positiveKey = "id"; requiredTypeField = "0"', root)
   value = (ROOT/'Core/TopicUnlike.swift').read_text()
@@ -43,17 +52,27 @@ class BackendSyncSourceTests(unittest.TestCase):
   direction = (ROOT/'Core/TopicLikeDirection.swift').read_text()
   self.assertIn('fields: ["id": String(topicID), "type": direction.typeField]', direction)
   self.assertIn("return envelope.code == 200 ? .acknowledged : .rejected(envelope.msg)", direction)
- def test_topic_like_direction_factory_stays_unwired(self):
-  # BK-LIKE/I05 factory is audited request construction only: no transport or approval in App/Core.
+ def test_topic_like_direction_factory_wired_only_through_mp_favorite_host(self):
+  # Was test_topic_like_direction_factory_stays_unwired. MP-first rule (owner 2026-11-25, R7-PC-B1-1): the MP topic
+  # page sends api/topic/like {id, type 1|0} for 收藏 (pages/topic/index/index.js:619-637), so the pin is lifted;
+  # the factory is wired in exactly one host, behind the reviewed TopicUnlike lease.
   for p, value in self.swift().items():
-   if p.name == 'TopicLikeDirection.swift': continue
+   if p.name in ('TopicLikeDirection.swift', 'TopicFavoriteHost.swift'): continue
    self.assertNotIn('TopicLikeOperationFactory', value, p)
+  host = (ROOT/'App/TopicFavoriteHost.swift').read_text()
+  self.assertIn('composition.topicUnlikeApproval(context) != nil', host)
+  self.assertIn('TopicLikeOperationFactory(configuration: api)', host)
  def test_legacy_square_bookmark_never_routes_through_community_id(self):
   contracts = (ROOT/'Core/SocialActionContracts.swift').read_text()
   self.assertIn('case .communityComment, .communityCommentLike, .postAction: return .communityV1', contracts)
   self.assertIn('guard snapshot.post?.generation == requiredGeneration', contracts)
   detail = (ROOT/'App/SquareDetailView.swift').read_text()
-  self.assertRegex(detail, r'if post\.generation == \.communityV1 \{\n\s*Button \{ editor = \.init\(purpose: \.bookmark[^\n]*\n[^\n]*\n[^\n]*social\.editor\.bookmark')
+  # MP pages/square/detail/index.js:528-544 posts /api/creativesquare/bookmark {id, bookmark, request_id}.
+  # index.js:78-82 `_captureCommunityContext` is an account-epoch closure, not a community id, and the body has none.
+  # The star stays inside the communityV1 branch (legacy square never takes the community postAction route).
+  # The saved-state symbol effect adds lines between the button and its hint; the gate and the post id stay.
+  self.assertEqual(detail.count('purpose: .bookmark'), 1)
+  self.assertRegex(detail, r'if post\.generation == \.communityV1 \{\n\s*Button \{ editor = \.init\(purpose: \.bookmark, target: \.post\(post\.id\)[^\n]*\n(?:[^\n]*\n){1,12}[^\n]*social\.editor\.bookmark')
  def test_legacy_unbookmark_keeps_readback_only_resolution(self):
   value = (ROOT/'Core/ProfileFavoriteRemoval.swift').read_text()
   self.assertIn('"bookmark": "0"', value); self.assertNotIn('"bookmark": "1"', value)

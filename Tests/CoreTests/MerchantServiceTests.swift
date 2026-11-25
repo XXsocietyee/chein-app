@@ -55,8 +55,8 @@ final class MerchantServiceTests: XCTestCase {
         t.json = #"{"code":200,"data":[{"content":"Fixture","time":"12-31 23:59"}]}"#
         let events = try await service(t).events(access: a, token: "fixture-token")
         assertRequest(t.requests[2], path: "api/merchant/events")
-        XCTAssertEqual(t.requests[2].value(forHTTPHeaderField: "Content-Type"), "application/json")
-        XCTAssertEqual(String(data: t.requests[2].httpBody!, encoding: .utf8), "{}")
+        XCTAssertEqual(t.requests[2].value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertEqual(String(data: t.requests[2].httpBody!, encoding: .utf8), "")
         XCTAssertEqual(events.first?.time, "12-31 23:59")
     }
     func testOrdersUseExactJSONFiltersAndNeverSendMerchantID() async throws {

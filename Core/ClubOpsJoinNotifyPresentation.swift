@@ -47,10 +47,10 @@ public struct ClubOpsPageFailureCopy: Equatable {
             literalTitle = ClubOpsNetworkFailureClassifier.topicOverviewTitle(failure)
             prefersBack = failure == .targetChanged || failure == .invalidRequest
         case .series:
-            table = "ClubOpsGovernance"; titleKey = "clubOpsGov.failed"; retryKey = "clubOpsGov.retry"
+            table = "ClubOpsGovernance"; titleKey = "clubOpsGov.failed"; retryKey = "clubOpsGov.retryAction"
             literalTitle = ClubOpsNetworkFailureClassifier.seriesTitle(failure); prefersBack = false
         case .eventTopics:
-            table = "ClubOpsGovernance"; titleKey = "clubOpsGov.failed"; retryKey = "clubOpsGov.retry"
+            table = "ClubOpsGovernance"; titleKey = "clubOpsGov.failed"; retryKey = "clubOpsGov.retryAction"
             literalTitle = ClubOpsNetworkFailureClassifier.eventTopicsTitle(failure); prefersBack = false
         default: return nil
         }
@@ -126,7 +126,24 @@ public enum ClubOpsNetworkFailureClassifier: Equatable {
     public static func notifyTitle(_ failure: ClubGovernanceFailure) -> String { title(for: .notify, kind: kind(failure)) }
     public static func joinRequestsTitle(_ failure: ClubGovernanceFailure) -> String { title(for: .joinRequests, kind: kind(failure)) }
     public static func settlementTitle(_ failure: ClubGovernanceFailure) -> String { title(for: .settlement, kind: kind(failure)) }
-    public static func eventOpsHubTitle(_ failure: ClubGovernanceFailure) -> String { title(for: .eventOps, kind: kind(failure)) }
+    public static func eventOpsHubTitle(_ failure: ClubGovernanceFailure) -> String {
+        if failure == .invalidRequest { return linkInvalidTitle }
+        return title(for: .eventOps, kind: kind(failure))
+    }
+
+    /// Hub button for a missing club link (`返回`) or a failed load (`重新加载`).
+    public struct ClubOpsEventHubAction: Equatable {
+        public let title: String
+        public let prefersBack: Bool
+        public init(title: String, prefersBack: Bool) {
+            self.title = title
+            self.prefersBack = prefersBack
+        }
+        public static func forFailure(_ failure: ClubGovernanceFailure) -> ClubOpsEventHubAction {
+            if failure == .invalidRequest { return .init(title: "返回", prefersBack: true) }
+            return .init(title: "重新加载", prefersBack: false)
+        }
+    }
     public static func seriesTitle(_ failure: ClubGovernanceFailure) -> String { title(for: .series, kind: kind(failure)) }
     public static func eventTopicsTitle(_ failure: ClubGovernanceFailure) -> String { title(for: .eventTopics, kind: kind(failure)) }
     public static func topicOverviewTitle(_ failure: ClubGovernanceFailure) -> String {

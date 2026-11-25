@@ -678,12 +678,13 @@ extension RoamGoalState {
                 if !model.isBusy && model.rows.isEmpty && model.phase == .ready {
                     // TGOALS-1: the standard empty state (owner V3-28), with 新目标 when writes are open.
                     let canCreate = page.acceptsInput && !creating && tools.allowsWrites
-                    CYEmptyState(systemImage: "target", "roam.goals.empty", messageIdentifier: "roam.goals.empty",
+                    CYEmptyState(systemImage: "tray", "roam.goals.empty", messageIdentifier: "roam.goals.empty",
                                  actionTitle: canCreate ? "roam.goals.new" : nil, actionIdentifier: "roam.goals.emptyNew",
                                  action: canCreate ? { startCreating() } : nil)
                 }
                 if model.hasMore && !model.isBusy {
-                    Button("roam.tools.loadMore") { page.read { await model.load(more: true) } }.accessibilityIdentifier("roam.goals.more")
+                    Button("roam.tools.loadMore") { page.read { await model.load(more: true) } }
+                        .accessibilityLabel(Text("roam.goals.more.a11y")).accessibilityIdentifier("roam.goals.more")
                 }
             } header: {
                 HStack { Text("roam.goals.mine"); Spacer(); if !model.rows.isEmpty { Text("roam.goals.count \(model.rows.count)") } }

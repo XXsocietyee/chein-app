@@ -121,7 +121,20 @@ public struct NearbyTeamDispatchRecord: Codable, Equatable {
             try check(session)
             let evidence = try await freshEvidence(review); try check(session)
             guard evidence.validates(review, now: now()), let credential = token(session), AuthRequestBuilder.isValidToken(credential) else { return .notSent }
-            request = try OperationAdapterHTTP.json(configuration: configuration, path: String(descriptor.path.dropFirst()), body: descriptor.body ?? Data(), token: credential)
+            if case let .handle(team, applicant, approved) = review.action {
+                let requestID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+                var built = try AccountPublishMPContract.teamHandleRequest(
+                    baseURL: configuration.baseURL,
+                    memberID: String(applicant.rawValue),
+                    approved: approved,
+                    targetID: String(team.rawValue),
+                    requestID: requestID,
+                    token: credential)
+                built.setValue("application/json", forHTTPHeaderField: "Accept")
+                request = built
+            } else {
+                request = try OperationAdapterHTTP.json(configuration: configuration, path: String(descriptor.path.dropFirst()), body: descriptor.body ?? Data(), token: credential)
+            }
             try check(session)
         } catch { return .notSent }
         do {

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ComplianceStep: Equatable { case idle, notice, blocked, verify, verificationUnavailable, review, pending, completed, freshLogin, unknown }
+public enum ComplianceStep: Equatable { case idle, notice, blocked, verify, verificationUnavailable, review, pending, completed, freshLogin, denied, unknown }
 public enum ComplianceRoamCleanup: Equatable { case idle, serverConfirmed, trackingStopped, complete }
 /// Server `privacy_policy` / `roam_location` state from the latest row. Unknown until read.
 public enum ComplianceRoamConsent: Equatable { case unknown, agreed, notAgreed }
@@ -87,6 +87,20 @@ public struct AccountMarketingReadIntent {
         self.service = service; self.auth = auth; self.effects = effects; self.current = current; self.invalidateSession = invalidateSession
     }
     public func invalidate() { marketingPresentation = nil; marketingPresentationActive = false; marketingRunning = false; marketingSession = nil; marketingRevision = UUID(); deregistrationPresentation = nil; deregistrationPresentationActive = false; retainedNPCChatData?.invalidate(); retainedNPCChatData = nil; generation &+= 1; state = .init(); noticeAccepted = false; reviewSession = nil; reviewIssuance = nil; reviewCode = nil; requestID = UUID().uuidString.lowercased(); onChange?(state) }
+    /// Signed-out sheet. The screen closes before sign-in; this only selects the step.
+    public func noteSignedOut() {
+        guard !state.busy else { return }
+        state.step = .freshLogin
+        state.error = nil
+        changed()
+    }
+    /// The signed-in identity cannot read the cancellation conditions.
+    public func noteAccessDenied() {
+        guard !state.busy else { return }
+        state.step = .denied
+        state.error = nil
+        changed()
+    }
     public func beginDeregistrationPresentation() -> AccountDeregistrationPresentation {
         invalidate()
         let value = AccountDeregistrationPresentation(session: current(), issuance: service.deregistrationOriginalRevision)

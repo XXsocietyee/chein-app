@@ -110,6 +110,7 @@ struct ClubOpsGovernanceMembersSection: View {
     var document: ClubGovernanceValue? = nil
     var showsBan = true
     var memberGovernanceDenial: String? = nil
+    @Environment(\.clubFocusMemberID) private var focusMemberID
     private var page: ClubOpsGovernancePage? {
         guard let scope, let capability else { return nil }
         return ClubOpsGovernancePage.project(members: document, scope: scope, capability: capability, includeBans: false, includeMembers: true, includeCases: false)
@@ -134,13 +135,22 @@ struct ClubOpsGovernanceMembersSection: View {
                     .listRowBackground(Color.clear)
             }
             // One row per member: name, then its actions side by side (ban, and transfer for the owner).
-            ForEach(roster.members) { member in
+            // CLB-G16: a `memberId` link lists that member first and marks it (MP preselects it).
+            ForEach(ClubFocusMember.ordered(roster.members, focus: focusMemberID)) { member in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     HStack(spacing: CYSpacing.sm) {
                         // Round 2 MP asset: governance wxml:149 `item.avatar || d_profile.png` (the read has no avatar yet).
                         ClubMPAvatar(url: nil, name: member.nickname ?? "", size: .sm)
                         ClubOpsGovernanceCopy.member(member.nickname, id: member.id).cyText(.cardTitle)
+                        if member.id == focusMemberID {
+                            Spacer(minLength: 0)
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(CYColor.brand)
+                                .accessibilityHidden(true)
+                        }
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(member.id == focusMemberID ? .isSelected : [])
                     HStack(spacing: CYSpacing.sm) {
                         // CLB-governance-18: VoiceOver names the member on 封禁 / 转让.
                         if showsBan {

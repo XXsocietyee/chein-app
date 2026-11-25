@@ -134,13 +134,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已采纳"
+            "value": "已有结论"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Accepted"
+            "value": "Decided"
           }
         }
       }
@@ -150,13 +150,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已驳回"
+            "value": "已有结论"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rejected"
+            "value": "Decided"
           }
         }
       }

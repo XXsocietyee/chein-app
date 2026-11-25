@@ -54,7 +54,7 @@ public struct SearchMapExplorerGapView: View {
                     Button {
                         selectedPlace = place
                     } label: {
-                        MPAsset.MapMarker.dSmapicon
+                        MPAsset.MapMarker.pagesSearchmapImagesDSmapicon
                             .resizable()
                             .scaledToFit()
                             .frame(

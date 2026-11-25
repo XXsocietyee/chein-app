@@ -66,6 +66,26 @@ extension EnvironmentValues {
         set { self[ClubRoleActivityLabelKey.self] = newValue }
     }
 }
+/// CLB-G16 (MP governance js:211/353, roles js:195/312): a `memberId` on the governance (manage) or roles link
+/// preselects that member. The app lists that member first and marks it; the role picker starts with it chosen.
+private struct ClubFocusMemberIDKey: EnvironmentKey {
+    static let defaultValue: Int? = nil
+}
+extension EnvironmentValues {
+    var clubFocusMemberID: Int? {
+        get { self[ClubFocusMemberIDKey.self] }
+        set { self[ClubFocusMemberIDKey.self] = newValue }
+    }
+}
+enum ClubFocusMember {
+    /// Stable reorder: the focused member first, every other row in its read order.
+    static func ordered<T: Identifiable>(_ rows: [T], focus: Int?) -> [T] where T.ID == Int {
+        guard let focus, let index = rows.firstIndex(where: { $0.id == focus }), index > 0 else { return rows }
+        var copy = rows
+        copy.insert(copy.remove(at: index), at: 0)
+        return copy
+    }
+}
 enum ClubRoleActivityLabel {
     /// MP `entryLabel`: trimmed, empty → nil, capped so a crafted link cannot flood the header.
     static func entry(_ raw: String?) -> String? {

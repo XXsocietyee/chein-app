@@ -155,7 +155,7 @@ import SwiftUI
                                             .cyText(.meta).accessibilityIdentifier("projectStoryAudio.unavailable." + block.id)
                                     }
                                 }
-                            case .dream, .mood, .thought, .voice, .odd, .reveal:
+                            case .dream, .mood, .thought, .voice, .odd, .reveal, .gallery, .branch, .line, .divider:
                                 NavigationLink { ProjectEditRichBlockEditor(model: model, block: blockBinding(block.id), chapterID: chapterID, chapterOverride: chapter,
                                     allowsStoryConditionSource: chapterOverride == nil && mediaScope == nil && starterLease == nil,
                                     allowsAlbumImageSource: chapterOverride == nil && mediaScope == nil && starterLease == nil) } label: { ProjectEditRichBlockSummary(block: block, nodes: chapter.wrappedValue.nodes) }

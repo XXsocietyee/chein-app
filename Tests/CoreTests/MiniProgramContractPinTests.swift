@@ -172,17 +172,20 @@ final class MiniProgramContractPinTests: XCTestCase {
         XCTAssertTrue(transport.requests.isEmpty)
     }
 
-    func testPlatformPassPayStaysUnsent() {
+    func testPlatformPassPayStaysUnsent() throws {
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
-        let payPath = "api/platform-pass/orders/" + "orderNo" + "/pay"
-        XCTAssertEqual(payPath, "api/platform-pass/orders/orderNo/pay")
-        XCTAssertTrue(payPath.contains("api/platform-pass/orders/"))
-        XCTAssertTrue(payPath.hasSuffix("/pay"))
-        let method = "POST"
-        let fields = ["jsCode"]
-        XCTAssertEqual(method, "POST")
-        XCTAssertEqual(fields, ["jsCode"])
+        XCTAssertEqual(PlatformPass.passOrderPayPath, "api/platform-pass/orders/{}/pay")
+        XCTAssertEqual("POST", "POST")
+        XCTAssertEqual(["jsCode"], ["jsCode"])
+        let transport = MiniProgramContractTransport()
+        let client = PlatformPass(
+            configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!),
+            transport: transport)
+        XCTAssertThrowsError(try client.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")) { error in
+            XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
+        }
+        XCTAssertTrue(transport.requests.isEmpty)
     }
 
     private func playService(_ transport: MiniProgramContractTransport, enabled: Set<PlayExperienceCapability>) throws -> PlayExperienceService {

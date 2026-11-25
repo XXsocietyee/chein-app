@@ -34,7 +34,10 @@ class PagesShezhiShezhiTests(unittest.TestCase):
         # CB277 appends the about-page model to this file and names the uninstalled
         # player-code path. The home model itself still opens no route.
         home, about = source.split("public enum SettingsAboutMetadataPhase", 1)
-        self.assertNotIn("api/", home)
+        # pages/shezhi/shezhi.js:406 reads POST /api/user/info (403 stays a denial at :399).
+        # That path is named only in comments. Executable home code still opens no route.
+        home_code = "\n".join(line.split("//", 1)[0] for line in home.splitlines())
+        self.assertNotIn("api/", home_code)
         self.assertIn("public static let routeInstalled = false", about)
         self.assertIn("public static let routeMarkedLive = false", about)
         self.assertNotIn("routeMarkedLive = true", about)

@@ -6,11 +6,15 @@ public struct ClubTopicMerchantRow: Equatable, Identifiable {
     public let merchantName: String?
     public let stationName: String?
     public let state: String?
+    /// Confirmed merchant phone for the copy button. Nil when the node has no phone.
+    public let phone: String?
+    /// Masked contact line. Unconfirmed merchants use the empty-contact sentence.
+    public let contactText: String
     public var initial: String? { merchantName.map { String($0.prefix(1)) } }
 }
 
 /// P056 buildMerchantRows: exclude open recruitment slots and keep station order.
-/// The existing read strips raw contact fields. Absence is not proof of acceptance.
+/// `phone` is the copy value. `phoneText`, `mobile`, and nested contact stay off the row.
 public struct ClubTopicMerchantList: Equatable {
     public let scope: ClubGovernanceScope
     public let rows: [ClubTopicMerchantRow]
@@ -24,13 +28,16 @@ public struct ClubTopicMerchantList: Equatable {
         let value = try ClubGovernanceValidation.validate(snapshot.value, operation: .recruit, scope: context.scope)
         try Self.checkScope(value, clubID: clubID, topicID: topicID)
         guard let nodes = value["nodes"].array else { throw ClubGovernanceFailure.malformed }
+        let rawNodes = snapshot.value["nodes"].array ?? []
         var rows: [ClubTopicMerchantRow] = [], seen = Set<Int>()
-        for node in nodes {
+        for (index, node) in nodes.enumerated() {
             try Self.checkScope(node, clubID: clubID, topicID: topicID)
             // Exact case-sensitive source condition. Unknown states remain visible.
             guard node["state"] != .string("OPEN") else { continue }
             guard let id = node["nodeId"].int, (1...9_007_199_254_740_991).contains(id), seen.insert(id).inserted else { throw ClubGovernanceFailure.malformed }
-            rows.append(.init(id: id, merchantName: Self.text(node["merchantName"]), stationName: Self.text(node["name"]), state: Self.text(node["state"])))
+            let phone = Self.text(index < rawNodes.count ? rawNodes[index]["phone"] : .null)
+            rows.append(.init(id: id, merchantName: Self.text(node["merchantName"]), stationName: Self.text(node["name"]),
+                              state: Self.text(node["state"]), phone: phone, contactText: Self.contactText(phone)))
         }
         scope = context.scope; self.rows = rows
     }
@@ -42,5 +49,11 @@ public struct ClubTopicMerchantList: Equatable {
         guard let text = value.string else { return nil }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
+    }
+    /// `maskPhone` in pages/club/topic-detail/index.js. Fewer than 7 digits is unconfirmed.
+    static func contactText(_ phone: String?) -> String {
+        let digits = phone?.filter(\.isNumber) ?? ""
+        guard digits.count >= 7 else { return "未确认，暂无联系方式" }
+        return String(digits.prefix(3)) + "****" + String(digits.suffix(4))
     }
 }

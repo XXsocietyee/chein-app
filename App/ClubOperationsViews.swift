@@ -186,9 +186,10 @@ struct ClubOperationsWorkspaceView: View {
             if loading { ProgressView().accessibilityIdentifier("club.ops.loading") }
             // CLB-create-03 (MP create wxml:16-28): guest → 登录; a failed check → 重新检查.
             if identity == nil {
-                CYEmptyState(systemImage: "person.crop.circle", "club.ops.signedOut",
+                // Round 4 copy (MP create wxml:20): the create page says 登录后创建俱乐部.
+                CYEmptyState(systemImage: "person.crop.circle", target == .create ? "club.ops.create.signedOut" : "club.ops.signedOut",
                              actionTitle: rootTabSwitch.isAvailable ? "club.host.signIn.action" : nil,
-                             actionIdentifier: "club.ops.signIn", actionStyle: .primary,
+                             actionIdentifier: "club.host.signIn.action", actionStyle: .primary,
                              action: rootTabSwitch.isAvailable ? { dismiss(); rootTabSwitch(.mine) } : nil)
                     .listRowBackground(Color.clear)
             }
@@ -201,6 +202,8 @@ struct ClubOperationsWorkspaceView: View {
                              actionStyle: .secondary, kind: .generic, action: { dismiss() })
                     .listRowBackground(Color.clear)
             } else if let errorKey {
+                // Round 4 copy (MP create wxml:17): a failed create check is titled 创建资格未确认 above the reason.
+                if target == .create, snapshot == nil { Text("club.ops.create.checkFailed").cyText(.cardTitle).accessibilityAddTraits(.isHeader) }
                 Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
                 if !loading, identity != nil {
                     Button("club.ops.recheck") { Task { await load() } }
@@ -219,7 +222,7 @@ struct ClubOperationsWorkspaceView: View {
         .cyGroupedSurface()
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if target == .create, createStepBar.step != nil, snapshot?.canCreate == true {
-                ClubCreateStepBarView(bar: createStepBar)
+                ClubCreateStepBarView(bar: createStepBar, submitting: loading)
                     .disabled(loading || state.locksForm || profileDraftBlocked)
             }
         }
@@ -1145,7 +1148,7 @@ private struct ClubOperationsProfileForm: View {
         Section {
             ForEach(Array(ClubOperationsCatalog.types.enumerated()), id: \.element) { index, value in
                 ClubR1OptionCard(title: Text(LocalizedStringKey("club.ops.value." + value)),
-                                 subtitle: clubR1("create.kind.\(index).sub", formLocale),
+                                 subtitle: nil, // CLB-r7-C-04 MP-first: create/index.js:40 + wxml:68 show the type name only
                                  systemImage: ClubR1CreateSymbols.type(index),
                                  isSelected: draft.clubType == value) {
                     draft.clubType = draft.clubType == value ? "" : value
@@ -1310,13 +1313,15 @@ private struct ClubOperationsProfileForm: View {
         Section("club.ops.basics") {
             // cy-scene-club-edit admin-note: administrators may only edit display information.
             if !isOwner { Text("club.ops.adminNote").cyText(.meta).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
-            field("name", text: $draft.name)
-            field("city", text: $draft.city)
-            field("keywords", text: $draft.keywords)
-            field("style", text: $draft.style)
+            // Round 4 copy (MP scene-club-edit wxml:50-72): the edit page has its own labels and placeholders
+            // (名称* / 城市* / 关键词 / 风格, 俱乐部名称 / 所在城市 / 如：城市探索、解谜（选填）…), not the create wizard's.
+            field("name", text: $draft.name, editCopy: true)
+            field("city", text: $draft.city, editCopy: true)
+            field("keywords", text: $draft.keywords, editCopy: true)
+            field("style", text: $draft.style, editCopy: true)
         }
         Section {
-            field("description", text: $draft.description, axis: .vertical)
+            field("description", text: $draft.description, axis: .vertical, editCopy: true)
         } header: { Text("club.ops.introduction") } footer: { counterLabel("description", draft.description) }
         Section("club.ops.positioning") {
             ClubProfileChoiceControl(kind: .type, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
@@ -1390,21 +1395,25 @@ private struct ClubOperationsProfileForm: View {
     private static let placeholderKeys: Set<String> = ["name", "description", "city", "keywords", "style"]
     private static let requiredKeys: Set<String> = ["name", "city"]
     private func field(_ key: String, label: String? = nil, text: Binding<String>, axis: Axis = .horizontal,
-                       focus: FocusState<Bool>.Binding? = nil) -> some View {
-        let labelKey = LocalizedStringKey(label ?? ("club.ops." + key))
+                       focus: FocusState<Bool>.Binding? = nil, editCopy: Bool = false) -> some View {
+        let labelKey = LocalizedStringKey(label ?? ((editCopy ? "club.ops.edit.label." : "club.ops.") + key))
+        let promptKey = (editCopy ? "club.ops.edit.placeholder." : "club.ops.placeholder.") + key
         let input = TextField(labelKey, text: text,
-                              prompt: Self.placeholderKeys.contains(key) ? Text(LocalizedStringKey("club.ops.placeholder." + key)) : nil,
+                              prompt: Self.placeholderKeys.contains(key) ? Text(LocalizedStringKey(promptKey)) : nil,
                               axis: axis)
             .accessibilityLabel(Text(labelKey))
             .accessibilityIdentifier("club.ops.field." + key)
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            HStack(spacing: 2) {
-                Text(labelKey)
-                if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }
+            // The edit page's 俱乐部介绍 is the section header (MP sec-label), so its field carries no second label.
+            if !(editCopy && key == "description") {
+                HStack(spacing: 2) {
+                    Text(labelKey)
+                    if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }
+                }
+                .cyText(.label)
+                .foregroundStyle(CYColor.textSecondary)
+                .accessibilityHidden(true)
             }
-            .cyText(.label)
-            .foregroundStyle(CYColor.textSecondary)
-            .accessibilityHidden(true)
             if let focus { input.focused(focus) } else { input }
         }
     }
@@ -1572,10 +1581,17 @@ private struct ClubOperationsProfileForm: View {
 
 struct ClubCreateStepBarView: View {
     @ObservedObject var bar: ClubCreateStepBar
+    /// MP create wxml:141: the last step's button reads 创建中… while the create is in flight.
+    var submitting = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var primary: some View {
-        Button { bar.advance() } label: { Text(verbatim: bar.primaryTitle).frame(maxWidth: .infinity) }
+        Button { bar.advance() } label: {
+            Group {
+                if submitting && bar.step == 4 { Text("club.ops.create.submitting") } else { Text(verbatim: bar.primaryTitle) }
+            }
+            .frame(maxWidth: .infinity)
+        }
             .buttonStyle(CYPillButtonStyle())
             .disabled(bar.checking)
     }

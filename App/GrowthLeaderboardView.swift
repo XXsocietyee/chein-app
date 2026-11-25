@@ -35,12 +35,13 @@ import SwiftUI
             else if model.isLoading || model.loadedKey != key { CYSkeleton().accessibilityLabel(Text("growth.loading")) }
             else if let issue = model.issue(key: key) {
                 if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }
-                else { GrowthCenterIssueView(issue: issue, retry: reload) }
+                // MP leaderboard wxml cy-error: 当前内容无法查看 (denied) / 排行榜加载失败, 重新加载.
+                else { GrowthCenterIssueView(issue: issue, retry: reload, failedTitle: "mp.growth.boardFailed", deniedTitle: "mp.growth.boardDenied") }
             }
             else if let board = model.value(key: key) {
                 if board.list.isEmpty {
                     VStack(spacing: CYSpacing.md) {
-                        CYEmptyState(systemImage: "list.number", "growth.board.empty")
+                        CYEmptyState(systemImage: "tray", "growth.board.empty")
                         // LEADER-4: MP 完成一次城市探索即可累计{{unit}} — the unit follows the selected board.
                         Text("growth.board.emptyHint \(appLocalized(String.LocalizationValue(stringLiteral: "growth.unit." + board.metric.rawValue), locale: locale))")
                             .cyText(.body)

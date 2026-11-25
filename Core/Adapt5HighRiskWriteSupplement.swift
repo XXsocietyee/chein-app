@@ -27,4 +27,15 @@ public enum Adapt5HighRiskWriteSupplement: String, CaseIterable, Sendable {
     public static func isBlockedByDefault(_ rawPathOrURL: String) -> Bool {
         allBlockedPaths.contains(RegionalHighRiskWriteRoute.normalizePath(rawPathOrURL))
     }
+
+    /// `POST /api/registration/pay` with `id`. Blocked. Does not build or send a request.
+    public static func refuseRegistrationPay(id: String) throws -> Never {
+        _ = id
+        _ = isBlockedByDefault(registrationPay.rawValue)
+        throw Adapt5PayRefusal.blocked
+    }
+}
+
+public enum Adapt5PayRefusal: Error, Equatable, Sendable {
+    case blocked
 }

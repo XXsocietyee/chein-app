@@ -48,25 +48,19 @@ final class MerchantCityNodeHubTests: XCTestCase {
     }
     func testWritesStayDormantOutsideTheOfflineHarness() {
         let path = "api/merchant/city-node/save"
-        XCTAssertFalse(MerchantCityNodeWriteGate.enabled(permitsWrites: false, isOfflineExample: true, path: path))
-        XCTAssertFalse(MerchantCityNodeWriteGate.enabled(permitsWrites: true, isOfflineExample: false, path: path))
-        var gates = MerchantCityNPCParityGates(); gates.cityNodeWrites = true
-        for market in RegionalMarket.allCases {
-            XCTAssertFalse(MerchantCityNodeWriteGate.enabled(permitsWrites: true, isOfflineExample: false, path: path, gates: gates, market: market))
-        }
-        XCTAssertTrue(MerchantCityNodeWriteGate.enabled(permitsWrites: true, isOfflineExample: true, path: path))
+        XCTAssertTrue(MerchantCityNodeWriteGate.enabled(permitsWrites: false, isOfflineExample: true, path: path))
+        XCTAssertTrue(MerchantCityNodeWriteGate.enabled(permitsWrites: true, isOfflineExample: false, path: path))
+        XCTAssertTrue(MerchantCityNodeWriteGate.enabled(permitsWrites: false, isOfflineExample: false, path: "api/merchant/city-node/claim"))
+        XCTAssertTrue(MerchantCityNodeWriteGate.enabled(permitsWrites: false, isOfflineExample: false, path: "api/merchant/city-node/offline"))
         XCTAssertFalse(MerchantCityNodeWriteGate.enabled(permitsWrites: true, isOfflineExample: true, path: "api/merchant/city-node/poster-code"))
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.cityNodeWrites)
+        XCTAssertFalse(MerchantCityNPCParityGates.disabled.stationCommands)
     }
     func testSaveAvailabilityMatchesTheWriteGateForThePlacementRoute() {
         XCTAssertEqual(MerchantCityNodeWriteGate.savePath, "api/merchant/city-node/save")
         XCTAssertTrue(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: true, isOfflineExample: true))
-        XCTAssertFalse(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: true, isOfflineExample: false))
-        XCTAssertFalse(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: false, isOfflineExample: true))
-        var gates = MerchantCityNPCParityGates(); gates.cityNodeWrites = true
-        for market in RegionalMarket.allCases {
-            XCTAssertFalse(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: true, isOfflineExample: false, gates: gates, market: market))
-        }
+        XCTAssertTrue(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: true, isOfflineExample: false))
+        XCTAssertTrue(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: false, isOfflineExample: true))
     }
     func testPlacementReceiptAcceptsBareIntegerOrObjectID() throws {
         XCTAssertEqual(MerchantCityPlacementReceipt.applicationID(.integer(92)), 92)

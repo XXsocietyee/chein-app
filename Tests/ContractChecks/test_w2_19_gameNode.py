@@ -50,7 +50,7 @@ class GameNodeContract(unittest.TestCase):
     def test_writes_gated_and_pending_receipt_not_required_to_carry_action(self):
         g = GATES.read_text()
         self.assertIn('public var stationCommands = false', g)
-        self.assertRegex(g, r'reviewedEndpoints: \[RegionalMarket: Set<String>\] \{ \[:\] \}')
+        self.assertIn('public static var reviewedEndpoints: [RegionalMarket: Set<String>] { [.china: mpFirstChinaEndpoints] }', g)  # MP-first 2026-11-25
         s = SERVICE.read_text()
         self.assertIn('gates.stationCommands', s)
         self.assertIn('execution == .injectedOfflineHarness && transport is any MerchantContentOfflineTransport', s)

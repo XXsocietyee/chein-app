@@ -290,7 +290,7 @@ public enum BundleTransferSendPhase: Equatable {
         switch failure {
         case .disabled: return .unavailable
         case .outcomeUnknown: return .outcomeUnknown
-        case .response(_, _, let code):
+        case .response(_, _, let code, _):
             return code == BundleTransferBusinessCode.notEligible ? .ineligible(code: code) : .failed(code: code)
         default: return .failed(code: nil)
         }
@@ -349,7 +349,7 @@ public enum BundleTransferClaimPhase: Equatable {
         case .disabled: return .unavailable
         case .outcomeUnknown: return .outcomeUnknown
         case .invalid: return .codeNotAccepted
-        case .response(_, _, let code):
+        case .response(_, _, let code, _):
             switch code {
             case BundleTransferBusinessCode.codeInvalid, BundleTransferBusinessCode.phoneMismatch,
                  BundleTransferBusinessCode.selfTransfer: return .codeNotAccepted
@@ -378,7 +378,7 @@ public enum BundleTransferPayerQuoteState: Equatable {
     public func load(registrationID: FreeExploreLaunchID) async {
         do { state = .shown(try await quote(registrationID)) }
         catch {
-            if case FreeExploreLaunchFailure.response(_, _, let code) = error { state = .unavailable(code: code) }
+            if case FreeExploreLaunchFailure.response(_, _, let code, _) = error { state = .unavailable(code: code) }
             else { state = .unavailable(code: nil) }
         }
     }

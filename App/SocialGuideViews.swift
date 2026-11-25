@@ -125,9 +125,7 @@ struct SocialInformationCover: View {
                 }
             }
             .accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
-            Divider().overlay(CYColor.borderSubtle)
-            Text("guideXcx.detailDisclaimer").cyText(.caption).foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+            // R7-PC-D3-5 MP-first: infomationdetail.wxml:30-41 is title + createTime, then the content; no disclaimer row.
             Divider().overlay(CYColor.borderSubtle)
         }
         .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)

@@ -237,6 +237,11 @@ enum WalletPayoutCapability {
         if WalletPayoutCapability.isOn, visibility.withdrawalRecords, showsWithdrawalSupport {
             out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open") { AnyView(WithdrawalSupportLandingView(reader: reader)) })
         } else if visibility.withdrawalRecords {
+            // R7-PC-D5-1 MP-first: with payout off the MP 提现 only opens the platform CS popup, no write
+            // (subpackageA/pages/assetcenter/earnings/index.js:61-76).
+            if showsWithdrawalSupport {
+                out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open") { AnyView(WithdrawalSupportContactView()) })
+            }
             // FIN-19-2: 提现记录 is a read; only the apply entry follows the withdrawal switch.
             out.append(.init(title: "wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { AnyView(WithdrawalHistoryView(reader: reader)) })
         }
@@ -539,7 +544,7 @@ extension EnvironmentValues {
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
                     if income || points {
-                        CYEmptyState(systemImage: income ? "tray" : "list.bullet", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
+                        CYEmptyState(systemImage: "tray", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
                             .accessibilityIdentifier("wallet.ledger.empty")
                     } else {
                         Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points))).accessibilityIdentifier("wallet.ledger.empty")
@@ -721,7 +726,7 @@ extension EnvironmentValues {
                             .background(CYColor.bgElevated, in: Capsule())
                             .accessibilityIdentifier("wallet.income.badge.\(row.id)")
                     }
-                    Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+                    Text(verbatim: row.changeReason ?? (points ? appLocalized("wallet.points.entryFallback", locale: locale) : appLocalized("wallet.entry", locale: locale)))
                 }
                 if income { Text(LocalizedStringKey(row.incomeEventKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).cyText(.caption).foregroundStyle(CYColor.textSecondary) }

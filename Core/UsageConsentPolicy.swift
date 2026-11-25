@@ -23,6 +23,13 @@ public protocol UsageConsentStorage: AnyObject {
     func set(_ value: Data?, forKey key: String)
 }
 
+/// Mini-program privacy page when agree cannot be recorded because the viewer is signed out.
+public enum UsageConsentOfflineRecord: Equatable, Sendable {
+    public static let signedOutCopy = "已同意，联网后会自动补记同意记录"
+    case none
+    case owedWhileSignedOut
+}
+
 public enum UsageConsentFailure: Error, Equatable {
     /// Mini-program: 请先阅读并勾选用户服务协议
     case agreementNotChecked

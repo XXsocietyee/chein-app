@@ -25,6 +25,24 @@ public struct RoamPresenceVisibilityService {
         self.transport = transport
     }
 
+    /// `GET /api/roam/presence-visibility?sessionId=`. Nil data stays unknown. This does not turn sharing on.
+    public func readPresence(token: String?, sessionID: Int) async -> Bool? {
+        guard let token, AuthRequestBuilder.isValidToken(token), sessionID > 0 else { return nil }
+        let baseRequest: URLRequest
+        do {
+            baseRequest = try RoamPresenceVisibilityContract.readRequest(baseURL: configuration.baseURL, sessionID: sessionID)
+        } catch { return nil }
+        var request = baseRequest
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 15
+        do {
+            let (data, status) = try await transport.send(request)
+            guard (200..<300).contains(status) else { return nil }
+            return RoamPresenceVisibilityContract.decode(data)
+        } catch { return nil }
+    }
+
     /// Sends `POST /api/roam/presence-visibility` with `visible=false` and validates `data == false`.
     public func disablePresence(token: String?) async -> RoamPresenceDisableOutcome {
         guard let token, AuthRequestBuilder.isValidToken(token) else { return .unavailable }

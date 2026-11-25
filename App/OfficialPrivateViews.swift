@@ -96,17 +96,13 @@ import SwiftUI
                            issueLabel: { $0 == .failed ? "official.published.loadFailed" : nil },
                            load: { try await reader.myPublished() }) { value in
             List {
-                if let actions {
-                    Section {
-                        NavigationLink("officialAction.publish") { OfficialPublishEditor(coordinator: actions) }
-                        NavigationLink("officialAction.broadcast") { OfficialBroadcastEditor(coordinator: actions) }
-                    }
-                }
+                // R7-PC-C6-1 MP-first: the MP has no 发起 / 官方通知 editor here (pages/activity/list/index.wxml:77-80,
+                // ruling 2026-09-03: official events are uploaded from the Web admin), so 我发布的 is read-only.
                 // Source official-mine always shows both sections with counts and per-section empty copy.
                 let events = OfficialEventFilter.visible(value.events, bucket: .mine)
                 let broadcasts = value.broadcasts.filter { $0.id > 0 }
                 Section {
-                    if events.isEmpty { emptyRow("official.published.eventsEmpty", "official.published.eventsEmptyDetail") }
+                    if events.isEmpty { emptyRow("official.published.eventsEmpty") }
                     ForEach(events) { event in
                         // Source official-mine row: title + publisher-view status badge, then city.
                         NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { publishedEventRow(event) }
@@ -163,11 +159,11 @@ import SwiftUI
         .fixedSize(horizontal: false, vertical: true)
     }
     /// Mini-program `cy-empty` with a title only.
-    private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
-        // Mini-program `cy-empty` (title + sub): quiet centred empty row.
+    private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey? = nil) -> some View {
+        // Mini-program `cy-empty` (title, optional sub): quiet centred empty row.
         VStack(spacing: CYSpacing.xs) {
             Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textSecondary)
-            Text(detail).cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            if let detail { Text(detail).cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center) }
         }.frame(maxWidth: .infinity).padding(.vertical, CYSpacing.md).accessibilityElement(children: .combine)
     }
 }

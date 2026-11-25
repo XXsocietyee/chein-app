@@ -143,9 +143,10 @@ final class ReviewedMerchantMarketingWiringTests: ReviewedHookWiring2Base {
         XCTAssertFalse(sent.values.contains(true), "\(sent)")
     }
 
+    /// MP-first (owner 2026-11-25): the MP settles predictions (pages/merchant/predict/index.js:215).
     func testReviewedChinaCompositionEnablesReadsAndInsightButNeverSettlement() throws {
         let gates = try composition(gates: true, wire: Wire()).merchantMarketingGates
-        XCTAssertTrue(gates.reads); XCTAssertTrue(gates.insight); XCTAssertFalse(gates.settlement)
+        XCTAssertTrue(gates.reads); XCTAssertTrue(gates.insight); XCTAssertTrue(gates.settlement)
     }
 
     func testReviewedChinaCompositionAllowsExactlyTheTwoRoutesForMerchantsOnly() async throws {
@@ -180,6 +181,7 @@ final class ReviewedMerchantMarketingWiringTests: ReviewedHookWiring2Base {
         let scope = try MerchantMarketingScope(namespace: "hook2", accountID: 7, epoch: 1, token: Self.token)
         let service = MerchantMarketingService(configuration: try APIConfiguration(baseURL: try XCTUnwrap(URL(string: Self.base))),
             transport: transport, gates: root.merchantMarketingGates, currentSession: { scope })
+        // Settlement also needs a lock store; this service has none, so it still cannot settle.
         XCTAssertTrue(service.permitsReads); XCTAssertTrue(service.permitsInsight); XCTAssertFalse(service.permitsSettlement)
         _ = try await service.home()
         _ = try await service.insight()

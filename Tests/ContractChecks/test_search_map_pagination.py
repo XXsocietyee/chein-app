@@ -18,7 +18,9 @@ class SearchMapPaginationContractTests(unittest.TestCase):
 
     def test_existing_activity_route_and_first_page_size_are_preserved(self):
         page = self.service.split('public func cityActivityPage(', 1)[1].split('public func nearby(', 1)[0]
-        self.assertIn('pageSize: 50', page)
+        # pages/searchmap/index.js:173 keeps pageSize 10; getList posts that size at :283.
+        self.assertIn('pageSize: SearchMapActivityPage.pageSize', page)
+        self.assertIn('public static let pageSize = 10', (ROOT/'Core/SearchMapPagination.swift').read_text())
         self.assertIn('fields["pageNum"] = String(page)', page)
         self.assertIn('form("api/activity/list", fields: fields, token: token)', page)
         self.assertNotIn('api/city/nodes', page)

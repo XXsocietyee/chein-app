@@ -316,7 +316,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请选择拒绝原因，主办方会看到"
+            "value": "拒绝原因将告知主办方"
           }
         }
       }
@@ -332,7 +332,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "拒绝站点邀请"
+            "value": "拒绝节点邀请"
           }
         }
       }
@@ -892,7 +892,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未命名站点"
+            "value": "未命名节点"
           }
         }
       }
@@ -956,7 +956,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "站点邀请"
+            "value": "节点邀请"
           }
         }
       }
@@ -1116,7 +1116,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩家会看到本站暂停、暂停原因和预计恢复时间，不会被引导到其他站点；如需退款请联系平台客服。"
+            "value": "玩家会看到本站暂停、暂停原因和预计恢复时间，不会被引导到其他节点；如需退款请联系平台客服。"
           }
         }
       }
@@ -2188,7 +2188,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这三条会毁掉后面几站的体验 —— 主办方设计的剧情你看不到,也不需要看到。"
+            "value": "这三条会毁掉后面几站的体验 —— 主办方设计的剧情你看不到，也不需要看到。"
           }
         }
       }
@@ -2476,7 +2476,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "切换本站"
+            "value": "切换"
           }
         }
       }
@@ -2796,7 +2796,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "输入玩家提交页显示的正整数编号"
+            "value": "提交编号"
           }
         }
       }

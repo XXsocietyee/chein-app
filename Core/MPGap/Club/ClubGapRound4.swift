@@ -147,6 +147,21 @@ public struct ClubFEReferenceExportClient {
         )
         return payload.url ?? ""
     }
+
+    public func exportMerchantCSV(range: FEReferenceRangeFilter, token: String) async throws -> String {
+        var items: [URLQueryItem] = []
+        if !range.fromDate.isEmpty { items.append(URLQueryItem(name: "from", value: range.fromDate)) }
+        if !range.toDate.isEmpty { items.append(URLQueryItem(name: "to", value: range.toDate)) }
+        struct ExportPayload: Decodable { let url: String? }
+        let payload: ExportPayload = try await MPGapHTTP.getJSON(
+            configuration: configuration,
+            transport: transport,
+            path: "api/fe/reference-settlement/merchant/export",
+            queryItems: items,
+            token: token
+        )
+        return payload.url ?? ""
+    }
 }
 
 /// MP `pages/club/group-code/index` (`CLB-group-code-05`):

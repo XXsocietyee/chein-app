@@ -10,6 +10,9 @@ struct TemplateAuthoringCoverHeader: View {
     let imageURL: String?
     @Binding var title: String
     var editable: Bool = true
+    /// Round 4 image parity (MP publish/temp wxml:1240 `formData.imgUrl || defaultCover`, utils/template-display.js
+    /// `gameTemplateCover`): with no uploaded cover, a built-in interaction game shows its MP default art.
+    var defaultCover: Image? = nil
     @FocusState private var editingTitle: Bool
 
     @Environment(\.cyPalette) private var palette
@@ -24,6 +27,13 @@ struct TemplateAuthoringCoverHeader: View {
                         CYCachedAsyncImage(imageURL, role: .cover)
                             .frame(width: geometry.size.width, height: geometry.size.width * 10.0 / 16.0)
                             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                    } else if let defaultCover {
+                        defaultCover
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .clipped()
+                            .accessibilityHidden(true)
                     } else {
                         palette.coverFallback
                             .overlay(Image(systemName: "photo").accessibilityHidden(true).font(.title).foregroundStyle(palette.onCoverFgDim))

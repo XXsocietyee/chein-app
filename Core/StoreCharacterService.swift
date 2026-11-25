@@ -76,6 +76,29 @@ public struct StoreCharacterService {
         return .init(status: status, sample: sample)
     }
 
+    public func npcReviewText(token: String) async -> String {
+        guard AuthRequestBuilder.isValidToken(token) else { return "" }
+        let url = configuration.baseURL.appendingPathComponent(StoreCharacterEndpoint.review)
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpShouldHandleCookies = false
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        guard let sent = try? await transport.send(request), (200..<300).contains(sent.1),
+              let object = try? JSONSerialization.jsonObject(with: sent.0) as? [String: Any],
+              Self.reviewCode(object["code"]) == 200,
+              let payload = object["data"] as? [String: Any] else { return "" }
+        return StoreCharacterNPCReviewText.merchant(payload)
+    }
+    private static func reviewCode(_ value: Any?) -> Int? {
+        if let number = value as? Int { return number }
+        if let number = value as? NSNumber { return number.intValue }
+        if let text = value as? String { return Int(text) }
+        return nil
+    }
+
     public func access(token: String) async throws -> MerchantOperationsAccess {
         let data = try await read(StoreCharacterEndpoint.access, token: token)
         guard let value = try? JSONDecoder().decode(Envelope<MerchantOperationsAccess>.self, from: data).data else { throw StoreCharacterFailure.malformed }
@@ -121,6 +144,10 @@ public struct StoreCharacterService {
     func profile() async throws -> StoreCharacterProfile
     func voiceStatus() async throws -> StoreCharacterVoiceState
     func mapPoint() async throws -> StoreCharacterMapPointState
+    func npcReviewText() async -> String
+}
+extension StoreCharacterReading {
+    public func npcReviewText() async -> String { "" }
 }
 
 /// Writes. The `requestID` is the prepared action's identity: a local lock key, never a server field.
@@ -180,6 +207,10 @@ public struct StoreCharacterService {
     public func profile() async throws -> StoreCharacterProfile { try await run { try await $0.profile(token: $1) } }
     public func voiceStatus() async throws -> StoreCharacterVoiceState { try await run { try await $0.voiceStatus(token: $1) } }
     public func mapPoint() async throws -> StoreCharacterMapPointState { try await run { try await $0.mapPoint(token: $1) } }
+    public func npcReviewText() async -> String {
+        guard let sessionToken = token(), AuthRequestBuilder.isValidToken(sessionToken) else { return "" }
+        return await service.npcReviewText(token: sessionToken)
+    }
     public func save(_ payload: StoreCharacterSavePayload, requestID: UUID) async throws {
         try await runWrite(StoreCharacterEndpoint.save) { try await $0.save(payload, token: $1) }
     }

@@ -124,7 +124,8 @@ import SwiftUI
         }
         .merchantM02Page()
         .scrollContentBackground(.hidden)
-        .cyDomainScreen(.merchant)
+        // R8-MEM-10-2: MP coupon.js:115-121, theme-merchant only for a merchant view; the player's own list is dark.
+        .cyDomainScreen(isMerchantMember ? .merchant : .player)
         .cyPageTitle("couponManagement.title")
         .task(id: sessionKey) {
             model.synchronize(); creating = false

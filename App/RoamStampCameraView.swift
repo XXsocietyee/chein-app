@@ -26,7 +26,9 @@ import UIKit
     @State private var exchangeStarted = Date()
     private enum Focus: Hashable { case capture, status }
     @AccessibilityFocusState private var focusedControl: Focus?
-    @State private var purposeAccepted = false
+    /// SCAM-2 (MP-first, owner 2026-11-25): the MP stamp camera has no consent switch and opens the camera at once
+    /// (subpackageP3/pages/stamp-camera/index/index.wxml:9-34); iOS still shows its own camera permission prompt.
+    @State private var purposeAccepted = true
     @State private var showingCamera = false
     @State private var cameraIssue = false
     @State private var revision = 0
@@ -59,7 +61,6 @@ import UIKit
                     Button("action.back") { dismiss() }.frame(minHeight: 44)
                         .accessibilityIdentifier("media.stamp.cameraIssue.back")
                 }
-                Toggle("media.stamp.consent", isOn: $purposeAccepted).tint(.green).disabled(isBusy || showingCamera)
             } footer: { Text("media.stamp.purpose") }
             if showsCaption { captionSection }
             if let coordinator {
@@ -73,9 +74,24 @@ import UIKit
                         else { CYStatusChip(LocalizedStringKey("media.stamp.phase." + phaseKey(coordinator.phase)), tone: phaseTone(coordinator.phase)) }
                     }.accessibilityFocused($focusedControl, equals: .status)
                     if coordinator.phase == .review {
-                        // SCAM-1: upload and create are one 存入集邮册 step in the MP. While create is gated
-                        // (owner ruling on RoamExperienceCapabilities.mediaUpload) nothing uploads, so no orphan photo and no dead end.
-                        CYPillButton("media.stamp.upload", style: coordinator.pending == nil ? .primary : .secondary) { run { await coordinator.upload() } }
+                        // SCAM-1 (MP-first, owner 2026-11-25): upload and create are one 存入集邮册 step in the MP
+                        // (stamp-camera/index/index.js:350-391): upload, then create with the same idempotency key.
+                        // On the citystamp route the MP then exchanges at once (citystamp/index.js:267-300).
+                        CYPillButton("media.stamp.upload", style: coordinator.pending == nil ? .primary : .secondary) {
+                            run {
+                                await coordinator.upload()
+                                guard pageContract.showsCreate, coordinator.pending != nil, coordinator.canCreate else { return }
+                                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                    environmentSession: offlineWriteSession.session,
+                                    routes: ["/api/roam/stamp/create"]
+                                ) {
+                                    await coordinator.create()
+                                }
+                                if showsCaption, pageContract.showsExchange, case .created(let stampID) = coordinator.phase, let exchange {
+                                    startExchange(stampID: stampID, exchange: exchange)
+                                }
+                            }
+                        }
                             .disabled(!coordinator.canUpload)
                             .disabled(!pageContract.showsCreate && coordinator.pending == nil)
                         if !pageContract.showsCreate {
@@ -173,7 +189,11 @@ import UIKit
                     }.ignoresSafeArea()
                 }
             }
-            .onAppear { coordinator?.changed = { revision += 1 } }
+            .onAppear {
+                coordinator?.changed = { revision += 1 }
+                // SCAM-2: open the viewfinder on arrival, as the MP page does.
+                if coordinator?.selection == nil, coordinator?.pending == nil { requestCamera() }
+            }
             .onDisappear { if !showingCamera { stop() } }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .background { invalidateCapture() }
@@ -192,13 +212,7 @@ import UIKit
                 Label("roam.stamp.exchange.failed", systemImage: "exclamationmark.triangle").cyText(.bodyCompact).foregroundStyle(palette.danger)
             }
             CYPillButton(LocalizedStringKey(exchangePhase == .failed ? "action.retry" : "roam.stamp.exchange.button")) {
-                guard exchangePhase != .working else { return }
-                exchangePhase = .working; exchangeStarted = Date()
-                Task {
-                    do { exchangePhase = .done(try await exchange(stampID)) }
-                    catch is CancellationError { exchangePhase = .idle }
-                    catch { exchangePhase = .failed }
-                }
+                startExchange(stampID: stampID, exchange: exchange)
             }
             .accessibilityIdentifier("media.stamp.exchange")
             Text("roam.stamp.exchange.footer").cyText(.bodyCompact).foregroundStyle(.secondary)
@@ -257,6 +271,16 @@ import UIKit
         celebrations.enqueue(.stamp(CYStampPayload(id: "stamp-\(stampID)", place: nil, passportCount: nil)))
     }
     private func stop() { captureGeneration += 1; work?.cancel(); work = nil; coordinator?.cancel(); coordinator?.changed = nil; localDraft = RoamCityStampDraft() }
+    /// 投一张换一张: `api/roam/stamp/exchange {givenStampId}`; a retry reuses the created stamp (MP citystamp/index.js:270).
+    private func startExchange(stampID: Int, exchange: @escaping @MainActor (Int) async throws -> RoamStampExchangeReceipt) {
+        guard exchangePhase != .working else { return }
+        exchangePhase = .working; exchangeStarted = Date()
+        Task {
+            do { exchangePhase = .done(try await exchange(stampID)) }
+            catch is CancellationError { exchangePhase = .idle }
+            catch { exchangePhase = .failed }
+        }
+    }
     private func run(_ action: @escaping @MainActor () async -> Void) { work?.cancel(); work = Task { await action(); revision += 1 } }
     private func phaseTone(_ phase: RoamStampCaptureCoordinator.Phase) -> CYStatusTone {
         switch phase {

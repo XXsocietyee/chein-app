@@ -386,7 +386,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
                     heldInvite = nil
                     inviteURL = nil
                     content.inviteShareURL = nil
-                    content.actionError = appLocalized("mp.seats.invite.linkFailed", locale: .current)
+                    // MP seats index.js:125: an OK answer without a token reads 邀请失败.
+                    content.actionError = appLocalized("mp.seats.invite.failed", locale: .current)
                     phase = .ready(content)
                     return
                 }
@@ -402,8 +403,13 @@ struct PlayerJourneySignInSheet: ViewModifier {
         // JSEAT-7: an unknown answer (sent, result not read back) says so instead of a network error.
         if let envelope, envelope.unconfirmed {
             content.actionError = appLocalized("mp.seats.unconfirmed", locale: .current)
+        } else if let envelope {
+            // MP seats index.js:125 / :143: the server message, else 邀请失败 / 撤销失败.
+            let message = envelope.message?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            content.actionError = message.isEmpty
+                ? appLocalized(invite ? "mp.seats.invite.failed" : "mp.seats.cancel.failed", locale: .current) : message
         } else {
-            content.actionError = envelope?.message ?? JourneyEnvelope.networkFailure.message
+            content.actionError = JourneyEnvelope.networkFailure.message
         }
         phase = .ready(content)
     }
@@ -633,6 +639,9 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private(set) var rate: JourneyRateState = .idle
     /// One settle-rating intent. Cleared only after a confirmed write so a retry reuses it.
     private var rateRequestID: String?
+    /// L09-059: the accepted rating, and the last draft sent (a different draft drops the kept request id).
+    @ObservationIgnored private var rated = false
+    @ObservationIgnored private var lastRateDraft: (stars: Int, text: String)?
     /// JSETTLE-1: set once the run is ready, so the share step always has 分享 (topic link fallback).
     private(set) var shareURL: URL?
     private(set) var topicName: String?
@@ -774,6 +783,11 @@ struct PlayerJourneySignInSheet: ViewModifier {
     }
 
     private func sendRating(stars: Int, text: String) async {
+        // MP settle L09-059: once this run's rating is accepted, 提交 again shows thanks and sends nothing;
+        // a changed draft after a failed submit is a new intent and gets a new request_id.
+        if rated { rate = .thanks; return }
+        if let last = lastRateDraft, last.stars != stars || last.text != text { rateRequestID = nil }
+        lastRateDraft = (stars, text)
         // JSETTLE-2, mini-program settle `submitRate`: owner type 2 + the activity id when the run has an activity,
         // else owner type 1 + the topic id. A run id is never an owner.
         guard let owner = PlayerJourneyProjection.ratingOwner(report: readyReport, scope: scope) else {
@@ -793,11 +807,14 @@ struct PlayerJourneySignInSheet: ViewModifier {
             let envelope = try await source.rate(ownerType: owner.type, ownerID: owner.id, rating: stars, contents: text, requestID: requestID, token: session)
             if envelope.ok, !envelope.unconfirmed {
                 rateRequestID = nil
+                rated = true
                 rate = .thanks
             } else if envelope.netFail {
                 rate = .error(appLocalized("mp.settle.rate.netKept", locale: .current))
             } else {
-                rate = .error(envelope.message ?? appLocalized("mp.settle.rate.netKept", locale: .current))
+                // MP settle index.js:212: the server text, else 评价暂时无法提交.
+                let message = envelope.message?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                rate = .error(message.isEmpty ? appLocalized("mp.settle.rate.failed", locale: .current) : message)
             }
         } catch {
             rate = .error(appLocalized("mp.settle.rate.netKept", locale: .current))
@@ -1091,11 +1108,16 @@ enum PlayerJourneyProjection {
         let free = int(object["freeSeats"])
         let canInvite = object["buyerIsCaller"] as? Bool == true && object["readOnly"] as? Bool == false && (free ?? 0) > 0
         let cancelSupported = object["seatCancelSupported"] as? Bool == true
+        // JSEAT-r8-1 (MP journey-view.seatsView `canTransfer`): open seat, not seat 1, server says phone transfer is supported.
+        let transferSupported = object["seatPhoneTransferSupported"] as? Bool == true && object["buyerIsCaller"] as? Bool == true
+            && object["readOnly"] as? Bool == false
+        var transferable: [Int] = []
         let rows = (object["seats"] as? [Any] ?? []).compactMap { $0 as? [String: Any] }
         var circles: [JourneySeatCircle] = []
         var invited: [JourneyInvitedRow] = []
         for row in rows {
             guard let no = int(row["seatNo"]), let kind = seatKind(string(row["state"])) else { continue }
+            if kind == .open && no > 1 && transferSupported { transferable.append(no) }
             circles.append(JourneySeatCircle(no: no, kind: kind, avatarURL: kind == .me ? me?.avatarURL : nil,
                                              initial: kind == .me ? me.flatMap { $0.initial.isEmpty ? nil : $0.initial } : nil,
                                              tappable: kind == .open && canInvite))
@@ -1104,7 +1126,8 @@ enum PlayerJourneyProjection {
             let invitation = idText(row["invitationId"])
             invited.append(JourneyInvitedRow(invitationID: invitation ?? "seat-\(no)", no: no, kind: kind,
                                              expiresText: kind == .invited ? timeText(row["invitationExpiresAt"]) : nil,
-                                             canCancel: kind == .invited && cancelSupported && invitation != nil))
+                                             canCancel: kind == .invited && cancelSupported && invitation != nil,
+                                             who: seatRecipient(row, kind: kind)))
         }
         let count = int(object["seatCount"])
         let taken = circles.filter { [.me, .verified, .claimed, .reserved].contains($0.kind) }.count
@@ -1116,8 +1139,15 @@ enum PlayerJourneyProjection {
                                           openCount: circles.filter { $0.kind == .open }.count, invited: invited,
                                           multi: (count ?? 0) > 1,
                                           tiles: tiles(choices), canGoToStart: idText(object["topicId"]) != nil,
-                                          actionError: nil, inviteShareURL: nil)
+                                          actionError: nil, inviteShareURL: nil, transferable: transferable)
         return .ready(content)
+    }
+
+    /// MP `who`: PHONE channel, INVITED / CLAIMED → recipientName + recipientPhoneMasked (only the buyer gets them).
+    private static func seatRecipient(_ row: [String: Any], kind: JourneySeatKind) -> String? {
+        guard string(row["invitationChannel"]) == "PHONE", kind == .invited || kind == .claimed else { return nil }
+        let parts = [string(row["recipientName"]), string(row["recipientPhoneMasked"])].compactMap { $0 }.filter { !$0.isEmpty }
+        return parts.isEmpty ? nil : parts.joined(separator: " ")
     }
 
     private static func seatKind(_ state: String?) -> JourneySeatKind? {

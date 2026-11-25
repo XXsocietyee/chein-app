@@ -3,6 +3,13 @@ import Foundation
 public struct ClubRoleAssignableMember: Equatable, Identifiable {
     public let id: Int
     public let nickname: String?
+    /// Member avatar URL. Nil asks the screen for the shared profile placeholder.
+    public let avatarURL: String?
+    public init(id: Int, nickname: String?, avatarURL: String? = nil) {
+        self.id = id
+        self.nickname = nickname
+        self.avatarURL = avatarURL
+    }
 }
 public struct ClubRoleAssignableOption: Equatable, Identifiable {
     public var id: String { code }
@@ -55,7 +62,9 @@ public struct ClubRoleAssignmentOptions: Equatable {
             // must not turn into permission through a UI default.
             guard row["isOwner"] == .bool(false) else { unverified = true; continue }
             let name = row["nickname"].string?.trimmingCharacters(in: .whitespacesAndNewlines)
-            members.append(.init(id: memberID, nickname: name?.isEmpty == false ? name : nil))
+            let avatar = row["avatar"].string?.trimmingCharacters(in: .whitespacesAndNewlines)
+            members.append(.init(id: memberID, nickname: name?.isEmpty == false ? name : nil,
+                                 avatarURL: avatar?.isEmpty == false ? avatar : nil))
         }
         scope = context.scope; self.members = members; self.roles = roles; hasUnverifiedMembers = unverified
     }
