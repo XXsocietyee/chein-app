@@ -31,3 +31,17 @@ d2-square
 cur8-team
 g-team-qr
 g-team-qr-refused
+# Round 4 (2026-11-25): MP flows, image parity and copy
+#   15 pass reveal: 跳过 leaves for membership/library like 开始 (MP onSkip → _go); MP timeline 3000–4050 ms; paid line 「到 x」;
+#      coming back from the opened page closes the reveal (B-PR-03). Merchant state uses the MP empty art.
+fr3-pass-reveal-paid
+fr3-pass-reveal-first
+#   20 square detail: 评论加载失败 / 更多评论加载失败; 社区暂未开放 / 这条帖文暂不可用 show the MP empty art; no 查看作者主页 row
+d2-square
+#   21 team detail: seat strip with d_profile avatars, 队长 tag and dashed open seats; MP copy (城瘾玩家, 退出队伍, 解散队伍, 复制加入码)
+cur8-team
+#   17 temp: interaction-game default cover (e.g. 闭眼味觉师) when no cover is uploaded
+t11-template-author
+#   12 privacy, 13 agreement (生效日期：)
+cur6-privacy-location
+cur6-agreement

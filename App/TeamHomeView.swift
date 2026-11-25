@@ -117,7 +117,7 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("team.detail.card")
                     // U06-01: seats, applications and the invitation deadline, separate from the member list.
                     // C-J6 (MP team-seats): the join page shows joined seats filled and open seats dashed.
-                    if invitationCode != nil { TeamJoinSeatRow(detail: detail) }
+                    if invitationCode != nil { TeamJoinSeatRow(detail: detail) } else { TeamDetailSeatStrip(detail: detail) }
                     TeamSeatFactsCard(detail: detail)
                     TeamRoleAndSharedSection(role: detail.roleFacts, shared: detail.sharedOutcome)
                     TeamViewerRelationshipLine(detail: detail, invitation: invitationCode != nil)

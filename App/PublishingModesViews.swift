@@ -387,7 +387,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
                             .foregroundStyle(palette.textPrimary)
                     }
-                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("活动介绍", "Description")) }
+                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("活动说明", "Description")) }
                 .listRowBackground(palette.bgElevated)
                 .disabled(!editable)
                 Section {
