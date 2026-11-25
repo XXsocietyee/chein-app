@@ -1,4 +1,55 @@
 {
+  "characterCard.failure.sessionChanged": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your sign-in changed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录状态已变更"
+        }
+      }
+    }
+  },
+  "characterCard.failure.topicUnavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This topic can't be viewed right now"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时无法查看该主题"
+        }
+      }
+    }
+  },
+  "characterCard.failure.upgrade": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Please update the app"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请更新 App"
+        }
+      }
+    }
+  },
   "freeBundle.catalog.chapterFallback": {
     "extractionState": "manual",
     "localizations": {
