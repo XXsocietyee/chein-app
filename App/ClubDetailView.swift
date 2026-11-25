@@ -132,7 +132,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 if tab == .manage {
                     ClubManageQuickActions(canScan: club.canGovern || canManageActivities(club), canGovern: club.canGovern,
                                            canManageActivities: canManageActivities(club), autoStartScan: autoScan,
-                                           submitScan: (reader as? AppSession)?.clubScanSubmit)
+                                           submitScan: (reader as? AppSession)?.clubScanSubmit,
+                                           onSettings: openSettingsAction)
                 }
                 // CLB-detail-09 / CLB-r7-A-04 (MP wxml:452-475): 管理中的项目 with 活动导演台 and 场次工具.
                 if tab == .manage, club.canGovern || canManageActivities(club), management?.governance != nil {
@@ -423,9 +424,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .toolbar {
                 // MC-22: share sits in the bar beside the system back (a glass circle on iOS 26+ bars).
                 ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubID: club.id, clubName: club.name) }
-                // CLB-G06 (MP wxml:12-14, 690): the settings gear. The mounted sheet carries the owner rows only
-                // (编辑 / 转让 / 解散), so it shows for the owner; admins keep their rows on 管理 (CLB-r7-A-06 open).
-                if club.isOwner, management?.operations != nil {
+                // CLB-G06 (MP wxml:11-14, 690): the settings gear for `club.isOwner || canUseManageTab`; the sheet
+                // filters its rows by the same permissions as the MP (owner-only governance rows).
+                if club.isOwner || ClubDetailTabPolicy(club: club, grant: manageGrant).canUseManageTab, management?.operations != nil {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button { showsSettings = true } label: { Image(systemName: "gearshape") }
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
@@ -436,14 +437,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
             .sheet(isPresented: $showsSettings) {
                 // CLB-G19: 改为转让主理人 beside 解散 in 危险操作 (owner only, as in the MP).
-                ClubGapSettingsSheet(clubName: club.name, canGovern: true,
+                ClubGapSettingsSheet(clubName: club.name, canGovern: club.isOwner,
                                      onEditClub: { r8Route = .workspace },
                                      onTransferOwner: { r8Route = management?.governance == nil ? nil : .transferOwner },
                                      onDissolveClub: { r8Route = .workspace })
-                    .clubTools(customers: management?.governance == nil ? nil : { r8Route = .customers },
-                               enroll: management?.governance == nil ? nil : { r8Route = .enroll },
-                               eventOps: management?.governance == nil ? nil : { r8Route = .eventOps },
-                               roles: management?.governance == nil ? nil : { r8Route = .roles })
+                    // MP wxml:697-797 row gates: 查看客户 / 报名名册 owner or admin; 活动运营 owner or club:activity:manage;
+                    // 角色与权限 owner or club:role:manage.
+                    .clubTools(customers: settingsRoute(.customers, allowed: club.isOwner || club.viewerIsAdmin),
+                               enroll: settingsRoute(.enroll, allowed: club.isOwner || club.viewerIsAdmin),
+                               eventOps: settingsRoute(.eventOps, allowed: canManageActivities(club)),
+                               roles: settingsRoute(.roles, allowed: club.isOwner || manageGrant?.permissions.contains("club:role:manage") == true))
                     .clubToolCounts(customers: r8Mounts.customerCountText, topics: r8Mounts.topicTotal,
                                     delegatedRoles: delegatedRoleCount)
                     .presentationDetents([.medium, .large])
@@ -535,6 +538,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         return (raw == ClubDetailPageModel.unknownMark ? raw : (Int(raw).map { ClubMemberCountLocalization.text($0, locale: locale) } ?? raw), raw, ready.showsChannels, ready)
     }
 
+    /// CLB-G06: the 设置 quick action (typed, not a ternary inside the body).
+    private var openSettingsAction: (() -> Void)? {
+        guard management?.operations != nil else { return nil }
+        return { showsSettings = true }
+    }
+    /// CLB-G06: one settings-sheet row's route, or nil (row hidden) without governance or permission.
+    private func settingsRoute(_ route: ClubDetailR8Route, allowed: Bool) -> (() -> Void)? {
+        guard allowed, management?.governance != nil else { return nil }
+        return { r8Route = route }
+    }
     private func r8Key(_ club: ClubRecord, tab: ClubDetailTab) -> String {
         "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)|\(managementRevision)"
     }

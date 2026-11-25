@@ -1,6 +1,7 @@
 import SwiftUI
 
 /// MP `pages/club/detail/index.wxml:367-395` quick-acts on 管理: round buttons under the workbench head.
+/// - CLB-G06: 设置 for every 管理 viewer (owner, admin or a delegated manager).
 /// - CLB-G02: 扫码 for the owner, an admin or `club:activity:manage`; it opens the camera and posts the matched
 ///   verify route (`index.js:964-1060`). `scan=1` on the link starts it once the page has loaded (`index.js:754-755`).
 @MainActor struct ClubManageQuickActions: View {
@@ -9,6 +10,8 @@ import SwiftUI
     let canManageActivities: Bool
     var autoStartScan = false
     let submitScan: ((_ raw: String, _ canGovern: Bool, _ canManageActivities: Bool) async throws -> Bool)?
+    /// CLB-G06: 设置 opens the 俱乐部设置 sheet (MP wxml:390-394, `onSettings` js:3571-3575). Nil hides it.
+    var onSettings: (() -> Void)? = nil
 
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var scanning = false
@@ -22,13 +25,17 @@ import SwiftUI
     private var scanOffered: Bool { canScan && submitScan != nil }
 
     var body: some View {
-        if scanOffered {
+        if scanOffered || onSettings != nil {
             Section {
                 layout {
                     if scanOffered {
                         quickAction("club.quick.scan", systemImage: "qrcode.viewfinder", identifier: "club.quick.scan") { scanning = true }
                             .disabled(busy)
                             .accessibilityLabel(Text("club.quick.scan.a11y"))
+                    }
+                    if let onSettings {
+                        quickAction("club.quick.settings", systemImage: "ellipsis", identifier: "club.quick.settings", action: onSettings)
+                            .accessibilityLabel(Text("clubR8.settings.open"))
                     }
                 }
                 .frame(maxWidth: .infinity)
