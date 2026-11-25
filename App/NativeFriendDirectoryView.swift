@@ -123,7 +123,18 @@ import SwiftUI
         .task { await flow.load() }
         .refreshable { await flow.load() }
         .onDisappear { flow.invalidate() }
-        .onChange(of: scenePhase) { _, value in if value == .active { if model.selection == nil { Task { await flow.load() } } } else { flow.invalidate() } }
+        .onChange(of: scenePhase) { _, value in
+            switch value {
+            case .active:
+                if model.selection == nil { Task { await flow.load() } }
+            case .background:
+                flow.invalidate()
+            case .inactive:
+                break
+            @unknown default:
+                break
+            }
+        }
         // Always hosted outside ForEach: clearing the parent's rows cannot remove this destination.
         // Before toolbar, so iOS 27 keeps this modifier inside the NavigationStack instead of marking it misplaced.
         .navigationDestination(isPresented: detailBinding) {
@@ -132,6 +143,8 @@ import SwiftUI
                     removalFactory: removalFactory, publicProfile: publicProfile, progressCard: progressCard, conversation: conversation).id(detail.id)
             }
         }
+        // A second push (metadata, profile) during the detail transition is dropped by UIKit.
+        .animation(nil, value: model.selection?.id)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
@@ -343,7 +356,19 @@ import SwiftUI
         .task { await flow.load() }
         .refreshable { await flow.load() }
         .onDisappear { flow.invalidate() }
-        .onChange(of: scenePhase) { _, value in if value == .active { if model.child == nil { Task { await flow.load() } } } else { model.retire() } }
+        .onChange(of: scenePhase) { _, value in
+            switch value {
+            case .active:
+                if model.child == nil { Task { await flow.load() } }
+            case .background:
+                model.retire()
+            case .inactive:
+                // Navigation transitions report inactive. That must not pop the child.
+                break
+            @unknown default:
+                break
+            }
+        }
         // Child route owns only the original flow/peer identity; it does not require retained detail data.
         .navigationDestination(isPresented: childBinding) {
             if flow.isCurrent, let child = model.child {
@@ -356,6 +381,7 @@ import SwiftUI
                 }
             }
         }
+        .animation(nil, value: model.routeGeneration)
     }
     private var childBinding: Binding<Bool> {
         let captured = model.routeGeneration
