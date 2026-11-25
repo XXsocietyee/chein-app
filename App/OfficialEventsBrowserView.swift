@@ -22,6 +22,9 @@ import SwiftUI
         default: return nil
         }
     }
+    private var mineIssueLabelIfPrivate: ((OfficialScreenIssue) -> LocalizedStringKey?)? {
+        privateList ? { Self.mineIssueLabel($0) } : nil
+    }
     /// R7-PC-C3-1: no own NavigationStack. The deep link pushes this into the caller's stack; the 首页 sheet wraps it.
     var body: some View {
         Group {
@@ -39,11 +42,7 @@ import SwiftUI
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: CYSpacing.sm) {
                             ForEach(OfficialEventBucket.allCases) { value in
-                                CYFilterChip(LocalizedStringKey(value.tabTitleKey), isSelected: bucket == value) { bucket = value }
-                                    .pageTemplateControl(
-                                        label: Text(LocalizedStringKey(value.tabTitleKey)),
-                                        traits: bucket == value ? [.isButton, .isSelected] : .isButton
-                                    )
+                                OfficialEventBucketChip(value: value, bucket: $bucket)
                             }
                         }
                     }
@@ -53,7 +52,7 @@ import SwiftUI
                     .accessibilityIdentifier("official.filter")
                 }.padding(.horizontal)
                 OfficialReadScreen(reader: reader, isPrivate: privateList, requestID: privateList ? "mine" : "public", onLogin: onLogin,
-                                   issueLabel: privateList ? Self.mineIssueLabel : nil,
+                                   issueLabel: mineIssueLabelIfPrivate,
                                    load: { if privateList { return try await reader.myEvents() }; return try await reader.events(city: nil) }) { rows in
                     eventList(rows)
                 }
@@ -145,5 +144,18 @@ import SwiftUI
             guard !Task.isCancelled, reader.scope == captured else { return }
             canPublish = allowed; publisherScope = captured
         } catch { /* A failed capability check does not break public discovery or expose publishing. */ }
+    }
+}
+
+/// One 官方活动 filter chip (split out so the chip row type-checks quickly).
+@MainActor private struct OfficialEventBucketChip: View {
+    let value: OfficialEventBucket
+    @Binding var bucket: OfficialEventBucket
+    var body: some View {
+        let key = LocalizedStringKey(value.tabTitleKey)
+        let selected = bucket == value
+        let traits: AccessibilityTraits = selected ? [.isButton, .isSelected] : .isButton
+        return CYFilterChip(key, isSelected: selected) { bucket = value }
+            .pageTemplateControl(label: Text(key), traits: traits)
     }
 }
