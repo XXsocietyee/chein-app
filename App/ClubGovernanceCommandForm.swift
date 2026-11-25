@@ -71,7 +71,6 @@ import SwiftUI
     @StateObject private var seriesLeadPicker = ClubSeriesLeadReadModel()
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.clubDissolveAcknowledged) private var dissolveAcknowledged
     @Environment(\.locale) private var locale
     @Environment(\.clubProfileDraftFlow) private var profileDraftFlow
     @QuestifyReduceMotion private var reduceMotion
@@ -575,16 +574,32 @@ import SwiftUI
     private var gateKey: String {
         switch route.operation.risk { case .administrative: return "club.gov.writeGate"; case .financial: return "club.gov.financialGate"; case .identity: return "club.gov.identityGate"; case .provider: return "club.gov.providerGate" }
     }
+    /// CLB-apply-06 (MP apply wxml:15-23): the create wizard's step header: four progress capsules, the 第 n 步 line
+    /// and a large headline, on the page rather than in a card.
     @ViewBuilder private func applyStepHeader(_ step: Int) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: ClubPlayerCopy.progress(step))
-                .cyText(.meta)
-                .foregroundStyle(.secondary)
-                .accessibilityLabel(Text(verbatim: ClubPlayerCopy.progressLabel(step, locale: locale)))
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(spacing: CYSpacing.xs) {
+                ForEach(1...4, id: \.self) { index in
+                    Capsule(style: .continuous)
+                        .fill(index <= step ? CYColor.textPrimary : CYColor.borderSubtle)
+                        .frame(height: 4)
+                }
+            }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: step)
+            .accessibilityHidden(true)
+            Text(verbatim: ClubPlayerCopy.progressLabel(step, locale: locale))
+                .cyText(.bodyMedium)
+                .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("club.player.apply.progress")
             Text(verbatim: ClubPlayerCopy.applyTitle(step: step, locale: locale))
+                .cyText(.display)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("club.player.apply.stepTitle")
         }
+        .textCase(nil)
+        .padding(.bottom, CYSpacing.xs)
     }
     private var applyReady: Bool {
         applyStep == 0 || ClubHostApplyPort.canAdvance(step: applyStep, text: draft.text)
@@ -764,7 +779,6 @@ import SwiftUI
             if route.operation == .cancelOccurrence, submittedRequestID == draft.requestID, !Task.isCancelled {
                 occurrenceCancellationReturn?.acknowledged(review, value)
             }
-            if route.operation == .dissolve { dissolveAcknowledged?() }
             if route.operation == .issueGroupCode {
                 guard let clubID = review.command.scope.clubID, let activityID = review.command.scope.activityID,
                       scenePhase == .active, !Task.isCancelled else { throw ClubGovernanceFailure.staleReview }

@@ -26,3 +26,17 @@
 --uitesting-club-operations ordinary --uitesting-club-operations-host-apply
 # create 活动倾向 chips and edit toggles carry the MP tag icons
 --uitesting-club-operations owner
+# Round 3 (2026-11-24 evening)
+# detail: MP default cover/logo again (re-applied), header share = chein:// link + invitation; activity card surface with status chip on a 130 pt cover; post counts on 赞/评论
+--uitesting-club-fixture owner
+--uitesting-club-fixture member
+--club-community-fixture
+# topic-detail: primary pinned in a bottom bar; 核销 header as a section title; session rows when/who + headcount chip
+# topic-story: answer sheet 正在取答案… / 答案没取到 + 重试; chapter menu at AX sizes (run with an accessibility text size)
+--uitesting-club-governance --club-story-scenario ready
+# governance: ban/case status as plain coloured text
+--uitesting-club-governance
+# create (stepped wizard) confirms in place; edit by a non-manager shows 暂无编辑权限 + 返回俱乐部; apply steps use the wizard header
+--uitesting-club-operations owner
+--uitesting-club-operations ordinary
+--uitesting-club-operations ordinary --uitesting-club-operations-host-apply

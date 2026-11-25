@@ -193,7 +193,14 @@ struct ClubOperationsWorkspaceView: View {
                     .listRowBackground(Color.clear)
             }
             else if !access.isConfigured { Text("club.ops.unavailable") }
-            if let errorKey {
+            if target != .create, errorKey == "club.ops.error.forbidden" {
+                // CLB-edit-07 (MP scene-club-edit wxml:5): a dedicated 暂无编辑权限 state with 返回俱乐部.
+                CYEmptyState(systemImage: "lock", "club.ops.edit.noPermission",
+                             messageIdentifier: "club.ops.error",
+                             actionTitle: "club.ops.edit.backToClub", actionIdentifier: "club.ops.edit.backToClub",
+                             actionStyle: .secondary, kind: .generic, action: { dismiss() })
+                    .listRowBackground(Color.clear)
+            } else if let errorKey {
                 Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
                 if !loading, identity != nil {
                     Button("club.ops.recheck") { Task { await load() } }
@@ -390,7 +397,7 @@ struct ClubOperationsWorkspaceView: View {
             }
             ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,
                 choiceContext: profileChoiceContext, choiceIsCurrent: profileChoiceIsCurrent, choiceController: profileChoice,
-                checkClubName: { await access.checkClubName($0) }, submitCreate: { Task { await prepare(.create(draft)) } },
+                checkClubName: { await access.checkClubName($0) }, submitCreate: { Task { await prepare(.create(draft), confirmsInline: !ClubPlayerSurface.flatCreateForm) } },
                 createNameTaken: createNameTakenMessage,
                 createBar: target == .create && !ClubPlayerSurface.flatCreateForm ? createStepBar : nil)
                 .disabled(loading || state.locksForm || profileDraftBlocked)
@@ -643,7 +650,10 @@ struct ClubOperationsWorkspaceView: View {
             loading = false; show(error)
         }
     }
-    @MainActor private func prepare(_ command: ClubOperationsCommand) async {
+    /// CLB-create-06 (MP create wxml:142-144): the stepped wizard's 创建俱乐部 confirms in place (创建中…) with no
+    /// review sheet. The reviewed command still runs (prepare, then confirm); an unverified write path keeps the sheet,
+    /// which explains why it cannot be sent. The flat form (UI tests) keeps the review sheet.
+    @MainActor private func prepare(_ command: ClubOperationsCommand, confirmsInline: Bool = false) async {
         guard let identity, !state.locksForm, !loading, access.identity == identity,
               !profileDraftEnabled || draftVisit.matches(target: target, identity: identity, access: access) else { return }
         if case .update(let value, let original) = command, profileDraftEnabled {
@@ -663,6 +673,11 @@ struct ClubOperationsWorkspaceView: View {
             }
             let pending = try await coordinator.prepare(command, target: target, expectedIdentity: identity, ownerID: ownerID)
             guard run == generation, access.identity == identity, !Task.isCancelled else { coordinator.cancel(pending); return }
+            if confirmsInline, case .create = pending.command, coordinator.writeAvailability != .unverified {
+                state = .preflighting
+                await confirm(pending)
+                return
+            }
             review = pending; state = coordinator.state(target: target)
         } catch {
             guard run == generation, access.identity == identity else { return }

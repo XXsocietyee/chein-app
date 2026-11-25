@@ -192,3 +192,73 @@ The governance-04, roles-07 and roles-10 copy now uses Localizable keys from the
 - Every contract check (`Tests/ContractChecks/test_*.py`) was run on this branch and on `origin/ui/combined-r7`. The only new failure is `test_localization_key_catalog_contract` (fragment keys, see Strings). The club failures (`customer_directory_remote_admission`, `customer_keyword_debounce`, `customer_permissions`, `operations_contracts`) fail identically on the base.
 - `tools/check_typography_lint.py`: PASS.
 - No Swift build (no compiler in the cloud). New APIs relied on, grepped on r7: `MPAsset.*` accessors, `MoneyDisplay.yuan(_:)`, `ClubShareLink.club/post`, `CheinDeepLink.scheme`, `ClubOpsPageFailureCopy.literalTitle/prefersBack`, `ClubOpsNetworkFailureClassifier.*Title`, `ClubProfileLocalDraftFlow.clearAfterConfirmedDissolve()`, `ClubEventOpsFormRules.maxWeeklyOccurrences`, `ClubSeriesScheduleDraft.day(_:)`, `ClubCommunityEvidence(…, memberPostAllowed:)`, `ClubRecord.memberPostAllowed/memberDiscountPrice(Text)`, `ClubR1OptionCard(title:isSelected:action:)`, `appLocalized(_:locale:)`, `View.cyText` / `Text.cyText`, `.onChange(of:initial:)` (iOS 17).
+
+## Round 3 (2026-11-24 evening)
+
+- **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round3.md`, with `wave-x10.md`, `fix-r3-round2.md` and `owner-decisions-1124.md`.
+- **Sync:** `fix/r3-club-a` was already contained in `origin/ui/combined-r7` (`b0ac0108d`), so the merge was a fast-forward. Re-merged before the final push.
+
+### Round 3 · re-applied
+
+Every round-2 hunk was compared with the new base (`git diff 5f7e01dbf b0ac0108d` per file). Where Cursor's wiring already covers the effect, Cursor's API was kept and no second implementation was added.
+
+| round-2 item | state on b0ac0108d | round 3 |
+|---|---|---|
+| MP default cover `club_cover_default.png` and logo `d_logo.png` on the club header (`ClubDetailCover`) | dropped (ClubDetailView restored to Cursor's side) | **re-applied** on Cursor's file: `fallback:` parameter, `MPAsset.BannerCover.clubCoverDefault` / `MPAsset.BrandLogo.dLogo` |
+| CLB-detail-30 header share: in-app `chein://mp/…` link with the invitation message | dropped; Cursor shares the bare `ClubShareLink.path` string | **re-applied on top of Cursor's `ClubHeaderShareButton(clubID:)`**: still built from `ClubShareLink.club(id:)`, sent as `ClubShareURL.url(link)` with the `r3club.invite.message` text; optional `clubName`, falls back to Cursor's path |
+| CLB-detail-30 post share (`ClubPostShareText`) | dropped; Cursor shares the path string | **re-applied** the same way on `ClubShareLink.post(clubID:postID:)`; `ClubPostShareText` restored (no other declaration exists) |
+| CLB-roles-02 `activityLabel` from the MP link into the roles page | dropped in `MPReviewedPageScreen` | **re-applied** (`.environment(\.clubRoleActivityLabel, …)` on the roles route) |
+| CLB-r7-C-06 dissolve clears the local edit draft | Cursor added `clubProfileDraftFlow`, which does the same | **kept Cursor's**; removed my now-unset `clubDissolveAcknowledged` key and its call |
+| CLB-event-ops-06 weekly-horizon maximum | Cursor's `weeklyHorizonMessage(now:)` replaced mine | kept Cursor's; dropped the unused `club.schedule.error.weeklyHorizonMax` fragment key |
+| CLB-r7-C-01 ban `durationDays` review | Cursor's `banDayChoices` version | kept Cursor's |
+| CLB-detail-29 welcome 成员价 | Cursor's `memberPricePerk` text | kept Cursor's |
+| `ClubOpsPageFailureSection` literal titles | Cursor shows `literalTitle` verbatim (no English) | kept Cursor's; the English-locale gap is a note for Cursor |
+| CLB-detail-26 Now card (my round-2 Cursor request) | Cursor implemented `loadOwnerStage` + `ClubWorkbenchNowCard(ownerStage:)` | nothing to do |
+| `ClubMPAvatar`, `ClubMoneyText` | now only in `ClubKit/ClubMPArt.swift` | call sites unchanged (same `url:name:size:`; `twoDecimals` alias kept) |
+| Everything else from round 2 (governance consequences, apply labels, MP tag icons, avatars, topic-story direct link, create limit) | present | — |
+
+### Fixed in round 3
+
+| id | what changed | files |
+|---|---|---|
+| CLB-topic-detail-02 (pinned footer) | The phase primary (去选一场 / 进入场次 / 查看结算 / 修改并重新提交 …) is a bottom bar (`safeAreaInset`, `.bar` material, divider) on a loaded, current topic overview, not the last list row. | App/ClubGovernanceViews.swift |
+| CLB-create-06 | The stepped create wizard's 创建俱乐部 confirms in place (prepare → confirm, no review sheet). An unverified write path still shows the sheet; the flat UI-test form keeps it. | App/ClubOperationsViews.swift |
+| CLB-topic-story-03 (loading/error) | The answer sheet shows 正在取答案… while reading and 答案没取到 + 重试 (with the server reason) on failure. | App/ClubGovernanceViews.swift; strings; Resources/ClubStoryLocalizations.fragment.json |
+| CLB-topic-detail-14 | 核销 header is a sentence-case `.sectionTitle` (`textCase(nil)`, header trait); tile labels `.cyText(.label)`. | App/ClubTopicDetail+Port.swift |
+| CLB-topic-detail-15 | 接下来 rows: when over who, the issued headcount as a trailing `CYStatusChip`. | App/ClubGovernanceViews.swift |
+| CLB-topic-story-10 | At accessibility sizes the chapter chips become a menu `Picker` (same selection guard). | App/ClubGovernanceViews.swift |
+| CLB-edit-07 | A non-manager opening edit sees 暂无编辑权限 + 返回俱乐部 (the message keeps the `club.ops.error` id the UI test reads). | App/ClubOperationsViews.swift; strings |
+| CLB-apply-11 | The host done card shows 主理人 <leaderName> when the status read carries `leaderName`. | App/ClubGovernanceViews.swift; strings |
+| CLB-apply-06 (header part) | Host-apply steps use the create wizard header: four capsules, 第 n 步，共 4 步, a `.display` headline. | App/ClubGovernanceCommandForm.swift |
+| CLB-governance-16 | Ban and case status are plain coloured text (active ban red, pending case amber), not pills. | App/ClubOpsGovernanceSections.swift |
+| CLB-detail-39 | Activity card: card surface, 130 pt cover with the status chip at its top-left, address in `.meta` (no raw `.caption`). | App/ClubActivityListContent.swift |
+| CLB-detail-43 | Inside a club the like/comment counts sit on the 赞 / 评论 actions; the separate count row stays only on the cross-club feed (no action bar there). VoiceOver keeps the action name with the count as value. | App/ClubCommunityViews.swift |
+
+### Gap flows (`docs/mp-gap/flows-g2.md`, edges for Claude) on this half's pages
+- `club/detail:1079`, `club/topic-detail:915` → `pages/club/settlement/index?clubId=`, `coop/settlement-detail` → settlement: routed by `MPParityDestination.clubSettlement` (`App/MPParityKit.swift`), not by `MPReviewedPageScreen`, so the doc's MISSING-ROUTE is a false positive. Same for `club/payout-receiver`.
+- `club/detail:944` → `pages/coop/list/index?tab=sent`: routed (`MPParityKit` `.coopList`).
+- `club/create:196` → `redirectTo apply`: routed (`pages/club/apply/index`).
+- `club/detail:998` (scan → `submitClubScan`): the club-scoped 扫码核销 is CLB-G02, parked in `App/MPGap/Club` (`ClubGapActivityAndScanActions`); mounting is the integrator's / Gemini's. Not duplicated here.
+- `scene-club-edit:395`, `topic-detail:1292`, `director.js:1492`, `workbench:25`: these lines are requests or retries of the current page, not navigations (extraction noise).
+
+### Left after round 3, with reasons
+
+| id | reason |
+|---|---|
+| CLB-detail-35 (团码 on cards) | For managers the card already opens the club topic page (CLB-r7-A-01), whose 接下来 rows carry 出示团码 per session: two taps. A separate picker would duplicate it. |
+| CLB-detail-14, -22, CLB-topic-detail-05, -06, -10, CLB-event-ops-02, CLB-governance-01, -03, CLB-roles-04, CLB-edit-01, -05 | Each restructures a List or the reviewed command flow and needs new reads or inline writes with rollback; several are pinned by `ClubOperationsFlowTests` / governance UI tests (Tests/ is Cursor's). Left for a compiled round. |
+| CLB-r7-C-03 | `load()` clears the snapshot by design (fenced reads); keeping the old list on a failed reread needs a change to that fence. |
+| CLB-enroll-02, CLB-edit-03 | Pinned XCUITests must change in the same commit (Cursor). |
+| CLB-enroll-08 | **Cursor request:** `MiniProgramPageLink` requires `clubId` for `pages/club/enroll/index`; drop the requirement so the App can fall back to `ClubOwnedView`. |
+| CLB-topic-detail-11, CLB-event-ops-03 | **Cursor request** (unchanged): merchant/roster phone fields in Core. |
+| CLB-apply-04 (切换到商家端), -10, CLB-create-07 | Unchanged (no switch API; Core literals). |
+| `ClubOpsPageFailureSection` | **Cursor note:** the literal titles are shown verbatim, so English shows Chinese; the round-2 key lookup (`clubOps.*` keys) could come back in Core's copy. |
+| CLB-event-ops-09 | Double chevron risk inside `NavigationLink`; needs a visual check. |
+
+### Round-3 strings (fragment)
+`club.story.answer.loading`, `club.story.answer.failed`, `club.ops.edit.noPermission`, `club.ops.edit.backToClub`, `club.host.done.leaderLabel`. Removed: `club.schedule.error.weeklyHorizonMax %lld`.
+
+### Checks (round 3)
+- Contract checks for every changed file, run here and on the base: no new failures. Three pins moved on purpose: the `test_club_leaderboard_member_navigation` span hash (the answer-sheet states join that span), `Resources/ClubStoryLocalizations.fragment.json` gained the two answer keys (`test_club_story_navigation`), and the answer-sheet reason line uses its own id so `ClubOpsFailureCopy` stays ahead of `club.gov.error` (`test_club_ops_customer`). Failing identically on the base: `club_customer_directory_remote_admission`, `club_customer_keyword_debounce`, `club_customer_permissions`, `club_operations_contracts`, `category_roam_registration`, `profile_read_failure_remote_admission`, `ugc_1_2_completeness` (AppSession ratchet), `tools/tests/test_readiness_contract_parse_cache`.
+- `tools/check_typography_lint.py`: PASS.
+- No Swift build here. APIs used, grepped on b0ac0108d: `ClubShareLink.club(id:)/.post(clubID:postID:)/.path`, `ClubShareURL.url(_:)`, `OpsR3Text.string(_:locale:)`, `Locale.pick`, `ClubTopicDetailPort.Primary` (Equatable, `.none`), `ClubGroupCodePort.formatStart(date:time:)`, `ClubGroupCodeCount.displayText`, `CYStatusChip(_:tone:)` / `(verbatim:tone:)`, `CYEmptyState(systemImage:_:messageIdentifier:actionTitle:actionIdentifier:actionStyle:kind:action:)`, `CYStateKind.generic/.failure`, `CYColor.warningText/bgRaised/borderSubtle`, `ClubOperationsWriteAvailability`, `ClubOperationsReview.command`, `ClubRoleActivityLabel.entry`.

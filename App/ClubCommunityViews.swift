@@ -552,6 +552,7 @@ struct ClubCommunityPostTile: View {
     var openDetail: (() -> Void)? = nil
     @State private var editing = false
     @State private var evidence: ClubCommunityEvidence?
+    @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     private var canLike: Bool {
         let target = clubID ?? post.clubID
@@ -580,7 +581,9 @@ struct ClubCommunityPostTile: View {
                 ClubPostReferenceView(post: post, clubID: clubID, identity: identity, model: model, openComments: openComments)
                 ClubPostPlayPreview(post: post, clubID: clubID, identity: identity, model: model, openComments: openComments)
             }
-            if post.likeCount > 0 || post.commentCount > 0 {
+            // CLB-detail-43 (MP cy-post-card): inside a club the counts ride on 赞 / 评论 in the one action bar; the
+            // cross-club feed has no action bar, so it keeps the count row.
+            if clubID == nil, post.likeCount > 0 || post.commentCount > 0 {
                 tileActions {
                     countLabel(post.likeCount, symbol: "heart")
                     countLabel(post.commentCount, symbol: "bubble")
@@ -589,9 +592,18 @@ struct ClubCommunityPostTile: View {
             }
             if let clubID {
                 tileActions {
-                    Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: { Label("club.community.like", systemImage: post.liked ? "heart.fill" : "heart") }
+                    Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: {
+                        Label { countedTitle("club.community.like", count: post.likeCount) } icon: { Image(systemName: post.liked ? "heart.fill" : "heart") }
+                    }
+                        .accessibilityLabel(Text("club.community.like"))
+                        .accessibilityValue(post.likeCount > 0 ? Text(verbatim: String(post.likeCount)) : Text(verbatim: ""))
                         .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
-                    Button(action: openComments) { Label(commentsExpanded ? "club.discussion.collapse" : "club.community.comments", systemImage: "bubble") }
+                    Button(action: openComments) {
+                        if commentsExpanded { Label("club.discussion.collapse", systemImage: "bubble") }
+                        else { Label { countedTitle("club.community.comments", count: post.commentCount) } icon: { Image(systemName: "bubble") } }
+                    }
+                        .accessibilityLabel(Text(LocalizedStringKey(commentsExpanded ? "club.discussion.collapse" : "club.community.comments")))
+                        .accessibilityValue(!commentsExpanded && post.commentCount > 0 ? Text(verbatim: String(post.commentCount)) : Text(verbatim: ""))
                         .disabled(!canOpenComments)
                         .accessibilityIdentifier("club.community.comments.\(post.id)")
                     // CLB-detail-03: MP show-repost / show-share on club posts (repost through the reviewed write path).
@@ -600,9 +612,16 @@ struct ClubCommunityPostTile: View {
                     }
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                     .accessibilityIdentifier("club.community.repost.\(post.id)")
-                    if let path = ClubShareLink.post(clubID: clubID, postID: post.id)?.path {
-                        ShareLink(item: path) {
-                            Label("club.community.share", systemImage: "square.and.arrow.up")
+                    // CLB-detail-30 (fix-r3-club-a round 3): the wired post path travels as an in-app link with the excerpt.
+                    if let link = ClubShareLink.post(clubID: clubID, postID: post.id) {
+                        Group {
+                            if let url = ClubShareURL.url(link) {
+                                ShareLink(item: url, message: Text(verbatim: ClubPostShareText.text(post: post, locale: locale))) {
+                                    Label("club.community.share", systemImage: "square.and.arrow.up")
+                                }
+                            } else {
+                                ShareLink(item: link.path) { Label("club.community.share", systemImage: "square.and.arrow.up") }
+                            }
                         }
                         .accessibilityIdentifier("club.community.share.\(post.id)")
                     }
@@ -664,6 +683,10 @@ struct ClubCommunityPostTile: View {
         } else {
             HStack(spacing: CYSpacing.md, content: content)
         }
+    }
+    /// The action's count when there is one (MP shows the number beside the icon), else its name.
+    private func countedTitle(_ key: LocalizedStringKey, count: Int) -> Text {
+        count > 0 ? Text(verbatim: String(count)).monospacedDigit() : Text(key)
     }
     private func countLabel(_ count: Int, symbol: String) -> some View {
         Label { Text(verbatim: String(count)).monospacedDigit() } icon: { Image(systemName: symbol).accessibilityHidden(true) }
@@ -895,6 +918,16 @@ struct ClubCommunityComposer: View {
             model.busy || uploading || imageBridge.isBusy || ClubPostEditDraft(content: content, images: images) !=
                 ClubPostEditDraft(content: $0.content, images: $0.images)
         } ?? false)
+    }
+}
+
+/// Share message for a club post (MP share card title): the club name and the first line of the post.
+enum ClubPostShareText {
+    static func text(post: ClubCommunityPost, locale: Locale) -> String {
+        let excerpt = post.content.split(separator: "\n").first.map(String.init).map { String($0.prefix(60)) } ?? ""
+        let club = post.clubName.isEmpty ? locale.pick("俱乐部", "Club") : post.clubName
+        return excerpt.isEmpty ? locale.pick("来看看「\(club)」的帖子", "A post from \(club)")
+            : locale.pick("「\(club)」：\(excerpt)", "\(club): \(excerpt)")
     }
 }
 
