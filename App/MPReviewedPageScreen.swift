@@ -688,16 +688,19 @@ import SwiftUI
             // X1: the participant form; `?id=` edits that participant.
             NavigationStack {
                 if let id = reviewedID(query) {
-                    ParticipantFormView(id: id, reader: session.participantReader, coordinator: session.participantCoordinator)
+                    ParticipantFormView(id: id, reader: session.participantReader, coordinator: session.participantCoordinator,
+                                        boundPhoneLoader: { await session.participantBoundPhone() })
                 } else {
-                    ParticipantFormView(reader: session.participantReader, coordinator: session.participantCoordinator)
+                    ParticipantFormView(reader: session.participantReader, coordinator: session.participantCoordinator,
+                                        boundPhoneLoader: { await session.participantBoundPhone() })
                 }
             }
         case "pages/shezhi/about/index":
             SettingsAboutView(market: session.operationalMarket, appInformation: .current(), legalReader: session.legalReader)
         case "pages/address/address":
             // A5-02: the link gets the same coordinator as 我的 › 参与人信息, so add / edit / delete stay available.
-            ProfileParticipantsView(reader: session.participantReader, coordinator: session.participantCoordinator)
+            ProfileParticipantsView(reader: session.participantReader, coordinator: session.participantCoordinator,
+                                    boundPhoneLoader: { await session.participantBoundPhone() })
         case "subpackageMember/order/order":
             // Round 4: MP order.js:20-21 redirects to myproject?scope=MERCHANT.
             if session.account?.effectiveRole == "merchant" { SubscribeMessageProjectsEntry(session: session, entryScope: "MERCHANT") }
