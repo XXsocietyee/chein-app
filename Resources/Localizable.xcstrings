@@ -311197,6 +311197,40 @@
           }
         }
       }
+    },
+    "clubOpsGov.card.banAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a reason and ban"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写原因并封禁"
+          }
+        }
+      }
+    },
+    "clubOpsGov.card.banReason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁原因"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

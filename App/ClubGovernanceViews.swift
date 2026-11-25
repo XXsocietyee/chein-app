@@ -1526,7 +1526,15 @@ struct ClubGovernanceReadView: View {
             // CLB-roles-05: the MP roles page has no 可委派角色 list; the role choice lives in the assign picker.
         } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
             ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:], role: .inlineLink)) }
-            Section { link(.members) }
+            // CLB-governance-01 (MP governance wxml:61-122): records, then the 对成员执行 card on the same page.
+            ClubOpsMemberActionCard(clubID: scope.clubID, identity: identity, access: access,
+                ban: { member, days in
+                    var seed = member.seed
+                    seed["banDays"] = .string(String(days))
+                    return AnyView(edit(.ban, seed: seed, role: .inlineDestructive))
+                },
+                transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) },
+                fallback: AnyView(link(.members)))
         } else if operation == .members, let members = try? ClubOpsGovernanceMembers(snapshot: snapshot) {
             ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed, role: .inlineDestructive)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) },
                 scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value,
