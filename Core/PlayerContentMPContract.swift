@@ -65,6 +65,12 @@ public enum PlayerContentMPContract {
     public static let pricingPreviewPath = "api/topic/pricing/preview"
     public static let pricingConfirmPath = "api/topic/pricing/confirm"
 
+    /// `subpackageB/pages/im/chat/index.js` audit detail. GET, no body.
+    /// One path segment: `/api/audit/${auditTaskId}/detail`.
+    public static func auditTaskDetailPath(auditTaskID: String) -> String {
+        "api/audit/\(auditTaskID)/detail"
+    }
+
     /// `pages/topic/index/index.js` product list. `topicID` is omitted on the limit-only reads.
     public static func productList(baseURL: URL, topicID: Int?, limit: Int) throws -> URLRequest {
         var query = [(String, String)]()
@@ -381,6 +387,23 @@ public enum PlayerContentMPContract {
         }
         if let selfPrice { fields.append(("selfPrice", .int(selfPrice))) }
         return try json(baseURL, pricingConfirmPath, fields)
+    }
+
+    /// `pages/activity/official-mine/index.js` recover. POST, no data. Builds the request and does not send it.
+    public static func broadcastRecover(baseURL: URL, id: String) throws -> URLRequest {
+        guard !id.isEmpty, id.rangeOfCharacter(from: CharacterSet(charactersIn: "/?#")) == nil else {
+            throw Refusal.invalidBase
+        }
+        guard var parts = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else { throw Refusal.invalidBase }
+        parts.path = "/" + broadcastRecoverPath(id: id)
+        guard let url = parts.url else { throw Refusal.invalidBase }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        return request
+    }
+
+    public static func broadcastRecoverPath(id: String) -> String {
+        "api/official/broadcast/\(id)/recover"
     }
 
     private enum Wire {

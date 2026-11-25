@@ -19,6 +19,9 @@ import SwiftUI
 struct GrowthCenterIssueView: View {
     let issue: GrowthCenterIssue
     var retry: (() -> Void)? = nil
+    /// MP copy per slot: the failure / denied title the MP shows where this issue sits (nil keeps the shared key).
+    var failedTitle: LocalizedStringKey? = nil
+    var deniedTitle: LocalizedStringKey? = nil
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
         Group {
@@ -31,13 +34,13 @@ struct GrowthCenterIssueView: View {
                              action: retry)
             } else if issue == .login, rootTabSwitch.isAvailable {
                 // GROWTH-3: MP access gate — 登录 opens 我的 instead of a dead-end line.
-                CYEmptyState(systemImage: "lock", LocalizedStringKey(issue.localizationKey),
+                CYEmptyState(systemImage: "lock", issueTitle,
                              messageIdentifier: "growth.issue",
                              actionTitle: "auth.signIn", actionIdentifier: "growthCenter.signIn",
                              action: { rootTabSwitch(.mine) })
             } else if issue == .login || issue == .notConfigured {
                 Label {
-                    Text(LocalizedStringKey(issue.localizationKey))
+                    Text(issue == .login ? issueTitle : LocalizedStringKey(issue.localizationKey))
                 } icon: { Image(systemName: issue == .login ? "lock" : "info.circle").accessibilityHidden(true) }
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("growth.issue")
@@ -55,7 +58,16 @@ struct GrowthCenterIssueView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var issueTitle: LocalizedStringKey { LocalizedStringKey(issue.localizationKey) }
+    /// MP copy: 登录后查看成长记录 / 当前身份不能查看成长记录 (growthcenter wxml:10-11); slot titles win where given.
+    private var issueTitle: LocalizedStringKey {
+        switch issue {
+        case .login: return "mp.growth.signInRequired"
+        case .denied: return deniedTitle ?? "mp.growth.denied"
+        case .failed, .server: if let failedTitle { return failedTitle }
+        default: break
+        }
+        return LocalizedStringKey(issue.localizationKey)
+    }
     private var serverDetail: String? {
         if case .server(let message) = issue { return message }
         return nil

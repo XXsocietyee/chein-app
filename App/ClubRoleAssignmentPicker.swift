@@ -98,6 +98,7 @@ import SwiftUI
     private enum Expanded: Equatable { case member, role }
     @State private var expanded: Expanded?
     @Environment(\.clubRoleActivityLabel) private var activityLabel
+    @Environment(\.clubFocusMemberID) private var focusMemberID
     private var context: ClubGovernanceReadContext { ClubRoleAssignmentReadModel.context(scope: scope, identity: identity, access: access) }
     var body: some View {
         let expected = context
@@ -191,6 +192,14 @@ import SwiftUI
         }
         .buttonStyle(.borderless)
         .onChange(of: expected) { _, _ in expanded = nil }
+        // CLB-G16 (MP roles js:195, 312): a `memberId` link starts with that member chosen, once the read has it.
+        .onChange(of: model.options, initial: true) { _, _ in
+            guard memberID.isEmpty, let focusMemberID, canEdit(),
+                  let options = model.accepted(context, access: access),
+                  options.members.contains(where: { $0.id == focusMemberID }) else { return }
+            memberID = String(focusMemberID)
+            applySelection(memberID, roleCode)
+        }
     }
     private func memberName(_ member: ClubRoleAssignableMember) -> some View {
         // CLB-roles-03: the member's name only; a missing name reads 未命名, never 「用户 <id>」.

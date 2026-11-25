@@ -642,10 +642,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     var isRoamShareSnapshotApproved: Bool {
         reviewed?.productionGatesEnabled == true && reviewed?.regional.market == .china
     }
-    /// Merchant marketing dashboard + AI insight reads; settlement stays off. Nothing is enabled unless the reviewed China deployment enables production gates.
+    /// Merchant marketing dashboard + AI insight reads, and MC8-18-1 (MP-first, owner 2026-11-25) prediction settle:
+    /// the MP posts `api/merchant/predict/settle {nodeId, playDay, settledOption}` (pages/merchant/predict/index.js:215);
+    /// winners get the store's configured coupons, not cash. Nothing is enabled unless the reviewed China deployment enables production gates.
     var merchantMarketingGates: MerchantMarketingService.Gates {
         guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }
-        return .init(reads: true, insight: true, settlement: false)
+        return .init(reads: true, insight: true, settlement: true)
     }
     /// Merchant decor / cooperation / NPC / perk-template save lease; nil unless the reviewed deployment enables production gates (merchant role only).
     func merchantOperationsWriteApproval(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
@@ -2670,7 +2672,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             return request.httpMethod == expectedMethod
         })
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
-        guard ownMedia || officialPublicEventReadSelection.admitsEarly(request, baseURL: api.baseURL, namespace: deployment.storageScope.service, granted: deployment.regional.market == .china && deployment.reads.contains(.officialPublicEventCatalogAndDetail)) || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || ProjectExactReadRoute(request: request, baseURL: api.baseURL) != nil || admitsPlayerWriteQuery(request, baseURL: api.baseURL) || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || MPFirstMerchantWriteRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || officialPublicEventReadSelection.admitsEarly(request, baseURL: api.baseURL, namespace: deployment.storageScope.service, granted: deployment.regional.market == .china && deployment.reads.contains(.officialPublicEventCatalogAndDetail)) || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || ProjectExactReadRoute(request: request, baseURL: api.baseURL) != nil || admitsPlayerWriteQuery(request, baseURL: api.baseURL) || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         // The canonical `api/template/myinfo` id read satisfies both the reviewed merchant baseline route and the owned-shelf
         // detail route. When this viewer holds a matching shelf read approval the shelf route is the specific claim and is
@@ -3581,7 +3583,15 @@ extension KeychainTokenStore: AppTokenStorage {}
             if orientOfficial == .write {
                 guard deployment.productionGatesEnabled, deployment.regional.market == .china else { throw APIError.notConfigured }
             }
+        } else if MerchantContentMPWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            // MP-first merchant-content writes (merchantinfo / merchantapply / citynode / node NPC / station). Not money.
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if ReviewedProductionFormMutationRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
+        } else if MPFirstMerchantWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            // Owner 2026-11-25 MP-first rule: the merchant writes the MP sends; the server checks the merchant role.
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if ReviewedNearbyTeamWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
@@ -3937,31 +3947,14 @@ private enum AccountComplianceCompositionRoute {
               request.value(forHTTPHeaderField: "Accept") == "application/json",
               let url = request.url, url.query == nil, url.fragment == nil else { return false }
         if url == baseURL.appendingPathComponent("api/user/deregister/status") {
-            return request.httpMethod == "GET" && request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+            return AccountComplianceContractGlue.acceptsStatus(request, baseURL: baseURL, token: token)
         }
         if url == baseURL.appendingPathComponent("api/user/deregister/precheck")
             || url == baseURL.appendingPathComponent("api/user/deregister/cancel") {
-            return request.httpMethod == "POST" && request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+            return AccountComplianceContractGlue.acceptsPrecheckOrCancel(request, url: url, baseURL: baseURL, token: token)
         }
         if url == baseURL.appendingPathComponent("api/user/deregister/apply") {
-            guard request.httpMethod == "POST",
-                  let type = request.value(forHTTPHeaderField: "Content-Type"),
-                  type.hasPrefix("multipart/form-data; boundary="),
-                  let body = request.httpBody, body.count <= 1024,
-                  let text = String(data: body, encoding: .utf8) else { return false }
-            let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
-            var fields: [String: String] = [:]
-            for key in ["smscode", "requestId"] {
-                let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
-                guard let range = text.range(of: marker),
-                      let end = text[range.upperBound...].range(of: "\r\n") else { return false }
-                fields[key] = String(text[range.upperBound..<end.lowerBound])
-            }
-            guard let code = fields["smscode"], (try? AuthChannelInput.code(code)) == code,
-                  let requestID = fields["requestId"],
-                  !requestID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, requestID.count <= 64,
-                  let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary) else { return false }
-            return canonical.httpBody == body
+            return AccountComplianceContractGlue.acceptsApply(request, url: url, baseURL: baseURL, token: token)
         }
         if url == baseURL.appendingPathComponent("api/compliance/consents")
             || url == baseURL.appendingPathComponent("api/compliance/consents/latest") {

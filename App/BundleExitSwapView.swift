@@ -145,7 +145,7 @@ struct BundleExitSwapView: View {
                                                         targetOfferId: target.offerId, idempotencyKey: String(key.prefix(64)))
             let row = try await tools.client.exitDecision(command)
             if row.targetOfferId == target.offerId { pendingKey = nil; self.options = nil; notice = "已更换商家"; await reload() }
-        } catch FreeExploreLaunchFailure.response(_, _, let business) where business.map(Self.definiteRefusals.contains) == true {
+        } catch FreeExploreLaunchFailure.response(_, _, let business, _) where business.map(Self.definiteRefusals.contains) == true {
             pendingKey = nil; self.options = nil; self.error = "更换未成功，请刷新"
         } catch {
             notice = "换店结果确认中，请稍后刷新"

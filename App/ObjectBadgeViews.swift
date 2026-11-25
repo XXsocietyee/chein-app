@@ -74,9 +74,11 @@ struct ObjectBadgeWallLayoutSelection {
                 }
                 if wall.isEmpty {
                     // Mini-program badge-wall empty: 还没有点亮勋章 with 去探索 when a home route is supplied.
+                    // BWALL flows (MP goExplore → switchTab index): without an injected action the root tab switch (首页) is the fallback.
+                    let explore = rootTabSwitch.growthExploreFallback(onExploreHome)
                     CYEmptyState(systemImage: "medal", "badgeWall.empty",
-                                 actionTitle: onExploreHome == nil ? nil : "growthExplore.openHome",
-                                 actionIdentifier: "badgeWall.empty.explore", action: onExploreHome)
+                                 actionTitle: explore == nil ? nil : "badgeWall.explore",
+                                 actionIdentifier: "badgeWall.empty.explore", action: explore)
                         .accessibilityIdentifier("profile.badges.emptyState")
                         .listRowBackground(palette.bgElevated)
                 }
@@ -291,8 +293,8 @@ struct ObjectBadgeWallBadgeLabel: View {
             VStack(spacing: CYSpacing.sm) {
                 CYFoilMedal(unlocked: !badge.isLocked, size: 76) {
                     ZStack {
-                        // MP default badge art `badge-demo.png` (MP assets).
-                        MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit().padding(CYSpacing.xs)
+                        // BWALL-2: server `badge.image` through the bounded loader; MP `badge-demo.png` is the fallback.
+                        ObjectBadgeTileArtwork(url: badge.image, locked: badge.isLocked).padding(CYSpacing.xs)
                     }
                 }.padding(6).accessibilityHidden(true)   // the name + locked chip carry the meaning
                 description.fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)

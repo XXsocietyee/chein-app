@@ -109,11 +109,9 @@ extension EnvironmentValues {
             CoopRelationContextLabel(context: displayContext)
             Section { sectionPicker.padding(.vertical, CYSpacing.xs) }
             if reader.session == nil {
-                // Parity relation P1: MP copy 登录后查看发现 (not 协作邀请).
-                Text("cooprelation.login")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                // Parity relation P1: MP copy 登录后查看发现 (not 协作邀请). MC8-28-4: plus the MP 登录 button.
+                MerchantCoopSignInState(title: "cooprelation.login", identifier: "cooprelation.signIn")
+                    .listRowBackground(Color.clear)
             }
             else if loadedKey == key && model.failed {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -150,10 +148,8 @@ extension EnvironmentValues {
                     }
                     if value.rows(tab).isEmpty && !value.hasInvalidRows(tab) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Image(systemName: tab == .merchants ? "storefront" : "person.3")
-                                .cyText(.sectionTitle)
-                                .foregroundStyle(CYColor.textSecondary)
-                                .accessibilityHidden(true)
+                            // Image parity: MP relation cy-empty kind="empty" → the shared MP empty art (MPAsset.EmptyState).
+                            CYEmptyIllustration(kind: .generic, size: 72)
                             Text(tab == .merchants ? "cooprelation.emptyMerchants" : "cooprelation.emptyClubs")
                                 .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)

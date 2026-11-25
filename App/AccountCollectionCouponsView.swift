@@ -164,6 +164,7 @@ struct AccountCollectionCouponRow: View {
     let coupon: AccountCollectionCoupon
     /// MKT-8-1: list rows that open the code directly say so (出示核销码 / 查看可用时间).
     var showsCodeFooter = false
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             AccountCollectionCouponBadge(status: coupon.status)
@@ -177,7 +178,7 @@ struct AccountCollectionCouponRow: View {
                 Text("accountCollection.coupon.startsLater").cyText(.meta)
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
                 // Mini-program date line: {day} 起可用.
-                QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: String(localized: "couponWallet.validFrom \(day)"),
+                QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: appLocalized("couponWallet.validFrom \(day)", locale: locale),
                                      systemImage: "calendar.badge.clock")
             }
             // MP: an invalid coupon replaces the date line with 该券已被平台手动失效.
@@ -188,7 +189,7 @@ struct AccountCollectionCouponRow: View {
             if coupon.status != .invalid {
                 // MP `有效期至 {day}`; an unknown end date stays the bare em dash.
                 QuestifyMetadataLine(label: "accountCollection.coupon.validUntil",
-                                     value: AccountCollectionCoupon.calendarDay(coupon.endTime).map { String(localized: "couponWallet.validUntil \($0)") } ?? "—",
+                                     value: AccountCollectionCoupon.calendarDay(coupon.endTime).map { appLocalized("couponWallet.validUntil \($0)", locale: locale) } ?? "—",
                                      systemImage: "calendar")
             }
             if coupon.shopName != nil || coupon.shopAddress != nil {

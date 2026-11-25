@@ -24,7 +24,14 @@ extension EnvironmentValues {
         if factory != nil, selection(.call) != nil {
             HStack {
                 ForEach(MerchantContactPurpose.allCases, id: \.self) { purpose in
-                    Button(LocalizedStringKey("merchant.engagement.contact." + purpose.rawValue)) { open(purpose) }
+                    Button { open(purpose) } label: {
+                        // MC8-14-10 (customer/index.wxml:89): 复制 carries the MP icon_copy glyph.
+                        HStack(spacing: CYSpacing.xxs) {
+                            if purpose == .copy { MerchantMPIcon(image: MPAsset.FeatureIcon.iconCopy, size: 16) }
+                            Text(LocalizedStringKey("merchant.engagement.contact." + purpose.rawValue))
+                        }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                    }
                         .buttonStyle(.borderless)
                         .accessibilityIdentifier("merchant.contactFlow." + purpose.rawValue + "." + record.id)
                 }

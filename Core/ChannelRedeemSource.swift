@@ -55,6 +55,9 @@ public enum ChannelRedeemPresentation: Equatable, Sendable {
 /// `POST /api/channel/redeem`. Provider-off answers stay unavailable. The body has the code and a request id only.
 public struct ChannelRedeemSource {
     public static let path = "/api/channel/redeem"
+    /// GET `api/channel/redeem/status` (`market/gift` `loadCodeStatus`, `market/passes` `loadRedeem`).
+    /// Reads `platformCodeEnabled`. This is not the redeem write.
+    public static let statusPath = "api/channel/redeem/status"
 
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
@@ -83,6 +86,60 @@ public struct ChannelRedeemSource {
         store.write(key, fields["requestId"] as? String ?? "")
         store.write(key + ":body", String(decoding: data, as: UTF8.self))
         return try await send(data, token: token, key: key)
+    }
+
+    /// GET `/api/channel/redeem/status`. The row is shown only when `platformCodeEnabled` is exactly true.
+    /// A transport failure throws. A readable payload that is not exactly true returns false.
+    public func status(token: String) async throws -> Bool {
+        guard AuthRequestBuilder.isValidToken(token) else { throw ChannelRedeemRefusal.invalidRequest }
+        let url = ["api", "channel", "redeem", "status"].reduce(configuration.baseURL) { $0.appendingPathComponent($1) }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 20
+        request.httpShouldHandleCookies = false
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        guard ChinaReviewedRouteCapability.hostTipSurfaceGrant.contains("/api/channel/redeem/status") else {
+            throw ChannelRedeemRefusal.notAdmitted
+        }
+        do { try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(request) }
+        catch { throw ChannelRedeemRefusal.notAdmitted }
+        let (data, status) = try await transport.send(request)
+        guard (200..<300).contains(status),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              Self.bizOK(object["code"]),
+              let payload = object["data"] as? [String: Any] else { return false }
+        return Self.exactlyTrue(payload["platformCodeEnabled"])
+    }
+
+    /// JSON `true` only. A numeric 1 is not `platformCodeEnabled === true`.
+    private static func exactlyTrue(_ value: Any?) -> Bool {
+        guard let number = value as? NSNumber else { return false }
+        return CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() && number.boolValue
+    }
+
+    /// Platform-code redeem (`market/gift` mode=code). Body `{code, requestId}` with
+    /// `requestId` `code_<millis>_<8 chars>`. Host-tip redeem keeps the `cred-` prefix.
+    public func redeemPlatformCode(code: String, token: String) async throws -> ChannelRedeemEnvelope {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        let tail = entropy()
+        guard !trimmed.isEmpty, trimmed.utf8.count <= 64,
+              trimmed.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }),
+              tail.count == 8, tail.allSatisfy({ $0.isLetter || $0.isNumber }) else {
+            throw ChannelRedeemRefusal.invalidRequest
+        }
+        let fields: [String: Any] = ["code": trimmed, "requestId": "code_\(nowMillis())_\(tail)"]
+        return try await send(try Self.json(fields), token: token, key: "channel-redeem-code")
+    }
+
+    private static func bizOK(_ value: Any?) -> Bool {
+        if let text = value as? String { return text == "200" }
+        if let number = value as? Int { return number == 200 }
+        if let number = value as? NSNumber, CFGetTypeID(number as CFTypeRef) != CFBooleanGetTypeID() {
+            return number.intValue == 200
+        }
+        return false
     }
 
     public static func presentation(_ envelope: ChannelRedeemEnvelope) -> ChannelRedeemPresentation {

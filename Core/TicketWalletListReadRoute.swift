@@ -13,23 +13,48 @@ public enum TicketWalletListReadRoute: Int, Equatable, CaseIterable {
               let url = request.url, url.query == nil, url.fragment == nil,
               url.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent("api/registration/list").absoluteString.utf8),
               request.httpMethod == "POST", request.httpBodyStream == nil,
-              let body = request.httpBody, body.count <= 512,
+              let body = request.httpBody, body.count <= 2048,
               let text = String(data: body, encoding: .utf8),
               let type = request.value(forHTTPHeaderField: "Content-Type"),
               type.hasPrefix("multipart/form-data; boundary=") else { return nil }
         let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
         guard !boundary.isEmpty, boundary.count <= 70,
               boundary.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }) else { return nil }
-        let prefix = "--\(boundary)\r\nContent-Disposition: form-data; name=\"owner_type\"\r\n\r\n"
-        let suffix = "\r\n--\(boundary)--\r\n"
-        guard text.hasPrefix(prefix), text.hasSuffix(suffix), text.count > prefix.count + suffix.count else { return nil }
-        let raw = String(text.dropFirst(prefix.count).dropLast(suffix.count))
-        guard raw == "1" || raw == "2", let value = Int(raw),
-              let lane = Self(rawValue: value),
-              let canonical = try? AuthRequestBuilder.makeFormRequest(url: url,
-                fields: ["owner_type": raw], token: nil, boundary: boundary),
+        guard let fields = Self.fields(text, boundary: boundary) else { return nil }
+        guard let raw = fields["owner_type"], raw == "1" || raw == "2", let value = Int(raw),
+              let lane = Self(rawValue: value) else { return nil }
+        let keys = Set(fields.keys)
+        if keys == ["owner_type"] {
+            // Older owner-type-only body stays a list read.
+        } else if keys == ["owner_type", "pageNum", "pageSize"] {
+            guard let page = fields["pageNum"], let pageSize = fields["pageSize"],
+                  page == String(Int(page) ?? -1), (Int(page) ?? 0) >= 1, pageSize == "10" else { return nil }
+        } else { return nil }
+        guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: nil, boundary: boundary),
               canonical.httpBody == body else { return nil }
         self = lane
+    }
+
+    private static func fields(_ text: String, boundary: String) -> [String: String]? {
+        let marker = "--\(boundary)"
+        guard text.hasPrefix(marker), text.hasSuffix("\(marker)--\r\n") else { return nil }
+        var fields: [String: String] = [:]
+        for part in text.components(separatedBy: marker).dropFirst() {
+            if part == "--\r\n" { continue }
+            let header = "\r\nContent-Disposition: form-data; name=\""
+            guard part.hasPrefix(header) else { return nil }
+            let rest = part.dropFirst(header.count)
+            guard let quote = rest.firstIndex(of: "\"") else { return nil }
+            let name = String(rest[..<quote])
+            let after = rest[rest.index(after: quote)...]
+            guard after.hasPrefix("\r\n\r\n") else { return nil }
+            var value = String(after.dropFirst(4))
+            guard value.hasSuffix("\r\n") else { return nil }
+            value.removeLast(2)
+            guard fields[name] == nil, !name.isEmpty else { return nil }
+            fields[name] = value
+        }
+        return fields
     }
 
     /// Defense in depth before the existing display DTO discards memberId. A successful

@@ -64,7 +64,7 @@ public extension FreeExploreLaunchServing {
         let value: FreeExploreLaunchCatalog = try await get("catalog", ["topicId": topicID.text])
         guard value.topicId == topicID, value.productType == 2,
               Set(value.items.map(\.chapterId)).count == value.items.count,
-              value.items.allSatisfy({ $0.unitsPerHolder > 0 && Set($0.stores.map(\.offerId)).count == $0.stores.count }) else { throw FreeExploreLaunchFailure.malformed }
+              value.items.allSatisfy({ $0.unitsPerHolder >= 0 && Set($0.stores.map(\.offerId)).count == $0.stores.count }) else { throw FreeExploreLaunchFailure.malformed }
         return value
     }
     public func order(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchOrder {
@@ -116,7 +116,20 @@ public extension FreeExploreLaunchServing {
         request.setValue("no-cache", forHTTPHeaderField: "Pragma")
         return request
     }
-    private struct Code: Decodable { let code: Int; let businessCode: String? }
+    private struct Code: Decodable {
+        let code: Int
+        let businessCode: String?
+        let msg: String?
+        private enum CodingKeys: String, CodingKey { case code, businessCode, msg }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            code = try c.decode(Int.self, forKey: .code)
+            businessCode = try c.decodeIfPresent(String.self, forKey: .businessCode)
+            let raw = (try? c.decodeIfPresent(String.self, forKey: .msg)) ?? nil
+            let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines)
+            msg = trimmed?.isEmpty == false ? trimmed : nil
+        }
+    }
     private struct Envelope<T: Decodable>: Decodable { let data: T? }
     private func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
         guard let value: T = try await executeOptional(request) else { throw FreeExploreLaunchFailure.malformed }
@@ -133,7 +146,7 @@ public extension FreeExploreLaunchServing {
             let header = try? decoder.decode(Code.self, from: data)
             if header?.code == 401 { onUnauthorized(session); throw APIError.unauthorized }
             guard (200..<300).contains(status), header?.code == 200 else {
-                throw FreeExploreLaunchFailure.response(status: status, code: header?.code ?? status, businessCode: header?.businessCode)
+                throw FreeExploreLaunchFailure.response(status: status, code: header?.code ?? status, businessCode: header?.businessCode, message: header?.msg)
             }
             guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any], object.keys.contains("data") else {
                 throw FreeExploreLaunchFailure.malformed

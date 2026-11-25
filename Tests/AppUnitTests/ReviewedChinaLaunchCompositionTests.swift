@@ -859,8 +859,9 @@ import XCTest
         for host in ["api/club/post/pin", "api/club/lead/start", "api/club/lead/settle", "api/club/lead/unlock-chapter"] {
             XCTAssertFalse(grant.play.paths.contains(host), host)
         }
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/settlement/mine"))
         for money in ["api/registration/payment-readiness", "api/club/personal-receiver/bind", "api/club/personal-receiver/unbind",
-                      "api/club/settlement/mine", "api/club/settlement/withdraw", "api/wallet/withdraw", "api/registration/pay",
+                      "api/club/settlement/withdraw", "api/wallet/withdraw", "api/registration/pay",
                       "api/club-compensation/editions/empty-reason", "api/club/lead/release-station", "api/merchant/payout-account/save"] {
             XCTAssertFalse(grant.play.paths.contains(money), money)
             await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent(money), #"{"activityId":3}"#, token: player.session.token)) }

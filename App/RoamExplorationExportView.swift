@@ -355,14 +355,14 @@ private struct RoamExportFileSaveLink: View {
                     if owner.active, let lease = model.deliveryLease, model.fileForDelivery(foreground: scenePhase == .active) != nil {
                         shareOffer = RoamExportShareOffer(file: file, lease: lease, token: UUID())
                     } else if model.isFileExpired { model.discardExpired() }
-                }.listRowBackground(Color.clear).accessibilityIdentifier("roam.export.share")
+                }.listRowBackground(Color.clear).accessibilityLabel(Text("roam.export.share.a11y")).accessibilityIdentifier("roam.export.share")
                 CYPillButton("roam.export.save", style: .secondary) {
                     saveResult = nil
                     // The exporter asks for bytes later. That write reads the clock again.
                     if owner.active, let lease = model.deliveryLease, model.fileForDelivery(foreground: scenePhase == .active) != nil {
                         saveTicket = RoamExportSaveTicket(file: file, lease: lease)
                     } else if model.isFileExpired { model.discardExpired() }
-                }.listRowBackground(Color.clear).accessibilityIdentifier("roam.export.save")
+                }.listRowBackground(Color.clear).accessibilityLabel(Text("roam.export.save.a11y")).accessibilityIdentifier("roam.export.save")
             }
         } else if model.phase == .complete && model.isFileExpired {
             // TEXPORT-4: a stated expiry with one 重新准备 action, not a bare list button.

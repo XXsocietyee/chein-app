@@ -20,7 +20,10 @@ check('no search/map mutation routes', all(x not in service for x in ['/favorite
 check('session checks context before expiry', 'currentContext() == context, scope == capturedScope' in reading and 'context.accountID != nil { onUnauthorized(context) }' in reading)
 check('guest epoch represented', 'guestEpoch' in reading and 'credential' in reading and 'epoch' in reading)
 check('query completion fenced', 'SearchMapQueryGate' in reading and 'ticket.scope == scope && !Task.isCancelled' in reading and 'filter == query' in app)
-check('local filters and first-page scope', 'Dates/prices are intentionally absent' in service and 'pageSize: 12' in service and 'pageSize: 50' in service)
+# Global search pageSize 12 is utils/discover-search.js:202. Map activity pages are
+# pages/searchmap/index.js:173 (`pageSize: 10`), posted on the activity list at :283.
+pagination=(root/'Core/SearchMapPagination.swift').read_text()
+check('local filters and first-page scope', 'Dates/prices are intentionally absent' in service and 'pageSize: 12' in service and 'SearchMapActivityPage.pageSize' in service and 'public static let pageSize = 10' in pagination)
 check('private sources require a credential', service.count('guard token != nil else { throw APIError.unauthorized }')>=3)
 check('city/detail IDs distinct from nearby/node IDs', 'case topic(Int), activity(Int), club(Int), merchant(Int), cityNode(Int)' in contracts and 'result.poiID == id' in service)
 check('secure local-only history', 'SecItemCopyMatching' in app and 'kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly' in app and 'guard let namespace else' in app)

@@ -3,6 +3,10 @@ import SwiftUI
 @MainActor struct MemberReportProgressDetailView: View {
     let selection: MemberReportProgressSelection
     @ObservedObject var session: AppSession
+    /// Round 4 (MP report-detail goMine, index.js:165-170): opened from 我的举报, so 查看我的全部举报 goes back
+    /// instead of stacking a second list.
+    var returnsToList = false
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scene
     @Environment(\.locale) private var locale
     @State private var flow: MemberReportProgressCoordinator?
@@ -37,13 +41,14 @@ import SwiftUI
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         HStack(spacing: CYSpacing.xs) {
-                            Text("u9cde.report.number \(String(original.id))")
-                            Text(verbatim: "·").accessibilityHidden(true)
                             Text("u9cde.report.submittedAt")
                             MemberReportProgressTimeView(value: record.createTime)
                         }.cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
-                        if !record.isDecided, record.estimatedResolveAt != nil {
-                            labeledTime("report.estimated", value: record.estimatedResolveAt, systemImage: "hourglass")
+                        // Round 4: MP head-card ETA line 「预计 … 前给出结论」 (report-detail wxml:23), as on 我的举报.
+                        if !record.isDecided, let eta = record.estimatedResolveAt?.display() {
+                            Text("report.eta \(eta)", tableName: "MemberReportProgress")
+                                .cyText(.meta)
+                                .foregroundStyle(CYColor.textSecondary)
                         }
                     }
                     .padding(CYSpacing.lg)
@@ -122,9 +127,12 @@ import SwiftUI
             // PLY-29-2: the developer boundary footer (which contradicted the appeal button) is gone.
             // R7-MEM-29-1: MP report-detail 查看我的全部举报 (wxml:48-49) opens 我的举报.
             Section {
-                NavigationLink { SquareReportProgressView(session: session) } label: {
-                    Label { Text(verbatim: CoreLoopCopy(locale: locale).t("查看我的全部举报", "View all my reports")) }
-                        icon: { Image(systemName: "list.bullet.rectangle").accessibilityHidden(true) }
+                Group {
+                    if returnsToList {
+                        Button { dismiss() } label: { allReportsLabel }
+                    } else {
+                        NavigationLink { SquareReportProgressView(session: session) } label: { allReportsLabel }
+                    }
                 }
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .listRowInsets(gutter)
@@ -171,20 +179,11 @@ import SwiftUI
         .listRowInsets(gutter)
         .listRowBackground(Color.clear)
     }
-    private func labeledTime(_ key: String, value: MemberReportProgressTime?, systemImage: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-            CYRowIcon(systemImage: systemImage)
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                memberReportProgressText(key).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                MemberReportProgressTimeView(value: value).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            }
-            Spacer(minLength: CYSpacing.sm)
-        }
-        .frame(minHeight: CYSpacing.minTouchTarget)
-        .accessibilityElement(children: .combine)
-        .listRowInsets(gutter)
-        .listRowBackground(Color.clear)
+    private var allReportsLabel: some View {
+        Text(verbatim: CoreLoopCopy(locale: locale).t("查看我的全部举报", "View all my reports"))
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
+
     private func copy(_ key: String) -> String {
         String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "MemberReportProgress", locale: locale))
     }

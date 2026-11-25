@@ -51,7 +51,8 @@ import SwiftUI
                     publishDestination: {
                         AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch))
                     },
-                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }
+                    searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) },
+                    inboxDestination: { AnyView(SessionMessagingHome(session: session)) }
                 )
                 .id(session.templateAuthoringViewIdentity)
                 .cyPushedChrome(domain: .topicEditor)

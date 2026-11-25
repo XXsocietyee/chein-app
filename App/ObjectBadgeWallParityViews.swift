@@ -4,14 +4,12 @@ import ImageIO
 import UIKit
 
 /// Mini-program badge-wall header parity: lit/total caption, play-side focus readback and
-/// the empty-wall explore action. Reads nothing; it only summarizes the loaded wall.
+/// the play-side focus line. Reads nothing; it only summarizes the loaded wall.
 struct ObjectBadgeWallParityHeader: View {
     @Environment(\.themeDomain) private var domain
     let wall: ProfileBadgeWall
     let focusBadgeCode: String?
-    @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.locale) private var locale
-    @State private var exploreConsumed = false
     var body: some View {
         let summary = ObjectBadgeWallSummary(wall: wall)
         Section {
@@ -51,14 +49,7 @@ struct ObjectBadgeWallParityHeader: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("objects.badge.focus")
             }
-            if wall.isEmpty, let onExploreHome {
-                Button("badgeWall.explore") {
-                    guard !exploreConsumed else { return }
-                    exploreConsumed = true
-                    onExploreHome()
-                }.buttonStyle(.bordered).cyText(.button).frame(minHeight: 44).disabled(exploreConsumed)
-                    .accessibilityIdentifier("objects.badge.explore")
-            }
+            // The empty wall's one 去探索 is the CYEmptyState action under this header (the MP has a single CTA).
         }
     }
     private func ring(_ summary: ObjectBadgeWallSummary) -> some View {

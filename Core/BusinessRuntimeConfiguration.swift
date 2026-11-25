@@ -156,6 +156,9 @@ public extension BusinessRuntimeFeature {
         if self == .projectPublicationRead {
             return route.method == "GET" && (route.path == TopicPublicationPath.check || route.path == TopicPublicationPath.status)
         }
+        // C-F6 MP-first: the author's 到访方式 GET (read) / POST (save) ride the project editor grant (theme-fe-visit.js:40, :87).
+        if route.path == "api/topic/free-explore/visit-config",
+           (self == .projectRead && route.method == "GET") || (self == .projectWrite && route.method == "POST") { return true }
         if self == .imPollCreateReceipt { return route.method == "GET" && route.path == "api/im/poll/create-receipt" }
         if self == .imChannelMentionRoleRead { return route.method == "GET" && route.path == "api/im/roles" }
         if self == .imChannelMentionMemberRead {

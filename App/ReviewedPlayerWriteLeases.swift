@@ -709,8 +709,16 @@ enum ReviewedPlayerReadRoute {
         "api/activity/update_publish_status", "api/topic/update_user_status",
         "api/activity/delete", "api/topic/delete", "api/template/delete", "api/template/updateLibraryStatus",
         // Popup parity closure: beta topic graduation, club transfer, and attendance commands (non-money).
-        "api/topic/beta/graduate", "api/topic/transfer-to-club", "api/club/my"
-    ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths)
+        "api/topic/beta/graduate", "api/topic/transfer-to-club", "api/club/my",
+        // C-F6 MP-first: the author's 到访方式 read/save (fabu/theme-fe-visit.js:40, :87). Not money.
+        "api/topic/free-explore/visit-config"
+    ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths).union(publisherLifecyclePaths)
+    /// MP-first (owner 2026-11-25, R7-PC-B4-1 / R7-PC-B1-2): pages/topic/pricing preview + confirm (a final-price save that moves
+    /// the topic to PRICING for sale review, not a payment) and the publisher reads it needs. Cancel-with-refund stays off.
+    static let publisherLifecyclePaths: Set<String> = [
+        "api/topic/pricing/preview", "api/topic/pricing/confirm", "api/topic/xp-budget",
+        "api/topic/cancel_preview", "api/activity/cancel_preview", "api/club/detail"
+    ]
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
     static func isPlayGrantPath(_ relative: String) -> Bool {
@@ -920,7 +928,8 @@ enum ReviewedPlayerReadRoute {
               let friendEndpoints = makeEndpoint(context, paths: NativeFriendApproval.readPaths.union(NativeFriendApproval.writePaths)),
               let friends = try? NativeFriendApproval(endpoint: friendEndpoints, expiresAt: expires),
               let avatar = try? ProfileAvatarApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-                  accountID: context.session.accountID, approvedOrigins: [context.baseURL.absoluteString], nativePicker: true),
+                  accountID: context.session.accountID, approvedOrigins: RetainedImageOrigin.configured(apiBase: context.baseURL, // A3-01: uploadOSS returns an OSS/CDN url
+                      extra: Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String), nativePicker: true),
               let clubAdmission = try? ClubOrdinaryAdmissionApproval(context: context, allowsWrites: true),
               let channelTextSend = try? NativeChannelTextApproval(context: context, operation: .send, conversationIDs: [],
                   expiresAt: expires, allowsAnyPositiveConversation: true),
@@ -1075,9 +1084,11 @@ enum ReviewedPlayerReadRoute {
                 .compactMap { try? BusinessRuntimeRoute(method: method, path: $0) })
         }
         return [
-            .projectRead: served("POST", ["api/publish/home", "api/topic/edit-detail", ProjectEditRequestContract.readPath]),
+            .projectRead: served("POST", ["api/publish/home", "api/topic/edit-detail", ProjectEditRequestContract.readPath])
+                .union(served("GET", [FreeExplorationVisitConfigService.path])), // C-F6 MP-first
             .projectWrite: served("POST", ["api/topic/create", "api/topic/update", "api/topic/v2/create", "api/topic/v2/update",
-                                           ProjectEditRequestContract.submitPath, ProjectEditRequestContract.resumePostProcessingPath]),
+                                           ProjectEditRequestContract.submitPath, ProjectEditRequestContract.resumePostProcessingPath,
+                                           FreeExplorationVisitConfigService.path]),
             .projectPublicationRead: served("GET", [TopicPublicationPath.check, TopicPublicationPath.status])
         ]
     }
@@ -1412,6 +1423,8 @@ enum ReviewedPlayerReadRoute {
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             couponCodeApproval: couponCodeApproval,
+            merchantBusinessApproval: MPFirstMerchantApprovals.business(context),
+            merchantEngagementApproval: MPFirstMerchantApprovals.engagement(context),
             orderLifecycleConfiguration: orderConfiguration,
             nonCashRewardApproved: rewardPledge, nonCashRewardClaimApproved: rewardPledge,
             nonCashRewardPreviewApproved: rewardPledge, nonCashRewardRedeemApproved: rewardPledge,
@@ -1429,7 +1442,7 @@ enum ReviewedPlayerReadRoute {
         let key = contextKey(context)
         if let existing = playConfigurationByContext[key] { return existing }
         let configuration = RuntimeDependencyConfiguration(market: .china, endpoints: endpoints, play: Self.playCapabilities,
-            playReadApprovalID: UUID())
+            publisherReads: true, playReadApprovalID: UUID())
         playConfigurationByContext[key] = configuration
         return configuration
     }

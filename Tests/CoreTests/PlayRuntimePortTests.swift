@@ -86,19 +86,23 @@ final class PlayRuntimePortTests: XCTestCase {
         XCTAssertEqual(PlayStationImageResolver.station(for: result.nodes[0], in: result).tier, .chapter)
     }
 
-    func testVisitConfigGateIsDefaultOffAndOutsideTheMarkTable() async throws {
-        XCTAssertFalse(PlayRuntimePortRouteGate.freeExploreVisitConfigRead)
-        XCTAssertFalse(PlayRuntimePortRouteGate.freeExploreVisitConfigWrite)
+    func testVisitConfigGateIsOnAndOutsideTheMarkTable() async throws {
+        XCTAssertTrue(PlayRuntimePortRouteGate.freeExploreVisitConfigRead)
+        XCTAssertTrue(PlayRuntimePortRouteGate.freeExploreVisitConfigWrite)
         XCTAssertEqual(PlayRuntimePortRouteGate.visitConfigMark, .liveInProduction)
         XCTAssertNil(ChinaReviewedRouteCapability.mark(for: PlayRuntimePortRouteGate.visitConfigPath))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(PlayRuntimePortRouteGate.visitConfigPath))
         let configuration = try APIConfiguration(baseURL: URL(string: "https://fixture.example")!)
-        let service = FreeExplorationVisitConfigService(configuration: configuration, transport: VisitConfigStub(), token: { "fixture-token" })
+        let held = FreeExplorationVisitConfigService(configuration: configuration, transport: VisitConfigStub(), authorWrites: false, readsEnabled: false, token: { "fixture-token" })
         do {
-            _ = try await service.load(topicID: 9)
-            XCTFail("default-off reads must not send")
+            _ = try await held.load(topicID: 9)
+            XCTFail("an explicit off read must not send")
         } catch let error as FreeExplorationVisitConfigError {
             XCTAssertEqual(error, .disabled)
         }
+        let service = FreeExplorationVisitConfigService(configuration: configuration, transport: VisitConfigStub(), token: { "fixture-token" })
+        let rows = try await service.load(topicID: 9)
+        XCTAssertEqual(rows, [])
     }
 
     func testStationArrivalUsesTheExistingArriveChannel() throws {
@@ -115,7 +119,9 @@ final class PlayRuntimePortTests: XCTestCase {
 }
 
 private final class VisitConfigStub: HTTPTransport {
+    var requests: [URLRequest] = []
     func send(_ request: URLRequest) async throws -> (Data, Int) {
-        (Data(#"{"code":200,"data":[]}"#.utf8), 200)
+        requests.append(request)
+        return (Data(#"{"code":200,"data":[]}"#.utf8), 200)
     }
 }

@@ -89,6 +89,10 @@ public enum OrientSessionWriteReceipt: Equatable {
               Set(values.map(\.rank)).count == values.count else { throw APIError.malformedResponse }
         return values
     }
+    /// `POST api/orient/scoring/session/{id}/recovery` (`orient-score` `requestManualReview`).
+    /// The body field is `kind`. Path only: this service does not send the recovery write.
+    public static let recoveryPath = "api/orient/scoring/session/{}/recovery"
+
     public func score(sessionID: Int, scope: OrientSessionScope, token: String) async throws -> OrientSessionScore {
         try positive(sessionID)
         let value: OrientSessionScore = try await execute(request("api/orient/scoring/session/\(sessionID)", token: token))

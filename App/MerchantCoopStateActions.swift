@@ -34,10 +34,17 @@ struct MerchantCoopActionState: View {
     var actionTitle: LocalizedStringKey? = nil
     var action: (() -> Void)? = nil
     var identifier: String
+    /// Image parity: true for an MP `cy-empty kind="empty"` state, which draws the shared MP empty art
+    /// (MPAsset.EmptyState) instead of a glyph.
+    var emptyArt = false
 
     var body: some View {
         ContentUnavailableView {
-            Label(title, systemImage: systemImage)
+            if emptyArt {
+                VStack(spacing: CYSpacing.md) { CYEmptyIllustration(kind: .generic, size: 96); Text(title) }
+            } else {
+                Label(title, systemImage: systemImage)
+            }
         } description: {
             if let message { Text(message) }
         } actions: {
@@ -135,6 +142,30 @@ extension EnvironmentValues {
     var coopInviteOutcomeUnknown: (@MainActor () -> Void)? {
         get { self[CoopInviteOutcomeUnknownKey.self] }
         set { self[CoopInviteOutcomeUnknownKey.self] = newValue }
+    }
+}
+
+/// flows-g2 row 108 (MP coop/invite/index.js `onResultSheetClose`): after a successful single invite, closing the result
+/// goes to 协作列表 on 我发出的 (`redirectTo /pages/coop/list/index?tab=sent`). Set by the coop list around its 发起邀约
+/// push. Nil (deep link, workbench, batch of several) keeps the preview ending on 完成 → dismiss.
+private struct CoopInviteSentKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> Void)? = nil
+}
+extension EnvironmentValues {
+    var coopInviteSent: (@MainActor () -> Void)? {
+        get { self[CoopInviteSentKey.self] }
+        set { self[CoopInviteSentKey.self] = newValue }
+    }
+}
+
+/// MC7-19-10: MP decor brand card row 口碑 (`goReviews` → `pages/merchant/reviews/index?mode=manage`). Nil hides the row.
+private struct MerchantReviewsDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    var merchantReviewsDestination: (@MainActor () -> AnyView)? {
+        get { self[MerchantReviewsDestinationKey.self] }
+        set { self[MerchantReviewsDestinationKey.self] = newValue }
     }
 }
 

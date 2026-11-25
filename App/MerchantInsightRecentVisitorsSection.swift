@@ -18,12 +18,17 @@ struct MerchantInsightRecentVisitorsSection: View {
                         .accessibilityIdentifier("merchant.insightVisitors.empty")
                 case .loaded(let rows):
                     ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                        VStack(alignment: .leading, spacing: 6) {
-                            if let name = row.nickname { Text(verbatim: name).font(.headline) }
-                            else { Text("merchant.insightVisitors.nameUnavailable").font(.headline) }
-                            LabeledContent("merchant.insightVisitors.count", value: row.visitCount.map(String.init) ?? "—")
-                            if let topic = row.topicName { LabeledContent("merchant.insightVisitors.topic", value: topic) }
-                            if let time = row.lastAtText { LabeledContent("merchant.insightVisitors.time", value: time) }
+                        // MP ai-insight/index.wxml:149 `item.avatar || '/images/d_profile.png'`. Core's row has no
+                        // avatar yet, so the MP default avatar shows (decorative; the row reads as one element).
+                        HStack(alignment: .top, spacing: CYSpacing.sm) {
+                            MerchantMPAvatar(url: nil, size: 40)
+                            VStack(alignment: .leading, spacing: 6) {
+                                if let name = row.nickname { Text(verbatim: name).font(.headline) }
+                                else { Text("merchant.insightVisitors.nameUnavailable").font(.headline) }
+                                LabeledContent("merchant.insightVisitors.count", value: row.visitCount.map(String.init) ?? "—")
+                                if let topic = row.topicName { LabeledContent("merchant.insightVisitors.topic", value: topic) }
+                                if let time = row.lastAtText { LabeledContent("merchant.insightVisitors.time", value: time) }
+                            }
                         }.accessibilityElement(children: .combine)
                             .accessibilityIdentifier("merchant.insightVisitors.row." + String(index))
                     }

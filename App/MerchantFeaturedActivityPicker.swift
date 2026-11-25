@@ -119,7 +119,14 @@ import SwiftUI
                     }
                 }
                 if picker.busy { ProgressView("merchant.loading") }
-                if picker.hasLoaded, picker.rows.isEmpty { Text("merchant.featuredPicker.empty") }
+                if picker.hasLoaded, picker.rows.isEmpty {
+                    Text("merchant.featuredPicker.empty")
+                    // MC8-19-9: MP 去发布一个活动 (decor index.js:1186-1189) opens the merchant-scoped activity publisher.
+                    NavigationLink {
+                        MPReviewedPageScreen(page: "pages/publish/activity/index", query: ["scope": "MERCHANT"])
+                    } label: { Label("merchantCoop.decor.featured.publish", systemImage: "plus.circle") }
+                        .accessibilityIdentifier("merchant.featuredPicker.publish")
+                }
                 ForEach(picker.rows) { row in
                     Button { picker.select(row.id) } label: {
                         HStack {

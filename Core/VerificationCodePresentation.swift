@@ -174,6 +174,8 @@ public struct VerificationCodeApproval {
     private var generation: UInt64 = 0
     private var active = false
     private var issuing = false
+    /// One silent ticket reissue per displayed code. Reset when a new code is installed.
+    private var ticketSilentRenewalStarted = false
     private let service: any VerificationCodeServing
     private let current: () -> RuntimeDependencyContext?
     private let now: () -> Date
@@ -194,6 +196,7 @@ public struct VerificationCodeApproval {
         guard let context = current() else { clear(); phase = .login; return }
         guard service.enabled else { clear(); phase = .disabled; return }
         generation &+= 1; owner = context; active = true
+        ticketSilentRenewalStarted = false
         await issue()
     }
     private func isCurrent(_ stamp: UInt64) -> Bool {
@@ -202,12 +205,13 @@ public struct VerificationCodeApproval {
     private func eraseCode() { code = nil; expiry = nil; issuedAt = nil; remainingSeconds = 0 }
     private func clear() {
         generation &+= 1; active = false; owner = nil; issuing = false; checkingOrder = false
-        readback = nil; readbackFailed = false; eraseCode()
+        readback = nil; readbackFailed = false; ticketSilentRenewalStarted = false; eraseCode()
     }
     public func pause() { clear(); phase = .paused }
     public func invalidate() { clear(); phase = .review }
-    /// View-owned, cancellable one-second task. Ticket expiry requires a manual retry;
-    /// city vouchers reissue only at expiry, never on a failed or uncertain response.
+    /// View-owned, cancellable one-second task. At expiry the ticket code clears and waits
+    /// for a manual retry. City vouchers reissue only at expiry, never on a failed or uncertain response.
+    /// A ticket code reissues silently in the 30 seconds before `expiresAt` and keeps the old code if that reissue fails.
     public func tick() async {
         guard active else { return }
         guard current() == owner, service.enabled else { clear(); phase = .stale; return }
@@ -216,7 +220,40 @@ public struct VerificationCodeApproval {
         if now() >= expiry {
             eraseCode(); phase = .expired
             if target.kind == .cityVoucher { await issue() }
-        } else { remainingSeconds = max(0, Int(expiry.timeIntervalSince(now()).rounded(.up))) }
+        } else {
+            remainingSeconds = max(0, Int(expiry.timeIntervalSince(now()).rounded(.up)))
+            if target.kind == .ticket, remainingSeconds <= 30, !ticketSilentRenewalStarted, !issuing {
+                ticketSilentRenewalStarted = true
+                await renewTicketKeepingCode()
+            }
+        }
+    }
+    /// Silent ticket reissue. Does not erase the current code or enter `.loading`.
+    private func renewTicketKeepingCode() async {
+        guard active, !issuing, target.kind == .ticket, let owner, current() == owner,
+              let keptExpiry = expiry, now() < keptExpiry else { return }
+        let stamp = generation
+        let previousCode = code
+        let previousIssued = issuedAt
+        do {
+            let requestedAt = now()
+            let receipt = try await service.issue(target, context: owner)
+            guard isCurrent(stamp), let kept = expiry, now() < kept else { return }
+            let validated = try receipt.validated(target: target, accountID: owner.session.accountID, requestedAt: requestedAt, now: now())
+            code = validated.code; expiry = validated.expiry; issuedAt = requestedAt
+            remainingSeconds = max(0, Int(validated.expiry.timeIntervalSince(now()).rounded(.up)))
+            phase = .ready
+            ticketSilentRenewalStarted = false
+        } catch {
+            guard isCurrent(stamp) else { return }
+            if now() < keptExpiry {
+                code = previousCode
+                expiry = keptExpiry
+                issuedAt = previousIssued
+                phase = .ready
+                remainingSeconds = max(0, Int(keptExpiry.timeIntervalSince(now()).rounded(.up)))
+            }
+        }
     }
     private func issue() async {
         guard active, !issuing, let owner, current() == owner else { return }

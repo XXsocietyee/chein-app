@@ -152,27 +152,28 @@ public struct SettingsAccountProfileClient {
         self.configuration = configuration
         self.transport = transport
     }
+    /// Printable Authorization token: no leading or trailing whitespace, no non-ASCII.
+    /// Kept local so this settings file does not build auth requests.
+    private static func printableToken(_ token: String) -> Bool {
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && trimmed == token && token.utf8.allSatisfy { $0 >= 0x20 && $0 < 0x7f }
+    }
     public func refresh(memberID: Int, token: String) async -> SettingsAccountProfileAccess {
-        guard memberID > 0, AuthRequestBuilder.isValidToken(token) else { return .failed }
-        let url = configuration.baseURL.appendingPathComponent("api/user/info")
-        guard let request = try? AuthRequestBuilder.makeFormRequest(url: url, fields: ["member_id": String(memberID)], token: token) else {
-            return .failed
-        }
+        guard memberID > 0, Self.printableToken(token) else { return .failed }
+        guard var request = try? AccountPublishMPContract.userInfoRequest(
+            baseURL: configuration.baseURL, memberID: String(memberID), token: token) else { return .failed }
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
         let data: Data
         let status: Int
         do { (data, status) = try await transport.send(request) } catch { return .failed }
-        if status == 401 { return .signedOut }
-        if status == 403 { return .denied }
-        guard (200..<300).contains(status),
-              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return .failed }
-        let code = (root["code"] as? Int) ?? Int(root["code"] as? String ?? "")
-        if code == 401 { return .signedOut }
-        if code == 403 { return .denied }
-        guard code == 200, let object = root["data"] as? [String: Any] else { return .failed }
-        let role = (object["role"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !role.isEmpty else { return .failed }
-        let leader = (object["isClubLeader"] as? Bool) ?? (role == "club")
-        return .ready(SettingsAccountProfile(role: role, isClubLeader: leader))
+        switch AccountPublishMPContract.settingsAccess(status: status, body: data) {
+        case .signedOut: return .signedOut
+        case .denied: return .denied
+        case .failed: return .failed
+        case .ready(let read):
+            guard !read.role.isEmpty, let home = AccountPublishMPContract.homeAccount(from: data) else { return .failed }
+            return .ready(SettingsAccountProfile(role: read.role, isClubLeader: home.isClubLeader))
+        }
     }
 }
 

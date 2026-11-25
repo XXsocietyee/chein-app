@@ -5,7 +5,7 @@ import Foundation
 public struct ProjectDraftStoryPreview {
     public enum Reason: String { case identity, limit, branchRoute, unsupportedRoute }
     public enum Role: String { case chapter, opening, ending, unsupported }
-    public enum Kind: String { case text, voice, narrative, node, image, audio, album, thought, mood, odd, reveal, unsupported }
+    public enum Kind: String { case text, voice, narrative, node, image, audio, album, thought, mood, odd, reveal, gallery, branch, line, divider, unsupported }
     public struct Row: Identifiable {
         public let id: Int
         public let kind: Kind
@@ -140,6 +140,14 @@ public struct ProjectDraftStoryPreview {
             return [row(start, .mood, title: mood, conditional: conditional, unsupported: unsupported || !valid)]
         case .odd:
             return [row(start, .odd, conditional: conditional, unsupported: unsupported)]
+        case .gallery:
+            return [row(start, .gallery, title: block.fieldText("layout"), conditional: conditional, unsupported: unsupported)]
+        case .branch:
+            return [row(start, .branch, text: block.content, conditional: conditional, unsupported: unsupported)]
+        case .line:
+            return [row(start, .line, title: block.fieldText("speaker"), text: block.content, conditional: conditional, unsupported: unsupported)]
+        case .divider:
+            return [row(start, .divider, conditional: conditional, unsupported: unsupported)]
         }
     }
     private static func thoughtLabels(_ raw: ProjectEditJSON?) -> [String: (String, String, String)] {

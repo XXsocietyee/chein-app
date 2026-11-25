@@ -33,7 +33,13 @@ import FoundationNetworking
     func testNoApprovalCannotConstructProductionService() throws {
         let c = try context(), wire = Wire()
         let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), transport: wire, current: { c })
-        XCTAssertNil(factory.service(for: try mutation(), merchantID: 11)); XCTAssertEqual(wire.writes, 0)
+        XCTAssertNotNil(factory.service(for: try mutation(), merchantID: 11))
+        let report = MerchantBusinessMutation.review(id: try .init(9), version: 1, action: .report, content: "not sent")
+        XCTAssertNil(factory.service(for: report, merchantID: 11))
+        let sku = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2,
+            originalPrice: nil, pic: nil, bookable: false, slotMinutes: 60, capacityPerSlot: 0, ruleVersion: 4)
+        XCTAssertNil(factory.service(for: sku, merchantID: 11))
+        XCTAssertEqual(wire.writes, 0)
     }
     func testDirectServiceCallCannotBypassFreshReviewedCoordinator() async throws {
         let c = try context(), wire = Wire(), mutation = try self.mutation()

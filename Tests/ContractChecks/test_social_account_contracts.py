@@ -66,7 +66,13 @@ class SocialAccountSourceTests(unittest.TestCase):
   catalog=json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
   keys={key:entry for key,entry in catalog.items() if key.startswith('social.')}
   # Three bilingual keys landed after the 117 pin: social.mine, social.guideTemplates.toSquare, social.guideTemplates.start.
-  self.assertEqual(len(keys),120)
+  # Four more match cy-profile and stay bilingual:
+  # social.follow.pending — subpackageMember/components/cy/profile/index.wxml:102 处理中…
+  # social.follow.failed — subpackageMember/components/cy/profile/index.js:1761-1763
+  # social.portfolio.preview — subpackageMember/components/cy/profile/index.wxml:521 查看大图
+  # social.startChat.failed — subpackageMember/components/cy/profile/index.js:1804-1808
+  # Fixture isolation below is unchanged.
+  self.assertEqual(len(keys),124)
   for key,entry in keys.items():
    for language in ['en','zh-Hans']:self.assertTrue(entry['localizations'][language]['stringUnit']['value'].strip(),key)
   fixture=self.read('App/SocialAccountFixtureSupport.swift'); self.assertTrue(fixture.startswith('#if DEBUG'))

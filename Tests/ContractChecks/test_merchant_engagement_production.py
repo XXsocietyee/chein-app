@@ -46,7 +46,8 @@ class MerchantEngagementProductionContracts(unittest.TestCase):
         self.assertNotIn('refund/execute', production)
     def test_missing_source_invitation_and_campaign_fields_fail_closed(self):
         production = self.read('Core/MerchantEngagementProduction.swift')
-        self.assertIn('if case .acceptInvitation = command { throw MerchantBusinessFailure.disabled }', production)
+        self.assertNotIn('if case .acceptInvitation = command { throw MerchantBusinessFailure.disabled }', production)
+        self.assertIn('MerchantCoopLiveWrites.engagementApproval', production)
         self.assertIn('task.hasReviewableMessage', production)
         model = self.read('Core/MerchantEngagementModels.swift')
         self.assertIn('count == recipients.count', model)

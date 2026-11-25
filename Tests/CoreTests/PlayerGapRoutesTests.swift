@@ -30,8 +30,10 @@ import XCTest
         ReleaseMoneyWriteSwitch.testDerivation = nil
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/personal-receiver/status"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/merchant/payout-account"))
+        // r8 CLB-settlement-05: mine is a POST {} read, admitted on production. Withdraw stays closed.
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/settlement/mine"))
         for money in ["/api/registration/payment-readiness", "/api/club/personal-receiver/bind", "/api/club/personal-receiver/unbind",
-                      "/api/club/settlement/mine", "/api/registration/pay", "/api/pay/create",
+                      "/api/registration/pay", "/api/pay/create",
                       "/api/wallet/withdraw", "/api/club/settlement/withdraw", "/api/merchant/payout-account/save"] {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
         }

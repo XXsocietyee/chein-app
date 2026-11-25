@@ -179,13 +179,14 @@ public struct RoamVoucherClock {
 public enum RoamExperienceFailure: Error, Equatable {
     case capabilityUnavailable, historyUnreadable, historyWriteFailed, scopeMismatch, incompleteSettlement
 }
-/// Unreviewed effects cannot be enabled by server fields, remote config or an offline launch flag.
+/// Location, presence, settlement, voucher, redemption, and legacy hangout stay off.
+/// Stamp create and exchange are on: the mini-program citystamp and stamp-camera writes.
 public enum RoamExperienceCapabilities {
     public static let location = false
     public static let presence = false
     public static let settlement = false
-    public static let mediaUpload = false
-    public static let stampExchange = false
+    public static let mediaUpload = true
+    public static let stampExchange = true
     public static let voucherIssue = false
     public static let redemption = false
     public static let legacyHangout = false
