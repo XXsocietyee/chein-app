@@ -7,24 +7,14 @@ import XCTest
 /// `api/registration/create`, or `api/topic/pricing/confirm`.
 final class PlayerContentBContractPinTests: XCTestCase {
 
-    /// `pages/topic/merchantinfo/merchantinfo.js:1056`
-    func testPinsMineAt1056() {
-        let path = "api/merchant/chapter-node/mine"
+    /// `pages/topic/merchantinfo/merchantinfo.js:725`
+    func testPinsMerchantRecruitmentChaptersAt725() {
+        let path = "api/topic/merchant-recruitment-chapters"
         let method = "POST"
-        let fields = ["topicId"]
-        XCTAssertEqual(path, "api/merchant/chapter-node/mine")
+        let fields = ["id", "scope", "chapterId"]
+        XCTAssertEqual(path, "api/topic/merchant-recruitment-chapters")
         XCTAssertEqual(method, "POST")
-        XCTAssertEqual(fields, ["topicId"])
-    }
-
-    /// `pages/topic/merchantinfo/merchantinfo.js:1094`
-    func testPinsSelectAt1094() {
-        let path = "api/registration/merchant/select"
-        let method = "POST"
-        let fields = ["id"]
-        XCTAssertEqual(path, "api/registration/merchant/select")
-        XCTAssertEqual(method, "POST")
-        XCTAssertEqual(fields, ["id"])
+        XCTAssertEqual(fields, ["id", "scope", "chapterId"])
     }
 
     /// `pages/topic/merchantinfo/merchantinfo.js:2040`

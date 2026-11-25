@@ -8,39 +8,39 @@ Mini-program: public `liboyang42-cpu/hengyin` `chengyinhub-xcx` at `25eb6a0c1fba
 
 Player-content rows are those whose mini-program path starts with `pages/topic/`, `pages/activity/`, `pages/square/`, `pages/search2/`, `pages/searchmap/`, `pages/template/`, `pages/templatedetail/`, `pages/mylike/`, `pages/index/`, `subpackageA/`, `subpackageB/`, or `subpackageP3/`. `utils/`, `app.js`, and `components/` are outside this set.
 
-257 rows. Sorted by the full file path, then source line. That is the order already in `docs/mp-contract-coverage.md`. Lane A owns the first 129 (the odd row stays with A). Lane B owns the last 128.
+257 rows. Sorted by the full mini-program location string (`file:line`). Lane A owns the first 129 (the odd row stays with A). Lane B owns the last 128.
 
-- Lane A ends at `pages/topic/merchantinfo/merchantinfo.js:1015`.
-- Lane B starts at `pages/topic/merchantinfo/merchantinfo.js:1056`.
+- Lane A ends at `pages/topic/merchantinfo/merchantinfo.js:1651`.
+- Lane B starts at `pages/topic/merchantinfo/merchantinfo.js:1680`.
 - Lane B ends at `subpackageP3/pages/stamp-camera/index/index.js:389`.
+
+Pins for `merchantinfo.js:1056` and `merchantinfo.js:1094` are not in this half. Those location strings sort before `:1651`.
 
 ## Counts for this half
 
 | | before | after |
 |---|---:|---:|
 | rows | 128 | 128 |
-| matched | 23 | 69 |
-| missing endpoint | 14 | 13 |
-| missing test | 105 | 59 |
+| matched | 22 | 67 |
+| missing endpoint | 16 | 15 |
+| missing test | 106 | 61 |
 
-Rows that already had a Core symbol and a test (23) were not redone.
+Rows that already had a Core symbol and a test (22) were not redone.
 
-A fresh run of `tools/check_mp_contract_coverage.py` prints `# total 1038 matched 219 missing_endpoint 129 missing_test 818`. That is the tool's print. The published totals line in `docs/mp-contract-coverage.md` was left as generated.
+A fresh run of `tools/check_mp_contract_coverage.py` prints `# total 1038 matched 218 missing_endpoint 129 missing_test 819`. That is the tool's print. The published totals line in `docs/mp-contract-coverage.md` was left as generated.
 
 ## Endpoint added
 
 One. `PlayerContentMPContract.auditTaskDetailPath(auditTaskID:)` returns `api/audit/\(auditTaskID)/detail`. That is the shape of `GET /api/audit/${auditTaskId}/detail` at `subpackageB/pages/im/chat/index.js:1160`. The call has no data object, so the checker still records the test as missing.
 
-The other 13 missing-endpoint calls do not keep one literal `/api` path. No path was invented for them.
+The other 15 missing-endpoint calls do not keep one literal `/api` path. No path was invented for them.
 
 ## Tests added
 
-46 functions in `Tests/CoreTests/PlayerContentBContractPinTests.swift`. Each quotes the path, the method, and the literal field names the checker recorded.
+45 functions in `Tests/CoreTests/PlayerContentBContractPinTests.swift`. Each quotes the path, the method, and the literal field names the checker recorded.
 
 | call | method | path | fields |
 |---|---|---|---|
-| `pages/topic/merchantinfo/merchantinfo.js:1056` | POST | `api/merchant/chapter-node/mine` | topicId |
-| `pages/topic/merchantinfo/merchantinfo.js:1094` | POST | `api/registration/merchant/select` | id |
 | `pages/topic/merchantinfo/merchantinfo.js:2040` | POST | `api/registration/merchant/info` | id |
 | `pages/topic/merchantinfo/merchantinfo.js:2243` | POST | `api/merchant/chapter-node/pending` | topicId, scope |
 | `pages/topic/merchantinfo/merchantinfo.js:2339` | POST | `api/merchant/chapter-node/audit` | nodeId, approve, reason, scope |
@@ -54,6 +54,7 @@ The other 13 missing-endpoint calls do not keep one literal `/api` path. No path
 | `pages/topic/merchantinfo/merchantinfo.js:4639` | POST | `api/merchant/chapter-node/poster-code` | nodeId |
 | `pages/topic/merchantinfo/merchantinfo.js:4694` | POST | `api/topic/host-qrcode` | id, scope |
 | `pages/topic/merchantinfo/merchantinfo.js:4855` | POST | `api/registration/merchant/cancel` | id |
+| `pages/topic/merchantinfo/merchantinfo.js:725` | POST | `api/topic/merchant-recruitment-chapters` | id, scope, chapterId |
 | `pages/topic/utils/wx-phone-bind.js:27` | POST | `api/getwxbindphone` | code |
 | `subpackageA/components/earnings-overview/index.js:75` | POST | `api/user/balance/list` | pageNum, pageSize |
 | `subpackageA/components/scene-how-to-play-detail/index.js:39` | POST | `api/common/infomation_detail` | id |
@@ -96,14 +97,14 @@ The same function also matches six calls outside this half, because the checker 
 
 ## Still missing in this half
 
-Missing endpoint 13. Missing test 59. Every missing-endpoint row is also missing a test.
+Missing endpoint 15. Missing test 61. Every missing-endpoint row is also missing a test.
 
-No single literal path (13). Three calls choose `/api/club/detail` or `/api/merchant/public-detail` with a ternary (`merchantinfo.js:3368`, `pricing/index.js:227`, `pricing/partner/index.js:205`). Both path strings already exist on `PlayerContentMPContract`. Four `request(` calls in `pages/topic/utils/voice-enrollment-journal.js` are the local predicate, not HTTP. The other six forward `url` (`scene-member-invite-history/index.js:61`, `myproject/index.js:696`, `myproject/index.js:1130`, `video-bounty/index.js:11`, `video-bounty/index.js:20`, `growthcenter/index/index.js:35`).
+No single literal path (15). Four calls choose one of two `/api` literals with a ternary (`merchantinfo.js:646` is `info-to-merchant` or `info-to-user`; `merchantinfo.js:3368`, `pricing/index.js:227`, and `pricing/partner/index.js:205` are `club/detail` or `merchant/public-detail`). Those path strings already exist. Four `request(` calls in `pages/topic/utils/voice-enrollment-journal.js` are the local predicate, not HTTP. The other seven forward `url` (`merchantinfo.js:959`, `scene-member-invite-history/index.js:61`, `myproject/index.js:696`, `myproject/index.js:1130`, `video-bounty/index.js:11`, `video-bounty/index.js:20`, `growthcenter/index/index.js:35`).
 
 Field list or method left unparsed (46), so a test cannot pin them:
 
-- 32 pass `data` through `JSON.stringify(...)`, including `POST api/topic/pricing/confirm` at `pages/topic/pricing/index.js:440`.
-- 12 have no closed `data` object (`content-report.js` passes `data`, several GETs and POSTs omit `data`, and the new audit detail GET is in this group).
+- 31 pass `data` through `JSON.stringify(...)`, including `POST api/topic/pricing/confirm` at `pages/topic/pricing/index.js:440`.
+- 13 have no closed `data` object (`merchantinfo.js:795` omits `data`, `content-report.js` passes `data`, several GETs and POSTs omit `data`, and the audit detail GET is in this group).
 - 2 are `req('/api/medal/wall')` and `req('/api/badge/wall-v2')` at `subpackageP3/pages/badge-wall/index/index.js:245`. The method is not on that call. `ProfileService.badgeWall` already holds both paths.
 
 ## Left as it was
