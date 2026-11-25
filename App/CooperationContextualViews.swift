@@ -25,12 +25,14 @@ import SwiftUI
     /// MC8-31-1: route presets (`type` / `toId` / `topicId`). They survive reloads; the matching rows are chosen once loaded.
     private(set) var presetTopicID: Int?
     private(set) var presetTargetID: Int?
+    private(set) var presetOriginApplyID: Int?
     init(reader: any CoopFlowReading, operationScope: String?) { self.reader = reader; self.operationScope = operationScope; session = reader.session }
     /// Call before the first appear. `kind` follows MP `type` (0 merchant, 1 club).
-    func applyRoutePreset(kind: CoopFlowTargetKind?, targetID: Int?, topicID: Int?) {
+    func applyRoutePreset(kind: CoopFlowTargetKind?, targetID: Int?, topicID: Int?, originApplyID: Int? = nil) {
         if let kind { self.kind = kind }
         presetTargetID = targetID.flatMap { $0 > 0 ? $0 : nil }
         presetTopicID = topicID.flatMap { $0 > 0 ? $0 : nil }
+        presetOriginApplyID = originApplyID.flatMap { $0 > 0 ? $0 : nil }
     }
     /// The route topic once it is among the loaded owned topics.
     var lockedTopic: CoopFlowOwnedTopic? { presetTopicID == nil ? nil : topic }
@@ -73,7 +75,7 @@ import SwiftUI
     func contexts(permit value: Permit) -> [CoopFlowInvitationContext]? {
         guard accepts(value), topicsReady, targetsReady, !busy, let topic, topic.inviteWindowOpen == true, !selected.isEmpty else { return nil }
         let result = candidates.filter { selected.contains($0.id) }.compactMap {
-            CoopFlowInvitationContext(candidate: $0, topic: topic, scope: operationScope, session: session)
+            CoopFlowInvitationContext(candidate: $0, topic: topic, scope: operationScope, session: session, originApplyID: presetOriginApplyID)
         }
         return result.count == selected.count ? result : nil
     }
@@ -352,12 +354,12 @@ import SwiftUI
     private let lockedTargetPreset: CoopInviteLockedTarget?
     private let initialTopicID: Int?
     init(reader: any CoopFlowReading, operationScope: String?, initialType: Int? = nil,
-         lockedTarget: CoopInviteLockedTarget? = nil, initialTopicID: Int? = nil) {
+         lockedTarget: CoopInviteLockedTarget? = nil, initialTopicID: Int? = nil, originApplyID: Int? = nil) {
         self.reader = reader; self.operationScope = operationScope
         self.lockedTargetPreset = lockedTarget; self.initialTopicID = initialTopicID
         let model = CoopInvitationReadModel(reader: reader, operationScope: operationScope)
         model.applyRoutePreset(kind: initialType.flatMap(CoopFlowTargetKind.init(rawValue:)),
-                               targetID: lockedTarget?.toID, topicID: initialTopicID)
+                               targetID: lockedTarget?.toID, topicID: initialTopicID, originApplyID: originApplyID)
         _model = StateObject(wrappedValue: model)
     }
     /// MP fallback names when the route target is not in the loaded directory (该俱乐部 / 该商家).

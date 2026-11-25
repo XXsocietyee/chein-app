@@ -104,12 +104,20 @@ public struct CoopInviteLink: Equatable {
     public let type: Int
     public let toID: Int?
     public let topicID: Int?
+    public let originApplyID: Int?
+    public let toName: String?
+    /// Only `MERCHANT` is kept. Any other value is absent, matching the list page.
+    public let scope: String?
     public init?(_ query: [String: String]) {
         let raw = query["type"] ?? "1"
         guard raw == "0" || raw == "1", let type = Int(raw) else { return nil }
         self.type = type
         toID = query["toId"].flatMap(MerchantFinanceRoute.canonicalID)
         topicID = query["topicId"].flatMap(MerchantFinanceRoute.canonicalID)
+        originApplyID = query["originApplyId"].flatMap(MerchantFinanceRoute.canonicalID)
+        let name = query["toName"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        toName = name.isEmpty ? nil : name
+        scope = query["scope"] == "MERCHANT" ? "MERCHANT" : nil
     }
 }
 

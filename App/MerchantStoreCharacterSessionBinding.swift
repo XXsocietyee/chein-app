@@ -22,7 +22,7 @@ extension AppSession {
     var authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil
     var writer: StoreCharacterServiceBackend? = nil
     var body: some View {
-        MerchantStoreCharacterView(coordinator: StoreCharacterCoordinator(reader: StoreCharacterOperationsReader(reader: reader), writer: writer,
+        MerchantStoreCharacterView(coordinator: StoreCharacterCoordinator(reader: StoreCharacterOperationsReader(reader: reader, voice: writer), writer: writer,
                                                                           gates: writer == nil ? .disabled : .mpFirst), authorFlow: authorFlow)
             .id(reader.scope)
     }

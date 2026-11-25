@@ -18,10 +18,9 @@ struct MerchantInsightRecentVisitorsSection: View {
                         .accessibilityIdentifier("merchant.insightVisitors.empty")
                 case .loaded(let rows):
                     ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                        // MP ai-insight/index.wxml:149 `item.avatar || '/images/d_profile.png'`. Core's row has no
-                        // avatar yet, so the MP default avatar shows (decorative; the row reads as one element).
+                        // MP ai-insight/index.wxml:149 `item.avatar || '/images/d_profile.png'`.
                         HStack(alignment: .top, spacing: CYSpacing.sm) {
-                            MerchantMPAvatar(url: nil, size: 40)
+                            MerchantMPAvatar(url: row.avatar.flatMap(URL.init(string:)), size: 40)
                             VStack(alignment: .leading, spacing: 6) {
                                 if let name = row.nickname { Text(verbatim: name).font(.headline) }
                                 else { Text("merchant.insightVisitors.nameUnavailable").font(.headline) }

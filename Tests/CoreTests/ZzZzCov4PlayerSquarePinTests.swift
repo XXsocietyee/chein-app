@@ -132,7 +132,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         let path = "api/coop/candidates/confirm"
         let method = "POST"
         let fields = ["registrationId", "scope"]
-        XCTAssertEqual(CoopFlowMutation.confirm(registrationID: 1).path, path)
+        XCTAssertEqual(CoopFlowMutation.confirm(registrationID: 1, scope: nil).path, path)
         XCTAssertEqual(method, "POST")
         XCTAssertEqual(fields, ["registrationId", "scope"])
     }

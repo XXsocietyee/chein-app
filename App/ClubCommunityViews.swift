@@ -14,6 +14,9 @@ struct ClubCommunityContext {
     var onTopic: ((Int) -> Void)? = nil
     var feedSourceScope: () -> ClubCommunityFeedSourceContext? = { nil }
     var feedSourceDestination: ((Int, ClubCommunityFeedSourceContext) -> AnyView?)? = nil
+    /// Relation / discover creative-square lane. Nil leaves the club feed unchanged.
+    /// The closure's cursor is nil on the first page. A throw fails the whole feed.
+    var creativeSquareLane: (@MainActor (Int?) async throws -> RelationCreativeSquareLane)? = nil
 }
 
 @MainActor
@@ -158,7 +161,13 @@ final class ClubCommunityViewModel: ObservableObject {
             let session = try context.currentSession(); identity = session.identity
             let result: ClubCommunitySnapshot
             if case let .feed(limit, beforeID) = operation {
-                result = try await context.service.readDiscoverFeed(limit: limit, beforeID: beforeID, session: session) {
+                let lane: RelationCreativeSquareLane?
+                if let fetch = context.creativeSquareLane, beforeID == nil || feedCursor.communityHasMore {
+                    lane = try await fetch(beforeID == nil ? nil : feedCursor.communityCursor)
+                } else {
+                    lane = nil
+                }
+                result = try await context.service.readDiscoverFeed(limit: limit, beforeID: beforeID, session: session, community: lane) {
                     guard try self.context.currentSession() == session else { throw ClubCommunityFailure.stale }
                 }
             } else {
