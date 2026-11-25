@@ -227,3 +227,142 @@ enum ClubDetailR8Route: Hashable, Identifiable {
         }
     }
 }
+
+/// CLB-detail-22 (MP detail wxml:308-345, js:345-356, 1811-1850): 本团贡献榜 · 本周 inline on 概览. The full table folds
+/// to the top 3, a 「⋯ 中间 N 人」 row, then the rows around 我 (or the last 3); the sort sits in the section head.
+@MainActor final class ClubInlineLeaderboardModel: ObservableObject {
+    enum Sort: String, CaseIterable, Identifiable {
+        case composite, mileage, duration
+        var id: String { rawValue }
+        var titleKey: LocalizedStringKey { LocalizedStringKey("club.gov.sort." + rawValue) }
+        var emptyKey: LocalizedStringKey { LocalizedStringKey("clubR8.lb.empty." + rawValue) }
+    }
+    struct Row: Identifiable, Equatable {
+        let id: String
+        let memberID: Int
+        let rank: Int
+        let nickname: String
+        let avatar: String?
+        let isMe: Bool
+        let clearCount: Int
+        let mileage: Double
+        let durationMin: Int
+        let score: Double
+        let hiddenCount: Int?
+    }
+    enum Phase: Equatable { case idle, loading, ready([Row]), failed }
+    @Published private(set) var phase: Phase = .idle
+    @Published var sort: Sort = .composite
+    private var key: String?
+
+    func load(key: String, clubID: Int, myMemberID: Int?, access: any ClubGovernanceAccess, force: Bool = false) async {
+        let full = key + "|" + sort.rawValue
+        guard force || self.key != full else { return }
+        self.key = full; phase = .loading
+        let current = { [weak self] in self?.key == full && !Task.isCancelled }
+        do {
+            let snapshot = try await access.read(.leaderboard, scope: .init(clubID: clubID), options: ["sortBy": .string(sort.rawValue)]) {
+                guard current() else { throw CancellationError() }
+            }
+            guard current() else { return }
+            phase = .ready(Self.fold(snapshot.value.array ?? snapshot.value["rows"].array ?? [], myMemberID: myMemberID))
+        } catch {
+            guard current() else { return }
+            phase = .failed
+        }
+    }
+
+    /// MP `foldLeaderboard`: ranks are the list order; more than six rows fold after the top 3.
+    static func fold(_ values: [ClubGovernanceValue], myMemberID: Int?) -> [Row] {
+        let list: [Row] = values.enumerated().compactMap { index, value in
+            guard let member = value["memberId"].int else { return nil }
+            func number(_ key: String) -> Double {
+                if case .decimal(let v) = value[key] { return v }
+                return value[key].int.map(Double.init) ?? Double(value[key].string ?? "") ?? 0
+            }
+            return Row(id: "m\(member)", memberID: member, rank: index + 1,
+                       nickname: value["nickname"].string ?? "", avatar: value["avatar"].string,
+                       isMe: myMemberID == member, clearCount: Int(number("clearCount")), mileage: number("mileage"),
+                       durationMin: Int(number("durationMin")), score: number("score"), hiddenCount: nil)
+        }
+        guard list.count > 6 else { return list }
+        var tailStart = list.count - 3
+        if let mine = list.firstIndex(where: \.isMe), mine >= 3 { tailStart = min(tailStart, max(3, mine - 1)) }
+        let hidden = tailStart - 3
+        var out = Array(list.prefix(3))
+        if hidden > 0 {
+            out.append(Row(id: "gap", memberID: 0, rank: 0, nickname: "", avatar: nil, isMe: false, clearCount: 0,
+                           mileage: 0, durationMin: 0, score: 0, hiddenCount: hidden))
+        }
+        return out + list[tailStart...]
+    }
+}
+
+@MainActor struct ClubInlineLeaderboardRows: View {
+    @ObservedObject var model: ClubInlineLeaderboardModel
+    let retry: () -> Void
+    @Environment(\.locale) private var locale
+    var body: some View {
+        switch model.phase {
+        case .idle, .loading:
+            CYSkeleton(variant: .row).accessibilityLabel(Text("club.loading"))
+        case .failed:
+            CYEmptyState(systemImage: "exclamationmark.triangle", "clubR8.lb.failed", actionTitle: "action.retry",
+                         actionIdentifier: "club.detail.leaderboard.retry", action: retry)
+        case .ready(let rows) where rows.isEmpty:
+            CYEmptyState(systemImage: "trophy", model.sort.emptyKey, messageIdentifier: "club.detail.leaderboard.empty")
+        case .ready(let rows):
+            ForEach(rows) { row in
+                if let hidden = row.hiddenCount {
+                    Text(String(format: appLocalized("clubR8.lb.gap %lld", locale: locale), hidden))
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    rowView(row)
+                }
+            }
+        }
+    }
+    private func rowView(_ row: ClubInlineLeaderboardModel.Row) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Text(row.rank, format: .number).cyText(.cardTitle).monospacedDigit()
+                .foregroundStyle(row.rank <= 3 ? CYColor.brand : CYColor.textSecondary)
+                .frame(minWidth: 24)
+            ClubMPAvatar(url: row.avatar.flatMap(URL.init(string:)), name: row.nickname, size: .sm)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                HStack(spacing: CYSpacing.xs) {
+                    Text(verbatim: row.isMe ? appLocalized("clubR8.lb.you", locale: locale)
+                         : (row.nickname.isEmpty ? appLocalized("club.community.user", locale: locale) : row.nickname))
+                        .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                    if row.isMe { CYStatusChip("clubR8.lb.me", tone: .info) }
+                }
+                Text(verbatim: String(format: appLocalized("clubR8.lb.meta %lld %@ %@", locale: locale),
+                                      row.clearCount, mileageText(row), durationText(row)))
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            }
+            Spacer(minLength: CYSpacing.sm)
+            Text(verbatim: primaryText(row)).cyText(.bodyMedium).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("club.detail.leaderboard.row.\(row.memberID)")
+    }
+    private func mileageText(_ row: ClubInlineLeaderboardModel.Row) -> String {
+        row.mileage.formatted(.number.precision(.fractionLength(1)).locale(locale)) + " km"
+    }
+    private func durationText(_ row: ClubInlineLeaderboardModel.Row) -> String {
+        guard row.durationMin > 0 else { return "—" }
+        let hours = row.durationMin / 60, minutes = row.durationMin % 60
+        return hours > 0 ? String(format: appLocalized("clubR8.lb.hoursMinutes %lld %lld", locale: locale), hours, minutes)
+            : String(format: appLocalized("clubR8.lb.minutes %lld", locale: locale), minutes)
+    }
+    private func primaryText(_ row: ClubInlineLeaderboardModel.Row) -> String {
+        switch model.sort {
+        case .mileage: return mileageText(row)
+        case .duration: return durationText(row)
+        case .composite:
+            return String(format: appLocalized("clubR8.lb.points %@", locale: locale),
+                          row.score.formatted(.number.precision(.fractionLength(1)).locale(locale)))
+        }
+    }
+}

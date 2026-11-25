@@ -33,6 +33,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var openedTopicID: Int?
     /// fix-r8-club: reads and routes for the mounted ClubGap* views (CLB-detail-09, G04, G06, G08, G19).
     @StateObject private var r8Mounts = ClubDetailR8MountModel()
+    @StateObject private var r8Leaderboard = ClubInlineLeaderboardModel()
     @State private var r8Route: ClubDetailR8Route?
     @State private var showsSettings = false
     @Environment(\.clubBadgeHostFactory) private var badgeHost
@@ -316,6 +317,28 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     // Mini-program overview: 本团贡献榜 · 本周, gated on member visibility like the source.
                     Section("club.detail.leaderboard.title") {
                         if club.canSeeMembers, let governance = management?.governance {
+                            // CLB-detail-22: the folded board inline, with the 综合 ▾ sort (MP wxml:308-345).
+                            Menu {
+                                Picker("club.gov.sort", selection: Binding(get: { r8Leaderboard.sort }, set: { value in
+                                    r8Leaderboard.sort = value
+                                    Task { await loadInlineLeaderboard(club: club, governance: governance, force: true) }
+                                })) {
+                                    ForEach(ClubInlineLeaderboardModel.Sort.allCases) { Text($0.titleKey).tag($0) }
+                                }
+                            } label: {
+                                HStack(spacing: CYSpacing.xs) {
+                                    Text("club.gov.sort")
+                                    Spacer(minLength: CYSpacing.sm)
+                                    Text(r8Leaderboard.sort.titleKey).foregroundStyle(CYColor.textSecondary)
+                                    Image(systemName: "chevron.down").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                                        .accessibilityHidden(true)
+                                }
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                            }
+                            .accessibilityIdentifier("club.detail.leaderboard.sort")
+                            ClubInlineLeaderboardRows(model: r8Leaderboard) {
+                                Task { await loadInlineLeaderboard(club: club, governance: governance, force: true) }
+                            }
                             NavigationLink {
                                 ClubGovernanceReadView(operation: .leaderboard, scope: .init(clubID: id), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
                                     .environment(\.clubEnrollmentProfile, governance.enrollmentProfile)
@@ -501,7 +524,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         }
         if tab == .overview, club.canSeeMembers {
             await r8Mounts.loadMemberAvatars(key: key, clubID: club.id, reader: reader)
+            if let governance = management?.governance { await loadInlineLeaderboard(club: club, governance: governance) }
         }
+    }
+    private func loadInlineLeaderboard(club: ClubRecord, governance: ClubGovernanceContext, force: Bool = false) async {
+        await r8Leaderboard.load(key: r8Key(club, tab: .overview), clubID: club.id, myMemberID: reader.clubIdentity.accountID,
+                                 access: governance.access, force: force)
     }
 
     /// `/api/club/access/me` only widens the manage tab; a failed or foreign read revokes
