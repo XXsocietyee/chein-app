@@ -311129,6 +311129,57 @@
           }
         }
       }
+    },
+    "activity.detail.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity not found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动不存在"
+          }
+        }
+      }
+    },
+    "official.broadcast.recover.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restores the original recipients only. Unknown results and historical rows waiting for review are not resent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只会按原收件人恢复，结果不明或历史待核的不会重发。"
+          }
+        }
+      }
+    },
+    "official.broadcast.recover": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore the original delivery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全恢复原投递"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
