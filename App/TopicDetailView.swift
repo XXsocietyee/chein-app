@@ -497,26 +497,22 @@ struct TopicDetailView: View {
                 }
                 // Index identity preserves source order even when backend IDs are absent/duplicated.
                 ForEach(Array(value.chapters.enumerated()), id: \.offset) { _, chapter in
-                    NavigationLink {
-                        TopicChapterView(chapter: chapter, reader: reader, scope: key.scope, publicMerchant: publicMerchant, makeExternalMaps: makeExternalMaps)
-                    } label: {
-                        VStack(alignment: .leading) {
-                            Text(verbatim: chapter.title)
-                            // REV-B B-08: MP `metaTime` = formatTimeToChinese(totalTime) (X小时Y分钟) from seconds; else the
-                            // games' minutes (C9), else hidden. Then 节点 and 玩法 counts.
-                            if let seconds = chapter.totalTimeSeconds, seconds > 0 {
-                                LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) }.cyText(.meta)
-                            } else if let minutes = TopicChapterCards.minutes(chapter) {
-                                LabeledContent("topic.durationMinutes") { Text(minutes, format: .number).monospacedDigit() }.cyText(.meta)
-                            }
-                            if !chapter.nodes.isEmpty {
-                                LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).cyText(.meta)
-                            }
-                            if let plays = chapter.templateCount, plays > 0 {
-                                LabeledContent("discovery.templateDetail.stat.games", value: String(plays)).cyText(.meta)
-                            }
+                    if chapter.locked {
+                        // A locked chapter does not open. When self-play purchase is offered, the row is the paywall.
+                        Button {
+                            if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) { showingSelfPlay = true }
+                        } label: {
+                            chapterSummary(chapter, locked: true)
                         }
-                    }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("topic.chapter.\(chapter.id).locked")
+                    } else {
+                        NavigationLink {
+                            TopicChapterView(chapter: chapter, reader: reader, scope: key.scope, publicMerchant: publicMerchant, makeExternalMaps: makeExternalMaps)
+                        } label: {
+                            chapterSummary(chapter, locked: false)
+                        }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
+                    }
                 }
             } header: {
                 Text(value.productType == 2 ? "tabBar.passport" : "topic.chapters")
@@ -608,6 +604,28 @@ struct TopicDetailView: View {
         }
     }
     private var detail: TopicDetail? { phase.value }
+    /// REV-B B-08: MP `metaTime` from seconds, else the games' minutes, else hidden. Then 节点 and 玩法 counts.
+    @ViewBuilder private func chapterSummary(_ chapter: TopicChapter, locked: Bool) -> some View {
+        HStack(alignment: .top, spacing: CYSpacing.sm) {
+            VStack(alignment: .leading) {
+                Text(verbatim: chapter.title)
+                if let seconds = chapter.totalTimeSeconds, seconds > 0 {
+                    LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) }.cyText(.meta)
+                } else if let minutes = TopicChapterCards.minutes(chapter) {
+                    LabeledContent("topic.durationMinutes") { Text(minutes, format: .number).monospacedDigit() }.cyText(.meta)
+                }
+                if !chapter.nodes.isEmpty {
+                    LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).cyText(.meta)
+                }
+                if let plays = chapter.templateCount, plays > 0 {
+                    LabeledContent("discovery.templateDetail.stat.games", value: String(plays)).cyText(.meta)
+                }
+            }
+            if locked {
+                Image(systemName: "lock.fill").foregroundStyle(.secondary).accessibilityLabel(Text("topic.lockedNotice"))
+            }
+        }
+    }
     /// Source `topicSaleClosed`: the sale end (endDate) has passed. Mainland wall-clock source, as in the mini-program.
     /// A purchased topic keeps its 去票夹 path; an unparsable end never closes the topic.
     private func saleClosed(_ value: TopicDetail) -> Bool {

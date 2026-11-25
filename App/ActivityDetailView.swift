@@ -87,6 +87,9 @@ struct ActivityDetailView: View {
     }
 }
 
+/// `ActivityDetailFailure.notFound` is 活动不存在 (`activity.detail.missing`). Other failures keep retry.
+private enum ActivityDetailLoadIssue: Equatable { case missing, other }
+
 @MainActor private struct ActivityDetailContentView: View {
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.dismiss) private var dismiss
@@ -132,7 +135,7 @@ struct ActivityDetailView: View {
     @Namespace private var footerHero
     @State private var showsPlay = false
     /// One load lifecycle instead of `access` / `loading` / `failed` (docs/release/state-machines/views.md).
-    @State private var phase: CYPhase<ActivityDetailAccess, Void> = .idle
+    @State private var phase: CYPhase<ActivityDetailAccess, ActivityDetailLoadIssue> = .idle
     private var access: ActivityDetailAccess? { phase.value }
     @State private var heroScrolledAway = false
     /// verify-r1 1.3: no 活动详情 over the hero; the activity's name appears inline once the hero has scrolled away.
@@ -160,7 +163,12 @@ struct ActivityDetailView: View {
             switch phase {
             case .idle, .loading, .empty:
                 loadingState
-            case .failed:
+            case .failed(let issue, _):
+                if issue == .missing {
+                    CYEmptyState(systemImage: "calendar.badge.exclamationmark", "activity.detail.missing",
+                                 actionTitle: "common.back", action: { dismiss() })
+                        .accessibilityIdentifier("activity.detail.missing")
+                } else {
                 ScrollView {
                     VStack(spacing: CYSpacing.lg) {
                         CYStateArt(kind: .failure)
@@ -175,6 +183,7 @@ struct ActivityDetailView: View {
                     }
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.vertical, CYSpacing.xl)
+                }
                 }
             case .loaded(let access):
                 switch access {
@@ -467,7 +476,8 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             }
-            ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail), organizerShopName: detail.organizerShopName)
+            ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail),
+                                  organizerShopName: detail.organizerShopName, organizerShopLogo: detail.organizerShopLogo)
             Section {
                 if detail.tickets.isEmpty {
                     // Source empty ticket copy: title plus host explanation.
@@ -735,7 +745,10 @@ struct ActivityDetailView: View {
             }
         }
         catch is CancellationError { }
-        catch { if generation == operation, !Task.isCancelled { phase = .failed((), retry: nil) } }
+        catch let error as ActivityDetailFailure where error == .notFound {
+            if generation == operation, !Task.isCancelled { phase = .failed(.missing, retry: nil) }
+        }
+        catch { if generation == operation, !Task.isCancelled { phase = .failed(.other, retry: nil) } }
     }
 }
 

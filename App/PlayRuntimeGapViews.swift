@@ -143,11 +143,15 @@ import SwiftUI
     /// R7-PC-B1-5 (r1 PC-B-1-4): MP prep layer 开始游玩, enabled once every item is ticked. Nil hides it.
     var onStart: (() -> Void)? = nil
     @Environment(\.playRuntimeTopicClient) private var makeClient
+    @Environment(\.playOrientSafety) private var checkOrientSafety
     @Environment(\.locale) private var locale
     @State private var read: PlayTopicSetup.Read?
     @State private var loading = false
     @State private var ticked: Set<Int> = []
     @State private var showing = false
+    @State private var checkingSafety = false
+    @State private var safetyRefused = false
+    @State private var safetyLine: String?
 
     var body: some View {
         Group {
@@ -202,17 +206,17 @@ import SwiftUI
                 if let onStart, !setup.closed {
                     Section {
                         Button {
-                            showing = false
-                            // Let this sheet finish closing before the host presents the next one.
-                            Task { @MainActor in try? await Task.sleep(nanoseconds: 400_000_000); onStart() }
+                            Task { @MainActor in await beginStart(onStart) }
                         } label: {
                             Text("play.prep.start").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                         }
                         .buttonStyle(.cyPrimary(fullWidth: true))
-                        .disabled(!setup.ready(ticked: ticked))
+                        .disabled(!setup.ready(ticked: ticked) || checkingSafety || safetyRefused)
                         .accessibilityIdentifier("play.prep.start")
                     } footer: {
-                        if !setup.ready(ticked: ticked) { Text("play.prep.startHint") }
+                        if let safetyLine {
+                            Text(verbatim: safetyLine).accessibilityIdentifier("play.prep.safety")
+                        } else if !setup.ready(ticked: ticked) { Text("play.prep.startHint") }
                     }
                     .listRowBackground(Color.clear)
                 }
@@ -220,6 +224,38 @@ import SwiftUI
             .navigationTitle(Text(verbatim: CYKitCopy(locale: locale)("Pre-game prep", "开局前准备"))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button { showing = false } label: { Text(verbatim: CYKitCopy(locale: locale)("Done", "完成")) } } }
         }
+    }
+
+    /// Check `PlayerOrientSafetyDecision` before dismissing. A nil host (fixtures) proceeds without a request.
+    /// Refuse disables start. Retry leaves the sheet open for another tap.
+    private func beginStart(_ onStart: @escaping () -> Void) async {
+        guard !checkingSafety, !safetyRefused else { return }
+        checkingSafety = true
+        if let checkOrientSafety {
+            switch await checkOrientSafety(topicID) {
+            case .proceed:
+                safetyLine = nil
+            case .refused(let line):
+                safetyRefused = true
+                safetyLine = localizedSafety("orient.safety.refused", fallback: line)
+                checkingSafety = false
+                return
+            case .retry(let line):
+                safetyLine = localizedSafety("orient.safety.retry", fallback: line)
+                checkingSafety = false
+                return
+            }
+        }
+        showing = false
+        // Let this sheet finish closing before the host presents the next one.
+        try? await Task.sleep(nanoseconds: 400_000_000)
+        checkingSafety = false
+        onStart()
+    }
+
+    private func localizedSafety(_ key: String, fallback: String) -> String {
+        let localized = appLocalized(String.LocalizationValue(key), locale: locale)
+        return localized == key ? fallback : localized
     }
 }
 

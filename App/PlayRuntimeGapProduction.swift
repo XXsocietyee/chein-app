@@ -108,10 +108,25 @@ import SwiftUI
             return try? PlayRuntimeClient(configuration: api, transport: session.runtimeHTTPTransport, token: token)
         }
     }
+
+    /// `POST /api/orient/safety/check`, then `PlayerOrientSafetyDecision`. Kept off `AppSession.swift`.
+    static func orientSafety(session: AppSession) -> PlayOrientSafetyCheck {
+        { [weak session] topicID in
+            guard let session, (session.account?.id ?? 0) > 0, let token = session.token,
+                  let api = session.regionalConfiguration?.apiConfiguration else {
+                return .retry(PlayerOrientSafetyDecision.retryLine)
+            }
+            let service = PlayerContentGapService(baseURL: api.baseURL, token: { token }, transport: session.runtimeHTTPTransport)
+            return await service.checkOrientSafety(topicID: topicID).decision
+        }
+    }
 }
+
+typealias PlayOrientSafetyCheck = @MainActor (Int) async -> PlayerOrientSafetyDecision
 
 private struct PlayRuntimeGapKey: EnvironmentKey { static let defaultValue: PlayRuntimeGapProduction? = nil }
 private struct PlayRuntimeTopicClientKey: EnvironmentKey { static let defaultValue: (@MainActor () -> PlayRuntimeClient?)? = nil }
+private struct PlayOrientSafetyKey: EnvironmentKey { static let defaultValue: PlayOrientSafetyCheck? = nil }
 
 extension EnvironmentValues {
     var playRuntimeGap: PlayRuntimeGapProduction? {
@@ -121,5 +136,10 @@ extension EnvironmentValues {
     var playRuntimeTopicClient: (@MainActor () -> PlayRuntimeClient?)? {
         get { self[PlayRuntimeTopicClientKey.self] }
         set { self[PlayRuntimeTopicClientKey.self] = newValue }
+    }
+    /// Nil (fixtures) skips the network check and lets start proceed.
+    var playOrientSafety: PlayOrientSafetyCheck? {
+        get { self[PlayOrientSafetyKey.self] }
+        set { self[PlayOrientSafetyKey.self] = newValue }
     }
 }

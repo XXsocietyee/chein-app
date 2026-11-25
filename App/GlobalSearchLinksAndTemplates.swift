@@ -414,6 +414,7 @@ enum PlayerContentMPAppWire {
     func partyInbox() async throws -> [OfficialPartyInvite] { try await inner.partyInbox() }
     func myPublished() async throws -> OfficialPublished { try await inner.myPublished() }
     func broadcastStats(id: Int) async throws -> OfficialBroadcastStats { try await inner.broadcastStats(id: id) }
+    func recoverBroadcast(id: String) async throws { try await inner.recoverBroadcast(id: id) }
 
     func events(city: String?) async throws -> [OfficialEvent] {
         if city != nil { return try await inner.events(city: city) }

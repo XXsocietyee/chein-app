@@ -64,6 +64,8 @@ import SwiftUI
                 EmptyView()
             }
             if topicID > 0 {
+            // `productType == 2` is free explore. The page hides 有人带 / 无人带. Confirm still sends nothing.
+            if preview?.productType != 2 {
             Section {
                 // Source chip tabs 有人带 / 无人带.
                 Picker(text("publisherPricing.format"), selection: $subtype) {
@@ -80,6 +82,7 @@ import SwiftUI
                         Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).cyText(.meta).foregroundStyle(CYColor.dangerText)
                     }
                 }
+            }
             }
             Section {
                 CYPillButton(verbatim: subtype == .guided ? text("publisherPricing.recalculateFloor") : text("publisherPricing.refreshMinimumPrice"), style: .secondary) { beginLoad() }

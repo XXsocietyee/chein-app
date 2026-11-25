@@ -5,15 +5,32 @@ import SwiftUI
 
 public struct OfficialEventLeaderboardSection: View {
     public let rows: [OfficialEventLeaderboardRow]
+    public let chipText: String
     public let myRank: Int?
+    public let isFinal: Bool
+    @Environment(\.locale) private var locale
 
-    public init(rows: [OfficialEventLeaderboardRow], myRank: Int? = nil) {
+    public init(rows: [OfficialEventLeaderboardRow], chipText: String = "", myRank: Int? = nil, isFinal: Bool = false) {
         self.rows = rows
+        self.chipText = chipText
         self.myRank = myRank
+        self.isFinal = isFinal
+    }
+
+    /// Catalog chip when the key resolves. Otherwise the Chinese `chipText` from the payload.
+    private var chip: String? {
+        let trimmed = chipText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let myRank, myRank > 0 else { return trimmed.isEmpty ? nil : trimmed }
+        let key = isFinal ? "official.leaderboard.final" : "official.leaderboard.provisional"
+        let localized = appLocalized(String.LocalizationValue(key), locale: locale)
+        if localized != key {
+            return String(format: localized, locale: locale, arguments: [String(myRank)])
+        }
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     public var body: some View {
-        if !rows.isEmpty {
+        if !rows.isEmpty || chip != nil {
             Section {
                 ForEach(rows) { row in
                     HStack {
@@ -34,10 +51,11 @@ public struct OfficialEventLeaderboardSection: View {
                 HStack {
                     Text("official.leaderboard.title")
                     Spacer()
-                    if let myRank {
-                        Text("暂列第 \(myRank) 名")
+                    if let chip {
+                        Text(verbatim: chip)
                             .cyText(.meta, monospacedDigit: true)
                             .foregroundStyle(CYColor.brand)
+                            .accessibilityIdentifier("official.leaderboard.chip")
                     }
                 }
             }

@@ -368,7 +368,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     // B78 topic-detail (owner V-24): same chrome as the play detail — head, 应用 + share, 详情 / 能力.
                     Section {
                         TemplateXbHead(title: (item.name ?? "").isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name ?? ""),
-                                       publisher: topicAuthor(item), official: false, subtitle: item.subtitle) {
+                                       publisher: topicAuthor(item), official: item.isOfficial, subtitle: item.subtitle) {
                             // MP topic-detail js:169 `art.topicArt(info.name)`: a known topic name shows its bundled cover.
                             if let art = TemplateShelfArt.topicCover(item.name) {
                                 art.resizable().scaledToFill().accessibilityHidden(true)
