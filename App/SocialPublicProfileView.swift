@@ -112,6 +112,15 @@ import SwiftUI
                     return loaded
                 }) { profile in
                     Section {
+                        // MP cy-profile `.pc-hero-bg`: default cover `/subpackageMember/images/mer1.jpg` (index.js:399) over the head. Decorative.
+                        MPAsset.BannerCover.subpackageMemberImagesMer1
+                            .resizable()
+                            .scaledToFill()
+                            .accessibilityHidden(true)
+                            .frame(height: 120)
+                            .frame(maxWidth: .infinity)
+                            .clipped()
+                            .listRowInsets(EdgeInsets())
                         // Mini-program cy-profile identity head: round avatar beside name and level.
                         HStack(spacing: CYSpacing.lg) {
                             ProfilePublicAvatar(source: profile.avatar, name: profile.nickname)

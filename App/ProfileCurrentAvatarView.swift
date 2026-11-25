@@ -60,8 +60,9 @@ import Observation
                     .accessibilityLabel(Text("profile.currentAvatar.loading", tableName: "ProfileCurrentMediaUI"))
                     .accessibilityIdentifier("profile.avatar.current.loading")
             } else {
-                Image(systemName: "person.fill").font(.system(.largeTitle)).foregroundStyle(CYColor.textSecondary)
-                    .frame(width: 112, height: 112).background(CYColor.bgRaised, in: Circle())
+                // MP gerenziliao.wxml:28 `avatarSrc || '/images/d_profile.png'`.
+                MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                    .frame(width: 112, height: 112).background(CYColor.bgRaised, in: Circle()).clipShape(Circle())
                     .overlay(Circle().strokeBorder(CYDomainPalette(.player).avatarRing, lineWidth: 3))
                     .overlay(alignment: .bottomTrailing) { editBadge }
                     .accessibilityHidden(true)
@@ -72,6 +73,21 @@ import Observation
             Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI").cyText(.meta).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, CYSpacing.md)
+        // MP gerenziliao.wxml:20 `.rv-bg`: the page cover (default `/pages/gerenziliao/images/mer1.jpg`, js:71) under a fade.
+        .listRowBackground(
+            MPAsset.BannerCover.pagesGerenziliaoImagesMer1
+                .resizable()
+                .scaledToFill()
+                .accessibilityHidden(true)
+                .overlay {
+                    LinearGradient(stops: [.init(color: CYColor.bgPage.opacity(0.35), location: 0),
+                                           .init(color: CYColor.bgPage.opacity(0.75), location: 0.6),
+                                           .init(color: CYColor.bgPage, location: 1)],
+                                   startPoint: .top, endPoint: .bottom)
+                }
+                .clipped()
+        )
         .accessibilityIdentifier("profile.avatar.current")
         .privacySensitive()
         .task(id: load) {
