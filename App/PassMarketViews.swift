@@ -157,6 +157,8 @@ struct PassMarketState: Equatable {
     var initialTab: PassMarketTab = .shop
     @State private var route: MPParityRoute?
     @State private var loadedOnce = false
+    /// MP passes `redeemEnabled`: only a signed-in player whose status read says on sees the 兑换码 row.
+    @State private var redeemEnabled = false
     @Environment(\.mpParity) private var bindings
     /// Points history (`POST /api/points/list`). Nil keeps the balance card read-only.
     @Environment(\.passMarketPointsDestination) private var pointsDestination
@@ -169,12 +171,16 @@ struct PassMarketState: Equatable {
                        onOpenLibrary: bindings.passLibrary == nil ? nil : { route = .library(kind: .all) },
                        pointsDestination: pointsDestination,
                        onOpenPassOrder: bindings.passOrder == nil ? nil : { route = .passOrder(orderNo: $0) },
-                       onSignIn: { PlayerJourneySignInBridge.shared.request() })
+                       onSignIn: { PlayerJourneySignInBridge.shared.request() },
+                       onOpenRedeem: redeemEnabled ? { route = .passRedeemCode } : nil)
             // Mini-program onShow: the first appearance loads with a skeleton; coming back (from detail, reveal,
             // membership) refreshes quietly so a list already on screen never flashes back to loading.
             .task {
                 binding.load(quiet: loadedOnce)
                 loadedOnce = true
+                // MP loadRedeem(): signed out, closed or unreadable → no row.
+                if bindings.isSignedIn?() == true, let read = bindings.passRedeemEnabled { redeemEnabled = await read() }
+                else { redeemEnabled = false }
             }
             .mpParityRouteDestination($route)
     }
@@ -193,6 +199,8 @@ struct PassMarketView: View {
     var onOpenPassOrder: ((String) -> Void)? = nil
     /// Guest on 我的订单 / 礼品: `ensureLoginFor('登录后查看自己的订单和礼品')`.
     var onSignIn: (() -> Void)? = nil
+    /// MP 兑换码 row (`goRedeem` → `gift?mode=code`). Nil hides it.
+    var onOpenRedeem: (() -> Void)? = nil
 
     @State private var tab: PassMarketTab = .shop
     @State private var didSetTab = false
@@ -294,6 +302,13 @@ struct PassMarketView: View {
                 }
                 .buttonStyle(.cyPressable)
                 .accessibilityIdentifier("passMarket.library")
+            }
+            if let onOpenRedeem {
+                Button(action: onOpenRedeem) {
+                    MPCard { MPRow(title: Text("mp.redeem.title"), chevron: true) }
+                }
+                .buttonStyle(.cyPressable)
+                .accessibilityIdentifier("passMarket.redeem")
             }
         }
     }
