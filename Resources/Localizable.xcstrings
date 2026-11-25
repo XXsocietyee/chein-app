@@ -311639,6 +311639,23 @@
           }
         }
       }
+    },
+    "playerJourney.modify": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去修改"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

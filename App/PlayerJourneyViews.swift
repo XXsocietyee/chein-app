@@ -32,6 +32,25 @@ extension EnvironmentValues {
         set { self[ParticipationCharacterProbeKey.self] = newValue }
     }
 }
+/// PLY-23-4: MP participation-detail `goModify` (index.js:670-673) opens `merchantapply?mode=1&id=<registration>`,
+/// the shipped merchant registration editor. Nil (fixtures) keeps the text-only note.
+private struct ParticipationModifyEditorKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int) -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    var participationModifyEditor: (@MainActor (Int) -> AnyView)? {
+        get { self[ParticipationModifyEditorKey.self] }
+        set { self[ParticipationModifyEditorKey.self] = newValue }
+    }
+}
+extension AppSession {
+    /// MP `merchantapply` with a registration `id` (App/MPReviewedPageScreen.swift `pages/topic/merchantapply/index`).
+    func participationModifyEditor(registrationID: Int) -> AnyView {
+        AnyView(MerchantContentEditView(service: merchantContentService, query: .registration(id: registrationID),
+                                        kind: .registrationEdit(registrationID))
+            .cyPushedChrome())
+    }
+}
 extension AppSession {
     /// One silent topic-scoped read; the lease is retired straight after, so no card stays in memory.
     func probeCharacterCard(topicID: Int) async -> Bool {
@@ -74,6 +93,7 @@ extension AppSession {
         }.id(session.sessionRevision).privacySensitive()
         .environment(\.participationBundleEntryEnabled, session.freeExploreBundleReadProvider != nil)
         .environment(\.participationCharacterProbe, { [weak session] topicID in await session?.probeCharacterCard(topicID: topicID) ?? false })
+        .environment(\.participationModifyEditor, { [weak session] id in session?.participationModifyEditor(registrationID: id) ?? AnyView(EmptyView()) })
         .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
         .sheet(isPresented: $login) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
         .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
@@ -92,6 +112,7 @@ extension AppSession {
                                 open: { route = $0 })
             .environment(\.participationBundleEntryEnabled, session.freeExploreBundleReadProvider != nil)
             .environment(\.participationCharacterProbe, { [weak session] topicID in await session?.probeCharacterCard(topicID: topicID) ?? false })
+            .environment(\.participationModifyEditor, { [weak session] id in session?.participationModifyEditor(registrationID: id) ?? AnyView(EmptyView()) })
             .id(session.sessionRevision).privacySensitive()
             .cyPushedChrome(domain: .player)
             .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
@@ -176,6 +197,7 @@ extension AppSession {
     @State private var quietReload = false
     @Environment(\.participationBundleEntryEnabled) private var bundleEntryEnabled
     @Environment(\.participationCharacterProbe) private var characterProbe
+    @Environment(\.participationModifyEditor) private var modifyEditor
     var body: some View {
         List {
             Section {
@@ -255,6 +277,7 @@ extension AppSession {
             }
             .environment(\.participationBundleEntryEnabled, bundleEntryEnabled)
             .environment(\.participationCharacterProbe, characterProbe)
+            .environment(\.participationModifyEditor, modifyEditor)
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
@@ -350,6 +373,7 @@ private struct ParticipationCoverPlaceholder: View {
     let open: (PlayerJourneyRoute) -> Void
     @Environment(\.participationBundleEntryEnabled) private var bundleEntryEnabled
     @Environment(\.participationCharacterProbe) private var characterProbe
+    @Environment(\.participationModifyEditor) private var modifyEditor
     /// R7-MEM-23-1: nil until the probe answers (row hidden), then the MP `characterEntry`.
     @State private var characterEntry: Bool?
     @State private var detail: ParticipationDetail?
@@ -436,8 +460,14 @@ private struct ParticipationCoverPlaceholder: View {
                         Label(detail.sourceCanCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress", systemImage: "list.bullet.rectangle")
                     }.accessibilityIdentifier("playerJourney.orderLifecycle")
                     if detail.needsModification {
-                        // Player registration IDs cannot address the separate merchant-registration table.
-                        Text("playerJourney.modifyNeedsReview").foregroundStyle(.secondary)
+                        // PLY-23-4: MP 去修改 (participation-detail wxml:136, js:670-673) pushes merchantapply?mode=1&id=.
+                        if let modifyEditor {
+                            NavigationLink { modifyEditor(id) } label: {
+                                Label("playerJourney.modify", systemImage: "square.and.pencil")
+                            }.accessibilityIdentifier("playerJourney.modify")
+                        } else {
+                            Text("playerJourney.modifyNeedsReview").foregroundStyle(.secondary)
+                        }
                     }
                     if detail.showsContactService() {
                         NavigationLink { ParticipationSupportView() } label: {
