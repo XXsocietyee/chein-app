@@ -47,7 +47,7 @@ CLUB = {
     'request.reject': ('Decline', '拒绝'),
     # MC-29 withdrawal hand-off (owner Q-C: keep it, name it, explain it)
     # r4 (MC-29, owner Q-C 2026-11-16): the button says what it does; the hand-off note above it names support.
-    'funds.withdrawViaSupport': ('Request withdrawal', '申请提现'),
+    'funds.withdrawViaSupport': ('Contact platform support to withdraw', '联系平台客服提现'),  # MP settlement (fix-r3-club-b r4)
     'funds.handOff.title': ('Withdrawals are handled by platform support', '提现由平台客服办理'),
     'funds.handOff.line': ('Open support and send the club name and amount. Support replies within 1 working day and pays out to your verified account.', '打开客服后发送俱乐部名称和金额，客服 1 个工作日内回复，款项打到你已核验的收款账户。'),
     # MC-13 switch explanations

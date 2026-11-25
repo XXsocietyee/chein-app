@@ -22,6 +22,21 @@ public enum ProfileBoundPhoneDisplay: Equatable {
     }
 }
 
+/// Read-only bound phone for the participant form. The mini-program shows `data.phone || data.mobilePhone`
+/// and does not write it back. This value is not the masked profile display and is not part of the edit payload.
+public struct ProfileParticipantPhone: Equatable, Sendable {
+    public let text: String
+    public init?(source: String) {
+        let value = source.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty, value.utf8.count <= 64 else { return nil }
+        let bytes = Array(value.utf8)
+        guard bytes.allSatisfy({ (48...57).contains($0) || [32, 40, 41, 43, 45, 46].contains($0) }) else { return nil }
+        let digits = bytes.filter { (48...57).contains($0) }
+        guard (11...15).contains(digits.count) else { return nil }
+        text = value
+    }
+}
+
 /// Text edits are staged together. The remaining replacement fields retain their
 /// wire values, including whitespace and delimiter order; do not round-trip image URLs.
 public struct ProfileEditSnapshot: Decodable, Equatable {

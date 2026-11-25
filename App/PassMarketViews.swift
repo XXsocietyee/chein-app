@@ -1045,47 +1045,62 @@ struct PassOrderDetailView: View {
 private struct PassOrderRefusedWrites: View {
     let order: PlatformPassSubscriptionOrder
     @Environment(\.passOrderWriteSession) private var session
-    @Environment(\.locale) private var locale
     @State private var confirmCancel = false
     @State private var refunding = false
     @State private var reason = ""
+    /// R8-MEM-5-1: MP `cy-inline-error` notice. A refused write says so instead of doing nothing.
+    @State private var refusedNotice = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             MPGatedNote(text: Text("mp.passOrder.gated"), identifier: "passOrder.gated")
+            if refusedNotice {
+                CYNoteBanner(text: Text("mp.passOrder.refused"), symbol: "exclamationmark.triangle", tone: .warning)
+                    .accessibilityIdentifier("passOrder.refused")
+            }
             if order.canResume {
-                Button { refuse(.resume) } label: { copy("继续付款", "Continue payment") }
+                Button { refuse(.resume) } label: { Text("mp.passOrder.resume").cyText(.body) }
                     .buttonStyle(.bordered)
+                    .frame(minHeight: 44)
                     .accessibilityIdentifier("passOrder.resume")
             }
             if order.canCancel {
-                Button(role: .destructive) { confirmCancel = true } label: { copy("取消订单", "Cancel order") }
+                Button(role: .destructive) { confirmCancel = true } label: { Text("mp.passOrder.cancel").cyText(.body) }
                     .buttonStyle(.bordered)
+                    .frame(minHeight: 44)
                     .accessibilityIdentifier("passOrder.cancel")
             }
             if order.canRefund {
-                Button(role: .destructive) { refunding = true } label: { copy("申请退款", "Request a refund") }
+                Button(role: .destructive) { refunding = true } label: { Text("mp.passOrder.refundApply").cyText(.body) }
                     .buttonStyle(.bordered)
+                    .frame(minHeight: 44)
                     .accessibilityIdentifier("passOrder.refund")
             }
         }
-        .confirmationDialog(copy("取消订单", "Cancel order"), isPresented: $confirmCancel, titleVisibility: .visible) {
-            Button(role: .destructive) { refuse(.cancel) } label: { copy("取消订单", "Cancel order") }
+        .confirmationDialog(Text("mp.passOrder.cancel"), isPresented: $confirmCancel, titleVisibility: .visible) {
+            Button(role: .destructive) { refuse(.cancel) } label: { Text("mp.passOrder.cancel") }
             Button(role: .cancel) {} label: { Text("common.cancel") }
         }
         .sheet(isPresented: $refunding) {
             NavigationStack {
                 Form {
+                    // R8-MEM-5-2: MP OR-024 refund terms above the reason (fixed MP defaults until server terms are wired).
                     Section {
-                        TextField(text: $reason, axis: .vertical) { copy("退款原因", "Refund reason") }
+                        LabeledContent { Text("mp.member.fact.renewal.value").cyText(.bodyCompact) } label: { Text("mp.member.fact.renewal").cyText(.bodyCompact) }
+                        LabeledContent { Text("mp.member.fact.refund.value").cyText(.bodyCompact) } label: { Text("mp.member.fact.refund").cyText(.bodyCompact) }
+                    }
+                    .accessibilityIdentifier("passOrder.refund.terms")
+                    Section {
+                        TextField(text: $reason, axis: .vertical) { Text("mp.passOrder.refundApply.placeholder") }
+                            .cyText(.body)
                             .lineLimit(3...6)
                             .onChange(of: reason) { _, newValue in
                                 if newValue.count > 200 { reason = String(newValue.prefix(200)) }
                             }
                     } header: {
-                        copy("退款原因", "Refund reason").font(.caption)
+                        Text("mp.passOrder.refundApply.reason").cyText(.caption)
                     } footer: {
-                        Text(verbatim: "\(reason.count)/200").font(.caption).monospacedDigit()
+                        Text(verbatim: "\(reason.count)/200").cyText(.caption, monospacedDigit: true)
                     }
                     Section {
                         Button(role: .destructive) {
@@ -1094,12 +1109,13 @@ private struct PassOrderRefusedWrites: View {
                             refunding = false
                             refuse(.refund, reason: trimmed)
                         } label: {
-                            copy("提交申请", "Submit request")
+                            Text("mp.passOrder.refundApply.submit").cyText(.body)
                         }
                         .disabled(reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .accessibilityIdentifier("passOrder.refund.submit")
                     }
                 }
-                .navigationTitle(copy("申请退款", "Request a refund"))
+                .navigationTitle(Text("mp.passOrder.refundApply"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
@@ -1107,20 +1123,15 @@ private struct PassOrderRefusedWrites: View {
                     }
                 }
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
         }
-    }
-
-    /// Mini-program words. Kept out of the pinned string catalog.
-    private func copy(_ zh: String, _ en: String) -> Text {
-        let chinese = locale.language.languageCode?.identifier.hasPrefix("zh") == true
-        return Text(verbatim: chinese ? zh : en).font(.body)
     }
 
     private enum Write { case resume, cancel, refund }
 
-    /// Money stays off. A missing reader does not invent a sender.
+    /// Money stays off. A missing reader does not invent a sender. Every refusal shows the gate notice.
     private func refuse(_ write: Write, reason: String = "") {
+        defer { refusedNotice = true }
         guard PlatformPass.moneyEnabled == false, MPParityBindings.moneyEnabled == false else { return }
         guard let session, let client = session.makePlatformPassReader() else { return }
         let token = session.passReadToken() ?? ""

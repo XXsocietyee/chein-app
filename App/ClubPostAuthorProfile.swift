@@ -56,8 +56,13 @@ import SwiftUI
         return target.isCurrent(acceptedPosts: model.snapshot?.posts, context: context)
     }
     private var authorLabel: some View {
-        Group { if post.nickname.isEmpty { Text("club.community.user") } else { Text(verbatim: post.nickname) } }
-            .frame(minHeight: 44, alignment: .leading)
+        // Round 4 image parity (MP cy-post-card wxml:12-13): the author avatar leads the name, `d_profile.png` when
+        // there is none. `ClubCommunityPost` carries no `memberAvatar` yet, so the MP default face shows (Cursor request).
+        HStack(spacing: CYSpacing.sm) {
+            ClubMPAvatar(url: nil, name: post.nickname, size: .sm)
+            Group { if post.nickname.isEmpty { Text("club.community.user") } else { Text(verbatim: post.nickname) } }
+        }
+        .frame(minHeight: 44, alignment: .leading)
     }
 }
 

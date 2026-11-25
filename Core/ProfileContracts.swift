@@ -246,6 +246,17 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let invoiceStatus: String?
     public let invoiceApplicationID: Int64?
     public let invoiceNo: String?
+    /// History card and detail hero cover. Missing images stay nil.
+    public let coverURL: String?
+    /// `cmsActivity.teamMode`. Topic-only orders stay nil.
+    public let teamMode: Int?
+    public let club: ProfileOrderClub?
+    /// `cmsTopic.memberId`, else `cmsActivity.memberId`. Consent matching uses this id.
+    public let merchantOwnerMemberID: Int?
+    public let party: ProfileOrderParty?
+    /// `usableState == "EXPIRED"`.
+    public let walletExpired: Bool
+    public let settlementView: ProfileOrderSettlementView
     public var registrationState: ProfileRegistrationState { .init(code: registrationStatus) }
     /// Source resolveActualPaidAmount: cash (WeChat) paid first, then the payable amount.
     public var actualPaidAmount: Decimal? { wechatPaymentAmount ?? payableAmount }
@@ -258,6 +269,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         case pointUsed, pointDeductAmount, pointPaymentAmount, wechatPaymentAmount, paymentType, pointsReturned
         case manualRefundCaseStatus, refundDeadlineDisplay
         case invoiceStatus, invoiceApplicationId, invoiceNo
+        case settlementSummary, party, usableState
     }
     private struct Owner: Decodable, Equatable {
         let name: String?
@@ -265,6 +277,42 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         let startDate: String?
         let endDate: String?
         let addressName: String?
+        let imgUrl: String?
+        let imgArrFirst: String?
+        let teamMode: Int?
+        let memberId: Int?
+        let clubId: Int?
+        let clubName: String?
+        let clubLeaderMemberId: Int?
+        private enum CodingKeys: String, CodingKey {
+            case name, productType, startDate, endDate, addressName, imgUrl, imgArr, teamMode, memberId
+            case clubId, clubName, clubLeaderMemberId
+        }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            name = try c.decodeIfPresent(String.self, forKey: .name)
+            productType = try c.decodeIfPresent(ProfileWireInteger.self, forKey: .productType)
+            startDate = try c.decodeIfPresent(String.self, forKey: .startDate)
+            endDate = try c.decodeIfPresent(String.self, forKey: .endDate)
+            addressName = try c.decodeIfPresent(String.self, forKey: .addressName)
+            imgUrl = Self.image(c, .imgUrl)
+            imgArrFirst = Self.image(c, .imgArr)
+            teamMode = ((try? c.decodeIfPresent(ProfileWireInteger.self, forKey: .teamMode)) ?? nil)?.value
+            memberId = ((try? c.decodeIfPresent(ProfileWireInteger.self, forKey: .memberId)) ?? nil)?.value
+            clubId = ((try? c.decodeIfPresent(ProfileWireInteger.self, forKey: .clubId)) ?? nil)?.value
+            clubName = (try? c.decodeIfPresent(String.self, forKey: .clubName)) ?? nil
+            clubLeaderMemberId = ((try? c.decodeIfPresent(ProfileWireInteger.self, forKey: .clubLeaderMemberId)) ?? nil)?.value
+        }
+        private static func image(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
+            if let text = try? c.decode(String.self, forKey: key) {
+                let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                return trimmed.isEmpty ? nil : trimmed
+            }
+            if let list = try? c.decode([String].self, forKey: key) {
+                return list.lazy.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.first { !$0.isEmpty }
+            }
+            return nil
+        }
     }
     private struct MeetingTicket: Decodable {
         let meetingPoint: String?
@@ -368,6 +416,51 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         }
         let number = ((try? c.decodeIfPresent(String.self, forKey: .invoiceNo)) ?? nil)?.trimmingCharacters(in: .whitespacesAndNewlines)
         invoiceNo = number?.isEmpty == false ? number : nil
+        let activity = activityOwner
+        let topic = (try? c.decodeIfPresent(Owner.self, forKey: .cmsTopic)) ?? nil
+        coverURL = Self.coverURL(activity: activity, topic: topic)
+        teamMode = activity?.teamMode
+        club = Self.club(activity: activity, topic: topic)
+        merchantOwnerMemberID = Self.positive(topic?.memberId) ?? Self.positive(activity?.memberId)
+        party = (try? c.decodeIfPresent(ProfileOrderParty.self, forKey: .party)) ?? nil
+        let usable = ((try? c.decodeIfPresent(String.self, forKey: .usableState)) ?? nil)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        walletExpired = usable == "EXPIRED"
+        settlementView = ((try? c.decodeIfPresent(ProfileOrderSettlementSummary.self, forKey: .settlementSummary)) ?? nil)?
+            .view ?? .hidden
+    }
+
+    /// Activity card: `imgUrl`, then `imgArr[0]`. Topic card: `imgArr[0]`, then `imgUrl`.
+    /// Same choice as the detail hero (`resolveHeroImage`).
+    private static func coverURL(activity: Owner?, topic: Owner?) -> String? {
+        if let activity { return activity.imgUrl ?? activity.imgArrFirst }
+        return topic?.imgArrFirst ?? topic?.imgUrl
+    }
+
+    private static func club(activity: Owner?, topic: Owner?) -> ProfileOrderClub? {
+        for owner in [activity, topic] {
+            if let id = positive(owner?.clubId) {
+                let name = owner?.clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return ProfileOrderClub(id: id, name: name, leaderMemberID: positive(owner?.clubLeaderMemberId))
+            }
+        }
+        return nil
+    }
+
+    private static func positive(_ value: Int?) -> Int? {
+        guard let value, value > 0 else { return nil }
+        return value
+    }
+
+    /// `paymentStatus == 2 && registrationStatus == 2 && orderNum > 1`.
+    public var seatsOpen: Bool {
+        paymentStatus == 2 && registrationStatus == 2 && (orderNum ?? 0) > 1
+    }
+
+    /// Activity order, registered, not completed, teamMode 1 or 2.
+    public var teamOpen: Bool {
+        ownerType == 2 && registrationStatus == 2 && historyState() != .completed
+            && (teamMode == 1 || teamMode == 2)
     }
 }
 
@@ -526,6 +619,169 @@ private struct ProfileOrderStatusInteger: Decodable {
         if let code = try? c.decode(Int.self) { value = code }
         else if let text = try? c.decode(String.self), let code = Int(text), String(code) == text { value = code }
         else { throw APIError.malformedResponse }
+    }
+}
+
+public struct ProfileOrderClub: Equatable, Sendable {
+    public let id: Int
+    public let name: String
+    public let leaderMemberID: Int?
+    public init(id: Int, name: String, leaderMemberID: Int?) {
+        self.id = id
+        self.name = name
+        self.leaderMemberID = leaderMemberID
+    }
+}
+
+/// `party.childCount > 0` → `N 大 N 小`, plus `（儿童 N 岁）` when `childAge` is present.
+public struct ProfileOrderParty: Equatable, Sendable, Decodable {
+    public let adultCount: Int
+    public let childCount: Int
+    public let childAge: String?
+    public var text: String? {
+        guard childCount > 0 else { return nil }
+        var value = "\(adultCount) 大 \(childCount) 小"
+        if let childAge, !childAge.isEmpty { value += "（儿童 \(childAge) 岁）" }
+        return value
+    }
+    private enum CodingKeys: String, CodingKey { case adultCount, childCount, childAge }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        adultCount = Self.integer(c, .adultCount) ?? 0
+        childCount = Self.integer(c, .childCount) ?? 0
+        childAge = Self.text(c, .childAge)
+    }
+    private static func integer(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Int? {
+        if let value = try? c.decode(Int.self, forKey: key) { return value }
+        if let text = try? c.decode(String.self, forKey: key) { return Int(text.trimmingCharacters(in: .whitespacesAndNewlines)) }
+        if let number = try? c.decode(Double.self, forKey: key), number.isFinite { return Int(exactly: number.rounded(.towardZero)) }
+        return nil
+    }
+    private static func text(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
+        if let text = try? c.decode(String.self, forKey: key) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+        if let value = try? c.decode(Int.self, forKey: key) { return String(value) }
+        return nil
+    }
+}
+
+/// Read-only `settlementSummary` rows from `utils/order-settlement-view.js`.
+/// Amount text uses `MoneyDisplay`. This does not send a refund.
+public struct ProfileOrderSettlementView: Equatable, Sendable {
+    public struct Row: Equatable, Sendable {
+        public let key: String
+        public let label: String
+        public let value: String
+        public init(key: String, label: String, value: String) {
+            self.key = key
+            self.label = label
+            self.value = value
+        }
+    }
+    public let show: Bool
+    public let stage: String
+    public let stageTone: String
+    public let rows: [Row]
+    public static let hidden = ProfileOrderSettlementView(show: false, stage: "", stageTone: "", rows: [])
+    public init(show: Bool, stage: String, stageTone: String, rows: [Row]) {
+        self.show = show
+        self.stage = stage
+        self.stageTone = stageTone
+        self.rows = rows
+    }
+}
+
+/// One matching unpaid consent row, or nil. Fail closed on zero or many matches, and on an opted-in row.
+public enum ProfileOrderConsentOffer {
+    public static func pick(rows: [ComplianceMarketingConsent], ownerMemberID: Int?) -> ComplianceMarketingConsent? {
+        guard let ownerMemberID, ownerMemberID > 0 else { return nil }
+        let matches = rows.filter { $0.valid && $0.merchantOwnerMemberId == ownerMemberID }
+        guard matches.count == 1, let row = matches.first, row.inAppOptedIn == false else { return nil }
+        return row
+    }
+}
+
+private struct ProfileOrderSettlementSummary: Decodable {
+    let refundStage: String
+    let amountsComplete: Bool
+    let refundPendingAmount: Decimal?
+    let refundProcessingAmount: Decimal?
+    let refundCompletedAmount: Decimal?
+    let refundRequestedAmount: Decimal?
+    let entitlementTotal: Decimal?
+    let entitlementRedeemed: Decimal?
+
+    private enum CodingKeys: String, CodingKey {
+        case refundStage, amountsComplete
+        case refundPendingAmount, refundProcessingAmount, refundCompletedAmount, refundRequestedAmount
+        case entitlementTotal, entitlementRedeemed
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let stage = (((try? c.decodeIfPresent(String.self, forKey: .refundStage)) ?? nil)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)) ?? ""
+        refundStage = stage.isEmpty ? "NONE" : stage
+        amountsComplete = (try? c.decode(Bool.self, forKey: .amountsComplete)) == true
+        refundPendingAmount = Self.amount(c, .refundPendingAmount)
+        refundProcessingAmount = Self.amount(c, .refundProcessingAmount)
+        refundCompletedAmount = Self.amount(c, .refundCompletedAmount)
+        refundRequestedAmount = Self.amount(c, .refundRequestedAmount)
+        entitlementTotal = Self.amount(c, .entitlementTotal)
+        entitlementRedeemed = Self.amount(c, .entitlementRedeemed)
+    }
+
+    var view: ProfileOrderSettlementView {
+        if refundStage == "NONE" { return .hidden }
+        let stageText = Self.stageText[refundStage] ?? Self.stageText["UNKNOWN"]!
+        let tone = refundStage == "COMPLETED" ? "done" : (refundStage == "REJECTED" ? "muted" : "pending")
+        var rows: [ProfileOrderSettlementView.Row] = []
+        func amountRow(_ key: String, _ label: String, _ value: Decimal?) {
+            if let value, value == 0 { return }
+            if value == nil, amountsComplete { return }
+            let text = value.map { MoneyDisplay.yuan($0) } ?? "金额待确认"
+            rows.append(.init(key: key, label: label, value: text))
+        }
+        amountRow("pending", "审核中", refundPendingAmount)
+        amountRow("processing", "退款处理中", refundProcessingAmount)
+        amountRow("completed", "已退回", refundCompletedAmount)
+        if amountsComplete, let requested = refundRequestedAmount, requested > 0, rows.count > 1 {
+            rows.append(.init(key: "total", label: "退款合计", value: MoneyDisplay.yuan(requested)))
+        }
+        if let total = entitlementTotal, total > 0 {
+            let used = entitlementRedeemed ?? 0
+            rows.append(.init(key: "entitlement", label: "已使用", value: "\(Self.count(used)) / \(Self.count(total))"))
+        }
+        return ProfileOrderSettlementView(show: true, stage: stageText, stageTone: tone, rows: rows)
+    }
+
+    private static let stageText = [
+        "UNDER_REVIEW": "退款审核中",
+        "PAYOUT_PENDING": "已批准，等待原路退回",
+        "MANUAL_PAYOUT": "人工退款处理中",
+        "COMPLETED": "已原路退回",
+        "REJECTED": "退款未通过",
+        "MANUAL_REVIEW": "售后处理中",
+        "UNKNOWN": "退款状态待确认"
+    ]
+
+    private static func amount(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Decimal? {
+        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return nil }
+        if let value = try? c.decode(Decimal.self, forKey: key), !value.isNaN { return value }
+        if let number = try? c.decode(Double.self, forKey: key), number.isFinite { return Decimal(number) }
+        if let text = try? c.decode(String.self, forKey: key) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard trimmed.range(of: #"^[+-]?(?:0|[1-9]\d*)(?:\.\d+)?$"#, options: .regularExpression) != nil,
+                  let value = Decimal(string: trimmed), !value.isNaN else { return nil }
+            return value
+        }
+        return nil
+    }
+
+    private static func count(_ value: Decimal) -> String {
+        NSDecimalNumber(decimal: value).stringValue
     }
 }
 

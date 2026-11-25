@@ -207,6 +207,7 @@ extension MerchantPredictionReading {
 @MainActor struct MerchantPredictionInboxView: View {
     let reader: any MerchantPredictionReading
     @StateObject private var model: MerchantPredictionInboxModel
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     init(reader: any MerchantPredictionReading) { self.reader = reader; _model = StateObject(wrappedValue: .init(reader: reader)) }
@@ -226,10 +227,14 @@ extension MerchantPredictionReading {
             }
             else if model.phase == .denied {
                 // Source predict/index.wxml no-permission state.
+                // MP predict/index.wxml:15-18: cta 返回工作台 (navigateBack).
                 CYEmptyState(
                     systemImage: "lock",
-                    verbatimTitle: MerchantOpsCopy.text("merchantOps.predict.denied.title"),
-                    verbatimSubtitle: MerchantOpsCopy.text("merchantOps.predict.denied.body")
+                    LocalizedStringKey(MerchantOpsCopy.text("merchantOps.predict.denied.title")),
+                    detailVerbatim: MerchantOpsCopy.text("merchantOps.predict.denied.body"),
+                    actionTitle: "merchant.predict.backToWorkbench",
+                    actionIdentifier: "merchantOps.predict.denied.back",
+                    action: { dismiss() }
                 )
                 .listRowBackground(Color.clear)
                 .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.predict.denied")
@@ -256,7 +261,7 @@ extension MerchantPredictionReading {
                 if model.rows.isEmpty {
                     // Source empty state has a title only.
                     CYEmptyState(
-                        systemImage: "checkmark.circle",
+                        systemImage: "tray",
                         verbatimTitle: MerchantOpsCopy.text("merchantOps.predict.empty.title")
                     )
                     .listRowBackground(Color.clear)

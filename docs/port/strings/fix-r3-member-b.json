@@ -1,4 +1,72 @@
 {
+  "characterCard.failure.error": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Could not load the character card. Try again later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色卡暂时无法读取"
+        }
+      }
+    }
+  },
+  "characterCard.failure.forbidden": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "You do not have access to this character card"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无权查看角色卡"
+        }
+      }
+    }
+  },
+  "orderLifecycle.state.refunded": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refunded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退款成功"
+        }
+      }
+    }
+  },
+  "orientScore.appealPending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal pending"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉处理中"
+        }
+      }
+    }
+  },
   "orientScore.board.elapsedMs %lld": {
     "extractionState": "manual",
     "localizations": {
@@ -67,6 +135,23 @@
       }
     }
   },
+  "orientScore.board.mine": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Me"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本人"
+        }
+      }
+    }
+  },
   "orientScore.board.notReached": {
     "extractionState": "manual",
     "localizations": {
@@ -101,6 +186,23 @@
       }
     }
   },
+  "orientScore.board.player": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Player"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "参赛玩家"
+        }
+      }
+    }
+  },
   "orientScore.board.reached": {
     "extractionState": "manual",
     "localizations": {
@@ -114,6 +216,40 @@
         "stringUnit": {
           "state": "translated",
           "value": "已到结局"
+        }
+      }
+    }
+  },
+  "orientScore.pendingReview %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld tasks still under review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还有 %lld 项任务在审核"
+        }
+      }
+    }
+  },
+  "orientScore.reversed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已撤销"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reversed"
         }
       }
     }
@@ -152,6 +288,40 @@
       }
     }
   },
+  "orientScore.review.disputeEntry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提出成绩争议"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Raise a score dispute"
+        }
+      }
+    }
+  },
+  "orientScore.review.submitted": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sent. The server will review it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已提交复核，请等待处理"
+        }
+      }
+    }
+  },
   "orientScore.review.submittingLabel": {
     "extractionState": "manual",
     "localizations": {
@@ -165,6 +335,295 @@
         "stringUnit": {
           "state": "translated",
           "value": "正在提交申诉…"
+        }
+      }
+    }
+  },
+  "orientScore.review.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "—"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "操作结果待确认，请勿重复提交"
+        }
+      }
+    }
+  },
+  "orientScore.titlePhase %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本局计分 · %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Round score · %@"
+        }
+      }
+    }
+  },
+  "playerJourney.parity.list.unavailable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The service is temporarily unavailable. Try again later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "服务暂不可用，请稍后重试"
+        }
+      }
+    }
+  },
+  "profile.complaint.contact": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Contact details (optional)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "联系方式"
+        }
+      }
+    }
+  },
+  "profile.complaint.contactPlaceholder": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Phone / WeChat (optional, so support can reach you)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "手机号/微信（可选）"
+        }
+      }
+    }
+  },
+  "profile.complaint.kind": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Complaint type (optional)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "投诉类型"
+        }
+      }
+    }
+  },
+  "profile.complaint.submit.network": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Network problem. We can't tell whether it was received, so it was not resent automatically."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "网络异常，请重试"
+        }
+      }
+    }
+  },
+  "profile.complaint.submit.sending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submitting…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "处理中"
+        }
+      }
+    }
+  },
+  "profile.complaint.submit.signIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your sign-in expired. Sign in again to submit."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录状态已失效，请重新进入"
+        }
+      }
+    }
+  },
+  "profile.complaint.unnamed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Activity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未命名活动"
+        }
+      }
+    }
+  },
+  "profile.complaint.validation.reasonShort": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Describe the issue in at least 5 characters."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写至少 5 字的投诉内容"
+        }
+      }
+    }
+  },
+  "profile.complaint.validation.topic": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose an activity from the current list."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择投诉的活动"
+        }
+      }
+    }
+  },
+  "profile.complaintProgress.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This account cannot view case progress."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看处理进展"
+        }
+      }
+    }
+  },
+  "profile.inviteHistory.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This account cannot view invitation history"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看邀请记录"
+        }
+      }
+    }
+  },
+  "profile.inviteHistory.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Invitation history did not load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请记录加载失败"
+        }
+      }
+    }
+  },
+  "profile.inviteRewards.heroPending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "待同步"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Syncing"
+        }
+      }
+    }
+  },
+  "profile.orderFilter.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No orders match this status."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前筛选暂无订单"
         }
       }
     }
@@ -199,6 +658,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "当前身份不能查看订单"
+        }
+      }
+    }
+  },
+  "profile.orderParity.notice.refunded": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refund accepted"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "退款成功"
         }
       }
     }
@@ -254,6 +730,91 @@
       }
     }
   },
+  "reportAppeal.title.fail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal not submitted"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉没有提交成功"
+        }
+      }
+    }
+  },
+  "reportAppeal.title.form": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Submit appeal"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提交申诉"
+        }
+      }
+    }
+  },
+  "reportAppeal.title.ok": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal accepted"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉已受理"
+        }
+      }
+    }
+  },
+  "reportAppeal.title.unknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal status not confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没确认申诉是否提交"
+        }
+      }
+    }
+  },
+  "social.invites.synchronizing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Joined · reward not synchronized"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已加入 · 奖励发放中"
+        }
+      }
+    }
+  },
   "ticketPass.pager.position %lld %lld": {
     "extractionState": "manual",
     "localizations": {
@@ -267,6 +828,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "左右滑动切换票券 · %1$lld/%2$lld"
+        }
+      }
+    }
+  },
+  "wallet.points.entryFallback": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "积分变动"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Points change"
         }
       }
     }

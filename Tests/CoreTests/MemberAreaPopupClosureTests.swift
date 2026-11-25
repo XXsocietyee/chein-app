@@ -171,7 +171,8 @@ final class MemberAreaPopupClosureTests: XCTestCase {
         await gate.release()
         let route = await first.value
         XCTAssertEqual(route, .createClub)
-        XCTAssertEqual(await gate.hits, 1)
+        let hits = await gate.hits
+        XCTAssertEqual(hits, 1)
     }
 
     func testNPCChatExportFormatterAndDeepLinkExitPolicy() throws {

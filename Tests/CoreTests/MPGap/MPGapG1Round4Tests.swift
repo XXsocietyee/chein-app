@@ -45,6 +45,16 @@ final class MPGapG1Round4Tests: XCTestCase {
         XCTAssertEqual(passOffer?.kind, .pass)
         XCTAssertEqual(passOffer?.priceText, "¥39.00")
         XCTAssertEqual(passOffer?.analyticsProperties["planCode"], "MONTH")
+        let passTrack = passOffer?.trackPayload(topicID: "10")
+        XCTAssertEqual(passTrack?.bizType, "platform_pass")
+        XCTAssertNil(passTrack?.bizID)
+        XCTAssertEqual(passTrack?.properties["offerKind"], .string("pass"))
+        XCTAssertEqual(passTrack?.properties["planCode"], .string("MONTH"))
+        XCTAssertEqual(passTrack?.properties["topicId"], .integer(10))
+        XCTAssertNil(passTrack?.properties["name"])
+        XCTAssertTrue(AnalyticsEventClient.allowedEvents.contains(JourneyFinishOfferAnalytics.shown))
+        XCTAssertTrue(AnalyticsEventClient.allowedEvents.contains(JourneyFinishOfferAnalytics.click))
+        XCTAssertFalse(PlayStageAnalyticsGate.enabled)
 
         // Falls back to product covering another route
         let prodOffer = JourneyFinishOfferResolver.resolve(isMerchantView: false, pass: nil, products: [product], currentTopicID: 10)

@@ -141,7 +141,7 @@ public enum BundleMoneyWriteGate {
         if header?.code == 401 { onUnauthorized(session); throw APIError.unauthorized }
         guard (200..<300).contains(status), header?.code == 200 else {
             if write, status >= 500 || header == nil { throw FreeExploreLaunchFailure.outcomeUnknown }
-            throw FreeExploreLaunchFailure.response(status: status, code: header?.code ?? status, businessCode: header?.businessCode)
+            throw FreeExploreLaunchFailure.response(status: status, code: header?.code ?? status, businessCode: header?.businessCode, message: nil)
         }
         do {
             guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any], object.keys.contains("data") else { throw unknown }

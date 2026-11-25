@@ -117,7 +117,7 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("team.detail.card")
                     // U06-01: seats, applications and the invitation deadline, separate from the member list.
                     // C-J6 (MP team-seats): the join page shows joined seats filled and open seats dashed.
-                    if invitationCode != nil { TeamJoinSeatRow(detail: detail) }
+                    if invitationCode != nil { TeamJoinSeatRow(detail: detail) } else { TeamDetailSeatStrip(detail: detail) }
                     TeamSeatFactsCard(detail: detail)
                     TeamRoleAndSharedSection(role: detail.roleFacts, shared: detail.sharedOutcome)
                     TeamViewerRelationshipLine(detail: detail, invitation: invitationCode != nil)
@@ -168,6 +168,8 @@ extension EnvironmentValues {
                                 .accessibilityIdentifier("team.mode.current")
                         }
                         }
+                        // r8 C-D2 (MP team/detail wxml:76-95, js:340-376): the leader sees and handles 入队申请 here.
+                        if !readOnly, invitationCode == nil { TeamDetailApplicantsHost(teamID: detail.team.id) }
                     }
                     Text("team.members.title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                     // Mini `.team-card`: members share one card, hairline between rows.

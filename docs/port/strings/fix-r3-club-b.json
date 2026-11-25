@@ -53,6 +53,91 @@
         }
       }
     },
+    "club.gov.groupCode.noPermission": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current role can't show a code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能出码"
+          }
+        }
+      }
+    },
+    "club.refund.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "club.refund.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund and remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款并清退"
+          }
+        }
+      }
+    },
+    "club.refund.readback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新查询"
+          }
+        }
+      }
+    },
+    "club.refund.review": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel and refund"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清退并退款"
+          }
+        }
+      }
+    },
     "clubR3b.badges.descriptionOptional": {
       "extractionState": "manual",
       "localizations": {
@@ -189,6 +274,23 @@
         }
       }
     },
+    "clubR3b.checkin.deniedReason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current role can't view check-in records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看核销记录"
+          }
+        }
+      }
+    },
     "clubR3b.checkin.reload": {
       "extractionState": "manual",
       "localizations": {
@@ -202,6 +304,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新加载"
+          }
+        }
+      }
+    },
+    "clubR3b.checkin.untitledTopic": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名主题"
+          }
+        }
+      }
+    },
+    "clubR3b.customer.edit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
           }
         }
       }
@@ -274,6 +410,23 @@
         }
       }
     },
+    "clubR3b.customer.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客户"
+          }
+        }
+      }
+    },
     "clubR3b.groupCode.issue": {
       "extractionState": "manual",
       "localizations": {
@@ -291,6 +444,40 @@
         }
       }
     },
+    "clubR3b.groupCode.network": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network error. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络异常，请重试"
+          }
+        }
+      }
+    },
+    "clubR3b.groupCode.noIssuable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No session can show a group code yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可出示团码的场次"
+          }
+        }
+      }
+    },
     "clubR3b.groupCode.reissue": {
       "extractionState": "manual",
       "localizations": {
@@ -304,6 +491,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新出码"
+          }
+        }
+      }
+    },
+    "clubR3b.groupCode.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        }
+      }
+    },
+    "clubR3b.groupCode.sessionsFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the sessions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次加载失败"
+          }
+        }
+      }
+    },
+    "clubR3b.groupCode.sessionsLoading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading sessions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载场次"
           }
         }
       }
@@ -423,6 +661,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "没有找到这个俱乐部"
+          }
+        }
+      }
+    },
+    "clubR3b.payout.createClub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建俱乐部"
           }
         }
       }

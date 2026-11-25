@@ -13,14 +13,17 @@ import UIKit
     let onCancel: () -> Void
     /// A7-04: true when the cropper is its own pushed page (MP pages/crop); embedded hosts keep their title.
     var showsNavigationTitle = false
+    /// r8 A7-05 (MP crop wxml:2 `shape`): `.circle` for avatars; the frame stays the ratio's frame.
+    var shape: CropGapShape = .rect
     @State private var session: MiniCropSession
     @State private var gestureScale = 1.0
     @State private var gestureOffset = CGSize.zero
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    init(images: [UIImage], ratio: String, showsNavigationTitle: Bool = false, onFinish: @escaping ([Result]) -> Void, onCancel: @escaping () -> Void) {
+    init(images: [UIImage], ratio: String, showsNavigationTitle: Bool = false, shape: CropGapShape = .rect, onFinish: @escaping ([Result]) -> Void, onCancel: @escaping () -> Void) {
         self.showsNavigationTitle = showsNavigationTitle
+        self.shape = shape
         self.images = images
         self.ratio = ratio
         self.onFinish = onFinish
@@ -145,12 +148,22 @@ import UIKit
                 let live = clamped(scale: scale * gestureScale, x: offset.width + gestureOffset.width,
                                    y: offset.height + gestureOffset.height, image: size, frame: frame)
                 let base = max(frame.width / size.width, frame.height / size.height)
+                // r8 A7-01/03: the whole image stays visible under a dimmed mask (MP crop wxml:38, 45-47); only the
+                // frame cut-out is clear, with the rule-of-thirds grid or the circle. The canvas clips at its edges only.
                 Image(uiImage: image).resizable()
                     .frame(width: size.width * base * live.scale, height: size.height * base * live.scale)
                     .offset(x: live.x, y: live.y)
-                    .frame(width: frame.width, height: frame.height).clipped()
-                    .overlay(Rectangle().stroke(CYColor.borderStrong, lineWidth: 1).accessibilityHidden(true))
+                    .frame(width: frame.width, height: frame.height)
                     .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+                    .overlay {
+                        MiniCropGapOverlay(shape: shape, cropSize: CGSize(width: frame.width, height: frame.height)) {
+                            // A7-03 还原: back to the session's initial transform (scale 1, centred), clamped as usual.
+                            gestureScale = 1; gestureOffset = .zero
+                            session.applyGesture(scale: 1, x: 0, y: 0)
+                        }
+                        .accessibilityIdentifier("miniCrop.overlay")
+                    }
+                    .contentShape(Rectangle())
                     .gesture(SimultaneousGesture(
                         MagnifyGesture().onChanged { gestureScale = $0.magnification }.onEnded { _ in commit(image: size, frame: frame) },
                         DragGesture().onChanged { gestureOffset = $0.translation }.onEnded { _ in commit(image: size, frame: frame) }))
@@ -166,6 +179,7 @@ import UIKit
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
     }
 
     private func clamped(scale: Double, x: Double, y: Double, image: CGSize, frame: (width: Double, height: Double)) -> MiniCropGeometry.Transform {

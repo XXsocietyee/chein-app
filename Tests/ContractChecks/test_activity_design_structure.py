@@ -34,7 +34,14 @@ class ActivityDesignStructureTests(unittest.TestCase):
         self.assertIn(".safeAreaInset(edge:.bottom,spacing:0)", source)
         self.assertIn("if registrationEnabled { registrationAction(detail) }", source)
         self.assertEqual(source.count('accessibilityIdentifier("activity.openRegistration")'), 1)
-        self.assertIn("if primaryAction == .signUp {\n                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) { showsRegistration = true }", source)
+        # MP scene-play-activity-detail/index.wxml:149-153: a cancelled activity is a disabled pill, the host
+        # footer is 取消活动并退款, signup shows noTicketText or 立即报名 and is disabled when it cannot confirm,
+        # and every other state is a disabled actionText pill.
+        # index.js:396-399: a guest hits ensureLoginFor('signup') before the registration page opens.
+        self.assertIn('Text(verbatim: CoreLoopCopy(locale: locale).t("取消活动并退款", "Cancel event & refund"))', source)
+        self.assertIn('accessibilityIdentifier("activity.openRegistration.blocked")', source)
+        self.assertIn("} else if primaryAction == .signUp {\n                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) {\n                    if let guestSignIn { guestSignIn() } else { showsRegistration = true }\n                }", source)
+        self.assertIn("} else if primaryAction == .unavailable {\n                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) {}\n                    .disabled(true)", source)
         # A registered or cancelled activity never reopens the registration sheet.
         self.assertIn("if action != .cancelled, walletAvailable { showsTicketWallet = true }", source)
         self.assertIn("if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }", source)

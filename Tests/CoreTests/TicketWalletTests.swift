@@ -57,6 +57,15 @@ final class TicketWalletTests: XCTestCase {
         XCTAssertEqual(topic.coverURL, "https://cdn.example/t.jpg")
         XCTAssertNil(try decode(#"{"id":9}"#).coverURL)
     }
+    func testActivityGameFlagMatchesTheMiniProgram() throws {
+        XCTAssertTrue(try decode(#"{"id":1,"ownerType":1}"#).hasGame)
+        XCTAssertTrue(try decode(#"{"id":2,"ownerType":2}"#).activityHasGame)
+        let played = try decode(#"{"id":3,"ownerType":2,"cmsActivity":{"topicId":4,"templateId":0}}"#)
+        XCTAssertTrue(played.hasGame)
+        let plain = try decode(#"{"id":4,"ownerType":2,"cmsActivity":{"name":"Session"}}"#)
+        XCTAssertFalse(plain.activityHasGame)
+        XCTAssertFalse(plain.hasGame)
+    }
     func testExactTwoLaneRequestsRawAuthorizationAndFreshReads() async throws {
         let t = TicketWalletTransport(["route": .init(json: TicketWalletSyntheticFixtures.routeListJSON), "activity": .init(json: TicketWalletSyntheticFixtures.activityListJSON)])
         let api = try service(t)
@@ -74,7 +83,9 @@ final class TicketWalletTests: XCTestCase {
             XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-token")
             XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data;") == true)
             XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
-            for key in ["status", "is_online", "pageNum", "pageSize", "ownerType"] { XCTAssertFalse(body(request).contains("name=\"\(key)\"")) }
+            for key in ["status", "is_online", "ownerType"] { XCTAssertFalse(body(request).contains("name=\"\(key)\"")) }
+            XCTAssertTrue(body(request).contains("name=\"pageNum\"\r\n\r\n1\r\n"))
+            XCTAssertTrue(body(request).contains("name=\"pageSize\"\r\n\r\n10\r\n"))
         }
     }
     func testListEnvelopeContractAndMalformedRowsNeverBecomeEmptySuccess() async throws {

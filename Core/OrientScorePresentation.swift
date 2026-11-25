@@ -66,6 +66,10 @@ public struct OrientScoreSummary: Equatable, Sendable {
     public let settlement: OrientScoreSettlementSummary?
     public let appeals: [OrientScoreReviewRow]
     public let disputes: [OrientScoreReviewRow]
+    /// Display text for `disputeWindowDeadline`. Nil when the score has no deadline.
+    public let disputeDeadline: String?
+    /// Same rule as the mini-program: status 1 or 2, a deadline, and no open dispute.
+    public let canDispute: Bool
     public var settlementNotice: String {
         settlement == nil
             ? W8Text.t("本局尚未结算，暂不能确认积分或探索值到账。", "This round is not settled yet, so points and explore XP are not confirmed.")
@@ -135,7 +139,8 @@ public enum OrientScorePresentation {
             sessionID: score.sessionID, phase: phase(status: score.status), total: total,
             totalAccessibility: W8Text.t("本局总分 \(total) 分", "Round total \(total) points"),
             dimensions: dimensions, timeline: timeline, settlement: settlement,
-            appeals: reviews(score.appealRecords), disputes: reviews(score.disputeRecords))
+            appeals: reviews(score.appealRecords), disputes: reviews(score.disputeRecords),
+            disputeDeadline: score.disputeWindowDeadline, canDispute: score.canDispute)
     }
 
     /// A timeline entry without a positive entry id or numeric delta is dropped, matching the

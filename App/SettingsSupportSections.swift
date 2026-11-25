@@ -49,13 +49,8 @@ import UIKit
             NavigationLink {
                 SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
             } label: {
-                // Source shezhi entry description: 版本、协议、联系与我的二维码.
-                Label {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("settingsNative.about.title")
-                        Text("settingsNative.about.entryHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                    }
-                } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcInfo) }
+                // MP shezhi.wxml:35: the row reads 关于 only (no description line).
+                Label { Text("settingsNative.about.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcInfo) }
             }
             .accessibilityIdentifier("settingsNative.openAbout")
         }

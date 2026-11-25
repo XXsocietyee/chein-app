@@ -70,6 +70,12 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     .environment(\.pricingChapterProjectDestination, { topicID in
                         AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
                     })
+                    // RTEAMS-1: topic 组队 card reads nearby teams (20 km, signed in) and opens 本场招募.
+                    .environment(\.topicTeamsSource, TopicTeamsSource(
+                        read: { latitude, longitude in await session.topicNearbyTeams(latitude: latitude, longitude: longitude) },
+                        lobby: { ownerType, ownerID, scope in
+                            AnyView(OrientLobbyTeamsView(ownerType: ownerType, ownerID: ownerID, scopeTitle: scope).environmentObject(session))
+                        }))
                     .environment(\.topicLineupClubDestination, { clubID in
                         AnyView(MPReviewedPageScreen(page: "pages/club/detail/index", query: ["id": String(clubID)]).environmentObject(session))
                     })
@@ -88,6 +94,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                         return AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: query).environmentObject(session))
                     }
                     .environment(\.playRuntimeTopicClient, PlayRuntimeGapBridge.topicClient(session: session))
+                    .environment(\.topicFavoriteHostFactory, { session.makeTopicFavoriteHost() })
             }
         }
     }

@@ -113,8 +113,11 @@ public struct RuntimeDependencyContext: Equatable {
               readsEnabled: accepted?.journeyReads == true, asksEnabled: accepted?.journeyAsks == true)
     }
     public var publisherGrants: PublisherLifecycleGrants {
-        // Pricing mutations, refunds, ownership and applications remain independently off.
-        PublisherLifecycleGrants(reads: accepted?.publisherReads == true ? accepted?.endpoints : nil)
+        // MP-first (owner 2026-11-25): pricing confirm (a price-config save, not a payment), beta/graduate and
+        // transfer-to-club are writes the MP sends; the server decides. Cancellation refunds (money) and creator
+        // applications stay off.
+        let endpoints = accepted?.publisherReads == true ? accepted?.endpoints : nil
+        return PublisherLifecycleGrants(reads: endpoints, pricing: endpoints, ownership: endpoints, graduation: endpoints)
     }
     public var allowsNearbyLocation: Bool {
         accepted?.nearbyLocation == true && accepted?.endpoints.paths.contains("api/merchant/nearby") == true

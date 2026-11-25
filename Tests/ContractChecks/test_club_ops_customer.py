@@ -73,7 +73,8 @@ class ClubOpsCustomerCatalog(unittest.TestCase):
             "clubOps.customers.filteredEmptyDetail": "换个筛选或关键词试试",
             "clubOps.customers.failed": "客户名单加载失败",
             "clubOps.customers.retry": "重试加载",
-            "clubOps.customers.forbidden": "当前岗位没有客户查看权限",
+            # fix-r3-club-b round 4: current MP customers wxml:32 / customer-detail wxml:13.
+            "clubOps.customers.forbidden": "当前身份不能查看客户",
             "clubOps.customers.forbiddenDetail": "请联系主理人调整角色权限",
             "clubOps.customer.noInteraction": "尚未发生互动",
             "clubOps.customer.interactionRemark %lld %lld %@": "最近互动 %1$lld月%2$lld日 · %3$@",

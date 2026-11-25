@@ -146,7 +146,8 @@ final class SettingsIdentityApplicationsTests: XCTestCase {
         XCTAssertEqual(denied, .denied)
         transport.status = 200
         transport.body = Data(#"{"code":"403","msg":"denied"}"#.utf8)
-        XCTAssertEqual(await client.refresh(memberID: 7, token: "synthetic-token"), .denied)
+        let stringCodeDenied = await client.refresh(memberID: 7, token: "synthetic-token")
+        XCTAssertEqual(stringCodeDenied, .denied)
         transport.body = Data(#"{"code":200,"data":{"role":"club"}}"#.utf8)
         guard case .ready(let club) = await client.refresh(memberID: 7, token: "synthetic-token") else { return XCTFail("expected club") }
         XCTAssertTrue(club.isClubLeader)

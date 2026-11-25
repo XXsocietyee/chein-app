@@ -41,6 +41,8 @@ final class ClubGovernanceContractTests: XCTestCase {
         XCTAssertEqual(try ClubGovernanceRead.editions.fields(scope: scope), ["clubId": .integer(81)])
         XCTAssertEqual(try ClubGovernanceRead.topicOverview.fields(scope: scope), ["id": .string("91")])
         XCTAssertEqual(try ClubGovernanceFixtures.command(.issueGroupCode).fields, ["activityId": .integer(101)])
+        XCTAssertEqual(try ClubGroupCodeIssueBody.command(activityID: 101).fields, ["activityId": .integer(101)])
+        XCTAssertNil(try ClubGroupCodeIssueBody.command(activityID: 101).fields["clubId"])
         XCTAssertEqual(try ClubGovernanceFixtures.command(.retryNotification).fields, ["campaignId": .integer(131)])
     }
     func testActivityNullMustRemainExplicit() throws {
@@ -91,10 +93,10 @@ final class ClubGovernanceContractTests: XCTestCase {
         raw["assignments"] = .array([.object(assignment)])
         XCTAssertThrowsError(try ClubGovernanceValidation.validate(.object(raw), operation: .roles, scope: scope))
     }
-    func testRosterRejectsPhoneExposureAndMissingBuckets() {
-        for text in [#"{"phoneIncluded":true,"registered":[],"waitlist":[],"arrived":[],"noShow":[]}"#, #"{"phoneIncluded":false,"registered":[],"waitlist":[],"arrived":[]}"#] {
-            XCTAssertThrowsError(try ClubGovernanceValidation.validate(ClubGovernanceFixtures.json(text), operation: .roster, scope: scope))
-        }
+    func testRosterAcceptsEitherPhoneFlagAndStillRejectsAMissingBucket() throws {
+        let exposed = try ClubGovernanceValidation.validate(ClubGovernanceFixtures.json(#"{"phoneIncluded":true,"registered":[],"waitlist":[],"arrived":[],"noShow":[]}"#), operation: .roster, scope: scope)
+        XCTAssertEqual(exposed["phoneIncluded"], .bool(true))
+        XCTAssertThrowsError(try ClubGovernanceValidation.validate(ClubGovernanceFixtures.json(#"{"phoneIncluded":false,"registered":[],"waitlist":[],"arrived":[]}"#), operation: .roster, scope: scope))
     }
     func testRawPhoneCredentialsDroppedRecursively() throws {
         let raw = ClubGovernanceFixtures.json(#"{"total":1,"monthNew":0,"items":[{"memberId":704,"verifiedCount":0,"pendingCount":0,"phone":"secret","phoneText":"Hidden","token":"secret"}]}"#)

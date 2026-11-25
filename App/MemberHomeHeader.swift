@@ -111,7 +111,7 @@ import SwiftUI
             .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
             .cyStaggeredAppear(index: 0, gate: stagger)
         }
-        .listRowBackground(Color.clear)
+        .listRowBackground(heroBackdrop)
         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
         .onAppear { readOwner.appear(active: scenePhase == .active) }
         .task(id: TaskKey(scope: reader.scope, refresh: refreshToken, active: scenePhase == .active)) { await load() }
@@ -143,6 +143,21 @@ import SwiftUI
     private var levelText: String {
         guard let knownLevel else { return MemberHomePageModel.unknownDisplay }
         return "Lv.\(knownLevel)"
+    }
+    /// MP cy-profile `.pc-hero-bg` (index.js:399 `heroImg` default `/subpackageMember/images/mer1.jpg`): the cover sits
+    /// behind the identity card and fades into the page colour at the bottom (`.pc-page-fade`). Decorative.
+    private var heroBackdrop: some View {
+        MPAsset.BannerCover.subpackageMemberImagesMer1
+            .resizable()
+            .scaledToFill()
+            .accessibilityHidden(true)
+            .overlay {
+                LinearGradient(stops: [.init(color: palette.bgPage.opacity(themeDomain == .player ? 0 : 0.55), location: 0),
+                                       .init(color: palette.bgPage.opacity(themeDomain == .player ? 0.2 : 0.7), location: 0.55),
+                                       .init(color: palette.bgPage, location: 1)],
+                               startPoint: .top, endPoint: .bottom)
+            }
+            .clipped()
     }
     /// Player profile avatar ring. The reserved ring tint is allowed only here, on the selected tab, and on the result spinner.
     @ViewBuilder private var levelRing: some View {

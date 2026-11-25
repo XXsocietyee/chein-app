@@ -7,7 +7,7 @@ import FoundationNetworking
 #endif
 
 /// Mini `pages/topic/merchantinfo` chapter application on a REAL (non-offline) transport:
-/// closed by default, sent exactly once to the source route only when the host approval says so.
+/// MP-first (owner 2026-11-25): open by default; `.closed` still sends nothing; sent exactly once to the source route.
 private final class ChapterApplyTransport: HTTPTransport {
     var replies: [(String, Int)] = []
     var requests: [URLRequest] = []
@@ -32,17 +32,22 @@ private final class ChapterApplyTransport: HTTPTransport {
         return MerchantContentService(configuration: try APIConfiguration(baseURL: URL(string: "https://merchant-info.example")!),
                                       transport: t, currentSession: { session }, journal: journal, writeApproval: { approval })
     }
-    func testDefaultApprovalKeepsApplyAndWithdrawClosed() throws {
+    /// Was `testDefaultApprovalKeepsApplyAndWithdrawClosed`; MP-first rule flips the default to open
+    /// (MP merchantinfo.js:1460 apply, :1782 withdraw). `.closed` keeps the old closed pin.
+    func testDefaultApprovalOpensApplyAndWithdrawMPFirst() throws {
         let t = ChapterApplyTransport()
         let service = try make(t, journal: MerchantContentMemoryPendingStorage(), approval: .init())
-        XCTAssertFalse(service.permits(.apply(chapterID: 7, message: "hi")))
-        XCTAssertFalse(service.permits(.withdraw(applicationID: 3)))
-        XCTAssertFalse(MerchantContentWriteApproval().chapterApply)
-        XCTAssertFalse(MerchantContentWriteApproval().chapterWithdraw)
+        XCTAssertTrue(service.permits(.apply(chapterID: 7, message: "hi")))
+        XCTAssertTrue(service.permits(.withdraw(applicationID: 3)))
+        XCTAssertTrue(MerchantContentWriteApproval().chapterApply)
+        XCTAssertTrue(MerchantContentWriteApproval().chapterWithdraw)
+        let closed = try make(t, journal: MerchantContentMemoryPendingStorage(), approval: .closed)
+        XCTAssertFalse(closed.permits(.apply(chapterID: 7, message: "hi")))
+        XCTAssertFalse(closed.permits(.withdraw(applicationID: 3)))
     }
     func testClosedApprovalPerformSendsNothing() async throws {
         let t = ChapterApplyTransport(); t.queueChapterRead()
-        let service = try make(t, journal: MerchantContentMemoryPendingStorage(), approval: .init())
+        let service = try make(t, journal: MerchantContentMemoryPendingStorage(), approval: .closed)
         let base = try await service.load(.chapters(topicID: 70))
         let before = t.requests.count
         do { _ = try await service.perform(.apply(chapterID: 7, message: ""), baseline: base); XCTFail("must stay closed") }
@@ -53,7 +58,7 @@ private final class ChapterApplyTransport: HTTPTransport {
     func testApprovedApplySendsExactBodyOnceAndReleasesLock() async throws {
         let t = ChapterApplyTransport(), journal = MerchantContentMemoryPendingStorage()
         t.queueChapterRead()
-        let service = try make(t, journal: journal, approval: .init(chapterApply: true))
+        let service = try make(t, journal: journal, approval: .init(chapterWithdraw: false))
         let base = try await service.load(.chapters(topicID: 70))
         XCTAssertTrue(service.permits(.apply(chapterID: 7, message: "hi")))
         XCTAssertFalse(service.permits(.withdraw(applicationID: 3)))

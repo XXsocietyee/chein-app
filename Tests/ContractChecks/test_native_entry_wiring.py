@@ -39,10 +39,10 @@ class NativeEntryWiringChecks(unittest.TestCase):
             self.assertIn(key, gate)
     def test_marketing_visibility_is_not_a_service_grant(self):
         self.assertIn('isSourceVisible: true', self.read('App/MerchantHomeView.swift'))
-        self.assertIn('gates: composition.merchantMarketingGates, locks: nil', self.read('App/AppSessionDoorEntry.swift'))
+        self.assertIn('locks: safetyDirectory("MerchantPredictionLocks").map { MerchantPredictionFileLocks(directory: $0) }', self.read('App/AppSessionDoorEntry.swift'))  # MP-first 2026-11-25
         root = self.read('App/AppCompositionRoot.swift')
         self.assertIn('guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }', root)
-        self.assertIn('return .init(reads: true, insight: true, settlement: false)', root)
+        self.assertIn('return .init(reads: true, insight: true, settlement: true)', root)  # MP-first 2026-11-25
         self.assertIn('iOSCheckoutAvailable: Bool { false }', self.read('Core/MerchantMarketingModels.swift'))
         self.assertIn('case dashboard, insight, subscriptions, predictions', self.read('Core/MerchantMarketingCoordinator.swift'))
     def test_all_added_copy_is_bilingual_and_catalog_matches(self):

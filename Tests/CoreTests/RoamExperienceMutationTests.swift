@@ -56,10 +56,10 @@ private final class RoamDormantSpyTransport: HTTPTransport {
         XCTAssertThrowsError(try RoamExperienceMutation.discover(sessionID: 1, poiID: 2, fix: fix(.wgs84)).fields())
         XCTAssertEqual(try RoamExperienceMutation.presence(sessionID: 1, fix: coordinates, explorationPercent: 12).fields()["explorePct"], "12")
     }
-    func testStampCreationRequiresStableKeyAndOmitsEmptyCaption() throws {
+    func testStampCreationRequiresStableKeyAndAlwaysSendsCaption() throws {
         XCTAssertThrowsError(try RoamExperienceMutation.createStamp(pictureURL: "object", caption: "", idempotencyKey: "").fields())
         let value = try RoamExperienceMutation.createStamp(pictureURL: "object", caption: "", idempotencyKey: "fixed").fields()
-        XCTAssertEqual(value, ["picUrl": "object", "idempotencyKey": "fixed"])
+        XCTAssertEqual(value, ["picUrl": "object", "caption": "", "idempotencyKey": "fixed"])
         XCTAssertEqual(try RoamExperienceMutation.exchangeStamp(givenStampID: 8).fields(), ["givenStampId": "8"])
     }
     func testVoucherAndFavoriteWireRequestsMatchSource() throws {
@@ -73,11 +73,16 @@ private final class RoamDormantSpyTransport: HTTPTransport {
         let transport = RoamDormantSpyTransport()
         var credentialReads = 0
         let adapter = RoamDormantMutationAdapter(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/")!), transport: transport, currentSession: { credentialReads += 1; return nil })
-        for operation in [RoamExperienceMutation.reveal(sessionID: 0, tiles: ["s000000"]), .finish(sessionID: 1, poiIDs: [], distanceMeters: 0), .issueVoucher(poiID: 1), .createStamp(pictureURL: "object", caption: "", idempotencyKey: "key"), .exchangeStamp(givenStampID: 1)] {
+        for operation in [RoamExperienceMutation.reveal(sessionID: 0, tiles: ["s000000"]), .finish(sessionID: 1, poiIDs: [], distanceMeters: 0), .issueVoucher(poiID: 1)] {
             do { _ = try await adapter.execute(operation); XCTFail() }
             catch { XCTAssertEqual(error as? RoamExperienceFailure, .capabilityUnavailable) }
         }
-        XCTAssertFalse(adapter.isAvailable); XCTAssertEqual(transport.sends, 0); XCTAssertEqual(credentialReads, 0)
+        XCTAssertEqual(credentialReads, 0)
+        for operation in [RoamExperienceMutation.createStamp(pictureURL: "object", caption: "", idempotencyKey: "key"), .exchangeStamp(givenStampID: 1)] {
+            do { _ = try await adapter.execute(operation); XCTFail() }
+            catch { XCTAssertEqual(error as? APIError, .unauthorized) }
+        }
+        XCTAssertFalse(adapter.isAvailable); XCTAssertEqual(transport.sends, 0); XCTAssertEqual(credentialReads, 2)
     }
     func testCheckinUsesThreeDataOutcomesNotJustCode200() throws {
         func receipt(_ json: String) throws -> RoamCheckinDisposition {
