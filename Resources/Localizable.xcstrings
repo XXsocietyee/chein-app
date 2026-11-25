@@ -311384,6 +311384,74 @@
           }
         }
       }
+    },
+    "fixr9.ap.gameplay.category.inference": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reasoning"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推理"
+          }
+        }
+      }
+    },
+    "fixr9.ap.gameplay.summary.sort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put the items in the right order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把几条按正确顺序排好"
+          }
+        }
+      }
+    },
+    "fixr9.ap.gameplay.summary.match": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair the two columns one to one"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两列里一一配对"
+          }
+        }
+      }
+    },
+    "fixr9.ap.gameplay.summary.classify": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put each item in the right group"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每条归到对的那一类"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

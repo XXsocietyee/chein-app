@@ -446,9 +446,9 @@ extension EnvironmentValues {
         .background { RetainedImagePresenterHost(host: questionImage.pickerHost).frame(width: 0, height: 0) }
         // Screens r4 · Figma 237:71933 (CF-51, SR2-19): 选择玩法 as a sheet with the one confirm in the header.
         .editorSheet(isPresented: $gameplayPicker, family: .gameplayPicker) {
-            TemplateGameplayPickerSheet(current: model.draft.validationMethod, locked: !model.draft.advanced.enabledGames.isEmpty) { picked in
-                model.legacyHintMethodBinding().wrappedValue = picked
-            }
+            TemplateGameplayPickerSheet(current: model.draft.validationMethod, locked: !model.draft.advanced.enabledGames.isEmpty,
+                                        commit: { picked in model.legacyHintMethodBinding().wrappedValue = picked },
+                                        commitGame: { game in model.setGameEnabled(game, true) })
             .themeDomain(.topicEditor)
         }
         .preference(key: TemplateAuthoringSavedResultPreferenceKey.self, value: TemplateAuthoringSavedResultObservation.capture(model: model, eligible: onSavedDraft == nil))
