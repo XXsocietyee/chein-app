@@ -1,0 +1,39 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "merchantCoop.team.shareInvite %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're invited to join the %1$@ operations team. Invite code: %2$@ (open 澄因 › 我的 › 商家工作台 › 经营团队 to accept)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请你加入%1$@经营团队。邀请码：%2$@（打开澄因 › 我的 › 商家工作台 › 经营团队 接受）"
+          }
+        }
+      }
+    },
+    "merchantCoop.team.shareInvite.action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share invite"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享邀请"
+          }
+        }
+      }
+    }
+  }
+}

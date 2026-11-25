@@ -75,7 +75,7 @@ struct ProfileInviteLatestEarnCard: View {
 /// Source empty state: 还没有人接受你的邀请 with its hint.
 struct ProfileInviteHistoryEmptyView: View {
     var body: some View {
-        CYEmptyState(systemImage: "person.2.badge.plus", "profile.inviteHistory.empty", messageIdentifier: "profile.inviteHistory.empty")
+        CYEmptyState(systemImage: "tray", "profile.inviteHistory.empty", messageIdentifier: "profile.inviteHistory.empty")
     }
 }
 

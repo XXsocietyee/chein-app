@@ -24,6 +24,8 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     @State private var confirmingBind = false
     @State private var confirmingUnbind = false
     @State private var notice: PayoutReceiverIssue?
+    /// Round 4 copy: MP 绑定失败，请重试 / 解除失败，请重试 (payout-receiver index.js) name the action that failed.
+    @State private var noticeFromUnbind = false
     @State private var bound = false
     @State private var generation = 0
     /// CLB-r7-D-03 (fix-r3-club-b): no club id and no `mine` — retrying can never succeed, so 返回 only.
@@ -87,11 +89,11 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             Section {
                 // Round 2 MP asset: cy-empty kind="empty" carries the MP two-layer illustration.
                 ClubMPEmptyState(title: Text("payoutReceiver.noClub", tableName: "PayoutReceiver"), messageIdentifier: "payoutReceiver.noClub")
-                ClubCreateMyClubLink(identity: session.clubIdentity)
+                ClubCreateMyClubLink(identity: session.clubIdentity, titleKey: "clubR3b.payout.createClub")
             }
         case .failed where missingClub:
             Section {
-                CYEmptyState(systemImage: "questionmark.folder", "clubR3b.payout.clubMissing", messageIdentifier: "payoutReceiver.clubMissing",
+                CYEmptyState(systemImage: "exclamationmark.triangle", "clubR3b.payout.clubMissing", messageIdentifier: "payoutReceiver.clubMissing",
                              actionTitle: "clubR3b.checkin.back", actionStyle: .primary, kind: .failure) { dismiss() }
             }
         case .failed(let issue):
@@ -133,7 +135,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 if busy { ProgressView() }
                 if bound { CYStatusChip(verbatim: payoutText("payoutReceiver.bound", locale), tone: .success, systemImage: "checkmark") }
                 if let notice {
-                    PayoutReceiverIssueText(issue: notice, fallbackKey: "payoutReceiver.actionFailed")
+                    PayoutReceiverIssueText(issue: notice, fallbackKey: noticeFromUnbind ? "payoutReceiver.unbindFailed" : "payoutReceiver.bindFailed")
                         .cyText(.meta).foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("payoutReceiver.notice")
                 }
@@ -171,7 +173,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
 
     private func bind() async {
         guard !busy, let club = resolvedClubID ?? clubID else { return }
-        busy = true; notice = nil; bound = false
+        busy = true; notice = nil; noticeFromUnbind = false; bound = false
         defer { busy = false }
         guard let code = await PayoutReceiverBridge.weChatCode?(), !code.isEmpty else {
             notice = .rejected(code: "WECHAT_MINI_IDENTITY_REQUIRED", message: nil); return
@@ -185,7 +187,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
 
     private func unbind() async {
         guard !busy, let club = resolvedClubID ?? clubID else { return }
-        busy = true; notice = nil; bound = false
+        busy = true; notice = nil; noticeFromUnbind = true; bound = false
         defer { busy = false }
         do {
             try await PayoutReceiverBridge.call(session) { try await $0.unbind(clubID: club, token: $1) }

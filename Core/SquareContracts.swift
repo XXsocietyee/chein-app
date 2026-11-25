@@ -126,6 +126,10 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
     public let safetyLabels: [String]
     public let commentPolicy: String
     public let viewerCanComment: Bool
+    /// MP `info.medalGold` / `medalSilver` / `medalBronze`. Nil when the server omits the count.
+    public let medalGold: Int?
+    public let medalSilver: Int?
+    public let medalBronze: Int?
     /// Activity feed block. Empty when the post has no activity, so the card stays text and images.
     public let strava: SquareStravaCard
     public init(from decoder: Decoder) throws {
@@ -185,6 +189,9 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
         safetyLabels = (labels.array ?? labels.parsedJSON.array ?? []).compactMap(\.nonempty)
         commentPolicy = post["commentPolicy"].text ?? "EVERYONE"
         viewerCanComment = root["viewerCanComment"].isNull || root["viewerCanComment"].truthy
+        medalGold = SquareCountDisplay.known(post["medalGold"].number ?? root["medalGold"].number)
+        medalSilver = SquareCountDisplay.known(post["medalSilver"].number ?? root["medalSilver"].number)
+        medalBronze = SquareCountDisplay.known(post["medalBronze"].number ?? root["medalBronze"].number)
         strava = SquareStravaCard.decode(root: root, post: post, dataType: dataType, dataID: dataID)
     }
 }

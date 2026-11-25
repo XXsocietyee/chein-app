@@ -136,7 +136,7 @@ import QuestifyCore
             if let rounds = model.choices, !rounds.isEmpty {
                 OrientScoreRoundChooser(rounds: rounds) { id in Task { await model.choose(id) } }
             } else {
-                CYEmptyState(systemImage: "list.number", "orientScore.empty.title", detail: "orientScore.empty.detail",
+                CYEmptyState(systemImage: "tray", "orientScore.empty.title", detail: "orientScore.empty.detail",
                              messageIdentifier: "orientScore.empty")
             }
         case .error?:
@@ -201,15 +201,13 @@ import QuestifyCore
     private var totalCard: some View {
         CYCard(variant: .elevated) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(summary.phase).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                // Round 4: MP head line 「本局计分 · {phase}」 (orient-score wxml:20); no session id (PG-090).
+                Text("orientScore.titlePhase \(summary.phase)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 Text(verbatim: facts?.totalText ?? summary.total)
                     .cyText(.data2XL)
                     .contentTransition(.numericText())
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityLabel(summary.totalAccessibility)
-                // Source: 对局 {{score.sessionId}}.
-                Text("orientScore.session \(String(facts?.sessionID ?? summary.sessionID))")
-                    .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 Text("orientScore.precision")
                     .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
@@ -316,8 +314,9 @@ import QuestifyCore
                         }
                         Text("orientScore.running \(runningText(row))").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         if !row.reason.isEmpty { Text(row.reason).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
-                        if let reversed = row.reversesEntryID {
-                            Text("orientScore.reverses \(String(reversed))").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        // Round 4: MP shows 已撤销 (orient-score wxml:72), never the reversed entry id (PG-090).
+                        if row.reversesEntryID != nil {
+                            Text("orientScore.reversed").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         }
                         if row.appealPending {
                             Text("orientScore.appealPending").cyText(.meta).foregroundStyle(CYColor.warningText)
@@ -375,7 +374,6 @@ import QuestifyCore
                     HStack(alignment: .center, spacing: CYSpacing.md) {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                             Text(phaseKey(round.phase)).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                            Text("orientScore.choose.round \(String(round.sessionID))").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                             if let started = round.startedAt {
                                 Text(Date(timeIntervalSince1970: TimeInterval(started) / 1000), format: .dateTime.month().day().hour().minute())
                                     .cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -416,7 +414,7 @@ import QuestifyCore
             OrientScoreView(model: OrientScoreModel(rounds: rounds, initialSessionID: sessionID))
                 .environment(\.orientScoreSession, session)
         } else {
-            CYEmptyState(systemImage: "list.number", "orientScore.empty.title", detail: "orientScore.empty.detail",
+            CYEmptyState(systemImage: "tray", "orientScore.empty.title", detail: "orientScore.empty.detail",
                          messageIdentifier: "orientScore.empty")
                 .cyDomainScreen(.game)
                 .cyPushedChrome(domain: .game)

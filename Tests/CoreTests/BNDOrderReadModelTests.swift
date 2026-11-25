@@ -82,11 +82,11 @@ import Foundation
     func testPollDefiniteFailureStops() async throws {
         var calls = 0
         let poller = BundleReceiptPoller(requestId: "bundle-order:9001", delaysNanoseconds: [1, 2, 3],
-            fetch: { _ in calls += 1; throw FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED") },
+            fetch: { _ in calls += 1; throw FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED", message: nil) },
             sleep: { _ in })
         await poller.run()
         XCTAssertEqual(calls, 1)
-        XCTAssertEqual(poller.state, .failed(.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED")))
+        XCTAssertEqual(poller.state, .failed(.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED", message: nil)))
     }
 
     func testBalancesRenderCountsFromServerOnly() throws {

@@ -30,9 +30,11 @@ class RoamExperienceSourceTests(unittest.TestCase):
         for p in shared: self.assertEqual(p.read_text().count('ShareLink(item: renderedImage(), preview:'), p.read_text().count('ShareLink('), p.name)
         self.assertNotIn('api/verify', text)
 
-    def test_capabilities_stay_hard_off(self):
+    def test_stamp_writes_are_on_and_other_capabilities_stay_off(self):
         text = self.read('Core/RoamExperienceContracts.swift')
-        for key in ['location', 'presence', 'settlement', 'mediaUpload', 'stampExchange', 'voucherIssue', 'redemption', 'legacyHangout']:
+        for key in ['mediaUpload', 'stampExchange']:
+            self.assertIn('static let ' + key + ' = true', text)
+        for key in ['location', 'presence', 'settlement', 'voucherIssue', 'redemption', 'legacyHangout']:
             self.assertIn('static let ' + key + ' = false', text)
 
     def test_history_is_scope_bound_atomic_and_not_plaintext(self):

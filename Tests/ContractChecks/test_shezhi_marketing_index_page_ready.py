@@ -56,7 +56,9 @@ class ShezhiMarketingIndexPageReadyContract(unittest.TestCase):
         self.assertIn('if text == "0" { return "0" }', added)
         self.assertIn('public static let listPath = "/api/merchant/crm/marketing-consents"', added)
         self.assertIn('public static let resultPath = "/api/merchant/crm/marketing-consents/result"', added)
-        self.assertIn("public static let path=\"api/merchant/crm/marketing-consents\"", source)
+        # pages/shezhi/components/marketing-consent/index.js:33 uses this list path.
+        # `nonisolated` only marks the Swift static; the path string is the same.
+        self.assertIn("public nonisolated static let path=\"api/merchant/crm/marketing-consents\"", source)
         self.assertNotIn("resultEndpoint", added)
         self.assertIn("does not load or write marketing consent", added)
         for flag in FORBIDDEN:

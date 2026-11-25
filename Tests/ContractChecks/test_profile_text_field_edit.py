@@ -14,8 +14,16 @@ def section(start, end):
 class ProfileTextFieldEditContracts(unittest.TestCase):
     def test_main_form_opens_local_editors_instead_of_direct_draft_bindings(self):
         view = read('App/ProfileEditView.swift')
-        self.assertIn('textFieldRow(.name, value: model.draft.name)', view)
-        self.assertIn('textFieldRow(.introduction, value: model.draft.introduction)', view)
+        # Main rows show the committed profile, not the open sheet
+        # (pages/gerenziliao/gerenziliao.wxml:41 name, :46 introduction).
+        # Load prefers a non-blank name, otherwise nickname (gerenziliao.js:593-595).
+        # Sheet confirm writes that row (gerenziliao.js:122 introduction, :204 name).
+        self.assertIn('textFieldRow(.name, value: model.displayedName)', view)
+        self.assertIn('textFieldRow(.introduction, value: model.displayedIntroduction)', view)
+        shown = section('var displayedName:', 'private var hasUnsavedDraft')
+        self.assertIn('if !draft.name.utf8.elementsEqual(loaded.utf8) { return draft.name }', shown)
+        self.assertIn('return shown.isEmpty ? draft.name : shown', shown)
+        self.assertIn('if !draft.introduction.utf8.elementsEqual(loaded.utf8) { return draft.introduction }', shown)
         self.assertNotIn('text: $model.draft.name', view)
         self.assertNotIn('text: $model.draft.introduction', view)
         self.assertIn('Button { model.beginTextEdit(field) }', view)

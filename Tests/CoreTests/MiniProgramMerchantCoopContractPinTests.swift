@@ -20,8 +20,8 @@ import FoundationNetworking
         let request = try XCTUnwrap(transport.requests.first)
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.url?.path, "/api/merchant/events")
-        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
-        XCTAssertEqual(try text(request), "{}")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertEqual(try text(request), "")
     }
 
     func testLedgerRedemptionsPinsFilterPageAndTopic() throws {

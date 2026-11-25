@@ -14,27 +14,32 @@ import SwiftUI
     @FocusState private var typing: Bool
     /// MP topic / activity review textarea maxlength (300); Core still accepts up to 500.
     static let maximumContents = 300
+    /// Round 4 copy (MP topic/index.wxml:438/448): the topic sheet is 评价路线 with 请输入您的评价内容...
+    private var isTopic: Bool { if case .topic = target { return true } else { return false } }
     private var state: ContextualReviewState { let _ = revision; return owner?.state ?? .idle }
     var body: some View {
         Form {
             Section("context.review.rating") {
-                // R7-PC-B1-7 / R7-PC-C1-6: MP 5-star row (pages/topic/images/icon_star2 = chosen, icon_star1 = empty)
-                // in place of the numeric Picker; the text cap is the MP 300.
+                // R7-PC-B1-7 / R7-PC-C1-6 + round 4 (MP topic/index.wxml:441-446): five MP stars, icon_star2 filled / icon_star1 empty; text cap is the MP 300.
                 HStack(spacing: CYSpacing.sm) {
                     ForEach(1...5, id: \.self) { star in
                         Button { draft.rating = star } label: {
                             (star <= draft.rating ? MPAsset.FeatureIcon.iconStar2 : MPAsset.FeatureIcon.iconStar1)
-                                .resizable().scaledToFit().frame(width: 28, height: 28)
-                                .frame(minWidth: 44, minHeight: 44)
+                                .resizable().scaledToFit()
+                                .accessibilityHidden(true)
+                                .frame(width: 32, height: 32)
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(Text("context.review.star \(star)"))
-                        .accessibilityAddTraits(star == draft.rating ? .isSelected : [])
+                        .accessibilityLabel(Text("context.review.starLabel \(star)"))
+                        .accessibilityAddTraits(star <= draft.rating ? .isSelected : [])
                     }
                 }
+                .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .contain)
+                .accessibilityLabel(Text("context.review.rating"))
                 .accessibilityIdentifier("context.review.rating")
-                TextField("context.review.contents", text: $draft.contents, axis: .vertical)
+                TextField(LocalizedStringKey(isTopic ? "context.review.topicContents" : "context.review.contents"), text: $draft.contents, axis: .vertical)
                     .lineLimit(4...10).focused($typing).accessibilityIdentifier("context.review.contents")
                     .onChange(of: draft.contents) { _, value in
                         if value.count > Self.maximumContents { draft.contents = String(value.prefix(Self.maximumContents)) }
@@ -57,7 +62,7 @@ import SwiftUI
             }
         }
         .scrollDismissesKeyboard(.interactively)
-        .navigationTitle("context.review.title").navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(Text(LocalizedStringKey(isTopic ? "context.review.topicTitle" : "context.review.title"))).navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("action.cancel") {
                 if draft != ContextualReviewDraft(), state != .acknowledged { confirmDiscard = true } else { dismiss() }

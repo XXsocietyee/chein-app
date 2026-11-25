@@ -41,6 +41,17 @@ struct MerchantBusinessPageGate: Equatable {
                 }()
                 if notFound || missing { return redemptionMissing }
                 return .init(kind: .loadFailed(message: message), titleKey: "merchant.gate.redemption.loadFailed")
+            // Round 4 copy: the MP list pages' full-page load errors (title + server reason + 重新加载).
+            case .verificationRecords:   // verify-records/index.wxml:12 核销记录加载失败
+                return .init(kind: .loadFailed(message: message), titleKey: "merchant.gate.verifyRecords.loadFailed")
+            case .reviews:               // reviews/index.wxml:27 评价加载失败
+                return .init(kind: .loadFailed(message: message), titleKey: "merchant.gate.reviews.loadFailed")
+            case .customers:             // customer/index.wxml:59 客户名单加载失败
+                return .init(kind: .loadFailed(message: message), titleKey: "merchant.gate.customers.loadFailed")
+            case .aftercare:             // aftercare/index.wxml:18 售后列表加载失败
+                return .init(kind: .loadFailed(message: message), titleKey: "merchant.gate.aftercare.loadFailed")
+            case .refund:                // aftercare/detail/index.wxml:15 退款售后加载失败
+                return .init(kind: .loadFailed(message: message), titleKey: "merchant.gate.refund.loadFailed")
             default:
                 return nil
             }
@@ -80,7 +91,8 @@ struct MerchantBusinessPageGateView: View {
             MerchantDeniedState(title: LocalizedStringKey(gate.titleKey), identifier: "merchant.business.gate.denied")
         case .notFound(let backKey):
             ContentUnavailableView {
-                Label(LocalizedStringKey(gate.titleKey), systemImage: "questionmark.folder")
+                // MP cy-empty kind="empty" (order-detail missing-record, customer/detail missing): the MP empty art.
+                Label { Text(LocalizedStringKey(gate.titleKey)) } icon: { CYEmptyIllustration(kind: .generic) }
             } actions: {
                 Button { dismiss() } label: {
                     Text(LocalizedStringKey(backKey)).frame(minHeight: CYSpacing.minTouchTarget)

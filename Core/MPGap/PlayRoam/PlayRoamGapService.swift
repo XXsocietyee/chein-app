@@ -109,14 +109,15 @@ public final class PlayRoamGapService {
         return await send(req)
     }
 
-    /// `ROAM-9`: `POST /api/roam/nearby-runners` (form `latitude`, `longitude`, `radius`)
+    /// `ROAM-9`: `POST /api/roam/nearby-runners` form `{lat, lng, radius}` (`pages/roam/index.js` `_fetchRunners`).
+    /// `pages/roam/index.js:210` is `community.request` inside `req`, not a URL. There is no greet path.
     public func fetchNearbyRunners(latitude: Double, longitude: Double, radius: Int = 3000) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/roam/nearby-runners",
             method: "POST",
             form: [
-                "latitude": String(latitude),
-                "longitude": String(longitude),
+                "lat": String(latitude),
+                "lng": String(longitude),
                 "radius": String(radius)
             ]
         ) else { return .unauthorized }

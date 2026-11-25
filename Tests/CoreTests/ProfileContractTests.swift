@@ -105,4 +105,34 @@ final class ProfileContractTests: XCTestCase {
         XCTAssertFalse(wall.isEmpty)
         XCTAssertTrue(ProfileBadgeWall(identities: [], medals: []).isEmpty)
     }
+
+    func testOrderDetailFactsFollowTheMiniProgramCard() throws {
+        let json = """
+        {"id":12,"ownerType":2,"registrationStatus":2,"paymentStatus":2,"orderNum":2,
+         "usableState":"EXPIRED","party":{"adultCount":2,"childCount":1,"childAge":"6"},
+         "cmsTopic":{"memberId":9,"imgArr":["https://cdn.example/t.jpg"]},
+         "cmsActivity":{"name":"Session","teamMode":1,"imgUrl":"https://cdn.example/a.jpg",
+           "clubId":4,"clubName":"Club","clubLeaderMemberId":8,"memberId":3},
+         "settlementSummary":{"refundStage":"UNDER_REVIEW","amountsComplete":false,
+           "refundPendingAmount":null,"refundCompletedAmount":0}}
+        """
+        let order = try decode(ProfileOrder.self, json)
+        XCTAssertEqual(order.coverURL, "https://cdn.example/a.jpg")
+        XCTAssertEqual(order.teamMode, 1)
+        XCTAssertTrue(order.teamOpen)
+        XCTAssertTrue(order.seatsOpen)
+        XCTAssertEqual(order.club?.id, 4)
+        XCTAssertEqual(order.club?.name, "Club")
+        XCTAssertEqual(order.club?.leaderMemberID, 8)
+        XCTAssertEqual(order.merchantOwnerMemberID, 9)
+        XCTAssertEqual(order.party?.text, "2 大 1 小（儿童 6 岁）")
+        XCTAssertTrue(order.walletExpired)
+        XCTAssertTrue(order.settlementView.show)
+        XCTAssertEqual(order.settlementView.stage, "退款审核中")
+        XCTAssertEqual(order.settlementView.rows.map(\.value), ["金额待确认"])
+        let topic = try decode(ProfileOrder.self, #"{"id":3,"ownerType":1,"cmsTopic":{"imgArr":["https://cdn.example/t.jpg"],"imgUrl":"https://cdn.example/u.jpg"}}"#)
+        XCTAssertEqual(topic.coverURL, "https://cdn.example/t.jpg")
+        XCTAssertFalse(topic.walletExpired)
+        XCTAssertFalse(topic.settlementView.show)
+    }
 }

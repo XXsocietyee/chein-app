@@ -55,6 +55,7 @@ public enum ProjectEditStoryContract {
         for block in blocks {
             if block.kind == .audio && block.url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { continue }
             if block.kind == .dream, block.sourceFields?["images"]?.array?.isEmpty == true, block.sourceFields?["title"] == nil { continue }
+            if block.kind == .gallery, block.sourceFields?["images"]?.array?.isEmpty != false { continue }
             var row = (block.sourceFields ?? [:]).filter { $0.value != .null }
             guard Set(row.keys).isSubset(of: metadataFields) else { throw ProjectEditError.invalidDraft }
             row["key"] = .string(block.id); row["type"] = .string(block.kind.rawValue)
@@ -71,7 +72,11 @@ public enum ProjectEditStoryContract {
             case .image, .audio: row["url"] = .string(block.url.trimmingCharacters(in: .whitespacesAndNewlines))
             case .voice, .reveal: row["content"] = .string(block.content)
             case .mood: row["mood"] = .string(try ProjectEditRichStoryContract.normalizedMood(block.fieldText("mood")))
-            case .dream, .thought, .odd: break
+            case .dream, .thought, .odd, .gallery, .divider: break
+            case .branch: row["content"] = .string(block.content.trimmingCharacters(in: .whitespacesAndNewlines))
+            case .line:
+                row["content"] = .string(block.content.trimmingCharacters(in: .whitespacesAndNewlines))
+                if row["speaker"] == nil { row["speaker"] = .string(block.fieldText("speaker")) }
             }
             rows.append(.object(row))
         }
@@ -172,7 +177,7 @@ public enum ProjectEditStoryContract {
                           !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, url.utf16.count <= 500 else { throw ProjectEditError.invalidDraft }
                 case .thought:
                     guard thoughtKeys.insert(ProjectEditRichStoryContract.trim(block["thoughtKey"])).inserted else { throw ProjectEditError.invalidDraft }
-                case .dream, .mood, .voice, .odd, .reveal: break
+                case .dream, .mood, .voice, .odd, .reveal, .gallery, .branch, .line, .divider: break
                 }
             }
             try ProjectEditRichStoryContract.validateNarrative(blocks, nodeCount: nodes.count)

@@ -35,7 +35,14 @@ final class ClubRosterPresentationTests: XCTestCase {
     func testMissingBucketAndPrivacyFlagCannotBecomeEmptySuccess() {
         XCTAssertThrowsError(try presentation(["registered": .null]))
         XCTAssertThrowsError(try presentation(["phoneIncluded": .null]))
-        XCTAssertThrowsError(try presentation(["phoneIncluded": .bool(true)]))
+        XCTAssertEqual(try presentation(["phoneIncluded": .bool(true)]).members(in: .registered).first?.phone, nil)
+        XCTAssertThrowsError(try presentation(["phoneIncluded": .bool(false), "registered": .array([
+            .object(["memberId": .integer(41), "nickname": .string("A"), "phone": .string("13800138000")])
+        ])]))
+        let kept = try presentation(["phoneIncluded": .bool(true), "registered": .array([
+            .object(["memberId": .integer(41), "nickname": .string("A"), "phone": .string(" 13800138000 ")])
+        ])])
+        XCTAssertEqual(kept.members(in: .registered).first?.phone, "13800138000")
     }
     func testDuplicateInvalidAndCrossScopeMembersFail() {
         let bad: [ClubGovernanceValue] = [.null, .object(["id": .integer(41)]), .object(["memberId": .integer(0)]),

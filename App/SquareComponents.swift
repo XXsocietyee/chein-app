@@ -17,7 +17,10 @@ extension SquareFeedMode {
 struct SquareIssueView: View {
     let error: Error
     var retry: (() -> Void)? = nil
+    /// Round 4 copy: a section-specific MP title (square/detail 评论加载失败) wins over the generic cause title.
+    var title: LocalizedStringKey? = nil
     private var key: LocalizedStringKey {
+        if let title { return title }
         if error as? APIError == .notConfigured { return "square.notConfigured" }
         if error as? APIError == .unauthorized { return "square.unauthorized" }
         switch error as? SquareReadFailure {

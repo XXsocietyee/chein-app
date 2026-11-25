@@ -229,3 +229,74 @@ Still present on the base, checked: A4-09-r7 `MPFavoritesLinkHost`, B-SZ-12 scen
 | A7-02 | L: one cropper for avatar, cover and template. | Claude follow-up |
 | A2-08, A3-10, B-SZ-10 | P2. B-SZ-10 waits on the owner's Settings calls (B-SZ-11/13). | Claude follow-up / owner |
 | Owner rows | Unchanged. | owner |
+
+## Round 4 (2026-11-25)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round4.md` (+ `wave-x10.md`, `owner-decisions-1124.md`). Gemini is out of quota, so this round also covers the MP-alignment work for this half's pages.
+- **Base:** merged `origin/ui/combined-r7` `4ef0a2840` (clean; the branch then matched the base file for file, so no round-3 hunk was lost).
+- **No compiler here.** Every API used was grepped first: `MPAsset.BannerCover.subpackageMemberImagesMer1`, `.pagesGerenziliaoImagesMer1`, `MPAsset.BadgeMedal.medal3d`, `MPAsset.FeatureIcon.dSctb`, `MPAsset.AvatarDefault.dProfile`, `AccountPublishMPGlyph`, `palette.bgPage`, `CYColor.bgPage`, `ProfileEditSnapshot.nickname`, `participant.list.editShort`.
+
+### 1 · Flows (`flows-g1` / `flows-g2`, edges for Claude on this half's pages)
+| Edge | Result |
+|---|---|
+| `addressinfo.js:222` / `:225` after save: `navigateBack`, else `redirectTo` / `reLaunch` 参与人列表 | Matches. Every in-app way into the form (participant list, the `pages/addressinfo` link via `mpParityRouteDestination`, sign-up) is a push, so the MP's first choice (`navigateBack`) always applies: 参与人信息已保存 + haptic, then `dismiss()`. The app has no single-page stack, so the fallback never applies. |
+| `address.js:44` → addressinfo; `mylike.js:435` / `:660`; `shezhi.js:158` / `:167`; `talent/list.js:122` / `:583` | Re-checked; unchanged since round 3 (done, or A4-01 for Gemini: no POI detail screen). |
+| flows-g1 rows for these pages | None. The g1 `[GAP-CLAUDE]` rows that mention `gerenziliao` / `address` are on the topic page (another area). |
+
+### 2 · Image parity (each MP image slot on this half's pages)
+| MP page · slot | MP source | App now | File |
+|---|---|---|---|
+| member/index · hero cover | cyp `index.js:399` `heroImg` default `/subpackageMember/images/mer1.jpg` | **New:** `MPAsset.BannerCover.subpackageMemberImagesMer1` as the identity card's row background, fading into `bgPage` (MP `.pc-page-fade`; merchant gets the light veil) | MemberHomeHeader.swift |
+| member/index · settings | `icon_set.png` | `MPAsset.FeatureIcon.iconSet` (round 2) | AccountView.swift |
+| member/index · avatar / pen | `d_profile.png`, `icon_pen.svg` | `MPAsset.AvatarDefault.dProfile`, `MPAsset.FeatureIcon.iconPen` (round 2) | MemberHomeHeader.swift |
+| member/index · level | `group2–5.png` | `MPAsset.BadgeMedal.group2…5` (round 2) | MemberHomeHeader.swift |
+| member/index · 收集册 勋章 pile | `album/medal-3d.png` | **New:** the 勋章 (badge wall) row icon is `MPAsset.BadgeMedal.medal3d` (was SF `medal`) | ProfileAccountLinks.swift |
+| member/index · 收集册 藏品 pile | `album/object-3d.png` | `MPAsset.FeatureIcon.object3d` (round 2) | AccountView.swift |
+| member/index · 收集册 邮票 pile | `album/stamp-3d.png` | Not applied: on 我的 the 邮票 entry is the Passport stamp grid (`PassportView.swift`, restyle-owned design: foil seals per stamp). No row to put the pile art on. | — |
+| member/index · merchant 经营团队 / 工作台 | `icon_qa_person.svg`, `icon_tab_workbench.svg` | Not on the player 我的 (merchant workspace, other area). | — |
+| member/index · route cover default | `route_free_cover.png` | No route-cover card on the native 我的 (orders / projects open their own pages). | — |
+| userinfo · hero cover | same `mer1.jpg` default | **New:** 120 pt decorative cover row heading the profile head section | SocialPublicProfileView.swift |
+| userinfo · avatar default | `d_profile.png` | `dProfile` (round 2) | SocialPublicProfileView.swift |
+| gerenziliao · hero | `/pages/gerenziliao/images/mer1.jpg` (js:71) | **New:** `MPAsset.BannerCover.pagesGerenziliaoImagesMer1` behind the centred avatar, faded | ProfileCurrentAvatarView.swift |
+| gerenziliao · avatar default | `avatarSrc \|\| /images/d_profile.png` | **New:** `dProfile` (was SF `person.fill`) | ProfileCurrentAvatarView.swift |
+| gerenziliao · upload tile | `d_sctb.png` (wxml:121, :140) | **New:** 添加作品图片 / 上传二维码 rows use `MPAsset.FeatureIcon.dSctb` (was SF `photo.badge.plus` / `qrcode.viewfinder`) | ProfileAvatarDraftSection.swift |
+| gerenziliao · delete ✕ | `del.png` | SF `xmark` kept (system control) | — |
+| gerenziliao · `cy-icon` edit / image / chevron | design icon set | SF Symbols (system controls) | — |
+| mylike · empty | `cy-empty kind=empty` → `empty_state_bg.svg` + `empty_state_figure.svg` | **New:** 主题 and 帖文 empties pass `tray`, so `CYEmptyIllustration.generic` draws `MPAsset.EmptyState.emptyStateBg` + `emptyStateFigure` (were SF `heart` / `bookmark`) | AccountCollectionFavoritesView.swift |
+| mylike · 据点 cover default | `mer1.jpg` | `MPAsset.BannerCover.pagesMylikeImagesMer1` (round 2) | PlayerGapViews.swift |
+| mylike · share / heart | `icon_up.png`, `cy-icon heart` | SF `square.and.arrow.up`, ··· menu (system controls, round 3) | — |
+| address · delete ✕ | `d_close.png` | SF `xmark` kept (mapping row 126 says keep) | — |
+| addressinfo | no image | — | — |
+| crop | only the image being cropped | — | — |
+| talent/list · 站内消息 | `/images/icon_bell.svg` | Not applied: the native 俱乐部 root has no messages button; the tab bar owns 消息. | — |
+| shezhi · every row | `icon_*` set | All `MPAsset.FeatureIcon.*` (rounds 2–3), including `iconLcStore` on 品牌中心 | SettingsView.swift etc. |
+| about · logo / rows | `cy_logo_mark.png`, `icon_agreement`, `icon_headset` | `MPAsset.BrandLogo.cyLogoMark`, `iconAgreement`, `iconHeadset` (round 2) | SettingsAboutView.swift |
+| marketing · merchant logo | `merchantLogo` (remote) | https-only remote logo over the initial (round 3) | AccountComplianceViews.swift |
+
+### 3 · Copy (MP text; fragment `docs/port/strings/fix-r3-account-publish-a.json`)
+- The fragment is now in full xcstrings shape (`sourceLanguage`, `strings`, `version`); round 1–3 wrote a bare key map, and **the round-1 overrides of existing keys were not applied at integration** (`social.interests`, `profile.incompleteLink.backHome`, `participant.form.save` still read the old values in `Localizable.xcstrings`). They stay in the fragment as overrides.
+- **Dropped** two round-1 overrides that were wrong: `participant.form.add` is also the list's / sign-up's 新增参与人信息 button, and `participant.form.edit` is the detail page's pill. Instead the form's nav title now uses `profile.participants.title` (参与人信息, MP addressinfo.json) for add and edit.
+- **New keys (2):** `participant.list.deleteShort` 删除 (swipe action, MP address.wxml), `settings.deregister.row` 账号注销 (Settings row, MP shezhi.wxml:34; the deregister page keeps `compliance.cancellation`).
+- **Overrides (17):** `profile.favoriteRemoval.open` 取消收藏, `.explanation` 确定要取消收藏吗？, `.failed` 取消没成功，可以再试一次, `.unknown` 取消结果未确认，请稍后再点确认; `accountCollection.favorites.unknown` 收藏加载失败; `participant.form.saving` 正在保存参与人信息, `.phoneHint` 请输入正确的手机号, `.rejected` 参与人信息没有保存, `.rejectedHint` 参与人信息暂时没有保存，请重试; `profile.edit.saved` 资料已保存, `.saveFailed` 资料没有保存, `.unavailable` 资料暂时不可用, `.reload` 重新加载; `club.tab.feed.noClub` 还没有帖文; `club.emptyNearby` 同城范围暂未确认; `settingsNative.legal.privacy_policy` 隐私保护指引; `social.followingCount` 关注.
+- **Code copy changes:** 主题 empty drops the 遇到想体验的城市主题… hint (MP has none); swipe 编辑 uses `participant.list.editShort`; Settings 关于 row drops 版本、协议与联系; 关于 page drops the tagline and the 查看服务条款 hint (MP shows logo + 城瘾, and the two agreement rows by name only).
+- **Left, with reason:** keys in other tables (`MemberProfile`: `member.card.failed` 主页资料没加载出来 vs MP 资料加载失败) need that table's own fragment, which the brief's one-fragment rule doesn't cover; `accountCollection.signInRequired` / `.failed` and `localCopy.*` are shared with coupons / other pages, so overriding them would change those pages too.
+
+### 4 · Audit rows (`parity-r7-account-publish`, Claude, this half)
+| ID | Result |
+|---|---|
+| A3-10 (P2) hero section on 个人资料 | **Done:** cover (above), centred avatar with the MP default, and the saved nickname (城瘾玩家 when empty) under it. 更换背景 stays on the profile page's local-cover section (`ProfileLocalCoverSection`), not repeated here. |
+| A1-09, A2-07, A2-09, A3-09, A4-06, A4-08, A5-04, A5-05, A6-04, A6-05, A7-07, A7-08-r7, A8-05, B-AB-04/05, B-MK-05/06b/07-r7, B-SZ-12 | Done in rounds 1–3 (checked on the base). |
+| A8-06 | Closed in round 3 (the current MP has no 管理 on cards). |
+| A2-08 (P2, M) | Still open: Core has no author-filtered club feed (`ClubCommunityRequest` only has `posts(clubID:)` and `feed`). **Core request (Cursor):** a member-scoped club post read. |
+| A8-09-r7 (P2) | Still blocked: `PublicContentShareLink` has no club-hub link. |
+| A5-01 (P2) | Left for the coordinator (WIRE-2 keeps `onSelect` as the sign-up select hook; the second picker is in `RegistrationSheetView`, another area). |
+| B-SZ-10 (P2, M) | Waits on the owner's Settings calls (B-SZ-11/13). |
+| Open P1 for this half | All still wait on Core, re-grepped this round: A2-02 (no role on `SocialPublicProfile`), A4-04 (no POI share link), A6-01 (no profile-side bound phone), A7-08-r7 重试 (no `MiniCropSession.retryCurrent()`). |
+
+### 5 · Checks
+- `tools/check_a11y_lint.py`: **1 new, and it is not in this half:** `App/ClubKit/ClubWorkbenchKit.swift:261` (the club share glyph; the label sits on the parent `ShareLink`). It is already on `origin/ui/combined-r7` and belongs to the club F-agents, so I left it to avoid a conflicting edit. This half's files add 0.
+- `tools/check_typography_lint.py`: PASS.
+- ContractChecks naming any App file changed this round: the same failures as on the base, with the same assertions (`check_member_home_pkg02`, `test_category_roam_registration`, `test_design_system_component_contracts` (raw colours in GrowthLeaderboardView / PlayExperienceView), `test_profile_avatar`, `test_profile_reload_discard`, `test_social_account_contracts`, `test_social_guide_templates`, `test_ugc_1_2_completeness`). Zero new failures.
+
+### Files changed in round 4
+MemberHomeHeader.swift, SocialPublicProfileView.swift, ProfileAccountLinks.swift, ProfileCurrentAvatarView.swift, ProfileAvatarDraftSection.swift, AccountCollectionFavoritesView.swift, ProfileParticipantsView.swift, ParticipantFormView.swift, AccountComplianceViews.swift, SettingsSupportSections.swift, SettingsAboutView.swift; `docs/port/strings/fix-r3-account-publish-a.json`.

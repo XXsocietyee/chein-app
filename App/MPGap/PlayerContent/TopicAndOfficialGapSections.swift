@@ -100,7 +100,7 @@ public struct TopicPricingGapSection: View {
 }
 
 public struct MerchantHostWorkbenchSection: View {
-    /// Owner-gated: `MerchantContentWriteApproval` stays false in Release.
+    /// Unmounted. Live merchant-content writes go through `MerchantContentWriteApproval` (MP-first default on).
     public let writesEnabled: Bool
     public var onAction: (MerchantHostWorkbenchAction) -> Void = { _ in }
 

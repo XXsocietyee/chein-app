@@ -113,7 +113,7 @@ import Foundation
     func testSecondAppealForSameUnitBlockedByServerCodeShown() async throws {
         let service = FakeAppealService(), storage = AppealMemoryStorage()
         let (model, store) = try make(service, storage)
-        service.submitHandler = { _ in throw FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "APPEAL_ALREADY_OPEN") }
+        service.submitHandler = { _ in throw FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "APPEAL_ALREADY_OPEN", message: nil) }
         try await submit(model)
         XCTAssertEqual(model.state, .blocked(serverCode: "APPEAL_ALREADY_OPEN"))
         XCTAssertNil(try store.load(), "a definite refusal releases the lock")
@@ -122,7 +122,7 @@ import Foundation
     func testLoginRequiredKeepsPendingCommand() async throws {
         let service = FakeAppealService(), storage = AppealMemoryStorage()
         let (model, store) = try make(service, storage)
-        service.submitHandler = { _ in throw FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED") }
+        service.submitHandler = { _ in throw FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED", message: nil) }
         try await submit(model)
         XCTAssertEqual(model.state, .loginRequired)
         XCTAssertNotNil(try store.load())

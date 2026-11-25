@@ -148,7 +148,7 @@ import FoundationNetworking
         let c = try context(), wire = Wire(), command = MerchantEngagementCommand.dispatchCampaign(73001)
         let coordinator = coordinator(try reader(wire, command: command, current: { c }), journal: ReentrantJournal())
         try await confirm(coordinator, command); XCTAssertEqual(coordinator.failure, .disabled); XCTAssertTrue(wire.writes.isEmpty)
-        XCTAssertThrowsError(try MerchantEngagementActionGrant(merchantID: 710, command: .acceptInvitation(.init(token: "opaque-invitation-token"))))
+        XCTAssertNoThrow(try MerchantEngagementActionGrant(merchantID: 710, command: .acceptInvitation(.init(token: "opaque-invitation-token"))))
     }
     func testEvidenceUsesExactSelectionAndFreshCanRespond() async throws {
         let c = try context(), selection = try MerchantEvidenceSelection.importing(Data([137,80,78,71,13,10,26,10,0]))

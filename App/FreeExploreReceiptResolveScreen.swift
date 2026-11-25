@@ -33,7 +33,8 @@ import SwiftUI
     @ViewBuilder private var content: some View {
         switch phase {
         case .found(let registrationID):
-            ProfileOrderDetailView(id: registrationID, reader: session.ownedOrderReader)
+            // MKT-7-1: the session-owned detail carries `freeExploreBundleReadProvider`, so 自由探索权益 shows.
+            SessionOwnedOrderDetailView(session: session, id: registrationID)
         case .loading:
             CYLoadingStateView(rows: 3)
                 .cyPageTitle("bundle.receipt.title")

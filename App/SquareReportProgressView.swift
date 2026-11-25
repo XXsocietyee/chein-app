@@ -60,11 +60,6 @@ struct MemberReportProgressTimeView: View {
                                     .cyText(.meta)
                                     .foregroundStyle(CYColor.textSecondary)
                             }
-                            Text("u9cde.report.number \(String(record.id))")
-                                .cyText(.meta)
-                                .monospacedDigit()
-                                .foregroundStyle(CYColor.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // PLY-28-6: disclosure chevron, as the MP row.
@@ -81,7 +76,7 @@ struct MemberReportProgressTimeView: View {
                 }
                 if flow.loaded && flow.records.isEmpty {
                     // PLY-28-3: one empty line per filter, as the mini-program.
-                    CYEmptyState(systemImage: "doc.text.magnifyingglass", LocalizedStringKey("report.history.empty." + flow.filter.rawValue), tableName: "MemberReportProgress")
+                    CYEmptyState(systemImage: "tray", LocalizedStringKey("report.history.empty." + flow.filter.rawValue), tableName: "MemberReportProgress")
                 }
                 if flow.hasMore {
                     Button {
@@ -113,7 +108,7 @@ struct MemberReportProgressTimeView: View {
         .privacySensitive()
         .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { Group { LoginView(intent: .player).environmentObject(session) }.cySheet(detents: [.large]) }
         .accessibilityIdentifier("report.progress.history")
-        .navigationDestination(item: $selection) { MemberReportProgressDetailView(selection: $0, session: session) }
+        .navigationDestination(item: $selection) { MemberReportProgressDetailView(selection: $0, session: session, returnsToList: true) }
         .onAppear { visible = true; start() }
         .onDisappear { visible = false; retire() }
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }

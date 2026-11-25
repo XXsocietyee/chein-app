@@ -32,10 +32,6 @@
       "en": "Your captured photo, cropped to 4:5",
       "zh-Hans": "实际拍摄并裁切为 4:5 的照片"
     },
-    "media.stamp.consent": {
-      "en": "Use the camera for this stamp",
-      "zh-Hans": "为这枚邮票使用相机"
-    },
     "media.stamp.create": {
       "en": "Finish saving",
       "zh-Hans": "完成存入"

@@ -36,7 +36,7 @@ import SwiftUI
                     }.cyGroupedSurface()
                 } else { unavailable }
             }
-            .font(Theme.Font.body)
+            .cyText(.body)   // TRECAP-3 residue
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))

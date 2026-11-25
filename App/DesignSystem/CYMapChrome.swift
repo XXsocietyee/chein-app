@@ -279,7 +279,9 @@ enum CYMapMarkerArt {
         case .street: return selected ? MPAsset.MapMarker.pinStreet : MPAsset.MapMarker.dotStreet
         case .unknown: return selected ? MPAsset.MapMarker.pinUnknown : MPAsset.MapMarker.dotUnknown
         case .cluster: return MPAsset.MapMarker.dotCluster
-        case .search: return selected ? MPAsset.MapMarker.dSmapicon : MPAsset.MapMarker.iconMap6
+        // Round 4 image parity: the search map's topic pin is the page-local `pages/searchmap/images/d_smapicon.png`
+        // (searchmap/index.js:532); `/images/d_smapicon.png` is the roam hangout fallback, a different drawing.
+        case .search: return selected ? MPAsset.MapMarker.pagesSearchmapImagesDSmapicon : MPAsset.MapMarker.iconMap6
         case .searchLocation: return MPAsset.MapMarker.dLocation2
         case .route: return MPAsset.MapMarker.iconMap4
         case .publish: return MPAsset.MapMarker.mapPin

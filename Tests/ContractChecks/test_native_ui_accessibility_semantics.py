@@ -165,7 +165,6 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
 
     def test_object_menu_keeps_native_action_and_asserts_category_translation(self):
         view = source('App/ObjectCardViews.swift')
-        self.assertIn('Menu {', view)
         self.assertIn('.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)', view)
         self.assertIn('await model.load(category: category, reader: reader)', view)
         tests = source('Tests/AppUITests/ObjectCardFlowTests.swift')

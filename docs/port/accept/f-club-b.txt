@@ -33,3 +33,18 @@
 #   标题 / 内容, 预览受众 → 发送给 N 人); no separate counts page
 # - check-in detail without a topic cover: an empty 59×40 block keeps the order card aligned
 --uitesting-club-governance
+# Round 4 checks (2026-11-25):
+# - MP link pages/club/group-code/index?topicId= (no activityId): 选择场次 list; one session issues at once; no sessions →
+#   暂无可带队的场次 with the MP empty art; load failure → 场次加载失败 / 网络异常，请重试 + 重试
+# - group-code no permission: 当前身份不能出码 with no hint line; a code without an image: 团码二维码生成失败，请稍后重试
+# - MP link pages/club/workbench/index (no id) with exactly one owned club: that club opens on 管理 (no list)
+# - notify: after 发送给 N 人, leave to 查看投递状态 and come back: counts re-read silently (no toast)
+# - badges 还没有俱乐部勋章 and the 颁给谁？ 暂无成员 state: MP two-layer empty art
+# - check-in detail read failure: 核销记录不可见 + 当前身份不能查看核销记录 + 返回 (denied), server sentence + 返回 (missing),
+#   核销凭证加载失败 + 重新加载 (error); topic without a name reads 未命名主题; refund entry 清退并退款 → confirm 退款并清退 / 取消
+# - customer detail: bar title 客户, the edit button reads 编辑 (VoiceOver 编辑标签与备注); no-permission 当前身份不能查看客户
+# - payout receiver: 还没有自己的俱乐部 → 创建俱乐部; missing club glyph is the warning triangle; bind/unbind failures
+#   read 绑定失败，请重试 / 解除失败，请重试; club settlement withdraw button 联系平台客服提现
+--uitesting-club-governance
+--uitesting-club-fixture customerDenied
+--design-fixture cur3-payout-open

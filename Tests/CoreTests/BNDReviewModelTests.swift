@@ -75,7 +75,7 @@ import Foundation
     func testDuplicateReviewShowsServerCode() async throws {
         let service = BNDReviewService()
         service.mineResult = .success(BundleReviewMine(eligible: true, reasonCode: nil, review: nil))
-        service.submitResult = .failure(FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "SYNTHETIC_DUPLICATE"))
+        service.submitResult = .failure(FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "SYNTHETIC_DUPLICATE", message: nil))
         let storage = BNDReviewMemoryStorage()
         let model = try model(service, storage: storage)
         await model.load()
@@ -139,7 +139,7 @@ import Foundation
         let service = BNDReviewService()
         let storage = BNDReviewMemoryStorage()
         service.mineResult = .success(BundleReviewMine(eligible: true, reasonCode: nil, review: nil))
-        service.submitResult = .failure(FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED"))
+        service.submitResult = .failure(FreeExploreLaunchFailure.response(status: 200, code: 409, businessCode: "LOGIN_REQUIRED", message: nil))
         let model = try model(service, storage: storage)
         await model.load()
         await model.submit(rating: 5, content: "ok")

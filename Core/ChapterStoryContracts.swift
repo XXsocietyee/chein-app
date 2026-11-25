@@ -109,6 +109,31 @@ public enum PlatformNarrationAutoplayPreference {
     public static func set(_ enabled: Bool, in defaults: UserDefaults) { defaults.set(enabled, forKey: storageKey) }
 }
 
+/// F06 background music for the theme and the station. Same rule as narration: missing or unreadable is on.
+public enum PlatformBGMPreference {
+    public static let storageKey = "play.bgmOn"
+    public static let defaultValue = true
+    public static func isEnabled(in defaults: UserDefaults) -> Bool {
+        (defaults.object(forKey: storageKey) as? Bool) ?? defaultValue
+    }
+    public static func set(_ enabled: Bool, in defaults: UserDefaults) { defaults.set(enabled, forKey: storageKey) }
+}
+
+/// `utils/motion-preference.js`. Primary key wins when it is a bool, including false.
+/// A missing primary falls back to the legacy key, and only an explicit true there is on.
+public enum PlayReducedMotionPreference {
+    public static let storageKey = "play_reduced_motion"
+    public static let legacyKey = "roam_reduced_motion"
+    public static func isEnabled(in defaults: UserDefaults) -> Bool {
+        if let current = defaults.object(forKey: storageKey) as? Bool { return current }
+        return (defaults.object(forKey: legacyKey) as? Bool) == true
+    }
+    public static func set(_ enabled: Bool, in defaults: UserDefaults) {
+        defaults.set(enabled, forKey: storageKey)
+        defaults.set(enabled, forKey: legacyKey)
+    }
+}
+
 public enum ChapterStoryProjection {
     /// Scalar replacement only. Missing variables keep the authored token unless a fallback exists.
     public static func substitute(_ text: String, variables: [String: PlayWireValue]) -> String {

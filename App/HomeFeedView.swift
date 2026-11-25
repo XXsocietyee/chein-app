@@ -351,7 +351,9 @@ import UIKit
                             // R7-PC-A1-3 (r1 PC-A-1-6): 编辑精选 keeps the MP `Beta 试玩` signal.
                             place: item.place, badge: section == .upcoming ? upcomingCountdown(item)
                                 : (item.isBeta ? appLocalized("topic.source.betaBadge", locale: locale) : nil),
-                            imageURL: QuestifyCardArtwork.safeURL(item.imageURL))
+                            imageURL: QuestifyCardArtwork.safeURL(item.imageURL),
+                            // Round 4 image parity: MP 编辑精选 falls back to reco-hero.jpg, 即将上线 to route_city_cover.png.
+                            fallback: section == .recommended ? .recoHero : .routeCityCover)
         }
         return CYCarouselRail(phase: .loaded(slides),
                               railLabel: section == .recommended ? "carousel.editorsPicks" : "carousel.upcoming",
@@ -382,10 +384,19 @@ import UIKit
             .padding(.top, CYSpacing.xs)
             .accessibilityAddTraits(.isHeader)
     }
+    /// MP index.wxml default covers: 编辑精选 reco-hero.jpg (:105), 附近活动 / 即将上线 route_city_cover.png (:151/:188),
+    /// the stream home-route-city-placeholder.jpg (:216/:253).
+    static func fallbackCover(_ section: String) -> CYCarouselFallback {
+        switch section {
+        case HomeFeedSection.recommended.rawValue: return .recoHero
+        case HomeFeedSection.nearby.rawValue, HomeFeedSection.upcoming.rawValue: return .routeCityCover
+        default: return .homeRouteCityPlaceholder
+        }
+    }
     private func row(_ item: HomeFeedItem, section: String, style: CYImageCard.Style? = nil) -> some View {
         Button { if model.canOpen(reader) { onDestination(item.id) } } label: {
             Group {
-                if let style { HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style) } else { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
+                if let style { HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style, fallback: Self.fallbackCover(section)) } else { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
             }
             // The tapped card grows into the detail (iOS 18 zoom; iOS 17 keeps the push + entrance). Only the first copy of an item
             // on screen is the source, so duplicates across rails and the stream never fight over one id.
@@ -478,6 +489,8 @@ struct HomeFeedShelfCard: View {
     let item: HomeFeedItem
     var sourceTimeZone: TimeZone?
     var style: CYImageCard.Style
+    /// Round 4 image parity: the MP default differs per rail (stream / 附近活动 / 即将上线 / 编辑精选).
+    var fallback: CYCarouselFallback = .homeRouteCityPlaceholder
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
     var body: some View {
@@ -488,7 +501,7 @@ struct HomeFeedShelfCard: View {
         CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
             // MP asset (index.wxml:216): a card without a cover shows `home-route-city-placeholder.jpg`.
-            .fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)
+            .fallbackArtwork(fallback.image)
             .cachingFeedImage()
     }
 }
@@ -521,6 +534,8 @@ struct HomeFeedCard: View {
                                     minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
                 EmptyView()
             }
+            // Round 4 image parity: MP stream card default (index.wxml:216/253).
+            .fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)
             .cachingFeedImage()
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 priceRow

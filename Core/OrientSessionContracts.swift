@@ -145,8 +145,15 @@ public struct OrientSessionScore: Decodable, Equatable {
     public let disputes: [OrientSessionJSON]
     public let appealRecords: [OrientSessionScoreReviewRecord]
     public let disputeRecords: [OrientSessionScoreReviewRecord]
+    /// Server `disputeWindowDeadline`, kept as display text. Nil when the key is absent or blank.
+    public let disputeWindowDeadline: String?
+    /// Status 1 or 2, a deadline, and no dispute record still in status 0.
+    public var canDispute: Bool {
+        (status == 1 || status == 2) && disputeWindowDeadline != nil && !disputeRecords.contains { $0.status == 0 }
+    }
     private enum CodingKeys: String, CodingKey {
         case sessionId, topicId, activityId, status, totalCenti, byDimension, timeline, settlement, appeals, disputes
+        case disputeWindowDeadline
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -166,12 +173,35 @@ public struct OrientSessionScore: Decodable, Equatable {
         disputes = try c.decode([OrientSessionJSON].self, forKey: .disputes)
         appealRecords = try c.decode([OrientSessionScoreReviewRecord].self, forKey: .appeals)
         disputeRecords = try c.decode([OrientSessionScoreReviewRecord].self, forKey: .disputes)
+        disputeWindowDeadline = Self.deadlineText(c)
         guard sessionID > 0, (0...3).contains(status), settlement == nil || settlement?.sessionID == sessionID,
               ["TASK", "PUZZLE", "BONUS", "PENALTY", "ADJUSTMENT"].allSatisfy({ byDimension[$0] != nil }),
               appealRecords.allSatisfy({ $0.sessionID == sessionID }), disputeRecords.allSatisfy({ $0.sessionID == sessionID }),
               Set(appealRecords.map(\.id)).count == appealRecords.count,
               Set(disputeRecords.map(\.id)).count == disputeRecords.count
         else { throw APIError.malformedResponse }
+    }
+
+    /// A number is an epoch (milliseconds when it is at least 10^10). Any other present string is shown as given.
+    private static func deadlineText(_ c: KeyedDecodingContainer<CodingKeys>) -> String? {
+        let key = CodingKeys.disputeWindowDeadline
+        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return nil }
+        if let text = try? c.decode(String.self, forKey: key) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+        let raw: Double?
+        if let value = try? c.decode(Int64.self, forKey: key) { raw = Double(value) }
+        else if let value = try? c.decode(Double.self, forKey: key), value.isFinite { raw = value }
+        else { return nil }
+        guard let raw, raw > 0 else { return nil }
+        let seconds = raw >= 10_000_000_000 ? raw / 1000 : raw
+        let date = Date(timeIntervalSince1970: seconds)
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return formatter.string(from: date)
     }
 }
 

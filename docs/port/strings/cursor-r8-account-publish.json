@@ -1,0 +1,20 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "compliance.denied.identity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This identity can't view the cancellation conditions" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前身份不能查看注销条件" } }
+      }
+    },
+    "compliance.denied.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Refresh" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "刷新" } }
+      }
+    }
+  },
+  "version": "1.0"
+}

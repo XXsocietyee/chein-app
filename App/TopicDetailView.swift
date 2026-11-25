@@ -29,6 +29,11 @@ struct TopicDetailView: View {
     @State private var loads = SignedInContentDetailLoadOwner()
     @Environment(\.topicPricingDestination) private var pricingDestination
     @Environment(\.topicEditorDestination) private var editorDestination
+    /// R7-PC-B1-1 (MP-first): 收藏 host; nil hides the bookmark.
+    @Environment(\.topicFavoriteHostFactory) private var favoriteHostFactory
+    @State private var favoriteHost: TopicFavoriteHost?
+    @State private var favorited: Bool?
+    @State private var favoriteBusy = false
     @Environment(\.locale) private var locale
     @Environment(\.popupCloseActions) private var popupCloseActions
     @State private var showsPricing = false
@@ -76,6 +81,8 @@ struct TopicDetailView: View {
             if let value = detail {
                 ToolbarItem(placement: .topBarTrailing) {
                     TopicXcxToolbarActions(shareURL: PublicContentShareLink.topic(id: value.id), shareTitle: value.name,
+                                           isFavorited: favorited,
+                                           onToggleFavorite: favoriteHost == nil ? nil : { toggleFavorite(topicID: value.id) },
                                            posterCover: value.imageURL, posterSubtitle: value.subtitle)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -95,6 +102,7 @@ struct TopicDetailView: View {
         // the system back and its edge swipe; share / 举报 stay in the bar beside it.
         .cyPushedChrome(domain: .player)
         .task(id: key) { await loads.run { await load() } }
+        .task(id: key) { await seedFavorite() }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
@@ -250,9 +258,10 @@ struct TopicDetailView: View {
                     CYCard(variant: .elevated, radius: CYRadius.lg, padding: CYSpacing.xl) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             // verify-r1 PL-14: the type is a fact, not a link or a status, so it is ink, not blue.
-                            Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-                                .font(.title2.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                            // Round 4 image parity: the route mark is the MP `/images/cover-route.svg` (topic/index.wxml:49/78).
+                            MPAsset.BannerCover.coverRoute.resizable().scaledToFit()
                                 .accessibilityHidden(true)
+                                .frame(width: 40, height: 40)
                             Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
                                 .cyText(.label, weight: .semibold).foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: value.name).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
@@ -443,6 +452,8 @@ struct TopicDetailView: View {
             }
             let lineup = TopicXcxFacts.lineup(value)
             if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup, publicMerchant: publicMerchant) } }
+            // RTEAMS-1: 组队 card under the brands (hidden unless this topic has teams near its first stop).
+            TopicTeamsCard(topic: value)
             // 开局前准备 (`GET api/play/setup`): hidden when neither prep items nor a play window are set.
             // R7-PC-B1-20: MP shows 开局前准备 only to a viewer who has joined (`is_join == 1 && prep.show`).
             if value.isSignUp {
@@ -605,6 +616,38 @@ struct TopicDetailView: View {
     }
     /// Guard: only an in-flight load falls back to idle; loaded/failed results are kept.
     private func settleLoading() { if phase.isLoading { phase = .idle } }
+    /// MP `_loadFav`: one like_list read on entry; a tap made before it returns wins (the ledger drops the stale read).
+    private func seedFavorite() async {
+        guard let host = favoriteHostFactory?() else { favoriteHost = nil; favorited = nil; return }
+        favoriteHost = host; favorited = nil
+        let topicID = id
+        _ = try? await host.controller.performReadback(topicID: topicID, using: host.readLiked)
+        guard topicID == id, !favoriteBusy else { return }
+        if let liked = host.controller.confirmedLiked(topicID: topicID) { favorited = liked }
+    }
+    /// MP `toggleFav`: optimistic flip, `api/topic/like {id, type}`, roll back with a toast on failure.
+    private func toggleFavorite(topicID: Int) {
+        guard let host = favoriteHost, !favoriteBusy else { return }
+        let next = !(favorited ?? false)
+        favoriteBusy = true; favorited = next
+        Task { @MainActor in
+            let state = try? await host.controller.setLikeDirection(topicID: topicID, direction: TopicLikeDirection(liked: next))
+            favoriteBusy = false
+            switch state {
+            case .awaitingReadback?, .confirmed?, .sending?:
+                topicToastMessage = next ? PlayCloseCopy.text("已收藏", "Saved", locale) : PlayCloseCopy.text("已取消收藏", "Removed from saved", locale)
+            case .rejected(_, let message)?:
+                favorited = !next
+                topicToastMessage = message ?? PlayCloseCopy.text("收藏没有保存，请重试", "Not saved. Try again", locale)
+            default:
+                favorited = !next
+                topicToastMessage = PlayCloseCopy.text("网络异常，收藏没有保存", "Network error. Not saved", locale)
+                // An uncertain write is resolved by reading back, never by resending.
+                _ = try? await host.controller.performReadback(topicID: topicID, using: host.readLiked)
+                if let liked = host.controller.confirmedLiked(topicID: topicID) { favorited = liked }
+            }
+        }
+    }
     private func load() async {
         generation += 1
         let operation = generation, captured = key
