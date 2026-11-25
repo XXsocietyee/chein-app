@@ -252,6 +252,8 @@ import SwiftUI
                     .accessibilityIdentifier("merchant.insightCooperationCenter.open")
             }
         }
+        // MC8-11-6: 俱乐部合作 pool cards under 为你推荐的主题.
+        MerchantInsightPoolCardsSection()
         Section("merchantMarketing.recommendedPartners") {
             recommendationRows(insight.recommendedPartners, kind: .partner, insight: insight)
         }

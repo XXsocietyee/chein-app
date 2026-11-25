@@ -601,6 +601,7 @@ struct SessionRootView: View {
     private func chain3_7<V: View>(_ v: V) -> some View {
         v
         .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })
+        .modifier(MerchantCoopR8SessionEnvironment(session: session))
     }
 
     private func chain4<V: View>(_ v: V) -> some View {
