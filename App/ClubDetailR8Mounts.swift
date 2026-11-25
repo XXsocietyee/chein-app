@@ -180,6 +180,8 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     case customers, enroll, eventOps, roles
     /// CLB-detail-20: 发布主题 from the empty 活动 state.
     case publish
+    /// CLB-detail-35: 出示团码 / 出示二维码 → that topic's 选择场次 step (MP showGroupCode js:3072-3088).
+    case groupCode(topicID: Int)
     var id: Self { self }
 }
 
@@ -270,6 +272,9 @@ enum ClubDetailR8Route: Hashable, Identifiable {
             case .transferOwner:
                 ClubGovernanceReadView(operation: .members, scope: .init(clubID: clubID), identity: identity,
                                        access: governance.access, coordinator: governance.coordinator)
+            case .groupCode(let topicID):
+                ClubGroupCodeSessionStep(clubID: clubID, topicID: topicID, identity: identity,
+                                         access: governance.access, coordinator: governance.coordinator)
             case .myCoop, .workspace, .undertake, .publish:
                 nonGovernance
             }

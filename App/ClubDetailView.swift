@@ -40,6 +40,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     /// CLB-r7-A-06 (MP js:2488): access/me delegatedRoleCount, shown as 「N 已委派」 beside 角色与权限.
     @State private var delegatedRoleCount = 0
     @State private var showsSettings = false
+    @State private var groupCodeToast: LocalizedStringKey?
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -133,7 +134,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     ClubManageQuickActions(canScan: club.canGovern || canManageActivities(club), canGovern: club.canGovern,
                                            canManageActivities: canManageActivities(club), autoStartScan: autoScan,
                                            submitScan: (reader as? AppSession)?.clubScanSubmit,
-                                           onSettings: openSettingsAction)
+                                           onSettings: openSettingsAction,
+                                           onGroupCode: groupCodeQuickAction(club))
                 }
                 // CLB-detail-09 / CLB-r7-A-04 (MP wxml:452-475): 管理中的项目 with 活动导演台 and 场次工具.
                 if tab == .manage, club.canGovern || canManageActivities(club), management?.governance != nil {
@@ -221,7 +223,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                     SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn, embedded: { openedTopicID = $0 },
                         undertake: viewerDomain == .merchant ? { r8Route = .undertake(topicID: $0) } : nil,
-                        onPublish: canManageActivities(club) ? { r8Route = .publish } : nil)
+                        onPublish: canManageActivities(club) ? { r8Route = .publish } : nil,
+                        groupCode: groupCodeCardAction(club))
                 }
                 // V2 governance has its own access/me model, including delegated event staff.
                 if tab == .events, let governance = management?.governance {
@@ -456,6 +459,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                                           access: governance.access)
                     }
             }
+            .cyToast(message: $groupCodeToast)
             .navigationDestination(item: $r8Route) { route in
                 ClubDetailR8Destination(route: route, club: club, identity: reader.clubIdentity,
                                         session: reader as? AppSession, management: management)
@@ -542,6 +546,25 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     private var openSettingsAction: (() -> Void)? {
         guard management?.operations != nil else { return nil }
         return { showsSettings = true }
+    }
+    /// CLB-detail-35: MP `canManage` for 出示团码 = owner, admin or `club:event:checkin` (wxml:212).
+    private func canShowGroupCode(_ club: ClubRecord) -> Bool {
+        (club.isOwner || club.viewerIsAdmin || manageGrant?.permissions.contains("club:event:checkin") == true)
+            && management?.governance != nil
+    }
+    private func groupCodeCardAction(_ club: ClubRecord) -> ((Int) -> Void)? {
+        guard canShowGroupCode(club) else { return nil }
+        return { r8Route = .groupCode(topicID: $0) }
+    }
+    /// MP `onClubGroupCode` (js:1078-1101): no project → 还没有项目，先发布一个主题; several → pick one below; one → its code.
+    private func groupCodeQuickAction(_ club: ClubRecord) -> (() -> Void)? {
+        guard canShowGroupCode(club) else { return nil }
+        return {
+            let topics = Set(r8Mounts.projects.map(\.id))
+            if topics.isEmpty { groupCodeToast = "club.groupCode.noProject" }
+            else if topics.count > 1 { groupCodeToast = "club.groupCode.pickBelow" }
+            else if let only = topics.first { r8Route = .groupCode(topicID: only) }
+        }
     }
     /// CLB-G06: one settings-sheet row's route, or nil (row hidden) without governance or permission.
     private func settingsRoute(_ route: ClubDetailR8Route, allowed: Bool) -> (() -> Void)? {

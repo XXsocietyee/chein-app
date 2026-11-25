@@ -38,6 +38,29 @@ import SwiftUI
     var undertake: ((Int) -> Void)? = nil
     /// CLB-detail-20 (MP wxml:204-213, C3): the empty state offers 发布主题 to the owner or an activity manager.
     var onPublish: (() -> Void)? = nil
+    /// CLB-detail-35 (MP wxml:192, 212, js:3072-3088): 出示团码 on each card for the owner, an admin or
+    /// `club:event:checkin`; the host opens the 选择场次 step for that topic.
+    var groupCode: ((Int) -> Void)? = nil
+    /// Card actions: merchant 邀约承接 (CLB-G01) and manager 出示团码 (CLB-detail-35). Nil when neither applies.
+    private var cardActions: ((ClubActivityRow) -> AnyView)? {
+        guard undertake != nil || groupCode != nil else { return nil }
+        let undertake = undertake, groupCode = groupCode
+        return { row in
+            AnyView(HStack(spacing: CYSpacing.sm) {
+                if let undertake {
+                    ClubGapActivityAndScanActions(showsUndertake: true, showsScanVerify: false,
+                                                  onTapUndertake: { undertake(row.id) }, onTapScanVerify: {})
+                        .accessibilityIdentifier("club.activity.undertake.\(row.id)")
+                }
+                if let groupCode {
+                    Button("club.activity.groupCode") { groupCode(row.id) }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                        .accessibilityIdentifier("club.activity.groupCode.\(row.id)")
+                }
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget))
+        }
+    }
     var body: some View {
         if embedded != nil { embeddedBody } else { pageBody }
     }
@@ -85,14 +108,7 @@ import SwiftUI
                 } else {
                     ClubActivityListContent(rows: rows, canOpen: visible && scenePhase == .active && opening == nil, open: { row in
                         select(row, from: snapshot, snapshotID: renderedSnapshotID)
-                    }, report: undertake.map { action -> (ClubActivityRow) -> AnyView in
-                        { row in
-                            AnyView(ClubGapActivityAndScanActions(showsUndertake: true, showsScanVerify: false,
-                                                                  onTapUndertake: { action(row.id) }, onTapScanVerify: {})
-                                .frame(minHeight: CYSpacing.minTouchTarget)
-                                .accessibilityIdentifier("club.activity.undertake.\(row.id)"))
-                        }
-                    }, embedded: true)
+                    }, report: cardActions, embedded: true)
                 }
             } else if !model.loading, model.issueScope == scope, let issue = model.issue {
                 issueSection(issue)

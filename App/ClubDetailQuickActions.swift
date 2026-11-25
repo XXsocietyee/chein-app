@@ -12,6 +12,8 @@ import SwiftUI
     let submitScan: ((_ raw: String, _ canGovern: Bool, _ canManageActivities: Bool) async throws -> Bool)?
     /// CLB-G06: 设置 opens the 俱乐部设置 sheet (MP wxml:390-394, `onSettings` js:3571-3575). Nil hides it.
     var onSettings: (() -> Void)? = nil
+    /// CLB-detail-35: 出示二维码 for the owner, an admin or `club:event:checkin` (MP wxml:375-380, js:1078-1101).
+    var onGroupCode: (() -> Void)? = nil
 
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var scanning = false
@@ -25,13 +27,16 @@ import SwiftUI
     private var scanOffered: Bool { canScan && submitScan != nil }
 
     var body: some View {
-        if scanOffered || onSettings != nil {
+        if scanOffered || onSettings != nil || onGroupCode != nil {
             Section {
                 layout {
                     if scanOffered {
                         quickAction("club.quick.scan", systemImage: "qrcode.viewfinder", identifier: "club.quick.scan") { scanning = true }
                             .disabled(busy)
                             .accessibilityLabel(Text("club.quick.scan.a11y"))
+                    }
+                    if let onGroupCode {
+                        quickAction("club.quick.groupCode", systemImage: "qrcode", identifier: "club.quick.groupCode", action: onGroupCode)
                     }
                     if let onSettings {
                         quickAction("club.quick.settings", systemImage: "ellipsis", identifier: "club.quick.settings", action: onSettings)
