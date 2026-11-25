@@ -189,7 +189,16 @@ import SwiftUI
         .cyHeroScreen()
         .accessibilityIdentifier("friendMeta.editor").privacySensitive()
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
-        .onAppear { visible = true; if scenePhase == .active { visit = UUID(); performPresented { await flow.load() } } }
+        .onAppear { visible = true }
+        .task {
+            // Removal already loads from .task. Gating this read on scenePhase == .active
+            // drops it when a nested push is only .inactive, so the editor never becomes ready.
+            visible = true
+            guard scenePhase != .background else { return }
+            visit = UUID()
+            await flow.load()
+            if visible { synchronize() }
+        }
         .onChange(of: flow.metadata) { _, _ in synchronize() }
         .onChange(of: flow.groups) { _, _ in
             if let id = editingGroupID, !flow.groups.contains(where: { $0.id == id }) { editingGroupID = nil; groupName = "" }
@@ -199,8 +208,18 @@ import SwiftUI
         .onDisappear { visible = false; retirePresentation() }
         .onChange(of: flow.isCurrent) { _, current in if !current { retirePresentation() } }
         .onChange(of: scenePhase) { _, phase in
-            retirePresentation()
-            if phase == .active, visible { visit = UUID(); performPresented { await flow.load() } }
+            switch phase {
+            case .active:
+                guard visible else { return }
+                visit = UUID()
+                performPresented { await flow.load() }
+            case .background:
+                retirePresentation()
+            case .inactive:
+                break
+            @unknown default:
+                break
+            }
         }
         .tint(palette.brand)
     }

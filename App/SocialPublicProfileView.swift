@@ -69,6 +69,12 @@ import SwiftUI
         ProfileIdentitySharePageHost(owner: identityShareOwner,
             context: .init(memberID: memberID, reader: reader, isCurrent: isCurrent())) {
         List {
+            if !reader.isConfigured, let weeklyPointsAccess {
+                // Own weekly points are a separate read. An unavailable public profile
+                // must not hide them or wait for that parent request.
+                ProfileWeeklyPointsEntry(memberID: memberID, accountReader: reader,
+                    access: weeklyPointsAccess, isCurrent: isCurrent)
+            }
             if memberID <= 0 {
                 // Mini-program userinfo missing-param state: centred empty state with a back-to-home CTA.
                 CYEmptyState(

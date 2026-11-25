@@ -147,15 +147,6 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
                     ProfileSettingsFavoritesDestination(route: offered, owner: owner, current: { .current(session) }, session: session)
                 }.id(route.id)
             }
-            ProfileFavoriteNavigationLayer(owner: owner.posts) { selected in
-                ProfileFavoriteDetailDestination(selection: selected,
-                    makeReader: { session.makeProfileFavoriteDetailReader(selected) },
-                    accountReader: session.socialAccountReader, actions: session.socialActionCoordinator).id(selected.id)
-            }
-            ProfileFavoriteTopicNavigationLayer(owner: owner.topics) { selected in
-                ProfileFavoriteTopicDestination(selection: selected, session: session,
-                    makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
-            }
         }
     }
 }
@@ -183,7 +174,23 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
                     Button("action.close") { dismiss() }.accessibilityIdentifier("settingsNative.favorites.closeChanged")
                 }
             }
-        }.accessibilityIdentifier("settingsNative.favorites.destination")
+        }
+        .background {
+            // Detail pushes belong to this collection page. A sibling destination on the
+            // settings root treats the cover as a pop and retires the owner route.
+            if let session {
+                ProfileFavoriteNavigationLayer(owner: owner.posts) { selected in
+                    ProfileFavoriteDetailDestination(selection: selected,
+                        makeReader: { session.makeProfileFavoriteDetailReader(selected) },
+                        accountReader: session.socialAccountReader, actions: session.socialActionCoordinator).id(selected.id)
+                }
+                ProfileFavoriteTopicNavigationLayer(owner: owner.topics) { selected in
+                    ProfileFavoriteTopicDestination(selection: selected, session: session,
+                        makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
+                }
+            }
+        }
+        .accessibilityIdentifier("settingsNative.favorites.destination")
     }
 }
 
