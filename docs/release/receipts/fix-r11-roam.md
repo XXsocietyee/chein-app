@@ -3,7 +3,7 @@
 Brief: `origin/design/handoff-r2:docs/briefs/fix-r11.md`. Slice: `origin/audit/parity-r11-play-roam:docs/audit/parity-r11/play-roam.md` §4 fix queue (all rows).
 Branch `fix/r11-roam` from `origin/ui/combined-r7` (`b9a9d4d29`). Not compiled (no Swift toolchain in the cloud). Every type and member was grepped before use.
 
-Gates at the last push: `check_scaffold.py` PASS structural checks · `check_a11y_lint.py` PASS (0 new) · `contract_ratchet.py --check` new 0 (see the final push note at the end).
+Gates at the last push (after merging origin/ui/combined-r7): `check_scaffold.py` PASS structural checks · `check_a11y_lint.py` PASS (0 new) · `contract_ratchet.py --check` 192 failing = baseline 192, new 0. Pinned checks updated with MP citations: test_official_event_contracts.py (active-for-roam), ui-strings stamp-camera spec (已入册), check_roam_private_tools.py (goal create), test_roam_entry_nearby_production.py (stage gate).
 
 ## P1
 
