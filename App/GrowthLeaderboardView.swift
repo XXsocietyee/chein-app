@@ -27,7 +27,7 @@ import SwiftUI
             Section {
                 GrowthBoardChips(title: "growth.board.period", selection: $query.period, options: GrowthBoardPeriod.allCases) { "growth.period." + $0.rawValue }
                     .accessibilityIdentifier("growth.board.period")
-                if model.value(key: key)?.list.isEmpty != false { metricChips }
+                if model.value(key: key)?.isAbsentGrowthBoard != false { metricChips }
             }
             .listRowBackground(Color.clear).listRowSeparator(.hidden)
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
@@ -39,14 +39,21 @@ import SwiftUI
                 else { GrowthCenterIssueView(issue: issue, retry: reload, failedTitle: "mp.growth.boardFailed", deniedTitle: "mp.growth.boardDenied") }
             }
             else if let board = model.value(key: key) {
-                if board.list.isEmpty {
+                if board.isAbsentGrowthBoard {
+                    // MP wxml: !loading && !top3[0] && !rest.length && !me. Text scales with Dynamic Type;
+                    // the cy-empty figure is not drawn.
                     VStack(spacing: CYSpacing.md) {
-                        CYEmptyState(systemImage: "tray", "growth.board.empty")
+                        Text("growth.board.empty")
+                            .cyText(.sectionTitle)
+                            .foregroundStyle(palette.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
                         // LEADER-4: MP 完成一次城市探索即可累计{{unit}} — the unit follows the selected board.
                         Text("growth.board.emptyHint \(appLocalized(String.LocalizationValue(stringLiteral: "growth.unit." + board.metric.rawValue), locale: locale))")
                             .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                             .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
                         if let onExploreHome {
                             let selection = GrowthLeaderboardExploreSelection(readerID: ObjectIdentifier(reader), key: key,
                                 board: board, presentationID: explorePresentationID)
@@ -120,6 +127,8 @@ import SwiftUI
 
 /// A current successful empty-board presentation only. It carries no outbound
 /// player/rank data; the action is the host's existing zero-argument home route.
+/// Top 3 and the rest come from `list`. 我 is absent only when `me.rank` is absent,
+/// the same gate as the closing row. A failed read never builds this selection.
 struct GrowthLeaderboardExploreSelection {
     let readerID: ObjectIdentifier
     let key: GrowthCenterLoadKey
@@ -130,9 +139,15 @@ struct GrowthLeaderboardExploreSelection {
                  loading: Bool, hasIssue: Bool) -> Bool {
         visible && authenticated && configured && !loading && !hasIssue &&
             self.readerID == readerID && self.key == key && self.presentationID == presentationID &&
-            self.board.list.isEmpty && self.board == board
+            self.board.isAbsentGrowthBoard && self.board == board
     }
 }
+extension GrowthLeaderboard {
+    /// Mini-program empty board: no first-place row, no rows after third, and no 我.
+    /// `list` is top 3 plus the rest. 我 is the unlisted row, drawn only when `me.rank` exists.
+    fileprivate var isAbsentGrowthBoard: Bool { list.isEmpty && me.rank == nil }
+}
+
 private struct GrowthLeaderboardRow: View {
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
