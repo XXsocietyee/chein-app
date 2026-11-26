@@ -1,9 +1,9 @@
 name: Acceptance
 on:
+  # 11-26: no longer on every ui/combined-r7 or port/** push. The coordinator pushes ci/acceptance about twice a day
+  # (or on demand) so checks don't pile up on the shared Mac.
   push:
     branches:
-      - 'port/**'
-      - ui/combined-r7
       - ci/acceptance
       - ci/baseline-record
 permissions:
@@ -11,6 +11,19 @@ permissions:
 env:
   ACCEPTANCE_MODE: ${{ github.ref == 'refs/heads/ci/baseline-record' && 'record' || 'check' }}
 jobs:
+  hosted-probe:
+    # 11-26: can GitHub's free macOS runners (public repo) build this project? Reports Xcode + iOS runtimes only.
+    runs-on: macos-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: Xcode and simulators on the hosted image
+        run: |
+          sw_vers
+          ls -d /Applications/Xcode*.app || true
+          xcodebuild -version
+          xcrun simctl list runtimes | head -20
+          df -h / | tail -1
   baselines:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -110,7 +123,7 @@ jobs:
     concurrency:
       group: acceptance-debug-${{ github.ref }}
       cancel-in-progress: true
-    timeout-minutes: 30
+    timeout-minutes: 50
     steps:
       - name: Checkout
         id: checkout_try1
@@ -167,7 +180,7 @@ jobs:
     concurrency:
       group: acceptance-core-${{ github.ref }}
       cancel-in-progress: true
-    timeout-minutes: 30
+    timeout-minutes: 50
     steps:
       - name: Checkout
         id: checkout_try1
@@ -238,7 +251,7 @@ jobs:
     concurrency:
       group: acceptance-lane2-${{ github.ref }}
       cancel-in-progress: true
-    timeout-minutes: 25
+    timeout-minutes: 50
     steps:
       - name: Checkout
         id: checkout_try1
@@ -336,7 +349,7 @@ jobs:
     concurrency:
       group: acceptance-w2-${{ github.ref }}
       cancel-in-progress: true
-    timeout-minutes: 25
+    timeout-minutes: 50
     steps:
       - name: Checkout
         id: checkout_try1
@@ -576,7 +589,7 @@ jobs:
     concurrency:
       group: acceptance-shots-${{ github.ref }}
       cancel-in-progress: true
-    timeout-minutes: 30
+    timeout-minutes: 50
     steps:
       - name: Checkout
         id: checkout_try1
@@ -627,7 +640,7 @@ jobs:
     concurrency:
       group: acceptance-ui-${{ github.ref }}
       cancel-in-progress: true
-    timeout-minutes: 30
+    timeout-minutes: 50
     steps:
       - name: Checkout
         id: checkout_try1
