@@ -675,7 +675,7 @@ private struct CYSheetBackgroundInteraction: ViewModifier {
     let mapInteractive: Bool
     func body(content: Content) -> some View {
         if mapInteractive {
-            content.presentationBackgroundInteraction(.enabled(upThrough: .medium))
+            content.presentationBackgroundInteraction(.enabled(upThrough: .medium)).cySheetBackdropExempt()
         } else {
             content.presentationBackgroundInteraction(.disabled)
         }

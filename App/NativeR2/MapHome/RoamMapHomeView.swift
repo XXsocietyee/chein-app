@@ -87,7 +87,7 @@ struct RoamMapHomeDependencies {
         .accessibilityIdentifier("city.roam.map")
         .onAppear { sheetShown = true }
         .onDisappear { if !model.coversMap { sheetShown = false } }
-        .cySheet(isPresented: $sheetShown) {
+        .sheet(isPresented: $sheetShown) {
             RoamMapHomeSheet(model: model, dependencies: dependencies, onSwitchTab: switchTab(to:))
                 .presentationDetents([RoamMapHomeModel.peek, .medium, .large], selection: $model.detent)
                 .presentationBackgroundInteraction(.enabled(upThrough: .medium))

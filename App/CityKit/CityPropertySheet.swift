@@ -42,6 +42,7 @@ struct CitySheetHost: View {
                                       onRoute: onRoute, onClose: onDismiss)
                         .presentationDetents([.height(CityTokens.propertyDetent), .large], selection: $detent)
                         .presentationBackgroundInteraction(.enabled(upThrough: .height(CityTokens.propertyDetent)))
+                        .cySheetBackdropExempt()
                 case .claim:
                     CityClaimSheet(place: place, store: store, captureFix: captureFix, uploader: photoUploader, fixture: fixtureClaim,
                                    onMoment: onMoment, onMine: onMine, onClose: onDismiss)

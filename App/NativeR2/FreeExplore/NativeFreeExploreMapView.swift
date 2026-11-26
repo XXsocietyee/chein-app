@@ -48,7 +48,7 @@ import SwiftUI
                 MapScaleView()
             }
             .toolbar { toolbar }
-            .cySheet(isPresented: $showsSheet, onDismiss: openPendingStore) { sheet }
+            .sheet(isPresented: $showsSheet, onDismiss: openPendingStore) { sheet }
             .navigationDestination(item: $selectedStore) { id in storeDestination(id) }
             .onAppear {
                 if arrival == nil { arrival = PlayArrivalService(runtime: model, location: arrivalLocation) }

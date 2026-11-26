@@ -64,7 +64,7 @@ public struct NearbyTeamsMapSheetView: View {
                 }
             }
         }
-        .cySheet(isPresented: $isSheetPresented) {
+        .sheet(isPresented: $isSheetPresented) {
             List {
                 Section("附近共有 \(teams.count) 支队伍") {
                     if teams.isEmpty {
