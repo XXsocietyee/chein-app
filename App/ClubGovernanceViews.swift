@@ -1513,11 +1513,10 @@ struct ClubGovernanceReadView: View {
             } else if value["accountRole"] == .string("club") {
                 // Source club/apply done card: page title 成为主理人, an 已生效 chip, then the 可建俱乐部 row.
                 Section {
-                    Label { Text("club.host.done.active") } icon: {
-                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    // CLB-r10-nat-apply-02 (MP apply wxml:173-176 状态 · 已生效): a plain LabeledContent row, no chip.
+                    LabeledContent("club.host.done.status") {
+                        Label("club.host.done.active", systemImage: "checkmark.circle.fill")
                     }
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(Text("club.host.done.status")).accessibilityValue(Text("club.host.done.active"))
                     // CLB-apply-11 (MP apply wxml:177): 主理人 <leaderName> when the status read carries it.
                     if let leader = value["leaderName"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !leader.isEmpty {
                         LabeledContent("club.host.done.leaderLabel") { Text(verbatim: leader) }
