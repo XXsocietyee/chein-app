@@ -3,7 +3,8 @@ import SwiftUI
 /// Host-provided own-shelf for the "模板" tab of mini-program subpackageA/pages/myproject.
 /// Absent hosts show an explicit unavailable state instead of reusing `api/project/my` rows.
 struct MyProjectTemplateShelfHost {
-    let make: @MainActor () -> AnyView
+    /// The argument leads the shelf list when it is shown inline (R7-PC-D1-4); nil for the standalone page.
+    let make: @MainActor (AnyView?) -> AnyView
 }
 
 private struct MyProjectTemplateShelfKey: EnvironmentKey {
@@ -74,7 +75,7 @@ enum MyProjectAddressLink {
     var body: some View {
         Section {
             if let shelf {
-                NavigationLink { shelf.make() } label: {
+                NavigationLink { shelf.make(nil) } label: {
                     Label("myProject.template.open", systemImage: "square.stack.3d.up")
                 }.accessibilityIdentifier("myProject.template.open")
             } else {
@@ -276,11 +277,12 @@ extension AppSession {
     }
 
     /// Same own-shelf the template launch page opens; reads `/api/template/my-list` through the session coordinator.
-    @MainActor func myProjectTemplateShelf() -> AnyView {
+    @MainActor func myProjectTemplateShelf(header: AnyView? = nil) -> AnyView {
         AnyView(TemplateAuthoringMineView(coordinator: templateShelfCoordinator(), sessionRevision: sessionRevision,
             memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0)) },
             ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0)) },
-            creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0)) })
+            creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0)) },
+            embeddedHeader: header)
             .id(templateShelfViewIdentity))
     }
 }

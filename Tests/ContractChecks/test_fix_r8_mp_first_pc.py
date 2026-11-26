@@ -45,7 +45,9 @@ class MPFirstPlayerContentPins(unittest.TestCase):
 
     def test_ui_rows_follow_mp(self):
         self.assertIn('allowsRead: { true }', read('App/SessionWalletCommerceView.swift'))  # R8-PC-D4-1
-        self.assertIn('AnyView(WithdrawalSupportContactView())', read('App/WalletCommerceViews.swift'))  # R7-PC-D5-1
+        wallet = read('App/WalletCommerceViews.swift')
+        self.assertIn('AnyView(WalletWithdrawPermissionGate())', wallet)  # R7-PC-D5-1, R9-PC-D5-1 permission gate
+        self.assertIn('case .allowed: WithdrawalSupportContactView()', wallet)
         self.assertIn('registrationEnabled: true)', read('App/RoamNearbyEventsDetailHost.swift'))  # R7-PC-C1-10
         official = read('App/OfficialPrivateViews.swift')  # R7-PC-C6-1
         self.assertNotIn('NavigationLink("officialAction.publish")', official)

@@ -336,7 +336,8 @@ private func board(rows: [String], me: String = "null", mode: String = "SCORE", 
         XCTAssertFalse(body.contains("amount"))
         XCTAssertTrue(writer.needsManualReview)
         XCTAssertNil(journal.slot?.requestID)
-        XCTAssertEqual(await writer.write(.sync), .unknown)
+        let result339 = await writer.write(.sync)
+        XCTAssertEqual(result339, .unknown)
         XCTAssertEqual(transport.requests.count, 2)
     }
 
@@ -404,7 +405,8 @@ private func board(rows: [String], me: String = "null", mode: String = "SCORE", 
         let writer = try scoreSettlementWriter(transport, journal: journal)
         XCTAssertTrue(writer.journalUnreadable)
         XCTAssertFalse(writer.needsManualReview)
-        XCTAssertEqual(await writer.requestManualReview(), .unknown)
+        let result407 = await writer.requestManualReview()
+        XCTAssertEqual(result407, .unknown)
         XCTAssertTrue(transport.requests.isEmpty)
     }
 
