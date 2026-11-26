@@ -220,21 +220,20 @@ struct TopicXcxLineup: View {
     }
 
     var body: some View {
-        // Mini-program `lineup-row`: horizontal scroll of avatar / name / role cards.
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .top, spacing: CYSpacing.md) {
-                ForEach(Array(members.enumerated()), id: \.offset) { _, member in
+        // Mini-program `lineup-row` (avatar / name / role). R10-PC-B-N5: one list row per member in the lineup
+        // section, a system NavigationLink row when it opens (no horizontal card strip).
+        ForEach(Array(members.enumerated()), id: \.offset) { _, member in
                     UGCBlockedFilterContainer(authorName: member.name) {
-                        let card = VStack(spacing: CYSpacing.xs) {
-                            CYAvatarView(name: member.name, size: .lg)
-                            Text(verbatim: member.name).font(.subheadline).foregroundStyle(.primary).cyWrapText(alignment: .center)
-                            Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(.caption).foregroundStyle(.secondary)
+                        let card = HStack(spacing: CYSpacing.md) {
+                            CYAvatarView(name: member.name, size: .md)
+                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                Text(verbatim: member.name).foregroundStyle(.primary)
+                                Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(.footnote).foregroundStyle(.secondary)
+                            }
                         }
-                        .frame(width: 88)
                         Group {
                             if opens(member) {
                                 NavigationLink { destination(member) } label: { card }
-                                    .buttonStyle(.plain)
                                     .accessibilityIdentifier("topic.lineup.\(member.kind == .club ? "club" : "merchant").\(member.targetID)")
                             } else {
                                 card
@@ -249,8 +248,6 @@ struct TopicXcxLineup: View {
                             )
                         }
                     }
-                }
-            }
         }
     }
 }
