@@ -274,15 +274,19 @@ public struct ClubGapGroupCodeSessionPickerView: View {
     public let state: ClubGroupCodeStepState
     public let onSelectSession: (ClubManagedDirectorSession) -> Void
     public let onOpenManage: () -> Void
+    /// CLB-r10-nat-group-code-03: when set, each session is a system `NavigationLink` row to this page.
+    public let sessionDestination: ((ClubManagedDirectorSession) -> AnyView)?
 
     public init(
         state: ClubGroupCodeStepState,
         onSelectSession: @escaping (ClubManagedDirectorSession) -> Void,
-        onOpenManage: @escaping () -> Void
+        onOpenManage: @escaping () -> Void,
+        sessionDestination: ((ClubManagedDirectorSession) -> AnyView)? = nil
     ) {
         self.state = state
         self.onSelectSession = onSelectSession
         self.onOpenManage = onOpenManage
+        self.sessionDestination = sessionDestination
     }
 
     public var body: some View {
@@ -290,14 +294,18 @@ public struct ClubGapGroupCodeSessionPickerView: View {
             switch state {
             case .selecting(let sessions):
                 ForEach(sessions) { session in
-                    Button {
-                        onSelectSession(session)
-                    } label: {
-                        HStack {
-                            Text(verbatim: session.title).foregroundStyle(.primary)
-                            Spacer()
-                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
-                                .accessibilityHidden(true)
+                    if let sessionDestination {
+                        NavigationLink { sessionDestination(session) } label: { Text(verbatim: session.title) }
+                    } else {
+                        Button {
+                            onSelectSession(session)
+                        } label: {
+                            HStack {
+                                Text(verbatim: session.title).foregroundStyle(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                                    .accessibilityHidden(true)
+                            }
                         }
                     }
                 }

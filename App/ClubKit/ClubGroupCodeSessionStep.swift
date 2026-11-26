@@ -64,7 +64,8 @@ struct ClubGroupCodeSessionStep: View {
         case .sessions(let sessions):
             ClubGapGroupCodeSessionPickerView(state: .selecting(sessions),
                                               onSelectSession: { pickedID = $0.id },
-                                              onOpenManage: { opensManage = true })
+                                              onOpenManage: { opensManage = true },
+                                              sessionDestination: { AnyView(issueForm($0)) })
         }
     }
 
