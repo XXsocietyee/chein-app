@@ -44,49 +44,46 @@ extension PlayKitScreen {
             .accessibilityIdentifier("playkit.profile.avatar")
         }
         if done {
-            Text("playkit.profile.seal")
-                .cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
-                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(CYColor.dangerText, lineWidth: 2))
-                .rotationEffect(.degrees(-6))
+            // N-KIT-FORMS: a system label instead of the rotated stamp.
+            Label("playkit.profile.seal", systemImage: "checkmark.seal.fill")
+                .font(.headline)
                 .frame(maxWidth: .infinity)
                 .accessibilityLabel(Text("playkit.profile.sealLabel"))
                 .accessibilityIdentifier("playkit.profile.seal")
-            CYPillButton("playkit.profile.registered") {}.disabled(true).accessibilityIdentifier("playkit.submit.profile")
+            Button("playkit.profile.registered") {}.buttonStyle(.bordered).disabled(true)
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("playkit.submit.profile")
         } else if final {
             Text("playkit.profile.lockNotice").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             let payload: [String: PlayWireValue] = ["answers": .object(answers.mapValues(PlayWireValue.string)), "avatarUrl": .string(avatarURL)]
             Button("playkit.profile.finish") { prepare("SUBMIT_PROFILE", payload) }
-                .buttonStyle(.questifyPrimary).disabled(!enabled || !valid("SUBMIT_PROFILE", payload))
+                .buttonStyle(.borderedProminent).controlSize(.large).frame(maxWidth: .infinity).disabled(!enabled || !valid("SUBMIT_PROFILE", payload))
                 .accessibilityIdentifier("playkit.submit.profile")
         } else {
-            CYPillButton("playkit.profile.next") { profileStep = step + 1 }
+            Button("playkit.profile.next") { profileStep = step + 1 }
+                .buttonStyle(.borderedProminent).controlSize(.large).frame(maxWidth: .infinity)
                 .disabled(!enabled || !questions.indices.contains(step) || !profileAnswered(questions[step]))
                 .accessibilityIdentifier("playkit.profile.next")
         }
     }
     /// The register card: every question with the answer written so far (option label for picks).
+    /// N-KIT-FORMS: a system `GroupBox` of `LabeledContent` rows instead of a custom card.
     private func profileSummary(_ questions: [PlayWireValue]) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Group { if projection.title.isEmpty { Text("playkit.profile.formTitle") } else { Text(verbatim: projection.title) } }
-                .cyText(.meta).tracking(4).foregroundStyle(CYColor.textTertiary)
-                .frame(maxWidth: .infinity)
+        GroupBox {
             ForEach(Array(questions.enumerated()), id: \.offset) { _, question in
                 let key = question["key"].text ?? ""
                 let value = answers[key] ?? ""
                 let shown = PlayKitOption.read(question["options"], idKey: "key").first { $0.id == value }?.label ?? value
-                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.lg) {
-                    Text(verbatim: question["label"].text ?? key).cyText(.body).foregroundStyle(CYColor.textTertiary)
-                    Text(verbatim: shown.isEmpty ? "—" : shown).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                    Spacer(minLength: 0)
+                LabeledContent {
+                    Text(verbatim: shown.isEmpty ? "—" : shown)
+                } label: {
+                    Text(verbatim: question["label"].text ?? key)
                 }
-                .padding(.vertical, CYSpacing.xs)
-                .overlay(alignment: .bottom) { Rectangle().fill(CYColor.borderSubtle).frame(height: 1) }
                 .accessibilityElement(children: .combine)
             }
+        } label: {
+            if projection.title.isEmpty { Text("playkit.profile.formTitle") } else { Text(verbatim: projection.title) }
         }
-        .padding(CYSpacing.lg)
-        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(CYColor.bgElevated))
         .accessibilityIdentifier("playkit.profile.summary")
     }
     @ViewBuilder private func profileQuestion(_ question: PlayWireValue) -> some View {
@@ -102,14 +99,23 @@ extension PlayKitScreen {
             .accessibilityHint(Text("playkit.profile.required"))
             if question["kind"].text == "pick" {
                 ForEach(PlayKitOption.read(question["options"], idKey: "key")) { option in
-                    CYChoiceRow(label: option.label, selected: answers[key] == option.id, enabled: enabled) {
-                        answers[key] = option.id; dirty = true
+                    let selected = answers[key] == option.id
+                    Button { answers[key] = option.id; dirty = true } label: {
+                        HStack {
+                            Text(verbatim: option.label)
+                            Spacer()
+                            if selected { Image(systemName: "checkmark").accessibilityHidden(true) }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.bordered)
+                    .disabled(!enabled)
+                    .accessibilityAddTraits(selected ? .isSelected : [])
                 }
             } else {
                 TextField("playkit.profile.placeholder", text: Binding(get: { answers[key] ?? "" }, set: {
                     answers[key] = PlayKitInputContract.limitText($0, toUTF16: limit); dirty = true
-                })).cyField().disabled(!enabled)
+                }), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
                     .accessibilityLabel(Text(verbatim: question["label"].text ?? key))
                     .accessibilityIdentifier("playkit.profile.field." + key)
                 Text(verbatim: "\((answers[key] ?? "").utf16.count) / \(limit)")
@@ -138,13 +144,16 @@ extension PlayKitScreen {
         }
         ForEach(Array((raw["previous"].array ?? []).enumerated()), id: \.offset) { _, note in
             if let value = note["text"].text, !value.isEmpty {
-                CYInfoCard {
-                    Text(verbatim: value).cyText(.body).foregroundStyle(CYColor.textPrimary)
-                    if let at = note["at"].double, at.isFinite { Text(Date(timeIntervalSince1970: at / 1000), style: .date).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                GroupBox {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: value)
+                        if let at = note["at"].double, at.isFinite { Text(Date(timeIntervalSince1970: at / 1000), style: .date).font(.footnote).foregroundStyle(.secondary) }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
-        TextField("playkit.note.placeholder", text: textBinding(limit: limit), axis: .vertical).lineLimit(3...8).cyField().disabled(!enabled)
+        TextField("playkit.note.placeholder", text: textBinding(limit: limit), axis: .vertical).lineLimit(3...8).textFieldStyle(.roundedBorder).disabled(!enabled)
         Text(verbatim: "\(text.utf16.count) / \(limit)").cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity, alignment: .trailing)
         // Preset lines sit under the field as small chips, as in the mini-program.
         let presets = (raw["presets"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
@@ -152,8 +161,8 @@ extension PlayKitScreen {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: CYSpacing.sm) {
                     ForEach(Array(presets.enumerated()), id: \.offset) { _, preset in
-                        Button { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } label: { Text(verbatim: preset).cyText(.label) }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                        Button { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } label: { Text(verbatim: preset) }
+                            .buttonStyle(.bordered).controlSize(.small)
                             .disabled(!enabled)
                             .accessibilityAddTraits(text == preset ? .isSelected : [])
                     }
@@ -238,46 +247,53 @@ extension PlayKitScreen {
     @State private var mounted = false
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYStepIndicator(titles: [ChannelCopy.text("拍摄", "Capture", locale: locale), ChannelCopy.text("上传", "Upload", locale: locale),
-                                     ChannelCopy.text("使用", "Use", locale: locale)],
-                            current: model.reviewedPhoto() != nil ? 2 : (capturedIdentity == identity && model.output != nil) ? 1 : 0)
-            CYPillButton(LocalizedStringKey("playkit.photo.capture"), systemImage: "camera.fill") { cameraPurpose = true }
+            // N-KIT-FORMS: system buttons; the one prominent button is the current step (capture → upload → use).
+            Button { cameraPurpose = true } label: { Label("playkit.photo.capture", systemImage: "camera.fill").frame(maxWidth: .infinity) }
+                .modifier(PlayKitStepButtonStyle(prominent: photoStep == 0))
                 .disabled(!enabled || model.busy || !model.supports(.photo))
-            CYPillButton(LocalizedStringKey("playkitCamera.choosePhoto"), style: .tertiary, systemImage: "photo.on.rectangle") {
+            Button {
                 let expected = identity; capturedIdentity = expected
                 Task {
                     await model.capture(.photo, usePhotoLibrary: true)
                     if !mounted || identity != expected { model.cancel() }
                     else if let output = model.output, case .photo = output { onDirty() }
                 }
-            }.disabled(!enabled || model.busy || !model.supportsLibraryPhotos)
+            } label: { Label("playkitCamera.choosePhoto", systemImage: "photo.on.rectangle").frame(maxWidth: .infinity) }
+            .buttonStyle(.bordered)
+            .disabled(!enabled || model.busy || !model.supportsLibraryPhotos)
             if !model.supports(.photo) { Text("playkit.camera.gated").cyText(.bodyCompact) }
             if model.busy { ProgressView("playkit.photo.working") }
             if judging { ProgressView("playkit.photo.judging") }
             if capturedIdentity == identity, let output = model.output, case .photo(let bytes, _) = output {
                 if let image = UIImage(data: bytes) { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel(Text("playkit.photo.preview")) }
                 if bytes.count > 10 * 1024 * 1024 { Text("playkit.photo.tooLarge") }
-                CYPillButton(LocalizedStringKey("playkit.photo.upload"), systemImage: "icloud.and.arrow.up") { uploadReview = true }
+                Button { uploadReview = true } label: { Label("playkit.photo.upload", systemImage: "icloud.and.arrow.up").frame(maxWidth: .infinity) }
+                    .modifier(PlayKitStepButtonStyle(prominent: photoStep == 1))
                     .disabled(!enabled || !model.canUpload || bytes.isEmpty || bytes.count > 10 * 1024 * 1024)
                 if !model.canUpload && model.uploadedPhoto == nil && !model.busy { Text("playkit.photo.uploadGate").cyText(.bodyCompact) }
                 if model.uploadedPhoto == nil, model.issue != nil {
-                    CYNoteBanner(text: Text("playkit.photo.uploadFailedRetake"), symbol: "exclamationmark.triangle", tone: .warning)
+                    Label("playkit.photo.uploadFailedRetake", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
                 }
                 if let evidence = model.reviewedPhoto(), case .photo(let uploadedURL) = evidence {
                     Label("playkit.photo.uploaded", systemImage: "checkmark.circle")
                     if submitFailed {
-                        CYNoteBanner(text: Text("playkit.photo.submitFailedKept"), symbol: "arrow.clockwise.circle", tone: .warning)
+                        Label("playkit.photo.submitFailedKept", systemImage: "arrow.clockwise.circle").foregroundStyle(.orange)
                     }
-                    CYPillButton(LocalizedStringKey(submitFailed ? "playkit.photo.resubmit" : "playkit.photo.use"), systemImage: submitFailed ? "arrow.clockwise" : "checkmark") {
+                    Button {
                         if mounted && capturedIdentity == identity && enabled { onURL(uploadedURL) }
+                    } label: {
+                        Label(LocalizedStringKey(submitFailed ? "playkit.photo.resubmit" : "playkit.photo.use"),
+                              systemImage: submitFailed ? "arrow.clockwise" : "checkmark").frame(maxWidth: .infinity)
                     }
+                    .modifier(PlayKitStepButtonStyle(prominent: photoStep == 2))
                     .disabled(!enabled || judging)
                 }
             }
             if let issue = model.issue {
                 PlayExperienceIssueView(issue: issue)
                 if issue == .disabled, let settingsURL = Self.settingsURL {
-                    CYPillButton("playkit.media.openSettings", style: .secondary, systemImage: "gear") { openURL(settingsURL) }
+                    Button { openURL(settingsURL) } label: { Label("playkit.media.openSettings", systemImage: "gear") }
+                        .buttonStyle(.bordered)
                         .accessibilityIdentifier("playkit.photo.openSettings")
                 }
             }
@@ -305,6 +321,9 @@ extension PlayKitScreen {
         .onChange(of: identity) { _, _ in capturedIdentity = nil; cameraPurpose = false; uploadReview = false; model.cancel() }
         .onDisappear { mounted = false; capturedIdentity = nil; model.cancel() }
     }
+
+    /// 0 capture, 1 upload, 2 use (the old step indicator's current index).
+    private var photoStep: Int { model.reviewedPhoto() != nil ? 2 : (capturedIdentity == identity && model.output != nil) ? 1 : 0 }
 
     private static var settingsURL: URL? {
         #if canImport(UIKit)
@@ -361,5 +380,13 @@ extension PlayKitScreen {
         #else
         nil
         #endif
+    }
+}
+
+/// N-KIT-FORMS: `.borderedProminent` for the current step's button, `.bordered` otherwise.
+struct PlayKitStepButtonStyle: ViewModifier {
+    let prominent: Bool
+    func body(content: Content) -> some View {
+        if prominent { content.buttonStyle(.borderedProminent).controlSize(.large) } else { content.buttonStyle(.bordered).controlSize(.large) }
     }
 }
