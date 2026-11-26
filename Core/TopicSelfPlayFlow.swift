@@ -15,6 +15,8 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
     public private(set) var result: PaymentProviderReturnFlow?
     public private(set) var messageKey: String?
     public private(set) var paymentExplanation: String?
+    /// CLB-detail-11: the topic share card that opened this page. Used only when it names this topic.
+    public var ticketAttribution: TopicClubShareLink?
     public var onChange: (() -> Void)?
     private let client: (any TopicSelfPlayServing)?
     private let provider: (any TopicSelfPlayPaymentProviding)?
@@ -48,9 +50,10 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
     }
     public func changed() { review = nil; if pending == nil { phase = .editing }; onChange?() }
     @discardableResult public func prepare() -> Bool {
+        let attributed = ticketAttribution?.topicID == topic.id ? ticketAttribution : nil
         guard canCreate, consented, let session = openedSession, let document,
               let topicID = SelfPlayTopicID(rawValue: topic.id), let price = topic.selfPlayPrice, price >= 0,
-              let intent = try? TopicSelfPlayIntent(topic: topicID, realName: realName, phone: phone, requestID: "app-" + UUID().uuidString, sourceClubId: topic.clubID) else {
+              let intent = try? TopicSelfPlayIntent(topic: topicID, realName: realName, phone: phone, requestID: "app-" + UUID().uuidString, sourceClubId: attributed?.sourceClubId ?? topic.clubID, sourceChannelCode: attributed?.clubCode) else {
             messageKey = !consented ? "contextSelfPlay.consentRequired" : "contextSelfPlay.invalid"; onChange?(); return false
         }
         review = TopicSelfPlayReview(id: UUID(), session: session, intent: intent, price: price, document: document)

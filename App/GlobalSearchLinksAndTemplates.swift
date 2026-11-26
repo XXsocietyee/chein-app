@@ -532,7 +532,7 @@ enum PlayerContentMPAppWire {
             _ = try PlayerContentMPContract.registrationCreate(
                 baseURL: baseURL, ownerType: 1, ownerID: intent.topic.rawValue, realName: intent.realName,
                 phone: intent.phone, isUsePoint: 0, requestID: intent.requestID, quoteSign: nil,
-                sourceClubID: intent.sourceClubId, sourceChannelCode: nil)
+                sourceClubID: intent.sourceClubId, sourceChannelCode: intent.sourceChannelCode)
         } catch {
             throw TopicSelfPlayFailure.unavailable
         }
