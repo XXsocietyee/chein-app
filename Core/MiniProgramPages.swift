@@ -270,11 +270,16 @@ public enum MiniProgramPage: String, CaseIterable, Hashable, Sendable {
     case subpackagetoolsExplorationGoalsIndex = "subpackageTools/exploration-goals/index"
     case subpackagetoolsMonthlyRecapIndex = "subpackageTools/monthly-recap/index"
 
-    /// Accepts a leading slash and ignores any query; anything not in the table is nil.
+    /// Accepts a leading slash and ignores any query; anything not in the table is nil. Lane G: a merchant-center,
+    /// merchant-onboarding or coop page is nil while `PlayerLaunch.merchantCenterEnabled` is false (Release).
     public init?(path: String) {
         let bare = path.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? path
+        guard !PlayerLaunch.isHidden(page: bare) else { return nil }
         self.init(rawValue: bare.hasPrefix("/") ? String(bare.dropFirst()) : bare)
     }
+
+    /// Lane G: true for a merchant-center, merchant-onboarding or coop page (hidden in the player Release build).
+    public var isMerchantCenterPage: Bool { PlayerLaunch.isMerchantCenterPage(rawValue) }
 
     /// The typed route for this page and its single positive `id`; every other page (or a bad id) is `.unsupported`.
     public func route(id: Int?) -> AppRoute {

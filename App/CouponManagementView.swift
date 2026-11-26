@@ -151,7 +151,8 @@ import SwiftUI
 }
 extension CouponManagementView {
     fileprivate var denyAction: (title: LocalizedStringKey, action: () -> Void) {
-        if isMerchantMember { return (title: LocalizedStringKey("couponManagement.back"), action: { dismiss() }) }
+        // Lane G: 申请成为商家 is hidden in Release, so a player gets 返回 here too.
+        if isMerchantMember || !PlayerLaunch.merchantCenterEnabled { return (title: LocalizedStringKey("couponManagement.back"), action: { dismiss() }) }
         return (title: LocalizedStringKey("couponManagement.forbidden.applyMerchant"), action: { applyingMerchant = true })
     }
     /// MP `loadSummary`: silent, merchant scope only, never blocks the list. A stale reply is dropped.

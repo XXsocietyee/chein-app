@@ -16,8 +16,20 @@ import SwiftUI
     }
 
     var body: some View {
-        screen
-            .accessibilityIdentifier("mp.deepLink.screen")
+        Group {
+            // Lane G: merchant-center, merchant-onboarding and coop pages are hidden in Release; open player home.
+            if PlayerLaunch.isHidden(page: page) { playerHomeFallback } else { screen }
+        }
+        .accessibilityIdentifier("mp.deepLink.screen")
+    }
+
+    /// Lane G fallback for a hidden page: the same handoff as `pages/index/index`.
+    @ViewBuilder private var playerHomeFallback: some View {
+        if rootTabSwitch.isAvailable {
+            MPTabHandoff { session.dismissNativeEntry(); rootTabSwitch(.home) }
+        } else {
+            SessionHomeFeedView().environmentObject(session)
+        }
     }
 
     @ViewBuilder private var screen: some View {
@@ -773,7 +785,7 @@ import SwiftUI
             } else { unavailable }
         case "subpackageMember/coupon/coupon", "subpackageMember/couponInfo/couponInfo":
             // R7-MEM-10-1: coupon.js `operationScope = options.scope === 'MERCHANT' ? 'MERCHANT' : ''`.
-            SessionCouponManagementView(scope: query["scope"] == "MERCHANT" ? .merchant : .player).environmentObject(session)
+            SessionCouponManagementView(scope: query["scope"] == "MERCHANT" && PlayerLaunch.merchantCenterEnabled ? .merchant : .player) // Lane G.environmentObject(session)
         case "subpackageMember/tixian/tixian":
             WithdrawalSupportLandingView(reader: session.walletHistoryReader)
         case "subpackageMember/tixianjilu/tixianjilu", "pages/coop/withdraw/records/index":

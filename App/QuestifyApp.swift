@@ -585,9 +585,10 @@ struct SessionRootView: View {
             AnyView(CoopSettlementDetailRoute(reader: session.cooperationFlowReader, query: ["source": "ledger", "id": String(id)])
                 .cyPushedChrome(domain: .merchant))
         })
-        .environment(\.merchantGateActions, MerchantGateActions(
+        // Lane G: no 申请入驻 (merchant onboarding) from a denied state in Release.
+        .environment(\.merchantGateActions, PlayerLaunch.merchantCenterEnabled ? MerchantGateActions(
             hasMerchantIdentity: { (try? await session.merchantAccess())?.active == true },
-            applicationDestination: { AnyView(MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)) }))
+            applicationDestination: { AnyView(MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)) }) : nil)
     }
 
     private func chain3_4<V: View>(_ v: V) -> some View {

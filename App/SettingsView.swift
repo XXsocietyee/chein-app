@@ -245,7 +245,7 @@ struct SettingsView: View {
                 MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 // B-SZ-13 MP-first: MP shezhi.wxml has no 商家工具 row for players (only 成为商家, :19); merchants keep it.
-                if session.account?.effectiveRole == "merchant" { Section {
+                if PlayerLaunch.merchantCenterEnabled && session.account?.effectiveRole == "merchant" { Section { // Lane G
                     NavigationLink {
                         BeGapMerchantHubView()
                     } label: {

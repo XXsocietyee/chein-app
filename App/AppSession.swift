@@ -7210,7 +7210,7 @@ final class AppSession: ObservableObject {
             retainedDoorCoordinator?.updateSession(doorReferralSession)
             retainedDoorCoordinator?.receive(door)
         }
-        nativeEntry = NativeEntryPresentation(intent: intent)
+        nativeEntry = NativeEntryPresentation(intent: PlayerLaunch.gate(intent)) // Lane G: hidden merchant/coop links open home
     }
     func dismissNativeEntry() { retainedDoorCoordinator?.cancel(); nativeEntry = nil }
     private func synchronizeAccountMarketingEntry() {

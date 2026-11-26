@@ -1468,6 +1468,7 @@ struct ClubGovernanceReadView: View {
                     .listRowBackground(Color.clear)
                 // CLB-apply-04 (MP apply wxml:30-33, js:157-162): the way out is the merchant side, plus 返回.
                 Section {
+                    if PlayerLaunch.merchantCenterEnabled { // Lane G: 切换到商家端 / 查看商家入驻 hidden in Release
                     NavigationLink {
                         MPReviewedPageScreen(page: merchantActive ? "pages/merchant/index/index" : "pages/merchant/apply/index", query: [:])
                     } label: {
@@ -1475,6 +1476,7 @@ struct ClubGovernanceReadView: View {
                     }
                     .buttonStyle(CYPillButtonStyle(style: .primary))
                     .accessibilityIdentifier(merchantActive ? "club.host.merchant.switch" : "club.host.merchant.viewApply")
+                    }
                     Button("action.back") { dismissPage() }
                         .buttonStyle(CYPillButtonStyle(style: .secondary))
                         .accessibilityIdentifier("club.host.merchant.back")
@@ -1634,7 +1636,7 @@ struct ClubGovernanceReadView: View {
                         ClubGapTopicMoreMenu(
                             canEditContent: canDirect,
                             canConfirmFinalPrice: canDirect && value["lifecycle"].int == 2,
-                            canReviewUndertake: stats["canReviewChapterApplications"] == .bool(true),
+                            canReviewUndertake: PlayerLaunch.merchantCenterEnabled && stats["canReviewChapterApplications"] == .bool(true), // Lane G
                             onEditContent: { topicMoreRoute = .init(page: "pages/publish/fabu/index", query: ["id": String(topicID)]) },
                             onConfirmFinalPrice: { topicMoreRoute = .init(page: "pages/topic/pricing/index", query: ["topicId": String(topicID), "club": "1"]) },
                             onReviewUndertake: { topicMoreRoute = .init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB"]) })
@@ -1648,7 +1650,7 @@ struct ClubGovernanceReadView: View {
             Section {
                 ClubTopicQuickActionRow(items: [
                     .init(id: "merchant", titleKey: "club.gov.recruit", systemImage: "storefront") {
-                        if let topicID = scope.topicID, stats["canReviewChapterApplications"] == .bool(true) {
+                        if PlayerLaunch.merchantCenterEnabled, let topicID = scope.topicID, stats["canReviewChapterApplications"] == .bool(true) { // Lane G
                             topicMoreRoute = .init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB", "open": "merchant"])
                         } else { topicQuickSheet = .merchants }
                     },
