@@ -125,7 +125,8 @@ private struct SessionPublishingRootChrome: ViewModifier {
                                    draftStore: session.publishingDraftStore,
                                    makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
                                    makeActivityTemplate: { sessionActivityTemplateCreator(session) },
-                                   makeActivityCover: { session.makeActivityCoverService() })
+                                   makeActivityCover: { session.makeActivityCoverService() },
+                                   makeProjects: { AnyView(SessionCreatorProjectsView(session: session)) })
                 .id(session.publishingSession?.epoch)
         }
     }

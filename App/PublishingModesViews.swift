@@ -63,7 +63,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             }
             Section {
                 if showsActivity {
-                    NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
+                    NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource, makeProjects: makeProjects) } label: {
                         Label("publishModes.activity", systemImage: "calendar.badge.plus")
                     }
                 }
@@ -189,6 +189,9 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     var makeActivityTemplate: (() -> AnyView)? = nil
     var makeActivityCover: (() -> ActivityCoverService?)? = nil
     var openResource: ((PublishedResource) -> Void)? = nil
+    /// R9-PC-D1-1: MP subpackageA/pages/myproject (index.wxml:8-10) — the post-publish 我的项目 link opens the real
+    /// my-project page; nil keeps the read-only publishing list.
+    var makeProjects: (() -> AnyView)? = nil
     @State private var draft = ActivityPublishDraft()
     @State private var picker: String?
     @StateObject private var organizerRead = ActivityPublishOrganizerRead()
@@ -251,7 +254,9 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             .themeDomain(.topicEditor)
         }
         .navigationDestination(isPresented: $openProjectsAfterResult) {
-            if let account, let service, let openResource {
+            if let makeProjects {
+                makeProjects()
+            } else if let account, let service, let openResource {
                 PublishingProjectsView(service: service, account: account, openResource: { resource in
                     guard service.currentSession == account else { return }; openResource(resource)
                 }, readOnly: true, initialType: "activity").id(account.epoch)
@@ -693,12 +698,14 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                     if let state = receipt.auditState { Text((chinese ? "原审核轮次：" : "Original review round: ") + state) }
                     if let actions = receipt.auditActions, !actions.isEmpty { Text(actions.joined(separator: "、")) }
                 }
-                if let account, let service, let openResource,
-                   submission.canReadProjects, service.currentSession == account {
+                if resultProjectsAvailable {
                     NavigationLink {
-                        PublishingProjectsView(service: service, account: account, openResource: { resource in
-                            guard service.currentSession == account else { return }; openResource(resource)
-                        }, readOnly: true).id(account.epoch)
+                        if let makeProjects { makeProjects() }
+                        else if let account, let service, let openResource {
+                            PublishingProjectsView(service: service, account: account, openResource: { resource in
+                                guard service.currentSession == account else { return }; openResource(resource)
+                            }, readOnly: true).id(account.epoch)
+                        }
                     } label: { Text("publishModes.projects") }
                     .accessibilityIdentifier("publishModes.activity.result.projects")
                 }
@@ -709,7 +716,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     }
     /// The same condition as the result card's 项目 link: a signed-in owner that can read its projects.
     private var resultProjectsAvailable: Bool {
-        guard let account, let service, openResource != nil else { return false }
+        guard let account, let service, openResource != nil || makeProjects != nil else { return false }
         return submission.canReadProjects && service.currentSession == account
     }
     private func processingLabel(_ code: String) -> String {
