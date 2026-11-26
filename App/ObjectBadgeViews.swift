@@ -417,58 +417,30 @@ struct ObjectBadgeWallBadgeLabel: View {
     var media: (any ObjectCardImageLoading)? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.cyPalette) private var palette
-    @State private var turntable: ObjectBadgeTurntable?
+    @Environment(\.locale) private var locale
+    /// N-B3D (r10): the 2D fallback of MP subpackageP3/badge-3d: an inset-grouped List (image row, subtitle,
+    /// rarity and style rows) under the system title. No 3D turntable.
     var body: some View {
-        let table = turntable ?? ObjectBadgeTurntable(style: parameters.style, reducedMotion: reduceMotion)
-        VStack(spacing: CYSpacing.lg) {
+        List {
             if currentScope() == expectedScope {
-                if parameters.name.isEmpty { CYHeroHeader("profile.badges.detail") }
-                else { CYHeroHeader(verbatim: parameters.name) }
-                // Native turntable: drag to rotate, tap to spin a pin badge; static under Reduce Motion.
-                ObjectCardArtwork(url: parameters.image, label: parameters.name, media: media,
-                    expectedScope: expectedScope, currentScope: currentScope).frame(height: 200)
-                    .rotation3DEffect(.degrees(table.angle), axis: (x: 0, y: 1, z: 0))
-                    .contentShape(Rectangle())
-                    .gesture(DragGesture(minimumDistance: 4)
-                        .onChanged { value in
-                            var next = turntable ?? table
-                            next.drag(translationWidth: Double(value.translation.width)); turntable = next
-                        }
-                        .onEnded { _ in
-                            var next = turntable ?? table
-                            next.endDrag(); turntable = next
-                        })
-                    .onTapGesture {
-                        var next = turntable ?? table
-                        next.tap()
-                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.8)) { turntable = next }
-                    }
-                    .accessibilityAddTraits(.isButton)
-                    .accessibilityAction {
-                        var next = turntable ?? table
-                        next.tap()
-                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.8)) { turntable = next }
-                    }
-                    .accessibilityIdentifier("objects.badge.turntable")
-                if let hint = table.hintKey {
-                    Text(LocalizedStringKey(hint)).cyText(.meta).foregroundStyle(palette.textSecondary)
-                        .accessibilityIdentifier("objects.badge.turntableHint")
+                Section {
+                    ObjectCardArtwork(url: parameters.image, label: parameters.name, media: media,
+                        expectedScope: expectedScope, currentScope: currentScope)
+                        .frame(height: 200).frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("objects.badge.turntable")
+                    if !parameters.subtitle.isEmpty { Text(verbatim: parameters.subtitle) }
                 }
-                if !parameters.subtitle.isEmpty {
-                    CYListRow(verbatim: parameters.subtitle, trailing: .none, card: true) { EmptyView() }
-                }
-                HStack(spacing: CYSpacing.sm) {
-                    CYStatusChip(LocalizedStringKey("objects.rarity." + String(parameters.rarity)), tone: .info)
-                    CYStatusChip(LocalizedStringKey(parameters.style == "glow" ? "objects.glow" : (parameters.style == "pin" ? "objects.pin" : "objects.enamel")))
+                Section {
+                    Label(LocalizedStringKey("objects.rarity." + String(parameters.rarity)), systemImage: "sparkles")
+                    Label(LocalizedStringKey(parameters.style == "glow" ? "objects.glow" : (parameters.style == "pin" ? "objects.pin" : "objects.enamel")),
+                          systemImage: "seal")
                 }
             } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "objects.sessionChanged") }
         }
-        .padding(CYSpacing.pageHorizontal)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .cyDomainPageBackground()
+        .listStyle(.insetGrouped)
         .themeDomain(.player)
-        .tint(CYDomainPalette(.player).brand)
-        .cyPageTitle("profile.badges.detail")
+        .navigationTitle(parameters.name.isEmpty ? appLocalized("profile.badges.detail", locale: locale) : parameters.name)
+        .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .privacySensitive()
     }

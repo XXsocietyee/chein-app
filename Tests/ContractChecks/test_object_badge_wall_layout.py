@@ -16,7 +16,8 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
         # fix/parity2-play-roam: detail + route preview titles appNavigationTitle -> cyPageTitle (inline title mode only).
         # restyle/r6-system-rest: static CYTypography fonts -> .cyText(.token) (semantic text styles only).
         # fix/r3-play-roam-b round 2: detail stage placeholder art SF medal -> MP `badge-demo.png` (MPAsset.BadgeMedal.badgeDemo).
-        self.assertEqual(hashlib.sha256(value).hexdigest(), 'ff26c06b901f71bfc5fa08210437e16772e85478532239840daa64c811ca8a1d')
+        # fix/r10-roam-b N-B3D (play-roam.md §5; MP subpackageP3/badge-3d): route preview -> 2D List, no turntable.
+        self.assertEqual(hashlib.sha256(value).hexdigest(), '4016fd55992549910f8ec2c64725ded7f58d5ad1b05eff9a0041cadabdd5ad08')
         self.assertIn('let capturedIdentity = reader.identity', self.wall)
         self.assertIn('ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,', self.wall)
     def test_list_wall_switch_is_not_required(self):
