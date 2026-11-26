@@ -172,6 +172,9 @@ import UIKit
         let (owner, route) = try opened(h)
         XCTAssertTrue(owner.openTopic(201, from: route, current: .current(h.session)))
         let topic = try XCTUnwrap(owner.topics.selection)
+        XCTAssertTrue(ProfileSettingsFavoritesLifecycle.keepsPage(.inactive))
+        XCTAssertTrue(ProfileSettingsFavoritesLifecycle.keepsPage(.active))
+        XCTAssertFalse(ProfileSettingsFavoritesLifecycle.keepsPage(.background))
         owner.setForeground(false)
         XCTAssertEqual(owner.route?.id, route.id); XCTAssertFalse(topic.isCurrent)
         XCTAssertFalse(owner.openTopic(201, from: route, current: .current(h.session)))
@@ -223,15 +226,12 @@ import UIKit
             })
         let trace = DiagnosticTrace()
         let owner = ProfileSettingsFavoritesOwner()
-        owner.diagnosticEvent = { trace.record($0) }
+        let sceneEvents = EventSink()
+        owner.diagnosticEvent = { event in trace.record(event); sceneEvents.events.append(event) }
         defer { owner.diagnosticEvent = nil; trace.emit() }
         trace.record("test.begin")
-        let root = NavigationStack {
-            Form { ProfileSettingsFavoritesEntry(session: h.session, owner: owner) }
-                .modifier(ProfileSettingsFavoritesNavigation(session: h.session, owner: owner))
-        }.modifier(ProfileSettingsFavoritesLifecycle(session: h.session, owner: owner))
-            .environment(\.scenePhase, .active)
-        let host = UIHostingController(rootView: root)
+        let phase = ScenePhaseBox()
+        let host = UIHostingController(rootView: FavoritesSceneHost(session: h.session, owner: owner, phase: phase))
         let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; window.rootViewController = host; window.makeKeyAndVisible()
         defer { sceneWindow.retire() }
         host.loadViewIfNeeded(); host.view.layoutIfNeeded()
@@ -249,6 +249,18 @@ import UIKit
         for _ in 0..<100 where !h.wire.paths.contains("info") { try await Task.sleep(for: .milliseconds(20)) }
         XCTAssertTrue(h.wire.paths.contains("info")); XCTAssertTrue(selection.isCurrent)
         XCTAssertEqual(owner.route?.id, route.id)
+        let beforeInactive = sceneEvents.events.count
+        phase.phase = .inactive
+        for _ in 0..<40 where sceneEvents.events.count == beforeInactive {
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertGreaterThan(sceneEvents.events.count, beforeInactive)
+        XCTAssertEqual(sceneEvents.events.last, "owner.foreground.true")
+        XCTAssertTrue(selection.isCurrent)
+        XCTAssertEqual(owner.posts.selection?.id, selection.id)
+        XCTAssertEqual(owner.route?.id, route.id)
+        phase.phase = .active
         XCTAssertTrue(owner.posts.close(id: selection.id))
         XCTAssertTrue(owner.accepts(route, current: .current(h.session)))
         trace.record("test.collection.close.request")
@@ -260,6 +272,25 @@ import UIKit
         private var events: [String] = []
         func record(_ event: String) { events.append("\(events.count + 1):\(event)") }
         func emit() { print("PROFILE_CI_TRACE settings " + events.joined(separator: " | ")) }
+    }
+    @MainActor private final class EventSink {
+        var events: [String] = []
+    }
+    @MainActor private final class ScenePhaseBox: ObservableObject {
+        @Published var phase: ScenePhase = .active
+    }
+    @MainActor private struct FavoritesSceneHost: View {
+        @ObservedObject var session: AppSession
+        let owner: ProfileSettingsFavoritesOwner
+        @ObservedObject var phase: ScenePhaseBox
+        var body: some View {
+            NavigationStack {
+                Form { ProfileSettingsFavoritesEntry(session: session, owner: owner) }
+                    .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: owner))
+            }
+            .modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: owner))
+            .environment(\.scenePhase, phase.phase)
+        }
     }
 
 }
