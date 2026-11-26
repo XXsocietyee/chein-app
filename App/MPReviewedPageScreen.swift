@@ -307,7 +307,8 @@ import SwiftUI
         case "pages/club/create/index":
             clubOperations(.create)
         case "pages/club/edit/index":
-            if let id = clubQueryID(query) { clubOperations(.club(id)) } else { unavailable }
+            // CLB-r9-edit-01: no id is the MP missing-param shell (链接已失效 + 返回), not the generic page.
+            if let id = clubQueryID(query) { clubOperations(.club(id)) } else { MemberMissingLinkState(identifier: "club.edit.missing") }
         case "pages/club/badges/index":
             // CLB-r8-badges-01 (fix-r8-club): no clubId is the MP missing-param shell (链接已失效 + 返回).
             if let id = clubQueryID(query), let host = badgeHost(id) { ClubBadgeManagementView(host: host).id(host.id) }
