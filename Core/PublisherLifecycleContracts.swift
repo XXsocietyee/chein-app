@@ -81,6 +81,9 @@ public struct PublisherPricingPreview: Equatable {
     public let productType: Int?
     /// R7-PC-B4-3: preview `tickets`. Empty when the payload carries none.
     public let tickets: [PublisherPreviewTicket]
+    /// R7-PC-B4-3: preview `platformRate`, a fraction (0.06 = 6%). Number or numeric string; nil when empty, NaN or < 0
+    /// (MP pages/topic/pricing/index.js:150, 171).
+    public let platformRate: Decimal?
     public init(_ data: ProjectEditJSON) throws {
         guard let b = data.object, let floor = PublisherValue.number(b["priceMin"]), !floor.isNaN else { throw PublisherLifecycleError.incomplete }
         minimum = floor; reference = PublisherValue.number(b["cityReferencePrice"])
@@ -90,6 +93,9 @@ public struct PublisherPricingPreview: Equatable {
         productType = PublisherValue.integer(b["productType"])
         var seen = Set<Int>()
         tickets = (b["tickets"]?.array ?? []).compactMap(PublisherPreviewTicket.init).filter { seen.insert($0.id).inserted }
+        let rateText = b["platformRate"]?.text?.trimmingCharacters(in: .whitespaces)
+        let rate: Decimal? = PublisherValue.number(b["platformRate"]) ?? rateText.flatMap { $0.isEmpty ? nil : Decimal(string: $0) }
+        if let rate, !rate.isNaN, rate >= 0 { platformRate = rate } else { platformRate = nil }
     }
     public func accepts(_ price: Decimal) -> Bool { !price.isNaN && price >= minimum }
 }

@@ -130,9 +130,17 @@ import SwiftUI
                     case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).font(.footnote).foregroundStyle(.secondary)
                     case nil: EmptyView()
                     }
+                    // R7-PC-B4-3: MP 平台服务费 / 预计到手 under the single final (pages/topic/pricing/index.wxml:70-73, index.js:375-385).
+                    if ticketFields.count <= 1, let texts = TopicPricingXcx.feeTexts(price: Decimal(string: price) ?? 0, rate: preview.platformRate) {
+                        LabeledContent("topicPricing.platformFee") { Text(verbatim: texts.fee).monospacedDigit() }
+                            .accessibilityIdentifier("publisher.platformFee")
+                        LabeledContent("topicPricing.takeHome") { Text(verbatim: texts.takeHome).monospacedDigit() }
+                            .accessibilityIdentifier("publisher.takeHome")
+                    }
                 }
                 // R7-PC-B4-3: MP 开售状态 and 结算待处理 cards (pages/topic/pricing/index.wxml:79-86) before 合作阵容.
-                TopicPricingGapSection(ticketFields: $ticketFields, extraStatus: pricingExtra, canConfirmPricing: showsConfirm)
+                TopicPricingGapSection(ticketFields: $ticketFields, extraStatus: pricingExtra, canConfirmPricing: showsConfirm,
+                                       platformRate: preview.platformRate, minimum: preview.minimum)
                 if !preview.lineup.isEmpty {
                     Section {
                         ForEach(preview.lineup) { row in
@@ -233,10 +241,13 @@ import SwiftUI
         try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team), scope: pricingScope)
     }
     /// R7-PC-B4-3: MP confirmPrice sends `ticketPrices` only when the page lists more than one ticket.
+    /// MP ticketPriceError (index.js:478-484): a ticket below the floor blocks confirm; the row shows 不能低于最低价 ¥X.
     private func ticketPriceRows() throws -> [PublisherTicketPrice] {
         guard ticketFields.count > 1 else { return [] }
+        let floor = preview?.minimum
         return try ticketFields.map { field in
             guard let value = Decimal(string: field.priceText.trimmingCharacters(in: .whitespaces)) else { throw PublisherLifecycleError.incomplete }
+            if let floor, value < floor { throw PublisherLifecycleError.incomplete }
             return try PublisherTicketPrice(ticketID: field.id, price: value)
         }
     }
@@ -278,7 +289,8 @@ import SwiftUI
                 guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
                 busy = false; preview = value; loadFailed = false; resultSession = session
                 price = String(TopicPricingXcx.initialPrice(floor: value.minimum))
-                ticketFields = value.tickets.count > 1 ? value.tickets.map { ticket in
+                // MP ticketRows (index.js:469-476): per-ticket finals only on 有人带 (guided).
+                ticketFields = capturedInput.subtype == .guided && value.tickets.count > 1 ? value.tickets.map { ticket in
                     TopicPricingPerTicketField(id: ticket.id, ticketName: ticket.name,
                                                priceText: ticket.price.map { TopicPricingXcx.moneyText(decimal: $0) } ?? price)
                 } : []

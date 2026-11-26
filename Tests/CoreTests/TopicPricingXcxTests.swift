@@ -106,4 +106,17 @@ final class TopicPricingXcxTests: XCTestCase {
         XCTAssertNil(bare["capacity"])
         XCTAssertNil(bare["chargeType"])
     }
+
+    /// R7-PC-B4-3: MP ticketFee (pages/topic/pricing/index.js:489-495).
+    func testPlatformFeeAndTakeHome() throws {
+        let texts = try XCTUnwrap(TopicPricingXcx.feeTexts(price: 199, rate: Decimal(string: "0.06")))
+        XCTAssertEqual(texts.fee, "¥11.94（6%）")
+        XCTAssertEqual(texts.takeHome, "¥187.06")
+        XCTAssertNil(TopicPricingXcx.fee(price: 0, rate: Decimal(string: "0.06")))
+        XCTAssertNil(TopicPricingXcx.fee(price: 100, rate: nil))
+        let preview = try PublisherPricingPreview(.object(["priceMin": .number(10), "platformRate": .string("0.055")]))
+        XCTAssertEqual(preview.platformRate, Decimal(string: "0.055"))
+        let negative = try PublisherPricingPreview(.object(["priceMin": .number(10), "platformRate": .number(-1)]))
+        XCTAssertNil(negative.platformRate)
+    }
 }
