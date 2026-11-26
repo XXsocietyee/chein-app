@@ -105,6 +105,8 @@ import FoundationNetworking
         XCTAssertEqual(locks.values.count, 2); XCTAssertEqual(access.sent, 1)
     }
     func testAcknowledgedCashProcessingIsNotPayoutSuccess() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         let (_, locks, coordinator) = setup(), target = try target()
         let review = try await coordinator.prepare(target, ownerID: UUID()); await coordinator.confirm(review)
         XCTAssertEqual(coordinator.state(target).phase, .acknowledged)
@@ -112,12 +114,16 @@ import FoundationNetworking
         XCTAssertEqual(coordinator.state(target).receipt?.cancellation, .cancelled); XCTAssertEqual(locks.values.count, 2)
     }
     func testManualReviewMissingPointsRemainsUnknown() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         let (_, locks, coordinator) = setup(.manual), target = try target()
         let review = try await coordinator.prepare(target, ownerID: UUID()); await coordinator.confirm(review)
         XCTAssertEqual(coordinator.state(target).phase, .manualReview)
         XCTAssertEqual(coordinator.state(target).receipt?.points, .unconfirmed); XCTAssertEqual(locks.values.count, 2)
     }
     func testEveryDispatchedNonSuccessRetainsBothLocks() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         for scenario in [ClubOwnerRefundFixtureAccess.Scenario.httpFailure, .httpTimeout, .businessTimeout, .malformed] {
             let (access, locks, coordinator) = setup(scenario), target = try target()
             let review = try await coordinator.prepare(target, ownerID: UUID()); await coordinator.confirm(review)
@@ -148,9 +154,12 @@ import FoundationNetworking
         XCTAssertEqual(coordinator.state(target).phase, .idle); XCTAssertNil(coordinator.state(target).receipt)
     }
     func testReadbackFailureDoesNotEraseAcknowledgedReceipt() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .refund }
         let (access, _, coordinator) = setup(), target = try target()
         let review = try await coordinator.prepare(target, ownerID: UUID()); await coordinator.confirm(review)
         access.governance.readFailure = .rejected(code: 503, message: nil); await coordinator.reconcile(target)
+        XCTAssertEqual(coordinator.state(target).phase, .acknowledged)
         XCTAssertEqual(coordinator.state(target).receipt?.cash, .processing); XCTAssertTrue(coordinator.state(target).readbackUnavailable)
     }
     func testMalformedCrossTargetAndContradictoryReceiptsAreUnknown() {
