@@ -175,7 +175,8 @@ class RegistrationCheckoutParityTests(unittest.TestCase):
         self.assertIn("prioritySignupEnabled = ((try? c.decodeIfPresent(Bool.self, forKey: .prioritySignupEnabled)) ?? nil) == true", contracts)
         detail = read("Core/ActivityDetail.swift")
         # R7-PC-C1-5 (MP scene-play-activity-detail/index.wxml:89-96): the ticket also decodes its cmsRegistrationList lineup.
-        self.assertIn("signupDeadline,meetingPoint,cmsRegistrationList }", detail)
+        # R7-PC-C2-1 (MP baoming.wxml:155-161): child fields follow for the 儿童年龄 picker.
+        self.assertIn("signupDeadline,meetingPoint,cmsRegistrationList,childCount,childAgeMin,childAgeMax }", detail)
         self.assertIn("(try? c.decodeIfPresent(String.self,forKey:.meetingPoint))", detail)
 
 

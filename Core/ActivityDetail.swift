@@ -16,6 +16,10 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
     /// R7-PC-C1-5: MP scene-play-activity-detail/index.wxml:89-96 lists who joined each session from the
     /// ticket's `cmsRegistrationList`. A missing or malformed list is empty; rows without a nickname are dropped.
     public let registrants: [TopicRegistrant]
+    /// R7-PC-C2-1: MP baoming.wxml:155-161 shows the 儿童年龄 picker for a ticket that includes a child
+    /// (`childCount > 0`) and carries `childAgeMin` / `childAgeMax`. Missing, malformed or zero counts hide it.
+    public let childCount: Int?
+    public let childAgeRange: ActivityChildAgeRange?
     /// Early UI guard mirrors the current activity create service, not a purchase grant.
     /// Zone-free timestamps use the existing Shanghai server-date parser. Missing or
     /// malformed ordinary timestamps cannot establish expiry. Self-guided tickets require
@@ -33,7 +37,7 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
         let boundary = startTime.flatMap(RegistrationWaitlistStatus.parseDeadline) ?? end
         return boundary.map { now >= $0 } ?? false
     }
-    private enum CodingKeys: String, CodingKey { case id,name,price,remainingInventory,description,startTime,endTime,selfGuided,signupDeadline,meetingPoint,cmsRegistrationList }
+    private enum CodingKeys: String, CodingKey { case id,name,price,remainingInventory,description,startTime,endTime,selfGuided,signupDeadline,meetingPoint,cmsRegistrationList,childCount,childAgeMin,childAgeMax }
     public init(from decoder:Decoder) throws {
         let c=try decoder.container(keyedBy:CodingKeys.self)
         id=try c.decode(Int.self,forKey:.id)
@@ -50,7 +54,21 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
         meetingPoint = point.flatMap { $0.isEmpty ? nil : $0 }
         let rows = ((try? c.decodeIfPresent([TopicRegistrant].self,forKey:.cmsRegistrationList)) ?? nil) ?? []
         registrants = rows.filter { !$0.nickname.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty }
+        // Optional child fields never invalidate a ticket; numbers may arrive as text.
+        let count = Self.lenientInt(c, .childCount)
+        childCount = count
+        if (count ?? 0) > 0, let low = Self.lenientInt(c, .childAgeMin), let high = Self.lenientInt(c, .childAgeMax),
+           low >= 0, high >= 0, abs(high - low) <= 30 {
+            childAgeRange = ActivityChildAgeRange(minAge: low, maxAge: high)
+        } else {
+            childAgeRange = nil
+        }
         guard id > 0, price.map({ $0 >= .zero }) ?? true else { throw APIError.malformedResponse }
+    }
+    private static func lenientInt(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Int? {
+        if let value = (try? c.decodeIfPresent(Int.self, forKey: key)) ?? nil { return value }
+        if let text = (try? c.decodeIfPresent(String.self, forKey: key)) ?? nil { return Int(text.trimmingCharacters(in: .whitespaces)) }
+        return nil
     }
     public var isSoldOut: Bool { remainingInventory.map { $0 <= 0 } ?? false }
     /// A missing count is unknown. It is not zero and it is not sold out.
