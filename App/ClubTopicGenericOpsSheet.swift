@@ -5,7 +5,8 @@ import SwiftUI
 /// the footer says 时间为北京时间 and lists the manual ledger rows (MANUAL_* / STAFF_MANUAL_SIGN read `shared/export`
 /// first, and fill the hashes or the next sequence), the toolbar is 取消 / 确认并提交, and the confirm alert copy is
 /// MP `showDirectorModal` (此操作不可撤销 or 将按本局规则核验并应用本次操作。 + 原因). Submit goes through
-/// `popupCloseActions.submitSharedRunAction` (`POST /api/game/session/command`).
+/// `popupCloseActions.submitSharedRunAction` (`POST /api/game/session/command`). QUEST_GUIDE (and a signed QUEST_GUIDE)
+/// adds the MP `guideFields` answer rows over `control.guideTasks`; questKey becomes a picker of the task keys.
 struct ClubTopicGenericOpsSelection: Identifiable, Equatable {
     let action: String
     var id: String { action }
@@ -33,7 +34,7 @@ struct ClubTopicGenericOpsSelection: Identifiable, Equatable {
     private static let beijing = TimeZone(identifier: "Asia/Shanghai") ?? .current
     private var revision: Int? { control["revision"].integer }
     private var epoch: Int? { control["run"]["authorityEpoch"].integer }
-    private var fields: [PlaySharedRunOps.Field] { PlaySharedRunOps.fields(action: action, draft: draft) }
+    private var fields: [PlaySharedRunOps.Field] { PlaySharedRunOps.fields(action: action, draft: draft, control: control) }
     private var title: LocalizedStringKey { LocalizedStringKey("club.topic.genericOps.action." + action) }
 
     var body: some View {
@@ -95,15 +96,15 @@ struct ClubTopicGenericOpsSelection: Identifiable, Equatable {
         if !field.options.isEmpty {
             Picker(selection: binding(field.key)) {
                 Text("club.topic.genericOps.choose").tag("")
-                ForEach(field.options, id: \.self) { option in
-                    Text(Self.optionKey(field.key, option)).tag(option)
+                ForEach(Array(field.options.enumerated()), id: \.offset) { index, option in
+                    optionText(field, index: index, option: option).tag(option)
                 }
             } label: {
-                Text(Self.fieldKey(field.key))
+                Self.label(field)
             }
             .accessibilityIdentifier("club.topic.genericOps.field." + field.key)
         } else if field.boolean {
-            Toggle(isOn: boolBinding(field.key)) { Text(Self.fieldKey(field.key)) }
+            Toggle(isOn: boolBinding(field.key)) { Self.label(field) }
                 .accessibilityIdentifier("club.topic.genericOps.field." + field.key)
         } else if field.timestamp {
             DatePicker(selection: dateBinding(field.key), displayedComponents: [.date, .hourAndMinute]) {
@@ -113,7 +114,7 @@ struct ClubTopicGenericOpsSelection: Identifiable, Equatable {
             .accessibilityIdentifier("club.topic.genericOps.field." + field.key)
         } else {
             TextField(text: limitedBinding(field.key, max: field.maxLength), axis: field.multiline ? .vertical : .horizontal) {
-                Text(Self.fieldKey(field.key))
+                Self.label(field)
             }
             .lineLimit(field.multiline ? 3 : 1, reservesSpace: false)
             .textInputAutocapitalization(.never)
@@ -148,6 +149,25 @@ struct ClubTopicGenericOpsSelection: Identifiable, Equatable {
 
     static func fieldKey(_ key: String) -> LocalizedStringKey { LocalizedStringKey("club.topic.genericOps.field." + key) }
 
+    /// MP `guideFields` labels: `(title || 基本题…) · 队伍填写的答案 / 队伍选择的选项 / 第 n 项 / item`; other fields use the catalog.
+    static func label(_ field: PlaySharedRunOps.Field) -> Text {
+        guard let guide = field.guide else { return Text(fieldKey(field.key)) }
+        let head = guide.title.map { Text(verbatim: $0) } ?? Text(LocalizedStringKey("club.topic.genericOps.guide.kind." + guide.kind))
+        let detail: Text
+        switch guide.detail {
+        case .typed: detail = Text("club.topic.genericOps.guide.typed")
+        case .picked: detail = Text("club.topic.genericOps.guide.picked")
+        case .item(let label): detail = Text(verbatim: label)
+        case .position(let n): detail = Text("club.topic.genericOps.guide.position \(n)")
+        }
+        return head + Text(verbatim: " · ") + detail
+    }
+
+    private func optionText(_ field: PlaySharedRunOps.Field, index: Int, option: String) -> Text {
+        if field.optionLabels.indices.contains(index) { return Text(verbatim: field.optionLabels[index]) }
+        return Text(Self.optionKey(field.key, option))
+    }
+
     static func optionKey(_ field: String, _ option: String) -> LocalizedStringKey {
         field == "reviewKind" ? LocalizedStringKey("club.topic.genericOps.review." + option)
             : LocalizedStringKey("club.topic.genericOps.action." + option)
@@ -167,6 +187,10 @@ struct ClubTopicGenericOpsSelection: Identifiable, Equatable {
         case .unknownItems: return Text("club.topic.genericOps.error.unknownItems")
         case .anchorFirst: return Text("club.topic.genericOps.error.anchorFirst")
         case .reviewKind: return Text("club.topic.genericOps.error.reviewKind")
+        case .guideTask: return Text("club.topic.genericOps.error.guideTask")
+        case .guideEmpty: return Text("club.topic.genericOps.error.guideEmpty")
+        case .guideIncomplete: return Text("club.topic.genericOps.error.guideIncomplete")
+        case .guideDuplicate: return Text("club.topic.genericOps.error.guideDuplicate")
         }
     }
 

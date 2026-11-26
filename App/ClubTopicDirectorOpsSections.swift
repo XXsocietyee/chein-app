@@ -2,7 +2,8 @@ import SwiftUI
 
 /// CLB-G13a: 通用玩法现场运营 inside the topic director block.
 /// Reads shared-run control. Each offered action opens its own form sheet (`ClubTopicGenericOpsSheet`, MP
-/// topic-detail index.wxml:212-236); 开始离线记录 and 工作人员指导完成 (answer form not ported) still open the director page.
+/// topic-detail index.wxml:212-236), 工作人员指导完成 included (answer form). 开始离线记录 is a confirm, then
+/// `shared/export/anchor` (MP director.js openGenericOps → startOfflineRecord / _reconcileOfflineAnchor).
 /// Rows are disabled while the director write is locked (MP wxml:204-209 `writeLocked`).
 @MainActor struct ClubTopicGenericOpsSection: View {
     let activityID: Int
@@ -14,6 +15,12 @@ import SwiftUI
     @State private var control: PlayWireValue?
     @State private var editing: ClubTopicGenericOpsSelection?
     @State private var reloadToken = 0
+    @State private var confirmingAnchor = false
+    @State private var anchoring = false
+    /// The authority epoch an anchor write was sent for, until a control read shows that anchor (MP `_offlineAnchorPending`).
+    @State private var pendingAnchorEpoch: Int?
+    @State private var anchorMessage: LocalizedStringKey?
+    @State private var anchorServerMessage: String?
 
     static let actionOrder = ["ACT_UNLOCK", "ARRIVAL_CONFIRM", "ARRIVAL_REVOKE", "RUN_PAUSE", "RUN_RESUME", "RUN_INTERRUPT",
                               "RUN_CANCEL", "MANUAL_BEGIN", "STAFF_MANUAL_SIGN", "MANUAL_IMPORT", "MANUAL_REVIEW",
@@ -49,11 +56,13 @@ import SwiftUI
                             .contentShape(Rectangle())
                         }
                         .foregroundStyle(.primary)
-                        .disabled(writeLocked)
+                        .disabled(writeLocked || anchoring)
                         .accessibilityIdentifier("club.topic.genericOps.\(action)")
                     }
                 } header: {
                     Text("club.topic.genericOps.title")
+                } footer: {
+                    anchorFooter
                 }
             }
         }
@@ -67,12 +76,65 @@ import SwiftUI
         .sheet(item: $editing) { selection in
             sheet(selection)
         }
+        .confirmationDialog("parityB.shared.offlineStart", isPresented: $confirmingAnchor, titleVisibility: .visible) {
+            Button("parityB.shared.offlineConfirm") { Task { await startOfflineRecord() } }
+            Button("parityB.shared.offlineLater", role: .cancel) {}
+        } message: {
+            Text("parityB.shared.offlineBody")
+        }
+    }
+
+    @ViewBuilder private var anchorFooter: some View {
+        if anchoring {
+            Text("parityB.shared.anchoring")
+        } else if let anchorMessage {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(anchorMessage)
+                if let anchorServerMessage { Text(verbatim: anchorServerMessage) }
+            }
+        }
+    }
+
+    /// MP director.js startOfflineRecord: one anchor for the current epoch. A `GAME_*` refusal proves nothing started;
+    /// any other reply is settled only by a fresh control read that carries an anchor for the same epoch.
+    private func startOfflineRecord() async {
+        guard !writeLocked, !anchoring, let service, let control, control["offlineAnchorAvailable"].bool == true,
+              let epoch = control["run"]["authorityEpoch"].integer else { return }
+        anchoring = true
+        anchorServerMessage = nil
+        pendingAnchorEpoch = epoch
+        let result = await service.anchorSharedRun(activityID: activityID)
+        if case .refused(let message) = result {
+            pendingAnchorEpoch = nil
+            anchorMessage = "parityB.shared.notStarted"
+            anchorServerMessage = message
+        } else {
+            await reconcileAnchor()
+        }
+        anchoring = false
+        reloadToken &+= 1
+    }
+
+    /// MP `_reconcileOfflineAnchor`.
+    private func reconcileAnchor() async {
+        guard let service, let epoch = pendingAnchorEpoch else { return }
+        if case let .ready(data) = await service.sharedControl(activityID: activityID),
+           data["offlineAnchor"]["epoch"].integer == epoch, (data["offlineAnchor"]["at"].integer ?? 0) >= 1 {
+            pendingAnchorEpoch = nil
+            anchorMessage = "parityB.shared.anchored"
+            control = data
+        } else {
+            anchorMessage = "parityB.shared.anchorUnknown"
+        }
     }
 
     /// MP director.js openGenericOps: nothing while locked or before control loads.
     private func open(_ action: String) {
-        guard !writeLocked, control != nil else { return }
-        if PlaySharedRunOps.formActions.contains(action) {
+        guard !writeLocked, !anchoring, control != nil else { return }
+        if action == "OFFLINE_ANCHOR" {
+            // An unknown anchor write is re-checked, never sent twice (MP _reconcileOfflineAnchor).
+            if pendingAnchorEpoch != nil { Task { await reconcileAnchor() } } else { confirmingAnchor = true }
+        } else if PlaySharedRunOps.formActions.contains(action) {
             editing = ClubTopicGenericOpsSelection(action: action)
         } else {
             onOpenAction(action)

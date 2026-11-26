@@ -5,21 +5,21 @@ import Foundation
 /// (`pages/club/topic-detail/director.js confirmGenericOps` → `executeAction(action, payload)` →
 /// `POST /api/game/session/command`, the same envelope `PLAN_FALLBACK` uses in `PlayDirectorPlanFallback.swift`).
 ///
-/// Not ported: the 工作人员指导完成 answer form (`guideFields` / `guideAnswers`, which reads `control.guideTasks`).
-/// `QUEST_GUIDE` and the signed `QUEST_GUIDE` stay out of `formActions` / `signedActions` and keep the director page.
+/// The 工作人员指导完成 answer form is `guideFields` / `guideAnswers` over `control.guideTasks` (generic-director-ops.js;
+/// vectors in MP tests/unit/generic-director-ops.test.js `guideCases`).
 public enum PlaySharedRunOps {
     /// MP generic-director-ops.js `labels` key order (the native action list order).
     public static let actions = ["ACT_UNLOCK", "ARRIVAL_CONFIRM", "ARRIVAL_REVOKE", "RUN_PAUSE", "RUN_RESUME", "RUN_INTERRUPT",
                                  "RUN_CANCEL", "MANUAL_BEGIN", "STAFF_MANUAL_SIGN", "MANUAL_IMPORT", "MANUAL_REVIEW",
                                  "AUTHORITY_RESUME", "QUEST_GUIDE", "LOCATION_REBIND", "STAFF_TEAM_EXIT"]
-    /// Actions that open the native form. `QUEST_GUIDE` needs the answer form, which is not ported.
-    public static let formActions: Set<String> = Set(actions).subtracting(["QUEST_GUIDE"])
+    /// Actions that open the native form (every generic action; OFFLINE_ANCHOR is a confirm, MP director.js startOfflineRecord).
+    public static let formActions: Set<String> = Set(actions)
     /// MP `irreversible`: the confirm says 此操作不可撤销.
     public static let irreversible: Set<String> = ["RUN_INTERRUPT", "RUN_CANCEL", "MANUAL_IMPORT", "MANUAL_REVIEW", "STAFF_TEAM_EXIT", "QUEST_GUIDE", "ACT_UNLOCK"]
     /// MP director.js `openGenericOps`: these read the shared export first (ledger rows, hashes, next sequence).
     public static let ledgerActions: Set<String> = ["MANUAL_BEGIN", "STAFF_MANUAL_SIGN", "MANUAL_IMPORT", "MANUAL_REVIEW"]
-    /// MP `choices.signedAction` without `QUEST_GUIDE` (answer form not ported).
-    public static let signedActions = ["ARRIVAL_CONFIRM", "ARRIVAL_ATTEST"]
+    /// MP `choices.signedAction`.
+    public static let signedActions = ["ARRIVAL_CONFIRM", "ARRIVAL_ATTEST", "QUEST_GUIDE"]
     /// MP `choices.reviewKind`.
     public static let reviewKinds = ["HIGH_WATER", "SIGNATURE", "REQUEST"]
     /// Keys whose draft value is epoch milliseconds (MP `toTimestamp`, 北京时间 in the picker).
@@ -45,9 +45,33 @@ public enum PlaySharedRunOps {
         public let multiline: Bool
         public let boolean: Bool
         public let timestamp: Bool
-        /// Option codes for a picker (signedAction / reviewKind); empty for free text.
+        /// Option codes for a picker (signedAction / reviewKind / questKey / guide options); empty for free text.
         public let options: [String]
+        /// Server option labels shown verbatim (guide options, questKey); empty → the app localizes `options`.
+        public var optionLabels: [String] = []
+        /// Set for a guide answer field (MP `guideFields` label parts).
+        public var guide: GuideLabel?
         public var id: String { key }
+    }
+
+    /// MP `guideFields` label: `(title || 基本题/问答题/排序题/连线题/分类题) · detail`.
+    public struct GuideLabel: Equatable {
+        /// basic / qa / sort / match / classify.
+        public let kind: String
+        /// Server title or prompt, if any.
+        public let title: String?
+        public let detail: GuideDetail
+    }
+
+    public enum GuideDetail: Equatable {
+        /// 队伍填写的答案
+        case typed
+        /// 队伍选择的选项
+        case picked
+        /// option / left item / classify item label (server text)
+        case item(String)
+        /// 第 n 项 (1-based)
+        case position(Int)
     }
 
     /// MP generic-director-ops.js `genericOpsError` messages, as stable codes the app localizes.
@@ -55,6 +79,8 @@ public enum PlaySharedRunOps {
         /// 请确认 + the field label.
         case confirm(String)
         case notOffered, nonce, target, signedAction, originalPair, anchorStale, hashes, unknownFormat, unknownItems, anchorFirst, reviewKind
+        /// 请先读取本局题型并选择指导任务 / 本任务没有可指导的题型 / 请完整录入队伍实际作答 / 排序或连线不能重复选择同一项
+        case guideTask, guideEmpty, guideIncomplete, guideDuplicate
     }
 
     /// MP `genericOpsActions`: nothing unless run.authorityEpoch ≥ 1, an integer revision and an action array.
@@ -65,8 +91,26 @@ public enum PlaySharedRunOps {
         return offered.compactMap(\.text).filter { actions.contains($0) && seen.insert($0).inserted }
     }
 
-    /// MP `genericOpsFields` keys and attributes (without the guide answer fields).
-    public static func fields(action: String, draft: [String: String]) -> [Field] {
+    /// MP `isGuide`: QUEST_GUIDE, or STAFF_MANUAL_SIGN signing a QUEST_GUIDE.
+    public static func isGuide(_ action: String, draft: [String: String]) -> Bool {
+        action == "QUEST_GUIDE" || action == "STAFF_MANUAL_SIGN" && draft["signedAction"] == "QUEST_GUIDE"
+    }
+
+    /// MP `genericOpsFields` keys and attributes, then `guideFields` for a guided action.
+    public static func fields(action: String, draft: [String: String], control: PlayWireValue? = nil) -> [Field] {
+        // MP: with guideTasks, questKey is a picker over the task keys (labels are the keys).
+        let tasks: [PlayWireValue]? = isGuide(action, draft: draft) ? control?["guideTasks"].array : nil
+        let questKeys: [String]? = tasks.map { list in list.compactMap { task in task["questKey"].text } }
+        let base: [Field] = baseFields(action: action, draft: draft).map { field in
+            guard field.key == "questKey", let questKeys else { return field }
+            return Field(key: field.key, maxLength: field.maxLength, multiline: false, boolean: false, timestamp: false,
+                         options: questKeys, optionLabels: questKeys)
+        }
+        guard isGuide(action, draft: draft) else { return base }
+        return base + guideFields(guideTask(draft, control: control), draft: draft)
+    }
+
+    static func baseFields(action: String, draft: [String: String]) -> [Field] {
         var keys = schemas[action] ?? (actions.contains(action) ? ["reason"] : [])
         if action == "MANUAL_BEGIN" { keys = ["unknownRequests", "reason"] }
         if action == "STAFF_MANUAL_SIGN" {
@@ -123,11 +167,10 @@ public enum PlaySharedRunOps {
         }
         out["reason"] = .string(try text(draft, "reason", 200)!)
         if action == "ACT_UNLOCK" { out["actKey"] = .string(try text(draft, "actKey", 64)!) }
-        if action == "STAFF_TEAM_EXIT" { out["teamId"] = .integer(Int64(try integer(draft, "teamId", 1))) }
-        if action == "LOCATION_REBIND" {
-            out["questKey"] = .string(try text(draft, "questKey", 64)!)
-            out["nodeId"] = .integer(Int64(try integer(draft, "nodeId", 1)))
-        }
+        if action == "QUEST_GUIDE" || action == "STAFF_TEAM_EXIT" { out["teamId"] = .integer(Int64(try integer(draft, "teamId", 1))) }
+        if action == "QUEST_GUIDE" || action == "LOCATION_REBIND" { out["questKey"] = .string(try text(draft, "questKey", 64)!) }
+        if action == "QUEST_GUIDE" { out["answers"] = .object(try guideAnswers(draft, control: control)) }
+        if action == "LOCATION_REBIND" { out["nodeId"] = .integer(Int64(try integer(draft, "nodeId", 1))) }
         if action == "MANUAL_BEGIN" { try manualBegin(into: &out, draft: draft, control: control) }
         if action == "MANUAL_REVIEW" {
             switch draft["reviewKind"] ?? "" {
@@ -210,6 +253,120 @@ public enum PlaySharedRunOps {
             out["operationKind"] = .string(kind); out["operationKey"] = .string(operation)
         }
         return out
+    }
+
+    // MARK: MP guide answer form
+
+    /// MP `guideTask`: the `control.guideTasks` entry whose questKey is the trimmed draft questKey.
+    static func guideTask(_ draft: [String: String], control: PlayWireValue?) -> PlayWireValue? {
+        let key = (draft["questKey"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return control?["guideTasks"].array?.first { $0["questKey"].text == key }
+    }
+
+    private static func options(_ list: PlayWireValue) -> (ids: [String], labels: [String]) {
+        let items = list.array ?? []
+        return (items.map { $0["id"].text ?? "" }, items.map { $0["label"].text ?? "" })
+    }
+
+    private static func guideField(_ key: String, _ label: GuideLabel, _ list: PlayWireValue = .null, boolean: Bool = false) -> Field {
+        let (ids, labels) = options(list)
+        return Field(key: key, maxLength: 512, multiline: false, boolean: boolean, timestamp: false,
+                     options: ids, optionLabels: labels, guide: label)
+    }
+
+    /// MP `guideFields(task, draft)`.
+    public static func guideFields(_ task: PlayWireValue?, draft: [String: String]) -> [Field] {
+        guard let task, task.object != nil else { return [] }
+        var fields: [Field] = []
+        for kind in ["basic", "qa"] {
+            let question = task[kind]
+            guard question.object != nil else { continue }
+            let title = question["title"].text.flatMap { $0.isEmpty ? nil : $0 }
+            let mode = question["mode"].text
+            if mode == "TYPE" {
+                fields.append(guideField("guide_" + kind, GuideLabel(kind: kind, title: title, detail: .typed)))
+            } else if mode == "PICK" && (kind == "basic" || question["multi"].bool == true) {
+                for (index, option) in (question["options"].array ?? []).enumerated() {
+                    fields.append(guideField("guide_\(kind)_\(index)", GuideLabel(kind: kind, title: title, detail: .item(option["label"].text ?? "")), boolean: true))
+                }
+            } else if mode == "PICK" {
+                fields.append(guideField("guide_" + kind, GuideLabel(kind: kind, title: title, detail: .picked), question["options"]))
+            }
+        }
+        for (kind, itemsKey, choicesKey) in [("sort", "items", "items"), ("match", "left", "right"), ("classify", "items", "bins")] {
+            let question = task[kind]
+            guard question.object != nil else { continue }
+            let prompt = question["prompt"].text.flatMap { $0.isEmpty ? nil : $0 }
+            for (index, item) in (question[itemsKey].array ?? []).enumerated() {
+                let detail: GuideDetail = kind == "sort" ? .position(index + 1) : .item(item["label"].text ?? "")
+                fields.append(guideField("guide_\(kind)_\(index)", GuideLabel(kind: kind, title: prompt, detail: detail), question[choicesKey]))
+            }
+        }
+        return fields
+    }
+
+    /// MP `guideAnswers(draft, control)`. Booleans are "true" in the draft.
+    static func guideAnswers(_ draft: [String: String], control: PlayWireValue?) throws -> [String: PlayWireValue] {
+        guard let task = guideTask(draft, control: control) else { throw Failure.guideTask }
+        let fields = guideFields(task, draft: draft)
+        guard !fields.isEmpty else { throw Failure.guideEmpty }
+        func selected(_ key: String) throws -> String {
+            let value = (draft[key] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let field = fields.first(where: { $0.key == key }), !value.isEmpty, value.count <= field.maxLength,
+                  field.options.isEmpty || field.options.contains(value) else { throw Failure.guideIncomplete }
+            return value
+        }
+        func picked(_ kind: String, _ question: PlayWireValue) throws -> [String] {
+            let ids = (question["options"].array ?? []).enumerated()
+                .filter { draft["guide_\(kind)_\($0.offset)"] == "true" }
+                .map { $0.element["id"].text ?? "" }
+            guard !ids.isEmpty else { throw Failure.guideIncomplete }
+            return ids
+        }
+        func distinct(_ values: [String]) throws -> [String] {
+            guard Set(values).count == values.count else { throw Failure.guideDuplicate }
+            return values
+        }
+        var answers: [String: PlayWireValue] = [:]
+        let basic = task["basic"]
+        if basic.object != nil {
+            if basic["mode"].text == "PICK" {
+                answers["answer"] = .string(try picked("basic", basic).joined())
+            } else {
+                answers["answer"] = .string(try selected("guide_basic"))
+            }
+        }
+        let qa = task["qa"]
+        if qa.object != nil {
+            if qa["mode"].text == "TYPE" {
+                answers["qa"] = .object(["input": .string(try selected("guide_qa"))])
+            } else if qa["multi"].bool == true {
+                answers["qa"] = .object(["optionIds": .array(try picked("qa", qa).map(PlayWireValue.string))])
+            } else {
+                answers["qa"] = .object(["optionId": .string(try selected("guide_qa"))])
+            }
+        }
+        let sort = task["sort"]
+        if sort.object != nil {
+            let order = try distinct((sort["items"].array ?? []).indices.map { try selected("guide_sort_\($0)") })
+            answers["sort"] = .object(["order": .array(order.map(PlayWireValue.string))])
+        }
+        let match = task["match"]
+        if match.object != nil {
+            let left = match["left"].array ?? []
+            let right = try distinct(left.indices.map { try selected("guide_match_\($0)") })
+            let pairs: [PlayWireValue] = zip(left, right).map { pair in PlayWireValue.array([.string(pair.0["id"].text ?? ""), .string(pair.1)]) }
+            answers["match"] = .object(["pairs": .array(pairs)])
+        }
+        let classify = task["classify"]
+        if classify.object != nil {
+            var placement: [String: PlayWireValue] = [:]
+            for (index, item) in (classify["items"].array ?? []).enumerated() {
+                placement[item["id"].text ?? ""] = .string(try selected("guide_classify_\(index)"))
+            }
+            answers["classify"] = .object(["placement": .object(placement)])
+        }
+        return answers
     }
 
     /// MP `genericOpsPayload` MANUAL_BEGIN: hashes from the offline anchor (same epoch) or the export,
