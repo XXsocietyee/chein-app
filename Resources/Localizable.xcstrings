@@ -293828,52 +293828,49 @@
       }
     },
     "merchantApply.success.title": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your application has been submitted"
+            "value": "Registration submitted"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的申请已提交"
+            "value": "报名已提交"
           }
         }
       }
     },
     "merchantApply.success.viewProgress": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review status"
+            "value": "View progress"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核状态"
+            "value": "查看承接进度"
           }
         }
       }
     },
     "merchantApply.success.backHome": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Back to home"
+            "value": "Back to merchant home"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "返回首页"
+            "value": "返回商家首页"
           }
         }
       }
@@ -320878,6 +320875,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "只会按原收件人恢复，结果不明或历史待核的不会重发。"
+          }
+        }
+      }
+    },
+    "merchantApply.success.saved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改已保存"
+          }
+        }
+      }
+    },
+    "merchantApply.success.savedDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存"
+          }
+        }
+      }
+    },
+    "merchantApply.success.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takes effect once the host confirms, usually in 1–3 days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主理人确认后生效，预计 1–3 天"
+          }
+        }
+      }
+    },
+    "merchantApply.shop.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的门店"
           }
         }
       }
