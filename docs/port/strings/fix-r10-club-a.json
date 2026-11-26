@@ -1156,6 +1156,23 @@
           }
         }
       }
+    },
+    "club.topic.planFallback.lengthRule": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The reason must be 1–500 characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收尾原因需 1–500 字"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

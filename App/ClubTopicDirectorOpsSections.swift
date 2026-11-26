@@ -46,16 +46,9 @@ import SwiftUI
                         teamsLine(teams)
                     }
                     ForEach(offeredActions, id: \.self) { action in
-                        Button { open(action) } label: {
-                            HStack {
-                                Text(LocalizedStringKey("club.topic.genericOps.action." + action))
-                                Spacer(minLength: 0)
-                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.tertiary).accessibilityHidden(true)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .foregroundStyle(.primary)
+                        // CLB-r10-nat-topic-detail-07: a system button row (each action opens a sheet or a confirm,
+                        // not a pushed page), so no hand-drawn chevron.
+                        Button(LocalizedStringKey("club.topic.genericOps.action." + action)) { open(action) }
                         .disabled(writeLocked || anchoring)
                         .accessibilityIdentifier("club.topic.genericOps.\(action)")
                     }
@@ -225,7 +218,8 @@ import SwiftUI
                             .accessibilityIdentifier("club.topic.planFallback.reasonField")
                     } footer: {
                         if let draftError { Text(draftError).foregroundStyle(.red) }
-                        else { Text(verbatim: "\(draft.count)/500").monospacedDigit() }
+                        // CLB-r10-nat-topic-detail-07: the length rule in the footer, no n/500 counter.
+                        else { Text("club.topic.planFallback.lengthRule") }
                     }
                 }
                 .navigationTitle(Text("club.topic.planFallback.title"))
