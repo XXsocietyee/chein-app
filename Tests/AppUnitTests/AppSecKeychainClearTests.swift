@@ -56,7 +56,8 @@ import XCTest
         XCTAssertTrue(h.defaults.bool(forKey: h.restoreBlockedKey))
         XCTAssertTrue(h.wire.requests.contains { $0.url?.path == "/api/logout" })
         XCTAssertTrue(h.wire.requests.allSatisfy { $0.url?.host == "example.test" })
-        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: ReviewedAreaSwitch.productionAPIHost))
+        XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: ReviewedAreaSwitch.productionAPIHost))
+        XCTAssertFalse(ReviewedAreaSwitch.passwordLogin(apiHost: ReviewedAreaSwitch.productionAPIHost))
     }
 
     func testAccountDeletionExpiryClearsTheTokenStore() async throws {

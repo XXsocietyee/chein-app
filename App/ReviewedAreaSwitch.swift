@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Production host www.chengyinhub.com keeps moneyPayments, payout, merchantWrites and passwordLogin false.
-/// Those four open only for a TEST or DEBUG build whose API host is present and is not the production host.
+/// Owner 2026-11-25: payment, refund, host-cancel refund, payout, and withdrawal are on for Release and
+/// DEBUG/TEST when an API host is installed. www.chengyinhub.com and a non-production test host both count.
+/// A missing host stays off. Password login, merchant content writes, and external games do not follow that gate.
 /// External games: `externalGames(apiHost:)` follows the host only; `externalGames(host:testOrDebug:)` also needs TEST/DEBUG.
-/// Two label sets exist because the cur-be-gap branches were written separately; both share one host check.
+/// Two label sets exist because the cur-be-gap branches were written separately.
 enum ReviewedAreaSwitch {
     static let productionAPIHost = "www.chengyinhub.com"
     static let productionHost = productionAPIHost
@@ -35,11 +36,11 @@ enum ReviewedAreaSwitch {
     }
 
     static func merchantWrites(apiHost: String?, testOrDebug: Bool = compiledTestOrDebug) -> Bool {
-        openMoney(apiHost: apiHost, testOrDebug: testOrDebug)
+        testHostOnly(apiHost: apiHost, testOrDebug: testOrDebug)
     }
 
     static func passwordLogin(apiHost: String?, testOrDebug: Bool = compiledTestOrDebug) -> Bool {
-        openMoney(apiHost: apiHost, testOrDebug: testOrDebug)
+        testHostOnly(apiHost: apiHost, testOrDebug: testOrDebug)
     }
 
     static func externalGames(apiHost: String?) -> Bool {
@@ -58,40 +59,45 @@ enum ReviewedAreaSwitch {
     }
 
     static func merchantWrites(host: String, testOrDebug: Bool) -> Bool {
-        openMoney(apiHost: host, testOrDebug: testOrDebug)
+        testHostOnly(apiHost: host, testOrDebug: testOrDebug)
     }
 
     static func passwordLogin(host: String, testOrDebug: Bool) -> Bool {
-        openMoney(apiHost: host, testOrDebug: testOrDebug)
+        testHostOnly(apiHost: host, testOrDebug: testOrDebug)
     }
 
     static func externalGames(host: String, testOrDebug: Bool) -> Bool {
-        openMoney(apiHost: host, testOrDebug: testOrDebug)
+        testHostOnly(apiHost: host, testOrDebug: testOrDebug)
     }
 
-    // MARK: Core money-write switch (DEBUG/TEST only)
+    // MARK: Core money-write switch
 
-    #if DEBUG || TEST
-    /// Owner 2026-11-13: money ON for TEST/DEBUG only. Core `ReleaseMoneyWriteSwitch` follows this host's area switch:
-    /// payment from `moneyPayments`, payout and withdrawal from `payout`. Virtual goods stay off (no digital goods are sold).
-    /// Release builds compile none of this and keep the Core constants false.
+    /// Owner 2026-11-25: Release and DEBUG/TEST install the same host derivation.
+    /// Payment, refund, and host-cancel refund follow `moneyPayments`. Payout and withdrawal follow `payout`.
+    /// Virtual goods stay off. A missing host leaves every kind off.
     static func installReleaseMoneyDerivation(host: String?) {
         ReleaseMoneyWriteSwitch.testDerivation = { kind in releaseMoneyDerivation(kind, host: host) }
     }
 
     static func releaseMoneyDerivation(_ kind: ReleaseMoneyWriteKind, host: String?) -> Bool {
         switch kind {
-        // Owner 2026-11-24 (D2): refunds and host-cancel refunds count as money, so they share the payment gate.
         case .payment, .refund, .hostCancelRefund: return moneyPayments(host: host)
         case .payout, .withdrawal: return payout(host: host)
         case .virtualGoods: return false
         }
     }
-    #endif
 
     // MARK: shared
 
-    private static func openMoney(apiHost: String?, testOrDebug: Bool) -> Bool {
+    /// Money is on for any installed host, including www.chengyinhub.com, in Release and DEBUG/TEST.
+    /// `testOrDebug` stays in the signature so existing call sites compile. A missing host stays off.
+    private static func openMoney(apiHost: String?, testOrDebug _: Bool) -> Bool {
+        normalizedHost(apiHost) != nil
+    }
+
+    /// Password login, merchant content writes, and the test-or-debug external-game label.
+    /// DEBUG/TEST and a non-production host only. Production and a missing host stay off.
+    private static func testHostOnly(apiHost: String?, testOrDebug: Bool) -> Bool {
         guard testOrDebug, let host = normalizedHost(apiHost), !isProduction(host) else { return false }
         return true
     }
@@ -107,7 +113,7 @@ enum ReviewedAreaSwitch {
     // MARK: cur-be-gap-play (one-argument host labels)
 
     static func merchantWrites(host: String?) -> Bool { open(host: host) }
-    static func moneyPayments(host: String?) -> Bool { open(host: host) }
+    static func moneyPayments(host: String?) -> Bool { areaOpen(host) }
 
     /// A missing host is a fixture, not the production server.
     static func merchantWritesBlocked(host: String?) -> Bool {
@@ -133,11 +139,15 @@ enum ReviewedAreaSwitch {
     // MARK: cur-be-gap-rewards (handover 21): build-wide flags from the configured API host, DEBUG only.
     // Screens stay visible; a cash action reads the flag and refuses instead of reporting success.
 
-    static var moneyPayments: Bool { configuredEnabled }
-    static var payout: Bool { configuredEnabled }
+    static var moneyPayments: Bool { configuredMoneyEnabled }
+    static var payout: Bool { configuredMoneyEnabled }
     static var merchantWrites: Bool { configuredEnabled }
     static var passwordLogin: Bool { configuredEnabled }
     static var externalGames: Bool { configuredEnabled }
+
+    private static var configuredMoneyEnabled: Bool {
+        configuredHost != nil
+    }
 
     private static var configuredEnabled: Bool {
         #if DEBUG
@@ -147,9 +157,14 @@ enum ReviewedAreaSwitch {
         #endif
     }
 
-    private static var configuredHostIsOffProduction: Bool {
+    private static var configuredHost: String? {
         let raw = Bundle.main.object(forInfoDictionaryKey: "QuestifyAPIBaseURL") as? String ?? ""
-        guard let host = URL(string: raw)?.host?.lowercased(), host.isEmpty == false else { return false }
+        guard let host = URL(string: raw)?.host?.lowercased(), host.isEmpty == false else { return nil }
+        return host
+    }
+
+    private static var configuredHostIsOffProduction: Bool {
+        guard let host = configuredHost else { return false }
         return !isProduction(host)
     }
 
@@ -157,8 +172,8 @@ enum ReviewedAreaSwitch {
     // branch's above; digital goods are not sold from these switches and external-game monetization stays NONE.
 
     static func payout(host: String?) -> Bool { areaOpen(host) }
-    static func passwordLogin(host: String?) -> Bool { areaOpen(host) }
-    static func externalGames(host: String?) -> Bool { areaOpen(host) }
+    static func passwordLogin(host: String?) -> Bool { testAreaOnly(host) }
+    static func externalGames(host: String?) -> Bool { testAreaOnly(host) }
     static func paymentsOpen(session: AppSession) -> Bool {
         moneyPayments(host: session.regionalConfiguration?.apiConfiguration?.baseURL.host)
     }
@@ -166,19 +181,29 @@ enum ReviewedAreaSwitch {
         payout(host: session.regionalConfiguration?.apiConfiguration?.baseURL.host)
     }
 
+    /// Payment, payout, and withdrawal. Any installed host, including production, in every build.
     private static func areaOpen(_ rawHost: String?) -> Bool {
-        #if DEBUG || TEST
+        guard let given = rawHost?.trimmingCharacters(in: .whitespacesAndNewlines), !given.isEmpty else { return false }
+        return true
+    }
+
+    #if DEBUG || TEST
+    /// Password login and external games. A non-production host in a DEBUG or TEST build only.
+    private static func testAreaOnly(_ rawHost: String?) -> Bool {
         guard let given = rawHost else { return false }
         let trimmed = given.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
         return !isProduction(trimmed.lowercased())
-        #else
-        return false
-        #endif
     }
+    #else
+    private static func testAreaOnly(_ rawHost: String?) -> Bool {
+        _ = rawHost
+        return false
+    }
+    #endif
 
     // MARK: cur-be-gap-merchant: one Access value for money, payout, merchant writes and the Apple session exchange.
-    // Release builds stay closed; www.chengyinhub.com stays closed until the owner says money is on.
+    // Money follows an installed host. Password login and merchant content writes stay on the old test-host gate.
 
     struct Access: Equatable {
         let moneyPayments: Bool
@@ -188,8 +213,20 @@ enum ReviewedAreaSwitch {
     }
 
     static func admits(debug: Bool, apiBaseURL: String) -> Access {
-        let open = debug && !isProductionHost(apiBaseURL)
-        return Access(moneyPayments: open, payout: open, merchantWrites: open, passwordLogin: open)
+        let legacy = debug && !isProductionHost(apiBaseURL)
+        let money = installedHost(apiBaseURL)
+        return Access(moneyPayments: money, payout: money, merchantWrites: legacy, passwordLogin: legacy)
+    }
+
+    /// A URL or bare host is installed. Blank text stays off. Production is installed.
+    private static func installedHost(_ raw: String) -> Bool {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+            guard let name = URL(string: trimmed)?.host, !name.isEmpty else { return false }
+            return true
+        }
+        return true
     }
 
     static var current: Access {

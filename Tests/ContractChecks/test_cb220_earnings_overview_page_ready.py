@@ -50,16 +50,15 @@ class EarningsOverviewPageReady(unittest.TestCase):
         for path in ("/api/withdrawal/create", "/api/asset/withdraw", "/api/wallet/withdraw", "/api/club/settlement/withdraw"):
             self.assertNotIn(path, fixture)
         views = read("App/WalletCommerceViews.swift")
-        # F-13 owner rule: withdrawal opens only in DEBUG/TEST (host-derived); Release compiles a constant false.
+        # Owner 2026-11-25: withdrawal follows the host switch in Release and DEBUG/TEST.
         cap = views[views.index("enum WalletPayoutCapability {"):]
         cap = cap[:cap.index("\n}\n")]
-        self.assertIn("#if DEBUG || TEST", cap)
         self.assertIn("static var isOn: Bool { ReleaseMoneyWriteSwitch.withdrawalEnabled }", cap)
-        self.assertIn("#else\n    static let isOn = false\n    #endif", cap)
+        self.assertNotIn("static let isOn = false", cap)
         self.assertIn("static let showsMerchantChoice = false", read("App/WelcomeView.swift"))
         switches = read("Core/ChinaReviewedRouteCapability.swift")
         for name in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
-            self.assertIn(f"public static let {name} = false", switches)
+            self.assertIn(f"public static var {name}: Bool {{ testDerivation?", switches)
         unit = read("Tests/CoreTests/WalletCommerceTests.swift")
         self.assertIn("func testEarningsOverviewFixtureKeepsUnknownAsEmDashAndKnownZero", unit)
         self.assertIn('XCTFail("fixture sent a withdrawal")', unit)

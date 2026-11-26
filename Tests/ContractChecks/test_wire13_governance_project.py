@@ -8,6 +8,6 @@ class T(unittest.TestCase):
         for token in ("ClubOpsGovernancePage.project", 'if count.literal == 0 { return "0" }', 'return count.literal == nil ? "—" : count.displayText', "page?.hidden", "capability?.manageMembers != false"):
             self.assertIn(token, view)
         self.assertNotIn("showsMerchantChoice = true", view); self.assertNotIn("paymentEnabled = true", view)
-        self.assertIn("showsMerchantChoice = false", (ROOT / "App/WelcomeView.swift").read_text()); self.assertIn("paymentEnabled = false", (ROOT / "Core/ChinaReviewedRouteCapability.swift").read_text())
+        self.assertIn("showsMerchantChoice = false", (ROOT / "App/WelcomeView.swift").read_text()); self.assertIn("testDerivation?(.payment) ?? false", (ROOT / "Core/ChinaReviewedRouteCapability.swift").read_text())
 if __name__ == "__main__":
     unittest.main()

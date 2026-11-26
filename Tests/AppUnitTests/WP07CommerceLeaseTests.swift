@@ -41,8 +41,10 @@ import XCTest
         XCTAssertNil(ReleaseMoneyWriteSwitch.kind(for: "/api/marketing/group-checkout/quote"))
         XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 679)
         XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 12)
+        ReleaseMoneyWriteSwitch.testDerivation = nil
         XCTAssertFalse(MPCommerceGate.purchasesEnabled)
-        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(host: "www.chengyinhub.com"))
+        XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(host: "www.chengyinhub.com"))
+        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(host: nil))
     }
 
     func testLeaseAdmitsQuoteAndUsabilityAndRefusesPricedOrWriteBodies() throws {

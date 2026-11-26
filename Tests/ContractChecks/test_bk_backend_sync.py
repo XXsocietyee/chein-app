@@ -35,10 +35,10 @@ class BackendSyncSourceTests(unittest.TestCase):
   # (moved out of AppCompositionRoot for the glue-file ratchet). The lease file names the path in the approved like set.
   # The type "0" body stays in TopicUnlike.
   # PlayerContentMPContract only records the MP body. pages/topic/index/index.js:628-629 posts
-  # api/topic/like {id, type: next ? 1 : 0}. It is not called from App screens, and moneyEnabled stays false.
+  # api/topic/like {id, type: next ? 1 : 0}. It is not called from App screens. moneyEnabled follows the host switch.
   self.assertEqual(users, ['App/ReviewedPlayerWriteLeases.swift', 'App/ReviewedProductionRoutes.swift', 'Core/PlayerContentMPContract.swift', 'Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
   contract = (ROOT/'Core/PlayerContentMPContract.swift').read_text()
-  self.assertIn('public static let moneyEnabled = false', contract)
+  self.assertIn('public static var moneyEnabled: Bool { ReleaseMoneyWriteSwitch.paymentEnabled }', contract)
   self.assertNotIn('URLSession', contract)
   self.assertIn('public static func like(baseURL: URL, id: Int, type: Int) throws -> URLRequest {\n        try form(baseURL, likePath, [("id", String(id)), ("type", String(type))])', contract)
   for p, value in self.swift().items():

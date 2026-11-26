@@ -1,8 +1,8 @@
 import XCTest
 @testable import QuestifyCore
 
-/// Owner 2026-11-13: money ON for TEST/DEBUG only. With no derivation installed every kind is off; an installed
-/// derivation is the only way a DEBUG/TEST build opens a money write. Release keeps `static let … = false`.
+/// Owner 2026-11-25: Release and DEBUG/TEST share one host derivation. With none installed every kind is off.
+/// Virtual goods stay off in the installed derivation. There is no Release-only `static let … = false`.
 final class ReleaseMoneyWriteSwitchDerivationTests: XCTestCase {
     func testOffByDefaultAndFollowsAnInstalledDerivation() {
         defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
@@ -16,12 +16,16 @@ final class ReleaseMoneyWriteSwitchDerivationTests: XCTestCase {
     }
 
     func testReleaseBuildKeepsCompileTimeConstants() throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        for kind in ReleaseMoneyWriteKind.allCases { XCTAssertFalse(ReleaseMoneyWriteSwitch.isEnabled(kind)) }
         let source = try String(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Core/ChinaReviewedRouteCapability.swift"), encoding: .utf8)
         let body = try XCTUnwrap(source.components(separatedBy: "public enum ReleaseMoneyWriteSwitch {").last)
-        let release = try XCTUnwrap(body.components(separatedBy: "#else").dropFirst().first?.components(separatedBy: "#endif").first)
-        for name in ["paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled", "refundEnabled", "hostCancelRefundEnabled"] {
-            XCTAssertTrue(release.contains("public static let \(name) = false"), name)
+        XCTAssertFalse(body.contains("#else"))
+        for name in ["payment", "payout", "withdrawal", "virtualGoods", "refund", "hostCancelRefund"] {
+            XCTAssertTrue(body.contains("public static var \(name)Enabled: Bool { testDerivation?(.{name}) ?? false }"), name)
+            XCTAssertFalse(body.contains("\(name)Enabled = true"), name)
         }
     }
 }

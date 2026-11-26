@@ -63,7 +63,7 @@ class ClubDetailPageReadyContract(unittest.TestCase):
             self.assertNotRegex(model, r"%s\s*=\s*true" % flag)
         switches = (ROOT / "Core/ChinaReviewedRouteCapability.swift").read_text()
         for flag in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
-            self.assertIn("public static let %s = false" % flag, switches)
+            self.assertIn("public static var %s: Bool { testDerivation?" % flag, switches)
         self.assertIn('"/api/club/channels": .liveInProduction', switches)
         welcome = (ROOT / "App/WelcomeView.swift").read_text()
         self.assertIn("static let showsMerchantChoice = false", welcome)

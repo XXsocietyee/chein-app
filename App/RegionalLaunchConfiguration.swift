@@ -18,9 +18,7 @@ enum RegionalLaunchConfiguration {
         }
         #endif
         let shipped = shippedComposition(build: .current)
-        #if DEBUG || TEST
         ReviewedAreaSwitch.installReleaseMoneyDerivation(host: shipped.reviewed?.regional.apiConfiguration?.baseURL.host)
-        #endif
         return shipped
     }
 
@@ -28,8 +26,8 @@ enum RegionalLaunchConfiguration {
     /// host already named by Config and `ReviewedMarketLaunch`. The reviewed production gate
     /// bundle is on (`productionGatesEnabled`): Apple and SMS sign-in, the legal catalog, and
     /// wallet, orders, favorites and coupons reads. Owner approval 2026-11-12 also turns on
-    /// `playerWritesEnabled` for the non-money player writes. Password login, bank withdrawal,
-    /// virtual goods, and payment or payout writes are not switched on here.
+    /// `playerWritesEnabled` for the non-money player writes. The money-write derivation is installed
+    /// from this host. Password login, virtual goods, and non-money merchant writes stay off.
     @MainActor static func shippedComposition(
         build: BuildMetadata = .current,
         storage: AppScopedStorageFactory? = nil,

@@ -74,10 +74,10 @@ import Core
 
     func testWithdrawalEntryOpensOnlyForTestOrDebugOffTheProductionHost() {
         XCTAssertTrue(WalletPayoutCapability.decision(testOrDebug: true, apiHost: "8120.example.test"), "DEBUG/TEST build on the TEST host")
-        XCTAssertFalse(WalletPayoutCapability.decision(testOrDebug: false, apiHost: "8120.example.test"), "Release build")
-        XCTAssertFalse(WalletPayoutCapability.decision(testOrDebug: false, apiHost: ReviewedAreaSwitch.productionAPIHost), "production release")
-        XCTAssertFalse(WalletPayoutCapability.decision(testOrDebug: true, apiHost: ReviewedAreaSwitch.productionAPIHost), "production host")
-        XCTAssertFalse(WalletPayoutCapability.decision(testOrDebug: true, apiHost: "WWW.CHENGYINHUB.COM"))
+        XCTAssertTrue(WalletPayoutCapability.decision(testOrDebug: false, apiHost: "8120.example.test"), "Release build on a test host")
+        XCTAssertTrue(WalletPayoutCapability.decision(testOrDebug: false, apiHost: ReviewedAreaSwitch.productionAPIHost), "production release")
+        XCTAssertTrue(WalletPayoutCapability.decision(testOrDebug: true, apiHost: ReviewedAreaSwitch.productionAPIHost), "production host")
+        XCTAssertTrue(WalletPayoutCapability.decision(testOrDebug: true, apiHost: "WWW.CHENGYINHUB.COM"))
         XCTAssertFalse(WalletPayoutCapability.decision(testOrDebug: true, apiHost: nil))
         XCTAssertFalse(WalletPayoutCapability.decision(testOrDebug: true, apiHost: "  "))
     }
@@ -90,6 +90,8 @@ import Core
         ReviewedAreaSwitch.installReleaseMoneyDerivation(host: "8120.example.test")
         XCTAssertTrue(WalletPayoutCapability.isOn)
         ReviewedAreaSwitch.installReleaseMoneyDerivation(host: ReviewedAreaSwitch.productionAPIHost)
+        XCTAssertTrue(WalletPayoutCapability.isOn)
+        ReviewedAreaSwitch.installReleaseMoneyDerivation(host: nil)
         XCTAssertFalse(WalletPayoutCapability.isOn)
     }
 
