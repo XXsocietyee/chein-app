@@ -695,7 +695,8 @@ import MapKit
             narrationAutoplay: $playNarrationOn,
             reduceMotionOverride: playReducedMotionBinding,
             onClose: { showPlayTools = false },
-            showsContentRows: false
+            showsContentRows: false,
+            evidenceCards: model.snapshot.map(PlayRunKeepsakes.passTextEvidence(in:)) ?? []
         )
     }
     /// `utils/motion-preference.js`: writes the primary and the legacy key.
