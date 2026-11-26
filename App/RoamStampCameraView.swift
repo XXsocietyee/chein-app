@@ -354,11 +354,13 @@ import UIKit
 @MainActor private struct RoamStampCreatedMark: View {
     @State private var landed = false
     var body: some View {
-        ZStack {
-            CYScanMark(kind: .success, size: 72)
-            CYOrbitDots(fire: landed)
-        }
-        .frame(maxWidth: .infinity, minHeight: 96)
+        // N-RSTAMP (r10): an SF Symbol with the system bounce effect instead of the drawn mark + orbit dots
+        // (MP subpackageP3/stamp-camera created state).
+        Image(systemName: "checkmark.seal.fill")
+            .font(.largeTitle).imageScale(.large)
+            .foregroundStyle(.green)
+            .symbolEffect(.bounce, value: landed)
+            .frame(maxWidth: .infinity, minHeight: 96)
         .cyHaptic(.success, trigger: landed) { _, new in new }
         .task {
             try? await Task.sleep(for: .milliseconds(350))
