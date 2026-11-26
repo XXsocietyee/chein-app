@@ -4,12 +4,14 @@ import SwiftUI
 /// `ClubMPAvatar` and `ClubMoneyText` live in `ClubKit/ClubMPArt.swift`.
 
 /// cursor/core-club hand-off (CLB-detail-30): club and post shares carry the MP page path from `ClubShareLink`
-/// (`/pages/club/detail/index?id=…[&postId=…]`) as an in-app `chein://mp/…` link, which `MiniProgramPageLink`
-/// already routes back to the club page. Edition 带票分享 uses the same scheme with `sourceClubId` and `clubCode`.
+/// (`/pages/club/detail/index?id=…[&postId=…]`) as an https universal link (`PublicContentShareLink.club`), falling back
+/// to the in-app `chein://mp/…` link, which `MiniProgramPageLink` already routes back to the club page. Edition 带票分享 uses the same scheme with `sourceClubId` and `clubCode`.
 enum ClubShareURL {
     static func url(_ link: ClubShareLink?) -> URL? {
         guard let link else { return nil }
-        return URL(string: CheinDeepLink.scheme + "://mp" + link.path)
+        // CLB-detail-30 (MP club/detail js:3509-3545): the https universal link first, so a recipient without the app
+        // lands on the web page; `chein://mp/…` only when that link would not parse back to the same page.
+        return PublicContentShareLink.club(link) ?? URL(string: CheinDeepLink.scheme + "://mp" + link.path)
     }
     static func club(_ id: Int?) -> URL? { url(id.flatMap { ClubShareLink.club(id: $0) }) }
     static func post(clubID: Int?, postID: Int) -> URL? { url(clubID.flatMap { ClubShareLink.post(clubID: $0, postID: postID) }) }

@@ -70,6 +70,41 @@ public enum PublicContentShareLink {
         return url
     }
 
+    /// CLB-detail-30 (MP club/detail js:3509-3545 `onShareAppMessage` path `/pages/club/detail/index?id=[&postId=]`):
+    /// the club invite as an https universal link. Nil when the link would not parse back to the same page.
+    public static func club(_ link: ClubShareLink) -> URL? {
+        var items = [URLQueryItem(name: "id", value: String(link.clubID))]
+        if let postID = link.postID { items.append(URLQueryItem(name: "postId", value: String(postID))) }
+        return reviewedPage(ClubShareLink.page, items: items)
+    }
+
+    /// CLB-detail-30 / CLB-r10-detail-03 (MP club/detail 带票分享 `/pages/topic/index/index?id=&sourceClubId=&clubCode=`).
+    /// Nil when the link would not parse back to the same page.
+    public static func clubTicket(_ link: TopicClubShareLink) -> URL? {
+        var items = [URLQueryItem(name: "id", value: String(link.topicID)),
+                     URLQueryItem(name: "sourceClubId", value: String(link.sourceClubId))]
+        if let code = link.clubCode, !code.isEmpty { items.append(URLQueryItem(name: "clubCode", value: code)) }
+        return reviewedPage(TopicClubShareLink.page, items: items)
+    }
+
+    /// Builds `origin/<page>?<items>` and keeps it only when the existing universal-link parser reads back the same page.
+    private static func reviewedPage(_ page: String, items: [URLQueryItem]) -> URL? {
+        guard let origin, let link = MiniProgramPageLink(path: page, items: items) else { return nil }
+        var components = URLComponents(string: origin)
+        components?.path = "/" + page
+        components?.queryItems = items
+        guard let url = components?.url,
+              let intent = UniversalLinkParser(verifiedHTTPSOrigins: [origin]).parse(url) else { return nil }
+        switch intent {
+        case .miniProgramPage(let parsed):
+            return parsed == link ? url : nil
+        case .content(let target):
+            return items.count == 1 && target.kind.sourcePath == "/" + page && link.query["id"] == String(target.id) ? url : nil
+        default:
+            return nil
+        }
+    }
+
     /// Path text for a POI whose route is not a universal link. Not a URL.
     public static func poiCopyText(id: Int) -> String? {
         guard canonicalID(String(id)) != nil, poi(id: id) == nil else { return nil }

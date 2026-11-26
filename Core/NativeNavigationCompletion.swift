@@ -47,6 +47,12 @@ public enum NativeNavigationContract {
             return .routeError(.legacyTeamLink)
         }
         if let kind = NativeContentTarget.Kind.allCases.first(where: { $0.sourcePath == path }) {
+            // CLB-detail-30 (MP club/detail js:3509-3545): the club share with `postId` and the 带票分享 topic card with
+            // `sourceClubId` / `clubCode` are reviewed mini-program pages (MiniProgramPageLink checks every key and id).
+            let keys = Set(query.keys)
+            if (kind == .club && keys == ["id", "postId"]) || (kind == .topic && keys.contains("sourceClubId")) {
+                return MiniProgramPageLink(path: path, query: query).map(NativeEntryIntent.miniProgramPage)
+            }
             // Exactly one canonical positive `id`; extra keys, signs, padding or leading zeros are not a route.
             guard query.keys.sorted() == ["id"], let raw = query["id"], let id = Int(raw), String(id) == raw,
                   let target = NativeContentTarget(kind: kind, id: id) else { return nil }

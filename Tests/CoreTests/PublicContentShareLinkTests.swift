@@ -103,4 +103,23 @@ final class PublicContentShareLinkTests: XCTestCase {
         XCTAssertEqual(hosted?.absoluteString, "https://example.test/pages/index/index?inviter=42")
         XCTAssertNil(link.httpsURL(verifiedOrigins: ["https://example.test", "https://other.test"]))
     }
+
+    /// CLB-detail-30 / CLB-r10-detail-03 (MP club/detail js:3509-3545): club invite and 带票分享 are https universal links
+    /// that the existing parser reads back to the same page.
+    func testClubInviteAndTicketShareAreUniversalLinksThatParseBack() throws {
+        let parser = UniversalLinkParser(verifiedHTTPSOrigins: [PublicContentShareLink.httpsOrigin])
+        let club = try XCTUnwrap(PublicContentShareLink.club(ClubShareLink(clubID: 42, postID: nil)))
+        XCTAssertEqual(club.absoluteString, "https://www.chengyinhub.com/pages/club/detail/index?id=42")
+        XCTAssertEqual(parser.parse(club), .content(try XCTUnwrap(NativeContentTarget(kind: .club, id: 42))))
+
+        let post = try XCTUnwrap(PublicContentShareLink.club(ClubShareLink(clubID: 42, postID: 7)))
+        XCTAssertEqual(post.absoluteString, "https://www.chengyinhub.com/pages/club/detail/index?id=42&postId=7")
+        XCTAssertEqual(parser.parse(post), .miniProgramPage(try XCTUnwrap(MiniProgramPageLink(path: ClubShareLink.page, query: ["id": "42", "postId": "7"]))))
+
+        let ticket = try XCTUnwrap(PublicContentShareLink.clubTicket(TopicClubShareLink(topicID: 8, sourceClubId: 42, clubCode: "club-42-t8")))
+        XCTAssertEqual(ticket.absoluteString, "https://www.chengyinhub.com/pages/topic/index/index?id=8&sourceClubId=42&clubCode=club-42-t8")
+        guard case .miniProgramPage(let page)? = parser.parse(ticket) else { return XCTFail("ticket share is a reviewed page") }
+        XCTAssertEqual(page.query, ["id": "8", "sourceClubId": "42", "clubCode": "club-42-t8"])
+        XCTAssertNil(PublicContentShareLink.clubTicket(TopicClubShareLink(topicID: 8, sourceClubId: 0, clubCode: nil)))
+    }
 }
