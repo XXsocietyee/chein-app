@@ -19,7 +19,7 @@ They were re-checked on the tip and are listed as fixed with the original SHA.
 | CLB-G13b | P1 | fixed (r9, verified on tip) | 9c917c011 | App/ClubGovernanceViews.swift:2113 (`directorActive` = director mounted), 结束活动 confirm + 更多 row. endTopic dispatch follows the money gate. |
 | CLB-G13c | P1 | fixed (r9, verified on tip) | 5a2c5bee1 | App/ClubTopicDirectorMount.swift:124-150 (准备总览 only while preparing, 联系商家 on `merchantHoldBlocked`) |
 | CLB-topic-detail-06 | P1 | blocked (Cursor Core) | — | Round 2: (1) CLB-r10-gate-05 has landed (club-b 193356907, `saveTopicSettings` in `ClubMPFirstGovernance.clubOps`). Still blocked on (2) `ClubGovernanceCoordinator.confirm` (Core/ClubGovernanceCoordinator.swift:171-221) to release or reconcile the journal lock after an acknowledged save; today a second toggle is refused as `outcomeLocked`. Not changed here: an uncompiled edit to the write journal is too risky. The sheet editor (App/ClubTopicSettingsReturn.swift) still works. |
-| CLB-topic-detail-10 | P1 | partly | ea3f91375, 208903166 | App/ClubGovernanceViews.swift:1980-1996: the 定向广播 row stays visible (disabled) and the reason sits in the Section footer (MP wxml:621-624). Open: the NO_RECIPIENT sentence needs the director wire key for the broadcast blocker on `PlayDirectorProjection` (Core/PlayDirectorRuntime.swift:4); the MP source was not available in this run to confirm the key. |
+| CLB-topic-detail-10 | P1 | fixed (other lane) | 587a52700 (club-a) | App/ClubGovernanceViews.swift 定向广播 Section: `canBroadcast` from the director's BROADCAST offer and `club.broadcastBlocker`; NO_RECIPIENT and the other blockers get the MP footer sentences (see `fix-r10-club-a.md`). Verified as an ancestor of the tip; not redone here. |
 | CLB-topic-story-04 | P1 | fixed | 87eb12b52, 701d5097e | Core/ClubStoryPresentation.swift (`ClubStoryStop.latitude/longitude`); App/ClubStoryViews.swift:213-215; App/MPGap/Club/ClubGapRound4Views.swift:135 (`club.story.openInMaps`) |
 
 ## Round 2: club.md §3a P2, first half in queue order (16 rows: CLB-r9-gate-04 … CLB-r9-native-05)
@@ -95,7 +95,16 @@ Gates at push (round 2, after merging `origin/ui/combined-r7` @ 05caead53): chec
 
 ## Hand-offs
 1. Cursor Core: release/reconcile the governance journal lock after an acknowledged `saveTopicSettings` (topic-detail-06; also unblocks CLB-customer-detail-04 for club-d).
-2. Cursor Core: expose the broadcast blocker on `PlayDirectorProjection` (topic-detail-10).
+2. ~~Cursor Core: expose the broadcast blocker (topic-detail-10)~~: closed by club-a 587a52700.
 3. `ClubCommunityEntry` (App/ClubCommunityViews.swift:273) is no longer mounted on the club page; delete it once no other caller needs it.
 4. Coordinator: build-check `ClubDetailStripMemberOpen` (App/ClubDetailR8Mounts.swift), `ClubCreateHostAutoOpen` (`.onChange(of:initial:)` + `navigationDestination(isPresented:)`) and `dateRow` in ClubGapRound4Views.
 5. Owner: CLB-r9-create-04 (typed 城市 vs MC-10 picker) and the held theme parts of nat-detail-06 / nat-topic-detail-04.
+
+## Round 3 check (2026-11-26, after merging `origin/ui/combined-r7` @ ae477be47)
+
+Every row in the P1 first half and the P2 first half has a status. Rechecked the rows still open against the other lanes' receipts on origin:
+- CLB-topic-detail-10 → fixed by club-a (587a52700); row updated above.
+- CLB-topic-detail-06 → still blocked. `ClubGovernanceCoordinator.journalKey` (Core/ClubGovernanceCoordinator.swift:57) keys saveTopicSettings by entity, so an acknowledged save still locks the next toggle. This stays Cursor Core's job (hand-off 1).
+- CLB-r9-event-ops-01 → still partly. Opening the series form straight from the hub needs `ClubSeriesCreationReturn` (App/ClubGovernanceViews.swift:213, 551, 818-826, 1094-1098) moved out of ClubGovernanceReadView. That is a multi-file move of the review/return lifecycle, and doing it uncompiled is unsafe. club-a's receipt lists the same blocker.
+- CLB-r10-nat-detail-08 / -06, nat-topic-detail-04 → unchanged (pinned F-08 lifecycle test / theme paused).
+No code changes this round.
