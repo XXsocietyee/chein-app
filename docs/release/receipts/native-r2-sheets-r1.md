@@ -16,7 +16,7 @@ Branched from `origin/ui/combined-r7` @ `8f7d9c365`.
 | `NativeR2Flags.sheetBackdrop` (`nativeR2.sheetBackdrop`, default on; off = plain system `.sheet` / `.fullScreenCover`, no host effect, nothing registered) | `App/NativeR2/Motion/CYSheet.swift` |
 | `PresentationBackdrop` (`@MainActor @Observable`): active presentations of one layer + their detent fraction (sheet height ÷ layer height), `intensity` 0…1 (small detents ≥ 0.4) | same |
 | `cyPresentationBackdropHost()`: injects the model through `\.presentationBackdrop` and draws the M2 backdrop on that layer: `.blur(2 pt × intensity)` + top-heavy `.ultraThinMaterial` ramp (mask 1 → 0.12, reads ~16 pt at the top, ~2 pt at the bottom) + gradient white 0.92 → 0.15 (dark: black 0.6 → 0.1); hit-testing off, hidden from VoiceOver | same |
-| Reduce Motion: gradient only, no blur ramp, no animation (`.transaction` clears it) | same |
+| Reduce Motion: gradient only, no blur ramp, set instantly (`withAnimation(nil)` when `UIAccessibility.isReduceMotionEnabled`; scoped to the backdrop, other animations untouched) | same |
 | Animation: the sheet's spring (`.spring(response: 0.5, dampingFraction: 1)`), starts when the binding flips (not on content appear) and fades as the dismissal starts | same |
 | `cySheet(isPresented:onDismiss:content:)`, `cySheet(item:onDismiss:content:)`, `cyFullScreenCover(isPresented:onDismiss:content:)`, `cyFullScreenCover(item:onDismiss:content:)` — Apple's exact generic signatures (`@ViewBuilder`, `@escaping`, `Item: Identifiable`) | same |
 | Nested sheets: every presented content is its own host, so a sheet presented from a sheet blurs the sheet under it | same |

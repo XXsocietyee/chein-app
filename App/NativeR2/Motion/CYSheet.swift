@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // M5 (native r2 motion, owner 11-26: "all pop-ups must have this animation").
 //
@@ -36,23 +37,28 @@ final class PresentationBackdrop {
 
     func activate(_ token: UUID) {
         guard active[token] == nil else { return }
-        withAnimation(Self.animation) { active[token] = .some(nil) }
+        withAnimation(Self.currentAnimation) { active[token] = .some(nil) }
     }
 
     func deactivate(_ token: UUID) {
         guard active[token] != nil else { return }
-        withAnimation(Self.animation) { _ = active.removeValue(forKey: token) }
+        withAnimation(Self.currentAnimation) { _ = active.removeValue(forKey: token) }
     }
 
     func report(_ token: UUID, sheetHeight: CGFloat) {
         guard active[token] != nil, layerHeight > 0 else { return }
         let fraction = min(1, max(0, sheetHeight / layerHeight))
         if let current = active[token] ?? nil, abs(current - fraction) < 0.01 { return }
-        withAnimation(Self.animation) { active[token] = fraction }
+        withAnimation(Self.currentAnimation) { active[token] = fraction }
     }
 
     /// Close to UIKit's sheet presentation spring (critically damped, ~0.5 s).
     static let animation = Animation.spring(response: 0.5, dampingFraction: 1)
+
+    /// Reduce Motion sets the backdrop instantly; scoped to the backdrop so other animations are untouched.
+    private static var currentAnimation: Animation? {
+        UIAccessibility.isReduceMotionEnabled ? nil : animation
+    }
 }
 
 private struct PresentationBackdropKey: EnvironmentKey {
@@ -112,7 +118,6 @@ private struct PresentationBackdropHostModifier: ViewModifier {
                 }
             }
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { backdrop.layerHeight = $0 }
-            .transaction { if reduceMotion { $0.animation = nil } }
     }
 
     private var gradientColors: [Color] {
