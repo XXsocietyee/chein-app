@@ -135,7 +135,7 @@ import SwiftUI
                     toastMessage = PlayCloseCopy.text("已切换地图样式：\(picked.title(locale: locale))", "Map style: \(picked.title(locale: locale))", locale)
                 }, onClose: { showingMapStyle = false })
             }
-            .cyToast(verbatimMessage: $toastMessage)
+            .clubIslandStatus(verbatimMessage: $toastMessage, surface: "team-nearby")
             .task {
                 guard !Task.isCancelled else { return }
                 coordinator.resume()

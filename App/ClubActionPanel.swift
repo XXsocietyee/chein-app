@@ -100,8 +100,7 @@ struct ClubActionPanel: View {
                         }
                         // A settled join or apply keeps the chip. Do not offer that action again.
                         if rewardAction != action {
-                            membershipButton(action, state: state)
-                                .cySheet(isPresented: confirmationPresented) { confirmationSheet }
+                            confirmationPresenter(membershipButton(action, state: state))
                         }
                     } else {
                         Text(LocalizedStringKey(availabilityKey)).foregroundStyle(.secondary)
@@ -116,7 +115,7 @@ struct ClubActionPanel: View {
             // carried its own sheet and its own onDisappear, so the 处理中 progress row leaving after
             // prepare ran reset() and cancelled the confirmation before 退出俱乐部 could present
             // `club.action.confirm` (F-08). The lifecycle lives on this one header; the sheet lives
-            // on the membership button row the user tapped (see `confirmationSheet`).
+            // on the membership button row the user tapped (see `confirmationPresenter`).
             Text("club.action.membership")
                 .onChange(of: identity) { _, _ in reset() }
                 .onChange(of: club.id) { old, _ in reset(clubID: old) }
@@ -131,42 +130,30 @@ struct ClubActionPanel: View {
     }
     /// The one confirmation presenter, attached to the single membership button row (header
     /// placement) or the single page-end row (`.pageEnd`, MC-20).
-    @ViewBuilder private var confirmationSheet: some View {
-        if let value = confirmation {
-            let title = value.action == .leave
-                ? ChannelCopy.text("退出「\(value.clubName)」？", "Leave “\(value.clubName)”?", locale: locale)
-                : String(localized: String.LocalizationValue(actionKey(value.action)))
-            let message = value.action == .leave
-                ? String(localized: String.LocalizationValue(confirmationKey(.leave)))
-                : confirmationMessage(value)
-            let consequences = value.action == .leave ? ClubLeaveConsequences.rows(locale: locale, needsApproval: club.needsApproval) : []
-            NavigationStack {
-                List {
-                    if consequences.isEmpty {
-                        Section { Text(verbatim: message) }
-                    } else {
-                        Section {
-                            ForEach(consequences) { row in
-                                Label(row.text, systemImage: row.systemImage)
-                            }
-                        } footer: { Text(verbatim: message) }
-                    }
-                }
-                .navigationTitle(Text(verbatim: title))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("action.cancel") { cancelConfirmation() }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        confirmButton(value, confirmIdentifier: "club.action.confirm")
-                    }
-                }
-            }
-            .presentationDetents([.medium, .large])
+    /// G-032 (design P1): the system confirmation dialog (an action sheet with a destructive 退出), as Settings uses
+    /// to sign out, instead of a custom sheet. The leave consequences are the dialog's message, one per line.
+    private func confirmationPresenter<Content: View>(_ content: Content) -> some View {
+        content.confirmationDialog(Text(verbatim: confirmation.map { confirmationTitle($0) } ?? ""),
+                                   isPresented: confirmationPresented, titleVisibility: .visible,
+                                   presenting: confirmation) { value in
+            confirmButton(value, confirmIdentifier: "club.action.confirm")
+            Button("action.cancel", role: .cancel) { cancelConfirmation() }
+        } message: { value in
+            Text(verbatim: confirmationBody(value))
         }
     }
-    /// The sheet's confirm action (`club.action.confirm`): 退出 reads destructive.
+    /// The action's own name ("Leave club"), as the UI tests read the dialog; the club is named in the message.
+    private func confirmationTitle(_ value: ClubActionConfirmation) -> String {
+        String(localized: String.LocalizationValue(actionKey(value.action)))
+    }
+    private func confirmationBody(_ value: ClubActionConfirmation) -> String {
+        guard value.action == .leave else { return confirmationMessage(value) }
+        let question = ChannelCopy.text("退出「\(value.clubName)」？", "Leave “\(value.clubName)”?", locale: locale)
+        let message = String(localized: String.LocalizationValue(confirmationKey(.leave)))
+        let rows = ClubLeaveConsequences.rows(locale: locale, needsApproval: club.needsApproval).map { "· " + $0.text }
+        return ([question, message] + rows).joined(separator: "\n")
+    }
+    /// The dialog's confirm action (`club.action.confirm`): 退出 reads destructive.
     private func confirmButton(_ value: ClubActionConfirmation, confirmIdentifier: String) -> some View {
         Button(role: value.action == .leave ? .destructive : nil) { submit(value) } label: {
             Text(verbatim: String(localized: String.LocalizationValue(actionKey(value.action))))
@@ -182,10 +169,9 @@ struct ClubActionPanel: View {
     @ViewBuilder private var pageEndSection: some View {
         if canLeaveHere || (onReportClub != nil && identity.isSignedIn) {
             Section {
-                ClubPageEndActions(canLeave: canLeaveHere && !isWorking, onLeave: { prepare(.leave) }, onReport: onReportClub)
+                confirmationPresenter(ClubPageEndActions(canLeave: canLeaveHere && !isWorking, onLeave: { prepare(.leave) }, onReport: onReportClub))
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
-                    .cySheet(isPresented: confirmationPresented) { confirmationSheet }
                     .onChange(of: identity) { _, _ in reset() }
                     .onChange(of: club.id) { old, _ in reset(clubID: old) }
                     .onDisappear { reset() }

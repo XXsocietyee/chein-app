@@ -15,6 +15,7 @@ import SwiftUI
     var checkinCoordinator: ((Int) -> NativeChannelCheckinFlow?)? = nil
     var openExistingType: ((NativeChannelMessageSnapshot) -> Void)?
     @Environment(\.imRecipientPreview) private var recipientPreview
+    @State private var presentsVideo = false
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if !isCurrent() { unavailable("message.unavailable") }
@@ -24,12 +25,11 @@ import SwiftUI
                 if let quote = snapshot.reply { quoteRow(quote) }
                 switch snapshot.kind {
                 case .image:
-                    imageBody
+                    // G-020 (design P1): the real photo, drawn in the bubble after one explicit tap (no generated art).
                     if let attachmentPreview {
-                        openLink("attachment.open", identifier: nil) {
-                            NativeChannelAttachmentPreviewEntry(flow: attachmentPreview, current: isCurrent)
-                        }
+                        NativeChannelInlineImageView(flow: attachmentPreview, current: isCurrent)
                     } else { note("attachment.unavailable") }
+                    MessagingMessageContent(message: snapshot.message)
                 case .text, .poll:
                     MessagingMessageContent(message: snapshot.message)
                 case .card:
@@ -50,10 +50,9 @@ import SwiftUI
                     if let place = IMStaticLocation.read(snapshot.message) { IMStaticLocationCardView(place: place) }
                     else { note("location.unavailable") }
                 case .voice:
-                    if let voiceOwner, let ref = IMVoiceReference.read(snapshot.message) {
-                        openCard(label: { IMVoiceCardLabel(reference: ref) }, destination: {
-                            IMVoicePlaybackView(message: snapshot.message, owner: voiceOwner, current: isCurrent)
-                        })
+                    // G-024 (design P1): plays in the bubble; no playback page.
+                    if let voiceOwner, IMVoiceReference.read(snapshot.message) != nil {
+                        NativeChannelInlineVoiceView(message: snapshot.message, owner: voiceOwner, current: isCurrent)
                     } else { note("voice.unavailable") }
                 case .file:
                     if let fileOwner, let ref = IMFileReference.read(snapshot.message) {
@@ -62,10 +61,25 @@ import SwiftUI
                         })
                     } else { note("file.unavailable") }
                 case .video:
+                    // G-024: the poster opens the player in a sheet over the chat (no pushed page); the player keeps
+                    // its own explicit load and authorization checks.
                     if let videoOwner, let ref = IMVideoReference.read(snapshot.message) {
-                        openCard(label: { IMVideoCardLabel(reference: ref) }, destination: {
-                            IMVideoPlaybackView(message: snapshot.message, owner: videoOwner, current: isCurrent)
-                        })
+                        Button { presentsVideo = true } label: { IMVideoCardLabel(reference: ref) }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("channel.video.open")
+                            .cySheet(isPresented: $presentsVideo) {
+                                NavigationStack {
+                                    IMVideoPlaybackView(message: snapshot.message, owner: videoOwner, current: isCurrent)
+                                        .toolbar {
+                                            ToolbarItem(placement: .confirmationAction) {
+                                                Button("action.done") { presentsVideo = false }
+                                                    .accessibilityIdentifier("channel.video.done")
+                                            }
+                                        }
+                                }
+                                .presentationDetents([.large])
+                                .presentationDragIndicator(.visible)
+                            }
                     } else { note("video.unavailable") }
                 case .chain:
                     kindLine("type.14", symbol: "list.number")
@@ -105,17 +119,6 @@ import SwiftUI
         .cyText(.body)
         .privacySensitive()
         .accessibilityIdentifier("ncm47.message.\(snapshot.id.rawValue)")
-    }
-
-    private var imageBody: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Generated art only. No remote fetch: an image request can disclose the reader.
-            Color.clear
-                .aspectRatio(16.0 / 10.0, contentMode: .fit)
-                .overlay { CYCoverArt(seed: snapshot.id.rawValue, symbol: "photo") }
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            MessagingMessageContent(message: snapshot.message)
-        }
     }
 
     private var systemLine: some View {

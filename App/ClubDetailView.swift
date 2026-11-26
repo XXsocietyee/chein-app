@@ -465,7 +465,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                                           access: governance.access, locale: locale)
                     }
             }
-            .cyToast(message: $groupCodeToast)
+            .clubIslandStatus(message: $groupCodeToast, tone: .info, surface: "detail-groupCode")
             .navigationDestination(item: $stripProfileMemberID) { memberID in
                 if let profile = management?.governance?.enrollmentProfile {
                     SocialPublicProfileView(memberID: memberID, reader: profile.reader, squareReader: profile.squareReader,

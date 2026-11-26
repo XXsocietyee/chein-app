@@ -23,23 +23,30 @@ import UIKit
     @State private var openedTopic: Int?
     @State private var topicReturn: UInt64 = 0
     @State private var phoneToastKey: LocalizedStringKey?
-    @State private var phoneToastTone: CYToastTone = .success
+    @State private var phoneToastTone: IslandTone = .success
     init(key: CooperationInviteKey, reader: any CooperationReading, peerReader: (any CoopFlowReading)? = nil) {
         self.key = key; self.reader = reader; self.peerReader = peerReader
         _phoneCopy = StateObject(wrappedValue: CooperationPhoneCopyOwner(reader: reader, key: key))
     }
-    private func statusTone(_ row: CooperationInvite) -> CYStatusTone {
+    /// G-043 (design P1): the status is a tinted SF Symbol label (as Mail marks a flagged message), not a drawn chip.
+    private func statusLabel(_ row: CooperationInvite) -> some View {
+        let symbol: String, tint: Color
         switch row.status {
-        case 0: return .warning
-        case 1: return .success
-        default: return .neutral
+        case 0: symbol = "clock.fill"; tint = .orange
+        case 1: symbol = "checkmark.circle.fill"; tint = .green
+        default: symbol = "minus.circle.fill"; tint = .secondary
         }
+        return Label { Text(LocalizedStringKey(row.statusKey)) } icon: {
+            Image(systemName: symbol).foregroundStyle(tint).contentTransition(.symbolEffect(.replace))
+        }
+        .font(.subheadline.weight(.semibold))
+        .accessibilityIdentifier("cooperation.detail.status")
     }
     private func partnerLine(_ row: CooperationInvite) -> some View {
         HStack(spacing: CYSpacing.xs) {
             Text(LocalizedStringKey(key.direction == .received ? "cooperation.detail.from" : "cooperation.detail.to"))
             if let name = row.partner?.name, !name.isEmpty { Text(verbatim: name) } else { Text("cooperation.detail.counterparty") }
-        }.cyText(.meta).foregroundStyle(CYColor.textTertiary).accessibilityElement(children: .combine)
+        }.font(.subheadline).foregroundStyle(.secondary).accessibilityElement(children: .combine)
             .accessibilityIdentifier("cooperation.detail.partner")
     }
     var body: some View {
@@ -53,39 +60,35 @@ import UIKit
                 // Mini `.hd`: status first, then the topic. The counterparty stays beside the status.
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .center, spacing: CYSpacing.md) {
-                        CYStatusChip(LocalizedStringKey(row.statusKey), tone: statusTone(row))
+                        statusLabel(row)
                         Spacer(minLength: CYSpacing.sm)
                         partnerLine(row)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        CYStatusChip(LocalizedStringKey(row.statusKey), tone: statusTone(row))
+                        statusLabel(row)
                         partnerLine(row)
                     }
                 }
-                if let name = row.topicName, TemplateBrowserPort.coverURL(row.coverURL) == nil {
-                    // Image parity (MP invite-detail wxml:40-41): no cover data → no cover block, the name stays as the title.
-                    Text(verbatim: name).cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
-                        .accessibilityAddTraits(.isHeader)
-                } else if let name = row.topicName {
-                    // Hero: the real cover under the topic name so the invite reads as a card, not a form row.
-                    ZStack(alignment: .bottomLeading) {
-                        // MC7-32-2: the invite's real cover (generated art only as the fallback), dimmed once closed.
-                        CoopCloudCoverBanner(url: TemplateBrowserPort.coverURL(row.coverURL), seed: coopCoverSeed(name, fallback: "invite-\(row.id)"))
+                if let name = row.topicName {
+                    // G-043: one optional Image header in the first section (the invite's real cover, MC7-32-2), then
+                    // the topic name as a plain title row. No gradient scrim, no custom corner radius: the inset
+                    // grouped section clips the row. No cover data → no image (MP invite-detail wxml:40-41).
+                    if let cover = TemplateBrowserPort.coverURL(row.coverURL) {
+                        CoopCloudCoverBanner(url: cover, seed: coopCoverSeed(name, fallback: "invite-\(row.id)"))
+                            .frame(maxWidth: .infinity, minHeight: 150, maxHeight: 150)
+                            .clipped()
                             .opacity((row.status ?? 0) >= 2 ? 0.6 : 1)
+                            .listRowInsets(EdgeInsets())
                             .accessibilityHidden(true)
-                        LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .top, endPoint: .bottom)
-                        Text(verbatim: name).cyText(.sheetTitle).foregroundStyle(.white)
-                            .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(minHeight: 150)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
-                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
-                    .accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
+                    Text(verbatim: name).font(.title2.bold())
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
                 }
                 // MC8-32-3 (invite-detail wxml:42-56): the pending invite's validity under the hero.
                 if let countdown = CoopInviteCountdown.value(status: row.status, expire: row.expireTime) {
                     CoopInviteCountdownText(value: countdown).cyText(.meta)
-                        .foregroundStyle(countdown == .expired ? CYColor.warningText : CYColor.textSecondary)
+                        .foregroundStyle(countdown == .expired ? AnyShapeStyle(Color.orange) : AnyShapeStyle(HierarchicalShapeStyle.secondary))
                         .accessibilityIdentifier("cooperation.detail.countdown")
                 }
                 if let topic = row.topicId {
@@ -109,20 +112,21 @@ import UIKit
                 case .visible(let text):
                     Text(verbatim: text).textSelection(.enabled).accessibilityIdentifier("cooperation.detail.contact")
                     if let intent = phoneCopy.intent(detail: detail, reader: reader, key: key) {
-                        CYPillButton("cooperation.phone.copy", style: .secondary) {
+                        Button {
                             phoneCopy.copy(intent) { phone in
                                 UIPasteboard.general.setItems([["public.utf8-plain-text": phone]],
                                     options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
                             }
-                        }.accessibilityIdentifier("cooperation.phone.copy")
+                        } label: { Label("cooperation.phone.copy", systemImage: "doc.on.doc") }
+                        .accessibilityIdentifier("cooperation.phone.copy")
                     }
                     if let result = phoneCopy.resultKey {
                         Text(LocalizedStringKey(result)).accessibilityIdentifier("cooperation.phone.copy.result")
                     }
-                case .afterAcceptReceived: Text("cooperation.detail.contact.afterAcceptReceived").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                case .afterAcceptSent: Text("cooperation.detail.contact.afterAcceptSent").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                case .acceptedWithoutContact: Text("cooperation.detail.contact.none").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                case .ended: Text("cooperation.detail.contact.ended").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                case .afterAcceptReceived: Text("cooperation.detail.contact.afterAcceptReceived").foregroundStyle(.secondary)
+                case .afterAcceptSent: Text("cooperation.detail.contact.afterAcceptSent").foregroundStyle(.secondary)
+                case .acceptedWithoutContact: Text("cooperation.detail.contact.none").foregroundStyle(.secondary)
+                case .ended: Text("cooperation.detail.contact.ended").foregroundStyle(.secondary)
                 }
             }
             Section("cooperation.detail.section.terms") {
@@ -144,7 +148,7 @@ import UIKit
                             if let name = row.supplyStationName { Text(verbatim: name) }
                             else { Text("merchantCoop.station.fallback \(stationID)") }
                             Text(LocalizedStringKey(row.status == 1 ? "merchantCoop.station.note.accepted" : "merchantCoop.station.note.beforeAccept"))
-                                .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                .font(.footnote).foregroundStyle(.secondary)
                         }
                     } label: { Text("merchantCoop.station.label") }
                         .accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.detail.supplyStation")
@@ -155,29 +159,30 @@ import UIKit
             }
             Section("cooperation.detail.messages") {
                 if let message = row.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    // Mini `.bubble`: raised rounded block, body text then "我方/对方 · time" caption.
+                    // Mini `.bubble`, as a plain grouped row (G-043): body text, then "我方/对方 · time" in the footnote style.
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: message).fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: CYSpacing.xs) {
                             Text(LocalizedStringKey(view.messageIsOurs ? "cooperation.detail.us" : "cooperation.detail.them"))
                             CooperationTimeField(key: "cooperation.created", value: row.createTime)
-                        }.cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                    }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgRaised))
+                        }.font(.footnote).foregroundStyle(.secondary)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("cooperation.detail.message")
                 }
                 if let reason = row.handleReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: reason).cyText(.meta).foregroundStyle(CYColor.textPrimary)
-                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                    }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgSurfaceStrong))
+                        Text(verbatim: reason).fixedSize(horizontal: false, vertical: true)
+                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them"))
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("cooperation.detail.handleReason")
                 }
                 if (row.message ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && (row.handleReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    CYEmptyState(systemImage: "bubble.left", "cooperation.detail.noMessages")
+                    ContentUnavailableView("cooperation.detail.noMessages", systemImage: "bubble.left")
                 }
-                if view.input == .hidden && row.status == 1 && !row.legacyReadonly { Text("cooperation.detail.contactHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                if view.input == .hidden && row.status == 1 && !row.legacyReadonly { Text("cooperation.detail.contactHint").font(.footnote).foregroundStyle(.secondary) }
             }
             CooperationInviteActionSections(view: view, peerReader: peerReader)
             if !row.legacyReadonly && row.depositRefundPending {
@@ -200,10 +205,10 @@ import UIKit
         .onChange(of: key) { _, _ in phoneCopy.retire(); openedTopic = nil; phoneToastKey = nil }
         .onChange(of: phoneCopy.resultKey) { _, resultKey in
             guard let resultKey else { return }
-            phoneToastTone = resultKey.contains("failed") ? .warning : .success
+            phoneToastTone = ClubIslandStatusTone.forResultKey(resultKey)
             phoneToastKey = LocalizedStringKey(resultKey)
         }
-        .cyToast(message: $phoneToastKey, tone: phoneToastTone)
+        .clubIslandStatus(message: $phoneToastKey, tone: phoneToastTone, surface: "coop-invite")
         .onChange(of: openedTopic) { previous, next in
             guard previous != nil, next == nil else { return }
             topicReturn &+= 1
@@ -299,23 +304,24 @@ import UIKit
         Group {
             if direction == .sent {
                 Text(verbatim: locale.pick("发起方查看不算已读", "Opening your own invite does not mark it read"))
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("cooperation.detail.read.sent")
             } else {
                 switch phase {
                 case .loading:
-                    Text(verbatim: locale.pick("正在标记已读", "Marking as read")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: locale.pick("正在标记已读", "Marking as read")).font(.footnote).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cooperation.detail.read.loading")
                 case .done:
-                    Text(verbatim: locale.pick("已读", "Read")).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                    Label { Text(verbatim: locale.pick("已读", "Read")) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cooperation.detail.read.done")
                 case .failed:
                     VStack(alignment: .leading, spacing: dynamicTypeSize.isAccessibilitySize ? CYSpacing.sm : CYSpacing.xs) {
                         Text(verbatim: locale.pick("已读没有记下，请重试", "The read receipt did not stick. Try again."))
-                            .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                        CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await mark() } }
+                            .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        Button { Task { await mark() } } label: { Text(verbatim: locale.pick("重试", "Try again")) }
+                            .buttonStyle(.bordered)
                     }.accessibilityIdentifier("cooperation.detail.read.failed")
                 }
             }
