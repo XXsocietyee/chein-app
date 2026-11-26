@@ -31,7 +31,8 @@ final class Cov3DContractPinTests: XCTestCase {
 
     /// `utils/fe-author-sale.js:106`
     func testPinsFePublishForSaleAt106() {
-        XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
         let path = PlayerContentMPContract.fePublishForSalePath
         let method = "POST"

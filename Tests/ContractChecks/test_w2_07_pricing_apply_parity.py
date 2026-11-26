@@ -29,7 +29,8 @@ class W207PricingApplyParity(unittest.TestCase):
         self.assertNotIn('URLSession', pricing)
         self.assertIn('coordinator.confirm(value, consequentialApproval: true)', view)
         contract = read('Core/PlayerContentMPContract.swift')
-        self.assertIn('public static var pricingGrantEnabled: Bool { moneyEnabled }', contract)
+        # R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        self.assertIn('public static var pricingGrantEnabled: Bool { true }', contract)
         self.assertIn('if !pricingGrantEnabled { throw Refusal.pricingGrantDisabled }', contract)
         # Copy moved from inline Chinese literals to catalog keys; the catalog must still carry the exact wording.
         import json

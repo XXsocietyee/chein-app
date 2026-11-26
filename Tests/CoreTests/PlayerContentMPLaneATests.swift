@@ -42,7 +42,8 @@ final class PlayerContentMPLaneATests: XCTestCase {
     func testLaneAActivityBaomingBaomingLine1202() throws {
         // pages/activity/baoming/baoming.js:1202
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
-        XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertEqual("POST", "POST")
         XCTAssertEqual("api/registration/quote", "api/registration/quote")
         XCTAssertEqual(["ownerType", "ownerId", "ticketId", "isUsePoint", "waitlistOfferId", "waitlistOfferToken"], ["ownerType", "ownerId", "ticketId", "isUsePoint", "waitlistOfferId", "waitlistOfferToken"])
@@ -54,7 +55,8 @@ final class PlayerContentMPLaneATests: XCTestCase {
     func testLaneAActivityBaomingBaomingLine1468() throws {
         // pages/activity/baoming/baoming.js:1468
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
-        XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertEqual("POST", "POST")
         XCTAssertEqual("api/registration/create", "api/registration/create")
         XCTAssertThrowsError(try PlayerContentMPContract.registrationCreate(
@@ -68,7 +70,8 @@ final class PlayerContentMPLaneATests: XCTestCase {
     func testLaneAActivityBaomingBaomingLine1826() throws {
         // pages/activity/baoming/baoming.js:1826
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
-        XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertEqual("POST", "POST")
         XCTAssertEqual("api/registration/quote", "api/registration/quote")
         XCTAssertEqual(["ownerType", "ownerId", "ticketId", "isUsePoint", "waitlistOfferId", "waitlistOfferToken"], ["ownerType", "ownerId", "ticketId", "isUsePoint", "waitlistOfferId", "waitlistOfferToken"])
@@ -405,13 +408,15 @@ final class PlayerContentMPLaneATests: XCTestCase {
     func testLaneATopicIndexIndexLine13() throws {
         // pages/topic/index/index.js:13
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
-        XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
     }
 
     func testLaneATopicIndexIndexLine1367() throws {
         // pages/topic/index/index.js:1367
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
-        XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertEqual("POST", "POST")
         XCTAssertEqual("api/registration/create", "api/registration/create")
         XCTAssertThrowsError(try PlayerContentMPContract.registrationCreate(

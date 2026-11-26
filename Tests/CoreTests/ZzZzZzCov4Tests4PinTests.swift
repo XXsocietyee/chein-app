@@ -258,7 +258,8 @@ final class ZzZzZzCov4Tests4PinTests: XCTestCase {
         XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.refundEnabled)
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
-        XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
         let base = try XCTUnwrap(URL(string: "https://example.com"))
@@ -270,12 +271,10 @@ final class ZzZzZzCov4Tests4PinTests: XCTestCase {
             requestID: "r1", quoteSign: "s", sourceClubID: 3, sourceChannelCode: "EAST")) { error in
             XCTAssertEqual(error as? PlayerContentMPContract.Refusal, .moneyDisabled)
         }
-        XCTAssertThrowsError(try PlayerContentMPContract.pricingConfirm(
+        XCTAssertNoThrow(try PlayerContentMPContract.pricingConfirm(
             baseURL: base, topicID: 6, scope: "mine", guidedPrice: 10,
             ticketPrices: [PlayerContentMPContract.TicketPrice(ticketID: 2, price: 3)],
-            leadCost: nil, teamSize: 4, selfPrice: nil)) { error in
-            XCTAssertEqual(error as? PlayerContentMPContract.Refusal, .pricingGrantDisabled)
-        }
+            leadCost: nil, teamSize: 4, selfPrice: nil))
         let transport = Cov4Tests4PinTransport()
         let pass = PlatformPass(configuration: try APIConfiguration(baseURL: base), transport: transport)
         do {
