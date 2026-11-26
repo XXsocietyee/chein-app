@@ -1,112 +1,8 @@
 import Foundation
 
-/// Discovery, merchant, and club catalog reads. Kept out of `AppSession.swift` (size ratchet).
+/// Merchant and club catalog reads, plus play-continuation persistence.
 // Views never own credentials; every completion is bound to the captured session.
-extension AppSession: DiscoveryReading, MerchantReading {
-    private func readDiscovery<Value>(expiresSession: Bool = true,
-        _ operation:(DiscoveryService,String?) async throws -> Value) async throws -> Value {
-        guard let discoveryService else { throw APIError.notConfigured }
-        let stamp=gate.currentStamp, credential=token, viewerRevision=compositionViewerRevision
-        do {
-            let value=try await operation(discoveryService,credential)
-            try Task.checkCancellation()
-            guard gate.isCurrent(stamp), credential == token,
-                  viewerRevision == compositionViewerRevision else { throw CancellationError() }
-            return value
-        } catch {
-            // Fence identity-only refreshes before unauthorized expiration, including ABA.
-            guard gate.isCurrent(stamp), credential == token,
-                  viewerRevision == compositionViewerRevision, !Task.isCancelled else { throw CancellationError() }
-            if expiresSession { expireIfMatching(error:error,stamp:stamp,credential:credential) }
-            throw error
-        }
-    }
-    func discoveryBanners() async throws -> [DiscoveryBanner] { try await readDiscovery { try await $0.banners(token:$1) } }
-    func discoveryCategories(type:Int?) async throws -> [DiscoveryCategory] { try await readDiscovery { try await $0.categories(type:type,token:$1) } }
-    func templateMetadataDictionary(kind: TemplateMetadataKind) async throws -> [TemplateMetadataOption] {
-        try await readDiscovery { try await $0.templateMetadataDictionary(kind: kind, token: $1) }
-    }
-    func templateMetadataDictionaryRequest(kind: TemplateMetadataKind) -> DiscoveryReadRequest<[TemplateMetadataOption]> {
-        templateMetadataRequest { try await $0.templateMetadataDictionary(kind: kind, token: $1) }
-    }
-    func templateMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]> {
-        templateMetadataRequest { try await $0.categories(type: 4, token: $1) }
-    }
-    func projectMetadataCategoriesRequest() -> DiscoveryReadRequest<[DiscoveryCategory]> {
-        templateMetadataRequest { try await $0.categories(type: 1, token: $1) }
-    }
-    // Only an accepted, still-present selector can expire its captured identity.
-    private func templateMetadataRequest<Value>(
-        _ operation: @escaping (DiscoveryService, String?) async throws -> Value
-    ) -> DiscoveryReadRequest<Value> {
-        let stamp = gate.currentStamp, credential = token, viewerRevision = compositionViewerRevision
-        return DiscoveryReadRequest(read: { [weak self] in
-            guard let self, self.gate.isCurrent(stamp), credential == self.token,
-                  viewerRevision == self.compositionViewerRevision else { throw CancellationError() }
-            return try await self.readDiscovery(expiresSession: false, operation)
-        }, onUnauthorized: { [weak self] in
-            guard let self, viewerRevision == self.compositionViewerRevision else { return }
-            self.expireIfMatching(error: APIError.unauthorized, stamp: stamp, credential: credential)
-        })
-    }
-    func discoveryTemplateHome() async throws -> DiscoveryTemplateHome { try await readDiscovery { try await $0.templateHome(token:$1) } }
-    func discoveryPlayTemplates(keyword:String,packType:DiscoveryPackType?) async throws -> [DiscoveryPlayTemplate] { try await readDiscovery { try await $0.playTemplates(keyword:keyword,packType:packType,token:$1) } }
-    func publicTopicTemplateCoordinator(id: Int) -> PublicTopicTemplateCoordinator {
-        makePublicTopicTemplateCoordinator(id: id) { [weak self] id in
-            guard let self else { throw CancellationError() }
-            // The coordinator expires only an accepted current-generation failure.
-            return try await self.readPublicTopicTemplate(id: id, expiresSession: false)
-        }
-    }
-    /// Shared owner construction permits offline lifecycle tests without granting an HTTP route.
-    func makePublicTopicTemplateCoordinator(id: Int,
-        read: @escaping @MainActor (Int) async throws -> PublicTopicTemplateDetail) -> PublicTopicTemplateCoordinator {
-        publicTemplateDetails.synchronize(PublicTemplateViewerContext(
-            accountID: account?.id, role: account?.effectiveRole,
-            realm: regionalConfiguration?.apiConfiguration?.baseURL.absoluteString ?? "",
-            revision: gate.currentStamp))
-        let stamp = gate.currentStamp, credential = token, epoch = publicTemplateDetails.epoch
-        return publicTemplateDetails.coordinator(id: id, onUnauthorized: { [weak self] in
-            guard let self, self.publicTemplateDetails.epoch == epoch else { return }
-            self.expireIfMatching(error: APIError.unauthorized, stamp: stamp, credential: credential)
-        }, read: read)
-    }
-    func discoveryTopicTemplateDetail(id: Int) async throws -> PublicTopicTemplateDetail {
-        try await readPublicTopicTemplate(id: id, expiresSession: true)
-    }
-    private func readPublicTopicTemplate(id: Int, expiresSession: Bool) async throws -> PublicTopicTemplateDetail {
-        guard let discoveryService else { throw APIError.notConfigured }
-        let stamp = gate.currentStamp, credential = token, epoch = publicTemplateDetails.epoch
-        func current() -> Bool {
-            gate.isCurrent(stamp) && credential == token && epoch == publicTemplateDetails.epoch
-        }
-        do {
-            let result = try await discoveryService.publicTopicTemplate(id: id, token: credential)
-            try Task.checkCancellation()
-            guard current() else { throw CancellationError() }
-            return result
-        } catch {
-            // A revoked role's late 401 must not expire the new viewer context.
-            guard current(), !Task.isCancelled else { throw CancellationError() }
-            if expiresSession { expireIfMatching(error: error, stamp: stamp, credential: credential) }
-            throw error
-        }
-    }
-    func discoveryTopicTemplates() async throws -> [DiscoveryTopicTemplate] { try await readDiscovery { try await $0.topicTemplates(token:$1) } }
-    func publicTopicTemplateCatalogRequest() -> DiscoveryReadRequest<[DiscoveryTopicTemplate]> {
-        let stamp = gate.currentStamp, credential = token, viewerRevision = compositionViewerRevision
-        return DiscoveryReadRequest(read: { [weak self] in
-            guard let self, self.gate.isCurrent(stamp), credential == self.token,
-                  viewerRevision == self.compositionViewerRevision else { throw CancellationError() }
-            return try await self.readDiscovery(expiresSession: false) { try await $0.topicTemplates(token: $1) }
-        }, onUnauthorized: { [weak self] in
-            guard let self, viewerRevision == self.compositionViewerRevision else { return }
-            self.expireIfMatching(error: APIError.unauthorized, stamp: stamp, credential: credential)
-        })
-    }
-    func discoveryPlayTemplate(id:Int) async throws -> DiscoveryPlayTemplate { try await readDiscovery { try await $0.playTemplate(id:id,token:$1) } }
-    func discoveryPlayTemplateRead(id:Int) async throws -> DiscoveryPlayTemplateRead { try await readDiscovery { try await $0.playTemplateRead(id:id,token:$1) } }
-
+extension AppSession: MerchantReading {
     private func readMerchant<Value>(access:MerchantAccess?=nil, expectedDiscoveryScope: ClubDiscoveryScope? = nil,_ operation:(MerchantService,String) async throws -> Value) async throws -> Value {
         guard let merchantService else { throw APIError.notConfigured }
         guard account != nil, let credential=token else { throw APIError.unauthorized }
@@ -179,4 +75,128 @@ extension AppSession: ClubReading {
     func clubDirectory(name:String?) async throws -> [ClubRecord] { try await clubReader.clubDirectory(name:name) }
     func clubDetail(id:Int) async throws -> ClubRecord { try await clubReader.clubDetail(id:id) }
     func clubMembers(id:Int) async throws -> ClubMemberDirectory { try await clubReader.clubMembers(id:id) }
+}
+
+extension AppSession {
+    var currentHomeContinuationOwnerScope: HomeContinuationOwnerScope? {
+        guard isSignedIn, let account else { return nil }
+        return HomeContinuationOwnerScope(
+            accountID: account.id,
+            sessionRevision: sessionRevision,
+            journeyScope: playerJourneyReader.scope
+        )
+    }
+
+    func noteAccountPersistence(_ next: Account?) {
+        let nextID = (next?.id).flatMap { $0 > 0 ? $0 : nil }
+        let transition = AccountPersistenceTransition.classify(
+            rememberedAccountID: rememberedPersistenceAccountID, nextAccountID: nextID)
+        if let nextID { rememberedPersistenceAccountID = nextID }
+        guard let transition, let namespace = storageScope?.service else { return }
+        _ = AccountScopedPersistence.apply(transition, namespace: namespace, defaults: sessionDefaults)
+    }
+
+    static func playContinuationDefaultsKeys(
+        namespace: String,
+        accountID: Int,
+        role: String
+    ) -> (scopesKey: String, titlesKey: String)? {
+        guard !namespace.isEmpty, accountID > 0,
+              let parsedRole = PlayRecoveryAccountRole(rawValue: role),
+              let keys = AccountScopedPersistence.legacyKeys(namespace: namespace, accountID: accountID, role: parsedRole.rawValue) else { return nil }
+        return (keys.scopes, keys.titles)
+    }
+
+    private func playContinuationDefaultsKeys() -> (scopesKey: String, titlesKey: String)? {
+        guard let storageScope, let account else { return nil }
+        return Self.playContinuationDefaultsKeys(
+            namespace: storageScope.service,
+            accountID: account.id,
+            role: account.effectiveRole
+        )
+    }
+
+    private static func encodeContinuationScopeToken(_ scope: PlaySessionScope) -> String {
+        switch scope {
+        case .activity(let id): return "activity:\(id)"
+        case .topic(let id): return "topic:\(id)"
+        }
+    }
+
+    static func decodeContinuationScopeToken(_ token: String) -> PlaySessionScope? {
+        let parts = token.split(separator: ":", maxSplits: 1)
+        guard parts.count == 2, let id = Int(parts[1]), id > 0 else { return nil }
+        switch parts[0] {
+        case "activity": return .activity(id)
+        case "topic": return .topic(id)
+        default: return nil
+        }
+    }
+
+    func matchesContinuationSession(_ expected: PlayExperienceSession, viewerRevision: UInt64) -> Bool {
+        guard !authenticatedSessionIsCommitting,
+              isSignedIn,
+              let currentStorage = storageScope,
+              let currentAccount = account,
+              let currentToken = token,
+              currentStorage.service == expected.namespace,
+              currentAccount.id == expected.accountID,
+              gate.currentStamp == expected.epoch,
+              currentToken == expected.token,
+              currentAccount.effectiveRole == expected.role,
+              compositionViewerRevision == viewerRevision else {
+            return false
+        }
+        return true
+    }
+
+    func persistPlayContinuationScope(
+        _ scope: PlaySessionScope,
+        title: String? = nil,
+        expectedSession: PlayExperienceSession,
+        expectedViewerRevision: UInt64
+    ) {
+        guard scope.isValid,
+              matchesContinuationSession(expectedSession, viewerRevision: expectedViewerRevision),
+              let keys = Self.playContinuationDefaultsKeys(
+                  namespace: expectedSession.namespace,
+                  accountID: expectedSession.accountID,
+                  role: expectedSession.role
+              ) else { return }
+        let token = Self.encodeContinuationScopeToken(scope)
+        var existing = sessionDefaults.stringArray(forKey: keys.scopesKey) ?? []
+        if !existing.contains(token) {
+            existing.append(token)
+            sessionDefaults.set(existing, forKey: keys.scopesKey)
+        }
+        if let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty {
+            var titles = (sessionDefaults.dictionary(forKey: keys.titlesKey) as? [String: String]) ?? [:]
+            titles[token] = trimmed
+            sessionDefaults.set(titles, forKey: keys.titlesKey)
+        }
+        _ = AccountScopedPersistence.recordContinuation(
+            namespace: expectedSession.namespace, accountID: expectedSession.accountID,
+            role: expectedSession.role, defaults: sessionDefaults)
+    }
+
+    func registerPlayContinuationScope(_ scope: PlaySessionScope, title: String? = nil) {
+        guard !authenticatedSessionIsCommitting,
+              let storageScope,
+              let account,
+              let token,
+              let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole),
+              let playSession = try? PlayExperienceSession(
+                  accountID: account.id,
+                  epoch: gate.currentStamp,
+                  namespace: storageScope.service,
+                  token: token,
+                  role: role.rawValue
+              ) else { return }
+        persistPlayContinuationScope(
+            scope,
+            title: title,
+            expectedSession: playSession,
+            expectedViewerRevision: compositionViewerRevision
+        )
+    }
 }
