@@ -14,10 +14,7 @@ import QuestifyCore
     /// `.refreshable` action, so a host without pull-to-refresh shows no button.
     @Environment(\.refresh) private var refreshAction
 
-    @Environment(\.locale) private var locale
-    @State private var showingDice = false
 
-    private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
         ScrollView {
@@ -38,10 +35,7 @@ import QuestifyCore
                     }
                 }
 
-                if card.environment.availability != .waitingSource {
-                    CYSectionHeader(verbatim: copy.t("此刻环境", "Environment"))
-                    CYCard { environmentContent(card.environment) }
-                }
+                // R7-MEM-24-2: MP character/index.wxml has no 此刻环境 or 掷骰, so neither is shown here.
 
                 if let rpg = rpgSheet {
                     CYSectionHeader("characterCard.rpgStatus")
@@ -58,19 +52,6 @@ import QuestifyCore
             .padding(.vertical, CYSpacing.lg)
         }
         .background(CYColor.bgPage.ignoresSafeArea())
-        .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Button {
-                    showingDice = true
-                } label: {
-                    Label("characterCard.dice", systemImage: "dice")
-                }
-                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                .accessibilityIdentifier("characterSheet.diceRoller")
-                .accessibilityLabel(Text("characterCard.dice"))
-            }
-        }
-        .sheet(isPresented: $showingDice) { DiceRollerSheet() }
     }
 
     // MARK: Header
@@ -100,105 +81,6 @@ import QuestifyCore
                     .foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-        }
-    }
-
-    // MARK: Environment
-
-    @ViewBuilder
-    private func environmentContent(_ env: WorldEnvironmentProjection) -> some View {
-        let items = WorldEnvironmentProjection.keys.compactMap { key -> (key: String, label: String, icon: String, isUnknown: Bool)? in
-            guard let val = env[key] else { return nil }
-            let isUnknown: Bool
-            let text: String
-            switch val {
-            case .known(let raw):
-                isUnknown = false
-                text = localizedEnvironmentText(key: key, value: raw)
-            case .unknown:
-                isUnknown = true
-                text = copy.t("未知", "Unknown")
-            }
-            return (key, "\(environmentKeyName(key))：\(text)", environmentIcon(key: key, value: val), isUnknown)
-        }
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            if !items.isEmpty {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: CYSpacing.xs, alignment: .leading)], alignment: .leading, spacing: CYSpacing.xs) {
-                    ForEach(items, id: \.key) { item in
-                        CYStatusChip(
-                            verbatim: item.label,
-                            tone: item.isUnknown ? .warning : .info,
-                            systemImage: item.icon
-                        )
-                        .accessibilityIdentifier("characterSheet.environment.\(item.key)")
-                    }
-                }
-            }
-            if env.availability == .unknown || env.weather == .unknown {
-                CYStatusChip(
-                    verbatim: copy.t("天色未明，先凭直觉探路", "Sky unclear — rely on your instincts"),
-                    tone: .warning,
-                    systemImage: "cloud.slash"
-                )
-                .accessibilityIdentifier("characterSheet.environment.unknown")
-            }
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("characterSheet.environment")
-    }
-
-    private func environmentKeyName(_ key: String) -> String {
-        switch key {
-        case "weather": return copy.t("天气", "Weather")
-        case "daypart": return copy.t("时段", "Time")
-        case "weekpart": return copy.t("周历", "Week")
-        case "season": return copy.t("季节", "Season")
-        default: return key
-        }
-    }
-
-    private func localizedEnvironmentText(key: String, value: String) -> String {
-        switch value {
-        case "clear": return copy.t("晴", "Clear")
-        case "cloudy": return copy.t("多云", "Cloudy")
-        case "rain": return copy.t("雨", "Rain")
-        case "snow": return copy.t("雪", "Snow")
-        case "fog": return copy.t("雾霾", "Fog")
-        case "wind": return copy.t("风", "Wind")
-        case "storm": return copy.t("雷暴", "Storm")
-        case "dawn": return copy.t("清晨", "Dawn")
-        case "morning": return copy.t("上午", "Morning")
-        case "afternoon": return copy.t("午后", "Afternoon")
-        case "evening": return copy.t("傍晚", "Evening")
-        case "night": return copy.t("夜晚", "Night")
-        case "weekday": return copy.t("工作日", "Weekday")
-        case "weekend": return copy.t("周末", "Weekend")
-        case "spring": return copy.t("春", "Spring")
-        case "summer": return copy.t("夏", "Summer")
-        case "autumn": return copy.t("秋", "Autumn")
-        case "winter": return copy.t("冬", "Winter")
-        default: return value
-        }
-    }
-
-    private func environmentIcon(key: String, value: WorldEnvironmentProjection.Value) -> String {
-        if case .unknown = value { return "cloud.slash" }
-        switch key {
-        case "weather":
-            switch value.text {
-            case "clear": return "sun.max.fill"
-            case "cloudy": return "cloud.fill"
-            case "rain": return "cloud.rain.fill"
-            case "snow": return "cloud.snow.fill"
-            case "fog": return "cloud.fog.fill"
-            case "wind": return "wind"
-            case "storm": return "cloud.bolt.rain.fill"
-            default: return "cloud"
-            }
-        case "daypart": return "clock"
-        case "weekpart": return "calendar"
-        case "season": return "leaf"
-        default: return "sparkles"
         }
     }
 
