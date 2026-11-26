@@ -1981,7 +1981,10 @@ struct ClubGovernanceReadView: View {
             // director runs this session; the projection offers BROADCAST or the row is dimmed with the reason.
             // r10: the disabled row stays visible and dimmed; MP `broadcastDisabledText` (wxml:621-624) sits in the footer.
             if operation == .topicCustomers, let projection = sessionDirector?.projection {
-                let canBroadcast = projection.availableActions.contains(PlayDirectorAction.broadcast.rawValue)
+                // MP director.js: canBroadcast = hasAction(BROADCAST) && !projection.broadcastBlocker (club-game-director-adapter.js
+                // reads `club.broadcastBlocker`, NOT_RUNNING / NO_RECIPIENT).
+                let blocker = (projection.club["broadcastBlocker"].text ?? "").uppercased()
+                let canBroadcast = projection.availableActions.contains(PlayDirectorAction.broadcast.rawValue) && blocker.isEmpty
                 Section {
                     Button { opensDirectorBroadcast = true } label: {
                         Label("club.topic.broadcast", systemImage: "megaphone")
@@ -1989,7 +1992,11 @@ struct ClubGovernanceReadView: View {
                     .disabled(!canBroadcast)
                     .accessibilityIdentifier("club.topic.broadcast")
                 } footer: {
-                    if !canBroadcast {
+                    // MP director.js broadcastBlockerText: NO_RECIPIENT has its own sentence with the next step.
+                    if !canBroadcast && blocker == "NO_RECIPIENT" {
+                        Text("club.topic.broadcast.noRecipient")
+                            .accessibilityIdentifier("club.topic.broadcast.disabledReason")
+                    } else if !canBroadcast {
                         Text("club.topic.broadcast.disabled \(appLocalized(String.LocalizationValue(stringLiteral: Self.sessionStatusKey(projection.status)), locale: locale))")
                             .accessibilityIdentifier("club.topic.broadcast.disabledReason")
                     }

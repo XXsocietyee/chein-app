@@ -316370,6 +316370,23 @@
         }
       }
     },
+    "club.topic.broadcast.noRecipient": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No players can receive this yet. You can send once players have signed up and checked in."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场还没有可送达的玩家。等玩家报名进场后，这里才能发送。"
+          }
+        }
+      }
+    },
     "club.eventOps.paymentNotice": {
       "extractionState": "manual",
       "localizations": {
