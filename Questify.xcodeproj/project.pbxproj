@@ -10795,6 +10795,76 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FABCEFB4B294DBD3FFD196ED";
 		};
+		"D926FADEB98856C00C55F6B0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/MapHome/RoamMapHomeFlag.swift";
+			"sourceTree" = "<group>";
+		};
+		"1D76085B70A9801B3D52FC48" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D926FADEB98856C00C55F6B0";
+		};
+		"106975060832444E07570B25" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/MapHome/RoamMapHomeModel.swift";
+			"sourceTree" = "<group>";
+		};
+		"648BEC683DA7D69E91D2242F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "106975060832444E07570B25";
+		};
+		"A9C1CCA7A7DADFFEC23223CF" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/MapHome/RoamMapHomePlaceCard.swift";
+			"sourceTree" = "<group>";
+		};
+		"1963B536CD3D9637242D6E42" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A9C1CCA7A7DADFFEC23223CF";
+		};
+		"E169736470131C52160EC7B3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/MapHome/RoamMapHomeRoutes.swift";
+			"sourceTree" = "<group>";
+		};
+		"194FDC77CC194BED3F127ACA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E169736470131C52160EC7B3";
+		};
+		"644640CBB455060AED3A2921" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/MapHome/RoamMapHomeSheet.swift";
+			"sourceTree" = "<group>";
+		};
+		"8AECE068048B8060E10D73F9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "644640CBB455060AED3A2921";
+		};
+		"E27C3641EC6F0D372A01F7E1" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/MapHome/RoamMapHomeView.swift";
+			"sourceTree" = "<group>";
+		};
+		"5685543F114130A97CF7517E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E27C3641EC6F0D372A01F7E1";
+		};
+		"BDC6CD51FA235EE09E370A32" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/NativeR2Flags.swift";
+			"sourceTree" = "<group>";
+		};
+		"A084FAC08BD3FF990F58B005" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "BDC6CD51FA235EE09E370A32";
+		};
 		"A5316E1A4FB27D678BF2F83D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -43013,6 +43083,13 @@
 				"689461CCAFD3020D26140D70",
 				"72A08032098E549642A67C65",
 				"FABCEFB4B294DBD3FFD196ED",
+				"D926FADEB98856C00C55F6B0",
+				"106975060832444E07570B25",
+				"A9C1CCA7A7DADFFEC23223CF",
+				"E169736470131C52160EC7B3",
+				"644640CBB455060AED3A2921",
+				"E27C3641EC6F0D372A01F7E1",
+				"BDC6CD51FA235EE09E370A32",
 				"A5316E1A4FB27D678BF2F83D",
 				"7F8C1C1E521704422D161288",
 				"69947A92192A5150B3DFF1CF",
@@ -48388,6 +48465,13 @@
 				"EB976E99D93A2EEFCF838707",
 				"775A9C4564EF84DFF96D7731",
 				"A85668FB109326CBF51DB01F",
+				"1D76085B70A9801B3D52FC48",
+				"648BEC683DA7D69E91D2242F",
+				"1963B536CD3D9637242D6E42",
+				"194FDC77CC194BED3F127ACA",
+				"8AECE068048B8060E10D73F9",
+				"5685543F114130A97CF7517E",
+				"A084FAC08BD3FF990F58B005",
 				"A0205E36AD20F9B390C5FAC6",
 				"71BB3EB413E2963E15FFB3CC",
 				"FCC527F2744C4902CD1E8DD1",
