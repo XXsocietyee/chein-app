@@ -29,3 +29,5 @@ Files under `App/NativeR2/Motion/` + minimal hooks; merge the tip first (9 desig
 ## Owner 11:40 UTC
 - App Clip approved for **after the player launch**: team invite accept without install, stop/venue QR check-in. motion-r2 writes the plan only (receipt); build it as a post-launch lane.
 - R2 holo sheen and R8 edge glow approved for reward/success moments only.
+
+> **Owner 11-26 11:46 UTC: first release = player side + clubs only.** Merchant center, merchant onboarding and coop stay hidden in Release (`PlayerLaunch.merchantCenterEnabled == false`) and ship in a later update. Do not spend time on merchant-only screens; keep every merchant entry behind that flag.

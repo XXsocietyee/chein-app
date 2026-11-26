@@ -82,3 +82,5 @@ A2 owns: everything else below.
 - Info.plist: `ITSAppUsesNonExemptEncryption = NO` (HTTPS only) and all usage-description strings in zh-Hans and en.
 - StoreKit: list every virtual-goods product the MP sells as a table for the owner (product id proposal, type, price tier) in `docs/release/storekit-products.md`. Do not turn virtual goods on.
 - Write `docs/release/testflight-upload-checklist.md` for the owner: archive in Xcode, signing, upload, export compliance answer, TestFlight internal group, what to test first.
+
+> **Owner 11-26 11:46 UTC: first release = player side + clubs only.** Merchant center, merchant onboarding and coop stay hidden in Release (`PlayerLaunch.merchantCenterEnabled == false`) and ship in a later update. Do not spend time on merchant-only screens; keep every merchant entry behind that flag.
