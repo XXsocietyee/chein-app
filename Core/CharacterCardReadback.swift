@@ -136,6 +136,12 @@ public struct CharacterCardPageModel: Equatable {
     }
 
     public init(isCurrent: Bool, availability: WorldFactAvailability, card: CharacterCard?, issue: PlayExperienceError?) {
+        // A failed refresh keeps the last ready card. Auth loss and a stale session still blank it.
+        // Rebuilding with a nil issue uses the card's own stats, so the failure is not an empty success.
+        if let card, isCurrent, availability == .ready, Self.keepsVisibleCard(despite: issue) {
+            self.init(isCurrent: true, availability: .ready, card: card, issue: nil)
+            return
+        }
         switch issue {
         case .malformed:
             self = Self(blank: .unknown)
@@ -165,6 +171,16 @@ public struct CharacterCardPageModel: Equatable {
         self.breakdownDieText = Self.statText(card.breakdown.die)
         self.momentumText = Self.statText(card.rpgSheet?.momentum?.value)
         self.equipmentQuantityTexts = quantities
+    }
+
+    /// Ordinary read failures leave a card that was already on screen. Sign-in and session changes do not.
+    private static func keepsVisibleCard(despite issue: PlayExperienceError?) -> Bool {
+        switch issue {
+        case .malformed, .unknownResult, .unsupported, .persistenceUnavailable, .busy, .invalidAction, .rejected, .disabled:
+            return true
+        case .unauthorized, .staleSession, nil:
+            return false
+        }
     }
 
     private init(blank phase: Phase) {
@@ -280,12 +296,19 @@ public enum GameReceiptOriginalRecovery {
         self.card = card.updating(breakdown: CharacterCheckBreakdown.read(raw["breakdown"] == .null ? raw : raw["breakdown"]),
                                   originalRequestID: originalRequestID)
     }
-    /// The page calls this without reloading. A revoked lease clears the old card.
+    /// The page calls this without reloading. A different account clears the old card.
+    /// No session is the signed-out reader: the card leaves the screen and 登录 can read again.
+    /// `dismiss()` stays retired so a late read cannot refill it.
     public func cardIfCurrent() -> CharacterCard? {
         guard isCurrent else {
-            card = nil
-            if owner != nil { retired = true }
-            availability = .waitingSource
+            if card != nil { card = nil }
+            if currentSession() == nil {
+                if issue != .unauthorized { issue = .unauthorized }
+                if owner != nil { owner = nil }
+            } else if owner != nil {
+                retired = true
+            }
+            if availability != .waitingSource { availability = .waitingSource }
             return nil
         }
         return availability == .ready ? card : nil
@@ -293,8 +316,10 @@ public enum GameReceiptOriginalRecovery {
     public func load() async {
         guard !retired else { card = nil; availability = .waitingSource; return }
         guard let session = currentSession() else {
+            // PLY-24-3: signed out is a sign-in failure, not a permanent loading lease.
             card = nil
-            if owner != nil { retired = true }
+            owner = nil
+            issue = .unauthorized
             availability = .waitingSource
             return
         }
@@ -366,16 +391,26 @@ public enum GameReceiptOriginalRecovery {
             return
         } catch PlayExperienceError.unauthorized {
             guard generation == stamp, let session = owner, currentSession() == session else { return }
+            // Drop the owner so this lease is no longer current, without dismiss()'s retired latch,
+            // so the existing sign-in sheet can call load() again.
             card = nil
-            retired = true
+            owner = nil
             issue = .unauthorized
             availability = .waitingSource
             onUnauthorized(session)
         } catch {
             guard generation == stamp else { return }
+            if Task.isCancelled { return }
+            let failed = error as? PlayExperienceError ?? .unknownResult
+            // PLY-24-6: a failed refresh keeps the last card and records the failure.
+            // It does not swap in an empty ready card. Sign-out and account changes still clear it.
+            if failed != .staleSession, isCurrent, availability == .ready, card != nil {
+                issue = failed
+                return
+            }
             card = nil
-            issue = error as? PlayExperienceError ?? .unknownResult
-            availability = issue == .disabled ? .waitingSource : .unknown
+            issue = failed
+            availability = failed == .disabled ? .waitingSource : .unknown
         }
     }
     /// Replay the frozen command/requestId through the existing session writer. No new identity.

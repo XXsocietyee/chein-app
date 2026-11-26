@@ -41,14 +41,17 @@ import SwiftUI
                     .accessibilityValue(Text(verbatim: CharacterCardPageModel.unknownStat))
                     .accessibilityHint(Text("characterCard.refresh"))
             case .empty:
-                // PLY-24-4: a card with nothing to show is the MP missing-param state 链接已失效 · 返回 (character/index.wxml:10).
-                CYEmptyState(systemImage: "link.badge.plus", "characterCard.empty", messageIdentifier: "characterCard.empty",
-                             actionTitle: "characterCard.back", actionIdentifier: "characterCard.back") { dismiss() }
+                // A failed refresh of a card that had nothing to show keeps that card and the failure.
+                // With no failure, this is the MP missing-param state 链接已失效 · 返回 (character/index.wxml:10).
+                if model.isCurrent, model.issue != nil, let card {
+                    readyCard(card)
+                } else {
+                    CYEmptyState(systemImage: "link.badge.plus", "characterCard.empty", messageIdentifier: "characterCard.empty",
+                                 actionTitle: "characterCard.back", actionIdentifier: "characterCard.back") { dismiss() }
+                }
             case .ready:
                 if model.isCurrent, let card {
-                    CharacterSheetDetailView(card: card, rpgSheet: card.rpgSheet, definitionSource: card.definitionSource,
-                                             attributeLevels: card.attributeLevels)
-                        .refreshable { await model.load() }
+                    readyCard(card)
                 } else {
                     CYLoadingState("characterCard.loading", messageIdentifier: "characterCard.loading")
                 }
@@ -56,9 +59,40 @@ import SwiftUI
         }
         .cyAnimation(CYMotion.standard, value: page.phase)
         .cyPageTitle("characterCard.title")
-        .sheet(isPresented: $login, onDismiss: { Task { await model.load() } }) { LoginView(intent: .player) }
+        .sheet(isPresented: $login, onDismiss: { Task { await model.load() } }) {
+            LoginView(intent: .player).environmentObject(session)
+        }
         .task { await model.load() }
         .onDisappear { model.dismiss() }
+    }
+
+    /// PLY-24-6: the ready card ends with a system 刷新角色卡 button. It calls the existing read.
+    /// A failure stays on this card; the button does not depend on pull-to-refresh.
+    private func readyCard(_ card: CharacterCard) -> some View {
+        CharacterSheetDetailView(card: card, rpgSheet: card.rpgSheet, definitionSource: card.definitionSource,
+                                 attributeLevels: card.attributeLevels)
+            .safeAreaInset(edge: .bottom, spacing: CYSpacing.sm) {
+                VStack(spacing: CYSpacing.sm) {
+                    if model.issue != nil {
+                        let failure = CharacterCardFailure(model.issue)
+                        Text(LocalizedStringKey(failure.titleKey))
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .accessibilityIdentifier("characterCard.refresh.failure")
+                    }
+                    Button("characterCard.refresh") { Task { await model.load() } }
+                        .buttonStyle(.bordered)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("characterCard.refresh.ready")
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.sm)
+                .background(CYColor.bgPage)
+            }
     }
 
 }
