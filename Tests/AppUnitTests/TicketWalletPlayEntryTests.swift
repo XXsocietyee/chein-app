@@ -13,9 +13,13 @@ import XCTest
 }
 @MainActor final class TicketWalletPlayEntryTests: XCTestCase {
     private func ticket(id: Int = 41, status: Int = 2, type: Int? = 1, owner: Int? = 9,
-                        activity: Int? = nil, topic: Int? = nil, verification: Int = 0) throws -> TicketWalletTicket {
+                        activity: Int? = nil, topic: Int? = nil, verification: Int = 0,
+                        payment: Int? = nil, usable: String? = nil, refundPayout: Int? = nil) throws -> TicketWalletTicket {
         var value: [String: Any] = ["id": id, "registrationStatus": status, "verificationStatus": verification]
         value["ownerType"] = type; value["ownerId"] = owner; value["activityId"] = activity; value["topicId"] = topic
+        if let payment { value["paymentStatus"] = payment }
+        if let usable { value["usableState"] = usable }
+        if let refundPayout { value["refundApplication"] = ["payoutStatus": refundPayout] }
         return try JSONDecoder().decode(TicketWalletTicket.self, from: JSONSerialization.data(withJSONObject: value))
     }
     private func provider(_ reader: WalletPlayReaderFixture, revision: UInt64 = 1,
@@ -39,6 +43,15 @@ import XCTest
             XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(status: status, verification: 1), requestedID: 41))
         }
         XCTAssertNotNil(TicketWalletPlayEntry.entry(ticket: try ticket(status: 2, verification: 1), requestedID: 41))
+    }
+    func testPlayRequiresTheDetailRegistrationToStillBeUsable() throws {
+        XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(payment: 1), requestedID: 41))
+        XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(usable: "EXPIRED"), requestedID: 41))
+        XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(payment: 2, refundPayout: 1), requestedID: 41))
+        XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(payment: 2, usable: "UPCOMING"), requestedID: 41))
+        XCTAssertNotNil(TicketWalletPlayEntry.entry(ticket: try ticket(payment: 2, usable: "USABLE"), requestedID: 41))
+        // Older detail payloads omit payment facts. A ready registration stays eligible.
+        XCTAssertNotNil(TicketWalletPlayEntry.entry(ticket: try ticket(), requestedID: 41))
     }
     func testRequestedRegistrationMustBePositiveAndMatchFreshTicket() throws {
         for id in [-1, 0, 40, 42] { XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(), requestedID: id)) }

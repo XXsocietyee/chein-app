@@ -57,8 +57,10 @@ import SwiftUI
                         Button {
                             guard !model.isLoading, model.value(owner: key) == ticket,
                                   playReadOwner == playProvider.owner else { return }
-                            playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: playProvider,
-                                               presentationID: presentationID)
+                            // A row already on screen is not proof. Re-read inside this permit, then start only if it is still usable.
+                            guard playEntry.presentationID == presentationID,
+                                  let permit = model.presentation, model.accepts(permit, currentOwner: key) else { return }
+                            schedule(permit, confirmPlay: true)
                         } label: {
                             // PLY-21-4: MP signup wxml:103-105 labels a cleared ticket 查看记录.
                             if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() } }
@@ -120,14 +122,20 @@ import SwiftUI
         .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { schedule(offeredPresentation) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
+                Button {
+                    guard let permit = offeredPresentation, permit == model.presentation,
+                          model.accepts(permit, currentOwner: key) else { return }
+                    schedule(offeredPresentation)
+                } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                     .accessibilityIdentifier("ticketWallet.detail.refresh")
             }
         }
         .onChange(of: TicketWalletPlayLoadKey(readerID: ObjectIdentifier(reader), key: key, providerOwner: playProvider?.owner)) { _, _ in replacePresentation() }
         .refreshable {
-            await model.refresh(presentation: offeredPresentation, currentOwner: key) { await load(presentation: $0) }
+            let current = model.presentation
+            guard let current, model.accepts(current, currentOwner: key) else { return }
+            await model.refresh(presentation: current, currentOwner: key) { await load(presentation: $0) }
         }
         .onAppear { isVisible = true; refreshOnActive = false; playEntry.appear(); replacePresentation() }
         .onDisappear { isVisible = false; model.endPresentation(); playEntry.disappear() }
@@ -165,10 +173,10 @@ import SwiftUI
         guard isVisible, scenePhase == .active else { model.endPresentation(preservingValues: false); return }
         schedule(model.beginPresentation(owner: key))
     }
-    private func schedule(_ permit: TicketWalletReadPresentation?) {
-        model.schedule(presentation: permit, currentOwner: key) { await load(presentation: $0) }
+    private func schedule(_ permit: TicketWalletReadPresentation?, confirmPlay: Bool = false) {
+        model.schedule(presentation: permit, currentOwner: key) { await load(presentation: $0, confirmPlay: confirmPlay) }
     }
-    private func load(presentation: TicketWalletReadPresentation) async {
+    private func load(presentation: TicketWalletReadPresentation, confirmPlay: Bool = false) async {
         guard isVisible, scenePhase == .active, !Task.isCancelled,
               model.accepts(presentation, currentOwner: key) else { return }
         playEntry.retire()
@@ -186,9 +194,11 @@ import SwiftUI
            let provider, provider.owner == playProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured)?.id == id, captured == key {
             playReadOwner = provider.owner
-            if autoStartsPlay, !didAutoStart, let ticket = model.value(owner: captured), ticket.hasGame,
+            // Play waits for this detail. A list row, or the ticket that was on screen, is not enough.
+            let startPlay = confirmPlay || (autoStartsPlay && !didAutoStart)
+            if autoStartsPlay { didAutoStart = true }
+            if startPlay, let ticket = model.value(owner: captured), ticket.hasGame,
                playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: provider) {
-                didAutoStart = true
                 playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: provider,
                                    presentationID: playEntry.presentationID)
             }
@@ -259,7 +269,7 @@ struct TicketWalletPlayProvider {
     static func entry(ticket: TicketWalletTicket, requestedID: Int) -> ParticipationPlayEntry? {
         // R7-MEM-21-2: a wallet-locked ticket has no play entry (MP index.js:371-374).
         guard requestedID > 0, ticket.id == requestedID, ticket.registrationStatus == 2,
-              !ticket.isWalletLocked, let ownerID = ticket.ownerID, ownerID > 0 else { return nil }
+              ticket.isWalletUsable, !ticket.isWalletLocked, let ownerID = ticket.ownerID, ownerID > 0 else { return nil }
         let scope: PlaySessionScope
         switch ticket.ownerType {
         case 1:

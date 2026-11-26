@@ -164,8 +164,10 @@ import SwiftUI
                 }
             }
             .refreshable {
-                let current = model.presentation ?? model.beginPresentation(owner: key)
-                if let current, model.accepts(current, currentOwner: key) { retirePendingOrder() }
+                // Stay on the permit this screen already holds. Refresh does not open another read.
+                let current = model.presentation
+                guard let current, model.accepts(current, currentOwner: key) else { return }
+                retirePendingOrder()
                 await model.refresh(presentation: current, currentOwner: key) { await load(presentation: $0) }
             }
             .onAppear { isVisible = true; refreshOnActive = false; pendingOrderEntry.appear(); replacePresentation() }
