@@ -10,7 +10,8 @@ class IntroSourceContracts(unittest.TestCase):
   self.assertIn('maximum = 3',C);self.assertIn('source.prefix(Self.maximum)',C);self.assertNotIn('.filter',C)
  def test_normal_intro_has_one_entry_and_keeps_name_and_editor(self):
   self.assertEqual(H.count('TemplateAuthoringIntroExperience('),1);self.assertIn('onContinue: { step = .name }',H)
-  for x in ['private var name: some View','step = .edit','CYPillButton("templateAuthor.saveLocal", style: .tertiary) { model.save() }']:self.assertIn(x,H)
+  # native-r2 publish group 4 (6d87c03a1): CYPillButton -> system Button, same key and action.
+  for x in ['private var name: some View','step = .edit','Button { model.save() } label: { Text("templateAuthor.saveLocal") }']:self.assertIn(x,H)
   self.assertIn('Text("publishParity.intro.lead")',A);self.assertIn('Text("publishParity.intro.tail")',A)
  def test_uses_only_existing_home_read_and_artwork(self):
   self.assertEqual(A.count('reader.discoveryTemplateHome()'),1);self.assertIn('DiscoveryArtwork(source:item.imgUrl,height:150)',A)

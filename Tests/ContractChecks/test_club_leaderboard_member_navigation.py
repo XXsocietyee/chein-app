@@ -95,7 +95,8 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
             # Parity r2 (X1 / X3): this span runs into bodyNavigation, whose hero row and stacked failure sections were
             # replaced by the inline title and one failure block; the customer filter rows inside it are unchanged.
             ('            if operation == .customers {', '            if operation == .topicCustomers {', '9d1b66318bd2072bf08f9cdc1ed8243f2c1b5bd39c22ee7943ad2d0bf443ccf5'),  # fix-r8-club round 5: the roles reread-failure toast (CLB-r7-C-03) sits in this span. fix-r8-club: the customer filter is the MP chip row (CLB-customers-07). fix-r3-club-a: apply guest state (CLB-apply-08) and the answer-sheet loading/failure copy (CLB-topic-story-03, round 3) join this span; fix-r3-club-b round 4: the check-in read-failure states, the customer 编辑 button key and the 客户 bar title also sit in it (customer filter rows unchanged)
-            ('    @MainActor private func loadCustomersNow()', '    @MainActor private func load() async {', '1c8613aec8b47f2cb00ed001f56358eeadc4ae42cb5b3c4792150a1efcd8475a'),
+            # 4df2d6204: only the one-line `Shared read.` doc comment above load() joined this span (code unchanged).
+            ('    @MainActor private func loadCustomersNow()', '    @MainActor private func load() async {', '8b3e17fc32550dbf23bde3d92acb94d92dbf7c4881d6b0fd3235f5b28b5130b7'),
             # fix-r3-club-b: this span also holds the notify retry footnote (CLB-notify-09/-10) and the check-in
             # error-phase guard (CLB-checkin-detail-03); the customer rows inside it are unchanged. Round 4: the customer
             # 编辑 button keeps 编辑标签与备注 as its VoiceOver label.

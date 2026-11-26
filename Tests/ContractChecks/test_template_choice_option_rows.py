@@ -45,7 +45,8 @@ class ChoiceOptionRowsContracts(unittest.TestCase):
         for token in ["templateChoiceRows.add", "templateChoiceRows.remove.", "templateChoiceRows.correctAnswer",
                       "templateAuthor.optionMedia.", "templateAuthor.optionMedia.unsupported", "templateAuthor.optionMedia.limit",
                       "editor.rows.canRemove ? [.moveUp, .moveDown, .delete]", ".disabled(!editor.rows.canAdd)",
-                      ".move(from: from, to: to)", "undoCenter.recordDelete("]:
+                      # native-r2 publish group 4 (6d87c03a1): system List onMove, destination is the insert offset.
+                      ".onMove { source, destination in", ".move(from: from, to: destination)", "undoCenter.recordDelete("]:
             self.assertIn(token, app)
 
     def test_fragments_are_bilingual_and_register_only_this_feature(self):

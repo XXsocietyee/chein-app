@@ -65,7 +65,8 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
         self.assertNotIn('clubLocality(token:', extension)
 
     def test_app_session_reads_with_credential_and_scope_fences_without_expiring_optional_read(self):
-        source = self.read('App/AppSession.swift')
+        # f967221a1 moved the AppSession merchant/club readers into AppSession+DiscoveryReading.swift.
+        source = self.read('App/AppSession.swift') + self.read('App/AppSession+DiscoveryReading.swift')
         locality = source.split('func clubMerchantLocality()', 1)[1].split('func clubHome()', 1)[0]
         self.assertIn('captured.isMerchantViewer', locality)
         self.assertEqual(locality.count('clubDiscoveryScope == captured, token == credential'), 2)
@@ -74,7 +75,7 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
         self.assertIn('captured.merchantID == result.merchantID', locality)
 
     def test_access_refresh_cannot_expire_a_new_scope_or_canceled_request(self):
-        source = self.read('App/AppSession.swift')
+        source = self.read('App/AppSession.swift') + self.read('App/AppSession+DiscoveryReading.swift')
         method = source.split('private func readMerchant<Value>', 1)[1].split('func merchantAccess()', 1)[0]
         catch = method.split('} catch {', 1)[1]
         self.assertLess(catch.index('expectedDiscoveryScope == nil || !Task.isCancelled'), catch.index('expireIfMatching'))
