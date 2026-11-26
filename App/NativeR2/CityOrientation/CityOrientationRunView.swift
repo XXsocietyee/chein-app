@@ -79,10 +79,11 @@ extension EnvironmentValues {
                     .presentationDragIndicator(.visible)
                     .interactiveDismissDisabled()
             }
+            // P-050: the session is owned by the play screen; leaving this view (a pushed page) or the
+            // foreground does not stop it. Background reading is gated by the session's active run.
             .onAppear { location.start() }
-            .onDisappear { location.stop() }
             .onChange(of: scenePhase) { _, phase in
-                if phase == .active { location.start() } else { location.stop() }
+                if phase == .active { location.start() }
             }
             .accessibilityIdentifier("nativeR2.city.run")
     }
