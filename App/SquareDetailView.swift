@@ -69,6 +69,7 @@ import SwiftUI
                             } else {
                                 SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
                             }
+                            SquareDetailMedalPill(gold: post.medalGold, silver: post.medalSilver, bronze: post.medalBronze)
                             // Mini `components/route-map`: live route only with a provider; the post's own snapshot is already in the gallery.
                             if let topicID = post.topicID, topicID > 0 { CYSquareRouteMapCard(topicID: topicID) }
                             if let actions, actions.identity.accountID != nil {
@@ -702,6 +703,33 @@ struct SquareDetailIssueView: View {
                     .accessibilityIdentifier("square.detail.back")
             }
             .padding(.vertical, CYSpacing.sm)
+        }
+    }
+}
+
+/// C-S10b (r9): MP components/cy/completion-share-card/index.wxml:17-22 (square/detail/index.wxml:57-66):
+/// one medal image per tier that is above zero, then the sum. Hidden when every tier is zero or unknown.
+struct SquareDetailMedalPill: View {
+    let gold: Int?
+    let silver: Int?
+    let bronze: Int?
+    var body: some View {
+        let g = gold ?? 0, s = silver ?? 0, b = bronze ?? 0
+        if g > 0 || s > 0 || b > 0 {
+            Label {
+                Text("fixr9.ap.square.medals \(g + s + b)")
+            } icon: {
+                HStack(spacing: 2) {
+                    if g > 0 { MPAsset.BadgeMedal.medalGold.resizable().scaledToFit() }
+                    if s > 0 { MPAsset.BadgeMedal.medalSilver.resizable().scaledToFit() }
+                    if b > 0 { MPAsset.BadgeMedal.medalBronze.resizable().scaledToFit() }
+                }
+                .frame(height: 20)
+                .accessibilityHidden(true)
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("square.detail.medals")
         }
     }
 }
