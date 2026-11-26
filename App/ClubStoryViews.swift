@@ -156,6 +156,11 @@ struct ClubStoryChapterHeader: View {
 /// one raised card with a 117×80 thumbnail beside 时间 / 站名 / 地址. The estimated walk sits above as one tertiary line.
 /// CLB-topic-story-04: the address is the mounted `ClubGapStoryMapAddressRow` (opens Maps once Core supplies coordinates).
 @MainActor struct ClubStoryStopCard: View {
+    /// CLB-r9-native-05: sequence dot, pin and thumbnail follow Dynamic Type.
+    @ScaledMetric(relativeTo: .body) private var seqSide: CGFloat = 28
+    @ScaledMetric(relativeTo: .body) private var pinSide: CGFloat = 16
+    @ScaledMetric(relativeTo: .body) private var thumbWidth: CGFloat = 117
+    @ScaledMetric(relativeTo: .body) private var thumbHeight: CGFloat = 80
     let stop: ClubStoryStop
     let imageReader: (any RetainedPublicImageReading)?
     @Environment(\.locale) private var locale
@@ -169,7 +174,7 @@ struct ClubStoryChapterHeader: View {
                     Image(systemName: "figure.walk").accessibilityHidden(true)
                 }
                 .cyText(.micro).foregroundStyle(CYColor.textTertiary)
-                .padding(.leading, 28 + CYSpacing.md)
+                .padding(.leading, seqSide + CYSpacing.md)
                 .accessibilityElement(children: .combine)
                 .accessibilityHint(Text("topic.itinerary.estimateNotice"))
                 .accessibilityIdentifier("club.story.walk.\(stop.id)")
@@ -177,7 +182,7 @@ struct ClubStoryChapterHeader: View {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 Text(verbatim: String(stop.sequence))
                     .cyText(.label).foregroundStyle(CYColor.textPrimary)
-                    .frame(width: 28, height: 28)
+                    .frame(width: seqSide, height: seqSide)
                     .background(Circle().fill(CYColor.bgRaised))
                     .overlay(Circle().strokeBorder(CYColor.borderStrong, lineWidth: 1))
                     .accessibilityLabel(Text("club.story.stop \(stop.sequence)"))
@@ -212,7 +217,7 @@ struct ClubStoryChapterHeader: View {
                     Label {
                         Text("club.story.addressUnavailable")
                     } icon: {
-                        MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true)
+                        MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: pinSide, height: pinSide).accessibilityHidden(true)
                     }
                     .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
@@ -234,7 +239,7 @@ struct ClubStoryChapterHeader: View {
                 }
             }
         }
-        .frame(width: 117, height: 80)
+        .frame(width: thumbWidth, height: thumbHeight)
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         .accessibilityHidden(true)
     }

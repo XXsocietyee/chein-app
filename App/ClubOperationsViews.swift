@@ -71,6 +71,8 @@ struct ClubOperationsEntryButton: View {
 }
 
 struct ClubOperationsWorkspaceView: View {
+    /// CLB-r9-native-05: the club mark follows Dynamic Type.
+    @ScaledMetric(relativeTo: .title) private var markSide: CGFloat = 56
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let target: ClubOperationsTarget
     let identity: ClubReadIdentity?
@@ -340,7 +342,7 @@ struct ClubOperationsWorkspaceView: View {
         return layout {
             Image(systemName: "person.3.fill")
                 .cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)  // CLB-edit-06
-                .frame(width: 56, height: 56)
+                .frame(width: markSide, height: markSide)
                 .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
