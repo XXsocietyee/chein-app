@@ -87,7 +87,15 @@ extension EnvironmentValues {
     }
     var body: some View {
         List {
-            if reader.loading {
+            if reader.loading, reader.hasLoaded {
+                // CLB-r9-enroll-01 (MP enroll wxml:18): a refresh over a loaded roster says 正在更新报名名册… and keeps it.
+                HStack {
+                    ProgressView()
+                    Text("club.enroll.refreshing").font(.footnote).foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("club.enroll.refreshing")
+            } else if reader.loading {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     CYSkeleton().accessibilityHidden(true)
                     Text("club.enroll.loading")

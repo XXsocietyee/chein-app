@@ -315689,6 +315689,23 @@
           }
         }
       }
+    },
+    "club.enroll.refreshing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating the sign-up roster…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新报名名册…"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
