@@ -105,6 +105,13 @@ Work in the worktree `/Users/fanning/orca/workspaces/native-ios/DES-ag6` on `ui/
 4. "Money on": not yet.
 5. TestFlight: when acceptance is green.
 
+
+### Check 11-26 06:30 UTC
+- Tip `ui/combined-r7` = **2446657fb** (build SUCCEEDED): native-r2 sweeps merged (shared, shell, home-search, me-account, publish). home-search had a stray `}` at TopicDetailView.swift:277 (fixed on the tip).
+- Running: 5 r10 audits (06:09), 4 r9 R2 fixes (06:12), 6 native flow builds `native-r2/flow-*` (06:30, HELD until owner approves design board be610294). Connectors cleared on all 15.
+- Cursor: silent since 03:39 UTC; batch re-posted with the new base (gate, ci/acceptance FF + CHECK, acceptance-player, testflight-prep, native unit tests, money source).
+- Gemini terminals term_ba0b…/term_1788… are stale handles (worker channel is cloud now).
+
 ## 8. Plan to complete the entire app
 
 The finish line: every MP feature works in the app the way it does in the MP (non-money parity 100% in all 6 areas), acceptance is green, and an internal TestFlight build is out. Money stays TEST-only until the owner says "money on". The phases overlap; a later phase starts as soon as its input exists.
