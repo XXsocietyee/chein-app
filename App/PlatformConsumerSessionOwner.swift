@@ -36,6 +36,8 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
     var topicReaderOverride: (any TopicReading)? = nil
     /// Club session card (`via=session`): the bar opens the session picker before self-play.
     var preferSession = false
+    /// CLB-detail-11: 带票分享 query. Nil for every other entry.
+    var ticketSource: TopicClubShareLink? = nil
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State private var showsGuestLogin = false
     var body: some View {
@@ -54,7 +56,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     },
                     reviewOwner: session.contextualReviews?.coordinator(.topic(id)),
                     guestSignIn: session.account == nil ? { promptGuestSignIn() } : nil,
-                    selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) },
+                    selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0, ticketSource: ticketSource)) },
                     ticketWalletDestination: { topicID in
                         AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
                     })

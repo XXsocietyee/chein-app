@@ -37,4 +37,39 @@ import SwiftUI
             }
         }
     }
+
+    /// CLB-G04: 申请带队. Nil when this deployment does not offer the route.
+    var clubCoopPoolApply: ((_ topicID: Int, _ clubID: Int, _ message: String) async throws -> Void)? {
+        guard regionalConfiguration?.showsRoute("/api/coop/pool/apply") == true else { return nil }
+        return { [weak self] topicID, clubID, message in
+            guard let self, let token = self.token, AuthRequestBuilder.isValidToken(token),
+                  let configuration = self.regionalConfiguration?.apiConfiguration else { throw APIError.unauthorized }
+            let stamp = self.sessionRevision
+            let client = ClubCoopPoolApplyClient(configuration: configuration, transport: self.runtimeHTTPTransport)
+            do {
+                try await client.apply(topicID: topicID, clubID: clubID, message: message, token: token)
+            } catch {
+                if error as? APIError == .unauthorized { self.expireIfMatching(error: error, stamp: stamp, credential: token) }
+                throw error
+            }
+        }
+    }
+
+    /// CLB-G02: club 扫码核销. Invalid codes and viewers who may not scan send nothing.
+    var clubScanSubmit: ((_ raw: String, _ canGovern: Bool, _ canManageActivities: Bool) async throws -> Bool)? {
+        guard let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        return { [weak self] raw, canGovern, canManageActivities in
+            guard let self, let token = self.token, AuthRequestBuilder.isValidToken(token) else { throw APIError.unauthorized }
+            if case let .ready(matched) = ClubScanRoute.resolve(raw),
+               self.regionalConfiguration?.showsRoute("/" + matched.path) != true { throw APIError.invalidRequest }
+            let stamp = self.sessionRevision
+            let client = ClubScanClient(configuration: configuration, transport: self.runtimeHTTPTransport)
+            do {
+                return try await client.submit(raw, token: token, canGovern: canGovern, canManageActivities: canManageActivities)
+            } catch {
+                if error as? APIError == .unauthorized { self.expireIfMatching(error: error, stamp: stamp, credential: token) }
+                throw error
+            }
+        }
+    }
 }

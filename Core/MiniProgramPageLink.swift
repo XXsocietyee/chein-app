@@ -126,7 +126,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/team/join/index"] = Rule(allowed: ["entry"], required: ["entry"], ids: [])
         // F14c retired catalog: optional id opens the topic, a bare path opens home. `via=session` is the club-session entry.
         pages["pages/topic/catalog/index"] = optionalID
-        pages["pages/topic/index/index"] = Rule(allowed: ["id", "via"], required: ["id"], ids: ["id"])
+        // CLB-detail-11: 带票分享 lands here with the club that shared the edition.
+        pages["pages/topic/index/index"] = Rule(allowed: ["id", "via", "sourceClubId", "clubCode"], required: ["id"], ids: ["id", "sourceClubId"])
         return pages
     }()
 
