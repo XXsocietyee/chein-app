@@ -199,6 +199,11 @@ import SwiftUI
                     commandLeadRows
                     commandFieldRows
                 }.disabled(busy || locked || review != nil)
+                // CLB-r10-nat-event-ops-04: the cancel / correct reason is its own Section with a footer.
+                if route.operation == .cancelOccurrence || route.operation == .correctAttendance {
+                    ClubOpsEventReasonField(operation: route.operation, reason: textBinding("reason"))
+                        .disabled(busy || locked || review != nil)
+                }
             }
             if let failure, route.operation == .issueGroupCode, ClubGroupCodePort.classify(failure) == .noPermission {
                 // Mini isPermissionDenial: terminal state with an exit, not a retry.
@@ -676,9 +681,6 @@ import SwiftUI
             ClubSeriesOfferWindowField(minutes: textBinding("offerMinutes"))
                 .clubOpsEventVisible(showsOfferWindow)
             ClubOpsEventOfferHelp(minutes: draft.text["offerMinutes"] ?? "", visible: showsOfferWindow)
-        }
-        if [.cancelOccurrence, .correctAttendance].contains(route.operation) {
-            ClubOpsEventReasonField(operation: route.operation, reason: textBinding("reason"))
         }
         if route.operation == .saveCustomer {
             ClubOpsCustomerTagRemarkEditor(tagsText: textBinding("tags"), remark: textBinding("remark"))

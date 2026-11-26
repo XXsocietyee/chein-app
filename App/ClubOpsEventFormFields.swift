@@ -91,22 +91,29 @@ import SwiftUI
 }
 
 /// Reason input for cancel/correct with the mini placeholder and inline range message.
+/// CLB-r10-nat-event-ops-04: its own Section; the subtitle and the red validation are the Section footer.
 @MainActor struct ClubOpsEventReasonField: View {
     let operation: ClubGovernanceMutation
     @Binding var reason: String
+    private var cancel: Bool { operation == .cancelOccurrence }
+    private var invalid: Bool {
+        !reason.isEmpty && (cancel ? ClubOpsEventInput.cancelReasonInvalid(reason) : ClubOpsEventInput.correctionReasonInvalid(reason))
+    }
     var body: some View {
-        let cancel = operation == .cancelOccurrence
-        VStack(alignment: .leading, spacing: 4) {
+        Section {
             TextField(text: $reason, prompt: Text(cancel ? "clubOpsEvent.cancel.placeholder" : "clubOpsEvent.correct.placeholder", tableName: "ClubOpsEvent"),
                       axis: .vertical) { Text("club.gov.field.reason") }
             .textInputAutocapitalization(.never).autocorrectionDisabled()
             .accessibilityIdentifier("club.gov.input.reason")
-            if !reason.isEmpty, cancel ? ClubOpsEventInput.cancelReasonInvalid(reason) : ClubOpsEventInput.correctionReasonInvalid(reason) {
-                Text(cancel ? "clubOpsEvent.cancel.reasonInvalid" : "clubOpsEvent.correct.reasonInvalid", tableName: "ClubOpsEvent")
-                    .font(.footnote).foregroundStyle(.red).accessibilityIdentifier("clubOpsEvent.reason.invalid")
-            }
-            if cancel {
-                Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").font(.subheadline).foregroundStyle(.secondary)
+        } footer: {
+            if cancel || invalid {
+                VStack(alignment: .leading, spacing: 4) {
+                    if cancel { Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent") }
+                    if invalid {
+                        Text(cancel ? "clubOpsEvent.cancel.reasonInvalid" : "clubOpsEvent.correct.reasonInvalid", tableName: "ClubOpsEvent")
+                            .foregroundStyle(.red).accessibilityIdentifier("clubOpsEvent.reason.invalid")
+                    }
+                }
             }
         }
     }
