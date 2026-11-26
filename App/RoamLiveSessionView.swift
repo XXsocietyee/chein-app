@@ -1396,7 +1396,7 @@ enum RoamLivePlaceLevel {
     }
     static func tint(_ level: Int?) -> Color {
         switch level ?? 1 {
-        case 2: return .purple
+        case 2: return .teal
         case 3: return .orange
         case 4: return .red
         default: return .blue
