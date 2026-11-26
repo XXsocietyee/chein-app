@@ -127,6 +127,43 @@ enum MPFirstClubWriteRoute {
               let parsed = try? JSONSerialization.jsonObject(with: body),
               let object = parsed as? [String: Any],
               moneyKeys.isDisjoint(with: object.keys) else { return false }
+        // Badge paths (incl. the api/club/detail + api/club/members review reads) only on the badge route's exact bodies.
+        if badgePaths.contains(relative) { return ClubBadgeManagementRoute(request: request, baseURL: baseURL) != nil }
+        if let shape = readShapes[relative] { return shape.admits(object) }
         return true
+    }
+
+    /// Exact bodies for the review reads on this firewall (ClubGovernanceRead.fields): every `ids` key is a
+    /// positive integer, `optional` keys may be added, and no other key passes.
+    struct ReadShape {
+        let ids: Set<String>
+        var optionalIDs: Set<String> = []
+        var optional: Set<String> = []
+        func admits(_ object: [String: Any]) -> Bool {
+            let keys = Set(object.keys)
+            guard ids.isSubset(of: keys), keys.isSubset(of: ids.union(optionalIDs).union(optional)) else { return false }
+            return ids.union(optionalIDs.intersection(keys)).allSatisfy { MPFirstClubWriteRoute.positive(object[$0]) }
+        }
+    }
+    static let readShapes: [String: ReadShape] = [
+        "api/club/members": .init(ids: ["clubId"]),
+        "api/club/governance/list": .init(ids: ["clubId"]),
+        "api/club/governance/cases/mine": .init(ids: ["clubId"]),
+        "api/club/dissolution-blockers": .init(ids: ["id"]),
+        "api/publisher/identity/status": .init(ids: []),
+        "api/club/roles/list": .init(ids: ["clubId"], optionalIDs: ["activityId"]),
+        "api/club/access/me": .init(ids: ["clubId"], optionalIDs: ["activityId"]),
+        "api/club/event-notification/preview": .init(ids: ["clubId"], optional: ["activityId", "audienceType", "title", "content", "channel", "requestId"]),
+        "api/club/event-notification/status": .init(ids: ["campaignId"]),
+        "api/club/crm/customers/detail": .init(ids: ["clubId", "memberId"]),
+        "api/club/event-ops/topics": .init(ids: ["clubId"]),
+        "api/club/event-ops/series/detail": .init(ids: ["clubId", "seriesId"]),
+        "api/club/event-ops/roster": .init(ids: ["clubId", "activityId"]),
+        "api/club/topic-setting/detail": .init(ids: ["clubId", "topicId"])
+    ]
+    static func positive(_ value: Any?) -> Bool {
+        guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return false }
+        let double = number.doubleValue
+        return double >= 1 && double.rounded() == double && double <= 9_007_199_254_740_991
     }
 }

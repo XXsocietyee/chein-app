@@ -19,10 +19,26 @@ import XCTest
     func testAdmitsTheR10ClubWrites() {
         for path in ["api/club/event-notification/send", "api/club/event-notification/retry", "api/verify/groupcode/issue",
                      "api/club/crm/customers/tag-remark", "api/club/event-ops/series/create", "api/club/event-ops/series/update-future",
-                     "api/club/event-ops/attendance/correct", "api/club/topic-setting/save",
-                     "api/club/event-notification/preview", "api/club/event-notification/status",
-                     "api/club/badge/list", "api/club/badge/create", "api/club/badge/grant", "api/club/detail"] {
+                     "api/club/event-ops/attendance/correct", "api/club/topic-setting/save"] {
             XCTAssertTrue(MPFirstClubWriteRoute.accepts(json(path), baseURL: base, token: token), path)
+        }
+        let reads = [("api/club/event-notification/preview", #"{"clubId":3,"activityId":null,"audienceType":"ALL","title":"t","content":"c","channel":"IN_APP","requestId":null}"#),
+                     ("api/club/event-notification/status", #"{"campaignId":9}"#), ("api/club/badge/list", #"{"id":3}"#),
+                     ("api/club/detail", #"{"id":3}"#), ("api/club/members", #"{"clubId":3}"#), ("api/club/access/me", #"{"clubId":3,"activityId":4}"#),
+                     ("api/publisher/identity/status", "{}"), ("api/club/event-ops/roster", #"{"clubId":3,"activityId":4}"#)]
+        for (path, body) in reads { XCTAssertTrue(MPFirstClubWriteRoute.accepts(json(path, body: body), baseURL: base, token: token), path) }
+    }
+
+    /// Coordinator r10 round 2: the review reads pass only on their exact body (an extra `amount` key got through).
+    func testReadsAdmitOnlyTheirExactBody() {
+        for (path, body) in [("api/club/members", #"{"clubId":3,"amount":1}"#), ("api/club/members", #"{"clubId":0}"#),
+                             ("api/club/members", #"{"clubId":"3"}"#), ("api/club/members", #"{"clubId":true}"#), ("api/club/members", "{}"),
+                             ("api/club/detail", #"{"id":3,"amount":1}"#), ("api/club/detail", #"{"clubId":3}"#), ("api/club/detail", #"{"id":-1}"#),
+                             ("api/club/badge/list", #"{"id":3,"amount":1}"#), ("api/club/event-notification/status", #"{"campaignId":9,"amount":1}"#),
+                             ("api/club/crm/customers/detail", #"{"clubId":3}"#), ("api/club/topic-setting/detail", #"{"clubId":3,"topicId":1.5}"#),
+                             ("api/club/access/me", #"{"clubId":3,"activityId":0}"#), ("api/publisher/identity/status", #"{"amount":1}"#),
+                             ("api/club/event-notification/preview", #"{"clubId":3,"amount":1}"#)] {
+            XCTAssertFalse(MPFirstClubWriteRoute.accepts(json(path, body: body), baseURL: base, token: token), "\(path) \(body)")
         }
     }
 
