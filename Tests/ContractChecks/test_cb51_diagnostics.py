@@ -96,8 +96,8 @@ class CB51DiagnosticsContracts(unittest.TestCase):
 
     def test_version_background_location_and_packages_stay_put(self):
         base = self.read("Config/Base.xcconfig")
-        self.assertIn("MARKETING_VERSION = 0.1.0", base)
-        self.assertIn("CURRENT_PROJECT_VERSION = 1", base)
+        self.assertIn("MARKETING_VERSION = 1.0.0", base)
+        self.assertIn("CURRENT_PROJECT_VERSION = 2", base)
         self.assertNotIn(FLAG, base)
         info = self.read("Config/Info.plist")
         entitlements = self.read("Config/Questify.entitlements")

@@ -87,8 +87,8 @@ class CB50ErrorCatalogTests(unittest.TestCase):
 
     def test_release_defaults_stay_closed(self):
         config = (ROOT / "Config/Base.xcconfig").read_text(encoding="utf-8")
-        self.assertIn("MARKETING_VERSION = 0.1.0\n", config)
-        self.assertIn("CURRENT_PROJECT_VERSION = 1\n", config)
+        self.assertIn("MARKETING_VERSION = 1.0.0\n", config)
+        self.assertIn("CURRENT_PROJECT_VERSION = 2\n", config)
         self.assertIn("QUESTIFY_API_BASE_URL =\n", config)
         self.assertIn("QUESTIFY_SESSION_REALM =\n", config)
         joined = "\n".join(

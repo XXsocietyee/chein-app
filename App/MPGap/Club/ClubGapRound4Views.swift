@@ -84,7 +84,7 @@ public struct ClubGapManagedProjectsDirectorSection: View {
                     .cyPageTitle(verbatim: ClubTopicDirectorCopy.selectSessionTitle)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("关闭") { pickingProject = nil }
+                            Button("common.close") { pickingProject = nil }
                         }
                     }
                 }
@@ -114,6 +114,8 @@ public struct ClubGapManagedProjectsDirectorSection: View {
 /// Tappable address row that opens Apple Maps (`MKMapItem`) when coordinates are present.
 public struct ClubGapStoryMapAddressRow: View {
     public let stop: ClubStoryStopLocation
+    /// CLB-r9-native-05: the pin follows Dynamic Type.
+    @ScaledMetric(relativeTo: .body) private var pinSide: CGFloat = 16
 
     public init(stop: ClubStoryStopLocation) {
         self.stop = stop
@@ -125,7 +127,7 @@ public struct ClubGapStoryMapAddressRow: View {
                 MPAsset.FeatureIcon.pin
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 16, height: 16)
+                    .frame(width: pinSide, height: pinSide)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: stop.address)
                         .foregroundStyle(.primary)

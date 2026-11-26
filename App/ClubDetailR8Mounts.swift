@@ -6,7 +6,9 @@ import SwiftUI
 /// - CLB-G08: the overview member avatar strip (MP wxml:265-280).
 /// Each read is keyed; a newer key (club, account, tab) drops the older result.
 @MainActor final class ClubDetailR8MountModel: ObservableObject {
-    @Published private(set) var projects: [ClubManagedProjectDirectorItem] = []
+    /// CLB-detail-09 (MP `loadTopics` js:2265-2316): every `/api/club/topics` row; sessions are read on tap.
+    @Published private(set) var projects: [ClubManagedProjectRow] = []
+    @Published private(set) var projectsState: ClubManagedProjectsState = .idle
     @Published private(set) var coopPool: ClubCoopPoolLoadState = .idle
     @Published private(set) var memberAvatars: [ClubGapMemberAvatarStrip.AvatarItem] = []
     @Published private(set) var memberTotal = 0
@@ -21,12 +23,9 @@ import SwiftUI
     private var projectsKey: String?
     private var poolKey: String?
     private var avatarsKey: String?
-    /// MP lists every managed topic; the app reads each topic's sessions up front, so it stops at a page.
-    static let maxProjects = 12
-
     /// CLB-r7-A-06 (MP loadSettingsCounts js:3579-3601): read once per club when 俱乐部设置 opens; a failure clears the
     /// guard so the next opening asks again. Owner / admin only, as the MP sends it.
-    func loadSettingsCounts(clubID: Int, canSeeCustomers: Bool, access: any ClubGovernanceAccess) async {
+    func loadSettingsCounts(clubID: Int, canSeeCustomers: Bool, access: any ClubGovernanceAccess, locale: Locale = .current) async {
         guard canSeeCustomers, settingsCountsFor != clubID else { return }
         settingsCountsFor = clubID
         if topicTotal == nil,
@@ -37,17 +36,20 @@ import SwiftUI
         do {
             let count = try await access.read(.customerCount, scope: .init(clubID: clubID), options: [:])
             guard settingsCountsFor == clubID, !Task.isCancelled else { return }
-            if let total = count.value["total"].int, total > 0 { customerCountText = "\(total) 人" }
+            if let total = count.value["total"].int, total > 0 { customerCountText = String(format: appLocalized("club.settings.customerCount %lld", locale: locale), total) }
         } catch {
             guard settingsCountsFor == clubID, !Task.isCancelled else { return }
             settingsCountsFor = nil
-            customerCountText = "暂时读不到"
+            customerCountText = appLocalized("club.settings.countUnavailable", locale: locale)
         }
     }
 
-    func loadProjects(key: String, clubID: Int, showsDirector: Bool, locale: Locale, access: any ClubGovernanceAccess) async {
-        guard projectsKey != key else { return }
-        projectsKey = key; projects = []
+    func loadProjects(key: String, clubID: Int, showsDirector: Bool, locale: Locale, access: any ClubGovernanceAccess,
+                      force: Bool = false) async {
+        guard force || projectsKey != key else { return }
+        projectsKey = key
+        // MP CP-03: a refresh keeps the ready list; a first read shows the skeleton.
+        if !(force && projectsState == .ready) { projectsState = .loading; projects = [] }
         let current = { [weak self] in self?.projectsKey == key && !Task.isCancelled }
         do {
             let topics = try await access.read(.topics, scope: .init(clubID: clubID), options: [:]) {
@@ -55,26 +57,24 @@ import SwiftUI
             }
             guard current() else { return }
             topicTotal = topics.value.array?.count
-            var items: [ClubManagedProjectDirectorItem] = []
-            for row in (topics.value.array ?? []).prefix(Self.maxProjects) {
-                guard let topicID = row["id"].int, topicID > 0 else { continue }
-                let overview = try? await access.read(.topicOverview, scope: .init(clubID: clubID, topicID: topicID), options: [:]) {
-                    guard current() else { throw CancellationError() }
-                }
-                guard current() else { return }
-                let name = row["name"].string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                let gameModule = row["gameModuleEnabled"].bool == true || row["gameModuleEnabled"].int == 1
-                items.append(.init(id: topicID,
-                                   title: name.isEmpty ? appLocalized("clubR8.project.untitled", locale: locale) : name,
-                                   gameModuleEnabled: showsDirector && gameModule,
-                                   sessions: Self.sessions(overview?.value["activityList"], locale: locale)))
-            }
-            projects = items
+            projects = (topics.value.array ?? []).compactMap { ClubManagedProjectRow(value: $0, showsDirector: showsDirector, locale: locale) }
+            projectsState = .ready
         } catch {
-            // A failed read leaves the section out (MP shows 项目列表加载失败 above it); the next appearance retries.
+            // MP wxml:456: 项目列表加载失败 + 重新加载 (the next appearance also retries).
             guard current() else { return }
             projectsKey = nil
+            projects = []
+            projectsState = .failed
         }
+    }
+
+    /// MP `_topicActivities` (js:1159-1176): one topic's sessions, read when 活动导演台 or 场次工具 is tapped.
+    /// Nil means the read failed (MP E-15f: a failure is not "no sessions").
+    static func topicSessions(topicID: Int, clubID: Int, locale: Locale, access: any ClubGovernanceAccess) async -> [ClubManagedDirectorSession]? {
+        guard let overview = try? await access.read(.topicOverview, scope: .init(clubID: clubID, topicID: topicID), options: [:]) else {
+            return nil
+        }
+        return sessions(overview.value["activityList"], locale: locale)
     }
 
     /// MP `listGroupCodeActivities`: drops the topic's self-host shell; the label is 「名称 · M月D日 HH:mm」.
@@ -162,7 +162,8 @@ import SwiftUI
         guard let directory = try? await reader.clubMembers(id: clubID, isCurrent: { [weak self] in self?.avatarsKey == key }),
               avatarsKey == key, !Task.isCancelled else { return }
         memberAvatars = directory.members.prefix(4).map {
-            .init(id: String($0.memberId), name: $0.nickname ?? "", url: ClubCloud14HTTPS.url($0.avatar))
+            .init(id: String($0.memberId), name: $0.nickname ?? "", url: ClubCloud14HTTPS.url($0.avatar),
+                  memberID: $0.memberId, roleKey: $0.isOwner ? "club.strip.owner" : ($0.role == 1 ? "club.strip.admin" : nil))
         }
         memberTotal = max(directory.club.memberCount, directory.members.count)
     }
@@ -183,27 +184,9 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     case customers, enroll, eventOps, roles
     /// CLB-detail-20: 发布主题 from the empty 活动 state.
     case publish
+    /// CLB-detail-35: 出示团码 / 出示二维码 → that topic's 选择场次 step (MP showGroupCode js:3072-3088).
+    case groupCode(topicID: Int)
     var id: Self { self }
-}
-
-/// CLB-detail-09: the manage tab's project list; 活动导演台 opens the topic page in director mode (`activityId`),
-/// 场次工具 opens 现场名册与核销 / 分配领队与核销员 / 通知本场成员 for that session.
-@MainActor struct ClubManagedProjectsMount: View {
-    @ObservedObject var model: ClubDetailR8MountModel
-    let open: (ClubDetailR8Route) -> Void
-    var body: some View {
-        ClubGapManagedProjectsDirectorSection(
-            projects: model.projects,
-            onOpenDirector: { open(.director(topicID: $0, activityID: $1)) },
-            onSelectSessionTool: { topicID, activityID, tool in
-                open(.tool(topicID: topicID, activityID: activityID, tool, label: sessionTitle(activityID)))
-            })
-    }
-    private func sessionTitle(_ activityID: Int) -> String? {
-        model.projects.flatMap(\.sessions).first { $0.id == activityID }.map { session in
-            [session.title, session.timeLabel].compactMap { $0 }.joined(separator: " · ")
-        }
-    }
 }
 
 /// CLB-G04: 可对接的活动 for the owner; 我的合作 and 查看申请 open the pool applications list.
@@ -215,21 +198,24 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     let open: (ClubDetailR8Route) -> Void
     @Environment(\.locale) private var locale
     var body: some View {
-        ClubGapCoopPoolSection(
-            state: model.coopPool,
-            pendingTopicID: model.coopApplyPendingTopicID,
-            onRetry: { Task { await model.loadCoopPool(key: reloadKey, reader: session.cooperationReader, locale: locale, force: true) } },
-            onApply: { topicID, _, message in
-                Task { await model.applyCoopPool(topicID: topicID, clubID: clubID, message: message, session: session, key: reloadKey, locale: locale) }
-            },
-            onOpenApplication: { _ in open(.myCoop) },
-            onOpenMyCoop: { open(.myCoop) })
-        if let key = model.coopApplyNoticeKey {
-            Section { Text(LocalizedStringKey(key)).font(.subheadline).foregroundStyle(.secondary) }
-                .accessibilityIdentifier("club.coopPool.notice")
-        } else if let notice = model.coopApplyServerNotice {
-            Section { Text(verbatim: notice).font(.subheadline).foregroundStyle(.secondary) }
-                .accessibilityIdentifier("club.coopPool.notice")
+        // Lane G: the club coop pool (可对接的活动 / 我的合作) is a coop entry, hidden in Release.
+        if PlayerLaunch.merchantCenterEnabled {
+            ClubGapCoopPoolSection(
+                state: model.coopPool,
+                pendingTopicID: model.coopApplyPendingTopicID,
+                onRetry: { Task { await model.loadCoopPool(key: reloadKey, reader: session.cooperationReader, locale: locale, force: true) } },
+                onApply: { topicID, _, message in
+                    Task { await model.applyCoopPool(topicID: topicID, clubID: clubID, message: message, session: session, key: reloadKey, locale: locale) }
+                },
+                onOpenApplication: { _ in open(.myCoop) },
+                onOpenMyCoop: { open(.myCoop) })
+            if let key = model.coopApplyNoticeKey {
+                Section { Text(LocalizedStringKey(key)).font(.subheadline).foregroundStyle(.secondary) }
+                    .accessibilityIdentifier("club.coopPool.notice")
+            } else if let notice = model.coopApplyServerNotice {
+                Section { Text(verbatim: notice).font(.subheadline).foregroundStyle(.secondary) }
+                    .accessibilityIdentifier("club.coopPool.notice")
+            }
         }
     }
 }
@@ -273,6 +259,9 @@ enum ClubDetailR8Route: Hashable, Identifiable {
             case .transferOwner:
                 ClubGovernanceReadView(operation: .members, scope: .init(clubID: clubID), identity: identity,
                                        access: governance.access, coordinator: governance.coordinator)
+            case .groupCode(let topicID):
+                ClubGroupCodeSessionStep(clubID: clubID, topicID: topicID, identity: identity,
+                                         access: governance.access, coordinator: governance.coordinator)
             case .myCoop, .workspace, .undertake, .publish:
                 nonGovernance
             }

@@ -6,6 +6,7 @@
     <key>QuestifySessionRealm</key><string>$(QUESTIFY_SESSION_REALM)</string>
     <key>QuestifyCityGameRegion</key><string>$(QUESTIFY_CITY_GAME_REGION)</string>
     <key>QuestifyDeploymentEnvironment</key><string>$(QUESTIFY_DEPLOYMENT_ENVIRONMENT)</string>
+    <key>ITSAppUsesNonExemptEncryption</key><false/>
     <key>NSPhotoLibraryAddUsageDescription</key><string>Save a walk card, a medal card, or a city stamp slip picture to Photos when you choose Save to Photos.</string>
     <key>NSSupportsLiveActivities</key><true/>
     <key>UIBackgroundModes</key><array><string>location</string></array>

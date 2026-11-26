@@ -20,6 +20,8 @@ import SwiftUI
     let snapshotGeneration: UInt64
     let readGeneration: UInt64
     let access: any ClubGovernanceAccess
+    /// CLB-r9-topic-detail-01: the row whose phone was just copied.
+    @State private var copiedRow: String?
     var body: some View {
         switch ClubTopicMerchantReadGate.state(snapshot: snapshot, context: context,
                                                snapshotGeneration: snapshotGeneration, readGeneration: readGeneration, access: access) {
@@ -43,8 +45,19 @@ import SwiftUI
                                 Text(verbatim: row.contactText).cyText(.meta).foregroundStyle(.secondary)
                             }
                             if let phone = row.phone, !phone.isEmpty {
-                                Button("club.topicMerchants.copyPhone") { LocalPasteboard.copy(phone) }
+                                // CLB-r9-topic-detail-01 (MP topic-detail js:1011-1016): copy the real number, then 手机号已复制
+                                // inline under the button instead of a toast.
+                                Button("club.topicMerchants.copyPhone") {
+                                    LocalPasteboard.copy(phone)
+                                    copiedRow = "\(row.id)"
+                                }
                                     .accessibilityIdentifier("club.topicMerchants.copy.\(row.id)")
+                                if copiedRow == "\(row.id)" {
+                                    Label("club.topicMerchants.phoneCopied", systemImage: "checkmark.circle")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                        .accessibilityIdentifier("club.topicMerchants.copied.\(row.id)")
+                                }
                             }
                         }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)

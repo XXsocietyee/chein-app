@@ -4,7 +4,7 @@ import SwiftUI
 /// absent (the message center keeps its plain list); the strip itself hides when signed out or unconfigured.
 enum IMCoopInviteStripFactory {
     @MainActor static func make(reader: (any CooperationReading)?) -> (@MainActor () -> AnyView)? {
-        guard let reader else { return nil }
+        guard PlayerLaunch.merchantCenterEnabled, let reader else { return nil } // Lane G: no coop strip in Release
         return { AnyView(IMCoopInviteStripView(reader: reader)) }
     }
 }

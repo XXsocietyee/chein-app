@@ -157,6 +157,11 @@ struct ClubStoryChapterHeader: View {
 /// thumbnail beside 时间 / 站名 / 地址. The estimated walk sits above as one secondary line.
 /// CLB-topic-story-04: the address is the mounted `ClubGapStoryMapAddressRow` (opens Maps once Core supplies coordinates).
 @MainActor struct ClubStoryStopCard: View {
+    /// CLB-r9-native-05: sequence dot, pin and thumbnail follow Dynamic Type.
+    @ScaledMetric(relativeTo: .body) private var seqSide: CGFloat = 28
+    @ScaledMetric(relativeTo: .body) private var pinSide: CGFloat = 16
+    @ScaledMetric(relativeTo: .body) private var thumbWidth: CGFloat = 117
+    @ScaledMetric(relativeTo: .body) private var thumbHeight: CGFloat = 80
     let stop: ClubStoryStop
     let imageReader: (any RetainedPublicImageReading)?
     @Environment(\.locale) private var locale
@@ -170,7 +175,7 @@ struct ClubStoryChapterHeader: View {
                     Image(systemName: "figure.walk").accessibilityHidden(true)
                 }
                 .font(.caption).foregroundStyle(.secondary)
-                .padding(.leading, 28 + 12)
+                .padding(.leading, seqSide + 12)
                 .accessibilityElement(children: .combine)
                 .accessibilityHint(Text("topic.itinerary.estimateNotice"))
                 .accessibilityIdentifier("club.story.walk.\(stop.id)")
@@ -179,7 +184,7 @@ struct ClubStoryChapterHeader: View {
                 Image(systemName: (0...50).contains(stop.sequence) ? "\(stop.sequence).circle.fill" : "circle.fill")
                     .font(.title2)
                     .foregroundStyle(.tint)
-                    .frame(width: 28)
+                    .frame(width: seqSide)
                     .accessibilityLabel(Text("club.story.stop \(stop.sequence)"))
                 card
             }
@@ -210,7 +215,7 @@ struct ClubStoryChapterHeader: View {
                     Label {
                         Text("club.story.addressUnavailable")
                     } icon: {
-                        MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true)
+                        MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: pinSide, height: pinSide).accessibilityHidden(true)
                     }
                     .font(.subheadline).foregroundStyle(.secondary)
                 }
@@ -230,7 +235,7 @@ struct ClubStoryChapterHeader: View {
                 }
             }
         }
-        .frame(width: 117, height: 80)
+        .frame(width: thumbWidth, height: thumbHeight)
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityHidden(true)
     }

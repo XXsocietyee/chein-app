@@ -155,7 +155,7 @@ struct WelcomeView: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .accessibilityIdentifier("welcome.player")
-            if Self.showsMerchantChoice {
+            if Self.showsMerchantChoice && PlayerLaunch.merchantCenterEnabled { // Lane G
                 Button { destination = .login(.merchant) } label: { Text("role.merchant").frame(maxWidth: .infinity) }
                     .buttonStyle(.bordered)
                     .controlSize(.large)

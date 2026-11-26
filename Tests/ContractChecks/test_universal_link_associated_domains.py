@@ -33,8 +33,8 @@ class UniversalLinkAssociatedDomains(unittest.TestCase):
 
     def test_release_identity_stays_unconfigured(self):
         config = "\n" + self.read("Config/Base.xcconfig")
-        self.assertIn("\nMARKETING_VERSION = 0.1.0\n", config)
-        self.assertIn("\nCURRENT_PROJECT_VERSION = 1\n", config)
+        self.assertIn("\nMARKETING_VERSION = 1.0.0\n", config)
+        self.assertIn("\nCURRENT_PROJECT_VERSION = 2\n", config)
         self.assertIn("\nQUESTIFY_API_BASE_URL =\n", config)
         self.assertIn("\nQUESTIFY_SESSION_REALM =\n", config)
         self.assertIn("PRODUCT_BUNDLE_IDENTIFIER = invalid.example.questify.ios\n", config)

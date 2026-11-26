@@ -40,6 +40,8 @@ final class MiniProgramPageLinkTests: XCTestCase {
             ("/pages/publish/template-intro/index?scope=MERCHANT", "pages/publish/template-intro/index", ["scope": "MERCHANT"]),
             ("/pages/team/detail/index?teamId=41", "pages/team/detail/index", ["teamId": "41"]),
             ("/pages/team/join/index?entry=code", "pages/team/join/index", ["entry": "code"]),
+            // MP group-code needs activityId or topicId (537bfd65a); a bare path is rejected, so it gets its own row.
+            ("/pages/club/group-code/index?activityId=7", "pages/club/group-code/index", ["activityId": "7"]),
         ]
         let covered = Set(explicit.map(\.1))
         var rows = explicit
