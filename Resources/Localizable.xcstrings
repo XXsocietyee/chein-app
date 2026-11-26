@@ -224415,13 +224415,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Place"
+            "value": "Spot"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地点"
+            "value": "据点"
           }
         }
       }
