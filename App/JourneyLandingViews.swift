@@ -351,9 +351,9 @@ struct JourneyLandingView: View {
             if content.primary != nil || content.actionError != nil {
                 MPBottomBar {
                     if let primary = content.primary {
-                        // JLAND-r11-1: only the gift claim is still gated; seat claims are live (`seatClaimsEnabled`).
-                        // A 查询领取结果 only follows a sent claim, and gift claims are never sent while gated.
-                        if primary == .claimGift && !MPCommerceGate.claimsEnabled {
+                        // JLAND-r11-1 / -2: seat and gift claims are live (`seatClaimsEnabled`, `journeyGiftClaimsEnabled`).
+                        // A 查询领取结果 only follows a sent claim.
+                        if primary == .claimGift && !MPCommerceGate.journeyGiftClaimsEnabled {
                             MPGatedNote(text: Text("mp.gate.claim"), identifier: "journeyLanding.claimOff")
                         } else {
                             CYMorphButton(primary.title, state: content.claimDone ? .done : (content.busy ? .working : .idle), action: onPrimary)

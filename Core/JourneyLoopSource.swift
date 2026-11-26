@@ -252,6 +252,19 @@ public struct JourneyLoopSource {
         throw JourneyRefusal.moneyOff
     }
 
+    /// JLAND-r11-2: the landing gift claim, `POST /api/marketing/product/gifts/claim` JSON `{token, requestId}` — the same
+    /// route and body as `PlatformPassGiftClaimSource` (not a money write, owner rule 2026-11-25; admitted by
+    /// `ChinaReviewedRouteCapability.memberGiftClaimOwnerGrant`). The caller keeps the request id for 查询领取结果.
+    /// MP subpackageJourney/pages/landing/index.js:201-215 (`_claimGift`).
+    public func giftClaimLive(token credential: String, requestID: String, sessionToken: String) async throws -> JourneyEnvelope {
+        guard Self.acceptableToken(credential), Self.isRequestID(requestID),
+              AuthRequestBuilder.isValidToken(sessionToken) else { throw JourneyRefusal.invalidRequest }
+        let path = try resolve(Self.journey(.giftClaim))
+        let data = try JSONSerialization.data(withJSONObject: ["token": credential, "requestId": requestID], options: [.sortedKeys])
+        let request = try make(method: "POST", path: path, query: [], token: sessionToken, body: data, contentType: "application/json")
+        return await perform(request, receiptReread: false)
+    }
+
     // MARK: Seat writes
 
     public func seatInvite(registrationID: String, token: String) async throws -> JourneyEnvelope {

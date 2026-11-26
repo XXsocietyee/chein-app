@@ -15,6 +15,9 @@ enum MPCommerceGate {
     /// invited friend can claim the seat. MP subpackageJourney/pages/landing/index.js:144-157, 171-199 (`_claimSeat`).
     /// Gift claims stay on `claimsEnabled`.
     static let seatClaimsEnabled = true
+    /// JLAND-r11-2: the journey landing gift claim sends only the gift token (no amount, payment or payout), the same
+    /// write as the market gift page (owner rule 2026-11-25). MP subpackageJourney/pages/landing/index.js:201-215.
+    static let journeyGiftClaimsEnabled = true
     static let payoutEnabled = false
 }
 

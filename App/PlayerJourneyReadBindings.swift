@@ -97,8 +97,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private func claimAllowed(_ primary: JourneyLandingPrimary) -> Bool {
         switch primary {
         case .claimSeat: return MPCommerceGate.seatClaimsEnabled
-        case .checkClaimResult: return link.kind == .seat ? MPCommerceGate.seatClaimsEnabled : MPCommerceGate.claimsEnabled
-        case .claimGift: return MPCommerceGate.claimsEnabled
+        case .checkClaimResult: return link.kind == .seat ? MPCommerceGate.seatClaimsEnabled : MPCommerceGate.journeyGiftClaimsEnabled
+        case .claimGift: return MPCommerceGate.journeyGiftClaimsEnabled
         case .view, .buyOwn, .enterRun: return true
         }
     }
@@ -113,10 +113,11 @@ struct PlayerJourneySignInSheet: ViewModifier {
             let requestID = retainedGiftRequest(token: link.token)
             _ = JourneyGiftClaimBody.fields(token: link.token, requestID: requestID)
             do {
-                let envelope = try source.giftClaim(token: link.token, requestID: requestID, sessionToken: session)
+                // JLAND-r11-2: sent live; the kept request id is resent for 查询领取结果 (MP landing/index.js:201-215).
+                let envelope = try await source.giftClaimLive(token: link.token, requestID: requestID, sessionToken: session)
                 applyClaim(JourneyLandingClaim.gift(envelope, targetID: target.map(\.id)))
             } catch {
-                // `moneyOff`: the body was not sent. Keep the request id. Do not draw a claimed gift.
+                // Refused before send: keep the request id. Do not draw a claimed gift.
                 markClaimBusy(false)
             }
         case .claimSeat, .checkClaimResult:
