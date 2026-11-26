@@ -56,12 +56,14 @@ extension EnvironmentValues {
             ClubTopicGenericOpsSection(activityID: activityID, revision: projection.revision) { _ in openingTool = true }
             ClubTopicPlanFallbackSection(activityID: activityID, revision: projection.revision) { Task { await model.load() } }
             ClubTopicDirectorReadySection(projection: projection, topicID: topicID)
-            ClubGapTopicDirectorEmbeddedSection(
-                summary: Self.summary(projection, model: model, locale: locale),
-                onConfirmUnknownWrite: { Task { await model.recover() } },
-                onRetryUnknownWrite: { Task { await model.retryExact() } },
-                onOpenTool: { _ in openingTool = true },
-                onToggleLeaderboardVisibility: { toggleLeaderboard(model) })
+            // CLB-G13d (MP topic-detail wxml:172-198, 262-295): MP copy for the write states, capability-gated tools,
+            // the stations note, and 排行榜 rows with 暂无榜单记录.
+            ClubTopicDirectorToolsSection(projection: projection, phase: model.phase,
+                                          unknownWriteLabel: Self.summary(projection, model: model, locale: locale).unknownWriteLabel,
+                                          onConfirmUnknownWrite: { Task { await model.recover() } },
+                                          onRetryUnknownWrite: { Task { await model.retryExact() } },
+                                          onOpenTool: { openingTool = true },
+                                          onToggleLeaderboard: { toggleLeaderboard(model) })
         } else if model.phase == "loading" {
             Section {
                 ProgressView()
@@ -75,7 +77,8 @@ extension EnvironmentValues {
                 ContentUnavailableView {
                     Label("club.topic.director.failed", systemImage: "exclamationmark.triangle")
                 } actions: {
-                    Button("action.retry") { Task { await model.load() } }
+                    // CLB-G13d (MP wxml:163): 导演台读取失败 → 重新加载.
+                    Button("action.reload") { Task { await model.load() } }
                         .buttonStyle(.bordered)
                         .accessibilityIdentifier("club.topic.director.retry")
                 }
@@ -225,5 +228,110 @@ struct ClubTopicMoreRoute: Hashable {
     private static func key(_ prefix: String, _ code: String?, known: Set<String>) -> LocalizedStringKey {
         let upper = (code ?? "").uppercased()
         return LocalizedStringKey(prefix + (known.contains(upper) ? upper : "unknown"))
+    }
+}
+
+/// CLB-G13d (MP topic-detail wxml:172-198, 262-295; director.js:855-905): the director block below 准备总览.
+/// - write state: 操作处理中 while a command is in flight; 结果待确认 with 确认结果 / 重试原操作 when the outcome is unknown;
+/// - 开始准备后显示节点状态 when the projection has no stations yet;
+/// - tools only where the projection offers them: 章节放行 (UNLOCK_CHAPTER with a releasable chapter), 队伍进度 (teams),
+///   角色分配 (ASSIGN_ROLES with roles), 现场事件 (a paused station or a pending submission); each opens the director page;
+/// - 排行榜 while the session has not finished: the toggle only with SET_LEADERBOARD_VISIBILITY, the rows, or 暂无榜单记录.
+@MainActor struct ClubTopicDirectorToolsSection: View {
+    let projection: PlayDirectorProjection
+    let phase: String
+    let unknownWriteLabel: String?
+    let onConfirmUnknownWrite: () -> Void
+    let onRetryUnknownWrite: () -> Void
+    let onOpenTool: () -> Void
+    let onToggleLeaderboard: () -> Void
+
+    private var actions: Set<String> { projection.availableActions }
+    private var canUnlockChapter: Bool { actions.contains("UNLOCK_CHAPTER") && !projection.chapterOptions.isEmpty }
+    private var hasTeams: Bool { !projection.teams.isEmpty }
+    private var canAssignRoles: Bool { actions.contains("ASSIGN_ROLES") && !projection.roleOptions.isEmpty && !projection.roles.isEmpty }
+    private var hasIncidents: Bool {
+        projection.stations.contains { ($0["status"].text ?? "").uppercased() == "PAUSED" } || !projection.submissions.isEmpty
+    }
+    private var leaderboard: PlayWireValue { projection.club["leaderboard"] }
+    private var leaderboardRows: [PlayWireValue] { leaderboard["rows"].array ?? [] }
+    private var finished: Bool { ["FINISHED", "CANCELLED"].contains(projection.status.uppercased()) }
+
+    var body: some View {
+        if phase == "submitting" || phase == "unknown" {
+            Section {
+                if phase == "submitting" {
+                    Label { Text("club.director.processing") } icon: { ProgressView() }
+                } else {
+                    Label {
+                        VStack(alignment: .leading) {
+                            Text("club.director.unknownTitle").font(.headline)
+                            if let unknownWriteLabel { Text(verbatim: unknownWriteLabel).font(.subheadline).foregroundStyle(.secondary) }
+                        }
+                    } icon: {
+                        Image(systemName: "questionmark.circle").foregroundStyle(.orange)
+                    }
+                    Button("club.director.confirmResult", action: onConfirmUnknownWrite)
+                        .accessibilityIdentifier("club.topic.director.confirmResult")
+                    Button("club.director.retryOriginal", action: onRetryUnknownWrite)
+                        .accessibilityIdentifier("club.topic.director.retryOriginal")
+                }
+            }
+        }
+        if projection.stations.isEmpty {
+            Section {
+                Text("club.director.stationsAfterPrepare").foregroundStyle(.secondary)
+            }
+        }
+        if canUnlockChapter || hasTeams || canAssignRoles || hasIncidents {
+            Section {
+                if canUnlockChapter { tool("club.director.tool.chapterRelease", "lock.open", id: "chapterRelease") }
+                if hasTeams { tool("club.director.tool.teamProgress", "flag.2.crossed", id: "teamProgress") }
+                if canAssignRoles { tool("club.director.tool.roleAssignment", "person.2.badge.gearshape", id: "roleAssignment") }
+                if hasIncidents { tool("club.director.tool.liveEvents", "bolt.badge.clock", id: "liveEvents") }
+            } header: {
+                Text("club.director.tools")
+            } footer: {
+                if canUnlockChapter { Text("club.director.unlockNote") }
+            }
+        }
+        if let visible = projection.leaderboardVisible, !finished {
+            Section {
+                if leaderboardRows.isEmpty {
+                    Text("club.director.leaderboardEmpty").foregroundStyle(.secondary)
+                } else {
+                    ForEach(Array(leaderboardRows.enumerated()), id: \.offset) { index, row in
+                        LabeledContent {
+                            if let value = Self.firstText(row, ["value", "scoreText", "score"]) { Text(verbatim: value).monospacedDigit() }
+                        } label: {
+                            Text(verbatim: "\(index + 1). " + (Self.firstText(row, ["title", "teamName", "nickname", "name"]) ?? "—"))
+                            if let sub = Self.firstText(row, ["subtitle", "progressText"]) { Text(verbatim: sub) }
+                        }
+                    }
+                }
+                if actions.contains("SET_LEADERBOARD_VISIBILITY") {
+                    Button(action: onToggleLeaderboard) {
+                        Label(visible ? LocalizedStringKey("club.director.hideLeaderboard") : LocalizedStringKey("club.director.showLeaderboard"),
+                              systemImage: visible ? "eye.slash" : "eye")
+                    }
+                    .accessibilityIdentifier("club.topic.director.toggleLeaderboard")
+                }
+            } header: {
+                Text("club.director.leaderboard")
+            }
+        }
+    }
+
+    private func tool(_ key: LocalizedStringKey, _ symbol: String, id: String) -> some View {
+        Button(action: onOpenTool) { Label(key, systemImage: symbol) }
+            .accessibilityIdentifier("club.topic.director.tool." + id)
+    }
+
+    private static func firstText(_ value: PlayWireValue, _ keys: [String]) -> String? {
+        for key in keys {
+            if let text = value[key].text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty { return text }
+            if let number = value[key].integer { return String(number) }
+        }
+        return nil
     }
 }
