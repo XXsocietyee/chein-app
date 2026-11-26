@@ -26,30 +26,26 @@ extension EnvironmentValues {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @State private var operation: Task<Void, Never>?
-    @State private var revealSweep = false
     var body: some View {
         if embeddedQRSide != nil { lifecycle(stack) } else if model.target.kind == .cityVoucher, autoIssue {
             // RCODE-3: the node name is the system inline title (MP 据点核销码 nav title), not a heading in the content.
             lifecycle(ScrollView { stack.padding().frame(maxWidth: .infinity) }
                 .cyPageTitle(verbatim: title ?? appLocalized("roamSub.w208.voucher.defaultName", locale: locale)))
         } else {
-            lifecycle(ScrollView { stack.padding().frame(maxWidth: .infinity) }.cyHeroScreen())
+            // N-RCODE (r10): the page title is the system inline title (MP subpackageRoam/citynode-code nav title).
+            lifecycle(ScrollView { stack.padding().frame(maxWidth: .infinity) }
+                .cyPageTitle(String.LocalizationValue(stringLiteral: model.target.kind == .ticket ? "verificationCode.ticket.title" : "verificationCode.city.title")))
         }
     }
     private var stack: some View {
             VStack(spacing: 20) {
-                if embeddedQRSide != nil {
-                } else if model.target.kind == .cityVoucher, autoIssue {
-                    // RCODE-3: titled by the navigation bar.
-                } else {
-                    CYHeroHeader(model.target.kind == .ticket ? "verificationCode.ticket.title" : "verificationCode.city.title")
-                }
+                // RCODE-3 / N-RCODE (r10): every variant is titled by the navigation bar; no in-content hero header.
                 content
                 if model.target.kind == .ticket, model.readback != nil {
                     CYPillButton("verificationCode.checkOrder", style: .secondary) { run { await model.checkOrder() } }
                         .disabled(model.checkingOrder || model.phase == .loading)
                         .accessibilityIdentifier("verificationCode.checkOrder")
-                    if model.checkingOrder { CYSkeleton() }
+                    if model.checkingOrder { ProgressView() }
                     if model.readbackFailed { Text("verificationCode.readbackFailed").cyText(.bodyCompact) }
                     if let detail = model.readback {
                         CYStatusChip(detail.registrationStatus == 2 ? "verificationCode.order.active" : "verificationCode.order.ended",
@@ -87,13 +83,6 @@ extension EnvironmentValues {
         if model.phase == .ready, let code = model.displayCode {
             VerificationLocalQRCode(code: code, side: embeddedQRSide,
                                     renderFailedKey: model.target.kind == .cityVoucher && autoIssue ? "roamSub.w208.voucher.renderFailed" : "verificationCode.renderFailed")
-                .overlay { CYScanSweep(active: revealSweep, period: 1.4).allowsHitTesting(false) }
-                .task(id: code) {
-                    // One reveal pass over a freshly presented code, then the line rests.
-                    revealSweep = true
-                    try? await Task.sleep(for: .milliseconds(1400))
-                    revealSweep = false
-                }
             if model.target.kind == .cityVoucher, autoIssue {
                 // Source citynode-code: 「Ns 后自动刷新」 right under the code, then 出示给商家扫码领券; the code refreshes itself.
                 Text("roamSub.w208.voucher.countdown \(model.remainingSeconds)").monospacedDigit()
@@ -106,7 +95,7 @@ extension EnvironmentValues {
                 LabeledContent("verificationCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
             }
         } else if model.phase == .loading {
-            CYSkeleton()
+            ProgressView()
         } else {
             Text(LocalizedStringKey(phaseKey))
                 .multilineTextAlignment(.center).accessibilityIdentifier("verificationCode.phase")
