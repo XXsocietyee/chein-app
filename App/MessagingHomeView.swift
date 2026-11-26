@@ -36,14 +36,16 @@ struct MessagingHomeView: View {
                 if let coopInviteStrip { coopInviteStrip().environment(\.imCoopInviteDirection, .received).padding(.horizontal) }
                 MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
             case .outbox:
-                ScrollView {
+                // R10-PC-D-N16: outbox is a system List (MP subpackageB/pages/im/list/index.wxml:78-91, 103-108).
+                List {
                     if let coopInviteStrip {
-                        coopInviteStrip().environment(\.imCoopInviteDirection, .sent).padding(.horizontal)
+                        coopInviteStrip().environment(\.imCoopInviteDirection, .sent)
                     } else {
                         ContentUnavailableView("im.list.box.outboxEmpty", systemImage: "tray")
                             .accessibilityIdentifier("messaging.list.outboxEmpty")
                     }
                 }
+                .listStyle(.insetGrouped)
             }
         }
         .onChange(of: identity) { _, _ in box = .inbox }
