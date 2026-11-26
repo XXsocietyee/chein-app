@@ -83,10 +83,9 @@ extension PlayKitScreen {
             artwork(photo).frame(maxWidth: 120, alignment: .leading)
                 .accessibilityLabel(Text("playkitLegacy.name.photo"))
         }
+        // N-KIT-CHOICE (r10): a plain system field (MP pages/playkit/components playkit-diy-name input).
         TextField("playkitLegacy.name.placeholder", text: textBinding(limit: maxLength), axis: .vertical)
-            .cyText(.cardTitle)
-            .padding(CYSpacing.md)
-            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgSurfaceSubtle))
+            .textFieldStyle(.roundedBorder)
             .disabled(!enabled)
             .accessibilityIdentifier("playkit.diyName.field")
         LabeledContent("playkit.characters") { Text(verbatim: "\(text.utf16.count) / \(maxLength)").monospacedDigit() }
