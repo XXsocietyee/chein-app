@@ -25,3 +25,7 @@ Files under `App/NativeR2/Motion/` + minimal hooks; merge the tip first (9 desig
 | R16 | Quick capture menu (@rybinandy) | Bottom bar expands into a capture menu | Punch sheet: camera / scan / album / note | `Menu`-like expanding panel with `.transition(.move+opacity)` |
 | R17 | Clean list load (@nikkbadlani) | Content fades in from skeleton, chart draws | All list loads | `.redacted(.placeholder)` → content with `.transition(.opacity)`; Swift Charts `.chartXScale` animation |
 | R18 | Cocktail paywall (@aliicorak) | Plan icon morphs as the plan changes | Membership / pass purchase screen | `.contentTransition(.symbolEffect(.replace))` on the plan symbol |
+
+## Owner 11:40 UTC
+- App Clip approved for **after the player launch**: team invite accept without install, stop/venue QR check-in. motion-r2 writes the plan only (receipt); build it as a post-launch lane.
+- R2 holo sheen and R8 edge glow approved for reward/success moments only.
