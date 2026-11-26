@@ -25,7 +25,7 @@ Several rows were already landed on `ui/combined-r7` by fix-r9 lanes before the 
 ## Round 2: P2 rows, second half (rows 52–103 of the 103 P2 rows in queue order)
 
 Slice starts at CLB-r10-nat-topic-detail-06. No other lane's receipt on origin lists any of these ids (checked club-a/b/c).
-Rows not listed below are not reached yet.
+All 52 rows of the slice are listed.
 
 | row | status | SHA | app file:line | note |
 |---|---|---|---|---|
@@ -66,13 +66,29 @@ Rows not listed below are not reached yet.
 | CLB-r10-nat-notify-03 | fixed (pre-existing) | 5a223a87b | App/ClubOpsJoinNotifyViews.swift:32, 76, 99 | `ContentUnavailableView`; no `.e1ActionRow` / CYPillButton. |
 | CLB-r10-nat-settlement-01 | fixed | 39f9f4f57 | App/ClubPayoutReceiverView.swift:68, 238, 300 | `cyDomainScreen` (custom page background) → `themeDomain(.player)`. Loading / failure were already `ProgressView` / `ContentUnavailableView` + 重新加载 (CLB-r9-native-03). Empty keeps `ClubMPEmptyState` (MP empty art). |
 | CLB-r10-nat-settlement-02 | fixed | 37041e3bc | App/ClubPayoutReceiverView.swift:316-336 | Settled total → `LabeledContent` with `.monospacedDigit()`; the unverified count is a plain orange `Label` row. No CYStatusChip in the topic rows. |
+| CLB-r10-nat-settlement-03 | fixed (pre-existing) | ed617b4ab | App/ClubFEReferenceSettlementHost.swift:86-98; App/ClubPersonalFundsStagesSection.swift:15-27 | `ProgressView`; FE failure is `ContentUnavailableView` + 重试, funds failure a 重试 row. |
+| CLB-r10-nat-settlement-04 | fixed | a901a43e3 | App/MPGap/Club/ClubGapRound4Views.swift:207-237 | 开始日期 / 结束日期 TextFields → `DatePicker` rows (`ClubGapRangeDateRow`, value kept as the MP `YYYY-MM-DD`; an unset end is a row that sets today). Clear / export were already `.bordered` / `.borderedProminent`; ClubGapReferenceSettlementView already uses `ContentUnavailableView`. |
+| CLB-r10-nat-settlement-05 | fixed | 4c7d8bcd3 | App/ClubOwnerFundsView.swift:225-245, 276-320 | The CY*Local look-alikes are renamed to the plain `LabeledContent` rows they were (`ClubOwnerFundsBalanceRow` / `ClubOwnerFundsMoneyRow`); loading is `ProgressView`; CYSkeletonLocal already gone. UI only; money writes untouched. |
+| CLB-r10-nat-settlement-06 | fixed | 48bcc9517 | App/ClubOpsSettlementViews.swift:3-30 | Summary hero → `LabeledContent` (amount `.monospacedDigit()`), warning as a plain `Label`. ClubSettlementDetail status is already a `Label`, not a chip. |
+| CLB-r10-nat-payout-receiver-01 | fixed (pre-existing) | 35852c11d | App/ClubPayoutReceiverView.swift:44-65 | Bind is `.alert`, unbind is `.confirmationDialog` with `role: .destructive`. |
+| CLB-r10-nat-payout-receiver-02 | fixed (pre-existing) | 35852c11d | App/ClubPayoutReceiverView.swift:71-145 | `ContentUnavailableView`, `LabeledContent` rows and system button rows. |
+| CLB-r10-nat-customer-detail-01 | fixed (pre-existing) | 7623036a3 | App/ClubOpsCustomerViews.swift:230-300, 346-358 | Head is a plain Section; metrics are three `LabeledContent` rows (`ClubOpsCustomerMetricTile` is a LabeledContent); empty records is `ContentUnavailableView`. |
+| CLB-r10-nat-customers-01 | fixed (pre-existing) | 5a223a87b | App/ClubGovernanceViews.swift:41, 731-739 | Filter is `Picker(.segmented)`; keyword is `.searchable`. |
+| CLB-r10-nat-customers-02 | fixed (pre-existing) | 5a223a87b | App/ClubOpsCustomerViews.swift:92-108 | Filtered empty is `ContentUnavailableView`; unfiltered empty keeps `ClubMPEmptyState` (MP empty art). Rows carry no chip. |
+| CLB-r10-nat-checkin-01 | fixed | 5b710fe37 | App/ClubCheckinRailView.swift:150-163 | No-cover placeholder is a system `photo` glyph in the same footprint (no drawn RoundedRectangle); cover uses `.clipped()`. Failure was already `ContentUnavailableView`, status already a `Label`. |
+| CLB-r10-nat-checkin-02 | fixed (pre-existing) | 5a223a87b | App/ClubOwnerRefundPanel.swift:58-115 | Refund confirm is `NavigationStack { List }` with toolbar cancel / destructive confirm and the consequences as rows. Money stays gated as before. |
+| CLB-r10-nat-join-requests-01 | fixed | 40cd12bdb | App/ClubManagementView.swift:305-317 | 通过 is small `.borderedProminent` (拒绝 small `.bordered`). Rows were already standard (no clear background / hidden separators / custom insets / `.cyPressable`); states are `ContentUnavailableView` / `ProgressView`. |
+| CLB-r10-nat-group-code-02 | fixed | ae8b8f65d | App/ClubGovernanceCommandForm.swift:312-320 | Issuing shows `ProgressView { 生成中 }`; buttons were already plain system rows. |
+| CLB-r10-nat-group-code-03 | fixed | 6b2c6d847 | App/MPGap/Club/ClubGapRound4Views.swift:270-310; App/ClubKit/ClubGroupCodeSessionStep.swift:65-67 | Session rows are `NavigationLink` to the issue form (system chevron) via the new optional `sessionDestination`; loading / failed were already `ProgressView` / `ContentUnavailableView`. |
+| CLB-r10-nat-workbench-02 | fixed (pre-existing) | 892f6d4d3 | App/ClubKit/ClubWorkbenchKit.swift:58-183 | One Section: Now row plus `LabeledContent` count rows; no RoundedRectangle card or tiles. (Rows switch tabs via callbacks, so they stay Buttons.) |
 
 ## Gates (before push)
 
 - `python3 tools/check_scaffold.py`: PASS structural checks.
 - `python3 -B tools/check_a11y_lint.py`: PASS (0 new).
-- Round 2 push: `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 192 failing vs baseline 192, **new 0**. One pin updated on purpose: `test_club_operations_contracts.py:91` (edit header no longer uses QuestifyImageEntityCard; MP scene-club-edit club head).
+- Round 2 final push (all 52 P2 rows): `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 192 / 192, **new 0**.
+- Round 2 first push: `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 192 failing vs baseline 192, **new 0**. One pin updated on purpose: `test_club_operations_contracts.py:91` (edit header no longer uses QuestifyImageEntityCard; MP scene-club-edit club head).
 - Round 1: `python3 -B tools/contract_ratchet.py --check`: 193 failing vs baseline 192, **new 1, not from this lane**: `test_social_article_content…test_renderer_is_wired_only_to_existing_scoped_article_contents` expects the old `SocialReadScreen` `.onDisappear { loads.cancel(); generation += 1; busy = false }`, which base commit 03732e2df on `ui/combined-r7` rewrote. This lane touches no social files; the coordinator/owner of 03732e2df should update that pin.
 - `Tests/ContractChecks/test_club_group_code_page_ready.py`: OK.
 
-Not run: Xcode build / simulator (no compiler in the cloud). Coordinator: round 2, please build-check `ClubOperationsViews.field` (`Group { if axis == .horizontal { LabeledContent … } }`), the `PlayerFeedRemoteImage` edit header row, and the `ToolbarItem(.confirmationAction) { if canSubmit { … } }` in ClubOperationsReviewView. Round 1: please build-check the badges `.confirmationDialog(presenting:)` and the `ToolbarItem` with an `if` body.
+Not run: Xcode build / simulator (no compiler in the cloud). Coordinator: round 2, please build-check `ClubOperationsViews.field` (`Group { if axis == .horizontal { LabeledContent … } }`), the `PlayerFeedRemoteImage` edit header row, the `ToolbarItem(.confirmationAction) { if canSubmit { … } }` in ClubOperationsReviewView, `ClubGapRangeDateRow` (DatePicker over a `yyyy-MM-dd` string) and the new defaulted `sessionDestination:` init parameter on `ClubGapGroupCodeSessionPickerView`. Round 1: please build-check the badges `.confirmationDialog(presenting:)` and the `ToolbarItem` with an `if` body.
