@@ -227,47 +227,40 @@ import SwiftUI
         }
         .presentationDetents([.medium, .large])
         .interactiveDismissDisabled(flow.busy)
-        .cySheet(isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
-            if let review = pendingReview {
-                // CLB-badges-05: the title names the badge and the person (MP 把「X」颁给 Y？).
-                let memberName = review.member.trimmedNickname ?? "—"
-                let badgeName = review.badge.badgeName ?? review.badge.badgeCode
-                NavigationStack {
-                    List {
-                        Section {
-                            Label { Text("confirmGrantConsequence1", tableName: "ClubBadge") } icon: { Image(systemName: "person.badge.plus") }
-                            Label { Text("confirmGrantConsequence2", tableName: "ClubBadge") } icon: { Image(systemName: "medal") }
-                            Label { Text("confirmGrantConsequence3", tableName: "ClubBadge") } icon: { Image(systemName: "exclamationmark.circle") }
-                        } header: {
-                            Text("confirmGrantNamed \(badgeName) \(memberName)", tableName: "ClubBadge")
-                                .textCase(nil)
-                                .accessibilityAddTraits(.isHeader)
-                        } footer: {
-                            Text("confirmGrantDetail", tableName: "ClubBadge")
-                        }
-                    }
-                    .navigationTitle(Text("grant", tableName: "ClubBadge"))
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button {
-                                pendingReview = nil
-                                model.flow?.cancelReview()
-                                model.changed()
-                            } label: { Text("cancel", tableName: "ClubBadge") }
-                        }
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button {
-                                pendingReview = nil
-                                lastWasCreate = false
-                                model.perform { await $0.confirmGrant(review) }
-                            } label: { Text("grant", tableName: "ClubBadge") }
-                        }
-                    }
-                }
-                .presentationDetents([.medium, .large])
-            }
+        // CLB-r10-nat-badges-04 (MP badges/index.js grant confirm, cy-confirm 把「X」颁给 Y？): a system confirmation
+        // dialog with the consequences as its message, instead of a custom confirm sheet.
+        .confirmationDialog(confirmTitle, isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } }),
+                            titleVisibility: .visible, presenting: pendingReview) { review in
+            Button {
+                pendingReview = nil
+                lastWasCreate = false
+                model.perform { await $0.confirmGrant(review) }
+            } label: { Text("grant", tableName: "ClubBadge") }
+            Button(role: .cancel) {
+                pendingReview = nil
+                model.flow?.cancelReview()
+                model.changed()
+            } label: { Text("cancel", tableName: "ClubBadge") }
+        } message: { _ in
+            confirmMessage
         }
+    }
+
+    /// CLB-badges-05: the title names the badge and the person (MP 把「X」颁给 Y？).
+    private var confirmTitle: Text {
+        guard let review = pendingReview else { return Text("grant", tableName: "ClubBadge") }
+        let memberName = review.member.trimmedNickname ?? "—"
+        let badgeName = review.badge.badgeName ?? review.badge.badgeCode
+        return Text("confirmGrantNamed \(badgeName) \(memberName)", tableName: "ClubBadge")
+    }
+    private var confirmMessage: Text {
+        let lines: [Text] = [
+            Text("confirmGrantConsequence1", tableName: "ClubBadge"),
+            Text("confirmGrantConsequence2", tableName: "ClubBadge"),
+            Text("confirmGrantConsequence3", tableName: "ClubBadge"),
+            Text("confirmGrantDetail", tableName: "ClubBadge"),
+        ]
+        return lines.dropFirst().reduce(lines[0]) { $0 + Text(verbatim: "\n") + $1 }
     }
 
     @ViewBuilder private func resultStatus(_ result: ClubBadgeResultPresentation, createIsPrimary: Bool) -> some View {
