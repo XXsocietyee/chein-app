@@ -131,7 +131,7 @@ struct CityRoamRootView: View {
                 case .ledger: CityRentLedgerView(store: store).cyPushedChrome()
                 }
             }
-            .cySheet(item: sheetRoute) { route in
+            .sheet(item: sheetRoute) { route in
                 CitySheetHost(route: route, store: store, captureFix: dependencies.captureFix, photoUploader: dependencies.photoUploader,
                               fixtureClaim: dependencies.fixtureClaim,
                               onRoute: { self.route = $0 },

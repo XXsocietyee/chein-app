@@ -85,14 +85,33 @@ private struct PresentationBackdropHostModifier: ViewModifier {
 private struct PresentationBackdropRegistration: ViewModifier {
     let backdrop: PresentationBackdrop?
     let token: UUID
+    @State private var exempt = false
 
     func body(content: Content) -> some View {
         content
             .cyPresentationBackdropHost()
             // Outside the inner host, so it reads the presenter's tracker (sheets inherit the presenter's environment).
             .nativeR2SheetBackdropSource()
-            .onAppear { backdrop?.activate(token) }
+            // A sheet that keeps the map behind it interactive (persistent map sheets) opts out: no blur under it.
+            .onPreferenceChange(CYSheetBackdropExemptKey.self) { value in
+                exempt = value
+                if value { backdrop?.deactivate(token) }
+            }
+            .onAppear { if !exempt { backdrop?.activate(token) } }
             .onDisappear { backdrop?.deactivate(token) }
+    }
+}
+
+/// Set by sheet content that leaves the presenter interactive (`presentationBackgroundInteraction(.enabled…)`).
+struct CYSheetBackdropExemptKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
+}
+
+extension View {
+    /// Marks a presented sheet as a persistent, map-interactive sheet: the M5 backdrop is not applied under it.
+    func cySheetBackdropExempt(_ exempt: Bool = true) -> some View {
+        preference(key: CYSheetBackdropExemptKey.self, value: exempt)
     }
 }
 

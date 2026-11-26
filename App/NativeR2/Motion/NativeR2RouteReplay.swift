@@ -252,6 +252,7 @@ struct NativeR2RouteLeg: Identifiable {
         .presentationDetents([.height(200), .medium, .large], selection: $detent)
         .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         .presentationDragIndicator(.visible)
+        .cySheetBackdropExempt()
     }
 }
 
