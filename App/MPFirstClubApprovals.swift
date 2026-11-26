@@ -73,8 +73,18 @@ enum MPFirstClubWriteRoute {
         "api/club/governance/ban", "api/club/governance/unban", "api/club/governance/owner/transfer",
         "api/club/governance/cases/report", "api/club/governance/cases/appeal", "api/club/become-leader", "api/club/dissolve",
         "api/club/governance/list", "api/club/governance/cases/mine", "api/club/dissolution-blockers",
-        "api/publisher/identity/status", "api/club/roles/list"
+        "api/publisher/identity/status", "api/club/roles/list",
+        // CLB-r10-gate-05 (MP pages/club/notify, group-code:93-135, event-ops, topic-detail, customer-detail):
+        // the writes in `ClubMPFirstGovernance.clubOps` and their review reads.
+        "api/club/event-notification/send", "api/club/event-notification/retry", "api/verify/groupcode/issue",
+        "api/club/crm/customers/tag-remark", "api/club/event-ops/series/create", "api/club/event-ops/series/update-future",
+        "api/club/event-ops/attendance/correct", "api/club/topic-setting/save",
+        "api/club/event-notification/preview", "api/club/event-notification/status", "api/topic/info-to-user",
+        "api/club/crm/customers/detail", "api/club/event-ops/topics", "api/club/event-ops/series/detail",
+        "api/club/event-ops/roster", "api/club/topic-setting/detail", "api/club/access/me", "api/club/members"
     ]
+    /// MP topic-detail chapter recruit/finish post `multipart/form-data` (ClubGovernanceService form: true).
+    static let formPaths: Set<String> = ["api/topic/chapter/recruit", "api/topic/chapter/finish"]
     private static let moneyKeys: Set<String> = [
         "payAmount", "payChannel", "withdrawAmount", "refundId", "payoutAccount", "quoteId", "memberDiscountPrice"
     ]
@@ -82,7 +92,6 @@ enum MPFirstClubWriteRoute {
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
         guard let token, AuthRequestBuilder.isValidToken(token),
               request.httpMethod == "POST", request.httpBodyStream == nil,
-              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
               request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
               let url = request.url, url.fragment == nil, url.user == nil, url.password == nil, url.query == nil,
               url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
@@ -91,8 +100,14 @@ enum MPFirstClubWriteRoute {
               !relative.contains("pay") && !relative.contains("refund") && !relative.contains("payout")
                 && !relative.contains("withdraw") && !relative.contains("quote") && !relative.contains("registration")
                 && !relative.contains("pricing") && !relative.contains("settlement"),
+              let body = request.httpBody, body.count < 65_536 else { return false }
+        let contentType = request.value(forHTTPHeaderField: "Content-Type") ?? ""
+        if formPaths.contains(relative) {
+            guard contentType.hasPrefix("multipart/form-data; boundary="), let text = String(data: body, encoding: .utf8) else { return false }
+            return moneyKeys.allSatisfy { !text.contains("name=\"\($0)\"") }
+        }
+        guard contentType == "application/json",
               governancePaths.contains(relative) || operationPaths.contains(relative),
-              let body = request.httpBody, body.count < 65_536,
               let parsed = try? JSONSerialization.jsonObject(with: body),
               let object = parsed as? [String: Any],
               moneyKeys.isDisjoint(with: object.keys) else { return false }
