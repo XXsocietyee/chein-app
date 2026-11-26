@@ -52,7 +52,10 @@ import SwiftUI
                 if selectedStore == nil { showsSheet = true }
             }
             .onDisappear { showsSheet = false; arrival?.cancel() }
-            .onChange(of: selectedStore) { _, id in if id == nil { showsSheet = true } }
+            .onChange(of: selectedStore) { _, id in
+                // Back from a store page: the card returns to the first open store (the visited one may be done now).
+                if id == nil { focusedStore = nil; showsSheet = true }
+            }
             .onChange(of: mapSelection) { _, id in
                 guard let id else { return }
                 focusedStore = id
@@ -76,8 +79,8 @@ import SwiftUI
     private var nextStore: PlayNode? {
         guard let snapshot else { return nil }
         if let focusedStore, let node = stores.first(where: { $0.id == focusedStore }) { return node }
-        let open = stores.filter { !snapshot.isDone($0) && !snapshot.isLocked($0) }
-        return open.first { !skipped.contains($0.id) } ?? open.first
+        let candidates = stores.filter { !snapshot.isDone($0) && !snapshot.isLocked($0) }
+        return candidates.first { !skipped.contains($0.id) } ?? candidates.first
     }
 
     private enum StopState { case done, next, locked, open }
@@ -422,12 +425,12 @@ import SwiftUI
 
     private func skip(_ node: PlayNode) {
         guard let snapshot else { return }
-        let open = openStores(snapshot)
-        guard open.count > 1 else { return }
+        let candidates = openStores(snapshot)
+        guard candidates.count > 1 else { return }
         if !skipped.contains(node.id) { skipped.append(node.id) }
-        if open.allSatisfy({ skipped.contains($0.id) }) { skipped = [node.id] }
-        let index = open.firstIndex(where: { $0.id == node.id }) ?? -1
-        let following = open[(index + 1)...].first { !skipped.contains($0.id) } ?? open.first { !skipped.contains($0.id) }
+        if candidates.allSatisfy({ skipped.contains($0.id) }) { skipped = [node.id] }
+        let index = candidates.firstIndex(where: { $0.id == node.id }) ?? -1
+        let following = candidates[(index + 1)...].first { !skipped.contains($0.id) } ?? candidates.first { !skipped.contains($0.id) }
         focusedStore = following?.id
         if let following { focus(following) }
     }
