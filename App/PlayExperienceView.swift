@@ -183,7 +183,7 @@ import MapKit
                 }
             }
         }
-        .cyModalConfirm(
+        .modifier(PlaySystemConfirm(
             isPresented: confirmEnd,
             title: appLocalized("playx.run.end", locale: locale),
             message: appLocalized("playx.run.end.detail", locale: locale),
@@ -195,7 +195,7 @@ import MapKit
                 confirmEnd = false
                 Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
             }
-        )
+        ))
         .cySheet(isPresented: $showEmergencyHelp) {
             PlayEmergencyHelpSheet()
                 .cyPlayerSheetGlass()
@@ -1256,7 +1256,7 @@ import MapKit
 
     private func nodeWithConfirms(context: PlayInteractionContext?) -> some View {
         nodeWithOutcomes(context: context)
-            .cyModalConfirm(
+            .modifier(PlaySystemConfirm(
                 isPresented: showReview,
                 title: appLocalized("playx.review", locale: .current),
                 message: appLocalized("playx.review.detail", locale: .current),
@@ -1270,12 +1270,12 @@ import MapKit
                     self.review = nil // Consume before adaptive dismissal
                     Task { await model.submit(review) }
                 }
-            )
+            ))
             .onChange(of: showReview) { _, visible in
                 // A popover's outside-tap dismissal has no visible Cancel button.
                 if !visible, review != nil { model.cancelReview(); review = nil }
             }
-            .cyModalConfirm(
+            .modifier(PlaySystemConfirm(
                 isPresented: showHint,
                 title: appLocalized("playx.hints.request", locale: .current),
                 message: appLocalized("playx.hints.consequence", locale: .current),
@@ -1289,7 +1289,7 @@ import MapKit
                     hintContext = nil
                     Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
                 }
-            )
+            ))
     }
 
     private func nodeWithOutcomes(context: PlayInteractionContext?) -> some View {
@@ -1892,7 +1892,7 @@ struct PlayExperienceIssueView: View {
             }
         }
         .modifier(PlayLeadProgressPollingModifier(model: model, context: context))
-        .cyModalConfirm(
+        .modifier(PlaySystemConfirm(
             isPresented: review,
             title: appLocalized("playx.review", locale: .current),
             message: appLocalized(String.LocalizationValue(stringLiteral: action == .settle ? "playx.lead.settle.consequence" : "playx.lead.review"), locale: .current),
@@ -1907,7 +1907,7 @@ struct PlayExperienceIssueView: View {
                     Task { await model.performLead(action, text: message, context: context) }
                 }
             }
-        )
+        ))
     }
     private func actionButton(context: PlayInteractionContext?, _ value: PlayLeadAction) -> some View {
         Button(LocalizedStringKey("playx.lead." + value.rawValue)) { action = value; actionContext = context; review = true }
@@ -2040,6 +2040,30 @@ extension PlayExperienceView {
             .id(presentation.mappedStops.map(\.id))
         } else {
             CYMapPlaceholder()
+        }
+    }
+}
+
+/// N-r11-1: the system `.alert` in place of the custom overlay confirm (MP pages/play uses wx.showModal).
+/// The alert closes only through its two buttons, and each callback clears the presenting flag itself.
+private struct PlaySystemConfirm: ViewModifier {
+    let isPresented: Bool
+    let title: String
+    var message: String = ""
+    var cancelTitle: String = "取消"
+    var confirmTitle: String = "确认"
+    var isDestructive: Bool = false
+    var confirmIdentifier: String? = nil
+    let onCancel: () -> Void
+    let onConfirm: () -> Void
+
+    func body(content: Content) -> some View {
+        content.alert(Text(verbatim: title), isPresented: Binding(get: { isPresented }, set: { _ in })) {
+            Button(role: .cancel, action: onCancel) { Text(verbatim: cancelTitle) }
+            Button(role: isDestructive ? .destructive : nil, action: onConfirm) { Text(verbatim: confirmTitle) }
+                .accessibilityIdentifier(confirmIdentifier ?? "playx.alert.confirm")
+        } message: {
+            Text(verbatim: message)
         }
     }
 }
