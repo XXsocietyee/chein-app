@@ -186,7 +186,11 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 case .clubRequired(_, let message):
                     clubGate(message)
                 case .allowed(let detail):
-                    detailContent(detail)
+                    if NativeR2Flags.cityOrientation, detail.summary.linkedTopicID != nil {
+                        cityEventDetail(detail)
+                    } else {
+                        detailContent(detail)
+                    }
                 case .cancelled(let canViewOwnOrders):
                     // MP activity detail: a cancelled activity shows the cancelled state; 查看订单 only for the player's own orders.
                     ActivityCancelledStateView(canViewOwnOrders: canViewOwnOrders && rootTabSwitch.isAvailable,
@@ -516,6 +520,72 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             // This view exists only for .allowed details. Preserve the caller's
             // existing gate; the unchanged registration sheet owns further checks.
             if registrationEnabled { registrationAction(detail) }
+        }
+    }
+    // MARK: native r2 city orientation (NativeR2Flags.cityOrientation)
+
+    /// S2 event detail for a topic-linked (playable) activity. Same reads, sheets and gates as `detailContent`;
+    /// the footer pill becomes one bottom-toolbar `.borderedProminent` button built from the same rules.
+    private func cityEventDetail(_ detail: ActivityDetail) -> some View {
+        CityOrientationEventDetailList(
+            detail: detail,
+            priceLine: pinnedSummary(detail),
+            cta: registrationEnabled ? cityEventCTA(detail) : nil,
+            onDirections: directionsAction(detail),
+            onReview: canReview(detail) ? { showsReview = true } : nil,
+            topicDestination: detail.summary.linkedTopicID.flatMap { topicID in topicDestination.map { AnyView($0(topicID)) } },
+            channel: (primaryAction != .signUp && !detail.isCancelled)
+                ? AnyView(InGameChannelRowButton(scope: .activity(id: id), titleKey: "ingame.channel.activity",
+                                                 subtitleKey: "ingame.channel.activitySubtitle",
+                                                 accessibilityID: "ingame.channel.activity.entry", reloadTrigger: primaryAction))
+                : nil
+        ) {
+            ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail),
+                                  organizerShopName: detail.organizerShopName, organizerShopLogo: detail.organizerShopLogo)
+            ActivityReviewsSection(reviews: detail.reviews)
+            moreInfoSections(detail)
+            if let hostCancelAccess {
+                ActivityHostCancelSection(detail: detail, access: hostCancelAccess) {
+                    await load()
+                }
+            }
+        }
+        .sheet(isPresented: $showsHostCancelFromFooter) {
+            if let access = hostCancelAccess {
+                ActivityHostCancelSheet(detail: detail, access: access) {
+                    showsHostCancelFromFooter = false
+                    await load()
+                }
+                .presentationDetents([.medium, .large])
+            }
+        }
+    }
+    /// `registrationAction` rules, in the same order: host cancel, blocked sign-up, sign-up (guest sign-in first),
+    /// unavailable, then wallet / continue. The registration sheet keeps the paid gate it already has.
+    private func cityEventCTA(_ detail: ActivityDetail) -> CityOrientationEventCTA {
+        if let access = hostCancelAccess, !detail.isCancelled,
+           ActivityHostCancelRules.isHost(hostMemberID: detail.hostMemberID, accountID: access.accountID) {
+            return CityOrientationEventCTA(titleKey: "nativeR2.city.event.hostCancel", identifier: "activity.hostCancel.footer",
+                                           enabled: access.enabled, destructive: true) { showsHostCancelFromFooter = true }
+        }
+        if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
+            return CityOrientationEventCTA(titleKey: block.titleKey, identifier: "activity.openRegistration.blocked", enabled: false) {}
+        }
+        if primaryAction == .signUp {
+            return CityOrientationEventCTA(titleKey: primaryAction.titleKey, identifier: "activity.openRegistration", enabled: true) {
+                if let guestSignIn { guestSignIn() } else { tileOpenedSheet = true; showsRegistration = true }
+            }
+        }
+        if primaryAction == .unavailable {
+            return CityOrientationEventCTA(titleKey: primaryAction.titleKey, identifier: "activity.primaryAction", enabled: false) {}
+        }
+        let action = primaryAction
+        let walletAvailable = reader is AppSession
+        let canPlay = action == .continueExploring && playReaderForActivity != nil
+        return CityOrientationEventCTA(titleKey: action.titleKey, identifier: "activity.primaryAction",
+                                       enabled: !(action == .cancelled || (!walletAvailable && !canPlay))) {
+            if canPlay { showsPlay = true }
+            else if action != .cancelled, walletAvailable { tileOpenedSheet = true; showsTicketWallet = true }
         }
     }
     /// Secondary sections behind the "More info" disclosure.

@@ -70,6 +70,13 @@ import MapKit
     @State private var castCover = false
     @State private var showingCastRoster = false
     @State private var runTeamPool: TeamPoolHintModel?
+    /// Native r2 city orientation (`NativeR2Flags.cityOrientation`): foreground position, the run sheet,
+    /// teams mirrored from `TeamTrailSection`, the punch sheet and the end dialog.
+    @StateObject private var cityLocation = CityOrientationLocationObserver()
+    @State private var cityRunSheet = false
+    @State private var cityTeams: [TeamTrailTeam] = []
+    @State private var cityPunchNode: CityOrientationPunchTarget?
+    @State private var cityEndDialog = false
     @Environment(\.playThemePresentationReader) private var themeReader
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.mpParity) private var mpParity
@@ -90,7 +97,7 @@ import MapKit
             if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
                 FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) }, rewardCollectionDestination: rewardCollectionDestination, castConfig: castModel?.config, castEnding: model.castPayload)
             } else if model.gameplayMode == .cityOrientation {
-                orientationContent.cyThemeLook(themeFacts?.look)
+                if NativeR2Flags.cityOrientation { cityOrientationNative } else { orientationContent.cyThemeLook(themeFacts?.look) }
             } else if model.snapshot == nil {
                 if model.phase == .loading {
                     CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -246,7 +253,9 @@ import MapKit
                   model.hasCurrentMediaSnapshot, finishShownFor != model.identity else { return }
             finishShownFor = model.identity; finishScreen = true
         }
-        .fullScreenCover(isPresented: $finishScreen) { finishMedalScreen }
+        .fullScreenCover(isPresented: $finishScreen) {
+            if NativeR2Flags.cityOrientation { cityFinishSummary } else { finishMedalScreen }
+        }
         .onChange(of: finishScreen) { _, shown in
             guard shown, let make = mpParity.journeyReport, let snapshot = model.snapshot else { return }
             let report = make(journeyRunScope(snapshot.result.topicID, snapshot.result.topicName))
@@ -337,10 +346,17 @@ import MapKit
         }
     }
     private var orientationList: some View {
-        List {
+        List { orientationSections(native: false) }
+        .refreshable { if model.available && model.phase != .submitting { await model.load() } }
+        .toolbar { orientationToolbar }
+        .accessibilityIdentifier("playx.overview")
+    }
+    /// The run panel sections. `native` (NativeR2Flags.cityOrientation) leaves out the current-goal card and the
+    /// station rows, which the native run sheet replaces with its next-stop and legs sections.
+    @ViewBuilder private func orientationSections(native: Bool) -> some View {
             // Template 6 order: (1) Current goal + location/arrival + 6-state status + primary CTA FIRST,
             // (2) Progress & runtime header, (3) Ordered stops (`CYRouteNodeRow`) & recovery/records.
-            if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
+            if !native, model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
                let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
                let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
                 Section("referenceTask.current") {
@@ -414,7 +430,7 @@ import MapKit
             }
             // F-05: the ordered stops follow the progress header (Template 6), so every visible stop is
             // reachable in the half-height panel instead of sitting below records and downloads.
-            if let snapshot = model.snapshot { stationsSection(snapshot) }
+            if !native, let snapshot = model.snapshot { stationsSection(snapshot) }
             if let compatibility = model.compatibility, model.hasCurrentMediaSnapshot {
                 PlayCompatibilitySection(compatibility: compatibility)
             }
@@ -611,9 +627,8 @@ import MapKit
                 }
                 if case .activity = model.scope { PlayLeadSection(model: model) }
             }
-        }
-        .refreshable { if model.available && model.phase != .submitting { await model.load() } }
-        .toolbar {
+    }
+    @ToolbarContentBuilder private var orientationToolbar: some ToolbarContent {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { Task { await model.load() } } label: { Label("playx.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.phase == .submitting || !model.available).accessibilityIdentifier("playx.refresh")
@@ -624,8 +639,6 @@ import MapKit
                               openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true },
                               openScanArrival: hudStop == nil ? nil : { if let id = hudStop?.node.id { selectedNode = id } })
             }
-        }
-        .accessibilityIdentifier("playx.overview")
     }
     private var playChannelScope: InGameChannelScope? {
         if let teamID = model.snapshot?.result.teamID, teamID > 0 {
@@ -646,6 +659,118 @@ import MapKit
     }
     /// Map-first play screen: static map ground, glass clock / route map / end on top, the one primary
     /// (pause / resume) above the panel, and the unchanged task list in a three-detent panel.
+    // MARK: native r2 city orientation (NativeR2Flags.cityOrientation)
+
+    /// Any other presentation of this screen hides the run sheet first; it comes back when that one closes.
+    private var cityRunSheetBlocked: Bool {
+        finishScreen || stageSettlement != nil || showEmergencyHelp || showChapterPicker || showRouteMap || showBackpack
+            || selectedNode != nil || titleCardTopic != nil || castCover || showingCastRoster
+    }
+    private var cityRunSheetBinding: Binding<Bool> {
+        Binding(get: { cityRunSheet && !cityRunSheetBlocked }, set: { shown in if shown { cityRunSheet = true } })
+    }
+    @ViewBuilder private var cityOrientationNative: some View {
+        let routeOpen = !model.unresolved && model.interactionContext != nil
+            && model.snapshot.flatMap { PlayRouteMapPresentation(snapshot: $0) } != nil
+        CityOrientationRunView(
+            model: model, location: cityLocation, teammates: cityTeams, sheetShown: cityRunSheetBinding,
+            onOpenRoute: routeOpen ? { showRouteMap = true } : nil,
+            onEnd: model.snapshot == nil ? nil : { cityEndDialog = true },
+            onPunch: { cityPunchNode = CityOrientationPunchTarget(id: $0) },
+            channel: {
+                // The nav bar carries the channel while there is no current stop; otherwise it sits on the map.
+                if let scope = playChannelScope, hudStop != nil {
+                    InGameChannelToolbarButton(scope: scope, titleKey: playChannelTitleKey,
+                                               accessibilityID: "ingame.channel.play.entry",
+                                               reloadTrigger: model.snapshot?.result.teamID ?? 0)
+                }
+            },
+            panel: { cityRunPanel })
+        .onAppear { cityRunSheet = true }
+        .onDisappear { cityRunSheet = false; cityPunchNode = nil }
+    }
+    @ViewBuilder private var cityRunPanel: some View {
+        VStack(spacing: 0) {
+            CityOrientationRunMetricsRow(model: model, walkedMeters: cityLocation.walkedMeters) { cityRunPrimary }
+            NavigationStack {
+                List {
+                    if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
+                       let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
+                       let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
+                        CityOrientationNextStopSection(
+                            node: node, snapshot: snapshot,
+                            distance: cityLocation.distance(toLatitude: node.latitude, longitude: node.longitude),
+                            onPunch: { cityPunchNode = CityOrientationPunchTarget(id: id) },
+                            onHint: { hintNode = id; selectedNode = id })
+                    }
+                    if let snapshot = model.snapshot, let route = PlayRouteMapPresentation(snapshot: snapshot) {
+                        CityOrientationLegsSection(route: route, onOpen: { cityPunchNode = CityOrientationPunchTarget(id: $0) })
+                    } else if let snapshot = model.snapshot {
+                        stationsSection(snapshot)
+                    }
+                    if case .activity = model.scope { CityOrientationTeammatesSection(teams: cityTeams) }
+                    orientationSections(native: true)
+                }
+                .refreshable { if model.available && model.phase != .submitting { await model.load() } }
+                .toolbar { orientationToolbar }
+                .navigationTitle(Text("playx.title"))
+                .navigationBarTitleDisplayMode(.inline)
+                .accessibilityIdentifier("playx.overview")
+            }
+        }
+        .environment(\.cityOrientationTeamsSink, { teams in cityTeams = teams })
+        .sheet(item: $cityPunchNode) { target in
+            CityOrientationPunchSheet(
+                model: model, nodeID: target.id, location: cityLocation,
+                onOpenTask: { id in cityPunchNode = nil; selectedNode = id },
+                onNext: { id in cityPunchNode = CityOrientationPunchTarget(id: id) })
+        }
+        .confirmationDialog(Text("playx.run.end"), isPresented: $cityEndDialog, titleVisibility: .visible) {
+            Button("playx.run.end", role: .destructive) {
+                Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
+            }
+            Button("playx.cancel", role: .cancel) {}
+        } message: {
+            Text("playx.run.end.detail")
+        }
+    }
+    /// Same actions and identifiers as `runPrimary`, drawn with system button styles.
+    @ViewBuilder private var cityRunPrimary: some View {
+        if model.snapshot != nil {
+            if model.clock.phase == .running {
+                Button { Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } } label: {
+                    Label("playx.run.pause", systemImage: "pause.fill")
+                }
+                .buttonStyle(.bordered).controlSize(.large)
+                .disabled(!model.canManageRun)
+                .accessibilityIdentifier("playx.run.pause")
+            } else if model.clock.phase != .ended {
+                Button { model.startRun(now: ProcessInfo.processInfo.systemUptime) } label: {
+                    Label(model.clock.elapsedSeconds == 0 ? "playx.run.start" : "playx.run.resume", systemImage: "play.fill")
+                }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .disabled(!model.canManageRun)
+                .accessibilityIdentifier("playx.run.resume")
+            }
+        }
+    }
+    @ViewBuilder private var cityFinishSummary: some View {
+        let snapshot = model.snapshot
+        let medals = model.reward.map { PlayRewardSection.medals(in: $0, locale: locale) } ?? []
+        let topic = snapshot?.result.topicName.flatMap { $0.isEmpty ? nil : $0 }
+        let key = finishResultKey(snapshot)
+        let title = appLocalized(String.LocalizationValue(key), locale: locale)
+        let earned = medals.isEmpty ? nil : appLocalized("medalScreen.earned \(medals.count)", locale: locale)
+        CityOrientationFinishSummaryView(
+            model: model, titleKey: key, subtitle: [topic, earned].compactMap { $0 }.joined(separator: " · "),
+            medals: medals, shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
+            walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
+            onClose: { finishScreen = false })
+    }
+    private var cityReportDestination: AnyView? {
+        guard mpParity.journeyReport != nil, let snapshot = model.snapshot else { return nil }
+        return AnyView(MPParityDestination(route: .journeyReport(journeyRunScope(snapshot.result.topicID, snapshot.result.topicName))))
+    }
     private var orientationContent: some View {
         CYMapScaffold(detent: .medium, map: { PlayStoryMapGround(snapshot: model.snapshot) }, controls: { runHeader }, floating: { runFloating },
                       panel: { orientationList })
