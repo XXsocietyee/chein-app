@@ -881,23 +881,25 @@ import MapKit
         if model.snapshot != nil {
             let seconds = model.clock.elapsedSeconds
             HStack(spacing: CYSpacing.sm) {
-                CYGlassCapsule {
-                    HStack(spacing: CYSpacing.sm) {
-                        Image(systemName: "timer").accessibilityHidden(true)
-                        Text(verbatim: PlayRunElapsedText.format(seconds))
-                            .cyText(.dataXL).monospacedDigit().cyWrapText()
-                            .accessibilityAddTraits(.updatesFrequently)
-                            .accessibilityIdentifier("playx.run.clock")
-                    }.foregroundStyle(.white)
-                }
+                // N-PLAY-MAP (r10): system clock label on a regular material capsule (MP pages/play/index.wxml run timer).
+                Label {
+                    Text(verbatim: PlayRunElapsedText.format(seconds))
+                        .font(.title3.weight(.semibold)).monospacedDigit()
+                        .accessibilityAddTraits(.updatesFrequently)
+                        .accessibilityIdentifier("playx.run.clock")
+                } icon: { Image(systemName: "timer").accessibilityHidden(true) }
+                .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
+                .background(.regularMaterial, in: Capsule())
                 Spacer(minLength: CYSpacing.sm)
                 if !model.unresolved, model.interactionContext != nil, let snapshot = model.snapshot,
                    PlayRouteMapPresentation(snapshot: snapshot) != nil {
-                    CYGlassButton(systemImage: "map", label: "playRoute.open") { showRouteMap = true }
+                    Button { showRouteMap = true } label: { Label("playRoute.open", systemImage: "map").labelStyle(.iconOnly) }
+                        .buttonStyle(.bordered).buttonBorderShape(.circle).controlSize(.large)
                         .accessibilityIdentifier("playRoute.open")
                 }
                 if model.clock.phase != .ended {
-                    CYGlassButton(systemImage: "flag.checkered", label: "playx.run.end") { confirmEnd = true }
+                    Button { confirmEnd = true } label: { Label("playx.run.end", systemImage: "flag.checkered").labelStyle(.iconOnly) }
+                        .buttonStyle(.bordered).buttonBorderShape(.circle).controlSize(.large)
                         .disabled(!model.canManageRun)
                         .accessibilityIdentifier("playx.run.end")
                 }
@@ -1363,31 +1365,27 @@ import MapKit
         if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) == .answer {
             Section("playx.answer") {
                 if let options = node.options, node.validationMethod == 3 {
-                    // Keyed option cards (A / B / C) with outdoor high-contrast game runtime tokens.
-                    VStack(spacing: CYSpacing.sm) {
-                        ForEach(options.keys.sorted(), id: \.self) { key in
-                            let on = answer == key
-                            Button { answer = key } label: {
-                                HStack(spacing: CYSpacing.md) {
-                                    Text(verbatim: key)
-                                        .cyText(.cardTitle)
-                                        .foregroundStyle(on ? palette.actionPrimaryFg : palette.textSecondary)
-                                    Text(verbatim: options[key] ?? key)
-                                        .cyText(.body)
-                                        .foregroundStyle(on ? palette.actionPrimaryFg : palette.textPrimary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                    Spacer(minLength: 0)
+                    // N-PLAY-MAP (r10): keyed options (A / B / C) as plain List rows with a checkmark
+                    // (MP pages/play/index.wxml answer options); one row per option inside the Section.
+                    ForEach(options.keys.sorted(), id: \.self) { key in
+                        let on = answer == key
+                        Button { answer = key } label: {
+                            HStack(spacing: CYSpacing.md) {
+                                Text(verbatim: key).font(.headline).foregroundStyle(.secondary)
+                                Text(verbatim: options[key] ?? key)
+                                    .foregroundStyle(Color.primary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 0)
+                                if on {
+                                    Image(systemName: "checkmark").foregroundStyle(Color.accentColor).accessibilityHidden(true)
                                 }
-                                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm).frame(minHeight: 52)
-                                .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(on ? palette.actionPrimaryBg : palette.bgRaised))
-                                .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityAddTraits(on ? .isSelected : [])
-                            .accessibilityIdentifier("playx.answer.option." + key)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(on ? .isSelected : [])
+                        .accessibilityIdentifier("playx.answer.option." + key)
                     }
-                    .accessibilityIdentifier("playx.answer.options")
                 } else {
                     TextField("playx.answer.placeholder", text: $answer, axis: .vertical)
                         .foregroundStyle(palette.textPrimary)
