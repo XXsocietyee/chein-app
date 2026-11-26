@@ -1207,6 +1207,8 @@ private struct ClubOperationsProfileForm: View {
             if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) {
                 Text(verbatim: draft.clubType)
             }
+        } footer: {
+            // CLB-r10-nat-create-01: the field error is the Section footer (MP create wxml:70 field-error).
             if let createTypeError {
                 fieldError(createTypeError)
                     .accessibilityIdentifier("club.player.create.typeError")
@@ -1232,6 +1234,8 @@ private struct ClubOperationsProfileForm: View {
                 }
                 .accessibilityIdentifier("club.player.create.direction.\(index)")
             }
+        } footer: {
+            // CLB-r10-nat-create-01: the 最多选 3 个 note is the Section footer.
             if let createDirectionNote {
                 fieldError(createDirectionNote)
                     .accessibilityIdentifier("club.player.create.directionLimit")
