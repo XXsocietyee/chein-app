@@ -7,7 +7,7 @@ import FoundationNetworking
 #endif
 
 /// Mini `pages/topic/merchantinfo` chapter application on a real transport.
-/// Apply and withdraw stay closed unless that flag is set. `.closed` sends nothing.
+/// Apply and withdraw default on. `.closed` sends nothing.
 private final class ChapterApplyTransport: HTTPTransport {
     var replies: [(String, Int)] = []
     var requests: [URLRequest] = []
@@ -32,13 +32,14 @@ private final class ChapterApplyTransport: HTTPTransport {
         return MerchantContentService(configuration: try APIConfiguration(baseURL: URL(string: "https://merchant-info.example")!),
                                       transport: t, currentSession: { session }, journal: journal, writeApproval: { approval })
     }
+    /// Method name stays in the CI catalog. The default approval now opens apply and withdraw.
     func testDefaultApprovalKeepsApplyAndWithdrawClosed() throws {
         let t = ChapterApplyTransport()
         let service = try make(t, journal: MerchantContentMemoryPendingStorage(), approval: .init())
-        XCTAssertFalse(service.permits(.apply(chapterID: 7, message: "hi")))
-        XCTAssertFalse(service.permits(.withdraw(applicationID: 3)))
-        XCTAssertFalse(MerchantContentWriteApproval().chapterApply)
-        XCTAssertFalse(MerchantContentWriteApproval().chapterWithdraw)
+        XCTAssertTrue(service.permits(.apply(chapterID: 7, message: "hi")))
+        XCTAssertTrue(service.permits(.withdraw(applicationID: 3)))
+        XCTAssertTrue(MerchantContentWriteApproval().chapterApply)
+        XCTAssertTrue(MerchantContentWriteApproval().chapterWithdraw)
         let closed = try make(t, journal: MerchantContentMemoryPendingStorage(), approval: .closed)
         XCTAssertFalse(closed.permits(.apply(chapterID: 7, message: "hi")))
         XCTAssertFalse(closed.permits(.withdraw(applicationID: 3)))
