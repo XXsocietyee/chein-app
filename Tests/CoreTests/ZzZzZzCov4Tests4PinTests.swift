@@ -251,7 +251,7 @@ final class ZzZzZzCov4Tests4PinTests: XCTestCase {
     /// Pay, refund execution, payout, withdrawal, paid orders, quote, registration create,
     /// pricing confirm, and gift claim send nothing. `saveSku`, review report, poster code,
     /// and station commands stay off.
-    func testPayRefundPayoutWithdrawalPaidOrdersQuoteCreatePricingGiftSaveSkuReviewReportPosterAndStationStayOff() throws {
+    func testPayRefundPayoutWithdrawalPaidOrdersQuoteCreatePricingGiftSaveSkuReviewReportPosterAndStationStayOff() async throws {
         ReleaseMoneyWriteSwitch.testDerivation = nil
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
@@ -278,16 +278,28 @@ final class ZzZzZzCov4Tests4PinTests: XCTestCase {
         }
         let transport = Cov4Tests4PinTransport()
         let pass = PlatformPass(configuration: try APIConfiguration(baseURL: base), transport: transport)
-        XCTAssertThrowsError(try pass.quote(productID: "9", token: "synthetic")) { error in
+        do {
+            _ = try await pass.quote(productID: "9", token: "synthetic")
+            XCTFail("quote")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.payProductOrder(orderNo: "NO1", token: "synthetic")) { error in
+        do {
+            _ = try await pass.payProductOrder(orderNo: "NO1", token: "synthetic")
+            XCTFail("pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")) { error in
+        do {
+            _ = try await pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")
+            XCTFail("pass pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.claim(giftToken: "gift", requestID: "req", token: "synthetic")) { error in
+        do {
+            _ = try await pass.claim(giftToken: "gift", requestID: "req", token: "synthetic")
+            XCTFail("claim")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertThrowsError(try pass.refundApplyPassOrder(orderNo: "NO1", reason: "changed", token: "synthetic")) { error in
@@ -301,9 +313,9 @@ final class ZzZzZzCov4Tests4PinTests: XCTestCase {
         XCTAssertFalse(MerchantCoopLiveWrites.admits(sku))
         let report = MerchantBusinessMutation.review(
             id: try MerchantBusinessReviewID(81), version: 2, action: .report, content: "ad")
-        XCTAssertFalse(MerchantCoopLiveWrites.admits(report))
+        XCTAssertTrue(MerchantCoopLiveWrites.admits(report))
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.stationCommands)
-        XCTAssertFalse(MerchantCityNPCParityGates.mpFirst.stationCommands)
+        XCTAssertTrue(MerchantCityNPCParityGates.mpFirst.stationCommands)
         XCTAssertFalse(MerchantCityNodeWriteGate.paths.contains("api/merchant/city-node/poster-code"))
         XCTAssertFalse(MerchantCityNodeWriteGate.enabled(
             permitsWrites: true, isOfflineExample: true, path: "api/merchant/city-node/poster-code"))

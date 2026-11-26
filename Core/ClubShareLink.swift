@@ -71,3 +71,34 @@ public struct ClubShareLink: Equatable, Sendable {
         return value
     }
 }
+
+/// MP `subpackageMember/myinvite/myinvite.js` `onShareAppMessage`.
+/// Path only. No host is invented.
+public struct MemberInviteShareLink: Equatable, Sendable {
+    public static let page = "pages/index/index"
+    public let userID: String
+
+    public init?(userID: String) {
+        let trimmed = userID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.utf8.count <= 19, trimmed.allSatisfy(\.isNumber),
+              let number = Int(trimmed), number > 0, String(number) == trimmed else { return nil }
+        self.userID = trimmed
+    }
+
+    public var path: String { "/" + Self.page + "?inviter=" + userID }
+
+    /// https only when the owner has supplied exactly one verified origin.
+    /// The current origin set is empty, so this returns nil.
+    public func httpsURL(verifiedOrigins: Set<String> = UniversalLinkConfiguration.verifiedHTTPSOrigins) -> URL? {
+        guard verifiedOrigins.count == 1, let raw = verifiedOrigins.first else { return nil }
+        guard let base = URLComponents(string: raw),
+              base.scheme?.lowercased() == "https",
+              let host = base.host?.lowercased(),
+              base.user == nil, base.password == nil, base.port == nil,
+              base.query == nil, base.fragment == nil,
+              base.path.isEmpty || base.path == "/",
+              !host.isEmpty, !host.contains(":") else { return nil }
+        let sharePath = path
+        return URL(string: "https://" + host + sharePath)
+    }
+}

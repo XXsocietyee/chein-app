@@ -115,7 +115,11 @@ extension TemplateAdvancedDraft {
                     if ["audioUrl", "imageUrl", "overlayUrl", "markerUrl", "modelUrl", "frameUrl", "url", "img"].contains(field.id), !v.isEmpty, !media(v) { fail(p, "media") }
                 case .number(let min, let max, let integer):
                     guard let n = raw.number, n.isFinite, n >= min, n <= max, !integer || n.rounded() == n, !(raw.string?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? false) else { fail(p, "range"); continue }
-                case .choice(let choices): if !choices.contains(raw.string ?? "__invalid__") { fail(p, "choice") }
+                case .choice(let choices):
+                    let selected = raw.string ?? "__invalid__"
+                    // 扫完回复关闭时 kind 记 NONE。它不是 TEXT/VOICE/IMAGE/OVERLAY 这组回复类型。
+                    let scanReplyOff = family == .scan && path.isEmpty && field.id == "kind" && selected == "NONE"
+                    if !scanReplyOff && !choices.contains(selected) { fail(p, "choice") }
                 case .toggle: if case .bool = raw {} else { fail(p, "type") }
                 case .stateValue:
                     if ["ADD_TAG", "HAS_TAG"].contains(string(fields, "op")) {

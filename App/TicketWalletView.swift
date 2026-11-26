@@ -164,10 +164,11 @@ import SwiftUI
                 }
             }
             .refreshable {
-                let current = model.presentation ?? model.beginPresentation(owner: key)
-                if let current, model.accepts(current, currentOwner: key) { retirePendingOrder() }
+                // Stay on the permit this screen already holds. Refresh does not open another read.
+                let current = model.presentation
+                guard let current, model.accepts(current, currentOwner: key) else { return }
+                retirePendingOrder()
                 await model.refresh(presentation: current, currentOwner: key) { await load(presentation: $0) }
-                await loadCompanions()
             }
             .onAppear { isVisible = true; refreshOnActive = false; pendingOrderEntry.appear(); replacePresentation() }
             .onDisappear { isVisible = false; model.endPresentation(); pendingOrderEntry.disappear() }
@@ -186,7 +187,6 @@ import SwiftUI
             .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy); focusRegistration(proxy) }
             .onChange(of: model.isLoading) { _, loading in if !loading { focusRegistration(proxy) } }
             .task { await followFocusedRegistration() }
-            .task(id: reader.isAuthenticated) { await loadCompanions() }
         }
         }
     }
@@ -265,6 +265,7 @@ import SwiftUI
     }
     private func schedule(_ permit: TicketWalletReadPresentation?) {
         if let permit, model.accepts(permit, currentOwner: key) { retirePendingOrder() }
+        else { companions = [] }
         model.schedule(presentation: permit, currentOwner: key) { await load(presentation: $0) }
     }
     /// R8-MEM-21-1: companion cards on the wallet. A failed read shows no error and no entry code.
@@ -287,6 +288,9 @@ import SwiftUI
         let provider = pendingOrderProvider
         // MP F13: the wallet holds usable tickets only, in walletOrder (PLY-21-1). Unpaid ones live in 我的订单.
         await model.load(presentation: presentation, currentOwner: { key }) { try await reader.ticketWallet().walletUsable }
+        if !Task.isCancelled, model.accepts(presentation, currentOwner: key), captured == key {
+            await loadCompanions()
+        }
         if !Task.isCancelled, model.accepts(presentation, currentOwner: key), captured == key,
            let provider, provider.owner == pendingOrderProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured) != nil {
@@ -431,6 +435,7 @@ private struct TicketWalletRow: View {
     private var hasStub: Bool {
         (ticket.participateDate?.isEmpty == false) || (ticket.addressName?.isEmpty == false) || ticket.needsScheduleSync
             || ticket.action != .detail || ticket.walletTypeKey != nil || showsPendingOrderAction
+            || ticket.showsSharedParty || ticket.exploreProgress != nil
     }
     var body: some View {
         let dimmed = ticket.status == .cancelled || ticket.status == .expired || ticket.isWalletLocked
@@ -499,9 +504,9 @@ private struct TicketWalletRow: View {
                             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("ticketWallet.sourceNotice.\(ticket.id)")
                     }
-                    if let type = ticket.walletTypeKey {
-                        // MP card sub-line: 类型 · 剩 N 天 / 今天过期 (signup/index.js walletCard). Unknown date → type only.
-                        TicketWalletSubline(ticket: ticket, typeKey: type)
+                    if ticket.walletTypeKey != nil || ticket.showsSharedParty || ticket.exploreProgress != nil {
+                        // MP card sub-line: 类型 · 剩 N 天, then 已核销 x/y 家 and N 大 M 小同享 (signup/index.js walletCard).
+                        TicketWalletSubline(ticket: ticket, typeKey: ticket.walletTypeKey)
                             .accessibilityIdentifier("ticketWallet.subline.\(ticket.id)")
                     }
                     if showsPendingOrderAction {
@@ -557,23 +562,35 @@ private struct TicketWalletCardTag: View {
     }
 }
 
-/// 类型 · 剩 N 天 / 今天过期. Natural days in Beijing time, as the MP `passDaysLeft`. Upcoming and session tickets
-/// show the type only (their time is on the stub lines).
+/// 类型 · 剩 N 天 / 今天过期, then the MP wallet-card facts 已核销 x/y 家 and N 大 M 小同享.
+/// Natural days in Beijing time, as the MP `passDaysLeft`. Upcoming and session tickets
+/// show the type only (their time is on the stub lines). Party is only when a child shares the ticket.
 private struct TicketWalletSubline: View {
     let ticket: TicketWalletTicket
-    let typeKey: String
+    let typeKey: String?
     var body: some View {
-        if let days = ticket.walletDaysLeft {
-            if days == 0 {
-                (Text(LocalizedStringKey(typeKey)) + Text(verbatim: " · ") + Text("ticketWallet.subline.today"))
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            } else {
-                (Text(LocalizedStringKey(typeKey)) + Text(verbatim: " · ") + Text("ticketWallet.subline.daysLeft \(days)"))
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            }
-        } else {
-            Text(LocalizedStringKey(typeKey)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        line.cyText(.meta).foregroundStyle(CYColor.textSecondary)
+    }
+    private var line: Text {
+        var text: Text?
+        func append(_ next: Text) {
+            text = text.map { $0 + Text(verbatim: " · ") + next } ?? next
         }
+        if let typeKey { append(head(typeKey)) }
+        if let progress = ticket.exploreProgress {
+            append(Text("ticketWallet.explore.redeemed \(progress.redeemed) \(progress.required)"))
+        }
+        if ticket.showsSharedParty, let party = ticket.party {
+            append(Text("ticketWallet.party.share \(party.adultCount) \(party.childCount)"))
+        }
+        return text ?? Text(verbatim: "")
+    }
+    private func head(_ typeKey: String) -> Text {
+        guard let days = ticket.walletDaysLeft else { return Text(LocalizedStringKey(typeKey)) }
+        if days == 0 {
+            return Text(LocalizedStringKey(typeKey)) + Text(verbatim: " · ") + Text("ticketWallet.subline.today")
+        }
+        return Text(LocalizedStringKey(typeKey)) + Text(verbatim: " · ") + Text("ticketWallet.subline.daysLeft \(days)")
     }
 }
 

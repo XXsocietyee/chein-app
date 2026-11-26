@@ -60,6 +60,11 @@ private final class NPCAccessParityTransport: HTTPTransport {
             XCTAssertFalse(value.allows(.template(nil)))
         }
         XCTAssertFalse(try access(["merchant:profile:write"], active: false).allows(.character))
+        let marketing = try access(["merchant:marketing:read"], role: "MERCHANT_MARKETING")
+        XCTAssertTrue(marketing.marketingRead)
+        XCTAssertFalse(marketing.identity.isOwner)
+        XCTAssertFalse(try access(["merchant:marketing:read"], active: false, role: "MERCHANT_MARKETING").marketingRead)
+        XCTAssertFalse(try access([], role: "MERCHANT_MARKETING").marketingRead)
     }
     func testUnknownActiveRoleCannotDecodeEvenWithExplicitProfileWrite() {
         for role in ["MERCHANT_STAFF", "UNKNOWN", ""] {

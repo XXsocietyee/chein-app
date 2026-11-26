@@ -210,7 +210,7 @@ public struct ClubOperationsSession: Equatable {
     private let service: ClubOperationsService?
     private let currentSession: () -> ClubOperationsSession?
     private let onUnauthorized: (ClubOperationsSession) -> Void
-    private let approval: OperationEndpointApproval?
+    private let approvalProvider: () -> OperationEndpointApproval?
     private let journal: (any OperationPendingJournal)?
     public let profileMedia: ClubProfileMediaService?
     public let welcomeNote: ClubWelcomeNoteService?
@@ -220,9 +220,14 @@ public struct ClubOperationsSession: Equatable {
     public var profileDrafts: ClubProfileLocalDraftContext? { profileDraftProvider() }
     public var identity: ClubReadIdentity? { currentSession()?.identity }
     public var isConfigured: Bool { service != nil }
-    public var writeAvailability: ClubOperationsWriteAvailability { approval != nil && journal != nil ? .approved : .unverified }
-    public init(service: ClubOperationsService?, currentSession: @escaping () -> ClubOperationsSession?, approval: OperationEndpointApproval? = nil, journal: (any OperationPendingJournal)? = nil, profileMedia: ClubProfileMediaService? = nil, welcomeNote: ClubWelcomeNoteService? = nil, welcomeNoteRevision: @escaping () -> UInt64 = { 0 }, profileDrafts: @escaping () -> ClubProfileLocalDraftContext? = { nil }, onUnauthorized: @escaping (ClubOperationsSession) -> Void = { _ in }) {
-        self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized; self.approval = approval; self.journal = journal; self.profileMedia = profileMedia; self.welcomeNote = welcomeNote; self.welcomeNoteRevisionProvider = welcomeNoteRevision; self.profileDraftProvider = profileDrafts
+    public var writeAvailability: ClubOperationsWriteAvailability {
+        let approval = approvalProvider()
+        return approval != nil && journal != nil ? .approved : .unverified
+    }
+    public init(service: ClubOperationsService?, currentSession: @escaping () -> ClubOperationsSession?, approval: OperationEndpointApproval? = nil, approvalSource: (() -> OperationEndpointApproval?)? = nil, journal: (any OperationPendingJournal)? = nil, profileMedia: ClubProfileMediaService? = nil, welcomeNote: ClubWelcomeNoteService? = nil, welcomeNoteRevision: @escaping () -> UInt64 = { 0 }, profileDrafts: @escaping () -> ClubProfileLocalDraftContext? = { nil }, onUnauthorized: @escaping (ClubOperationsSession) -> Void = { _ in }) {
+        self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
+        self.approvalProvider = approvalSource ?? { approval }
+        self.journal = journal; self.profileMedia = profileMedia; self.welcomeNote = welcomeNote; self.welcomeNoteRevisionProvider = welcomeNoteRevision; self.profileDraftProvider = profileDrafts
     }
     public func snapshot(target: ClubOperationsTarget) async throws -> ClubOperationsSnapshot {
         guard let service else { throw APIError.notConfigured }
@@ -253,8 +258,8 @@ public struct ClubOperationsSession: Equatable {
     }
 
     public func perform(_ command: ClubOperationsCommand, target: ClubOperationsTarget, expectedIdentity: ClubReadIdentity) async throws -> ClubOperationsReceipt {
-        guard let service, let approval, let journal, let session = currentSession(), session.identity == expectedIdentity,
-              service.isApproved(approval, session: session, path: command.path) else { throw ClubActionWriteError.notSent(.notConfigured) }
+        guard let service, let issued = approvalProvider(), let journal, let session = currentSession(), session.identity == expectedIdentity,
+              service.isApproved(issued, session: session, path: command.path) else { throw ClubActionWriteError.notSent(.notConfigured) }
         let fresh: ClubOperationsSnapshot
         var record = OperationPendingRecord(ownerKey: session.ownerKey, targetKey: targetKey(target))
         do {

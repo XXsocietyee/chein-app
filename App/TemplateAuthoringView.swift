@@ -579,6 +579,8 @@ extension EnvironmentValues {
                 }
             }
             .id(EditorOutlineSection.gameplay.anchor)
+            // r9 C-T3: MP temp/index.wxml:108-118, :1056-1074 (扫完回复 · 状态不好时松一点 · 可触发的结果).
+            if model.draft.finishEnabled { TemplateAuthoringGapRound4Section(model: model) }
             TemplateAuthoringRewardStoryFields(model: model)
             Section {
                 NavigationLink("templateModules.title") { TemplateOptionalModuleManager(model: model) }

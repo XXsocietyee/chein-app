@@ -50,6 +50,32 @@ struct UsageConsentGateView: View {
     )
     @State private var agreeTaps = 0
     @State private var document: AuthEntryLegalSheet?
+    /// r9 B-PV-04: MP pages/privacy/index.wxml:10 `我已阅读并同意` checkbox; :22 同意 is disabled until it is checked.
+    @State private var agreementChecked = false
+
+    /// MP privacy/index.wxml:10: one checkbox row 我已阅读并同意《用户服务协议》《隐私保护指引》.
+    private var agreementCheckbox: some View {
+        Button {
+            agreementChecked.toggle()
+        } label: {
+            Label {
+                Text("fixr9.ap.consent.readAndAgree")
+                    .cyText(.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+            } icon: {
+                Image(systemName: agreementChecked ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(agreementChecked ? CYColor.brand : CYColor.textSecondary)
+            }
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("authEntry.gate.checkbox")
+        .accessibilityAddTraits(agreementChecked ? [.isSelected] : [])
+        .accessibilityValue(Text(agreementChecked ? "fixr9.ap.consent.checked" : "fixr9.ap.consent.unchecked"))
+    }
 
     var body: some View {
         NavigationStack {
@@ -71,6 +97,7 @@ struct UsageConsentGateView: View {
                             .foregroundStyle(CYColor.textSecondary)
                         documentRow("authEntry.gate.openAgreement", id: "authEntry.gate.agreement", type: .userAgreement)
                         documentRow("authEntry.gate.openPrivacyGuide", id: "authEntry.gate.privacyGuide", type: .privacyPolicy)
+                        agreementCheckbox
                     }
                 }
                 .padding(CYSpacing.xxl)
@@ -83,6 +110,7 @@ struct UsageConsentGateView: View {
                         onAgree()
                     } label: { Text("authEntry.gate.agree", tableName: "AuthEntry") }
                         .buttonStyle(.cyPrimary)
+                        .disabled(!agreementChecked)
                         .cyHaptic(.success, trigger: agreeTaps)
                         .accessibilityIdentifier("authEntry.gate.agree")
                         .accessibilityLabel(Text("authEntry.gate.agree", tableName: "AuthEntry"))

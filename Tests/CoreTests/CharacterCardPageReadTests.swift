@@ -135,6 +135,97 @@ import FoundationNetworking
         XCTAssertEqual(stale.pageModel.attributeCountText, dash)
     }
 
+    func testSignedOutReaderSurfacesSignInAndReadsAgainWhenTheSessionReturns() async throws {
+        let owner = try Owner()
+        let transport = Transport()
+        transport.card = card(attributes: [attribute(key: "counter.str", value: 5, min: 0, max: 20)], definitionSource: nil, inventory: false)
+        owner.value = nil
+        let model = try make(transport, activityID: nil, owner: owner)
+        await model.load()
+        XCTAssertEqual(model.issue, .unauthorized)
+        XCTAssertNil(model.card)
+        XCTAssertEqual(model.pageModel.phase, .error)
+        XCTAssertNotEqual(model.pageModel.phase, .empty)
+        XCTAssertEqual(model.pageModel.attributeCountText, "—")
+        XCTAssertNotEqual(model.pageModel.attributeCountText, "0")
+        XCTAssertTrue(transport.requests.isEmpty)
+        XCTAssertNil(model.cardIfCurrent())
+        XCTAssertEqual(model.issue, .unauthorized)
+        XCTAssertFalse(model.isCurrent)
+
+        owner.value = try PlayExperienceSession(accountID: 7, epoch: 1, namespace: "synthetic", token: "synthetic-token")
+        await model.load()
+        XCTAssertNil(model.issue)
+        XCTAssertEqual(model.pageModel.phase, .ready)
+        XCTAssertEqual(model.card?.attributes.first?.value, 5)
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/play/character"])
+        XCTAssertTrue(transport.requests.allSatisfy { $0.httpMethod == "GET" })
+    }
+
+    func testFailedRefreshKeepsTheLastCardAndDoesNotBecomeAnEmptySuccess() async throws {
+        let transport = Transport()
+        transport.card = card(attributes: [attribute(key: "counter.str", value: 5, min: 0, max: 20)], definitionSource: nil, inventory: false)
+        let model = try make(transport, activityID: nil)
+        await model.load()
+        XCTAssertEqual(model.pageModel.phase, .ready)
+        XCTAssertEqual(model.pageModel.attributeValueTexts, ["5"])
+        let reads = transport.requests.count
+
+        transport.failure = .network
+        await model.load()
+        XCTAssertEqual(model.issue, .unknownResult)
+        XCTAssertEqual(model.availability, .ready)
+        XCTAssertEqual(model.card?.attributes.first?.value, 5)
+        XCTAssertEqual(model.pageModel.phase, .ready)
+        XCTAssertEqual(model.pageModel.attributeValueTexts, ["5"])
+        XCTAssertNotEqual(model.pageModel.phase, .empty)
+        XCTAssertNotEqual(model.pageModel.phase, .unknown)
+        XCTAssertNotEqual(model.pageModel.attributeCountText, "0")
+        XCTAssertNotEqual(model.pageModel.attributeCountText, "—")
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, Array(repeating: "/api/play/character", count: reads + 1))
+
+        transport.failure = nil
+        transport.card = .object(["topicId": .int(71)])
+        await model.load()
+        XCTAssertEqual(model.issue, .malformed)
+        XCTAssertEqual(model.availability, .ready)
+        XCTAssertEqual(model.card?.attributes.first?.value, 5)
+        XCTAssertEqual(model.pageModel.phase, .ready)
+        XCTAssertEqual(model.pageModel.attributeValueTexts, ["5"])
+        XCTAssertNotEqual(model.pageModel.phase, .unknown)
+        XCTAssertNotEqual(model.pageModel.phase, .empty)
+
+        transport.card = card(attributes: [], definitionSource: nil, inventory: false)
+        await model.load()
+        XCTAssertNil(model.issue)
+        XCTAssertEqual(model.pageModel.phase, .empty)
+        XCTAssertTrue(model.card?.attributes.isEmpty == true)
+    }
+
+    func testUnauthorizedRefreshClearsTheCardInsteadOfAnEmptySuccess() async throws {
+        let transport = Transport()
+        transport.card = card(attributes: [attribute(key: "counter.str", value: 5, min: 0, max: 20)], definitionSource: nil, inventory: false)
+        let owner = try Owner()
+        let model = try make(transport, activityID: nil, owner: owner)
+        await model.load()
+        transport.failure = .unauthorized
+        await model.load()
+        XCTAssertNil(model.card)
+        XCTAssertEqual(model.issue, .unauthorized)
+        XCTAssertFalse(model.isCurrent)
+        XCTAssertEqual(model.pageModel.phase, .error)
+        XCTAssertEqual(model.pageModel.attributeCountText, "—")
+        XCTAssertNotEqual(model.pageModel.phase, .empty)
+        XCTAssertNotEqual(model.pageModel.attributeCountText, "0")
+        XCTAssertEqual(Set(transport.requests.map { $0.url?.path ?? "" }), ["/api/play/character"])
+
+        transport.failure = nil
+        await model.load()
+        XCTAssertNil(model.issue)
+        XCTAssertEqual(model.pageModel.phase, .ready)
+        XCTAssertEqual(model.card?.attributes.first?.value, 5)
+    }
+
     private func attribute(key: String, value: Int, min: Int, max: Int) -> PlayWireValue {
         attribute(key: key, valueWire: .int(value), min: min, max: max)
     }

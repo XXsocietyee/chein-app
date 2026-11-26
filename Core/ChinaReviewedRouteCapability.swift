@@ -16,8 +16,8 @@ public enum ChinaReviewedRouteMark: String, Equatable, Sendable {
 }
 
 /// P2 play-runtime gates. Story lock stays off. Visit-config follows the mini-program.
-/// They live outside `marks` and `wiredPatterns` so this package does not change `callSiteCount` (995) or
-/// `wiredPatternCount` (679). Other packages add their own rows later.
+/// They live outside `marks` and `wiredPatterns` so this package does not change `callSiteCount` (996) or
+/// `wiredPatternCount` (680). Other packages add their own rows later.
 public enum PlayRuntimePortRouteGate {
     /// Missing `storyLocked` counts as locked only after this is turned on.
     public static let storyLockMissingCountsAsLocked = false
@@ -64,7 +64,8 @@ public enum ChinaReviewedRouteCapability {
         if key == "/api/workshop/purchased" || key == "/api/reward-pledge/versions"
             || key == "/api/friend/channel-invite" || key == "/api/friend/team-invite" { return false }
         if ReleaseMoneyWriteSwitch.blocks(key) { return false }
-        // A forced-off money route opens only while its own Release switch is on (DEBUG/TEST off the production host).
+        // A forced-off route opens when its money kind is on. Password login has no money kind.
+        // Virtual goods stay closed because that kind stays off.
         if forcedOff(key) != nil, !ReleaseMoneyWriteSwitch.opens(key) { return false }
         if wiredPatterns.contains(key) { return true }
         // F-14: TEST-backend-only topic publish routes, admitted only in a DEBUG/TEST E2E run (constant false in Release).
@@ -98,10 +99,10 @@ public enum ChinaReviewedRouteCapability {
         if externalGameOwnerGrant.contains(key) || externalGameOwnerGrant.contains(externalGameGrantKey(key)) { return true }
         if wp04OwnerGrant.contains(key) { return true }
         if wp07CommerceOwnerGrant.contains(key) {
-            // Quote and coupon usability are reads. Create and activate are payment writes:
-            // ReleaseMoneyWriteSwitch.blocks already returned false above when money is off,
-            // and a payment kind stays closed on www.chengyinhub.com even if this set lists it.
-            return ReleaseMoneyWriteSwitch.kind(for: key) == nil
+            // Quote and coupon usability are reads. Create and activate are payment writes
+            // and follow the same host switch. They stay closed when no host is installed.
+            guard let kind = ReleaseMoneyWriteSwitch.kind(for: key) else { return true }
+            return ReleaseMoneyWriteSwitch.isEnabled(kind)
         }
         if wp06PartialPagesOwnerGrant.contains(key) { return true }
         if ownerDecisionGuardGrant.contains(key) { return true }
@@ -127,8 +128,7 @@ public enum ChinaReviewedRouteCapability {
     ]
 
     /// HANDOVER 36, WP-07. Group/school quote and coupon usability are reads.
-    /// Create and activate are listed and stay closed: they are payment kinds, so
-    /// `ReleaseMoneyWriteSwitch` refuses them while money is off, including www.chengyinhub.com.
+    /// Create and activate are payment kinds. `ReleaseMoneyWriteSwitch` admits them while payment is on.
     public static let wp07CommerceOwnerGrant: Set<String> = [
         "/api/marketing/group-checkout/quote",
         "/api/marketing/group-checkout/create",
@@ -164,10 +164,10 @@ public enum ChinaReviewedRouteCapability {
         "/api/roam/share/snapshot", "/api/common/uploadOSS"
     ]
 
-    /// WP-01 / WP-05, owner 2026-11-13: money ON for TEST/DEBUG only. Payout receiver, merchant payout account and the
-    /// owner's settlement and receivable reads; registration payment and its readiness; bank withdrawal preflight and create.
-    /// Each path, read or write, is admitted only while the Release switch of its area is on: Release constants are false,
-    /// and the DEBUG/TEST derivation is false on the production host. Marks stay as they were.
+    /// WP-01 / WP-05. Payout receiver, merchant payout account and the owner's settlement and receivable reads;
+    /// registration payment and its readiness; bank withdrawal preflight and create.
+    /// Owner 2026-11-25: each path is admitted while its money kind is on. The host derivation is on for
+    /// www.chengyinhub.com and for a non-production test host, and off when no host is installed. Marks stay as they were.
     public static let moneyAreaOwnerGrant: [String: ReleaseMoneyWriteKind] = [
         // Owner 2026-11-14: receiver status and the merchant payout-account read are status reads, admitted
         // unconditionally through `ownerDecisionGuardGrant`; only the writes stay behind the payout switch.
@@ -509,7 +509,8 @@ public enum ChinaReviewedRouteCapability {
         "/api/club/post/operation/comment",
         "/api/club/roles",
         "/api/club/workbench",
-        "/api/coop"
+        "/api/coop",
+        "/api/coop/candidates/reject"
     ]
 
     /// Handover 23. Non-money reads and native routes. Merchant intent, marketing order/pay/quote,
@@ -659,8 +660,8 @@ public enum ChinaReviewedRouteCapability {
     ]
 
     /// HANDOVER 33 WP-03. Appended after `beGapMerchantOwnerGrant`.
-    /// Reads are admitted. Commerce order and order status stay on the payment switch and are not admitted.
-    /// Claim submit, share code, and chapter invite revoke are merchant writes and stay closed on this host.
+    /// Reads are admitted. Commerce order and order status follow the payment switch.
+    /// Claim submit, share code, and chapter invite revoke are merchant writes and stay closed.
     static let merchantOpsWp03OwnerGrant: Set<String> = [
         "/api/merchant/claims/status",
         "/api/merchant/claims/submit",
@@ -675,7 +676,9 @@ public enum ChinaReviewedRouteCapability {
 
     static func admitsMerchantOpsWp03(_ key: String) -> Bool {
         guard merchantOpsWp03OwnerGrant.contains(key) else { return false }
-        if key == "/api/merchant/commerce/order" || key == "/api/merchant/commerce/order/status" { return false }
+        if key == "/api/merchant/commerce/order" || key == "/api/merchant/commerce/order/status" {
+            return ReleaseMoneyWriteSwitch.isEnabled(.payment)
+        }
         if key == "/api/merchant/claims/submit" || key == "/api/merchant/share-code"
             || key == "/api/merchant/chapter-application/invite/revoke" { return false }
         return true
@@ -1504,6 +1507,7 @@ public enum ChinaReviewedRouteCapability {
         "/api/orient/scoring/receipt": .liveInProduction,
         "/api/orient/scoring/session/{}": .liveInProduction,
         "/api/orient/scoring/session/{}/leaderboard": .liveInProduction,
+        "/api/orient/scoring/session/{}/recovery": .liveInProduction,
         "/api/orient/scoring/session/{}/settle": .liveInProduction,
         "/api/orient/scoring/session/{}/sync": .liveInProduction,
         "/api/orient/task/alternative/receipt": .liveInProduction,
@@ -2277,6 +2281,7 @@ public enum ChinaReviewedRouteCapability {
         "/api/orient/scoring/receipt",
         "/api/orient/scoring/session/{}",
         "/api/orient/scoring/session/{}/leaderboard",
+        "/api/orient/scoring/session/{}/recovery",
         "/api/orient/scoring/session/{}/settle",
         "/api/orient/scoring/session/{}/sync",
         "/api/orient/task/alternative/receipt",
@@ -2658,8 +2663,9 @@ public enum ChinaReviewedRouteAdaptation {
     }
 }
 
-/// One Release switch per money-moving write. All four stay off. This type does not
-/// choose a payment provider or a payment route.
+/// One switch per money-moving write. The app installs a host derivation for Release and DEBUG/TEST.
+/// With none installed every kind stays off. Virtual goods stay off in that derivation.
+/// This type does not choose a payment provider or a payment route.
 public enum ReleaseMoneyWriteKind: String, Sendable, CaseIterable {
     case payment
     case payout
@@ -2672,9 +2678,9 @@ public enum ReleaseMoneyWriteKind: String, Sendable, CaseIterable {
 }
 
 public enum ReleaseMoneyWriteSwitch {
-    #if DEBUG || TEST
-    /// DEBUG/TEST only (owner 2026-11-13: money ON for TEST/DEBUG). The app installs a derivation from its host-based area
-    /// switch; with none installed every kind stays off. Release builds compile the constants below instead.
+    /// Installed by the app from its API host. Nil keeps every kind off in Release and in DEBUG/TEST.
+    /// Owner 2026-11-25: a production or non-production host turns payment, refund, host-cancel refund,
+    /// payout, and withdrawal on. Virtual goods stay off in the installed derivation.
     nonisolated(unsafe) public static var testDerivation: (@Sendable (ReleaseMoneyWriteKind) -> Bool)?
     public static var paymentEnabled: Bool { testDerivation?(.payment) ?? false }
     public static var payoutEnabled: Bool { testDerivation?(.payout) ?? false }
@@ -2682,14 +2688,6 @@ public enum ReleaseMoneyWriteSwitch {
     public static var virtualGoodsEnabled: Bool { testDerivation?(.virtualGoods) ?? false }
     public static var refundEnabled: Bool { testDerivation?(.refund) ?? false }
     public static var hostCancelRefundEnabled: Bool { testDerivation?(.hostCancelRefund) ?? false }
-    #else
-    public static let paymentEnabled = false
-    public static let payoutEnabled = false
-    public static let withdrawalEnabled = false
-    public static let virtualGoodsEnabled = false
-    public static let refundEnabled = false
-    public static let hostCancelRefundEnabled = false
-    #endif
 
     public static func isEnabled(_ kind: ReleaseMoneyWriteKind) -> Bool {
         switch kind {
@@ -2732,8 +2730,11 @@ public enum ReleaseMoneyWriteSwitch {
         case "/api/cart/cart/add", "/api/cart/add", "/api/cart/update", "/api/cart/delete", "/api/cart/order/settlement":
             return .virtualGoods
         case "/api/registration/cancel-refund", "/api/registration/cancel-by-owner",
-             "/api/free-explore/bundle/order/refund":
+             "/api/free-explore/bundle/order/refund",
+             "/api/coop/deposit/refund/retry":
             return .refund
+        case "/api/coop/deposit/create", "/api/coop/deposit/create/app":
+            return .payment
         case "/api/activity/cancel":
             return .hostCancelRefund
         default:

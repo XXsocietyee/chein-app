@@ -98,8 +98,10 @@ public struct ReportAppealSheetView: View {
                     Section {
                         Text(message)
                             .cyText(.body)
-                        Button("common.done", action: onClose)
+                        Button("reportAppeal.retry", action: onSubmit)
                             .buttonStyle(.cyPrimary)
+                            .frame(maxWidth: .infinity)
+                        Button("common.done", action: onClose)
                             .frame(maxWidth: .infinity)
                     }
 

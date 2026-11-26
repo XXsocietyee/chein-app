@@ -32,7 +32,7 @@ final class ClubRosterPresentationTests: XCTestCase {
         XCTAssertNil(value.members(in: .registered).first?.waitlistState)
         XCTAssertEqual(value.members(in: .waitlist).first?.waitlistState, "WAITING")
     }
-    func testMissingBucketAndPrivacyFlagCannotBecomeEmptySuccess() {
+    func testMissingBucketAndPrivacyFlagCannotBecomeEmptySuccess() throws {
         XCTAssertThrowsError(try presentation(["registered": .null]))
         XCTAssertThrowsError(try presentation(["phoneIncluded": .null]))
         XCTAssertEqual(try presentation(["phoneIncluded": .bool(true)]).members(in: .registered).first?.phone, nil)

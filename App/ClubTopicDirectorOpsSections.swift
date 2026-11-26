@@ -1,22 +1,18 @@
 import SwiftUI
 
-/// CLB-G13a (MP `pages/club/topic-detail/index.wxml:198-237`, `director.js:18-26, 862-865`,
-/// `pages/club/utils/generic-director-ops.js:4-35`): 通用玩法现场运营 inside the embedded director block.
-/// It reads `GET /api/game/session/shared/control` (the server answers the session organiser only) and lists the
-/// generic run actions with their Chinese status line. Each action opens the full director page, which owns the
-/// reviewed command path.
+/// CLB-G13a: 通用玩法现场运营 inside the topic director block.
+/// Reads shared-run control and opens the director page for each offered action.
 @MainActor struct ClubTopicGenericOpsSection: View {
     let activityID: Int
-    /// The director projection revision; a different control revision means the run moved on.
     let revision: Int
     let onOpenAction: (String) -> Void
     @Environment(\.playerGapService) private var service
     @State private var control: PlayWireValue?
 
-    /// MP `genericOpsActions`: only labelled actions, never `ARRIVAL_ATTEST`, deduplicated; `OFFLINE_ANCHOR` first when offered.
     static let actionOrder = ["ACT_UNLOCK", "ARRIVAL_CONFIRM", "ARRIVAL_REVOKE", "RUN_PAUSE", "RUN_RESUME", "RUN_INTERRUPT",
                               "RUN_CANCEL", "MANUAL_BEGIN", "STAFF_MANUAL_SIGN", "MANUAL_IMPORT", "MANUAL_REVIEW",
                               "AUTHORITY_RESUME", "QUEST_GUIDE", "LOCATION_REBIND", "STAFF_TEAM_EXIT"]
+
     static func actions(_ control: PlayWireValue) -> [String] {
         guard let epoch = control["run"]["authorityEpoch"].integer, epoch >= 1, control["revision"].integer != nil,
               let offered = control["availableActions"].array else { return [] }
@@ -52,12 +48,14 @@ import SwiftUI
             }
         }
         .task(id: "\(activityID):\(revision)") {
-            guard let service, case let .ready(data) = await service.sharedControl(activityID: activityID) else { control = nil; return }
+            guard let service, case let .ready(data) = await service.sharedControl(activityID: activityID) else {
+                control = nil
+                return
+            }
             control = data
         }
     }
 
-    /// MP `genericOpsStatusText`: Chinese labels only, never the backend code.
     private func statusLine(_ run: PlayWireValue) -> some View {
         let status = run["operationStatus"].text.flatMap { ["RUNNING", "PAUSED", "INTERRUPTED", "CANCELLED"].contains($0) ? $0 : nil } ?? "unknown"
         let mode = run["authorityMode"].text.flatMap { ["ONLINE", "MANUAL"].contains($0) ? $0 : nil } ?? "unknown"
@@ -67,7 +65,6 @@ import SwiftUI
             .foregroundStyle(CYColor.textSecondary)
     }
 
-    /// MP: `'队伍 ' + teamId + (exited ? '（已退出）' : '')` joined with ` · `.
     private func teamsLine(_ teams: [PlayWireValue]) -> some View {
         let parts: [Text] = teams.compactMap { team in
             guard let id = team["teamId"].tolerantInteger else { return nil }
@@ -82,9 +79,7 @@ import SwiftUI
     }
 }
 
-/// CLB-G13a (MP `pages/club/topic-detail/index.wxml:238-243`, `plan-fallback.js:1-60`): 默认结局收尾.
-/// Status from `shared/control` (`PlayPlanFallbackStatus.present`), a 1–500 character reason, the
-/// 确认默认结局收尾 confirm, then `PLAN_FALLBACK` on `/api/game/session/command`.
+/// CLB-G13a: 默认结局收尾. A 1–500 character reason, then confirm, then `PLAN_FALLBACK`.
 @MainActor struct ClubTopicPlanFallbackSection: View {
     let activityID: Int
     let revision: Int
@@ -143,7 +138,8 @@ import SwiftUI
                     ToolbarItem(placement: .confirmationAction) {
                         Button("club.topic.planFallback.next") {
                             guard (try? PlayPlanFallbackStatus.validatedReason(draft)) != nil else {
-                                draftError = "club.topic.planFallback.reasonRequired"; return
+                                draftError = "club.topic.planFallback.reasonRequired"
+                                return
                             }
                             editing = false
                             confirming = true
@@ -166,13 +162,14 @@ import SwiftUI
         status = await load(activityID, revision)
     }
 
-    /// MP `confirmPlanFallback`: re-check availability and the revision before sending.
     private func submit() async {
         guard let submit = actions.submitPlanFallback, !busy else { return }
         guard status?.available == true, status?.controlRevision == revision else {
-            failure = "club.topic.planFallback.changed"; return
+            failure = "club.topic.planFallback.changed"
+            return
         }
-        busy = true; failure = nil
+        busy = true
+        failure = nil
         defer { busy = false }
         switch await submit(activityID, revision, draft) {
         case let .success(applied):

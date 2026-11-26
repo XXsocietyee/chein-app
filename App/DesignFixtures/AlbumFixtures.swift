@@ -71,7 +71,7 @@ enum AlbumFixtures {
     func shopBadge() async throws -> RoamShopBadge? { try await base.shopBadge() }
     func album(page: Int, pageSize: Int) async throws -> RoamAlbumPage {
         try Task.checkCancellation()
-        if empty { return try JSONDecoder().decode(RoamAlbumPage.self, from: Data(#"{"list":[],"total":0,"pageNum":1,"pageSize":20}"#.utf8)) }
+        if empty { return try JSONDecoder().decode(RoamAlbumPage.self, from: Data("{\"list\":[],\"total\":0,\"pageNum\":\(page),\"pageSize\":\(pageSize)}".utf8)) }
         let rows: [(Int, String, Int)] = [
             (1041, "Old Town tea house", 1), (1040, "Riverside bookshop", 3), (1032, "Night market lanterns", 9),
             (1027, "Harbour lighthouse", 15), (1019, "Botanic glasshouse", 24), (1011, "Clock tower square", 38),

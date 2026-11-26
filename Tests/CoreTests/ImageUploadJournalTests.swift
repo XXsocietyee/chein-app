@@ -126,6 +126,21 @@ private final class JournalUploadTransport: HTTPTransport {
             XCTAssertNil(try storage.journal().entry(for: ImageUploadTarget(scope: other)))
         }
     }
+    func testTopicDestinationsJournalSeparately() throws {
+        let storage = ImageJournalTestStorage()
+        let cover = try RetainedImageScope(accountID: 8, epoch: UUID(), realm: "https://api.example.com", destination: .topicCover, namespace: "deployment-one")
+        let gallery = try RetainedImageScope(accountID: 8, epoch: UUID(), realm: "https://api.example.com", destination: .topicGallery, resourceID: 71, namespace: "deployment-one")
+        let rich = try RetainedImageScope(accountID: 8, epoch: UUID(), realm: "https://api.example.com", destination: .topicRichMedia, namespace: "deployment-one")
+        let coverTarget = try ImageUploadTarget(scope: cover)
+        XCTAssertEqual(coverTarget.kind, "topic"); XCTAssertEqual(coverTarget.field, "cover"); XCTAssertEqual(coverTarget.entityID, 8)
+        let galleryTarget = try ImageUploadTarget(scope: gallery)
+        XCTAssertEqual(galleryTarget.field, "gallery"); XCTAssertEqual(galleryTarget.entityID, 71); XCTAssertEqual(galleryTarget.resourceID, 71)
+        XCTAssertEqual(try ImageUploadTarget(scope: rich).field, "richMedia")
+        try storage.journal().begin(target: coverTarget, attemptID: UUID())
+        XCTAssertNil(try storage.journal().entry(for: galleryTarget))
+        let poster = try RetainedImageScope(accountID: 8, epoch: UUID(), realm: "https://api.example.com", destination: .roamPoster(poiID: 3), namespace: "deployment-one")
+        XCTAssertThrowsError(try ImageUploadTarget(scope: poster))
+    }
     func testWrongAttemptAndCorruptVersionCannotUnlock() throws {
         let storage = ImageJournalTestStorage(), target = try ImageUploadTarget(scope: scope())
         try storage.journal().begin(target: target, attemptID: UUID())

@@ -29,6 +29,8 @@ struct ProfileOrdersView: View {
     @State private var nextHistoryPage = 2
     @State private var historyMore = false
     @State private var historyLoading = false
+    /// The last next-page read failed. The page number stays, and the sentinel does not fire again by itself.
+    @State private var historyPageFailed = false
     @State private var historyGeneration = 0
     private var filterOwner: ProfileOrderFilterOwner {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
@@ -41,6 +43,7 @@ struct ProfileOrdersView: View {
                     appendedOrders = []
                     nextHistoryPage = 2
                     historyMore = page.hasMore
+                    historyPageFailed = false
                     historyGeneration += 1
                 }
                 return page.rows
@@ -48,6 +51,7 @@ struct ProfileOrdersView: View {
             await MainActor.run {
                 appendedOrders = []
                 historyMore = false
+                historyPageFailed = false
                 historyGeneration += 1
             }
             return try await reader.profileOrders()
@@ -94,6 +98,9 @@ struct ProfileOrdersView: View {
                                     if historyLoading {
                                         ProgressView().accessibilityLabel(Text("profile.loading"))
                                             .frame(maxWidth: .infinity, minHeight: 44)
+                                    } else if historyPageFailed {
+                                        Button("action.retry") { loadNextHistoryPage() }
+                                            .frame(maxWidth: .infinity, minHeight: 44)
                                     } else {
                                         Color.clear.frame(height: 1).onAppear { loadNextHistoryPage() }
                                     }
@@ -116,7 +123,7 @@ struct ProfileOrdersView: View {
             filterSelection.retire(); orderEntry = nil; lookedUpOrderID = nil
         }
         .onChange(of: filterOwner) { _, _ in
-            appendedOrders = []; nextHistoryPage = 2; historyMore = false; historyLoading = false; historyGeneration += 1
+            appendedOrders = []; nextHistoryPage = 2; historyMore = false; historyLoading = false; historyPageFailed = false; historyGeneration += 1
         }
     }
     /// First page plus later `orderHistory` pages, in server order, without repeating an id.
@@ -133,6 +140,7 @@ struct ProfileOrdersView: View {
         let page = nextHistoryPage
         let generation = historyGeneration
         historyLoading = true
+        historyPageFailed = false
         Task {
             defer { historyLoading = false }
             await appendHistoryPage(page, owner: owner, reader: paged, generation: generation)
@@ -147,9 +155,11 @@ struct ProfileOrdersView: View {
             appendedOrders.append(contentsOf: next.rows.filter { $0.id > 0 && seen.insert($0.id).inserted })
             nextHistoryPage = page + 1
             historyMore = next.hasMore
+            historyPageFailed = false
         } catch {
-            guard owner == filterOwner else { return }
-            historyMore = false
+            // Keep the rows on screen and ask for this same page again. Do not advance nextHistoryPage.
+            guard owner == filterOwner, generation == historyGeneration else { return }
+            historyPageFailed = true
         }
     }
     /// Appearance records the entry only. It does not look up and does not send.

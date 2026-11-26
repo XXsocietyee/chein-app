@@ -170,7 +170,9 @@ public struct ClubGovernanceCommand: Equatable {
         if operation == .chapterRecruit { guard [0, 1].contains(result["enabled"]?.int ?? -1) else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .ban {
             // Owner 2026-11-24: send the chosen day count. The server clock owns the expiry.
-            guard let days = result["durationDays"]?.int, ClubGovernanceFormDraft.banDayChoices.contains(days) else { throw ClubGovernanceFailure.invalidRequest }
+            // A string day count is not a chosen integer, and epoch fields are not this body.
+            guard let value = result["durationDays"], case .integer(let days) = value,
+                  ClubGovernanceFormDraft.banDayChoices.contains(days) else { throw ClubGovernanceFailure.invalidRequest }
         }
         if operation == .reportHours { guard ["PREP", "CONTENT", "ONSITE", "REVIEW"].contains(result["hourKind"]?.string ?? ""), let number = result["actualHours"]?.number, number.isFinite, number >= 0 else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .submitEvidence { guard ["DELIVERY_SAFETY", "PLAYER_EXPERIENCE", "CONTENT_REPORT"].contains(result["dimension"]?.string ?? ""), Self.matches(result["evidenceHash"]?.string, "^[0-9a-f]{64}$") else { throw ClubGovernanceFailure.invalidRequest } }

@@ -107,6 +107,13 @@ final class ParticipantFormModel: ObservableObject {
             showConfirmation = true; issue = nil; sync()
         } catch { issue = ParticipantScreenIssue(error) }
     }
+    /// r9 A6-02: MP addressinfo.wxml:49 `saveAddress` saves on tap with no modal, so a prepared save is
+    /// committed straight away by the view; only delete keeps its confirm.
+    var pendingIsSave: Bool {
+        guard let confirmation else { return false }
+        if case .save = confirmation.mutation { return true }
+        return false
+    }
     func cancelConfirmation() {
         if let confirmation { coordinator.cancelConfirmation(confirmation) }
         confirmation = nil; originalCreateRetry = nil; confirmationSummary = ""; showConfirmation = false; sync()
@@ -201,6 +208,11 @@ struct ParticipantFormView: View {
     let onSaved: () -> Void
     let onCreated: (ProfileParticipant, ProfileReadIdentity) -> Void
     @State private var savedTick = 0
+    /// r9 A6-01b: MP addressinfo.wxml:29-30 — when the account has a bound phone and this participant has no
+    /// valid number of its own (`ownPhone`), the phone row shows that bound number read-only.
+    let boundPhoneLoader: (() async -> String?)?
+    @State private var boundPhone: ProfileParticipantPhone?
+    @State private var ownPhone = false
     private func requiredLabel(_ key: LocalizedStringKey) -> some View {
         HStack(spacing: 2) {
             Text(key)
@@ -212,9 +224,36 @@ struct ParticipantFormView: View {
 
     init(id: Int? = nil, reader: any ProfileReading, coordinator: ParticipantMutationCoordinator,
          onSaved: @escaping () -> Void = {},
-         onCreated: @escaping (ProfileParticipant, ProfileReadIdentity) -> Void = { _, _ in }) {
+         onCreated: @escaping (ProfileParticipant, ProfileReadIdentity) -> Void = { _, _ in },
+         boundPhoneLoader: (() async -> String?)? = nil) {
         _model = StateObject(wrappedValue: ParticipantFormModel(id: id, reader: reader, coordinator: coordinator))
-        self.onSaved = onSaved; self.onCreated = onCreated
+        self.onSaved = onSaved; self.onCreated = onCreated; self.boundPhoneLoader = boundPhoneLoader
+    }
+
+    /// MP addressinfo.js:59-72 `loadBoundPhone` + :107 `ownPhone`: a valid bound phone fills the form and
+    /// locks the row, unless the participant being edited already carries its own valid number.
+    private func loadBoundPhone() async {
+        guard model.loaded, boundPhone == nil, let boundPhoneLoader else { return }
+        let own = model.id != nil && ProfileParticipantPhone(source: model.draft.mobilePhone) != nil
+        guard let raw = await boundPhoneLoader(), let phone = ProfileParticipantPhone(source: raw) else { return }
+        ownPhone = own
+        boundPhone = phone
+        if !own { model.draft.mobilePhone = phone.text }
+    }
+
+    /// r9 A6-02: the alert stays only for a non-save (delete) confirmation.
+    private var deleteConfirmationShown: Binding<Bool> {
+        Binding(get: { model.showConfirmation && !model.pendingIsSave },
+                set: { model.showConfirmation = $0 })
+    }
+
+    @MainActor private func commitMutation() async {
+        if await model.confirmMutation() {
+            if let row = model.coordinator.savedParticipant, let identity = model.coordinator.identity { onCreated(row, identity) }
+            savedTick += 1
+            try? await Task.sleep(for: .milliseconds(700))
+            onSaved(); dismiss()
+        }
     }
 
     var body: some View {
@@ -263,14 +302,22 @@ struct ParticipantFormView: View {
                             .onSubmit { focusedField = .phone }
                             .accessibilityIdentifier("participant.form.name")
                         } label: { requiredLabel("profile.participants.name") }
+                        if let boundPhone, !ownPhone {
+                            LabeledContent {
+                                Text(verbatim: boundPhone.text)
+                                    .foregroundStyle(CYColor.textSecondary)
+                                    .accessibilityIdentifier("participant.form.phone.bound")
+                            } label: { requiredLabel("profile.participants.phone") }
+                        } else {
                         LabeledContent {
                             TextField("profile.participants.phone", text: $model.draft.mobilePhone, prompt: Text("participant.form.phonePrompt"))
                             .textContentType(.telephoneNumber).keyboardType(.phonePad)
                             .multilineTextAlignment(.trailing)
                             .submitLabel(.done).focused($focusedField, equals: .phone)
-                            .onSubmit { focusedField = model.reviewForSave() }
+                            .onSubmit { focusedField = model.reviewForSave(); if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } } }
                             .accessibilityIdentifier("participant.form.phone")
                         } label: { requiredLabel("profile.participants.phone") }
+                        }
                         // Input errors sit in red under the fields (ui-spec States).
                         if let field = model.validationIssue {
                             Text(LocalizedStringKey(field.messageKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
@@ -310,6 +357,8 @@ struct ParticipantFormView: View {
                         CYPillButton(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving"
                             : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check")) {
                             focusedField = model.reviewForSave()
+                            // r9 A6-02: MP addressinfo.wxml:49 saves on tap (progress → success), no confirm.
+                            if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } }
                         }
                         .disabled(!model.canReviewForSave)
                         .accessibilityIdentifier("participant.form.save")
@@ -329,22 +378,15 @@ struct ParticipantFormView: View {
         }
         .interactiveDismissDisabled(model.busy)
         .sensoryFeedback(.success, trigger: savedTick)
-        .alert("participant.form.confirmSave", isPresented: $model.showConfirmation) {
+        .alert("participant.form.confirmSave", isPresented: deleteConfirmationShown) {
             Button("participant.form.save") {
-                Task {
-                    if await model.confirmMutation() {
-                        if let row = model.coordinator.savedParticipant, let identity = model.coordinator.identity { onCreated(row, identity) }
-                        savedTick += 1
-                        try? await Task.sleep(for: .milliseconds(700))
-                        onSaved(); dismiss()
-                    }
-                }
+                Task { await commitMutation() }
             }
             Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
         } message: {
             Text("participant.form.confirmSaveHint") + Text(verbatim: "\n\(model.confirmationSummary)")
         }
-        .task(id: model.reader.identity) { await model.load() }
+        .task(id: model.reader.identity) { await model.load(); await loadBoundPhone() }
         .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active { model.resumeOriginalCreateRetry() }
             else { model.suspendOriginalCreateRetry() }

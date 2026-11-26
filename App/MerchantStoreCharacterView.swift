@@ -265,6 +265,13 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                             .accessibilityIdentifier("aiNPC.hero.rejectReason")
                     }
                 }
+                if !c.reviewText.isEmpty {
+                    Text(verbatim: c.reviewText)
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("aiNPC.hero.review")
+                }
             } else {
                 t("storeCharacter.avatar.previewCaption")
                     .cyText(.meta)
@@ -420,6 +427,7 @@ private func storeCharacterNoticeText(_ notice: StoreCharacterCoordinator.Notice
     case .mapPointUnknown: key = "storeCharacter.notice.mapPointUnknown"
     case .readbackConfirmed: key = "storeCharacter.notice.readbackConfirmed"
     case .readbackMismatch: key = "storeCharacter.notice.readbackMismatch"
+    case .voiceCleared: key = "storeCharacter.notice.voiceCleared"
     }
     return String(localized: LocalizedStringResource(key, table: "StoreCharacter", locale: locale))
 }
@@ -653,12 +661,19 @@ private struct StoreCharacterVoiceSheet: View {
                             .accessibilityIdentifier("aiNPC.voice.playSample")
                         }
                         Button { samplePlayer?.pause(); samplePlaying = false; c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }.accessibilityIdentifier("aiNPC.voice.rerecord")
+                        if canClearVoice { clearVoiceButton }
                     }
                 case .none, .failed:
-                    if status == .failed { Section { t("storeCharacter.voice.failedBody").foregroundStyle(CYColor.dangerText) } }
+                    if status == .failed {
+                        Section {
+                            t("storeCharacter.voice.failedBody").foregroundStyle(CYColor.dangerText)
+                            if canClearVoice, c.recording == nil { clearVoiceButton }
+                        }
+                    }
                     if let recording = c.recording { recorded(recording) } else { voiceMode }
                 }
                 if let confirmation = c.voiceConfirmation { consentDialog(confirmation) }
+                if let confirmation = c.voiceClear { clearDialog(confirmation) }
                 if let issue = c.voiceIssue {
                     Section {
                         VStack(alignment: .leading, spacing: 4) { t("storeCharacter.issue.title").bold(); issueText(issue) }
@@ -726,11 +741,26 @@ private struct StoreCharacterVoiceSheet: View {
             (Text(verbatim: String(recording.durationSeconds)) + t("storeCharacter.voice.recordedHint")).cyText(.bodyCompact).foregroundStyle(.secondary)
             Button { c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }
                 .disabled(c.voiceBusy || c.voiceUnknown).accessibilityIdentifier("aiNPC.voice.reset")
+            if canClearVoice { clearVoiceButton }
             Button { c.prepareEnroll() } label: {
                 HStack { if c.voiceBusy { ProgressView() }; t("storeCharacter.voice.enroll").bold() }
             }
             .disabled(c.voiceBusy || c.voiceUnknown || !c.voiceConsent).accessibilityIdentifier("aiNPC.voice.enroll")
         }
+    }
+    private var canClearVoice: Bool { c.canEnroll && (status == .ready || status == .failed) }
+    private var clearVoiceButton: some View {
+        Button { c.prepareClearVoice() } label: { t("storeCharacter.voice.clear") }
+            .accessibilityIdentifier("aiNPC.voice.clear")
+    }
+    @ViewBuilder private func clearDialog(_ confirmation: StoreCharacterCoordinator.VoiceClearConfirmation) -> some View {
+        Section {
+            t("storeCharacter.voice.clearBody").cyText(.bodyCompact)
+            Button(role: .destructive) { Task { await c.confirmClearVoice(confirmation.id) } } label: { t("storeCharacter.voice.clearConfirm").bold() }
+                .accessibilityIdentifier("aiNPC.voice.clearConfirm")
+            Button(role: .cancel) { c.cancelClearVoice() } label: { t("storeCharacter.voice.clearCancel") }
+                .accessibilityIdentifier("aiNPC.voice.clearCancel")
+        } header: { t("storeCharacter.voice.clearTitle") }
     }
     @ViewBuilder private func consentDialog(_ confirmation: StoreCharacterCoordinator.VoiceConfirmation) -> some View {
         Section {

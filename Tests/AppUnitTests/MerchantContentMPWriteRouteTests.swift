@@ -14,6 +14,7 @@ import XCTest
         let commands: [MerchantContentCommand] = [
             .reviewCircle(topicID: 70, scope: "MERCHANT"), .apply(chapterID: 7, message: ""), .withdraw(applicationID: 3),
             .cancelRegistration(id: 5), .auditApplication(id: 3, approve: true, reason: ""), .auditNode(nodeID: 9, approve: true, reason: ""),
+            .invite(chapterID: 7, merchantMemberID: 3, replacementOfOfferID: 1, scope: "MERCHANT", message: nil),
             .claim(poiID: 1), .cancelClaim(poiID: 1), .cityStatus(poiID: 1, online: true),
             .saveNPC(nodeID: 9, name: "n", avatar: "a", greeting: "g"), .enrollVoice(nodeID: 9, voiceSample: "s"), .resetVoice(nodeID: 9),
         ]

@@ -67,6 +67,8 @@ ROWS = {
  'merchantOps.aftercare.manualCase.requested': ('Refund requested', '玩家申请退款'),
  'merchantOps.aftercare.manualCase.note': ('Handled by the platform; merchants can follow the progress.', '由平台处理，商家可查看进度。'),
  'merchantOps.aftercare.manualCase.activity': ('Activity', '活动'),
+ 'merchantOps.aftercare.manualCase.number': ('Case number', '工单编号'),
+ 'merchantOps.aftercare.manualCase.amount': ('Amount', '退款金额'),
  'merchantOps.aftercare.manualCase.progress': ('Progress', '处理进度'),
  'merchantOps.aftercare.day.today': ('Today', '今天'),
  'merchantOps.aftercare.day.yesterday': ('Yesterday', '昨天'),

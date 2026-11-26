@@ -70,9 +70,12 @@ import UIKit
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     // A7-08-r7: MP source error 图片没能打开 (pages.crop.error); 使用原图 / 取消 stay in the bar.
-                    // MiniCropSession has no per-image retry yet (Core request in the receipt).
+                    // r9 A7-08b: MP crop/index.wxml:26 `retry="重试" bind:retry="onRetrySource"` → index.js:149
+                    // `startAt(this.idx)`, i.e. re-open the current image: `MiniCropSession.retryCurrent()`.
                     CYEmptyState(systemImage: "photo.badge.exclamationmark", LocalizedStringKey(CropPageModel.Copy.error),
-                                 messageIdentifier: "miniCrop.failed")
+                                 messageIdentifier: "miniCrop.failed",
+                                 actionTitle: "common.retry", actionIdentifier: "miniCrop.retry",
+                                 action: retrySource)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
@@ -98,6 +101,13 @@ import UIKit
         .transaction { transaction in
             if reduceMotion { transaction.disablesAnimations = true }
         }
+    }
+
+    /// r9 A7-08b: MP `onRetrySource` re-starts the current image without advancing.
+    private func retrySource() {
+        gestureScale = 1
+        gestureOffset = .zero
+        session.retryCurrent()
     }
 
     /// Localized `1/2` when the model knows the position; the em dash otherwise. One image shows nothing.

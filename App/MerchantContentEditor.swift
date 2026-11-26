@@ -116,7 +116,7 @@ import SwiftUI
         .sheet(isPresented: $showApplyPicker) {
             NavigationStack {
                 MerchantApplyPickerGapView(location: applyLocationBinding, ruleInstructions: binding("activityDesc"),
-                                           uploadedPicURLs: applyPicBinding, writesEnabled: false)
+                                           uploadedPicURLs: applyPicBinding, writesEnabled: false, showsSubmit: false)
                     .navigationTitle(Text("merchantApply.location.title"))
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {

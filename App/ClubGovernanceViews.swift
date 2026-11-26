@@ -188,7 +188,6 @@ struct ClubGovernanceReadView: View {
     @StateObject private var attendanceReads = ClubAttendanceRosterRead()
     @StateObject private var roleManagementReturn = ClubRoleManagementReturn()
     @StateObject private var roleReads = ClubRoleListRead()
-    @State private var listRefreshToast: LocalizedStringKey?
     @StateObject private var topicSettingsReturn = ClubTopicSettingsReturn()
     @StateObject private var topicSettingsReads = ClubTopicSettingsRead()
     @StateObject private var banRemovalReturn = ClubBanRemovalReturn()
@@ -345,7 +344,6 @@ struct ClubGovernanceReadView: View {
                     access: access, coordinator: coordinator, didDismiss: finishRoleManagementReturn).id(item.id)
             }
         }
-        .cyToast(message: $listRefreshToast)
         .onAppear {
             if operation == .roles {
                 roleManagementReturn.appear()
@@ -1166,9 +1164,8 @@ struct ClubGovernanceReadView: View {
             await load()
         }
     }
-    /// CLB-r7-C-03 (MP roles/index.js:266-272): the re-read after a role action keeps the list on failure and only
-    /// toasts 列表没刷新成功，下拉重试; first loads and pull-to-refresh still show the full error.
-    @MainActor private func load(keepingOnFailure: Bool = false) async {
+    /// Shared read. A failed roles re-read keeps the previous list in finishRoleManagementReturn (CLB-r7-C-03).
+    @MainActor private func load() async {
         let cancellationTicket = occurrenceCancellationReturn.readback
         let cancellationCurrent = {
             operation != .occurrenceStatus || (seriesHostVisible && scenePhase == .active &&
@@ -1193,7 +1190,6 @@ struct ClubGovernanceReadView: View {
         if operation == .customers { customerKeywordDebounce.cancel() }
         generation &+= 1; let revision = generation; let expected = identity; let context = readContext
         let customerQuery = customerFilters
-        let kept = keepingOnFailure && failure == nil && snapshotContext == context ? snapshot : nil
         snapshot = nil; failure = nil; loading = true
         snapshotContext = nil; customerTopic = nil; feedClub = nil; feedMediaScope = UUID()
         leaderboardMember = nil
@@ -1235,12 +1231,7 @@ struct ClubGovernanceReadView: View {
         } catch {
             guard cancellationCurrent(), revision == generation else { return }
             guard caseReadIsCurrent(), revision == generation, context == readContext, expected == identity, rosterReadIsCurrent(rosterAttachment), roleReadIsCurrent(roleAttachment), topicSettingsReadIsCurrent(topicSettingsAttachment), banReadIsCurrent(banAttachment), settlementReadIsCurrent(settlementAttachment), access.identity == expected, !Task.isCancelled else { return }
-            if let kept, !(error is CancellationError) {
-                snapshotContext = context; snapshotGeneration = revision; snapshot = kept
-                listRefreshToast = "club.roles.refreshFailedToast"
-            } else {
-                failure = error as? ClubGovernanceFailure ?? .malformed
-            }
+            failure = error as? ClubGovernanceFailure ?? .malformed
         }
         if revision == generation { loading = false }
     }
@@ -1468,15 +1459,22 @@ struct ClubGovernanceReadView: View {
         } else if operation == .hostStatus {
             // Mini-program club/apply: intro → form; merchant accounts get a blocked state; hosts see the done card.
             if value["accountRole"] == .string("merchant") {
-                CYEmptyState(systemImage: "storefront", "club.host.merchant.title", detail: "club.gov.hostMerchantBlocked")
+                // CLB-apply-04 (r9, MP apply js:94-96, 108, 159-163): a merchant-role account is an active merchant
+                // (MP isMerchantAccount → merchantActive: true) unless the read says otherwise. Active → 切换到商家端
+                // (reLaunch pages/merchant/index/index); otherwise 查看商家入驻 (pages/merchant/apply/index).
+                let merchantActive = value["merchantActive"].bool ?? true
+                CYEmptyState(systemImage: "storefront", "club.host.merchant.title",
+                             detail: LocalizedStringKey(merchantActive ? "club.host.merchant.activeSub" : "club.gov.hostMerchantBlocked"))
                     .listRowBackground(Color.clear)
                 // CLB-apply-04 (MP apply wxml:30-33, js:157-162): the way out is the merchant side, plus 返回.
                 Section {
-                    NavigationLink { MPReviewedPageScreen(page: "pages/merchant/apply/index", query: [:]) } label: {
-                        Text("club.host.merchant.viewApply")
+                    NavigationLink {
+                        MPReviewedPageScreen(page: merchantActive ? "pages/merchant/index/index" : "pages/merchant/apply/index", query: [:])
+                    } label: {
+                        Text(LocalizedStringKey(merchantActive ? "club.host.merchant.switch" : "club.host.merchant.viewApply"))
                     }
                     .buttonStyle(CYPillButtonStyle(style: .primary))
-                    .accessibilityIdentifier("club.host.merchant.viewApply")
+                    .accessibilityIdentifier(merchantActive ? "club.host.merchant.switch" : "club.host.merchant.viewApply")
                     Button("action.back") { dismissPage() }
                         .buttonStyle(CYPillButtonStyle(style: .secondary))
                         .accessibilityIdentifier("club.host.merchant.back")
@@ -1526,7 +1524,15 @@ struct ClubGovernanceReadView: View {
             // CLB-roles-05: the MP roles page has no 可委派角色 list; the role choice lives in the assign picker.
         } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
             ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:], role: .inlineLink)) }
-            Section { link(.members) }
+            // CLB-governance-01 (MP governance wxml:61-122): records, then the 对成员执行 card on the same page.
+            ClubOpsMemberActionCard(clubID: scope.clubID, identity: identity, access: access,
+                ban: { member, days in
+                    var seed = member.seed
+                    seed["banDays"] = .string(String(days))
+                    return AnyView(edit(.ban, seed: seed, role: .inlineDestructive))
+                },
+                transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) },
+                fallback: AnyView(link(.members)))
         } else if operation == .members, let members = try? ClubOpsGovernanceMembers(snapshot: snapshot) {
             ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed, role: .inlineDestructive)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) },
                 scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value,

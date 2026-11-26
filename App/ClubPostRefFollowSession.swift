@@ -38,7 +38,7 @@ import SwiftUI
         }
     }
 
-    /// CLB-G04: 申请带队 (`/api/coop/pool/apply`). Nil when the route is not offered here.
+    /// CLB-G04: 申请带队. Nil when this deployment does not offer the route.
     var clubCoopPoolApply: ((_ topicID: Int, _ clubID: Int, _ message: String) async throws -> Void)? {
         guard regionalConfiguration?.showsRoute("/api/coop/pool/apply") == true else { return nil }
         return { [weak self] topicID, clubID, message in
@@ -55,8 +55,7 @@ import SwiftUI
         }
     }
 
-    /// CLB-G02: club 扫码核销 (MP `pages/club/detail/index.js:964-1060`). `ClubScanClient` resolves the code with the
-    /// shared `utils/verification-scan.js` table and sends nothing for an invalid code or a viewer who may not scan.
+    /// CLB-G02: club 扫码核销. Invalid codes and viewers who may not scan send nothing.
     var clubScanSubmit: ((_ raw: String, _ canGovern: Bool, _ canManageActivities: Bool) async throws -> Bool)? {
         guard let configuration = regionalConfiguration?.apiConfiguration else { return nil }
         return { [weak self] raw, canGovern, canManageActivities in

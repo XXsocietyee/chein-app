@@ -188,6 +188,7 @@ localizable_ui=re.sub(r'primaryIdentifier:[^\n]*','',localizable_ui)
 localizable_ui=re.sub(r'(case\s+\.[A-Za-z]+:\s*return\s+)"[a-z0-9.]+"','',localizable_ui)  # SF Symbol names returned from symbol(for:) switches
 localizable_ui=re.sub(r'(?:confirmIdentifier|icon|submitID):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'(?<![\w.])id:\s*"(?:\\.|[^"\\])*"','',localizable_ui)
+localizable_ui=re.sub(r'@AppStorage\("(?:\\.|[^"\\])*"\)', '', localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
 localizable_ui=re.sub(r'(?:systemImage|systemName|symbol):\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
 # SF Symbol name returned for the search-map layers tile, not a localization key.

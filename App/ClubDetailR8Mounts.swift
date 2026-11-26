@@ -14,9 +14,8 @@ import SwiftUI
     @Published private(set) var topicTotal: Int?
     /// CLB-r7-A-06: 「N 人」 beside 查看客户, or 暂时读不到 when the count read fails (MP js:3591-3601).
     @Published private(set) var customerCountText: String?
-    /// CLB-G04: the topic whose 申请带队 is in flight, and the MP toast text after it settles.
     @Published private(set) var coopApplyPendingTopicID: Int?
-    @Published var coopApplyNotice: LocalizedStringKey?
+    @Published var coopApplyNoticeKey: String?
     @Published var coopApplyServerNotice: String?
     private var settingsCountsFor: Int?
     private var projectsKey: String?
@@ -131,24 +130,28 @@ import SwiftUI
                      isTaken: ["taken", "cooped", "converted"].contains(row.state ?? ""),
                      merchantNick: row.merchantNick, subtitle: row.subtitle,
                      deadlineText: deadline.map { appLocalized("cooperation.expires", locale: locale) + " " + $0 },
-                     // CLB-G04: MP decoratePool — open / declined / withdrawn rows offer 申请带队.
                      canApply: ClubCoopPoolApplyClient.canApply(state: row.state), applyID: row.applyId)
     }
 
-    /// MP `applyCoopPool` (`pages/club/detail/index.js:3806-3843`): one application at a time; success and an
-    /// unknown result both re-read the pool so the card flips to 已申请.
+    /// One 申请带队 at a time. Success and an unknown result both re-read the pool.
     func applyCoopPool(topicID: Int, clubID: Int, message: String, session: AppSession, key: String, locale: Locale) async {
         guard coopApplyPendingTopicID == nil, let submit = session.clubCoopPoolApply else { return }
-        coopApplyPendingTopicID = topicID; coopApplyNotice = nil; coopApplyServerNotice = nil
+        coopApplyPendingTopicID = topicID
+        coopApplyNoticeKey = nil
+        coopApplyServerNotice = nil
         defer { coopApplyPendingTopicID = nil }
         do {
             try await submit(topicID, clubID, message)
-            coopApplyNotice = "club.coopPool.applied"
+            coopApplyNoticeKey = "club.coopPool.applied"
             await loadCoopPool(key: key, reader: session.cooperationReader, locale: locale, force: true)
         } catch let refusal as MPGapServerRefusal {
-            if let text = refusal.message, !text.isEmpty { coopApplyServerNotice = text } else { coopApplyNotice = "club.coopPool.applyFailed" }
+            if let text = refusal.message, !text.isEmpty { coopApplyServerNotice = text } else { coopApplyNoticeKey = "club.coopPool.applyFailed" }
+        } catch is CancellationError {
+            return
+        } catch is APIError {
+            coopApplyNoticeKey = "club.coopPool.applyFailed"
         } catch {
-            coopApplyNotice = "club.coopPool.applyUnknown"
+            coopApplyNoticeKey = "club.coopPool.applyUnknown"
             await loadCoopPool(key: key, reader: session.cooperationReader, locale: locale, force: true)
         }
     }
@@ -223,8 +226,8 @@ enum ClubDetailR8Route: Hashable, Identifiable {
             },
             onOpenApplication: { _ in open(.myCoop) },
             onOpenMyCoop: { open(.myCoop) })
-        if let notice = model.coopApplyNotice {
-            Section { Text(notice).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+        if let key = model.coopApplyNoticeKey {
+            Section { Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 .accessibilityIdentifier("club.coopPool.notice")
         } else if let notice = model.coopApplyServerNotice {
             Section { Text(verbatim: notice).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
@@ -377,11 +380,36 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     }
 }
 
+/// MP detail `goMemberProfile` on a 本团贡献榜 row (`index.wxml` catchtap, `index.js`).
+/// A positive member opens 公开资料. The owner and administrators also choose 客户档案.
+private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
+    let id: UUID
+    let memberID: Int
+    let customer: Bool
+    let clubID: Int
+    let identity: ClubReadIdentity
+    let viewerRevision: UInt64
+}
+
 @MainActor struct ClubInlineLeaderboardRows: View {
     @ObservedObject var model: ClubInlineLeaderboardModel
+    let club: ClubRecord
+    let identity: ClubReadIdentity
+    let governance: ClubGovernanceContext
     let retry: () -> Void
     @Environment(\.locale) private var locale
+    @State private var destination: ClubDetailLeaderboardMemberOpen?
+    @State private var choice: ClubDetailLeaderboardMemberOpen?
+    @State private var choosing = false
     var body: some View {
+        rows
+            .navigationDestination(item: $destination) { destinationPage($0) }
+            .sheet(isPresented: $choosing) { choiceSheet.cyDomainSheet(detents: [.peek, .half]) }
+            .onChange(of: identity) { _, _ in reset() }
+            .onChange(of: governance.viewerRevision) { _, _ in reset() }
+            .onChange(of: model.phase) { _, _ in prune() }
+    }
+    @ViewBuilder private var rows: some View {
         switch model.phase {
         case .idle, .loading:
             CYSkeleton(variant: .row).accessibilityLabel(Text("club.loading"))
@@ -402,7 +430,17 @@ enum ClubDetailR8Route: Hashable, Identifiable {
             }
         }
     }
-    private func rowView(_ row: ClubInlineLeaderboardModel.Row) -> some View {
+    @ViewBuilder private func rowView(_ row: ClubInlineLeaderboardModel.Row) -> some View {
+        if row.memberID > 0, profileOpenable || offersCustomer {
+            Button { open(row.memberID) } label: { rowBody(row) }
+                .buttonStyle(.plain)
+                .accessibilityHint(Text("club.detail.leaderboard.member.hint", tableName: "ClubPublicRoster"))
+                .accessibilityIdentifier("club.detail.leaderboard.row.\(row.memberID)")
+        } else {
+            rowBody(row).accessibilityIdentifier("club.detail.leaderboard.row.\(row.memberID)")
+        }
+    }
+    private func rowBody(_ row: ClubInlineLeaderboardModel.Row) -> some View {
         HStack(spacing: CYSpacing.md) {
             Text(row.rank, format: .number).cyText(.cardTitle).monospacedDigit()
                 .foregroundStyle(row.rank <= 3 ? CYColor.brand : CYColor.textSecondary)
@@ -423,8 +461,94 @@ enum ClubDetailR8Route: Hashable, Identifiable {
             Text(verbatim: primaryText(row)).cyText(.bodyMedium).monospacedDigit().foregroundStyle(CYColor.textPrimary)
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("club.detail.leaderboard.row.\(row.memberID)")
+    }
+    private var offersCustomer: Bool { (club.isOwner || club.viewerIsAdmin) && customerOpenable }
+    private var profileOpenable: Bool {
+        guard identity.isSignedIn, let profile = governance.enrollmentProfile else { return false }
+        return profile.reader.isConfigured && profile.reader.identity.accountID == identity.accountID
+            && profile.reader.identity.epoch == identity.epoch
+    }
+    private var customerOpenable: Bool {
+        identity.isSignedIn && governance.access.isConfigured && governance.access.identity == identity
+    }
+    private func onBoard(_ memberID: Int) -> Bool {
+        guard case .ready(let rows) = model.phase else { return false }
+        return rows.contains { $0.memberID == memberID && $0.hiddenCount == nil }
+    }
+    /// A refresh in flight keeps the member already opened. The next ready board drops them if they are gone.
+    private func stillListed(_ memberID: Int) -> Bool {
+        if onBoard(memberID) { return true }
+        guard case .loading = model.phase else { return false }
+        return destination?.memberID == memberID || choice?.memberID == memberID
+    }
+    private func current(_ target: ClubDetailLeaderboardMemberOpen) -> Bool {
+        guard target.identity == identity, target.viewerRevision == governance.viewerRevision, target.clubID == club.id,
+              target.memberID > 0, stillListed(target.memberID) else { return false }
+        if target.customer { return offersCustomer }
+        return profileOpenable
+    }
+    private func open(_ memberID: Int) {
+        guard destination == nil, !choosing, memberID > 0, onBoard(memberID) else { return }
+        guard profileOpenable || offersCustomer else { return }
+        let pick = ClubDetailLeaderboardMemberOpen(id: UUID(), memberID: memberID, customer: false, clubID: club.id,
+                                                    identity: identity, viewerRevision: governance.viewerRevision)
+        if profileOpenable && offersCustomer {
+            choice = pick
+            choosing = true
+        } else if profileOpenable {
+            destination = pick
+        } else {
+            destination = ClubDetailLeaderboardMemberOpen(id: UUID(), memberID: memberID, customer: true, clubID: club.id,
+                                                           identity: identity, viewerRevision: governance.viewerRevision)
+        }
+    }
+    @ViewBuilder private var choiceSheet: some View {
+        // Bind under another name: the closures below reset the @State `choice`, and shadowing it crashes swift-frontend.
+        if let pending = choice, current(pending) {
+            CYOptionSheet(
+                title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.open", table: "ClubPublicRoster", locale: locale)),
+                items: [
+                    CYOptionSheetItem(id: "public", title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.public", table: "ClubPublicRoster", locale: locale)),
+                                      systemImage: "person.crop.circle", identifier: "club.detail.leaderboard.choice.public"),
+                    CYOptionSheetItem(id: "customer", title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.customer", table: "ClubPublicRoster", locale: locale)),
+                                      systemImage: "person.text.rectangle", identifier: "club.detail.leaderboard.choice.customer")
+                ],
+                onSelect: { selected in
+                    guard let picked = choice, current(picked) else { choosing = false; choice = nil; return }
+                    let next = ClubDetailLeaderboardMemberOpen(id: UUID(), memberID: picked.memberID, customer: selected == "customer",
+                                                                clubID: club.id, identity: identity, viewerRevision: governance.viewerRevision)
+                    guard current(next) else { choosing = false; choice = nil; return }
+                    destination = next
+                    choosing = false
+                    choice = nil
+                },
+                onClose: { choosing = false; choice = nil }
+            )
+        } else {
+            Color.clear.onAppear { choosing = false; choice = nil }
+        }
+    }
+    @ViewBuilder private func destinationPage(_ target: ClubDetailLeaderboardMemberOpen) -> some View {
+        if current(target), target.customer {
+            ClubGovernanceReadView(operation: .customer, scope: .init(clubID: target.clubID, memberID: target.memberID),
+                                   identity: target.identity, access: governance.access, coordinator: governance.coordinator)
+                .environment(\.clubCustomerTopics, governance.customerTopics)
+                .environment(\.clubEnrollmentProfile, governance.enrollmentProfile)
+                .id(target.id)
+        } else if current(target), let profile = governance.enrollmentProfile {
+            SocialPublicProfileView(memberID: target.memberID, reader: profile.reader, squareReader: profile.squareReader,
+                                    actions: profile.actions, isCurrent: { current(target) })
+                .id(target.id)
+        } else {
+            Color.clear.onAppear { if destination?.id == target.id { destination = nil } }
+        }
+    }
+    private func reset() { destination = nil; choice = nil; choosing = false }
+    private func prune() {
+        if let destination, !current(destination) { self.destination = nil }
+        if let choice, !current(choice) { self.choice = nil; choosing = false }
     }
     private func mileageText(_ row: ClubInlineLeaderboardModel.Row) -> String {
         row.mileage.formatted(.number.precision(.fractionLength(1)).locale(locale)) + " km"

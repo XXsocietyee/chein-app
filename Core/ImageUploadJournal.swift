@@ -26,6 +26,7 @@ public struct ImageUploadTarget: Codable, Equatable {
         case "review": guard field == "images", resourceID != nil else { throw ImageUploadJournalFailure.corrupt }
         case "im": guard field == "image", resourceID == nil else { throw ImageUploadJournalFailure.corrupt }
         case "stamp": guard field == "picture", resourceID == nil, entityID == accountID else { throw ImageUploadJournalFailure.corrupt }
+        case "topic": guard field == "cover" || field == "gallery" || field == "richMedia" else { throw ImageUploadJournalFailure.corrupt }
         default: throw ImageUploadJournalFailure.corrupt
         }
     }
@@ -42,6 +43,16 @@ public struct ImageUploadTarget: Codable, Equatable {
         case .publicReview(let id, let registration):
             try self.init(accountID: scope.accountID, namespace: namespace, realm: scope.realm,
                 kind: "review", entityID: id, field: "images", resourceID: registration)
+        case .topicCover, .topicGallery, .topicRichMedia:
+            let field: String
+            switch scope.destination {
+            case .topicCover: field = "cover"
+            case .topicGallery: field = "gallery"
+            case .topicRichMedia: field = "richMedia"
+            default: throw ImageUploadJournalFailure.corrupt
+            }
+            try self.init(accountID: scope.accountID, namespace: namespace, realm: scope.realm,
+                kind: "topic", entityID: scope.resourceID ?? scope.accountID, field: field, resourceID: scope.resourceID)
         }
     }
     fileprivate var key: String {

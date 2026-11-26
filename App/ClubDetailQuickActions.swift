@@ -1,25 +1,24 @@
 import SwiftUI
 
-/// MP `pages/club/detail/index.wxml:367-395` quick-acts on 管理: round buttons under the workbench head.
-/// - CLB-G06: 设置 for every 管理 viewer (owner, admin or a delegated manager).
-/// - CLB-G02: 扫码 for the owner, an admin or `club:activity:manage`; it opens the camera and posts the matched
-///   verify route (`index.js:964-1060`). `scan=1` on the link starts it once the page has loaded (`index.js:754-755`).
+/// MP `pages/club/detail` 管理 quick action (CLB-G02): 扫码核销 for the owner, an admin, or
+/// `club:activity:manage`. `scan=1` starts the camera once the page has loaded.
+/// - CLB-detail-35: 出示二维码 for the owner, an admin or `club:event:checkin` (MP wxml:375-380, js:1078-1101).
+/// - CLB-G06: 设置 for every 管理 viewer (MP wxml:390-394, `onSettings` js:3571-3575).
 @MainActor struct ClubManageQuickActions: View {
     let canScan: Bool
     let canGovern: Bool
     let canManageActivities: Bool
     var autoStartScan = false
     let submitScan: ((_ raw: String, _ canGovern: Bool, _ canManageActivities: Bool) async throws -> Bool)?
-    /// CLB-G06: 设置 opens the 俱乐部设置 sheet (MP wxml:390-394, `onSettings` js:3571-3575). Nil hides it.
+    var onConsumeAutoStart: () -> Void = {}
+    /// CLB-G06: 设置 opens the 俱乐部设置 sheet. Nil hides it.
     var onSettings: (() -> Void)? = nil
-    /// CLB-detail-35: 出示二维码 for the owner, an admin or `club:event:checkin` (MP wxml:375-380, js:1078-1101).
+    /// CLB-detail-35: 出示二维码. Nil hides it.
     var onGroupCode: (() -> Void)? = nil
 
-    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var scanning = false
-    @State private var autoStarted = false
     @State private var busy = false
-    @State private var wrongEntry: String?
+    @State private var wrongEntry: LocalizedStringKey?
     @State private var resultTitle: LocalizedStringKey?
     @State private var resultMessage: String?
     @State private var showsResult = false
@@ -29,28 +28,36 @@ import SwiftUI
     var body: some View {
         if scanOffered || onSettings != nil || onGroupCode != nil {
             Section {
-                layout {
-                    if scanOffered {
-                        quickAction("club.quick.scan", systemImage: "qrcode.viewfinder", identifier: "club.quick.scan") { scanning = true }
-                            .disabled(busy)
-                            .accessibilityLabel(Text("club.quick.scan.a11y"))
+                if scanOffered {
+                    Button {
+                        scanning = true
+                    } label: {
+                        Label("club.quick.scan", systemImage: "qrcode.viewfinder")
                     }
-                    if let onGroupCode {
-                        quickAction("club.quick.groupCode", systemImage: "qrcode", identifier: "club.quick.groupCode", action: onGroupCode)
-                    }
-                    if let onSettings {
-                        quickAction("club.quick.settings", systemImage: "ellipsis", identifier: "club.quick.settings", action: onSettings)
-                            .accessibilityLabel(Text("clubR8.settings.open"))
-                    }
+                    .disabled(busy)
+                    .accessibilityLabel(Text("club.quick.scan.a11y"))
+                    .accessibilityIdentifier("club.quick.scan")
                 }
-                .frame(maxWidth: .infinity)
+                if let onGroupCode {
+                    Button(action: onGroupCode) {
+                        Label("club.quick.groupCode", systemImage: "qrcode")
+                    }
+                    .accessibilityIdentifier("club.quick.groupCode")
+                }
+                if let onSettings {
+                    Button(action: onSettings) {
+                        Label("club.quick.settings", systemImage: "gearshape")
+                    }
+                    .accessibilityLabel(Text("clubR8.settings.open"))
+                    .accessibilityIdentifier("club.quick.settings")
+                }
             }
             .task {
-                guard autoStartScan, !autoStarted, scanOffered else { return }
-                autoStarted = true
+                guard autoStartScan, scanOffered else { return }
                 scanning = true
+                onConsumeAutoStart()
             }
-            .fullScreenCover(isPresented: $scanning) {
+            .sheet(isPresented: $scanning) {
                 NativeQRScanner { raw in
                     scanning = false
                     Task { await handle(raw) }
@@ -59,7 +66,7 @@ import SwiftUI
             .alert(Text("club.scan.wrongEntry"), isPresented: Binding(get: { wrongEntry != nil }, set: { if !$0 { wrongEntry = nil } })) {
                 Button("club.scan.gotIt", role: .cancel) {}
             } message: {
-                Text(verbatim: wrongEntry ?? "")
+                if let wrongEntry { Text(wrongEntry) }
             }
             .alert(resultTitle.map { Text($0) } ?? Text(verbatim: ""), isPresented: $showsResult) {
                 Button("club.scan.ok", role: .cancel) {}
@@ -69,31 +76,16 @@ import SwiftUI
         }
     }
 
-    @ViewBuilder private func layout<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        if typeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: CYSpacing.md, content: content)
-        } else {
-            HStack(alignment: .top, spacing: CYSpacing.xl, content: content)
+    /// `ClubScanRoute` explains a bad code in Chinese. The alert uses the matching catalog key.
+    static func invalidKey(_ message: String) -> LocalizedStringKey {
+        switch message {
+        case "这是主题席位码，请由本场带队者从带队核销入口扫码": return "club.scan.invalid.topicSeat"
+        case "这是节点核销码，请从「城市节点」页扫码核销": return "club.scan.invalid.cityNode"
+        case "暂不支持此动态码": return "club.scan.invalid.unsupported"
+        default: return "club.scan.invalid.format"
         }
     }
 
-    private func quickAction(_ title: LocalizedStringKey, systemImage: String, identifier: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: CYSpacing.xs) {
-                Image(systemName: systemImage)
-                    .imageScale(.large)
-                    .foregroundStyle(CYColor.brand)
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                    .background(CYColor.brand.opacity(0.12), in: Circle())
-                    .accessibilityHidden(true)
-                Text(title).cyText(.meta).foregroundStyle(CYColor.textPrimary)
-            }
-        }
-        .buttonStyle(.borderless)
-        .accessibilityIdentifier(identifier)
-    }
-
-    /// `ClubScanReady.successTitle` per route kind (MP `utils/verification-scan.js`).
     static func successKey(kind: String) -> LocalizedStringKey {
         switch kind {
         case "group": return "club.scan.success.group"
@@ -102,12 +94,10 @@ import SwiftUI
         }
     }
 
-    /// MP `startClubScan` success / `submitClubScan`: invalid codes send nothing and explain; a busy write is not
-    /// sent twice; an unknown result says so instead of inviting a duplicate verify.
     private func handle(_ raw: String) async {
         switch ClubScanRoute.resolve(raw) {
         case let .invalid(message, _, _):
-            wrongEntry = message
+            wrongEntry = Self.invalidKey(message)
         case let .ready(matched):
             guard let submitScan, !busy else {
                 resultTitle = "club.scan.busy"; resultMessage = nil; showsResult = true; return

@@ -46,6 +46,8 @@ import SwiftUI
     @State private var focusedTeamID: NearbyTeamID?
     @State private var mine = NearbyMineLoad()
     @State private var recruiting = NearbyRecruitingLoad.idle
+    /// RTEAMS-3c: pending join counts per led recruiting team (MP my-teams index.js:139-155 `pending`).
+    @State private var leaderPending: [Int: NearbyLeaderApplicantFact] = [:]
     let initialContext: NearbyQueryContext?
     let joinedTeams: [OwnedTeam]
     let onSignIn: (() -> Void)?
@@ -95,10 +97,21 @@ import SwiftUI
             .toolbar {
                 // Native restyle (native-ios-r1 §3.1): refresh is pull-to-refresh only (`.refreshable` above calls the same refresh()).
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
-                if tab == 1, let joinCodeDestination {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink { joinCodeDestination() } label: { Label("gap.team.joinCode", systemImage: "number") }
-                            .accessibilityIdentifier("nearby.mine.joinCode")
+                if tab == 1 {
+                    // MP my-teams nav: 加入码 opens the existing join entry; 地图 opens the existing team map.
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        if let joinCodeDestination {
+                            NavigationLink { joinCodeDestination() } label: { Label("gap.team.joinCode", systemImage: "number") }
+                                .accessibilityIdentifier("nearby.mine.joinCode")
+                        }
+                        Button {
+                            radius = NearbyTeamPresentation.recruitingRadius
+                            viewMode = .map
+                            tab = 0
+                        } label: {
+                            Label("nearby.mine.map", systemImage: "map").labelStyle(.titleAndIcon)
+                        }
+                        .accessibilityIdentifier("nearby.mine.map")
                     }
                 }
             }
@@ -475,7 +488,9 @@ import SwiftUI
             let rows = NearbyTeamBridge.myRows(joined: joinedTeamsStatus.isLoaded ? joinedTeams : [], applications: coordinator.myApplications)
             let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
             let mineReady = !model.running && !mine.loading && coordinator.authenticated && coordinator.hasLoadedMine && coordinator.messageKey == nil && joinedTeamsStatus.isLoaded && !mine.failed
-            if !rows.isEmpty && mineReady {
+            // MP my-teams: a row of four zeros repeats the empty state, so the counts stay hidden.
+            let everyStatIsZero = NearbyMyTeamGroup.Kind.statsOrder.allSatisfy { NearbyMyTeamGroup.count($0, in: groups) == 0 }
+            if !everyStatIsZero && mineReady {
                 HStack(spacing: 8) {
                     ForEach(NearbyMyTeamGroup.Kind.statsOrder, id: \.self) { kind in
                         VStack(spacing: 2) {
@@ -502,6 +517,33 @@ import SwiftUI
                 ForEach(group.rows) { row in mineRow(row, leading: group.kind == .leading) }
             }
         }
+        .task(id: leaderPendingKey) { await loadLeaderPending() }
+    }
+    /// Re-read when the led-team list or the session changes (MP `_loadPending(lead)` after every list load).
+    private var leaderPendingKey: String {
+        guard joinedTeamsStatus.isLoaded, let account = coordinator.session?.accountID else { return "" }
+        return String(account) + ":" + joinedTeams.map { String($0.id) + "." + String($0.status.rawValue) }.joined(separator: ",")
+    }
+    private func loadLeaderPending() async {
+        leaderPending = [:]
+        guard joinedTeamsStatus.isLoaded else { return }
+        for team in joinedTeams {
+            guard !Task.isCancelled else { return }
+            if let fact = await coordinator.leaderApplicantFact(team: team), !Task.isCancelled { leaderPending[team.id] = fact }
+        }
+    }
+    /// MP card line: `N 条入队申请`, or `申请数没读到` when the read failed; zero draws nothing.
+    @ViewBuilder private func leaderPendingLine(_ teamID: Int) -> some View {
+        switch leaderPending[teamID] {
+        case .count(let n) where n > 0:
+            Text("nearby.mine.pendingApplications \(n)").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .accessibilityIdentifier("nearby.mine.pending.\(teamID)")
+        case .unread:
+            Text("nearby.mine.pendingUnread").cyText(.bodyCompact).foregroundStyle(CYColor.textTertiary)
+                .accessibilityIdentifier("nearby.mine.pending.\(teamID)")
+        default:
+            EmptyView()
+        }
     }
     @ViewBuilder private func mineRow(_ row: NearbyTeamOwnedRow, leading: Bool) -> some View {
         switch row {
@@ -516,6 +558,7 @@ import SwiftUI
                 if let start = NearbyTeamPresentation.startText(team.expireTime) { Text("nearby.w208.mine.start \(start)").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 else { Text(leading ? "nearby.mine.badge.leading" : "nearby.mine.badge.approved").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 NearbyMineMembersText(joined: team.joinedCount, maximum: team.maxMembers)
+                if leading { leaderPendingLine(team.id) }
                 routeButton("nearby.enter", destination: .team(.init(team.id)))
             }.accessibilityElement(children: .contain)
                 .accessibilityIdentifier("nearby.joined.\(team.id)")

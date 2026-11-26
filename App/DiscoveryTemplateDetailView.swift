@@ -335,10 +335,16 @@ struct DiscoveryTopicTemplatePreview: View {
     /// Round 4 flow (MP topic-use-flow.js `openDraft`): with no host override the copied draft pushes the topic
     /// editor (`pages/publish/fabu/index?id=&scope=`) through the shared editor destination.
     @Environment(\.topicEditorDestination) private var editorDestination
+    /// Summary cards stay on the system text styles. Accessibility sizes stack them instead of squeezing the row.
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var copiedDraft: CopiedTopicDraft?
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var tab: TemplateDetailTab = .details
     @State private var openingExpanded = false
+    /// Stop-pill prop art follows Dynamic Type with the caption beside it (MP `cap-card__pill-img`).
+    @ScaledMetric(relativeTo: .caption) private var stopMark: CGFloat = 16
+    /// The stop index grows with body text. `.label` is a catalog role, not a system text style.
+    @ScaledMetric(relativeTo: .body) private var stopIndex: CGFloat = 32
     /// R7-PC-A8-2 (MP topic-detail js:281 `previewNode`): a node image opens the full-screen gallery over all node images.
     @State private var nodeGallery: NodeGallerySelection?
     private struct NodeGallerySelection: Identifiable { let id = UUID(); let snapshot: MediaGallerySnapshot }
@@ -517,7 +523,10 @@ struct DiscoveryTopicTemplatePreview: View {
             if !free {
                 HStack(alignment: .top) {
                     topicStat(Text(verbatim: String(item.chapters.count)), label: "discovery.templateDetail.stat.chapters")
-                    topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+                    // MP `fmtSec`: 0 rounded minutes is `''`, and an empty string is not a card.
+                    if Self.fmtSecMinutes(item.totalTime) > 0 {
+                        topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+                    }
                 }
             }
             TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
@@ -580,6 +589,10 @@ struct DiscoveryTopicTemplatePreview: View {
                 .accessibilityIdentifier("discovery.topicDetail.coverCredit")
         }
     }
+    /// MP `fmtSec`: `Math.round(seconds / 60)`. `0` is `''` and is not drawn.
+    private static func fmtSecMinutes(_ seconds: Int?) -> Int {
+        Int((Double(max(0, seconds ?? 0)) / 60).rounded())
+    }
     private func topicStat<V: View>(_ value: V, label: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
             value.cyText(.numericBody).foregroundStyle(palette.textPrimary)
@@ -588,25 +601,58 @@ struct DiscoveryTopicTemplatePreview: View {
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }
-    /// 能力: one summary chip line, then each stop (grouped by chapter for multi-chapter / FREE_EXPLORE routes)
-    /// with its play, teaser and duration; an empty state when there are none.
+    /// `buildSummary` facts, in source order. A missing list or a 0-minute duration stays out.
+    @ViewBuilder private func summaryFacts(
+        _ item: PublicTopicTemplateDetail, free: Bool, showChapters: Bool, chapters: Int, stops: [NumberedStop]
+    ) -> some View {
+        if free {
+            topicStat(Text("u10.template.summary.free"), label: "projectEdit.mode")
+                .accessibilityIdentifier("discovery.topicDetail.summary.mode")
+        } else {
+            topicStat(Text("u10.template.summary.city"), label: "projectEdit.mode")
+                .accessibilityIdentifier("discovery.topicDetail.summary.mode")
+        }
+        if free {
+            topicStat(Text("u10.template.summary.multiDay"), label: "activityPublishing.review.time")
+                .accessibilityIdentifier("discovery.topicDetail.summary.time")
+        }
+        if showChapters {
+            topicStat(Text(verbatim: String(chapters)), label: "discovery.templateDetail.stat.chapters")
+                .accessibilityIdentifier("discovery.topicDetail.summary.chapters")
+        }
+        if !stops.isEmpty {
+            topicStat(Text(verbatim: String(stops.count)), label: "discovery.publicStations")
+                .accessibilityIdentifier("discovery.topicDetail.summary.stops")
+        }
+        if item.games.count > 0 {
+            topicStat(Text(verbatim: String(item.games.count)), label: "discovery.templateDetail.stat.games")
+                .accessibilityIdentifier("discovery.topicDetail.summary.games")
+        }
+        if Self.fmtSecMinutes(item.totalTime) > 0 {
+            topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+                .accessibilityIdentifier("discovery.topicDetail.summary.totalTime")
+        }
+    }
+    /// 能力: MP `buildSummary` (topic-detail index.js) — 模式 / 时间 / 章节 / 站点 / 玩法 / 总时长, then each stop.
+    /// A missing fact is left off the row. 时间 is only 可以跨天 on free exploration. Chapter count is
+    /// omitted when free exploration already counts one stop per chapter. 总时长 follows `fmtSec`: a rounded
+    /// minute count of 0 is not a card, and a positive count keeps the existing duration text. No 里程 card.
     @ViewBuilder private func topicCapabilities(_ item: PublicTopicTemplateDetail) -> some View {
         let free = item.mode == "FREE_EXPLORE"
         let stops = Self.numberedStops(item.chapters, freeExplore: free)
+        let chapters = item.chapters.count
+        let showChapters = chapters > 0 && !(free && chapters == stops.count)
         Section {
-            TemplateChipFlow(spacing: CYSpacing.sm) {
-                ForEach(topicSummary(item, stopCount: stops.count), id: \.self) { chip in
-                    Text(verbatim: chip).modifier(TemplateChipStyle())
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        summaryFacts(item, free: free, showChapters: showChapters, chapters: chapters, stops: stops)
+                    }
+                } else {
+                    HStack(alignment: .top) {
+                        summaryFacts(item, free: free, showChapters: showChapters, chapters: chapters, stops: stops)
+                    }
                 }
-            }
-            .accessibilityIdentifier("discovery.topicDetail.summary")
-            // R7-PC-A8-1 (r1 PC-A-8-3): MP `xb-stat` cards — 节点 / 玩法 / 总时长.
-            HStack(alignment: .top) {
-                topicStat(Text(verbatim: String(stops.count)), label: "discovery.templateDetail.stat.nodes")
-                if !item.games.isEmpty {
-                    topicStat(Text(verbatim: String(item.games.count)), label: "discovery.templateDetail.stat.games")
-                }
-                topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
             }
             .accessibilityIdentifier("discovery.topicDetail.stats")
             if stops.isEmpty {
@@ -634,33 +680,67 @@ struct DiscoveryTopicTemplatePreview: View {
             canViewEvidence: item.viewerIsPublisher || (scope == "MERCHANT" && item.viewerIsMerchant)
         )
     }
+    /// R7-PC-A8-1b: MP `cap-card` (topic-detail index.wxml:131-140, index.js `buildStopGroups`).
+    /// The play pill is shelf art or the play symbol plus `gameTitle` (else `game`). Minutes are `约 N 分钟`.
     private func stopRow(_ stop: NumberedStop) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             Text(verbatim: String(stop.number)).cyText(.label, monospacedDigit: true)
-                .frame(width: 32, height: 32).background(CYNight.ink0, in: Circle())
+                .foregroundStyle(palette.textPrimary)
+                .frame(width: stopIndex, height: stopIndex)
+                .background(palette.bgElevated, in: Circle())
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                if let name = stop.name { Text(verbatim: name).cyText(.label).cyWrapText() }
-                if let play = stop.interactionType {
-                    Text(verbatim: play).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                // MP `n.name || '第 ' + no + ' 站'`: a blank stop still names its place in the route.
+                (stop.name.map { Text(verbatim: $0) } ?? Text("u10.template.stopNo \(stop.number)"))
+                    .cyText(.label)
+                    .cyWrapText()
+                if let game = stop.game {
+                    HStack(spacing: CYSpacing.xxs) {
+                        if let art = TemplateShelfArt.gameProp(game) {
+                            art.resizable().scaledToFit()
+                                .frame(width: stopMark, height: stopMark)
+                                .accessibilityHidden(true)
+                        } else {
+                            Image(systemName: "play")
+                                .imageScale(.small)
+                                .foregroundStyle(palette.textSecondary)
+                                .accessibilityHidden(true)
+                        }
+                        Text(verbatim: game).cyText(.caption).foregroundStyle(palette.textSecondary).cyWrapText()
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number).game")
+                } else if let play = stop.interactionType {
+                    Text(verbatim: play).cyText(.caption).foregroundStyle(palette.textSecondary)
                 }
                 if let teaser = stop.hookTeaser {
                     Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textSecondary)
+                }
+                if let minutes = stop.duration {
+                    HStack(spacing: CYSpacing.xxs) {
+                        Image(systemName: "clock")
+                            .imageScale(.small)
+                            .foregroundStyle(palette.textSecondary)
+                            .accessibilityHidden(true)
+                        Text("topic.chapterCard.minutes \(minutes)")
+                            .cyText(.caption)
+                            .foregroundStyle(palette.textSecondary)
+                            .monospacedDigit()
+                    }
+                    .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number).duration")
                 }
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number)")
     }
-    private func topicSummary(_ item: PublicTopicTemplateDetail, stopCount: Int) -> [String] {
-        let free = item.mode == "FREE_EXPLORE"
-        var chips = [free ? appLocalized("u10.template.summary.free", locale: locale) : appLocalized("u10.template.summary.city", locale: locale)]
-        if free { chips.append(appLocalized("u10.template.summary.multiDay", locale: locale)) }
-        if !item.games.isEmpty { chips.append(appLocalized("u10.template.summary.games \(item.games.count)", locale: locale)) }
-        if stopCount > 0 { chips.append(appLocalized("u10.template.summary.stops \(stopCount)", locale: locale)) }
-        return chips
-    }
     private struct NumberedStop {
-        let number: Int; let chapterID: Int; let name: String?; let interactionType: String?; let hookTeaser: String?
+        let number: Int
+        let chapterID: Int
+        let name: String?
+        let interactionType: String?
+        let hookTeaser: String?
+        let game: String?
+        let duration: Int?
     }
     private static func numberedStops(_ chapters: [PublicTemplateChapter], freeExplore: Bool = false) -> [NumberedStop] {
         func clean(_ value: String?) -> String? {
@@ -672,12 +752,13 @@ struct DiscoveryTopicTemplatePreview: View {
             if chapter.nodes.isEmpty, freeExplore {
                 let guide = clean(TopicXcxFacts.chapterGuide(description: chapter.description))
                 out.append(.init(number: out.count + 1, chapterID: chapter.id, name: clean(chapter.name),
-                                 interactionType: nil, hookTeaser: guide ?? clean(chapter.description)))
+                                 interactionType: nil, hookTeaser: guide ?? clean(chapter.description), game: nil, duration: nil))
                 continue
             }
             for node in chapter.nodes {
                 out.append(.init(number: out.count + 1, chapterID: chapter.id, name: clean(node.name),
-                                 interactionType: clean(node.interactionType), hookTeaser: clean(node.hookTeaser)))
+                                 interactionType: clean(node.interactionType), hookTeaser: clean(node.hookTeaser),
+                                 game: clean(node.game), duration: node.duration))
             }
         }
         return out

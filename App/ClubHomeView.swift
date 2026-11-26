@@ -200,6 +200,14 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             openedClubID = id; requestedClubID?.wrappedValue = nil
         }
         .cyRootHeader(.club)
+        .toolbar {
+            // r9 A4-04b: MP talent/list/index.js:585-600 onShareAppMessage shares the hub page itself.
+            ToolbarItem(placement: .topBarTrailing) {
+                R9PublicShareButton(url: PublicContentShareLink.clubHub(tab: topTab.rawValue),
+                                    copyText: PublicContentShareLink.clubHubCopyText(tab: topTab.rawValue),
+                                    identifier: "clubTab.share")
+            }
+        }
         .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
         .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
         .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))

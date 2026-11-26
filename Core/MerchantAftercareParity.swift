@@ -253,3 +253,24 @@ public enum MerchantAftercareResponseGuide {
         decision == .reject
     }
 }
+
+/// POST `api/merchant/aftercare/manual-case-detail?manualCaseId=` (aftercare/detail/index.js).
+/// 工单编号 is the source `refundNoText` (`人工退款工单 #id`). Amount is present only when the server sent one.
+public struct MerchantAftercareManualDetail: Equatable {
+    public let id: Int
+    public let numberText: String
+    public let amountText: String?
+    public init(requestedID: Int, payload: MerchantBusinessValue) throws {
+        guard requestedID > 0, let fields = payload.object else { throw MerchantBusinessFailure.malformed }
+        let reported = fields["manualCaseId"]?.integer ?? requestedID
+        guard reported == requestedID else { throw MerchantBusinessFailure.malformed }
+        id = reported
+        numberText = "人工退款工单 #\(reported)"
+        amountText = Self.displayAmount(fields["refundAmount"])
+    }
+    private static func displayAmount(_ value: MerchantBusinessValue?) -> String? {
+        guard let value, value != .null else { return nil }
+        if let text = value.string?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty { return text }
+        return value.numberText
+    }
+}

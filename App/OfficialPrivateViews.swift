@@ -172,17 +172,21 @@ import SwiftUI
     let reader: any OfficialEventReading
     var onLogin: (() -> Void)? = nil
     @State private var reload = 0
-    @State private var confirmingRecover = false
-    @State private var recoverNote: String?
+    @Environment(\.locale) private var locale
     var body: some View {
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "stats.\(id).\(reload)", onLogin: onLogin, load: { try await reader.broadcastStats(id: id) }) { stats in
             List {
-                if let line = stats.summaryLine {
-                    Text(verbatim: line).accessibilityIdentifier("official.broadcast.summary")
+                if let line = stats.presentedSummaryLine(locale: locale) {
+                    Text(verbatim: line).cyText(.body).accessibilityIdentifier("official.broadcast.summary")
+                } else if stats.canRecoverInapp {
+                    Text(verbatim: OfficialReadCopy.recoverableDelivery(locale: locale))
+                        .cyText(.bodyCompact)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("official.broadcast." + "recoverable")
                 }
                 // R7-PC-C6-3: only the stats the page can name; an unknown key is never printed raw.
                 let known = stats.rows.filter { OfficialBroadcastStatsText.knownIDs.contains($0.id) }
-                if known.isEmpty && stats.summaryLine == nil { Text("official.emptyStats") }
+                if known.isEmpty && stats.presentedSummaryLine(locale: locale) == nil && !stats.canRecoverInapp { Text("official.emptyStats") }
                 ForEach(known) { row in
                     LabeledContent {
                         switch row.value {
@@ -200,33 +204,10 @@ import SwiftUI
                         }
                     }
                 }
-                if stats.canRecoverInapp {
-                    Section {
-                        Button("official.broadcast.recover") { confirmingRecover = true }
-                            .accessibilityIdentifier("official.broadcast.recover")
-                        if let recoverNote { Text(verbatim: recoverNote).foregroundStyle(CYColor.dangerText) }
-                    }
-                }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
             }.accessibilityIdentifier("official.stats.content")
         }
-        .confirmationDialog("official.broadcast.recover", isPresented: $confirmingRecover, titleVisibility: .visible) {
-            Button("official.broadcast.recover") { Task { await recover() } }
-            Button("action.cancel", role: .cancel) {}
-        } message: {
-            Text("official.broadcast.recover.body")
-        }
         .appNavigationTitle("official.stats").navigationBarTitleDisplayMode(.inline)
-    }
-    private func recover() async {
-        do {
-            try await reader.recoverBroadcast(id: String(id))
-            recoverNote = nil
-            reload += 1
-        } catch is CancellationError {
-        } catch {
-            recoverNote = OfficialBroadcastStats.failureLine(serverMessage: nil)
-        }
     }
 }
 
@@ -259,9 +240,8 @@ private extension Decimal {
     @ViewBuilder let label: () -> Content
     private enum Phase: Equatable { case idle, loading, loaded(OfficialBroadcastStats), failed(String?) }
     @State private var phase: Phase = .idle
-    @State private var confirmingRecover = false
-    @State private var recovering = false
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Button { load() } label: {
@@ -272,39 +252,34 @@ private extension Decimal {
                     case .loading:
                         Text("official.published.statsLoading").cyText(.caption).foregroundStyle(palette.textSecondary)
                     case .loaded(let stats):
-                        if let line = stats.summaryLine {
+                        if let line = stats.presentedSummaryLine(locale: locale) {
                             Text(verbatim: line).cyText(.caption).foregroundStyle(palette.textSecondary)
                                 .accessibilityIdentifier("official.broadcast.summary")
                         } else if let counts = OfficialBroadcastStatsText.counts(stats) {
                             Text("official.published.statsLine \(counts.reached) \(counts.clicked)").cyText(.caption).monospacedDigit()
                                 .foregroundStyle(palette.textSecondary)
+                        } else if stats.canRecoverInapp {
+                            Text(verbatim: OfficialReadCopy.recoverableDelivery(locale: locale))
+                                .cyText(.caption)
+                                .foregroundStyle(palette.textSecondary)
+                                .accessibilityIdentifier("official.broadcast." + "recoverable")
                         }
-                    case .failed(let line):
-                        if let line { Text(verbatim: line).cyText(.caption).foregroundStyle(CYColor.dangerText) }
-                        else { Text("official.published.statsFailed").cyText(.caption).foregroundStyle(CYColor.dangerText) }
+                    case .failed(let note):
+                        Text(verbatim: OfficialBroadcastStats.failureLine(serverMessage: note, locale: locale))
+                            .cyText(.caption)
+                            .foregroundStyle(CYColor.dangerText)
                     }
                 }
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(phase == .loading || recovering)
+            .disabled(phase == .loading)
             .accessibilityHint(Text("official.published.statsHint"))
-            if case .loaded(let stats) = phase, stats.canRecoverInapp {
-                Button("official.broadcast.recover") { confirmingRecover = true }
-                    .disabled(recovering)
-                    .accessibilityIdentifier("official.broadcast.recover.\(id)")
-            }
-        }
-        .confirmationDialog("official.broadcast.recover", isPresented: $confirmingRecover, titleVisibility: .visible) {
-            Button("official.broadcast.recover") { Task { await recover() } }
-            Button("action.cancel", role: .cancel) {}
-        } message: {
-            Text("official.broadcast.recover.body")
         }
     }
     private func load() {
-        guard phase != .loading, !recovering else { return }
+        guard phase != .loading else { return }
         phase = .loading
         let scope = reader.scope
         Task {
@@ -319,25 +294,8 @@ private extension Decimal {
             } catch is CancellationError {
                 phase = .idle
             } catch {
-                phase = reader.scope == scope ? .failed(nil) : .idle
+                phase = reader.scope == scope ? .failed(OfficialBroadcastStats.serverNote(error)) : .idle
             }
-        }
-    }
-    /// Confirm, then `recoverBroadcast(id:token:)` through the reader, then re-read stats.
-    private func recover() async {
-        recovering = true
-        defer { recovering = false }
-        let scope = reader.scope
-        do {
-            try await reader.recoverBroadcast(id: String(id))
-            guard reader.scope == scope else { phase = .idle; return }
-            let stats = try await reader.broadcastStats(id: id)
-            guard reader.scope == scope else { phase = .idle; return }
-            phase = .loaded(stats)
-        } catch is CancellationError {
-            phase = .idle
-        } catch {
-            phase = reader.scope == scope ? .failed(OfficialBroadcastStats.failureLine(serverMessage: nil)) : .idle
         }
     }
 }

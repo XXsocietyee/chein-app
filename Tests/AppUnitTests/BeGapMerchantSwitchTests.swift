@@ -23,13 +23,18 @@ final class BeGapMerchantSwitchTests: XCTestCase {
 
     func testReleaseAndProductionHostStayClosed() {
         let production = ReviewedAreaSwitch.admits(debug: true, apiBaseURL: "https://www.chengyinhub.com/prod-api/")
-        XCTAssertFalse(production.moneyPayments)
-        XCTAssertFalse(production.payout)
+        XCTAssertTrue(production.moneyPayments)
+        XCTAssertTrue(production.payout)
         XCTAssertFalse(production.merchantWrites)
         XCTAssertFalse(production.passwordLogin)
         let release = ReviewedAreaSwitch.admits(debug: false, apiBaseURL: "http://127.0.0.1:8099/")
-        XCTAssertFalse(release.moneyPayments)
+        XCTAssertTrue(release.moneyPayments)
+        XCTAssertTrue(release.payout)
+        XCTAssertFalse(release.merchantWrites)
         XCTAssertFalse(release.passwordLogin)
+        let missing = ReviewedAreaSwitch.admits(debug: false, apiBaseURL: "")
+        XCTAssertFalse(missing.moneyPayments)
+        XCTAssertFalse(missing.payout)
     }
 
     func testOwnerGrantAdmitsMerchantReadsAndStillRefusesMoney() {

@@ -66,8 +66,8 @@ class ShezhiMarketingIndexPageReadyContract(unittest.TestCase):
         routes = ROUTES.read_text()
         self.assertIn('"/api/merchant/crm/marketing-consents": .liveInProduction', routes)
         self.assertNotIn('"/api/merchant/crm/marketing-consents/result": .liveInProduction', routes)
-        self.assertIn("public static let paymentEnabled = false", routes)
-        self.assertIn("public static let virtualGoodsEnabled = false", routes)
+        self.assertIn("public static var paymentEnabled: Bool { testDerivation?(.payment) ?? false }", routes)
+        self.assertIn("public static var virtualGoodsEnabled: Bool { testDerivation?(.virtualGoods) ?? false }", routes)
 
     def test_note_lists_missing_keys_and_existing_copy_stays_bilingual(self):
         note = NOTE.read_text()

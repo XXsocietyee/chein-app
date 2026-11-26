@@ -573,6 +573,11 @@ public struct OfficialBroadcastDeliveryCounts: Decodable, Equatable, Sendable {
     public var line: String {
         "站内已入库 \(inappStored) · 订阅渠道受理 \(channelAccepted) · 明确拒绝 \(rejected) · 未提交 \(notSubmitted) · 可恢复 \(retryable) · 结果不明 \(unknown) · 历史待核 \(legacyUnconfirmed) · 频控未发 \(capped)；不代表已读"
     }
+    /// Same counts for an English reader. `line` stays the Chinese source sentence.
+    public func presentedLine(locale: Locale) -> String {
+        guard !OfficialReadCopy.isChinese(locale) else { return line }
+        return "Stored in-app \(inappStored) · Channel accepted \(channelAccepted) · Rejected \(rejected) · Not submitted \(notSubmitted) · Recoverable \(retryable) · Unknown \(unknown) · Legacy unconfirmed \(legacyUnconfirmed) · Frequency-capped \(capped); not a read receipt"
+    }
 }
 
 struct OfficialEventLeaderboardBox: Decodable {
@@ -633,6 +638,24 @@ public struct OfficialEventLeaderboard: Equatable, Sendable {
         self.myRank = myRank
         self.isFinal = isFinal
     }
+    /// Enabled board with neither rows nor a rank. The page still reads the empty state.
+    public var isEmptyBoard: Bool {
+        rows.isEmpty && (myRank ?? 0) <= 0 && chipText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    /// Chinese payload name stays in `rows`. English readers see the fallback name in English.
+    public func presentedRows(locale: Locale) -> [OfficialEventLeaderboardRow] {
+        guard !OfficialReadCopy.isChinese(locale) else { return rows }
+        return rows.map { row in
+            guard row.displayName == Self.unnamedPlayer else { return row }
+            return OfficialEventLeaderboardRow(id: row.id, rank: row.rank, displayName: "Chengyin player", scoreText: row.scoreText, isSelf: row.isSelf)
+        }
+    }
+    /// Chinese `chipText` stays the source string. English readers get the same rank.
+    public func presentedChip(locale: Locale) -> String {
+        guard !OfficialReadCopy.isChinese(locale), let myRank, myRank > 0 else { return chipText }
+        return isFinal ? "Rank \(myRank)" : "Provisional rank \(myRank)"
+    }
+    private static let unnamedPlayer = "城瘾玩家"
 }
 
 public struct OfficialBroadcastStats: Decodable, Equatable {
@@ -661,9 +684,54 @@ public struct OfficialBroadcastStats: Decodable, Equatable {
         guard let reached = number("reached") ?? number("reach"), let clicked = number("clicked") ?? number("clicks") else { return nil }
         return "站内触达 \(reached) 人 · 点击 \(clicked) 人"
     }
+    /// Locale-facing summary. Chinese keeps `summaryLine`. This does not send a recover write.
+    public func presentedSummaryLine(locale: Locale) -> String? {
+        guard !OfficialReadCopy.isChinese(locale) else { return summaryLine }
+        if let deliveryCounts { return deliveryCounts.presentedLine(locale: locale) }
+        func number(_ key: String) -> Int? {
+            guard let row = rows.first(where: { $0.id == key }) else { return nil }
+            if case .number(let value) = row.value { return NSDecimalNumber(decimal: value).intValue }
+            return nil
+        }
+        guard let reached = number("reached") ?? number("reach"), let clicked = number("clicked") ?? number("clicks") else { return nil }
+        return "Reached \(reached) in app · \(clicked) clicked"
+    }
     /// Server message, then the mini-program retry suffix. Empty message uses `fallback`.
     public static func failureLine(serverMessage: String?, fallback: String = "复盘没读到") -> String {
         let trimmed = serverMessage?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return (trimmed.isEmpty ? fallback : trimmed) + "，点一下重试"
+    }
+    /// Same retry fact in the reader's language. The server note stays verbatim.
+    public static func failureLine(serverMessage: String?, locale: Locale) -> String {
+        if OfficialReadCopy.isChinese(locale) { return failureLine(serverMessage: serverMessage) }
+        let trimmed = serverMessage?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmed.isEmpty { return "Couldn't read the recap. Tap to try again." }
+        return "\(trimmed). Tap to try again."
+    }
+    /// `msg` carried by a broadcast stats or recover failure. Other errors stay nil.
+    public static func serverNote(_ error: Error) -> String? {
+        guard case .explained(_, let text) = error as? OfficialReadFailure else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
+/// Official-event read copy: Chinese source sentence plus an English counterpart.
+public enum OfficialReadCopy {
+    public static func isChinese(_ locale: Locale) -> Bool {
+        locale.language.languageCode?.identifier == "zh"
+    }
+    public static func text(_ zh: String, _ en: String, locale: Locale) -> String {
+        isChinese(locale) ? zh : en
+    }
+    /// Read of `canRecoverInapp`. Not a recover button and not a POST.
+    public static func recoverableDelivery(locale: Locale) -> String {
+        text("站内投递标记为可恢复", "In-app delivery is marked recoverable", locale: locale)
+    }
+    public static func safetyNoticeHeading(locale: Locale) -> String {
+        text("安全须知", "Safety notice", locale: locale)
+    }
+    public static func emptyLeaderboard(locale: Locale) -> String {
+        text("暂无成绩", "No scores yet", locale: locale)
     }
 }

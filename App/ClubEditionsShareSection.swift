@@ -1,10 +1,8 @@
 import SwiftUI
 
-/// CLB-detail-11 (App half): 自由探索期次 fold on 管理 for the owner (MP `pages/club/detail/index.wxml:484-511`,
-/// `index.js:1283-1318, 3517-3545`). Lists `/api/club-compensation/editions` rows this club executes and offers
-/// 带票分享: the topic link carries `sourceClubId` and `clubCode = club-<clubId>-t<topicId>`
-/// (MP `utils/ticket-source.js buildSharePath`). Registration turns `clubCode` into `sourceChannelCode` on the
-/// receiving side (`TicketSourceRegistrationFields`, Core).
+/// CLB-detail-11: 自由探索期次 on 管理 for the owner. Each row this club executes offers 带票分享.
+/// The link carries `sourceClubId` and `clubCode` (`club-<clubId>-t<topicId>`). Opening it puts
+/// `clubCode` on the later registration as `sourceChannelCode`. The paid registration itself stays off.
 @MainActor struct ClubEditionsShareSection: View {
     let clubID: Int
     let access: any ClubGovernanceAccess
@@ -24,7 +22,9 @@ import SwiftUI
             DisclosureGroup(isExpanded: $expanded) {
                 switch phase {
                 case .loading:
-                    ProgressView().frame(maxWidth: .infinity)
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .accessibilityLabel(Text("club.editions.loading"))
                 case .failed:
                     ContentUnavailableView {
                         Label("club.editions.loadFailed", systemImage: "exclamationmark.triangle")
@@ -49,14 +49,18 @@ import SwiftUI
     private func editionRow(_ row: Edition) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                if let name = row.name { Text(verbatim: name).cyText(.body) } else { Text("club.editions.unnamed").cyText(.body) }
+                if let name = row.name {
+                    Text(verbatim: name).cyText(.body)
+                } else {
+                    Text("club.editions.unnamed").cyText(.body)
+                }
                 (dateText(row) + Text(verbatim: " · ") + Text("club.editions.executing"))
                     .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }
             Spacer(minLength: 0)
             if let url = Self.shareURL(topicID: row.topicID, clubID: clubID) {
-                ShareLink(item: url, message: Text(verbatim: row.name ?? "")) {
+                ShareLink(item: url) {
                     Text("club.editions.share")
                 }
                 .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
@@ -70,19 +74,22 @@ import SwiftUI
         return Text("club.editions.dateTBD")
     }
 
-    /// MP `buildSharePath('/pages/topic/index/index', { topicId, clubId, clubCode: 'club-' + cid + '-t' + topicId })`,
-    /// carried on the in-app link like the other club shares (`ClubShareURL`).
-    static func sharePath(topicID: Int, clubID: Int) -> String? {
+    static func shareURL(topicID: Int, clubID: Int) -> URL? {
         guard topicID > 0, clubID > 0 else { return nil }
         let code = "club-\(clubID)-t\(topicID)"
-        let encoded = code.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? code
-        return "/" + TopicClubShareLink.page + "?id=\(topicID)&sourceClubId=\(clubID)&clubCode=" + encoded
-    }
-    static func shareURL(topicID: Int, clubID: Int) -> URL? {
-        sharePath(topicID: topicID, clubID: clubID).flatMap { URL(string: CheinDeepLink.scheme + "://mp" + $0) }
+        guard (1...64).contains(code.unicodeScalars.count) else { return nil }
+        var components = URLComponents()
+        components.scheme = CheinDeepLink.scheme
+        components.host = "mp"
+        components.path = "/" + TopicClubShareLink.page
+        components.queryItems = [
+            URLQueryItem(name: "id", value: String(topicID)),
+            URLQueryItem(name: "sourceClubId", value: String(clubID)),
+            URLQueryItem(name: "clubCode", value: code)
+        ]
+        return components.url
     }
 
-    /// MP `loadShareEditions`: keep only rows whose `executingClubId` is this club.
     private func load(force: Bool) async {
         guard force || loadedFor != clubID else { return }
         let captured = clubID
@@ -97,7 +104,8 @@ import SwiftUI
                 let date = item["startDate"].string.map { String($0.prefix(10)) }
                 return Edition(topicID: topicID, name: name?.isEmpty == false ? name : nil, dateText: date?.isEmpty == false ? date : nil)
             }
-            phase = .ready(rows); loadedFor = captured
+            phase = .ready(rows)
+            loadedFor = captured
         } catch {
             guard captured == clubID, !Task.isCancelled else { return }
             phase = .failed

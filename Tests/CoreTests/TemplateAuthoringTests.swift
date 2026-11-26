@@ -295,6 +295,78 @@ final class TemplateAuthoringTests: XCTestCase {
     func testPrefabUnknownVersionOrSceneResets() { XCTAssertEqual(PrefabPreviewState.restore(Data(#"{"version":3,"scene":"work"}"#.utf8)), .init()); XCTAssertEqual(PrefabPreviewState.restore(Data(#"{"version":2,"scene":"unknown"}"#.utf8)), .init()) }
     func testPrefabTopicNameMatchesSourceExactShape() { XCTAssertTrue(PrefabPreviewState.isPrefabTopic(name: "预制人生 · 城市")); XCTAssertFalse(PrefabPreviewState.isPrefabTopic(name: "我的预制人生")); XCTAssertFalse(PrefabPreviewState.isPrefabTopic(name: "预制人生2")) }
     func testPrefabStorageDisambiguatesActivityTopicPreview() { XCTAssertNotEqual(PrefabPreviewIdentity.activity(1).storageComponent, PrefabPreviewIdentity.topic(1).storageComponent) }
+    func testTriggerableOutcomesFollowTheNodeContract() throws {
+        let preference = #"{"results":{"HISTORY":{"title":"历史线"},"ART":{"title":"艺术线"}}}"#
+        var pref = TemplateAuthoringDraft(title: "偏好")
+        pref.validationMethod = .preference
+        pref.preferenceJson = preference
+        let prefRows = TemplateTriggerableOutcomes.extract(pref).items
+        XCTAssertEqual(prefRows.map(\.code), ["ART", "HISTORY"])
+        XCTAssertEqual(prefRows.map(\.triggerType), ["PREFERENCE_RESULT", "PREFERENCE_RESULT"])
+        XCTAssertEqual(prefRows.map(\.label), [.authored("艺术线"), .authored("历史线")])
+        var branch = TemplateAuthoringDraft(title: "分支")
+        branch.advanced.value["branch"] = .object([
+            "enabled": .bool(true),
+            "steps": .array([
+                .object(["id": .string("start"), "title": .string("选择"), "terminal": .bool(false)]),
+                .object(["id": .string("end"), "title": .string("找到钟楼"), "terminal": .bool(true), "outcomeCode": .string("FOUND_CLOCK"), "outcomeLabel": .string("找到钟楼")])
+            ])
+        ])
+        let branchRows = TemplateTriggerableOutcomes.extract(branch).items
+        XCTAssertEqual(branchRows.map(\.code), ["FOUND_CLOCK"])
+        XCTAssertEqual(branchRows.map(\.label), [.authored("找到钟楼")])
+        XCTAssertEqual(branchRows.map(\.sourceKey), ["end"])
+        var plain = TemplateAuthoringDraft(title: "普通")
+        plain.validationMethod = .gps
+        let ordinary = TemplateTriggerableOutcomes.extract(plain).items
+        XCTAssertEqual(ordinary.map(\.triggerType), ["CHOICE"])
+        XCTAssertEqual(ordinary.map(\.code), ["COMPLETED"])
+        XCTAssertEqual(ordinary.map(\.label), [.completed])
+        var dice = TemplateAuthoringDraft(title: "检定")
+        dice.advanced.set("diceRoll", "enabled", .bool(true))
+        dice.advanced.set("diceRoll", "mode", .string("d20"))
+        XCTAssertEqual(TemplateTriggerableOutcomes.extract(dice).items.map(\.label), [.d20Success, .d20Failure])
+        var broken = TemplateAuthoringDraft(title: "坏码")
+        broken.validationMethod = .preference
+        broken.preferenceJson = #"{"results":{"中文 结果":{"title":"非法"},"OK":{"title":"正常"}}}"#
+        broken.advanced.value["branch"] = .object([
+            "enabled": .bool(true),
+            "steps": .array([.object(["id": .string("one"), "terminal": .bool(true), "outcomeCode": .string("OK"), "outcomeLabel": .string("重复")])])
+        ])
+        let issues = TemplateTriggerableOutcomes.extract(broken).issues
+        XCTAssertTrue(issues.contains { $0.code == .invalidCode && $0.sourceKey == "中文 结果" })
+        XCTAssertTrue(issues.contains { $0.code == .duplicateCode && $0.sourceKey == "one" })
+    }
+    func testLowHPRelaxUsesTheCoreSetterAndCityNodeStaysOffPersonalPublish() throws {
+        var advanced = TemplateAdvancedDraft()
+        advanced.set("timer", "enabled", .bool(true))
+        advanced.set("timer", "durationSeconds", .number(60))
+        advanced.setLowHPRelax(path: "timer.durationSeconds", delta: "+30")
+        let row = try XCTUnwrap(advanced.rootVariants.last?.object)
+        XCTAssertEqual(row["when"]?.object?["var"], .string("sys.hp"))
+        XCTAssertEqual(row["when"]?.object?["op"], .string("LTE"))
+        XCTAssertEqual(row["when"]?.object?["value"], .number(3))
+        XCTAssertEqual(row["relax"]?.object?["timer.durationSeconds"], .string("+30"))
+        var draft = qaParityDraft("TYPE")
+        draft.interactionType = TemplateAuthoringContract.TemplateCityNodeInteraction.hiddenMenu.rawValue
+        let personal = try TemplateAuthoringContract.payload(draft)
+        XCTAssertNil(personal["interactionType"])
+        XCTAssertNil(personal["authoringFrom"])
+        let node = TemplateAuthoringContract.cityNodeBody(personal, interactionType: draft.interactionType ?? "")
+        XCTAssertEqual(node["interactionType"], .string("hidden_menu"))
+        draft.authoringFrom = "citynode"
+        XCTAssertTrue(draft.publishIssues.isEmpty, draft.publishIssues.joined(separator: ","))
+        XCTAssertThrowsError(try TemplateAuthoringContract.request(draft, intent: .publish))
+        XCTAssertThrowsError(try TemplateAuthoringContract.request(draft, intent: .saveDraft))
+        draft.interactionType = "other"
+        XCTAssertTrue(draft.publishIssues.contains("templateAuthor.validation.citynodeInteraction"))
+        var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(qaParityDraft("TYPE"))) as? [String: Any])
+        legacy.removeValue(forKey: "authoringFrom")
+        legacy.removeValue(forKey: "interactionType")
+        let decoded = try JSONDecoder().decode(TemplateAuthoringDraft.self, from: JSONSerialization.data(withJSONObject: legacy))
+        XCTAssertNil(decoded.authoringFrom)
+        XCTAssertNil(decoded.interactionType)
+    }
 }
 
 #if DEBUG

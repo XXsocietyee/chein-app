@@ -14,7 +14,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     var requestedTab: ClubDetailTab? = nil
     /// CLB-detail-31: MP `postId` deep link; lands on 帖文 and scrolls the feed to that post.
     var focusPostID: Int? = nil
-    /// CLB-G02: MP `scan=1` (detail js:754-755) starts 扫码核销 once the page has loaded and the viewer may scan.
+    /// CLB-G02: MP `scan=1` lands on 管理 and starts 扫码核销 once.
     var autoScan = false
     @State private var selectedTab: ClubDetailTab? = nil
     @State private var manageGrant: ClubDetailManageGrant? = nil
@@ -30,6 +30,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var showsApprovals = false
     /// Owner-stage Now card. Nil keeps the approvals headline.
     @State private var ownerStage: ClubOwnerStageResolution?
+    @State private var consumedAutoScan = false
     @State private var heroScrolledAway = false
     @State private var loadedClubName: String?
     @State private var openedTopicID: Int?
@@ -129,11 +130,11 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                          onApprovals: management == nil ? nil : { showsApprovals = true },
                                          onEvents: { selectedTab = tabs.select(.events, from: tab) })
                 }
-                // MP quick-acts (wxml:367-395): 扫码 (CLB-G02).
                 if tab == .manage {
                     ClubManageQuickActions(canScan: club.canGovern || canManageActivities(club), canGovern: club.canGovern,
-                                           canManageActivities: canManageActivities(club), autoStartScan: autoScan,
+                                           canManageActivities: canManageActivities(club), autoStartScan: autoScan && !consumedAutoScan,
                                            submitScan: (reader as? AppSession)?.clubScanSubmit,
+                                           onConsumeAutoStart: { consumedAutoScan = true },
                                            onSettings: openSettingsAction,
                                            onGroupCode: groupCodeQuickAction(club))
                 }
@@ -141,13 +142,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 if tab == .manage, club.canGovern || canManageActivities(club), management?.governance != nil {
                     ClubManagedProjectsMount(model: r8Mounts) { r8Route = $0 }
                 }
-                // CLB-detail-11 (MP wxml:484-511): 自由探索期次 with 带票分享, owner only.
-                if tab == .manage, club.isOwner, let governance = management?.governance {
-                    ClubEditionsShareSection(clubID: club.id, access: governance.access)
-                }
                 // CLB-G04 (MP js:3780-3847): 可对接的活动 + 我的合作, owner only.
                 if tab == .manage, club.isOwner, let session = reader as? AppSession {
                     ClubCoopPoolMount(session: session, model: r8Mounts, reloadKey: r8Key(club, tab: tab), clubID: club.id) { r8Route = $0 }
+                }
+                if tab == .manage, club.isOwner, let access = management?.governance?.access {
+                    ClubEditionsShareSection(clubID: club.id, access: access)
                 }
                 if tab == .posts, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
                     Section {
@@ -354,7 +354,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 .frame(minHeight: CYSpacing.minTouchTarget)
                             }
                             .accessibilityIdentifier("club.detail.leaderboard.sort")
-                            ClubInlineLeaderboardRows(model: r8Leaderboard) {
+                            ClubInlineLeaderboardRows(model: r8Leaderboard, club: club, identity: reader.clubIdentity, governance: governance) {
                                 Task { await loadInlineLeaderboard(club: club, governance: governance, force: true) }
                             }
                             NavigationLink {

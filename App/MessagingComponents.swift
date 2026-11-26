@@ -89,6 +89,9 @@ struct MessagingReadScreenToken: Equatable {
     @Published private(set) var issue: MessagingLoadIssue?
     @Published private(set) var appearance: UUID?
     @Published private(set) var invalidationRevision: UInt64 = 0
+    /// Bumps when a server snapshot is published so the visible rows are recreated,
+    /// not patched in place. A same-input reread still has to reappear.
+    @Published private(set) var snapshotToken: UInt64 = 0
     private(set) var input: MessagingReadScreenInput?
     private var reader: (any MessagingReading)?
     private var queued: MessagingReadScreenToken?
@@ -142,6 +145,7 @@ struct MessagingReadScreenToken: Equatable {
             guard isCurrent(token) else { return }
             if Task.isCancelled { finishFailure(CancellationError(), token: token); return }
             value = result; loadedInput = token.input; issue = nil; isLoading = false
+            snapshotToken &+= 1
             currentRequest = nil
         } catch { finishFailure(error, token: token) }
     }
@@ -241,7 +245,7 @@ struct MessagingReadScreen<Value, Content: View>: View {
                     queue(model.prepareRefresh(appearance: appearance, input: input))
                 }
             } else if let value = model.value, model.loadedInput == input {
-                content(value)
+                content(value).id(model.snapshotToken)
             } else {
                 Color.clear
             }

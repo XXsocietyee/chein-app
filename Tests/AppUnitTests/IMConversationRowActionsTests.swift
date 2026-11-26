@@ -27,6 +27,24 @@ import XCTest
         XCTAssertEqual(reader.reads, 2); XCTAssertEqual(writer.mutations, [.read(conversationID: 9)])
         XCTAssertEqual(actions.conversation.unread, 3)
         XCTAssertEqual(driver.displayed.last?.first?.unread, 0)
+        XCTAssertGreaterThan(driver.listModel.snapshotToken, 0)
+    }
+    func testSameInputServerSnapshotRefreshPublishesNewRowsAndIdentity() async throws {
+        let reader = Reader(), model = MessagingReadScreenModel<[MessagingConversation]>()
+        let first = try XCTUnwrap(model.appear(reader: reader, refreshRevision: 0))
+        await model.perform(first) { try await reader.messagingConversations() }
+        let identity = model.snapshotToken
+        XCTAssertEqual(model.value?.first?.unread, 3)
+        XCTAssertGreaterThan(identity, 0)
+        reader.unread = 0
+        let input = MessagingReadScreenInput(reader: reader, refreshRevision: 0)
+        let refresh = try XCTUnwrap(model.prepareRefresh(appearance: model.appearance, input: input))
+        await model.perform(refresh) { try await reader.messagingConversations() }
+        XCTAssertGreaterThan(model.snapshotToken, identity)
+        XCTAssertEqual(model.value?.first?.unread, 0)
+        XCTAssertEqual(model.loadedInput, input)
+        XCTAssertFalse(model.isLoading)
+        XCTAssertNil(model.issue)
     }
     func testUnknownResultAndDismissalKeepOriginalIntentWithoutReadback() async throws {
         let reader = Reader(), writer = Writer(), driver = Driver()

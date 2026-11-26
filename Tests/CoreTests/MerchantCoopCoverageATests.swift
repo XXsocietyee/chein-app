@@ -37,7 +37,7 @@ final class MerchantCoopCoverageATests: XCTestCase {
         XCTAssertEqual(method, "POST")
         guard case .object(let fields) = try read.body() else { return XCTFail("topic list body") }
         XCTAssertEqual(Set(fields.keys), ["is_my", "scope", "invite_target", "pageNum", "pageSize"])
-        XCTAssertEqual(fields["invite_target"].text, "club")
+        XCTAssertEqual(fields["invite_target"]?.text, "club")
         XCTAssertEqual(["is_my", "scope", "invite_target", "pageNum", "pageSize"], ["is_my", "scope", "invite_target", "pageNum", "pageSize"])
     }
 
@@ -48,7 +48,7 @@ final class MerchantCoopCoverageATests: XCTestCase {
         let method = "POST"
         XCTAssertEqual(method, "POST")
         guard case .object(let fields) = try read.body() else { return XCTFail("supply topic body") }
-        XCTAssertEqual(fields["invite_target"].text, "merchant")
+        XCTAssertEqual(fields["invite_target"]?.text, "merchant")
         XCTAssertNotNil(fields["is_my"])
         XCTAssertNotNil(fields["scope"])
         XCTAssertNotNil(fields["pageNum"])
@@ -74,10 +74,10 @@ final class MerchantCoopCoverageATests: XCTestCase {
         let method = "POST"
         XCTAssertEqual(method, "POST")
         guard case .object(let fields) = try read.body() else { return XCTFail("nearby body") }
-        XCTAssertEqual(fields["longitude"].text, "121.5")
-        XCTAssertEqual(fields["latitude"].text, "31.2")
-        XCTAssertEqual(fields["radius"].text, "5000")
-        XCTAssertEqual(fields["limit"].text, "30")
+        XCTAssertEqual(fields["longitude"]?.text, "121.5")
+        XCTAssertEqual(fields["latitude"]?.text, "31.2")
+        XCTAssertEqual(fields["radius"]?.text, "5000")
+        XCTAssertEqual(fields["limit"]?.text, "30")
         XCTAssertEqual(["longitude", "latitude", "radius", "limit"], ["longitude", "latitude", "radius", "limit"])
     }
 

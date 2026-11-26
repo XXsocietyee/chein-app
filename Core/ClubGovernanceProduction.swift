@@ -23,25 +23,55 @@ extension ClubGovernanceCommand {
         return keys.sorted().map { "\($0)=\(fields[$0]?.text ?? "")" }.joined(separator: "&")
     }
 }
+/// Non-money club governance the mini-program already sends. The server checks the role.
+/// Pay, refund execution, payout, withdrawal, paid orders, quote, registration create,
+/// and pricing confirm are not in this set. Settlement mine stays `POST {}` elsewhere.
+public enum ClubMPFirstGovernance {
+    public static let policyVersion = "r9-club-mp-first"
+    public static let governance: Set<ClubGovernanceMutation> = [.ban, .unban, .transferOwner, .report, .appeal, .hostApply, .dissolve]
+    public static let operations = governance.union([.assignRole, .revokeRole])
+    public static func paths(for operations: Set<ClubGovernanceMutation>) -> Set<String> {
+        var paths = Set(operations.map(\.path))
+        paths.formUnion(operations.map { $0.reviewRead.path })
+        if operations.contains(.hostApply) { paths.insert("api/userInfo") }
+        if operations.contains(where: { $0 != .hostApply }) { paths.insert(ClubGovernanceRead.access.path) }
+        if operations.contains(.assignRole) || operations.contains(.createSeries) || operations.contains(.updateSeries) {
+            paths.insert(ClubGovernanceRead.members.path)
+        }
+        return paths
+    }
+}
 public struct ClubGovernanceProductionApproval {
     public let market: RegionalMarket
     public let endpoints: OperationEndpointApproval
     public let grants: Set<ClubGovernanceActionGrant>
     public let reviewedPolicyVersion: String
+    /// Empty for an exact target grant. MP-first approvals name the operation and skip the target binding.
+    public let liveOperations: Set<ClubGovernanceMutation>
     public init(market: RegionalMarket, endpoints: OperationEndpointApproval,
                 grants: Set<ClubGovernanceActionGrant>, reviewedPolicyVersion: String) throws {
         guard !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               grants.allSatisfy({ endpoints.paths.contains($0.operation.path) }) else { throw APIError.invalidConfiguration }
         self.market = market; self.endpoints = endpoints; self.grants = grants; self.reviewedPolicyVersion = reviewedPolicyVersion
+        self.liveOperations = []
+    }
+    public init(mpFirstMarket market: RegionalMarket, endpoints: OperationEndpointApproval, operations: Set<ClubGovernanceMutation>) throws {
+        guard market == .china, !operations.isEmpty, operations.isSubset(of: ClubMPFirstGovernance.operations),
+              ClubMPFirstGovernance.paths(for: operations).isSubset(of: endpoints.paths) else { throw APIError.invalidConfiguration }
+        self.market = market; self.endpoints = endpoints; self.grants = []
+        self.reviewedPolicyVersion = ClubMPFirstGovernance.policyVersion; self.liveOperations = operations
     }
     public func permits(_ command: ClubGovernanceCommand, context: RuntimeDependencyContext) -> Bool {
         var required: Set<String> = [command.operation.path, command.operation.reviewRead.path]
         if command.scope.clubID != nil { required.insert(ClubGovernanceRead.access.path) }
         if command.operation == .hostApply { required.insert("api/userInfo") }
         if [.createSeries, .updateSeries, .assignRole].contains(command.operation) { required.insert(ClubGovernanceRead.members.path) }
-        return market == .china && context.market == market && endpoints.baseURL == context.baseURL &&
-        endpoints.accountID == context.session.accountID && endpoints.namespace == context.session.namespace && required.isSubset(of: endpoints.paths) &&
-        grants.contains { $0.operation == command.operation && $0.scope == command.scope && $0.risk == command.operation.risk && $0.targetBinding == command.productionTargetBinding }
+        let identity = market == .china && context.market == market && endpoints.baseURL == context.baseURL &&
+            endpoints.accountID == context.session.accountID && endpoints.namespace == context.session.namespace &&
+            required.isSubset(of: endpoints.paths)
+        guard identity else { return false }
+        if liveOperations.contains(command.operation) { return ClubMPFirstGovernance.operations.contains(command.operation) }
+        return grants.contains { $0.operation == command.operation && $0.scope == command.scope && $0.risk == command.operation.risk && $0.targetBinding == command.productionTargetBinding }
     }
 }
 
