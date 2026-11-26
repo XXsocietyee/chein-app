@@ -110,8 +110,17 @@ public enum ChinaReviewedRouteCapability {
         if popupCloseOwnerGrant.contains(key) { return true }
         // Owner 2026-11-24: platform-pass order reads are on for players. Not a money write.
         if isPlatformPassOrderPath(key) { return true }
+        if memberGiftClaimOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
+
+    /// fix-r10 member MKT-3-1b. MP `subpackageMember/market/gift/index.js:101-123` claims a gift with
+    /// `POST /api/marketing/product/gifts/claim {token, requestId}`. The claimer sends only the gift token:
+    /// no amount, payment, refund or payout, so under MP-first it is not a money write. Kept outside
+    /// `wiredPatterns` so `wiredPatternCount` does not move.
+    public static let memberGiftClaimOwnerGrant: Set<String> = [
+        "/api/marketing/product/gifts/claim"
+    ]
 
     /// Popup-closure owner grant: reviewed non-money routes surfaced by the popup parity closure pass
     /// (`beta/graduate`, `transfer-to-club`, owned clubs lookup, and official attendance read/commands).

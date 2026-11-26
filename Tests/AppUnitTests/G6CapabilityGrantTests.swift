@@ -54,11 +54,15 @@ import XCTest
         ReleaseMoneyWriteSwitch.testDerivation = nil
         defer { ReleaseMoneyWriteSwitch.testDerivation = savedDerivation }
         for path in ["api/marketing/attribution/claim", "api/marketing/product/order",
-                     "api/marketing/product/quote", "api/marketing/product/gifts/claim", "api/registration/pay", "api/pay/create"] {
+                     "api/marketing/product/quote", "api/registration/pay", "api/pay/create"] {
             XCTAssertFalse(ReviewedProductionGateLeases.playPaths.contains(path), path)
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
             await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent(path), #"{"amount":1}"#, token: player.session.token)) }
         }
+        // fix-r10 MKT-3-1b: the gift claim sends only the gift token (MP `market/gift/index.js:101-123`), so it is
+        // admitted by its own member grant, not by the G6 play grant.
+        XCTAssertFalse(ReviewedProductionGateLeases.playPaths.contains("api/marketing/product/gifts/claim"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/marketing/product/gifts/claim"))
         for path in ["api/ai/npc/chat/request", "api/author-write/receipt"] {
             XCTAssertFalse(ReviewedProductionFormMutationRoute.coversCapabilityRead(path), path)
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)

@@ -5,7 +5,7 @@ import Foundation
 /// MP `subpackageMember/market/gift/index.js:101-123`: `POST /api/marketing/product/gifts/claim`
 /// JSON `{token, requestId}`, `requestId` = `gift_<ms>_<8>` kept for the page's lifetime.
 /// The claimer sends only the gift token: there is no amount, payment, refund or payout.
-/// Production-host admission stays with `ChinaReviewedRouteCapability` (Cursor Core); a refused
+/// Production-host admission: `ChinaReviewedRouteCapability.memberGiftClaimOwnerGrant` (fix-r10 MKT-3-1b). A refused
 /// route comes back as `.failed(reasonCode: nil)`, which shows 礼品当前不可领取 as the MP's default.
 public enum PlatformPassGiftClaimOutcome: Equatable, Sendable {
     /// `isBizOk(res) && res.data` → 已领取; `registrationId` opens orderinfo, else the 礼品 tab.
