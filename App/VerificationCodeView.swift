@@ -42,15 +42,17 @@ extension EnvironmentValues {
                 // RCODE-3 / N-RCODE (r10): every variant is titled by the navigation bar; no in-content hero header.
                 content
                 if model.target.kind == .ticket, model.readback != nil {
-                    CYPillButton("verificationCode.checkOrder", style: .secondary) { run { await model.checkOrder() } }
+                    // N-RCODE (r10): system buttons (MP subpackageRoam/citynode-code uses plain wx buttons).
+                    Button("verificationCode.checkOrder") { run { await model.checkOrder() } }
+                        .buttonStyle(.bordered)
                         .disabled(model.checkingOrder || model.phase == .loading)
                         .accessibilityIdentifier("verificationCode.checkOrder")
                     if model.checkingOrder { ProgressView() }
                     if model.readbackFailed { Text("verificationCode.readbackFailed").cyText(.bodyCompact) }
                     if let detail = model.readback {
-                        CYStatusChip(detail.registrationStatus == 2 ? "verificationCode.order.active" : "verificationCode.order.ended",
-                                     tone: detail.registrationStatus == 2 ? .success : .neutral,
-                                     systemImage: detail.registrationStatus == 2 ? "checkmark.circle" : "clock")
+                        Label(detail.registrationStatus == 2 ? "verificationCode.order.active" : "verificationCode.order.ended",
+                              systemImage: detail.registrationStatus == 2 ? "checkmark.circle" : "clock")
+                            .foregroundStyle(detail.registrationStatus == 2 ? Color.green : Color.secondary)
                             .accessibilityIdentifier("verificationCode.orderState")
                     }
                 }
@@ -90,7 +92,8 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("roamSub.w208.voucher.countdown")
                 Text("roamSub.w208.voucher.desc").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
             } else {
-                CYPillButton("verificationCode.retry", style: .secondary) { run { await model.present() } }
+                Button("verificationCode.retry") { run { await model.present() } }
+                    .buttonStyle(.bordered)
                     .accessibilityIdentifier("verificationCode.refresh")
                 LabeledContent("verificationCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
             }
@@ -100,11 +103,13 @@ extension EnvironmentValues {
             Text(LocalizedStringKey(phaseKey))
                 .multilineTextAlignment(.center).accessibilityIdentifier("verificationCode.phase")
             if [.review, .expired, .paused, .failed, .invalid].contains(model.phase) {
-                CYPillButton(model.phase == .review ? "verificationCode.show" : (model.target.kind == .cityVoucher && autoIssue ? "roamSub.w208.voucher.retry" : "verificationCode.retry")) { run { await model.present() } }
+                Button(LocalizedStringKey(model.phase == .review ? "verificationCode.show" : (model.target.kind == .cityVoucher && autoIssue ? "roamSub.w208.voucher.retry" : "verificationCode.retry"))) { run { await model.present() } }
+                    .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("verificationCode.show")
             } else if model.phase == .login, rootTabSwitch.isAvailable {
                 // RCODE-1: MP access gate — 登录 instead of a dead-end line.
-                CYPillButton("verificationCode.signIn") { rootTabSwitch(.mine) }
+                Button("verificationCode.signIn") { rootTabSwitch(.mine) }
+                    .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("verificationCode.signIn")
             }
         }

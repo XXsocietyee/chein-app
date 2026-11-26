@@ -47,7 +47,7 @@ struct CityGamePanel: View {
             Text("cityGame.privacy", tableName: "CityGame").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .cityGameGroupBox()
         .accessibilityElement(children: .contain)
         .cyHaptic(.success, trigger: outcomeApplied)
         .accessibilityIdentifier("cityGame.panel")
@@ -146,7 +146,7 @@ struct CityGamePanel: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+        .cityGameGroupBox()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cityGame.property.\(property.propertyId)")
     }
@@ -179,7 +179,7 @@ struct CityGamePanel: View {
             Button { model.cancelReview() } label: { Text("cityGame.review.cancel", tableName: "CityGame").frame(maxWidth: .infinity) }.buttonStyle(.bordered).controlSize(.large)
                 .accessibilityIdentifier("cityGame.cancel")
         }
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .cityGameGroupBox()
         .accessibilityElement(children: .contain).accessibilityIdentifier("cityGame.review")
     }
 
@@ -312,4 +312,10 @@ struct CityGamePanel: View {
         case .open: return Text("cityGame.notice.boardNotOpen", tableName: "CityGame")
         }
     }
+}
+
+private extension View {
+    /// N-ORIENT (r10): the drawn `cyDomainCard` → system `GroupBox` (system grouped fill and corner radius).
+    /// MP subpackageCity city game panel cards keep their content and order.
+    func cityGameGroupBox() -> some View { GroupBox { self } }
 }
