@@ -40,7 +40,7 @@ enum CYPassCardPick {
         NavigationStack {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .cyDomainPageBackground()
+                .background(Color(uiColor: .systemGroupedBackground))
                 .navigationTitle(Text(verbatim: c.t("票夹", "Ticket wallet"))) // mini-program signup page title
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -60,7 +60,7 @@ enum CYPassCardPick {
                 }
         }
         .task(id: TaskKey(scope: reader.scope, token: loadToken, active: scenePhase == .active)) { await load() }
-        .cyEdgeGlow(trigger: glowTick)
+        .sensoryFeedback(.success, trigger: glowTick)
         .themeDomain(.player)
         .accessibilityIdentifier("ticketPass.sheet")
     }
@@ -71,16 +71,13 @@ enum CYPassCardPick {
     @ViewBuilder private var content: some View {
         switch phase {
         case .idle, .loading:
-            VStack(spacing: CYSpacing.lg) {
-                CYSkeleton().frame(maxWidth: 300)
-            }
-            .padding(CYSpacing.pageHorizontal)
+            ProgressView()
             .accessibilityLabel(Text(verbatim: c.t("正在打开票券", "Opening your pass")))
             .accessibilityIdentifier("ticketPass.loading")
         case .loaded(let snapshot):
             if let ticket = current(in: snapshot) {
                 ScrollView {
-                    VStack(spacing: CYSpacing.lg) {
+                    VStack(spacing: 16) {
                         let openable = snapshot.tickets.filter { $0.action == .detail }
                         if openable.count > 1, openable.contains(where: { $0.id == ticket.id }) {
                             // PLY-21-13 (MP signup index.js:655-708): several passes page sideways; the page in view is the
@@ -92,7 +89,7 @@ enum CYPassCardPick {
                             .accessibilityIdentifier("ticketPass.pager")
                             let position = (openable.firstIndex(where: { $0.id == ticket.id }) ?? 0) + 1
                             Text("ticketPass.pager.position \(position) \(openable.count)")
-                                .cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit()
+                                .font(.footnote).foregroundStyle(.secondary).monospacedDigit()
                                 .accessibilityIdentifier("ticketPass.pager.position")
                         } else {
                             TicketPassCard(ticket: ticket, onVerified: { glowTick += 1 })
@@ -101,21 +98,24 @@ enum CYPassCardPick {
                         if playProvider != nil, ticket.status == .ready, ticket.action == .detail, !ticket.isWalletLocked,
                            TicketWalletPlayEntry.entry(ticket: ticket, requestedID: ticket.id) != nil {
                             Button { playDetailID = ticket.id } label: {
-                                if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() } }
-                                else { Label { Text("playerJourney.start") } icon: { TicketWalletPlayGlyph() } }
+                                Group {
+                                    if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() } }
+                                    else { Label { Text("playerJourney.start") } icon: { TicketWalletPlayGlyph() } }
+                                }
+                                .frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(.cyPrimary(fullWidth: true))
+                            .buttonStyle(.borderedProminent).controlSize(.large)
                             .frame(maxWidth: 360)
                             .accessibilityIdentifier("ticketPass.play")
                         }
                         if let partial = snapshot.partialFailure {
                             Text(verbatim: c.t("部分票券没能读取，下拉或在菜单里刷新", "Some tickets did not load. Refresh from the menu."))
-                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                .font(.footnote).foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                                 .accessibilityIdentifier("ticketPass.partial.\(partial.lane == .route ? "route" : "activity")")
                         }
                     }
-                    .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.lg)
+                    .padding()
                     .frame(maxWidth: .infinity)
                 }
                 .refreshable { loadToken += 1 }
@@ -177,7 +177,6 @@ enum CYPassCardPick {
             .accessibilityIdentifier("ticketPass.overflow.refresh")
         } label: {
             Image(systemName: "ellipsis.circle")
-                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
         }
         .accessibilityLabel(Text(verbatim: c.t("更多", "More")))
         .accessibilityIdentifier("ticketPass.overflow")
@@ -214,41 +213,21 @@ enum CYPassCardPick {
     @Environment(\.verificationCodeFactory) private var codeFactory
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
-    @QuestifyReduceMotion private var reduceMotion
     @State private var topHeight: CGFloat = 0
-    @State private var cardSize: CGSize = .zero
-    @State private var appeared = false
-    @State private var sheen = 0
-    @State private var dimTile = false
-    @State private var faceAngle = 0.0
-    @State private var tear: CGFloat = 0
-    @State private var drop: CGFloat = 0
-    @State private var verifyRun: Task<Void, Never>?
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     private var state: CYPassState { CYPassState(ticket.status) }
     private let tearBand: CGFloat = 22
     private var shape: CYTicketPassShape {
-        CYTicketPassShape(notchY: topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: CYRadius.hero, notch: 11, perforation: 3, perforationGap: 7)
+        CYTicketPassShape(notchY: topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: 12, notch: 11, perforation: 3, perforationGap: 7)
     }
 
+    /// Native r2: the Wallet pass layout (system fill, perforation notch), no foil, tilt, flip or tear motion. The verified
+    /// status shows on the code tile; the host plays the success haptic.
     var body: some View {
         front
-            .accessibilityHidden(faceAngle >= 90)
-            .modifier(CYPassFlip(angle: faceAngle, crossfade: reduceMotion, back: verifiedBack))
-            .cyPassTilt()
-            .scaleEffect(appeared || reduceMotion ? 1 : 0.94, anchor: .top)
-            .offset(y: appeared || reduceMotion ? 0 : 28)
-            .opacity(appeared ? 1 : 0)
-            .onAppear {
-                withAnimation(CYMotion.resolve(CYMotion.entrance, reduceMotion: reduceMotion)) { appeared = true }
-                if ticket.status == .ready {
-                    Task { @MainActor in try? await Task.sleep(for: .milliseconds(450)); sheen += 1 }
-                }
-            }
             .onChange(of: ticket.status) { old, new in
-                if new == .verified, old != .verified { runVerified() }
+                if new == .verified, old != .verified { onVerified?() }
             }
-            .onDisappear { verifyRun?.cancel() }
     }
 
     /// The live pass: the face every state starts on.
@@ -256,107 +235,60 @@ enum CYPassCardPick {
         VStack(spacing: 0) {
             header.background(GeometryReader { Color.clear.preference(key: TicketPassTopHeightKey.self, value: $0.size.height) })
             Color.clear.frame(height: tearBand).accessibilityHidden(true)
-            tile.opacity(dimTile ? 0.6 : 1).padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.xl)
+            tile.padding(.horizontal).padding(.bottom, 20)
         }
         .onPreferenceChange(TicketPassTopHeightKey.self) { topHeight = $0 }
         .frame(maxWidth: .infinity)
-        .background(CYColor.bgElevated)
-        .cyFoilSheen(trigger: sheen)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(shape, style: FillStyle(eoFill: true))
-        .cyPassFoilEdge(shape, active: ticket.status == .ready)
-        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
         .opacity(state.isRetired ? 0.74 : 1)
         .cyBrightnessBoost(ticket.status == .ready)
-        .background(GeometryReader { g in Color.clear.onAppear { cardSize = g.size }.onChange(of: g.size) { _, new in cardSize = new } })
         .privacySensitive()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("ticketPass.card")
     }
 
-    /// The green "You're in" face, torn along the perforation once the flip lands. Hidden until a flip happens.
-    @ViewBuilder private var verifiedBack: some View {
-        if cardSize.width > 1, topHeight > 0 {
-            let notchY = topHeight + tearBand / 2
-            CYPassTear(
-                face: CYPassVerifiedFace(title: ticket.title ?? "", number: ticket.registrationNumber, size: cardSize, notchY: notchY, shape: shape),
-                size: cardSize, notchY: notchY, tear: tear, drop: drop)
-        }
-    }
-
-    /// Choreography D from the moment the status flips (ms): 0 tile dims and the host fires the edge glow; 300 flip
-    /// (0.5 s); 800 the perforation tears (3 pt gap, 24 pt slide, impactLight); 1700 the stub drops toward the tab bar.
-    private func runVerified() {
-        verifyRun?.cancel()
-        verifyRun = Task { @MainActor in
-            withAnimation(.easeOut(duration: 0.15)) { dimTile = true }
-            onVerified?()
-            try? await Task.sleep(for: .milliseconds(300))
-            guard !Task.isCancelled else { return }
-            if reduceMotion {
-                withAnimation(CYMotion.reduced) { faceAngle = 180 }
-                return
-            }
-            withAnimation(.easeInOut(duration: 0.5)) { faceAngle = 180 }
-            try? await Task.sleep(for: .milliseconds(500))
-            guard !Task.isCancelled else { return }
-            CYHaptics.impactLight.play()
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { tear = 1 }
-            try? await Task.sleep(for: .milliseconds(900))
-            guard !Task.isCancelled else { return }
-            withAnimation(.easeIn(duration: 0.5)) { drop = 1 }
-        }
-    }
-
-    /// Cover-art band with the title on a scrim (same art as the wallet pass), then date and place. At accessibility
-    /// sizes the band shrinks and the title moves below it so nothing clips.
+    /// Cover-art band (same art as the wallet pass), then the title, date and place below it (native r2: no scrim).
     private var header: some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack {
                 // R8-MEM-21-3: the MP `wImg` cover, else the shipped route illustration (`cover-route.svg`); no generated art.
                 if let url = ticket.walletHTTPSCoverURL {
                     AsyncImage(url: url) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() } else { CYColor.bgSurfaceStrong }
+                        if let image = phase.image { image.resizable().scaledToFill() } else { Color(uiColor: .tertiarySystemFill) }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
                     .accessibilityHidden(true)
                 } else {
                     ZStack {
-                        CYColor.bgSurfaceStrong
-                        MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(CYSpacing.md)
+                        Color(uiColor: .tertiarySystemFill)
+                        MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(12)
                             .opacity(0.5)
                             .accessibilityHidden(true)
                     }
                     .accessibilityHidden(true)
                 }
-                LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
-                if !typeSize.isAccessibilitySize {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        // PLY-21-5: MP 票夹 cards carry no status (index.wxml:57-58 「卡上不写状态」).
-                        Spacer(minLength: 0)
-                        title.foregroundStyle(.white).lineLimit(2)
-                    }
-                    .padding(CYSpacing.lg)
-                }
             }
             .frame(height: typeSize.isAccessibilitySize ? 72 : 132)
             .clipped()
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                if typeSize.isAccessibilitySize {
-                    title.foregroundStyle(CYColor.textPrimary).padding(.bottom, CYSpacing.xs)
+            VStack(alignment: .leading, spacing: 4) {
+                // PLY-21-5: MP 票夹 cards carry no status (index.wxml:57-58 「卡上不写状态」).
+                title.foregroundStyle(.primary).padding(.bottom, 4)
+                Group {
+                    Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }
+                    Label { Text(verbatim: nonEmpty(ticket.addressName)).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
-                Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }
-                Label { Text(verbatim: nonEmpty(ticket.addressName)).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
+                .font(.subheadline).foregroundStyle(.secondary)
             }
-            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            .padding(CYSpacing.lg)
+            .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
     private var title: some View {
         TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-            .cyText(.sectionTitle)
+            .font(.title3.weight(.semibold))
             .lineLimit(3).fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("ticketPass.title")
@@ -366,7 +298,7 @@ enum CYPassCardPick {
     private func nonEmpty(_ s: String?) -> String { (s?.isEmpty == false) ? s! : "—" }
 
     @ViewBuilder private var tile: some View {
-        VStack(spacing: CYSpacing.md) {
+        VStack(spacing: 12) {
             // MP k4 (j2 F-22): a cleared ticket or a locked (upcoming / refunding) one issues no entry code (PLY-21-4).
             if let codeFactory, ticket.status == .ready, ticket.clearedFlag != true, !ticket.isWalletLocked {
                 VerificationCodeView(model: codeFactory(.init(kind: .ticket, id: ticket.id)), embeddedQRSide: Self.qrSide)
@@ -374,7 +306,7 @@ enum CYPassCardPick {
             } else {
                 whiteTile
             }
-            Text(verbatim: hint).cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            Text(verbatim: hint).font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
     }
@@ -383,21 +315,21 @@ enum CYPassCardPick {
     /// otherwise the state glyph. Never a drawn code.
     private var whiteTile: some View {
         let side = Self.qrSide
-        return VStack(spacing: CYSpacing.sm) {
+        return VStack(spacing: 8) {
             if ticket.status == .ready, let n = ticket.registrationNumber, !n.isEmpty {
-                Text(verbatim: n).cyText(.sectionTitle).monospaced().foregroundStyle(.black)
+                Text(verbatim: n).font(.title2.weight(.semibold)).monospaced().foregroundStyle(.black)
                     .minimumScaleFactor(0.5).lineLimit(2).multilineTextAlignment(.center).textSelection(.enabled)
                     .accessibilityLabel(Text(verbatim: c.t("票号", "Ticket number"))).accessibilityValue(Text(verbatim: n))
                     .accessibilityIdentifier("ticketPass.number")
             } else {
-                Image(systemName: state.systemImage).font(CYTypography.display).foregroundStyle(.black.opacity(0.55)).accessibilityHidden(true)
-                Text(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)).cyText(.cardTitle).foregroundStyle(.black.opacity(0.7))
+                Image(systemName: state.systemImage).font(.largeTitle).foregroundStyle(.black.opacity(0.55)).accessibilityHidden(true)
+                Text(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)).font(.headline).foregroundStyle(.black.opacity(0.7))
             }
         }
-        .padding(CYSpacing.md)
+        .padding(12)
         .frame(width: side, height: side)
-        .padding(CYSpacing.lg)
-        .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .padding(16)
+        .background(.white)
         .accessibilityIdentifier("ticketPass.whiteTile")
     }
 

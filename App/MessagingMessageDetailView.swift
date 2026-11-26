@@ -28,14 +28,10 @@ struct MessagingMessageDetailView: View {
             if identity != nil, reader.identity == identity, let message = currentSnapshot {
                 List {
                     Section {
-                        CYHeroHeader("messaging.message.title")
-                    }.e1HeroRow()
-                    Section {
                         MessagingMessageContent(message: message).textSelection(.enabled)
                     } header: {
-                        CYSectionHeader("messaging.message.content")
+                        Text("messaging.message.content")
                     }
-                    .messageRow()
                     if message.isPayloadVisible, message.type == 2, let preview = expanded?.attachmentPreview?(message) {
                         Section {
                             NavigationLink {
@@ -43,43 +39,38 @@ struct MessagingMessageDetailView: View {
                                     reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
                                 })
                             } label: {
-                                CYListRow("messaging.attachment.open", trailing: .none) { CYRowIcon(systemImage: "paperclip") }
+                                Label("messaging.attachment.open", systemImage: "paperclip")
                             }
                         }
-                        .messageRow()
                     }
                     if message.isPayloadVisible, message.type == 2, let mediaReader, let identity {
                         Section {
                             NavigationLink { SocialMessageMediaView(message: message, reader: mediaReader, expectedIdentity: identity,
                                 isMessageCurrent: { reader.identity == identity && currentSnapshot == message && message.isPayloadVisible }) } label: {
-                                CYListRow("social.media.title", trailing: .none) { CYRowIcon(systemImage: "photo.on.rectangle.angled") }
+                                Label("social.media.title", systemImage: "photo.on.rectangle.angled")
                             }.accessibilityIdentifier("messaging.message.preview")
                         }
-                        .messageRow()
                     }
                     if let ref = IMVoiceReference.read(message), let owner = expanded?.voiceCoordinator?(message.conversationID) {
                         Section {
                             NavigationLink { IMVoicePlaybackView(message: message, owner: owner, current: {
                                 reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
-                            }) } label: { IMVoiceCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
+                            }) } label: { IMVoiceCardLabel(reference: ref) }
                         }
-                        .messageRow()
                     }
                     if let ref = IMFileReference.read(message), let owner = expanded?.fileCoordinator?(message.conversationID) {
                         Section {
                             NavigationLink { IMFilePreviewView(message: message, owner: owner, current: {
                                 reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
-                            }) } label: { IMFileCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
+                            }) } label: { IMFileCardLabel(reference: ref) }
                         }
-                        .messageRow()
                     }
                     if let ref = IMVideoReference.read(message), let owner = expanded?.videoCoordinator?(message.conversationID) {
                         Section {
                             NavigationLink { IMVideoPlaybackView(message: message, owner: owner, current: {
                                 reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
-                            }) } label: { IMVideoCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
+                            }) } label: { IMVideoCardLabel(reference: ref) }
                         }
-                        .messageRow()
                     }
                     if message.isPayloadVisible, let reference = message.pollReference {
                         Section {
@@ -99,11 +90,10 @@ struct MessagingMessageDetailView: View {
                                 }
                                 else { GroupPollUnavailableView() }
                             } label: {
-                                CYListRow("poll.openResults", trailing: .none) { CYRowIcon(systemImage: "chart.bar.xaxis") }
+                                Label("poll.openResults", systemImage: "chart.bar.xaxis")
                             }
                             .accessibilityIdentifier("poll.messageEntry")
                         }
-                        .messageRow()
                     }
                     if let notice = NativeChannelGovernanceNotice.parse(message: message, conversation: conversation, identity: identity) {
                         Section {
@@ -111,40 +101,32 @@ struct MessagingMessageDetailView: View {
                                 if reader.identity == identity, currentSnapshot == message,
                                    let destination = expanded?.channelGovernanceDestination?(notice) { destination }
                                 else {
-                                    CYEmptyState(systemImage: "exclamationmark.circle", "messaging.governance.unavailable")
+                                    ContentUnavailableView("messaging.governance.unavailable", systemImage: "exclamationmark.circle")
                                 }
                             } label: {
-                                CYListRow("messaging.governance.open", trailing: .none) { CYRowIcon(systemImage: "doc.text.magnifyingglass") }
+                                Label("messaging.governance.open", systemImage: "doc.text.magnifyingglass")
                             }
                             .accessibilityIdentifier("channel.governance.originalNotice")
                         } header: {
-                            CYSectionHeader("messaging.governance.section")
+                            Text("messaging.governance.section")
                         }
-                        .messageRow()
                     }
                     Section {
-                        HStack(alignment: .center, spacing: CYSpacing.md) {
-                            CYRowIcon(systemImage: "person")
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text("messaging.message.sender")
-                                    .cyText(.meta)
-                                    .foregroundStyle(CYColor.textSecondary)
-                                MessagingSenderName(message: message, conversation: conversation, accountID: identity?.accountID ?? 0)
-                                    .cyText(.cardTitle)
-                                    .foregroundStyle(CYColor.textPrimary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            Spacer(minLength: CYSpacing.sm)
+                        LabeledContent {
+                            MessagingSenderName(message: message, conversation: conversation, accountID: identity?.accountID ?? 0)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } label: {
+                            Label("messaging.message.sender", systemImage: "person")
                         }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
                         .accessibilityElement(children: .combine)
-                        CYListRow("messaging.message.created", trailing: .value(playerFactOrDash(message.createdAt))) {
-                            CYRowIcon(systemImage: "clock")
+                        LabeledContent {
+                            Text(verbatim: playerFactOrDash(message.createdAt))
+                        } label: {
+                            Label("messaging.message.created", systemImage: "clock")
                         }
                     } header: {
-                        CYSectionHeader("messaging.message.details")
+                        Text("messaging.message.details")
                     }
-                    .messageRow()
                     if message.isPayloadVisible, expanded != nil, message.card != nil {
                         Section {
                             IMCardActionsView(message: message) { destination in
@@ -160,9 +142,8 @@ struct MessagingMessageDetailView: View {
                                 }
                             }
                         } header: {
-                            CYSectionHeader("messaging.card.actions")
+                            Text("messaging.card.actions")
                         }
-                        .messageRow()
                     }
                     if let card = message.card {
                         if let topicID = card.topicID {
@@ -172,24 +153,19 @@ struct MessagingMessageDetailView: View {
                                     IMRouteCardPreview(topicID: topicID, isSignup: card.kind == .signup, reader: topicReader)
                                 }
                             }
-                            .messageRow()
                         }
                         if card.kind == .location, let latitude = card.latitude, let longitude = card.longitude {
                             Section { IMLocationCardMap(title: card.title, latitude: latitude, longitude: longitude) }
-                                .messageRow()
                         }
                         if expanded == nil, !card.buttonLabels.isEmpty {
                             Section {
                                 ForEach(Array(card.buttonLabels.enumerated()), id: \.offset) { _, label in
                                     Text(verbatim: label)
-                                        .cyText(.body)
-                                        .foregroundStyle(CYColor.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                             } header: {
-                                CYSectionHeader("messaging.card.actions")
+                                Text("messaging.card.actions")
                             }
-                            .messageRow()
                         }
                         if message.senderID == 0, let result = card.result {
                             Section {
@@ -197,24 +173,16 @@ struct MessagingMessageDetailView: View {
                                 messageFact("messaging.card.reason", result.reason, symbol: "text.quote")
                                 messageFact("messaging.card.followUp", result.followUp, symbol: "arrow.turn.down.right")
                             } header: {
-                                CYSectionHeader("messaging.card.result")
+                                Text("messaging.card.result")
                             }
-                            .messageRow()
                         }
                     }
                 }
                 .listStyle(.insetGrouped)
-                .environment(\.defaultMinListRowHeight, 44)
-                .cyGroupedSurface()
                 .accessibilityIdentifier("messaging.message.detail")
             } else {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    CYHeroHeader("messaging.message.title")
-                        .padding(.horizontal, CYSpacing.pageHorizontal)
-                    MessagingIssueView(issue: .init(APIError.unauthorized), identifier: "messaging.message.signedOut", retry: {})
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .background(CYColor.bgPage.ignoresSafeArea())
+                MessagingIssueView(issue: .init(APIError.unauthorized), identifier: "messaging.message.signedOut", retry: {})
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
         .navigationDestination(item: $selectedTopicID) { id in
@@ -224,18 +192,16 @@ struct MessagingMessageDetailView: View {
             if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let result = selectedReview {
                 NavigationStack {
                     List {
-                        Section { CYHeroHeader("im.full.reviewResult") }.e1HeroRow()
                         // Mini-program 「生成时记录」: 审核任务 # / 业务 # first, then the outcome as recorded.
-                        if let task = result.taskID { CYListRow("mpd.review.task", trailing: .value("#" + task)) { CYRowIcon(systemImage: "number") } }
-                        if let business = result.businessID { CYListRow("mpd.review.business", trailing: .value("#" + business)) { CYRowIcon(systemImage: "tag") } }
+                        if let task = result.taskID { LabeledContent { Text(verbatim: "#" + task) } label: { Label("mpd.review.task", systemImage: "number") } }
+                        if let business = result.businessID { LabeledContent { Text(verbatim: "#" + business) } label: { Label("mpd.review.business", systemImage: "tag") } }
                         messageFact("messaging.card.outcome", result.outcome, symbol: "flag")
                         messageFact("messaging.card.reason", result.reason, symbol: "text.quote")
                         messageFact("messaging.card.followUp", result.followUp, symbol: "arrow.turn.down.right")
                         IMReviewCurrentRecordSection(taskID: result.taskID, cardTitle: currentSnapshot?.card?.title)
                     }
                     .listStyle(.insetGrouped)
-                    .cyGroupedSurface()
-                    .cyHeroScreen()
+                    .navigationTitle(Text("im.full.reviewResult")).navigationBarTitleDisplayMode(.inline)
                     .toolbar { Button("action.done") { selectedReview = nil } }
                 }.privacySensitive()
                 .presentationDetents([.medium, .large])
@@ -245,17 +211,15 @@ struct MessagingMessageDetailView: View {
         .onChange(of: currentSnapshot) { _, _ in selectedTopicID = nil; selectedReview = nil }
         .onChange(of: reader.identity) { _, _ in selectedTopicID = nil; selectedReview = nil }
         .privacySensitive()
-        .cyHeroScreen()
+        .navigationTitle(Text("messaging.message.title")).navigationBarTitleDisplayMode(.inline)
     }
 
     private func messageFact(_ title: LocalizedStringKey, _ value: String?, symbol: String) -> some View {
-        CYListRow(title, trailing: .value(playerFactOrDash(value))) { CYRowIcon(systemImage: symbol) }
-    }
-}
-
-private extension View {
-    func messageRow() -> some View {
-        listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+        LabeledContent {
+            Text(verbatim: playerFactOrDash(value))
+        } label: {
+            Label(title, systemImage: symbol)
+        }
     }
 }
 
@@ -264,47 +228,44 @@ struct MessagingMessageContent: View {
     var body: some View {
         if !message.isPayloadVisible {
             Label(LocalizedStringKey(message.status == .recalled ? "messaging.message.recalled" : "messaging.message.withheld"), systemImage: "eye.slash")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
+                .foregroundStyle(.secondary)
                 .accessibilityIdentifier("messaging.message.withheld")
         } else {
         switch message.type {
         case 1:
             if let text = message.content, !text.isEmpty {
                 Text(verbatim: text)
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             else {
                 Text("messaging.message.noText")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         case 2:
             // Deliberately no AsyncImage/URLSession: external image fetches can disclose
             // the reader's IP or produce tracking side effects. Native placeholder only.
-            CYImageCard("messaging.imagePlaceholder")
+            Label("messaging.imagePlaceholder", systemImage: "photo").foregroundStyle(.secondary)
                 .accessibilityIdentifier("messaging.message.image")
         case 3:
             if let card = message.card { MessagingCardContent(card: card, isTrustedSystem: message.senderID == 0) }
-            else { Label("messaging.cardUnavailable", systemImage: "rectangle.slash").cyText(.body).foregroundStyle(CYColor.textSecondary) }
+            else { Label("messaging.cardUnavailable", systemImage: "rectangle.slash").foregroundStyle(.secondary) }
         case 4:
             if message.pollReference != nil {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Label("poll.title", systemImage: "chart.bar.xaxis").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("poll.title", systemImage: "chart.bar.xaxis").font(.headline)
                 }.accessibilityIdentifier("poll.messageCard")
-            } else { Label("poll.invalidCard", systemImage: "exclamationmark.bubble").cyText(.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("poll.invalidCard") }
+            } else { Label("poll.invalidCard", systemImage: "exclamationmark.bubble").foregroundStyle(.secondary).accessibilityIdentifier("poll.invalidCard") }
         case 13:
             if let place = IMStaticLocation.read(message) { IMStaticLocationCardView(place: place) }
-            else { Label("messaging.unsupported", systemImage: "questionmark.bubble").cyText(.body).foregroundStyle(CYColor.textSecondary) }
+            else { Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary) }
         case 9:
             if message.pollReference != nil {
-                Label("poll.openResults", systemImage: "chart.bar.xaxis").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            } else { Label("messaging.unsupported", systemImage: "questionmark.bubble").cyText(.body).foregroundStyle(CYColor.textSecondary) }
+                Label("poll.openResults", systemImage: "chart.bar.xaxis").font(.headline)
+            } else { Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary) }
         default:
-            Label("messaging.unsupported", systemImage: "questionmark.bubble").cyText(.body).foregroundStyle(CYColor.textSecondary)
+            Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary)
         }
     }
     }
@@ -316,23 +277,23 @@ private struct MessagingCardContent: View {
     let isTrustedSystem: Bool
     var body: some View {
         let _ = isTrustedSystem
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             switch card.kind {
             case .location:
-                Label("messaging.card.location", systemImage: "mappin.and.ellipse").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                if let title = card.title { Text(verbatim: title).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-                if let address = card.address { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+                Label("messaging.card.location", systemImage: "mappin.and.ellipse").font(.headline)
+                if let title = card.title { Text(verbatim: title).font(.body).fixedSize(horizontal: false, vertical: true) }
+                if let address = card.address { Text(verbatim: address).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
             case .route:
-                Label("messaging.card.route", systemImage: "point.topleft.down.to.point.bottomright.curvepath").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                if let title = card.title { Text(verbatim: title).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                Label("messaging.card.route", systemImage: "point.topleft.down.to.point.bottomright.curvepath").font(.headline)
+                if let title = card.title { Text(verbatim: title).font(.body).fixedSize(horizontal: false, vertical: true) }
             case .signup:
-                Label("messaging.card.signup", systemImage: "ticket").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                if let title = card.title { Text(verbatim: title).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                Label("messaging.card.signup", systemImage: "ticket").font(.headline)
+                if let title = card.title { Text(verbatim: title).font(.body).fixedSize(horizontal: false, vertical: true) }
             case .generic:
-                if let title = card.title { Text(verbatim: title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-                else { Text("messaging.card.notification").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-                if let subtitle = card.subtitle { Text(verbatim: subtitle).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-                if let meta = card.meta { Text(verbatim: meta).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+                if let title = card.title { Text(verbatim: title).font(.headline).fixedSize(horizontal: false, vertical: true) }
+                else { Text("messaging.card.notification").font(.headline).fixedSize(horizontal: false, vertical: true) }
+                if let subtitle = card.subtitle { Text(verbatim: subtitle).font(.body).fixedSize(horizontal: false, vertical: true) }
+                if let meta = card.meta { Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
             }
         }
         .accessibilityElement(children: .contain)

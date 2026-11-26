@@ -33,13 +33,15 @@ import SwiftUI
                 }
                 titlesRows
             } else if model.loading {
-                CYSkeleton()
+                ProgressView().frame(maxWidth: .infinity)
             }
             if let issue = model.issueCode {
-                CYNoteBanner(text: Text(verbatim: copy("六维暂不可用：", "Attributes unavailable: ") + issue), symbol: "exclamationmark.triangle", tone: .warning)
+                Label { Text(verbatim: copy("六维暂不可用：", "Attributes unavailable: ") + issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }
             }
-            CYPillButton(verbatim: copy("刷新六维", "Refresh attributes"), style: .tertiary, systemImage: "arrow.clockwise", fullWidth: false) {
+            Button {
                 Task { await model.load() }
+            } label: {
+                Label { Text(verbatim: copy("刷新六维", "Refresh attributes")) } icon: { Image(systemName: "arrow.clockwise") }
             }
             .disabled(model.loading)
         } header: {
@@ -52,22 +54,34 @@ import SwiftUI
     @ViewBuilder private func attributeRow(_ row: MemberAttributeRow, seasonDelta: Double?) -> some View {
         let name = row.attribute?.name(chinese: chinese) ?? row.key
         let progress = row.levelProgress
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 6) {
             LabeledContent {
                 Text(verbatim: "Lv\(row.level)" + (seasonDelta.map { $0 > 0 ? copy("（本赛季 +\(Int($0))）", " (+\(Int($0)) this season)") : "" } ?? ""))
             } label: {
                 Text(verbatim: name)
             }
             if let progress {
-                CYProgressBar(title: copy("AXP 进度", "AXP progress"), completed: Int(progress.current), total: Int(progress.need))
+                let need = max(Int(progress.need), 1)
+                ProgressView(value: Double(min(max(Int(progress.current), 0), need)), total: Double(need)) {
+                    Text(verbatim: copy("AXP 进度", "AXP progress")).font(.subheadline).foregroundStyle(.secondary)
+                } currentValueLabel: {
+                    Text(verbatim: "\(Int(progress.current)) / \(Int(progress.need))").monospacedDigit()
+                }
             }
             if let today = row.todayAxp {
                 let cap = row.softCap ?? Int64(row.attribute?.dailySoftCap ?? 0)
-                CYFactRow(label: Text(verbatim: copy("今日 AXP / 软上限", "Today AXP / soft cap")), value: "\(today) / \(cap)")
+                LabeledContent {
+                    Text(verbatim: "\(today) / \(cap)")
+                } label: {
+                    Text(verbatim: copy("今日 AXP / 软上限", "Today AXP / soft cap"))
+                }
             }
             if let unlock = row.nextUnlock {
-                CYFactRow(label: Text(verbatim: copy("下一个解锁", "Next unlock")),
-                          value: (unlock.level.map { "Lv\($0) " } ?? "") + unlock.display(chinese: chinese))
+                LabeledContent {
+                    Text(verbatim: (unlock.level.map { "Lv\($0) " } ?? "") + unlock.display(chinese: chinese))
+                } label: {
+                    Text(verbatim: copy("下一个解锁", "Next unlock"))
+                }
             }
         }
         .accessibilityElement(children: .combine)
@@ -87,20 +101,22 @@ import SwiftUI
         let equippedCode = model.attributes?.equippedTitle?.code
         ForEach(model.titles) { title in
             let equipped = title.equipped ?? (title.code == equippedCode)
-            HStack(spacing: CYSpacing.sm) {
-                Text(verbatim: title.display(chinese: chinese))
-                Spacer(minLength: CYSpacing.sm)
+            LabeledContent {
                 if equipped {
-                    CYPillButton(verbatim: copy("卸下", "Unequip"), style: .tertiary, fullWidth: false) {
+                    Button {
                         Task { await model.equip(titleCode: nil) }
-                    }
+                    } label: { Text(verbatim: copy("卸下", "Unequip")) }
+                    .buttonStyle(.borderless)
                     .disabled(model.loading)
                 } else {
-                    CYPillButton(verbatim: copy("佩戴", "Equip"), style: .secondary, fullWidth: false) {
+                    Button {
                         Task { await model.equip(titleCode: title.code) }
-                    }
+                    } label: { Text(verbatim: copy("佩戴", "Equip")) }
+                    .buttonStyle(.bordered)
                     .disabled(model.loading)
                 }
+            } label: {
+                Text(verbatim: title.display(chinese: chinese))
             }
         }
     }
