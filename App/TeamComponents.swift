@@ -139,12 +139,25 @@ struct TeamCard: View {
 struct TeamMemberRow: View {
     let member: TeamMember
     var remove: (() -> Void)?
+    private var memberAvatarURL: URL? {
+        guard let raw = member.memberAvatar?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              let url = URL(string: raw), url.scheme == "https" else { return nil }
+        return url
+    }
     var body: some View {
         // Mini `.team-member`: 32pt avatar, name (600) over role caption, trailing 移出 in danger text.
         HStack(alignment: .center, spacing: CYSpacing.sm) {
-            // MP team/detail wxml:102: `memberAvatar || /images/d_profile.png`. Core decodes no avatar yet, so the MP default shows.
-            MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
-                .frame(width: 32, height: 32).clipShape(Circle()).accessibilityHidden(true)
+            // MP team/detail wxml:102: `memberAvatar || /images/d_profile.png` (r9 Team avatars).
+            Group {
+                if let url = memberAvatarURL {
+                    AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: {
+                        MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                    }
+                } else {
+                    MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                }
+            }
+            .frame(width: 32, height: 32).clipShape(Circle()).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Group {
                     if member.name.isEmpty { Text("team.member.unnamed") } else { Text(verbatim: member.name).fixedSize(horizontal: false, vertical: true) }
