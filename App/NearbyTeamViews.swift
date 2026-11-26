@@ -405,7 +405,8 @@ import SwiftUI
         else { radius = context.radius; recruiting = .loaded }
     }
     private func teamCard(_ team: NearbyTeam) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        // N-RTEAMS (r10): MP my-teams card (subpackageRoam/my-teams/index.wxml) as a system GroupBox, no drawn card.
+        GroupBox { VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                 Spacer(minLength: 8)
@@ -434,8 +435,8 @@ import SwiftUI
             default: EmptyView()
             }
             NearbyTeamReportButton(teamID: team.id.rawValue, leader: team.mode == "leader" || team.viewerStatus == .leader)
-        }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+        }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading) }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")
     }
     @ViewBuilder private var applicantSection: some View {
