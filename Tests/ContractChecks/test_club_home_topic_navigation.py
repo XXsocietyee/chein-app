@@ -5,11 +5,11 @@ ROOT=Path(__file__).resolve().parents[2]
 class ClubHomeTopicNavigationChecks(unittest.TestCase):
     def read(self, name): return (ROOT/'App'/name).read_text()
     def test_event_uses_topic_id_and_native_navigation_link(self):
+        # r11 A8-03: MP talent/list/index.wxml:57-95 (chengyinhub-xcx) — the 俱乐部 tab root is the create row plus one
+        # club list; the 俱乐部活动 section left ClubHomeView (events stay on club detail).
         s=self.read('ClubHomeView.swift')
-        self.assertIn('if let topicDestination, event.id > 0',s)
-        self.assertIn('NavigationLink { topicDestination(event.id) } label: { eventRow(event, page: page) }',s)
-        self.assertIn('else if let onTopicDestination',s)
-        self.assertIn('else { eventRow(event, page: page) }',s)
+        self.assertNotIn('NavigationLink { topicDestination(event.id) } label: { eventRow(event, page: page) }',s)
+        self.assertNotIn('Text("club.events")',s)
     def test_both_normal_hosts_inject_existing_guarded_destination(self):
         for file in ['QuestifyApp.swift','AccountView.swift']:
             s=self.read(file)
@@ -28,7 +28,8 @@ class ClubHomeTopicNavigationChecks(unittest.TestCase):
         self.assertIn('.id(reader.clubIdentity)',s)
         self.assertNotIn('AppSession(',s)
     def test_authored_ui_tests_cover_back_reopen_signout_account_change(self):
+        # r11 A8-03: the home-topic flows went with the 俱乐部活动 section (MP talent/list/index.wxml:57-95).
         s=(ROOT/'Tests/AppUITests/ClubCommunityUITests.swift').read_text()
-        for v in ['testClubHomeTopicNavigationBackAndReopen','testClubHomeTopicNavigationClearsOnSignOut','testClubHomeTopicNavigationClearsOnAccountSwitch','club.fixture.topic.91','club.fixture.signOut','club.fixture.switchAccount']:
-            self.assertIn(v,s)
+        self.assertIn('r11 A8-03',s)
+        self.assertNotIn('app.buttons["club.event.91"]',s)
         self.assertNotIn('XCTSkip',s)
