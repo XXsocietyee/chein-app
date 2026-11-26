@@ -289,11 +289,14 @@ import SwiftUI
         case .needsReview where lastWasCreate:
             // MP badges js:264,282: 勋章没有创建成功, or the server's own sentence when it gave one.
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("clubR8b.badges.createFailed")
-                    .cyText(.body, weight: .semibold)
-                    .foregroundStyle(palette.textPrimary)
+                // CLB-r8-badges-02 (MP badges wxml:56): title 勋章没有创建; the line under it is the server's sentence,
+                // else 勋章没有创建成功.
+                Text("clubR8b.badges.createFailedTitle")
+                    .font(.headline)
                 if let message = model.flow?.operationMessage, !message.isEmpty {
-                    Text(verbatim: message).cyText(.meta).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary)
+                } else {
+                    Text("clubR8b.badges.createFailed").font(.subheadline).foregroundStyle(.secondary)
                 }
             }
             .fixedSize(horizontal: false, vertical: true)

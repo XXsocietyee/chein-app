@@ -315672,6 +315672,23 @@
           }
         }
       }
+    },
+    "clubR8b.badges.createFailedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Badge not created"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章没有创建"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
