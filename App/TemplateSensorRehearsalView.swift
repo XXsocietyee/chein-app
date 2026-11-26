@@ -74,8 +74,7 @@ import Combine
     }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateSensor.title", tableName: "TemplateSensorRehearsal").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            Section { sensorText("boundary"); sensorText("virtualTime").cyText(.meta) }
+            Section { sensorText("boundary"); sensorText("virtualTime").font(.footnote).foregroundStyle(.secondary) }
             if let state = controller.visibleState {
                 TemplateSensorRehearsalInputs(state: state, advance: controller.advanceAction())
                     .id(controller.formID)
@@ -90,13 +89,13 @@ import Combine
             } else {
                 Section {
                     sensorText("unavailable")
-                    CYPillButton(LocalizedStringKey("templateSensor.reload"), style: .secondary, tableName: "TemplateSensorRehearsal") { controller.reload() }
+                    Button { controller.reload() } label: { sensorText("reload") }
                         .disabled(!controller.canReload)
                 }
             }
         }
-        .cyGroupedSurface()
         .privacySensitive()
+        .navigationTitle(sensorText("title")).navigationBarTitleDisplayMode(.inline)
         .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
         .onDisappear { controller.viewDisappeared() }
         .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
@@ -110,7 +109,7 @@ import Combine
     @State private var peak = 0.1
     var body: some View {
         Section {
-            if !state.title.isEmpty { Text(verbatim: state.title).cyText(.cardTitle) }
+            if !state.title.isEmpty { Text(verbatim: state.title).font(.headline) }
             if state.game == .compass {
                 LabeledContent { Text(verbatim: "\(Int(state.targetBearing))° ± \(Int(state.tolerance))°") }
                     label: { sensorText("target") }
@@ -121,14 +120,14 @@ import Combine
                 Slider(value: $accuracy, in: 0...180, step: 1) { sensorText("accuracy") }
                     .accessibilityIdentifier("templateSensor.accuracy")
             } else {
-                sensorText("baseline").cyText(.bodyCompact)
+                sensorText("baseline").font(.subheadline).foregroundStyle(.secondary)
                 LabeledContent { Text(verbatim: String(format: "%.2f", state.loudThreshold)) }
                     label: { sensorText("threshold") }
                 LabeledContent { Text(verbatim: String(format: "%.2f", peak)) } label: { sensorText("peak") }
                 Slider(value: $peak, in: 0...1, step: 0.01) { sensorText("peak") }
                     .accessibilityIdentifier("templateSensor.peak")
             }
-            CYPillButton(LocalizedStringKey("templateSensor.advance"), style: .primary, tableName: "TemplateSensorRehearsal") { advance(bearing, accuracy, peak) }
+            Button { advance(bearing, accuracy, peak) } label: { sensorText("advance") }
                 .disabled(state.finished).accessibilityIdentifier("templateSensor.advance")
         }
     }

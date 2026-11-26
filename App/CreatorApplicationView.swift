@@ -15,32 +15,24 @@ import SwiftUI
     var body: some View {
         Form {
             Section {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Image(systemName: "paintbrush.pointed.fill").cyText(.sheetTitle).foregroundStyle(.white)
-                        .frame(width: 52, height: 52)
-                        .background(SettingsTint.indigo.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
-                        .accessibilityHidden(true)
-                    Text(zh ? "成为创作者" : "Become a creator").cyText(.dataXL)
-                        .foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                    Text(zh ? "把你的路线和故事分享给这座城市。" : "Share your own routes and stories with the city.")
-                        .cyText(.body).foregroundStyle(CYColor.textSecondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .listRowBackground(Color.clear)
+                Label(zh ? "成为创作者" : "Become a creator", systemImage: "paintbrush.pointed.fill")
+                    .font(.headline).accessibilityAddTraits(.isHeader)
+            } footer: {
+                Text(zh ? "把你的路线和故事分享给这座城市。" : "Share your own routes and stories with the city.")
             }
             if center?.status == .notApplied {
                 Section {
-                    TextField(zh ? "创作者名称" : "Creator name", text: $name).accessibilityIdentifier("creatorApplication.name")
+                    TextField(zh ? "创作者名称" : "Creator name", text: $name).textContentType(.nickname).submitLabel(.next).accessibilityIdentifier("creatorApplication.name")
                     TextField(zh ? "简介（选填）" : "Bio (optional)", text: $bio, axis: .vertical).lineLimit(3...6).accessibilityIdentifier("creatorApplication.bio")
                 } footer: {
                     Text(zh ? "仅首次申请；真实提交尚未启用。" : "First applications only. Live submission remains disabled.")
                 }
-                Button(zh ? "审阅申请" : "Review application") { Task {
+                Section { Button(zh ? "审阅申请" : "Review application") { Task {
                     busy = true; defer { busy = false }
                     do { review = try await coordinator.prepare(CreatorApplicationDraft(creatorName: name, bio: bio)) }
                     catch { message = PublisherLifecycleCopy.error(error, zh: zh) }
-                } }.buttonStyle(CYPillButtonStyle()).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-                .disabled(busy || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("creatorApplication.review")
+                } }
+                .disabled(busy || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("creatorApplication.review") }
             } else if center?.status == .rejected {
                 Text(zh ? "已有申请档案，服务器不支持重新申请。" : "An application profile already exists. The server does not support reapplication.").accessibilityIdentifier("creatorApplication.rejected")
                 Text(center?.rejectReason ?? "")
@@ -63,8 +55,7 @@ import SwiftUI
                 }
             }
             if !message.isEmpty { Text(message).accessibilityIdentifier("creatorApplication.message") }
-            Button(zh ? "刷新状态" : "Refresh status") { Task { await refresh() } }.buttonStyle(CYPillButtonStyle(style: .tertiary))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets()).disabled(busy)
+            Section { Button(zh ? "刷新状态" : "Refresh status") { Task { await refresh() } }.disabled(busy) }
         }.navigationTitle(zh ? "申请成为创作者" : "Apply as a creator").navigationBarTitleDisplayMode(.inline)
         .task { await refresh() }
         .onChange(of: name) { _, _ in clear() }.onChange(of: bio) { _, _ in clear() }

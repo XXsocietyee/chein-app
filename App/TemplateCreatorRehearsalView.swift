@@ -18,22 +18,22 @@ import SwiftUI
     private func rows(_ key: String) -> [[String: TemplateAuthoringJSON]] { (fields[key]?.array ?? []).compactMap(\.object) }
     var body: some View {
         Form {
-            Section { CYHeroHeader(LocalizedStringKey(family.labelKey), subtitle: LocalizedStringKey("creator.localOnly")) }.e1HeroRow()
             Section {
-                Text(LocalizedStringKey(family.providerKey)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                if !text("title").isEmpty { Text(verbatim: text("title")).cyText(.sectionTitle) }
-            }
+                Text(LocalizedStringKey(family.labelKey)).font(.headline).accessibilityAddTraits(.isHeader)
+                Text(LocalizedStringKey(family.providerKey)).font(.footnote).foregroundStyle(.secondary)
+                if !text("title").isEmpty { Text(verbatim: text("title")).font(.title3.weight(.semibold)) }
+            } footer: { Text(LocalizedStringKey("creator.localOnly")) }
             Section("creator.rehearse") { interaction }
             if rehearsal.result != .ready { Section { Text(LocalizedStringKey("creator.result." + rehearsal.result.rawValue)) } }
             Section {
-                CYPillButton("creator.reset", style: .tertiary) { guard family != .branch || branchAdmission() else { return }; rehearsal.reset(); input = ""; selected = []; startedAt = nil; sampleIndex = 0; profileAnswers = [:] }.e1ActionRow()
+                Button { guard family != .branch || branchAdmission() else { return }; rehearsal.reset(); input = ""; selected = []; startedAt = nil; sampleIndex = 0; profileAnswers = [:] } label: { Label("creator.reset", systemImage: "arrow.counterclockwise") }
                 if showsReview { DisclosureGroup("creator.review") {
                     TemplateCreatorReviewFields(value: .object(fields), fields: TemplateCreatorSchema.fields(family))
                 } }
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+        }.formStyle(.grouped)
             .accessibilityIdentifier("creator.rehearsal." + family.rawValue)
-        .cyDomainScreen(.topicEditor)
+        .themeDomain(.topicEditor)
     }
     @ViewBuilder private var interaction: some View {
         switch family {
@@ -41,7 +41,7 @@ import SwiftUI
             Text(verbatim: compareQuestion["prompt"]?.string ?? "")
             ForEach(["left", "right"], id: \.self) { side in
                 let part = compareQuestion[side]?.object ?? [:]
-                Text(verbatim: part["label"]?.string ?? "").cyText(.cardTitle)
+                Text(verbatim: part["label"]?.string ?? "").font(.headline)
                 ForEach(Array((part["items"]?.array ?? []).enumerated()), id: \.offset) { _, item in
                     let id = item.object?["id"]?.string ?? ""
                     Button {
@@ -50,7 +50,7 @@ import SwiftUI
                         HStack(alignment: .top) {
                             Image(systemName: selected.contains(id) ? "checkmark.circle.fill" : "circle")
                             VStack(alignment: .leading) {
-                                Text(verbatim: item.object?["time"]?.string ?? "").cyText(.meta, weight: .bold)
+                                Text(verbatim: item.object?["time"]?.string ?? "").font(.footnote.bold())
                                 Text(verbatim: item.object?["text"]?.string ?? "")
                             }
                         }
@@ -68,13 +68,13 @@ import SwiftUI
             else if text("mode") == "TYPE" { TextField("creator.input", text: $input); evaluateButton }
             else { Text(verbatim: text("shotNote")); Label("creator.provider.vision", systemImage: "camera") }
         case .typeIn:
-            Text(verbatim: text("target")).cyText(.sectionTitle)
+            Text(verbatim: text("target")).font(.title3.weight(.semibold))
             Button("creator.start") { startedAt = Date(); input = ""; rehearsal.reset() }
             TextField("creator.input", text: $input).disabled(startedAt == nil)
             evaluateButton.disabled(startedAt == nil)
         case .branch: branch
         case .random:
-            Text(verbatim: text("deckName")); Text("creator.selectSample").cyText(.bodyCompact)
+            Text(verbatim: text("deckName")); Text("creator.selectSample").font(.subheadline).foregroundStyle(.secondary)
             samplePicker(rows("items").count)
             if rows("items").indices.contains(sampleIndex) { let row = rows("items")[sampleIndex]; Text(verbatim: row["label"]?.string ?? ""); Text(verbatim: row["content"]?.string ?? "") }
         case .dailySign:
@@ -100,7 +100,7 @@ import SwiftUI
             Text(verbatim: text("prompt")); TextField("creator.input", text: $input, axis: .vertical)
             let key = family == .note ? "presets" : "suggestions"
             ForEach(Array((fields[key]?.array ?? []).enumerated()), id: \.offset) { _, value in Button(value.string ?? "") { input = value.string ?? "" } }
-            Text(verbatim: "\(input.utf16.count) / \(fields["maxLength"]?.integer ?? 40)").cyText(.meta)
+            Text(verbatim: "\(input.utf16.count) / \(fields["maxLength"]?.integer ?? 40)").font(.footnote).foregroundStyle(.secondary)
         case .check:
             Text(verbatim: text("skill"))
             Picker("creator.selectSample", selection: $sampleIndex) { Text("creator.success").tag(0); Text("creator.failure").tag(1) }.pickerStyle(.segmented)
@@ -109,11 +109,11 @@ import SwiftUI
             Picker("creator.selectSample", selection: $sampleIndex) { Text("creator.start").tag(0); Text("creator.wait").tag(1); Text("creator.unlock").tag(2) }
             Text(verbatim: text(sampleIndex == 0 ? "startLabel" : sampleIndex == 1 ? "waitHint" : "unlockText"))
         case .photoCheck:
-            Label("creator.photoFrame", systemImage: "viewfinder").frame(maxWidth: .infinity, minHeight: 160).background(.quaternary)
+            Label("creator.photoFrame", systemImage: "viewfinder").foregroundStyle(.secondary).frame(maxWidth: .infinity, minHeight: 160)
             Text(verbatim: text("requirement")); Text(verbatim: text("shotNote"))
         case .hiddenObject:
             hiddenObjectCanvas
-            Text(verbatim: text("hint")); Text("creator.hotspotReview").cyText(.bodyCompact)
+            Text(verbatim: text("hint")); Text("creator.hotspotReview").font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: "\(rehearsal.foundTargets.count) / \(rows("hotspots").count)")
         case .predict:
             Text(verbatim: text("question")); Text(verbatim: text("hint")); options(rows("options"), identity: "key", label: "label", multiple: false)
@@ -122,7 +122,7 @@ import SwiftUI
             if text("kind") == "IMAGE" { mediaPreview(text("imageUrl")) }
             if text("kind") == "OVERLAY" { mediaPreview(text("overlayUrl")) }
         case .silentOrder: Text(verbatim: text("rule"))
-        case .musicCorner: Text(verbatim: text("trackName")); Text("creator.provider.music").cyText(.meta)
+        case .musicCorner: Text(verbatim: text("trackName")); Text("creator.provider.music").font(.footnote).foregroundStyle(.secondary)
         case .timeWindow: LabeledContent("creator.field.openFrom", value: text("openFrom")); LabeledContent("creator.field.openTo", value: text("openTo"))
         case .steps: LabeledContent("creator.field.goal", value: String(fields["goal"]?.integer ?? 0)); Text("creator.provider.wechatSteps")
         case .leaderboard, .multiplayer: TemplateCreatorReviewFields(value: .object(fields), fields: TemplateCreatorSchema.fields(family))
@@ -192,7 +192,7 @@ private struct TemplateCreatorReviewFields: View {
                 case .object(let nested): DisclosureGroup(LocalizedStringKey(field.labelKey)) { AnyView(TemplateCreatorReviewFields(value: raw, fields: nested)) }
                 case .rows(let nested, _, _, _): DisclosureGroup(LocalizedStringKey(field.labelKey)) {
                     ForEach(Array((raw.array ?? []).enumerated()), id: \.offset) { index, row in
-                        Text(verbatim: String(index + 1)).cyText(.cardTitle); AnyView(TemplateCreatorReviewFields(value: row, fields: nested))
+                        Text(verbatim: String(index + 1)).font(.headline); AnyView(TemplateCreatorReviewFields(value: row, fields: nested))
                     }
                 }
                 case .strings: LabeledContent(LocalizedStringKey(field.labelKey), value: (raw.array ?? []).compactMap(\.string).joined(separator: " · "))
