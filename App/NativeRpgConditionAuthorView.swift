@@ -65,22 +65,22 @@ import SwiftUI
     var body: some View {
         Section(copy.text("rpgCondition.copy.006")) {
             if editor == nil {
-                CYPillButton(verbatim: copy.text("rpgCondition.copy.007"), style: .secondary) { open() }.disabled(!available).accessibilityIdentifier("rpgCondition.open")
+                Button(copy.text("rpgCondition.copy.007")) { open() }.disabled(!available).accessibilityIdentifier("rpgCondition.open")
             } else if let draft = editor, let editorID = capture?.id {
                 let editRevision = bufferRevision
                 Group {
                     if !current { NativeAuthorNotice(text: Text(copy.text("rpgCondition.copy.008")), tone: .attention) }
-                    Toggle(copy.text("rpgCondition.copy.009"),isOn:Binding(get:{editor?.enabled ?? false},set:{value in mutate(editorID, revision: editRevision) {$0.configure(value)}})).frame(minHeight: 44).accessibilityIdentifier("rpgCondition.enabled")
+                    Toggle(copy.text("rpgCondition.copy.009"),isOn:Binding(get:{editor?.enabled ?? false},set:{value in mutate(editorID, revision: editRevision) {$0.configure(value)}})).accessibilityIdentifier("rpgCondition.enabled")
                     Button(copy.text("rpgCondition.copy.010")) { mutate(editorID, revision: editRevision) {$0.configure(draft.enabled)} }.accessibilityIdentifier("rpgCondition.keep")
                     Text(copy.text("rpgCondition.copy.011")).nativeAuthorSupportingCopy()
-                    CYPillButton(verbatim: copy.text("rpgCondition.copy.012"), style: .secondary) { preview(editorID, revision: editRevision) }.accessibilityIdentifier("rpgCondition.review")
+                    Button(copy.text("rpgCondition.copy.012")) { preview(editorID, revision: editRevision) }.accessibilityIdentifier("rpgCondition.review")
                     if let review {
                         Text(verbatim: review.value.text ?? "").font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("rpgCondition.preview")
-                        CYPillButton(verbatim: saveUnconfirmed ? copy.text("rpgCondition.copy.013") : copy.text("rpgCondition.copy.014")) { apply(review) }.accessibilityIdentifier("rpgCondition.confirm").accessibilityHint(Text(copy.text("rpgCondition.localOnly")))
+                        Button(saveUnconfirmed ? copy.text("rpgCondition.copy.013") : copy.text("rpgCondition.copy.014")) { apply(review) }.fontWeight(.semibold).accessibilityIdentifier("rpgCondition.confirm").accessibilityHint(Text(copy.text("rpgCondition.localOnly")))
                     }
                     Text(copy.text("rpgCondition.copy.015")).nativeAuthorSupportingCopy()
                 }.disabled(!current)
-                CYPillButton(verbatim: copy.text("rpgCondition.copy.016"), style: .tertiary) { close(editorID) }.accessibilityIdentifier("rpgCondition.close")
+                Button(copy.text("rpgCondition.copy.016"), role: .cancel) { close(editorID) }.accessibilityIdentifier("rpgCondition.close")
             }
             if let message { NativeAuthorNotice(text: Text(verbatim: copy.message(message))).accessibilityIdentifier("rpgCondition.notice") }
         }

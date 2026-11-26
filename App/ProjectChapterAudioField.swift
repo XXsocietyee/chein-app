@@ -95,18 +95,14 @@ import SwiftUI
                 }
             }
         } header: { Text("projectChapterAudio.title", tableName: "ProjectChapterAudio") }
-        .sheet(isPresented: controller.binding(original)) {
+        .confirmationDialog(Text("projectChapterAudio.clearTitle", tableName: "ProjectChapterAudio"), isPresented: controller.binding(original), titleVisibility: .visible) {
             if let original {
-                CYConfirmSheet(
-                    title: String(localized: LocalizedStringResource("projectChapterAudio.clearTitle", table: "ProjectChapterAudio", locale: locale)),
-                    message: String(localized: LocalizedStringResource("projectChapterAudio.clearMessage", table: "ProjectChapterAudio", locale: locale)),
-                    confirmTitle: String(localized: LocalizedStringResource("projectChapterAudio.clear", table: "ProjectChapterAudio", locale: locale)),
-                    isDestructive: true,
-                    onConfirm: { controller.clear(original) }
-                )
-                .cyDomainSheet(detents: [.half])
-                .themeDomain(.topicEditor)
+                Button(role: .destructive) { controller.clear(original) } label: {
+                    Text("projectChapterAudio.clear", tableName: "ProjectChapterAudio")
+                }
             }
+        } message: {
+            Text("projectChapterAudio.clearMessage", tableName: "ProjectChapterAudio")
         }
         .sheet(item: uploads.binding(upload)) { original in
             ProjectChapterAudioAuthorView(original: original, picker: model.storyAudioPicker?(), apply: { uploads.apply($0) }, close: { uploads.close(original) })

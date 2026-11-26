@@ -59,8 +59,8 @@ import SwiftUI
                     } label: {
                         HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
                             VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                                Text(verbatim: item.title).cyText(.sectionTitle).foregroundStyle(.primary)
-                                Text(verbatim: price(item.currency, minor: item.priceMinor)).cyText(.body).monospacedDigit().foregroundStyle(.secondary)
+                                Text(verbatim: item.title).font(.headline).foregroundStyle(.primary)
+                                Text(verbatim: price(item.currency, minor: item.priceMinor)).font(.body).monospacedDigit().foregroundStyle(.secondary)
                             }.frame(maxWidth: .infinity, alignment: .leading)
                             if controller.offer?.offerId == item.offerId {
                                 Image(systemName: "checkmark.circle.fill").accessibilityHidden(true)
@@ -80,20 +80,20 @@ import SwiftUI
                 if let message = controller.messageKey, ["error.catalogUnavailable", "error.offerUnavailable"].contains(message) {
                     WorkshopCommerceLibraryNotice(text: commerceText(message), symbol: "exclamationmark.triangle", isError: true)
                 }
-                CYPillButton(LocalizedStringKey("workshopCommerce.refreshCatalog"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadOffers() } }.disabled(controller.busy)
+                Button { Task { await controller.loadOffers() } } label: { Text("workshopCommerce.refreshCatalog", tableName: "WorkshopCommerce") }.disabled(controller.busy)
                 if controller.hasMoreOffers {
-                    CYPillButton(LocalizedStringKey("workshopCommerce.moreOffers"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadOffers(more: true) } }.disabled(controller.busy)
+                    Button { Task { await controller.loadOffers(more: true) } } label: { Text("workshopCommerce.moreOffers", tableName: "WorkshopCommerce") }.disabled(controller.busy)
                 }
             } header: { commerceText("approvedOffer") }
             if let offer = controller.offer {
                 Section {
                     VStack(alignment: .leading, spacing: Theme.Space.s3) {
-                        Text(verbatim: offer.title).cyText(.sheetTitle).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: price(offer.currency, minor: offer.priceMinor)).cyText(.sheetTitle).monospacedDigit()
+                        Text(verbatim: offer.title).font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: price(offer.currency, minor: offer.priceMinor)).font(.title3.weight(.semibold)).monospacedDigit()
                     }.padding(.vertical, Theme.Space.s2)
                     CommerceFact("version", offer.releaseId)
                     CommerceTermsFacts(terms: offer.terms)
-                    commerceText("purchaseBoundary").cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    commerceText("purchaseBoundary").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     if !offer.hasSupportedTerms { Text("原授权范围无法按当前合同解释；不能忽略限制后继续领取或购买。").fixedSize(horizontal: false, vertical: true) }
                     Button { reviewedOffer = offer; confirming = true } label: { commerceText(offer.priceMinor == 0 ? "claimFree" : "confirmIntent").frame(maxWidth: .infinity) }.disabled(!controller.canAcquire)
                         .modifier(WorkshopLibraryPrimaryAction())
@@ -113,11 +113,11 @@ import SwiftUI
                         .disabled(controller.busy)
                     }
                     if controller.canPay { Button { Task { await controller.pay() } } label: { commerceText("continuePayment").frame(maxWidth: .infinity) }.modifier(WorkshopLibraryPrimaryAction()) }
-                    if controller.canCancel { CYPillButton(LocalizedStringKey("workshopCommerce.requestCancellation"), style: .secondary, tableName: "WorkshopCommerce") { confirmingCancellation = true }.disabled(controller.busy) }
+                    if controller.canCancel { Button { confirmingCancellation = true } label: { Text("workshopCommerce.requestCancellation", tableName: "WorkshopCommerce") }.disabled(controller.busy) }
                 } header: { commerceText("serverOrder") }
             }
             if controller.order == nil && controller.canCancel {
-                CYPillButton(LocalizedStringKey("workshopCommerce.requestCancellation"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.cancel() } }
+                Button { Task { await controller.cancel() } } label: { Text("workshopCommerce.requestCancellation", tableName: "WorkshopCommerce") }
             }
             if let message = controller.messageKey, !["error.catalogUnavailable", "error.offerUnavailable"].contains(message) { WorkshopCommerceLibraryNotice(text: commerceText(message), symbol: "exclamationmark.circle", isError: true) }
             Section {
@@ -131,10 +131,10 @@ import SwiftUI
                 ForEach(controller.licenses) { item in
                     Group {
                         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                            Text(verbatim: item.moduleId).cyText(.sectionTitle)
-                            Text(verbatim: item.purchasedVersionId).cyText(.body).foregroundStyle(.secondary)
+                            Text(verbatim: item.moduleId).font(.headline)
+                            Text(verbatim: item.purchasedVersionId).font(.body).foregroundStyle(.secondary)
                             CommerceState(raw: item.status)
-                            Text(verbatim: item.licenseId).cyText(.label).monospaced().foregroundStyle(.secondary)
+                            Text(verbatim: item.licenseId).font(.footnote).monospaced().foregroundStyle(.secondary)
                         }.fixedSize(horizontal: false, vertical: true).padding(.vertical, Theme.Space.s2)
                         NavigationLink {
                             WorkshopCommerceLicenseDetailView(controller: controller, licenseId: item.licenseId)
@@ -159,9 +159,9 @@ import SwiftUI
                 }
                 if controller.licenses.isEmpty { WorkshopCommerceLibraryNotice(text: commerceText("licensesEmpty"), symbol: "tray") }
                 if let message = controller.licensesMessageKey { WorkshopCommerceLibraryNotice(text: commerceText(message), symbol: "exclamationmark.triangle", isError: true) }
-                CYPillButton(LocalizedStringKey("workshopCommerce.refreshLicenses"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadLicenses() } }.disabled(controller.busy)
+                Button { Task { await controller.loadLicenses() } } label: { Text("workshopCommerce.refreshLicenses", tableName: "WorkshopCommerce") }.disabled(controller.busy)
                 if controller.hasMoreLicenses {
-                    CYPillButton(LocalizedStringKey("workshopCommerce.moreLicenses"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadLicenses(more: true) } }.disabled(controller.busy)
+                    Button { Task { await controller.loadLicenses(more: true) } } label: { Text("workshopCommerce.moreLicenses", tableName: "WorkshopCommerce") }.disabled(controller.busy)
                 }
             } header: { commerceText("ownedLicenses") }
 
@@ -187,12 +187,12 @@ import SwiftUI
                     NavigationStack {
                         Form {
                             Section {
-                                Text(verbatim: reviewedOffer.title).cyText(.sheetTitle).fixedSize(horizontal: false, vertical: true)
-                                Text(verbatim: price(reviewedOffer.currency, minor: reviewedOffer.priceMinor)).cyText(.sectionTitle).monospacedDigit()
+                                Text(verbatim: reviewedOffer.title).font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: price(reviewedOffer.currency, minor: reviewedOffer.priceMinor)).font(.headline).monospacedDigit()
                                 CommerceFact("moduleId", reviewedOffer.moduleId)
                                 CommerceFact("version", reviewedOffer.releaseId)
                                 if let accountID = session.account?.id { Text(verbatim: "本次取得许可的账号：\(accountID)") }
-                                Text("本次许可归属当前账号；下列可安装主体与场地范围是独立限制，不代表已取得经营、地点同意或发布权限。").cyText(.body).fixedSize(horizontal: false, vertical: true)
+                                Text("本次许可归属当前账号；下列可安装主体与场地范围是独立限制，不代表已取得经营、地点同意或发布权限。").font(.body).fixedSize(horizontal: false, vertical: true)
                             }
                             Section { CommerceTermsFacts(terms: reviewedOffer.terms) }
                             commerceText("purchaseBoundary")
@@ -239,11 +239,11 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Form {
-            if controller.licenseSnapshotLoading { CYLoadingStateView(rows: 1).accessibilityLabel(commerceText("loadingLicense")) }
+            if controller.licenseSnapshotLoading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(commerceText("loadingLicense")) }
             else if let snapshot = controller.licenseSnapshot, snapshot.license.licenseId == licenseId, controller.isCurrent {
                 let item = snapshot.license
                 Section {
-                    Text(verbatim: snapshot.offer.title).cyText(.sheetTitle).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: snapshot.offer.title).font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
                     CommerceFact("originalAmount", commerceAmount(snapshot.order.currency, minor: snapshot.order.amountMinor, locale: locale, includesCurrencyCode: true)).monospacedDigit()
                     CommerceFact("moduleId", item.moduleId); CommerceFact("version", item.purchasedVersionId)
                     CommerceFact("acquisition", commerceString("acquisition." + item.acquisition, locale: locale))
@@ -255,12 +255,12 @@ import SwiftUI
                     if let reason = item.suspensionReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         CommerceFact("statusReason", reason)
                     } else if item.status != "ACTIVE" { commerceText("statusReasonUnavailable") }
-                    commerceText("licenseIsNotPublication").cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    commerceText("licenseIsNotPublication").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 } header: { commerceText("currentLicenseStatus") }
                 Section {
                     CommerceFact("licenseId", item.licenseId); CommerceFact("originalOrder", item.orderKey)
                     CommerceFact("originalRequest", snapshot.order.requestId)
-                    commerceText("originalLicenseBoundary").cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    commerceText("originalLicenseBoundary").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 Section { CommerceTermsFacts(terms: item.terms) } header: { commerceText("frozenTerms") }
                 Section {
@@ -269,28 +269,28 @@ import SwiftUI
                 }
                 Section("原已购版本当前记录") {
                     if let record = controller.ownedReleaseRecord {
-                        Text(verbatim: "本次版本读取时的许可状态：" + record.licenseState).cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: "本次版本读取时的许可状态：" + record.licenseState).font(.headline).fixedSize(horizontal: false, vertical: true)
                         if record.licenseState != item.status { Text("两次读取之间许可状态有变化，请刷新原许可；旧 ACTIVE 不授予继续运行。") }
                         Text(verbatim: "原使用期限合同：" + record.useDuration)
                         Text(verbatim: "已购 release：" + record.releaseId)
                         Text(verbatim: "原版本记录状态：" + record.artifactStatus)
                         if !record.artifactIdentityMatched { Text("当前版本记录与原购入身份不匹配或缺失，不能用别的版本替代。") }
                         if let reason = record.blockReason, !reason.isEmpty { Text(verbatim: reason) }
-                        Text("持久许可证与版本可用性分别记录。ACTIVE 不是可运行批准；安装、原运行、内容与地区仍需原服务当前检查。").cyText(.body).fixedSize(horizontal: false, vertical: true)
+                        Text("持久许可证与版本可用性分别记录。ACTIVE 不是可运行批准；安装、原运行、内容与地区仍需原服务当前检查。").font(.body).fixedSize(horizontal: false, vertical: true)
                     } else { Text("原版本记录读取未配置或暂不可用。保留原许可详情，不把它猜成已撤销或仍可运行。") }
-                    Text("退款记录、会话到期或安装预留到期都不自动等于全部持久许可作废；这里不扩展更新版本或使用期限。").cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Text("退款记录、会话到期或安装预留到期都不自动等于全部持久许可作废；这里不扩展更新版本或使用期限。").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 Section("原退款 / 拒付记录") {
                     if let status = controller.reversalStatus {
                         Text(verbatim: "当前许可状态：" + (status.licenseState ?? "UNKNOWN"))
                         Text(verbatim: "拒付查询能力：" + (status.chargebackQueryCapability ?? "NOT_CAPTURED"))
-                        Text("能力字段不是渠道观察。未实现、未配置或旧服务未提供，均不能证明没有拒付；这里不发起渠道查询。").cyText(.body).fixedSize(horizontal: false, vertical: true)
+                        Text("能力字段不是渠道观察。未实现、未配置或旧服务未提供，均不能证明没有拒付；这里不发起渠道查询。").font(.body).fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: "已确认退款：\(status.currency) \(Decimal(status.refundedBuyerMinor) / Decimal(100))").monospacedDigit()
                         Text(verbatim: "已确认拒付：\(status.currency) \(Decimal(status.chargedBackBuyerMinor) / Decimal(100))").monospacedDigit()
                         ForEach(status.reversals, id: \.reversalKey) { item in
                             VStack(alignment: .leading) {
-                                Text(verbatim: item.reversalKey).cyText(.label).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                                Text(verbatim: item.kind + " / " + item.state).cyText(.cardTitle)
+                                Text(verbatim: item.reversalKey).font(.footnote).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: item.kind + " / " + item.state).font(.headline)
                                 Text(verbatim: "原查询记录：" + (item.queryObservation ?? "NOT_CAPTURED"))
                                 if item.queryAttempted == true, let at = item.queryAttemptedAt {
                                     Text(verbatim: "原查询尝试时间：" + at)
@@ -301,14 +301,14 @@ import SwiftUI
                             }.fixedSize(horizontal: false, vertical: true)
                         }
                         if status.reversals.isEmpty { Text("原账暂无处理记录；不代表退款申请已获批准或渠道没有其他待同步事实。") }
-                        Text("这里只读原账。处理中、UNKNOWN 和未读到结果不是退款成功；不会查询渠道或创建/执行退款。").cyText(.body).fixedSize(horizontal: false, vertical: true)
+                        Text("这里只读原账。处理中、UNKNOWN 和未读到结果不是退款成功；不会查询渠道或创建/执行退款。").font(.body).fixedSize(horizontal: false, vertical: true)
                     } else { Text("原退款状态读取未配置或暂不可用；不把它显示成无退款。原许可详情仍可查看。") }
                 }
 
             } else { WorkshopCommerceLibraryNotice(text: commerceText(controller.licenseSnapshotMessageKey ?? "error.licenseUnavailable"), symbol: "exclamationmark.triangle", isError: true) }
-            CYPillButton(LocalizedStringKey("workshopCommerce.refreshLicense"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadLicenseSnapshot(licenseId) } }
+            Button { Task { await controller.loadLicenseSnapshot(licenseId) } } label: { Text("workshopCommerce.refreshLicense", tableName: "WorkshopCommerce") }
                 .disabled(controller.licenseSnapshotLoading || !controller.isCurrent)
-            CYPillButton(LocalizedStringKey("workshopCommerce.returnToCatalog"), style: .secondary, tableName: "WorkshopCommerce") { dismiss() }
+            Button { dismiss() } label: { Text("workshopCommerce.returnToCatalog", tableName: "WorkshopCommerce") }
         }
         .modifier(WorkshopLibrarySurface())
         .navigationTitle(commerceString("originalLicense", locale: locale)).navigationBarTitleDisplayMode(.inline)
@@ -325,9 +325,9 @@ private struct CommerceTermsFacts: View {
     @Environment(\.locale) private var locale
     var body: some View {
         CommerceFact("commercialUse", commerceString(terms.commercialUse ? "allowed" : "notAllowed", locale: locale))
-        CommerceFact("duration", commerceString("policy." + terms.useDuration, locale: locale)); Text(verbatim: terms.useDuration).cyText(.label)
-        CommerceFact("updates", commerceString("policy." + terms.updatePolicy, locale: locale)); Text(verbatim: terms.updatePolicy).cyText(.label)
-        CommerceFact("redistribution", commerceString("policy." + terms.redistribution, locale: locale)); Text(verbatim: terms.redistribution).cyText(.label)
+        CommerceFact("duration", commerceString("policy." + terms.useDuration, locale: locale)); Text(verbatim: terms.useDuration).font(.footnote)
+        CommerceFact("updates", commerceString("policy." + terms.updatePolicy, locale: locale)); Text(verbatim: terms.updatePolicy).font(.footnote)
+        CommerceFact("redistribution", commerceString("policy." + terms.redistribution, locale: locale)); Text(verbatim: terms.redistribution).font(.footnote)
         CommerceFact("installationLimit", String(terms.installationLimit)); CommerceFact("regions", terms.allowedRegions.joined(separator: ", "))
         CommerceFact("termsVersion", terms.version); CommerceFact("termsHash", terms.hash)
         CommerceFact("contentHash", terms.contentHash); CommerceFact("refundPolicy", terms.refundPolicyReference)
@@ -335,7 +335,7 @@ private struct CommerceTermsFacts: View {
             CommerceCompositionScopeFacts(rights: rights)
         } else {
             Text("原条款未提供组合授权。不得推断允许翻译、改编、remix、嵌入分发或任意主体/场地使用；安装仍由原许可与当前权限检查。")
-                .cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -343,9 +343,9 @@ private struct CommerceCompositionScopeFacts: View {
     let rights: WorkshopCommerceCompositionRights
     var body: some View {
         Group {
-            Text("原冻结组合授权范围").cyText(.sectionTitle)
+            Text("原冻结组合授权范围").font(.headline)
             Text(verbatim: "合同：" + rights.profile)
-            Text(verbatim: "授权摘要：" + rights.grantHash).cyText(.label).monospaced().fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: "授权摘要：" + rights.grantHash).font(.footnote).monospaced().fixedSize(horizontal: false, vertical: true)
             Text(verbatim: "可复用作者：" + ids(rights.scope.authors))
             Text(verbatim: "可安装主体：" + ids(rights.scope.installationSubjects))
             Text(verbatim: "经营主体/门店：" + ids(rights.scope.venues))
@@ -361,7 +361,7 @@ private struct CommerceCompositionScopeFacts: View {
             permission("Remix", rights.scope.remix)
             permission("在已批准组合中嵌入分发", rights.scope.embeddedRedistribution)
             Text("以上只表示原冻结合同范围，不授予原始资产转售/下载、未来所有大版本、额外安装额度或当前地点同意。缺省项不扩权；当前撤权及安全条件仍由原服务检查。")
-                .cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
     private func ids(_ values: [Int64]) -> String { values.map { String($0) }.joined(separator: ", ") }
@@ -381,7 +381,7 @@ private struct CommerceState: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
             WorkshopCommerceLibraryState(label: commerceText("state." + raw), raw: raw)
-            Text(verbatim: raw).cyText(.label).monospaced().foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: raw).font(.footnote).monospaced().foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }.padding(.vertical, Theme.Space.s1)
     }
 }
@@ -400,20 +400,15 @@ private func commerceString(_ key: String, locale: Locale) -> String {
 struct WorkshopLibrarySurface: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
-        content.cyText(.body)
-            .tint(Theme.Color.accent(in: domain))
-            .scrollContentBackground(.hidden)
-            .background(Theme.Color.bgPage(in: domain))
+        content
             .themeDomain(domain)
     }
 }
 struct WorkshopLibraryPrimaryAction: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
-        content.cyText(.button)
+        content
             .buttonStyle(.borderedProminent).controlSize(.large)
-            .tint(Theme.Color.actionPrimaryBackground(in: domain))
-            .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))
     }
 }
 struct WorkshopLibraryFact: View {
@@ -421,8 +416,8 @@ struct WorkshopLibraryFact: View {
     let value: String
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            label.font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
-            Text(verbatim: value).font(RevolutContentStyle.row)
+            label.font(.subheadline).foregroundStyle(.secondary)
+            Text(verbatim: value).font(.body)
                 .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -438,9 +433,9 @@ struct WorkshopCommerceLibraryNotice: View {
     var body: some View {
         HStack(alignment: .top, spacing: Theme.Space.s3) {
             Image(systemName: symbol)
-                .foregroundStyle(isError ? Theme.Color.danger(in: domain) : Theme.Color.textSecondary(in: domain))
+                .foregroundStyle(isError ? Color.red : Color.secondary)
                 .accessibilityHidden(true)
-            text.cyText(.body).foregroundStyle(.primary)
+            text.foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -460,7 +455,7 @@ struct WorkshopCommerceLibraryState: View {
         }
     }
     var body: some View {
-        Label { label.cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
+        Label { label.font(.headline).fixedSize(horizontal: false, vertical: true) }
             icon: { Image(systemName: symbol).accessibilityHidden(true) }
             .accessibilityElement(children: .combine)
     }

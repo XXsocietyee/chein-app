@@ -9,16 +9,18 @@ import SwiftUI
             Label("nativeNav.error.title", systemImage: "questionmark.folder")
         } description: {
             if failure == .legacyTeamLink {
-                Text("team.page.legacyLink").cyText(.cardTitle)
+                Text("team.page.legacyLink").font(.headline)
                 Text("team.page.legacyLink.detail")
             } else {
                 Text(failure == .cannotOpen ? "nativeNav.error.cannotOpen" : "nativeNav.error.detail")
             }
         } actions: {
-            VStack(spacing: CYSpacing.sm) {
-                CYPillButton("homeFeed.title", style: .primary, action: goHome).accessibilityIdentifier("nativeNav.error.home")
-                CYPillButton("nativeNav.close", style: .tertiary) { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
-            }.padding(.horizontal, CYSpacing.lg)
+            Button("homeFeed.title", action: goHome)
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .accessibilityIdentifier("nativeNav.error.home")
+            Button("nativeNav.close") { dismiss() }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("nativeNav.error.close")
         }.navigationTitle("nativeNav.error.title").navigationBarTitleDisplayMode(.inline)
             .accessibilityElement(children: .contain).accessibilityIdentifier("nativeNav.error")
     }
@@ -48,14 +50,21 @@ import SwiftUI
                         .submitLabel(.next).onSubmit(open)
                         .accessibilityIdentifier("nativeNav.team.code")
                 } label: { Text("nativeNav.team.code") }
-                if invalid { Text("nativeNav.invalid").cyText(.meta).foregroundStyle(CYColor.dangerText) }
-            } footer: { Text("nativeNav.team.notice").cyText(.meta) }
-            Section {
-                CYPillButton("nativeNav.team.next", action: open)
-                    .disabled(code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    .accessibilityIdentifier("nativeNav.team.next")
-            }.listRowBackground(Color.clear)
-        }.cyPageTitle("team.invitation")
+            } footer: {
+                VStack(alignment: .leading) {
+                    if invalid { Text("nativeNav.invalid").foregroundStyle(.red) }
+                    Text("nativeNav.team.notice")
+                }
+            }
+        }
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("nativeNav.team.next", action: open)
+                        .disabled(code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .accessibilityIdentifier("nativeNav.team.next")
+                }
+            }
+            .cyPageTitle("team.invitation")
             .navigationDestination(item: $route) { item in
                 TeamInvitationDestination(route: item.route, makeCoordinator: makeCoordinator, onLogin: onLogin)
             }
@@ -91,7 +100,7 @@ private struct TeamInvitationPresentation: Hashable {
         Form {
             TextField("nativeNav.badge.path", text: $text, axis: .vertical)
                 .textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("nativeNav.badge.path")
-            Text("nativeNav.badge.notice").cyText(.bodyCompact)
+            Text("nativeNav.badge.notice").font(.subheadline).foregroundStyle(.secondary)
             Button("nativeNav.open") {
                 guard case .badge(let parameters) = NativeNavigationContract.parseInternal(text) else { invalid = true; return }
                 invalid = false; route = BadgeRoutePresentation(parameters: parameters, scope: scope)
