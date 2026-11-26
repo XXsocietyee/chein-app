@@ -233,8 +233,7 @@ struct RoamBrowserView: View {
             }
             // verify-r1 2.5 / N-12: the same root header as the other tabs (large title on the left), not a centred one.
             // ROAM-3: as a sheet, the system inline sheet title + ✕ instead of a second large 漫游 root title.
-            .modifier(RoamBrowserHeader(asSheet: presentedAsSheet, onClose: { dismiss() }))
-            .toolbar(mapMode ? .hidden : .automatic, for: .navigationBar)
+            .modifier(RoamBrowserHeader(asSheet: presentedAsSheet, inline: mapMode, onClose: { dismiss() }))
             .modifier(RoamSearchableUnlessMap(enabled: !mapMode, text: $query))
             .task(id: requestKey) {
                 guard !Task.isCancelled else { return }
@@ -363,7 +362,8 @@ struct RoamBrowserView: View {
             }
         }
         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-        .background(Color.white.opacity(0.09), in: Capsule(style: .continuous))
+        // N-ROAM-MAP (r10): system search-field fill (same as UISearchBar) instead of a white-alpha capsule.
+        .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.sm)
     }
     /// Collapsed sheet line: "Nearby activities N" (em dash while the count is unknown).
@@ -495,31 +495,30 @@ struct RoamBrowserView: View {
                     // Keeps its camera state through loading, errors and empty filters; pins follow visibleItems.
                     if reader.isOfflineExample { CYMapStreetGrid() } else { roamMap(scope: scope, key: renderedKey, items: renderedItems) }
                 }, controls: {
-                    // Title top-left; the ONE overflow menu top-right (area, list, account, passport tools, refresh).
-                    HStack(alignment: .center) {
-                        Text("roam.title").cyText(.pageTitle).foregroundStyle(.white)
-                            .lineLimit(2).layoutPriority(1)
-                            .shadow(color: .black.opacity(0.5), radius: 6).accessibilityAddTraits(.isHeader)
-                        Spacer(minLength: 0)
-                        overflowMenu { CYGlassLabel(systemImage: "ellipsis") }
-                    }
+                    // N-ROAM-MAP (r10): title and the ONE overflow menu live in the system navigation bar
+                    // (MP pages/roam/index.wxml nav title); nothing is drawn over the map.
+                    EmptyView()
                 }, floating: {
                     // Mini-program layout: rules (info) · GO · open map. Three floating controls, no more.
-                    HStack(spacing: CYSpacing.xxl) {
-                        NavigationLink { RoamPreflightRulesView().cyPushedChrome() } label: { CYGlassLabel(systemImage: "info") }
-                            .buttonStyle(.plain).accessibilityLabel(Text("roam.preflightRules.availability"))
+                    // N-ROAM-MAP (r10): system bordered buttons; the start is the one `.borderedProminent`.
+                    HStack(spacing: CYSpacing.xl) {
+                        NavigationLink { RoamPreflightRulesView().cyPushedChrome() } label: {
+                            Label("roam.preflightRules.availability", systemImage: "info").labelStyle(.iconOnly)
+                        }
+                            .buttonStyle(.bordered).buttonBorderShape(.circle).controlSize(.large)
                             .accessibilityIdentifier("roam.rules")
-                        NavigationLink { startDestination().cyPushedChrome() } label: { CYGoLabel() }
-                            .buttonStyle(CYGoPressStyle())
-                            .accessibilityLabel(Text("roam.w208.intro.start"))   // ROAM-12: 走起, not a spelled-out "G O"
+                        NavigationLink { startDestination().cyPushedChrome() } label: {
+                            Label("roam.w208.intro.start", systemImage: "figure.walk")   // ROAM-12: 走起
+                        }
+                            .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
                             .accessibilitySortPriority(10)   // the one primary action is read before rules / open map
                             .accessibilityIdentifier("roam.go")
                         if let nearbyTeamsDestination {
-                            NavigationLink { nearbyTeamsDestination().cyPushedChrome() } label: { CYGlassLabel(systemImage: "map") }
-                                .buttonStyle(.plain).accessibilityLabel(Text("nearby.title"))
+                            NavigationLink { nearbyTeamsDestination().cyPushedChrome() } label: {
+                                Label("nearby.title", systemImage: "map").labelStyle(.iconOnly)
+                            }
+                                .buttonStyle(.bordered).buttonBorderShape(.circle).controlSize(.large)
                                 .accessibilityIdentifier("roam.openMap")
-                        } else {
-                            CYGlassLabel(systemImage: "map").opacity(0).accessibilityHidden(true)
                         }
                     }
                 }, panel: { mapPanel })
@@ -724,7 +723,10 @@ private struct RoamSearchableUnlessMap: ViewModifier {
 /// ROAM-3: tab-root header on the page, inline sheet title + one ✕ cancellation item in the sheet.
 private struct RoamBrowserHeader: ViewModifier {
     let asSheet: Bool
+    /// N-ROAM-MAP (r10): on the map the system bar stays visible with an inline title (MP pages/roam/index.json nav bar).
+    var inline: Bool = false
     let onClose: () -> Void
+    @Environment(\.locale) private var locale
     @ViewBuilder func body(content: Content) -> some View {
         if asSheet {
             content
@@ -736,7 +738,9 @@ private struct RoamBrowserHeader: ViewModifier {
                     }
                 }
         } else {
-            content.cyRootHeader(.roam)
+            content
+                .navigationTitle(appLocalized(String.LocalizationValue(stringLiteral: RootTab.roam.titleKey), locale: locale))
+                .navigationBarTitleDisplayMode(inline ? .inline : .large)
         }
     }
 }

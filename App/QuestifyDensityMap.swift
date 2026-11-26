@@ -110,8 +110,11 @@ struct QuestifyDensityMap: View {
                             MapPolyline(coordinates: polyline.map(coordinate)).stroke(QuestifyMapAppearance.routeCasing, lineWidth: 8)
                             MapPolyline(coordinates: polyline.map(coordinate)).stroke(QuestifyMapAppearance.route, style: StrokeStyle(lineWidth: 4, dash: [7, 4]))
                         }
+                        // N-ROAM-MAP (r10): the system user-location dot (MP pages/roam/index.wxml map show-location).
+                        UserAnnotation()
                     }.mapStyle(QuestifyMapAppearance.baseStyle)
                     .mapControls {
+                        MapUserLocationButton()
                         MapCompass().mapControlVisibility(.visible)
                         MapScaleView()
                     }
