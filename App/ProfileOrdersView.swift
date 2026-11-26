@@ -38,14 +38,25 @@ struct ProfileOrdersView: View {
     /// R7-MEM-16-1: the order whose card 取消订单 / 取消报名 opened the cancel sheet.
     @State private var cardExit: ProfileOrderCardExit?
     /// R7-MEM-16-1: MP index.wxml:84-90 shows 取消订单 on unpaid cards and 取消报名 on free registered cards.
-    /// 立即支付 and 取消并退款 are money and stay on the detail page behind the gate.
+    /// fix-r10: money is on in Release, so the card also shows 立即支付 (unpaid) and 取消并退款 (paid, refundable)
+    /// like the MP, each while its own money switch is on. Both open the same lifecycle sheet, which owns the pay
+    /// section and the reviewed refund confirm.
     @ViewBuilder private func cardExitButton(_ order: ProfileOrder) -> some View {
-        if let key = order.selfServiceExitKey, key != "profile.orderExit.refund", let lifecycleCoordinator,
+        if let lifecycleCoordinator,
            lifecycleCoordinator.hasReviewedWriter || lifecycleCoordinator.canDispatch || lifecycleCoordinator.canSimulate {
-            Button(role: .destructive) { cardExit = ProfileOrderCardExit(id: order.id) } label: {
-                Label(LocalizedStringKey(key), systemImage: "xmark.circle")
+            if order.cardPayNowShown {
+                Button { cardExit = ProfileOrderCardExit(id: order.id) } label: {
+                    Label("profile.orderExit.payNow", systemImage: "creditcard")
+                }
+                .tint(.accentColor)
+                .accessibilityIdentifier("profile.order.cardPay.\(order.id)")
             }
-            .accessibilityIdentifier("profile.order.cardExit.\(order.id)")
+            if let key = order.cardExitKey {
+                Button(role: .destructive) { cardExit = ProfileOrderCardExit(id: order.id) } label: {
+                    Label(LocalizedStringKey(key), systemImage: "xmark.circle")
+                }
+                .accessibilityIdentifier("profile.order.cardExit.\(order.id)")
+            }
         }
     }
     private var filterOwner: ProfileOrderFilterOwner {
@@ -854,6 +865,19 @@ extension ProfileOrder {
             return refundable == true ? "profile.orderExit.refund" : nil
         }
         return nil
+    }
+
+    /// R7-MEM-16-1 card label (MP order-history index.wxml:84-90). A refundable paid order reads 取消并退款 and
+    /// shows only while the refund switch is on; the other exits keep the detail label.
+    var cardExitKey: String? {
+        guard let key = selfServiceExitKey else { return nil }
+        guard key == "profile.orderExit.refund" else { return key }
+        return ReleaseMoneyWriteSwitch.refundEnabled ? "profile.orderExit.cancelRefund" : nil
+    }
+
+    /// R7-MEM-16-1: MP index.wxml:84-90 立即支付 on an unpaid card, while the payment switch is on.
+    var cardPayNowShown: Bool {
+        verificationStatus == 0 && registrationStatus == 1 && paymentStatus == 1 && ReleaseMoneyWriteSwitch.paymentEnabled
     }
 }
 
