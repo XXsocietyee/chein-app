@@ -159,6 +159,7 @@ struct QuestifyApp: App {
             .cyPresentationBackdropHost()
             .modifier(AppLanguageEnvironment(stored: storedLanguage))
             .tint(CYColor.brand)
+            .islandRoot()
             #if DEBUG
             .modifier(FixtureThemeDomainModifier(isFixture: sessionContainer.session == nil))
             #endif

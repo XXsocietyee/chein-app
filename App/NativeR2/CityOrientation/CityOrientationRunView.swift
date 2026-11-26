@@ -83,9 +83,23 @@ extension EnvironmentValues {
                     .interactiveDismissDisabled()
             }
             .onAppear { location.start() }
-            .onDisappear { location.stop() }
+            .onDisappear { location.stop(); QuestLiveActivityCenter.shared.clearPlayContext() }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active { location.start() } else { location.stop() }
+            }
+            // Native r2 M4: Dynamic Island shows this run as an orientation run with the distance to the next control point.
+            .onChange(of: currentDistance, initial: true) { _, meters in
+                QuestLiveActivityCenter.shared.setPlayContext(mode: .orientation, nextDistanceMeters: meters)
+            }
+            // Native r2 M4: entering the 50 m highlight pops an arrival island whose action opens the same punch sheet.
+            .onChange(of: inHighlight) { old, new in
+                guard !old, new, let stop = currentStop else { return }
+                IslandCenter.shared.show(IslandItem(kind: .arrival, title: .key("island.arrival.punch"),
+                                                    subtitle: .verbatim(stopTitle(stop)),
+                                                    actions: [IslandAction(title: .key("island.arrival.punch.action"),
+                                                                           systemImage: "checkmark.seal", prominent: true) { onPunch(stop.id) }],
+                                                    open: { onPunch(stop.id) }, lifetime: .seconds(6),
+                                                    dedupeKey: "arrival.punch", startsExpanded: true))
             }
             .accessibilityIdentifier("nativeR2.city.run")
     }

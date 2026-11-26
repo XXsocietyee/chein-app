@@ -199,7 +199,16 @@ import SwiftUI
             }
             guard !Task.isCancelled, requested == direction else { return }
             switch section {
-            case .content(let invites): phase = .ready(IMCoopInviteCard.cards(invites, direction: requested))
+            case .content(let invites):
+                let cards = IMCoopInviteCard.cards(invites, direction: requested)
+                phase = .ready(cards)
+                // Native r2 M4: a received invite this device has not announced yet → invitation island
+                // (View opens the same invite detail where accept / decline live).
+                if requested == .received {
+                    IslandInviteBridge.received(cards) { card in
+                        MPNotificationTapRouter.shared.open(pagePath: IslandRoutes.coopInvite(id: card.key.id))
+                    }
+                }
             case .failure(let issue): phase = .failed(issue)
             }
         } catch is CancellationError {

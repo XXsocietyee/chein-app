@@ -55,8 +55,10 @@ extension AppSession {
     }
 }
 
-/// Notification taps. Only a source page path in the payload routes (`PushTapRouter` rejects schemes and hosts);
-/// foreground presentation is left to the system default because `willPresent` is not implemented.
+/// Notification taps. Only a source page path in the payload routes (`PushTapRouter` rejects schemes and hosts).
+/// Foreground presentation (native r2 M4): with `nativeR2.island` on, a notification that arrives while the app is open
+/// shows as an island (invitation / message / status by its page path) instead of the system banner; tapping it routes
+/// exactly like a banner tap. Flag off: nothing is shown in the foreground, as before.
 @MainActor final class MPNotificationTapRouter: NSObject, UNUserNotificationCenterDelegate {
     static let shared = MPNotificationTapRouter()
     /// The mini-program subscribe-message field that carries the page path.
@@ -85,6 +87,23 @@ extension AppSession {
         completionHandler()
         Task { @MainActor in MPNotificationTapRouter.shared.route(payload) }
     }
+
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                            withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        let content = notification.request.content
+        var payload: [String: String] = [:]
+        for key in Self.routeKeys { if let value = content.userInfo[key] as? String { payload[key] = value } }
+        let title = content.title, body = content.body, routePayload = payload
+        Task { @MainActor in
+            guard IslandCenter.isEnabled else { completionHandler([]); return }
+            IslandPushPresenter.present(title: title, body: body, payload: routePayload) { MPNotificationTapRouter.shared.route(routePayload) }
+            // Kept in Notification Center; the island replaces the banner and sound while the app is open.
+            completionHandler([.list, .badge])
+        }
+    }
+
+    /// Opens a reviewed mini-program page path the same way a notification tap does (island actions use it).
+    func open(pagePath: String) { route([Self.routeKeys[0]: pagePath]) }
 
     private func route(_ payload: [String: String]) {
         guard let intent = PushTapRouter(routeKeys: Self.routeKeys).intent(userInfo: payload) else { return }

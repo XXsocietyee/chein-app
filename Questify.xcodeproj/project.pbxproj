@@ -11055,6 +11055,76 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "A03F462C05B448347C5C3B2C";
 		};
+		"DB6042CB84F915074A1FDC4C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Island/CYToastIslandBridge.swift";
+			"sourceTree" = "<group>";
+		};
+		"1FDE07587D110D5E4300CFE4" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DB6042CB84F915074A1FDC4C";
+		};
+		"E3DDCF554B31F15C7F9B5656" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Island/IslandCenter.swift";
+			"sourceTree" = "<group>";
+		};
+		"787C47BEB44E9174D4C34E33" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E3DDCF554B31F15C7F9B5656";
+		};
+		"509F89468EABFFD586FACCF5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Island/IslandFlags.swift";
+			"sourceTree" = "<group>";
+		};
+		"A0446BEA41CB2006B0024D30" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "509F89468EABFFD586FACCF5";
+		};
+		"60CA70606658D8085A1A66A3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Island/IslandItem.swift";
+			"sourceTree" = "<group>";
+		};
+		"BC9479524620D7B8F75602FF" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "60CA70606658D8085A1A66A3";
+		};
+		"6509753E911EE9F5396B6443" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Island/IslandOverlay.swift";
+			"sourceTree" = "<group>";
+		};
+		"4004FA6E2F9E9709C40F4174" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "6509753E911EE9F5396B6443";
+		};
+		"D6A3D7C109F8E83E6851B8A0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Island/IslandSources.swift";
+			"sourceTree" = "<group>";
+		};
+		"DF9E7C503B4AF7A2B34A768A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D6A3D7C109F8E83E6851B8A0";
+		};
+		"80A6C175B0630AABF40FD808" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Island/IslandWindow.swift";
+			"sourceTree" = "<group>";
+		};
+		"AA092591FA6B6DFE01E994A4" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "80A6C175B0630AABF40FD808";
+		};
 		"D926FADEB98856C00C55F6B0" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -43449,6 +43519,13 @@
 				"4BF1EE390EE1D21F9492BCC8",
 				"DA8DEAC1757481F6DAE5CC16",
 				"A03F462C05B448347C5C3B2C",
+				"DB6042CB84F915074A1FDC4C",
+				"E3DDCF554B31F15C7F9B5656",
+				"509F89468EABFFD586FACCF5",
+				"60CA70606658D8085A1A66A3",
+				"6509753E911EE9F5396B6443",
+				"D6A3D7C109F8E83E6851B8A0",
+				"80A6C175B0630AABF40FD808",
 				"D926FADEB98856C00C55F6B0",
 				"106975060832444E07570B25",
 				"A9C1CCA7A7DADFFEC23223CF",
@@ -48865,6 +48942,13 @@
 				"2BB396A9D4683579D2A19508",
 				"22105FC844392793327655B0",
 				"801DDD7335D24C2910A1AB15",
+				"1FDE07587D110D5E4300CFE4",
+				"787C47BEB44E9174D4C34E33",
+				"A0446BEA41CB2006B0024D30",
+				"BC9479524620D7B8F75602FF",
+				"4004FA6E2F9E9709C40F4174",
+				"DF9E7C503B4AF7A2B34A768A",
+				"AA092591FA6B6DFE01E994A4",
 				"1D76085B70A9801B3D52FC48",
 				"648BEC683DA7D69E91D2242F",
 				"1963B536CD3D9637242D6E42",
