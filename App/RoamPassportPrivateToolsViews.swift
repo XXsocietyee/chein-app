@@ -726,21 +726,6 @@ extension RoamGoalState {
             if configured { activate() } else { retire() }
         }
         .onDisappear { retire(leaving: true) }
-        .confirmationDialog("roam.goals.confirmTitle", isPresented: Binding(get: { model.review != nil }, set: { if !$0 { model.cancelCreateReview() } }), titleVisibility: .visible) {
-            Button("roam.goals.create") {
-                page.settle(write: true, {
-                    await SessionOfflineSyncModel.shared.performWriteOptIn(
-                        environmentSession: offlineWriteSession.session,
-                        routes: ["/api/exploration-goals/create"]
-                    ) {
-                        await model.confirmCreate()
-                    }
-                }, refresh: { await model.load() }) { saved in if saved { creating = false } }
-            }.accessibilityIdentifier("roam.goals.confirmCreate")
-            Button("roam.private.notNow", role: .cancel) { model.cancelCreateReview() }
-        } message: {
-            if let review = model.review { amountText(review.metric, review.target) + Text(verbatim: " · \(review.startDate) – \(review.endDateExclusive)") }
-        }
         .confirmationDialog("roam.goals.cancelTitle", isPresented: Binding(get: { model.cancelReview != nil }, set: { if !$0 { model.keepGoal() } }), titleVisibility: .visible) {
             Button("roam.goals.cancelGoal", role: .destructive) { page.settle(write: true, { await model.confirmCancel() }, refresh: { await model.load() }) }.accessibilityIdentifier("roam.goals.confirmCancel")
             Button("roam.goals.keep", role: .cancel) { model.keepGoal() }
@@ -853,7 +838,20 @@ extension RoamGoalState {
             Section { RoamPrivateIssueView(issue: issue, dismiss: { model.dismissIssue() }) }
         }
         Section {
-            Button("roam.goals.create") { guard page.acceptsInput, !page.settlementInFlight else { return }; model.prepareCreate(metric: metric, target: target, startDate: startDate, endDateExclusive: endDate) }
+            // TGOALS-r11-1: create writes at once, no 创建这个目标？ dialog (MP subpackageTools/exploration-goals/index.js:35).
+            Button("roam.goals.create") {
+                guard page.acceptsInput, !page.settlementInFlight else { return }
+                model.prepareCreate(metric: metric, target: target, startDate: startDate, endDateExclusive: endDate)
+                guard model.review != nil else { return }
+                page.settle(write: true, {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/exploration-goals/create"]
+                    ) {
+                        await model.confirmCreate()
+                    }
+                }, refresh: { await model.load() }) { saved in if saved { creating = false } }
+            }
                 .disabled(model.isBusy || model.pending != nil || !model.canWrite).accessibilityIdentifier("roam.goals.create")
             Button("roam.goals.later") { creating = false; model.dismissIssue() }.disabled(model.isBusy).accessibilityIdentifier("roam.goals.later")
         }

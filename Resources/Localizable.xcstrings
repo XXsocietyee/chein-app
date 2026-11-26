@@ -226784,13 +226784,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Progress stops counting and the goal can't be restored."
+            "value": "Progress stops counting and the goal can't be restored. This can't be undone."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "取消后不再统计进度，也无法恢复。"
+            "value": "取消后不再统计进度，也不能恢复。此操作不可撤销。"
           }
         }
       }
