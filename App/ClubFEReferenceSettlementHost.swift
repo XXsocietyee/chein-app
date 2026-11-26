@@ -87,11 +87,12 @@ enum ClubFEReferenceMoneyWriteGate {
                     Section { CYLoadingStateView(rows: 1) }
                 case .failed:
                     Section {
-                        HStack {
-                            Text("feReference.failed", tableName: "PayoutReceiver").foregroundStyle(CYColor.textSecondary)
-                            Spacer()
+                        // CLB-r9-native-03: system failure state.
+                        ContentUnavailableView {
+                            Label { Text("feReference.failed", tableName: "PayoutReceiver") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } actions: {
                             Button { Task { await load() } } label: { Text("feReference.retry", tableName: "PayoutReceiver") }
-                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .buttonStyle(.bordered)
                                 .accessibilityIdentifier("feReference.retry")
                         }
                     } header: { Text("feReference.title", tableName: "PayoutReceiver") }

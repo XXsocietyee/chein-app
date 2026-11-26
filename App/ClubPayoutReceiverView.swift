@@ -97,12 +97,15 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                              actionTitle: "clubR3b.checkin.back", actionStyle: .primary, kind: .failure) { dismiss() }
             }
         case .failed(let issue):
+            // CLB-r9-native-03: the read failure is a system ContentUnavailableView (title, the reason, 重新加载).
             Section {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text("payoutReceiver.loadFailed", tableName: "PayoutReceiver").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                ContentUnavailableView {
+                    Label { Text("payoutReceiver.loadFailed", tableName: "PayoutReceiver") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } description: {
                     PayoutReceiverIssueText(issue: issue, fallbackKey: "payoutReceiver.statusUnavailable")
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
+                } actions: {
+                    Button { Task { await load() } } label: { Text("payoutReceiver.reload", tableName: "PayoutReceiver") }
+                        .buttonStyle(.bordered)
                         .accessibilityIdentifier("payoutReceiver.reload")
                 }
             }
@@ -211,8 +214,13 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                     Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver"), messageIdentifier: "clubSettlement.mine.empty") }
                 case .failed(let issue):
                     Section {
-                        PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable")
-                        CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
+                        // CLB-r9-native-03: system failure state with 重新加载.
+                        ContentUnavailableView {
+                            Label { PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } actions: {
+                            Button { Task { await load() } } label: { Text("payoutReceiver.reload", tableName: "PayoutReceiver") }
+                                .buttonStyle(.bordered)
+                        }
                     }
                 case .ready(let clubs):
                     Section {
@@ -276,8 +284,13 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 case .empty: Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver")) }
                 case .failed(let issue):
                     Section {
-                        PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable")
-                        CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
+                        // CLB-r9-native-03: system failure state with 重新加载.
+                        ContentUnavailableView {
+                            Label { PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } actions: {
+                            Button { Task { await load() } } label: { Text("payoutReceiver.reload", tableName: "PayoutReceiver") }
+                                .buttonStyle(.bordered)
+                        }
                     }
                 case .ready(let summary): ready(summary)
                 }
