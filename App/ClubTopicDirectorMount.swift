@@ -53,7 +53,8 @@ extension EnvironmentValues {
 
     @ViewBuilder private func content(_ model: PlayDirectorCoordinator, host: ClubTopicDirectorHost) -> some View {
         if let projection = model.projection {
-            ClubTopicGenericOpsSection(activityID: activityID, revision: projection.revision) { _ in openingTool = true }
+            ClubTopicGenericOpsSection(activityID: activityID, revision: projection.revision, onOpenAction: { _ in openingTool = true },
+                                       writeLocked: model.phase != "ready")
             ClubTopicPlanFallbackSection(activityID: activityID, revision: projection.revision) { Task { await model.load() } }
             ClubTopicDirectorReadySection(projection: projection, topicID: topicID)
             // CLB-G13d (MP topic-detail wxml:172-198, 262-295): MP copy for the write states, capability-gated tools,

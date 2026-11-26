@@ -6,6 +6,8 @@ import SwiftUI
     let activityID: Int
     let revision: Int
     let onOpenAction: (String) -> Void
+    /// CLB-G13a (MP topic-detail wxml:204-236): rows are disabled while a director write is in flight or unknown.
+    var writeLocked = false
     @Environment(\.playerGapService) private var service
     @State private var control: PlayWireValue?
 
@@ -43,6 +45,7 @@ import SwiftUI
                             .contentShape(Rectangle())
                         }
                         .foregroundStyle(.primary)
+                        .disabled(writeLocked)
                         .accessibilityIdentifier("club.topic.genericOps.\(action)")
                     }
                 } header: {
