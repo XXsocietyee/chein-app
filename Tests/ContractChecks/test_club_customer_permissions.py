@@ -115,9 +115,11 @@ class ClubCustomerPermissionContracts(unittest.TestCase):
         # additive Core test. Strip exactly that hash-pinned method; any other fixture byte still fails.
         # r10 club-b CLB-r10-gate-05 (MP pages/club/notify, group-code/index.js:93-135, event-ops, topic-detail,
         # customer-detail) makes saveCustomer and nine more non-money ops MP-first live and adds one Core test.
+        # r11 club-a CLB-r11-money-01 / CLB-r11-topic-detail-01 (MP event-ops/index.js:1106-1115, topic-detail/index.js:1118-1190):
+        # host-cancel refund (cancelOccurrence, endTopic) is live behind the money switch; two Core tests added in this span.
         start = raw.index(b'    func testLiveCatalogPermitsNamedOperationsWithoutAPreboundTarget()')
         end = raw.index(b'    func testDefaultFactoryDoesNotDispatch()')
-        self.assertEqual(hashlib.sha256(raw[start:end]).hexdigest(), '245eb85f491d5cababe0582967444ab8e2a3539d36536f2eae02e6fd6d2a557d')
+        self.assertEqual(hashlib.sha256(raw[start:end]).hexdigest(), 'd00397945c3950a244cb6c66286e04cdba892ab314a48d9e4b0142f90cdb5076')
         raw = raw[:start] + raw[end:]
         # MP pages/club/governance/index.js:466-476 sends durationDays (the server clock owns the expiry;
         # choices are 7/30/90). index.js:270-277 admits member governance only for CLUB_OWNER or CLUB_CO_OWNER,
