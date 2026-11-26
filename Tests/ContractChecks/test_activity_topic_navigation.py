@@ -5,7 +5,17 @@ ROOT = Path(__file__).resolve().parents[2]
 class ActivityTopicNavigationChecks(unittest.TestCase):
     def test_allowed_detail_only_and_exact_topic_identity(self):
         view = (ROOT/'App/ActivityDetailView.swift').read_text()
-        self.assertIn('case .allowed(let detail):\n                    detailContent(detail)', view)
+        # native-r2 city orientation (3ec3d687f): a topic-linked allowed detail may render the city event list
+        # behind the flag; both branches still only receive the allowed detail.
+        ALLOWED = ("case .allowed(let detail):\n"
+                   "                    if NativeR2Flags.cityOrientation, detail.summary.linkedTopicID != nil {\n"
+                   "                        cityEventDetail(detail)\n"
+                   "                    } else {\n"
+                   "                        detailContent(detail)\n"
+                   "                    }")
+        self.assertIn(ALLOWED, view)
+        # The city event list gets the same exact linked topic identity, only from the allowed detail.
+        self.assertIn('topicDestination: detail.summary.linkedTopicID.flatMap { topicID in topicDestination.map { AnyView($0(topicID)) } }', view)
         self.assertIn('if let topicID = detail.summary.linkedTopicID, let topicDestination', view)
         self.assertIn('NavigationLink { topicDestination(topicID) }', view)
         gate = view.split('case .clubRequired', 1)[1].split('case .allowed', 1)[0]

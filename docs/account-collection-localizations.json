@@ -283,5 +283,15 @@
     "key": "accountCollection.favorites.nodesTab",
     "en": "Places",
     "zh-Hans": "据点"
+  },
+  {
+    "key": "accountCollection.favorites.categories",
+    "en": "Category",
+    "zh-Hans": "类别"
+  },
+  {
+    "key": "accountCollection.favorites.unknown",
+    "en": "Favorites not confirmed",
+    "zh-Hans": "收藏状态待确认"
   }
 ]

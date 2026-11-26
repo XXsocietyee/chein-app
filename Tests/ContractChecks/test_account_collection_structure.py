@@ -35,7 +35,10 @@ class AccountCollectionStructureTests(unittest.TestCase):
         self.assertIn('loadedScope == scope ? value : nil', reading)
         self.assertIn('loadedScope == scope ? pagination.rows : []', reading)
         favorite = self.text('App/AccountCollectionFavoritesView.swift')
-        self.assertIn('QuestifyImageEntityCard(', favorite)
+        # native-r2 me-account (63c28ff09): the favourite topic is a native list row card; artwork still goes
+        # through the shared safe-URL gate used by the photo cards.
+        self.assertIn('AccountCollectionFavoriteCard(topic: topic)', favorite)
+        self.assertIn('QuestifyCardArtwork.safeURL(topic.imageURL)', favorite)
         self.assertIn('onOpenTopic(topic.id)', favorite)
         self.assertNotIn('.stroke(', favorite)  # only the token border is allowed
         self.assertNotIn('.strokeBorder(Color', favorite)
@@ -92,9 +95,11 @@ class AccountCollectionStructureTests(unittest.TestCase):
         view = self.text('App/AccountCollectionFavoritesView.swift')
         self.assertIn('@State private var selectedTab: Tab = .posts', view)
         for key in ['social.posts', 'searchMap.kind.topic']:
-            self.assertIn('appLocalized("' + key + '", locale: locale)', view)  # X5: CYTabs titles
+            # X5 + native-r2 (63c28ff09): system segmented Picker segment titles.
+            self.assertIn('Text("' + key + '").tag(Tab.', view)
             entry = json.loads(self.text('Resources/Localizable.xcstrings'))['strings'][key]
             self.assertEqual(set(entry['localizations']), {'en', 'zh-Hans'})
+        self.assertIn('.pickerStyle(.segmented)', view)
         self.assertIn('AccountCollectionFavoritePostsView(reader: reader', view)
         self.assertIn('AccountCollectionFavoriteTopicsView(reader: reader', view)
         self.assertIn('model.state.loadedScope == reader.scope, post.generation == .legacySquare', view)

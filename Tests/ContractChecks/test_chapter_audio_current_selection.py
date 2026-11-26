@@ -14,7 +14,10 @@ class ChapterAudioCurrentSelectionTests(unittest.TestCase):
         self.assertIn("guard audioMounted, scenePhase == .active, currentAudioURLs.contains(url) else { return }", self.code)
 
     def test_player_mount_also_rechecks_current_projection(self):
-        self.assertIn("if let audioURL, audioMounted, scenePhase == .active, currentAudioURLs.contains(audioURL)", self.code)
+        # Classic host and the native-r2 story-flow mini player (4a6129aff) both recheck the current projection at mount.
+        self.assertIn("if !NativeR2Flags.storyFlow, let audioURL, audioMounted, scenePhase == .active, currentAudioURLs.contains(audioURL)", self.code)
+        self.assertIn("if NativeR2Flags.storyFlow, visible, audioMounted, scenePhase == .active, makeAudio != nil, !orderedAudioURLs.isEmpty", self.code)
+        self.assertIn("selected: audioURL.flatMap { currentAudioURLs.contains($0) ? $0 : nil }", self.code)
         self.assertIn("guard visible else { return [] }", self.code)
         self.assertIn("currentRead: visible", self.code)
 

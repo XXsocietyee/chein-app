@@ -55,9 +55,10 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
     def test_jump_pill_uses_tokens(self):
         s = src('App/ClubChannelMessagingView.swift')
         pill = s[s.index('showNewMessageJumpBanner {'):s.index('channelComposerBar: some View')]
-        # h-visual-bugs contrast fix: palette action tokens (still tokens, never a raw accent colour).
-        self.assertIn('palette.actionPrimaryBg', pill)
-        self.assertIn('palette.actionPrimaryFg', pill)
+        # native-r2 club (5a223a87b): the pill is an Apple .borderedProminent capsule button, so the system
+        # resolves its tint/foreground contrast; still never a raw accent or white literal.
+        self.assertIn('.buttonStyle(.borderedProminent)', pill)
+        self.assertIn('.frame(minHeight: 44)', pill)
         self.assertNotIn('Color.accentColor', pill)
         self.assertNotIn('.foregroundStyle(.white)', pill)
 
@@ -226,7 +227,10 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
         s = src('App/OrderCardComponents.swift')
         s = s[s.index('struct OrderFilterPill'):s.index('struct OrderAmountHero')]
         self.assertIn('.accessibilityAddTraits(isSelected ? .isSelected : [])', s)
-        self.assertIn('CYColor.textOnAccent', s)
+        # native-r2 me-account (da7f2c201): selected = .borderedProminent, unselected = .bordered; the
+        # system style owns the on-accent foreground, so no hand-picked text colour remains.
+        self.assertIn('.buttonStyle(.borderedProminent)', s)
+        self.assertIn('.buttonStyle(.bordered)', s)
         self.assertNotIn('Color.white', s)
         self.assertNotIn('Color.accentColor', s)
 
@@ -245,7 +249,10 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
         label = im[im.index('struct IMInboxTabLabel'):]
         label = label[:label.index('\nstruct ', 10)] if '\nstruct ' in label[10:] else label
         self.assertNotIn('Color.white', label)
-        self.assertIn('CYColor.textOnAccent', im)
+        # native-r2 me-account (da7f2c201): the tab label is a plain Text inside a segmented picker, so the
+        # badge inherits the system segment colours instead of a hand-drawn on-accent capsule.
+        self.assertIn('var body: Text {', label)
+        self.assertNotIn('.foregroundStyle(', label)
         route = src('App/PlayRouteMapView.swift')
         self.assertIn('stop.state == .current ? CYColor.textOnAccent : Color.primary', route)
         self.assertIn('stop.state == .current ? CYColor.actionPrimaryBg :', route)

@@ -395,7 +395,7 @@ import SwiftUI
                         LabeledContent {
                             // C-F14b (r9): MP fabu/index.wxml:163-165 swaps 编辑 for the red `* 还有 N 项未填` (index.js:6540 _ticketMissing).
                             if ticketGapTotal > 0 {
-                                Text("fixr9.ap.tickets.missing \(ticketGapTotal)").foregroundStyle(.red)
+                                Text("fixr9.ap.tickets.missing \(ticketGapTotal)").foregroundStyle(CYColor.dangerText)
                                     .accessibilityIdentifier("projectEdit.tickets.missing")
                             } else {
                                 ProjectEditTicketSummaryLabel(summary: EditorTicketSummary(prices: model.draft.tickets.map { Int($0.price) }))
