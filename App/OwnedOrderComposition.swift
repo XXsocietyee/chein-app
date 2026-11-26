@@ -9,6 +9,7 @@ import SwiftUI
     var body: some View {
         OwnedOrdersLifecycleHost(session: session, onSignIn: { showsSignIn = true })
             .environment(\.freeExploreBundleReadProvider, session.freeExploreBundleReadProvider)
+            .environment(\.exploreCompletionProvider, session.exploreCompletionProvider)
             .environment(\.bundleCommerceBaseURL, session.currentRuntimeDependencyContext?.baseURL)
             .environment(\.bundleCommercePublicMerchant, session.publicMerchantHomeContext)
             .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
@@ -56,6 +57,7 @@ import SwiftUI
     var body: some View {
         OwnedOrdersLifecycleHost(session: session, onSignIn: { showsSignIn = true }, detailID: id)
             .environment(\.freeExploreBundleReadProvider, session.freeExploreBundleReadProvider)
+            .environment(\.exploreCompletionProvider, session.exploreCompletionProvider)
             .environment(\.bundleCommerceBaseURL, session.currentRuntimeDependencyContext?.baseURL)
             .environment(\.bundleCommercePublicMerchant, session.publicMerchantHomeContext)
             .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })

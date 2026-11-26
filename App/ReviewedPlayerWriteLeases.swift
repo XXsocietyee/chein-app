@@ -506,7 +506,9 @@ enum ReviewedPlayerReadRoute {
     static let paths: Set<String> = [
         "api/club/home", "api/club/my", "api/club/detail", "api/club/members", "api/club/access/me", "api/coop/list", "api/user/info", "api/project/my",
         "api/config/features", "api/medal/wall", "api/badge/wall-v2", "api/growth/leaderboard",
-        "api/object-card/list", "api/registration/my-joined", "api/registration/info", "api/play/my-completed", "api/registration/quote"
+        "api/object-card/list", "api/registration/my-joined", "api/registration/info", "api/play/my-completed", "api/registration/quote",
+        // R11-MEM-17-1: MP scene-member-order-detail/index.js:833-835 reads 探店图鉴/通关奖励 for a paid explore order.
+        "api/registration/explore-completion"
     ]
     // player-read-paths-end
     static let moneyKeys: Set<String> = ["payAmount", "payChannel", "amount", "price", "payableAmount"]
@@ -567,6 +569,7 @@ enum ReviewedPlayerReadRoute {
     private var walletHistoryByContext: [String: WalletHistoryReadApproval] = [:]
     private var messagingHistoryByContext: [String: MessagingHistoryReadApproval] = [:]
     private var ownedOrderByContext: [String: OwnedOrderReadApproval] = [:]
+    private var exploreCompletionByContext: [String: ExploreCompletionReadApproval] = [:]
     private var profileOwnedCouponByContext: [String: ProfileOwnedCouponReadAccess] = [:]
     private var profileFavoritesByContext: [String: ProfileFavoritesReadAccess] = [:]
     private var profileFavoriteTopicByContext: [String: ProfileFavoriteTopicReadAccess] = [:]
@@ -1316,6 +1319,16 @@ enum ReviewedPlayerReadRoute {
         if let existing = ownedOrderByContext[key], !existing.isRevoked { return existing }
         guard let approval = try? OwnedOrderReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
         ownedOrderByContext[key] = approval
+        return approval
+    }
+
+    /// R11-MEM-17-1: read lease for `api/registration/explore-completion` (MP scene-member-order-detail/index.js:833-835).
+    func exploreCompletion(_ context: RuntimeDependencyContext) -> ExploreCompletionReadApproval? {
+        guard context.market == .china else { return nil }
+        let key = contextKey(context)
+        if let existing = exploreCompletionByContext[key], !existing.isRevoked, existing.matches(context) { return existing }
+        guard let approval = try? ExploreCompletionReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        exploreCompletionByContext[key] = approval
         return approval
     }
 
