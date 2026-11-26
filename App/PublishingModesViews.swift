@@ -450,9 +450,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                                 clearButton(.ticketStock(ticket.id))
                             }
                             fieldError("ticketStock\(index)")
-                            TextField("publishModes.start", text: $ticket.start)
-                            fieldError("ticketStart\(index)")
-                            TextField("publishModes.end", text: $ticket.end)
+                            // r10 C-A8b: MP activity/index.wxml:158-186 tickets have no 开始 / 结束 fields; the activity span is sent.
                             fieldError("ticketEnd\(index)")
                         } header: {
                             // CF-33 / CF-58: one "⋯" per ticket (上移, 下移, 删除 last) instead of a red text link.

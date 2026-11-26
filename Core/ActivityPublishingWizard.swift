@@ -268,8 +268,8 @@ public enum ActivityPublishingWizard {
                 if !filled(ticket.name) { return "ticketName\(index)" }
                 if ProjectEditValidation.decimal(ticket.price).map({ $0 >= 0 }) != true { return "ticketPrice\(index)" }
                 if Int(ticket.stock).map({ $0 > 0 }) != true { return "ticketStock\(index)" }
-                if ProjectEditValidation.dateTime(ticket.start) == nil { return "ticketStart\(index)" }
-                if ProjectEditValidation.dateTime(ticket.end) == nil { return "ticketEnd\(index)" }
+                // r10 C-A8b: MP pages/publish/activity/index.wxml:158-186 has no per-ticket 开始 / 结束; submit overwrites
+                // every ticket window with the activity span (PublishModesDomain.wire), so only that span is checked.
                 if (try? ticket.wire(activityStart: span.0, activityEnd: span.1)) == nil { return "ticketEnd\(index)" }
             }
             return nil
