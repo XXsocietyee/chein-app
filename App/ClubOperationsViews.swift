@@ -183,7 +183,16 @@ struct ClubOperationsWorkspaceView: View {
     }
     var body: some View {
         Form {
-            if loading { ProgressView().accessibilityIdentifier("club.ops.loading") }
+            // CLB-r9-create-01 (MP create wxml:12-15): the create check reads 正在确认创建资格 while it runs.
+            if loading {
+                if target == .create {
+                    ProgressView { Text("club.ops.create.checking") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("club.ops.loading")
+                } else {
+                    ProgressView().accessibilityIdentifier("club.ops.loading")
+                }
+            }
             // CLB-create-03 (MP create wxml:16-28): guest → 登录; a failed check → 重新检查.
             if identity == nil {
                 // Round 4 copy (MP create wxml:20): the create page says 登录后创建俱乐部.

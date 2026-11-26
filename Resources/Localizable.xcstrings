@@ -315655,6 +315655,23 @@
           }
         }
       }
+    },
+    "club.ops.create.checking": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking whether you can create a club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在确认创建资格"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
