@@ -182,10 +182,21 @@ import XCTest
         XCTAssertTrue(governance.liveOperations.contains(.dissolve))
         XCTAssertFalse(governance.liveOperations.contains(.reportHours))
         XCTAssertFalse(governance.liveOperations.contains(.assignRole))
-        // CLB-r10-gate-05: the other non-money club writes the MP sends are live; money stays out.
+        // CLB-r10-gate-05: the other non-money club writes the MP sends are live.
         XCTAssertTrue(ClubMPFirstGovernance.clubOps.isSubset(of: governance.liveOperations))
-        XCTAssertFalse(governance.liveOperations.contains(.cancelOccurrence))
-        XCTAssertFalse(governance.liveOperations.contains(.endTopic))
+        // CLB-r11-money-01 (owner 11-26, money on; MP event-ops/index.js:1106-1115, topic-detail/index.js:1145-1148).
+        XCTAssertTrue(governance.liveOperations.contains(.cancelOccurrence))
+        XCTAssertTrue(governance.liveOperations.contains(.endTopic))
+        do {
+            let savedMoney = ReleaseMoneyWriteSwitch.testDerivation
+            defer { ReleaseMoneyWriteSwitch.testDerivation = savedMoney }
+            ReviewedAreaSwitch.installReleaseMoneyDerivation(host: ReviewedAreaSwitch.productionAPIHost)
+            let cancel = try ClubGovernanceCommand(operation: .cancelOccurrence, scope: .init(clubID: 9, activityID: 55),
+                                                   values: ["reason": .string("场地关闭"), "requestId": .string("event-cancel-1")])
+            let end = try ClubGovernanceCommand(operation: .endTopic, scope: .init(clubID: 9, topicID: 3), values: ["cancellationEpoch": .string("0")])
+            XCTAssertTrue(governance.permits(cancel, context: player))
+            XCTAssertTrue(governance.permits(end, context: player))
+        }
         // CLB-r10-badges-01: MP pages/club/badges/index.js reads, creates and grants for any club.
         let badges = try XCTUnwrap(admitted.clubBadgeManagementApproval(player))
         XCTAssertTrue(badges.permits(player, clubID: 9, writing: true))

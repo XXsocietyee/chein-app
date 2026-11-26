@@ -42,7 +42,8 @@ import FoundationNetworking
         ])
         XCTAssertTrue(live.permits(dissolve, context: player))
         XCTAssertFalse(live.liveOperations.contains(.reportHours))
-        XCTAssertFalse(live.liveOperations.contains(.cancelOccurrence))
+        // CLB-r11-money-01 (MP event-ops/index.js:1106-1115): host-cancel refund is live; it dispatches while money is on.
+        XCTAssertTrue(live.liveOperations.contains(.cancelOccurrence))
         XCTAssertFalse(live.liveOperations.contains(.assignRole))
         XCTAssertThrowsError(try ClubGovernanceProductionApproval(mpFirstMarket: .china, endpoints: endpoints, operations: [.reportHours]))
         let exact = try approval(try command())
@@ -53,7 +54,8 @@ import FoundationNetworking
         XCTAssertNotNil(factory.service(for: ban))
         // CLB-r10-gate-05: saveCustomer is now MP-first live (MP pages/club/customer-detail/index.js save).
         XCTAssertNotNil(factory.service(for: try command()))
-        XCTAssertFalse(live.liveOperations.contains(.endTopic))
+        // CLB-r11-money-01 (MP topic-detail/index.js:1145-1148): endTopic is live with host-cancel refund.
+        XCTAssertTrue(live.liveOperations.contains(.endTopic))
         XCTAssertFalse(live.liveOperations.contains(.submitEvidence))
     }
     /// CLB-r10-gate-05: each non-money club write the MP sends (notify, group-code:93-135, event-ops,
@@ -86,6 +88,39 @@ import FoundationNetworking
             XCTAssertNotNil(factory.service(for: command), "\(command.operation)")
         }
         XCTAssertTrue(ClubMPFirstGovernance.clubOps.allSatisfy { $0.risk != .financial })
+    }
+    /// CLB-r11-money-01 (MP event-ops/index.js:1106-1115; topic-detail/index.js:1145-1148): host-cancel refund
+    /// dispatches under the MP-first China approval only while `.hostCancelRefund` is on.
+    /// CLB-r11-topic-detail-01 (MP topic-detail/index.js:1147; utils/topic-cancellation-intent.js:2-8).
+    func testEndTopicSendsCancellationEpochAndParsesReply() throws {
+        let scope = ClubGovernanceScope(clubID: 81, topicID: 3)
+        let command = try ClubGovernanceFormDraft(operation: .endTopic, scope: scope, seed: ["cancellationEpoch": .integer(7)]).command()
+        XCTAssertEqual(command.fields["cancellationEpoch"], .string("7"))
+        XCTAssertThrowsError(try ClubGovernanceFormDraft(operation: .endTopic, scope: scope).command())
+        XCTAssertThrowsError(try ClubGovernanceCommand(operation: .endTopic, scope: scope, values: ["cancellationEpoch": .string("-1")]))
+        let pending: ClubGovernanceValue = .object(["cancellationEpoch": .string("7"), "cancellationState": .string("PENDING"), "failedSessions": .array([]),
+            "sessionTotal": .integer(2), "cancelledSessions": .integer(1), "refundedOrders": .integer(1), "manualOrders": .integer(0), "closedPendingOrders": .integer(0)])
+        XCTAssertEqual(ClubTopicEndSummary.parse(pending, sentEpoch: 7).outcome, .stillProcessing)
+        XCTAssertEqual(ClubTopicEndSummary.parse(pending, sentEpoch: 8).outcome, .unconfirmed)
+    }
+    func testHostCancelRefundFollowsMoneySwitch() throws {
+        let saved = ReleaseMoneyWriteSwitch.testDerivation
+        defer { ReleaseMoneyWriteSwitch.testDerivation = saved }
+        let player = try context()
+        let endpoints = try OperationEndpointApproval(baseURL: url, namespace: "test-cn", accountID: 701, paths: ClubMPFirstGovernance.paths(for: ClubMPFirstGovernance.governance))
+        let live = try ClubGovernanceProductionApproval(mpFirstMarket: .china, endpoints: endpoints, operations: ClubMPFirstGovernance.governance)
+        let cancel = try ClubGovernanceCommand(operation: .cancelOccurrence, scope: .init(clubID: 81, activityID: 55), values: [
+            "reason": .string("场地临时关闭"), "requestId": .string("event-cancel-1")
+        ])
+        let end = try ClubGovernanceCommand(operation: .endTopic, scope: .init(clubID: 81, topicID: 3), values: ["cancellationEpoch": .string("0")])
+        XCTAssertEqual(ClubMPFirstGovernance.clubMoney, [.cancelOccurrence, .endTopic])
+        XCTAssertTrue(ClubMPFirstGovernance.clubMoney.allSatisfy { $0.risk == .financial })
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .hostCancelRefund }
+        XCTAssertTrue(live.permits(cancel, context: player))
+        XCTAssertTrue(live.permits(end, context: player))
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 != .hostCancelRefund }
+        XCTAssertFalse(live.permits(cancel, context: player))
+        XCTAssertFalse(live.permits(end, context: player))
     }
     func testDefaultFactoryDoesNotDispatch() throws {
         let c = try context(), command = try self.command(), wire = Wire()

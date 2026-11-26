@@ -97,8 +97,13 @@ enum MPFirstClubWriteRoute {
         "api/club/event-ops/roster", "api/club/topic-setting/detail", "api/club/access/me", "api/club/members",
         // CLB-r10-join-requests-01 (MP pages/club/join-requests/index.js:170): ClubManagementService's list read and
         // 通过 / 拒绝 (ClubJoinRequestsPageReady.routes). No other firewall branch admitted them in Release China.
-        "api/club/join-requests", "api/club/join-request/approve", "api/club/join-request/reject"
+        "api/club/join-requests", "api/club/join-request/approve", "api/club/join-request/reject",
+        // CLB-r11-money-01 (MP event-ops/index.js:1106-1115, topic-detail/index.js:1145-1148): host-cancel refund
+        // writes and the cancel review read. The writes pass only while `.hostCancelRefund` is on (`accepts`).
+        "api/club/event-ops/cancel", "api/club/topic-setting/end", "api/club/event-ops/occurrence/status"
     ]
+    /// CLB-r11-money-01: the host-cancel refund writes. Gated on `ReleaseMoneyWriteSwitch` `.hostCancelRefund`.
+    static let hostCancelRefundPaths: Set<String> = ["api/club/event-ops/cancel", "api/club/topic-setting/end"]
     /// CLB-G13a: the club staff shared-run command (MP topic-detail director.js confirmGenericOps / plan-fallback.js →
     /// `executeAction`). Admitted only with the exact `PlaySharedRunOps.acceptsCommandBody` envelope and a 通用玩法 /
     /// PLAN_FALLBACK action; the server checks the staff role. Not money (`GameSharedRunControl.RUN_CONTROL_ACTIONS`).
@@ -129,6 +134,7 @@ enum MPFirstClubWriteRoute {
             guard contentType.hasPrefix("multipart/form-data; boundary="), let text = String(data: body, encoding: .utf8) else { return false }
             return moneyKeys.allSatisfy { !text.contains("name=\"\($0)\"") }
         }
+        if hostCancelRefundPaths.contains(relative), !ReleaseMoneyWriteSwitch.isEnabled(.hostCancelRefund) { return false }
         guard contentType == "application/json",
               governancePaths.contains(relative) || operationPaths.contains(relative) || badgePaths.contains(relative)
                 || relative == sharedRunCommandPath,
@@ -152,9 +158,12 @@ enum MPFirstClubWriteRoute {
         let ids: Set<String>
         var optionalIDs: Set<String> = []
         var optional: Set<String> = []
+        /// Non-id keys that must be present (CLB-r11-money-01 write bodies).
+        var required: Set<String> = []
         func admits(_ object: [String: Any]) -> Bool {
             let keys = Set(object.keys)
-            guard ids.isSubset(of: keys), keys.isSubset(of: ids.union(optionalIDs).union(optional)) else { return false }
+            guard ids.union(required).isSubset(of: keys),
+                  keys.isSubset(of: ids.union(optionalIDs).union(optional).union(required)) else { return false }
             return ids.union(optionalIDs.intersection(keys)).allSatisfy { MPFirstClubWriteRoute.positive(object[$0]) }
         }
     }
@@ -175,7 +184,11 @@ enum MPFirstClubWriteRoute {
         "api/club/topic-setting/detail": .init(ids: ["clubId", "topicId"]),
         "api/club/join-requests": .init(ids: ["clubId"]),
         "api/club/join-request/approve": .init(ids: ["clubId", "memberId"]),
-        "api/club/join-request/reject": .init(ids: ["clubId", "memberId"], optional: ["reviewReason"])
+        "api/club/join-request/reject": .init(ids: ["clubId", "memberId"], optional: ["reviewReason"]),
+        // CLB-r11-money-01: MP event-ops/index.js:1110-1115 and topic-detail/index.js:1147 bodies, exact keys.
+        "api/club/event-ops/occurrence/status": .init(ids: ["clubId", "activityId"]),
+        "api/club/event-ops/cancel": .init(ids: ["clubId", "activityId"], required: ["reason", "requestId"]),
+        "api/club/topic-setting/end": .init(ids: ["clubId", "topicId"], required: ["cancellationEpoch"])
     ]
     static func positive(_ value: Any?) -> Bool {
         guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return false }

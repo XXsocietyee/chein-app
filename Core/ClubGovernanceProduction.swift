@@ -29,16 +29,24 @@ extension ClubGovernanceCommand {
 public enum ClubMPFirstGovernance {
     public static let policyVersion = "r9-club-mp-first"
     private static let baseGovernance: Set<ClubGovernanceMutation> = [.ban, .unban, .transferOwner, .report, .appeal, .hostApply, .dissolve]
-    public static let governance: Set<ClubGovernanceMutation> = baseGovernance.union(clubOps)
+    public static let governance: Set<ClubGovernanceMutation> = baseGovernance.union(clubOps).union(clubMoney)
     /// CLB-r10-gate-05: the other non-money club writes the MP sends. MP: pages/club/notify/index.js (send, retry),
     /// group-code/index.js:93-135 (issue), event-ops/index.js (series create/update, attendance correct),
     /// topic-detail/index.js (settings save, chapter recruit/finish), customer-detail/index.js (save).
-    /// cancelOccurrence and endTopic refund (owner decision #6); reportHours and submitEvidence are compensation. Not here.
+    /// reportHours and submitEvidence are compensation the MP does not send. Not here.
     public static let clubOps: Set<ClubGovernanceMutation> = [
         .sendNotification, .retryNotification, .issueGroupCode, .saveCustomer, .createSeries, .updateSeries,
         .correctAttendance, .saveTopicSettings, .chapterRecruit, .chapterFinish
     ]
+    /// CLB-r11-money-01: host-cancel refund. MP pages/club/event-ops/index.js:1106-1115 (`/api/club/event-ops/cancel`)
+    /// and topic-detail/index.js:1145-1148 (`/api/club/topic-setting/end`). Owner 2026-11-26: money is on in Release,
+    /// so these dispatch only while `ReleaseMoneyWriteSwitch` has `.hostCancelRefund` on.
+    public static let clubMoney: Set<ClubGovernanceMutation> = [.cancelOccurrence, .endTopic]
     public static let operations = governance.union([.assignRole, .revokeRole])
+    /// True unless the operation is a host-cancel refund and that money switch is off.
+    public static func moneyOpen(_ operation: ClubGovernanceMutation) -> Bool {
+        !clubMoney.contains(operation) || ReleaseMoneyWriteSwitch.isEnabled(.hostCancelRefund)
+    }
     public static func paths(for operations: Set<ClubGovernanceMutation>) -> Set<String> {
         var paths = Set(operations.map(\.path))
         paths.formUnion(operations.map { $0.reviewRead.path })
@@ -79,7 +87,9 @@ public struct ClubGovernanceProductionApproval {
             endpoints.accountID == context.session.accountID && endpoints.namespace == context.session.namespace &&
             required.isSubset(of: endpoints.paths)
         guard identity else { return false }
-        if liveOperations.contains(command.operation) { return ClubMPFirstGovernance.operations.contains(command.operation) }
+        if liveOperations.contains(command.operation) {
+            return ClubMPFirstGovernance.operations.contains(command.operation) && ClubMPFirstGovernance.moneyOpen(command.operation)
+        }
         return grants.contains { $0.operation == command.operation && $0.scope == command.scope && $0.risk == command.operation.risk && $0.targetBinding == command.productionTargetBinding }
     }
 }

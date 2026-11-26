@@ -69,8 +69,21 @@ import XCTest
     }
 
     func testRefusesMoneyOpsAndKeys() {
+        let saved = ReleaseMoneyWriteSwitch.testDerivation
+        defer { ReleaseMoneyWriteSwitch.testDerivation = saved }
+        // CLB-r11-money-01: host-cancel refund passes only its exact MP body and only while the money switch is on.
+        let cancel = json("api/club/event-ops/cancel", body: #"{"clubId":81,"activityId":55,"reason":"场地关闭","requestId":"event-cancel-1"}"#)
+        let end = json("api/club/topic-setting/end", body: #"{"clubId":81,"topicId":3,"cancellationEpoch":"0"}"#)
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        XCTAssertFalse(MPFirstClubWriteRoute.accepts(cancel, baseURL: base, token: token))
+        XCTAssertFalse(MPFirstClubWriteRoute.accepts(end, baseURL: base, token: token))
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .hostCancelRefund }
+        XCTAssertTrue(MPFirstClubWriteRoute.accepts(cancel, baseURL: base, token: token))
+        XCTAssertTrue(MPFirstClubWriteRoute.accepts(end, baseURL: base, token: token))
+        XCTAssertTrue(MPFirstClubWriteRoute.accepts(json("api/club/event-ops/occurrence/status", body: #"{"clubId":81,"activityId":55}"#), baseURL: base, token: token))
         XCTAssertFalse(MPFirstClubWriteRoute.accepts(json("api/club/event-ops/cancel"), baseURL: base, token: token))
         XCTAssertFalse(MPFirstClubWriteRoute.accepts(json("api/club/topic-setting/end"), baseURL: base, token: token))
+        XCTAssertFalse(MPFirstClubWriteRoute.accepts(json("api/club/event-ops/cancel", body: #"{"clubId":81,"activityId":55,"reason":"场地关闭","requestId":"r","refundId":1}"#), baseURL: base, token: token))
         XCTAssertFalse(MPFirstClubWriteRoute.accepts(json("api/club-compensation/hours/report"), baseURL: base, token: token))
         XCTAssertFalse(MPFirstClubWriteRoute.accepts(json("api/club/event-notification/send", body: #"{"payAmount":1}"#), baseURL: base, token: token))
     }
