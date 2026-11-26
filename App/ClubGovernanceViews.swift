@@ -222,6 +222,8 @@ struct ClubGovernanceReadView: View {
     @State private var directorEndConfirm = false
     /// CLB-G13b: 更多 → 结束活动 opens the confirm once the half sheet has gone.
     @State private var directorEndAfterSheet = false
+    /// CLB-topic-detail-10: 定向广播 opens the director page, which owns the broadcast composer.
+    @State private var opensDirectorBroadcast = false
     @Environment(\.clubTopicDirectorHost) private var directorHost
     /// CLB-r7-C-03 (MP roles/index.js:266-272): a failed reread after a role action keeps the list and toasts.
     @State private var roleRereadToast: LocalizedStringKey?
@@ -777,6 +779,9 @@ struct ClubGovernanceReadView: View {
             Button("club.topic.primary.running", role: .destructive) { sendDirector(.finish) }
         } message: {
             Text("club.topic.directorEnd.message")
+        }
+        .navigationDestination(isPresented: $opensDirectorBroadcast) {
+            if let activityID = scope.activityID, let directorHost { directorHost.destination(activityID) }
         }
         .sheet(isPresented: $sessionPickerVisible) { topicSessionPicker }
         .navigationDestination(item: $pickedSession) { target in
@@ -1931,6 +1936,28 @@ struct ClubGovernanceReadView: View {
                     ClubTopicCustomerRow(row: row, sessionTime: session["timeText"].string)
                 }
             } }
+            // CLB-topic-detail-10 (MP topic-detail wxml:609-625, js:1094-1100): 定向广播 under the participants when the
+            // director runs this session; the projection offers BROADCAST or the row is dimmed with the reason.
+            if operation == .topicCustomers, let projection = sessionDirector?.projection {
+                Section {
+                    if projection.availableActions.contains(PlayDirectorAction.broadcast.rawValue) {
+                        Button { opensDirectorBroadcast = true } label: {
+                            Label("club.topic.broadcast", systemImage: "megaphone")
+                        }
+                        .accessibilityIdentifier("club.topic.broadcast")
+                    } else {
+                        VStack(alignment: .leading) {
+                            Text("club.topic.broadcast")
+                            Text("club.topic.broadcast.disabled \(appLocalized(String.LocalizationValue(stringLiteral: Self.sessionStatusKey(projection.status)), locale: locale))")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .foregroundStyle(.secondary)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("club.topic.broadcast.disabled")
+                    }
+                }
+            }
             if operation == .checkin, let clubID = scope.clubID, let registrationID = scope.registrationID,
                let target = try? ClubOwnerRefundTarget(clubID: clubID, registrationID: registrationID) {
                 let checkinPage = ClubCheckinDetailPage.bind(clientCapabilityPresent: access.isConfigured, loading: loading, failure: failure, value: value)
@@ -2024,8 +2051,19 @@ struct ClubGovernanceReadView: View {
     }
     /// CLB-G13b: the director coordinator for this page's `activityId`, when the host is mounted.
     private var directorModel: PlayDirectorCoordinator? {
-        guard operation == .topicOverview, let activityID = scope.activityID, let directorHost else { return nil }
+        guard operation == .topicOverview else { return nil }
+        return sessionDirector
+    }
+    /// CLB-topic-detail-10: the same retained coordinator, read from the 报名参与者 sheet too.
+    private var sessionDirector: PlayDirectorCoordinator? {
+        guard let activityID = scope.activityID, let directorHost else { return nil }
         return directorHost.coordinator(activityID)
+    }
+    /// MP director.js `statusText`: session status → its label key (unknown codes → 状态待确认).
+    static func sessionStatusKey(_ status: String) -> String {
+        let code = status.uppercased()
+        let known: Set<String> = ["NOT_PREPARED", "DRAFT", "PREPARING", "READY", "RUNNING", "FINISHED", "CANCELLED"]
+        return "club.director.sessionStatus." + (known.contains(code) ? code : "unknown")
     }
     /// MP `_directorActivityId` (topic-detail js:587-592): the page was opened on one session and the director runs it.
     private var directorActive: Bool { directorModel != nil }

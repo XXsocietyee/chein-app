@@ -2040,6 +2040,40 @@
           }
         }
       }
+    },
+    "club.topic.broadcast": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Targeted broadcast"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定向广播"
+          }
+        }
+      }
+    },
+    "club.topic.broadcast.disabled %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can only send while this session is running (now %@)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有本场进行中才能发送（当前 %@）。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
