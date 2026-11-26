@@ -25,7 +25,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
         .accessibilityIdentifier("workshopPaidInstalledText.entry")
         if presentation.unavailable { paidText("notConfigured").font(.footnote).fixedSize(horizontal: false, vertical: true) }
         Color.clear.frame(height: 0)
-            .cySheet(item: presented) { captured in
+            .sheet(item: presented) { captured in
                 Group {
                     WorkshopPaidInstalledTextView(controller: captured.controller, appearance: captured.appearance) {
                         presentation.dismiss(captured)

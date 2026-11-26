@@ -12,6 +12,8 @@ Usage:
   python3 tools/codemod_cy_sheet.py            # rewrite in place, print counts + skip log
   python3 tools/codemod_cy_sheet.py --check    # exit 1 if any call site still needs rewriting (no writes)
   python3 tools/codemod_cy_sheet.py --json     # machine-readable summary
+  python3 tools/codemod_cy_sheet.py --contracts  # also follow the rename in Tests/ContractChecks/*.py source
+                                                  # contracts (string literals that quote App source)
 """
 from __future__ import annotations
 
@@ -27,6 +29,13 @@ HELPER = APP / "NativeR2" / "Motion" / "CYSheet.swift"
 TARGETS = {"sheet": "cySheet", "fullScreenCover": "cyFullScreenCover"}
 FIRST_LABELS = {"isPresented", "item"}
 ALLOWED_LABELS = FIRST_LABELS | {"onDismiss", "content"}
+# App files whose exact bytes are pinned by a contract (sha256 of a protected delivery). Rewriting them would need the
+# pin changed by its owner, so they keep Apple's `.sheet` and are logged as skipped.
+BYTE_PINNED = {
+    "App/WorkshopPaidInstalledTextView.swift": "sha256 pin in Tests/ContractChecks/test_workshop_protected_text_lifecycle.py",
+    "App/PublishingModesViews.swift": "suffix sha256 pin in Tests/ContractChecks/test_activity_publishing_wizard.py",
+    "App/CharacterCardReadbackView.swift": "sha256 manifest pin checked by Tests/ContractChecks/test_c02_world_party_character.py",
+}
 CALL = re.compile(r"\.(sheet|fullScreenCover)\(")
 IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
@@ -136,6 +145,7 @@ def process(path: Path, write: bool) -> tuple[dict, list[dict], str]:
     skips: list[dict] = []
     edits: list[tuple[int, int, str]] = []
     rel = str(path.relative_to(ROOT))
+    pinned = BYTE_PINNED.get(rel)
     for m in CALL.finditer(src):
         name = m.group(1)
         dot = m.start()
@@ -159,6 +169,9 @@ def process(path: Path, write: bool) -> tuple[dict, list[dict], str]:
         if extra:
             skips.append({**where, "reason": f"labels {extra} outside Apple's signature (type inference may change)"})
             continue
+        if pinned:
+            skips.append({**where, "reason": f"byte-pinned file ({pinned})"})
+            continue
         edits.append((dot + 1, dot + 1 + len(name), TARGETS[name]))
         counts[name] += 1
     if edits and write:
@@ -169,10 +182,30 @@ def process(path: Path, write: bool) -> tuple[dict, list[dict], str]:
     return counts, skips, rel
 
 
+CONTRACTS = ROOT / "Tests" / "ContractChecks"
+# Literal App-source quotes in Python contracts: `.sheet(item:`, `.sheet(isPresented:`, a `.sheet(` that wraps
+# onto the next line (raw newline or an escaped "\n"), and every `.fullScreenCover(`.
+CONTRACT_QUOTE = re.compile(r"""\.(sheet|fullScreenCover)\((?=\s*(?:isPresented|item)\b|\s*$|\\n|\\\\n|['\"])""", re.M)
+
+
+def rewrite_contracts(write: bool) -> tuple[int, list[str]]:
+    total, files = 0, []
+    for path in sorted(CONTRACTS.glob("*.py")):
+        src = path.read_text(encoding="utf-8")
+        out, n = CONTRACT_QUOTE.subn(lambda m: "." + TARGETS[m.group(1)] + "(", src)
+        if n:
+            total += n
+            files.append(str(path.relative_to(ROOT)))
+            if write:
+                path.write_text(out, encoding="utf-8")
+    return total, files
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--check", action="store_true", help="report only; exit 1 if anything still needs rewriting")
     ap.add_argument("--json", action="store_true", help="print a JSON summary")
+    ap.add_argument("--contracts", action="store_true", help="also rewrite quoted call sites in Tests/ContractChecks")
     args = ap.parse_args()
 
     total = {"sheet": 0, "fullScreenCover": 0}
@@ -199,6 +232,11 @@ def main() -> int:
         "skipped_calls": skips,
         "skipped_test_paths": skipped_paths,
     }
+    if args.contracts:
+        n, cfiles = rewrite_contracts(write=not args.check)
+        summary["contract_quotes"] = {"rewritten": n, "files": cfiles}
+        if not args.json:
+            print(f"contract quotes {'to rewrite' if args.check else 'rewritten'}: {n} in {len(cfiles)} files")
     if args.json:
         print(json.dumps(summary, indent=2, ensure_ascii=False))
     else:

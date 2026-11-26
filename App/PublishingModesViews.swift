@@ -237,7 +237,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             toastMessage = MerchantCloseCopy.text("活动已发布", "Activity published", locale)
             showResultSheet = true
         }
-        .cySheet(isPresented: $showResultSheet) {
+        .sheet(isPresented: $showResultSheet) {
             PlayCloseResultSheet(
                 title: MerchantCloseCopy.text("活动已提交发布", "Activity Submitted", locale),
                 message: MerchantCloseCopy.text("可在项目管理查看活动状态与审核进度。", "Track activity status in your project list.", locale),
@@ -268,12 +268,12 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 }.id(original.id)
             }
         }
-        .cySheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) {
+        .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) {
             pickerSheet
                 .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
                 .themeDomain(.topicEditor)
         }
-        .cySheet(isPresented: $localReview) {
+        .sheet(isPresented: $localReview) {
             let snapshot = review
             NavigationStack {
                 List {
@@ -978,7 +978,7 @@ struct ActivityPublishingTimeRangeDraft {
     let apply: (ActivityPublishingTimeRangeDraft) -> Bool
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .cySheet(item: owner.binding(original, timeZoneID: { TimeZone.autoupdatingCurrent.identifier })) { offered in
+            .sheet(item: owner.binding(original, timeZoneID: { TimeZone.autoupdatingCurrent.identifier })) { offered in
                 Group {
                     ActivityPublishingTimeRangeSheet(owner: owner, original: offered, apply: apply)
                 }
