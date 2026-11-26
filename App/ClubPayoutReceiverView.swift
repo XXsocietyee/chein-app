@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 // WP-01. Ports mini-program pages/club/payout-receiver, pages/club/settlement (mine list and personal summary)
 // and components/cy/club-direct-ledger. Every page stays visible; when the payout area is closed (production host,
@@ -135,7 +134,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                         // binds with wx.login, so the row copies the MP page path for this club.
                         if let club = resolvedClubID ?? clubID {
                             Button {
-                                UIPasteboard.general.string = "pages/club/payout-receiver/index?clubId=\(club)"
+                                LocalPasteboard.copy("pages/club/payout-receiver/index?clubId=\(club)", lifetime: 600)
                                 mpPathCopied = true
                             } label: { Label("payoutReceiver.bind.copyMPPath", systemImage: "doc.on.doc") }
                                 .accessibilityIdentifier("payoutReceiver.bind.copyMPPath")
