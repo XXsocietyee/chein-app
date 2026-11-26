@@ -16,6 +16,8 @@ import SwiftUI
     @Published private(set) var topicTotal: Int?
     /// CLB-r7-A-06: 「N 人」 beside 查看客户, or 暂时读不到 when the count read fails (MP js:3591-3601).
     @Published private(set) var customerCountText: String?
+    /// CLB-r11-detail-01: 俱乐部分润 beside 经营 (owner only): the server's settledAmountText, or 暂时读不到 (MP js:3587-3604).
+    @Published private(set) var settledAmountText: String?
     @Published private(set) var coopApplyPendingTopicID: Int?
     @Published var coopApplyNoticeKey: String?
     @Published var coopApplyServerNotice: String?
@@ -25,9 +27,22 @@ import SwiftUI
     private var avatarsKey: String?
     /// CLB-r7-A-06 (MP loadSettingsCounts js:3579-3601): read once per club when 俱乐部设置 opens; a failure clears the
     /// guard so the next opening asks again. Owner / admin only, as the MP sends it.
-    func loadSettingsCounts(clubID: Int, canSeeCustomers: Bool, access: any ClubGovernanceAccess, locale: Locale = .current) async {
+    func loadSettingsCounts(clubID: Int, canSeeCustomers: Bool, isOwner: Bool = false, access: any ClubGovernanceAccess, locale: Locale = .current) async {
         guard canSeeCustomers, settingsCountsFor != clubID else { return }
         settingsCountsFor = clubID
+        // CLB-r11-detail-01 (MP detail js:3587-3604): owner only, `api/club/settlement/summary`; the amount is passed
+        // through as the server wrote it, and a failure reads 暂时读不到 (a blank would read as zero).
+        if isOwner {
+            do {
+                let summary = try await access.read(.settlement, scope: .init(clubID: clubID), options: [:])
+                if settingsCountsFor == clubID, !Task.isCancelled,
+                   let text = summary.value["settledAmountText"].string, !text.isEmpty { settledAmountText = text }
+            } catch {
+                if settingsCountsFor == clubID, !Task.isCancelled {
+                    settledAmountText = appLocalized("club.settings.countUnavailable", locale: locale)
+                }
+            }
+        }
         if topicTotal == nil,
            let topics = try? await access.read(.topics, scope: .init(clubID: clubID), options: [:]),
            settingsCountsFor == clubID, !Task.isCancelled {
@@ -182,6 +197,8 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     case undertake(topicID: Int)
     /// CLB-r7-A-06: 俱乐部设置 · 客户与项目.
     case customers, enroll, eventOps, roles
+    /// CLB-r11-detail-01 (MP detail wxml:863-871 goClubFinance): 经营 · 俱乐部分润 → the settlement page.
+    case settlement
     /// CLB-detail-20: 发布主题 from the empty 活动 state.
     case publish
     /// CLB-detail-35: 出示团码 / 出示二维码 → that topic's 选择场次 step (MP showGroupCode js:3072-3088).
@@ -258,6 +275,9 @@ enum ClubDetailR8Route: Hashable, Identifiable {
                                        access: governance.access, coordinator: governance.coordinator)
             case .transferOwner:
                 ClubGovernanceReadView(operation: .members, scope: .init(clubID: clubID), identity: identity,
+                                       access: governance.access, coordinator: governance.coordinator)
+            case .settlement:
+                ClubGovernanceReadView(operation: .settlement, scope: .init(clubID: clubID), identity: identity,
                                        access: governance.access, coordinator: governance.coordinator)
             case .groupCode(let topicID):
                 ClubGroupCodeSessionStep(clubID: clubID, topicID: topicID, identity: identity,

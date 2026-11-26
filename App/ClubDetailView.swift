@@ -441,10 +441,11 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                roles: settingsRoute(.roles, allowed: club.isOwner || manageGrant?.permissions.contains("club:role:manage") == true))
                     .clubToolCounts(customers: r8Mounts.customerCountText, topics: r8Mounts.topicTotal,
                                     delegatedRoles: delegatedRoleCount)
+                    .clubFinance(settingsRoute(.settlement, allowed: club.isOwner), amount: r8Mounts.settledAmountText)
                     .presentationDetents([.medium, .large])
                     .task {
                         guard let governance = management?.governance else { return }
-                        await r8Mounts.loadSettingsCounts(clubID: club.id, canSeeCustomers: club.isOwner || club.viewerIsAdmin,
+                        await r8Mounts.loadSettingsCounts(clubID: club.id, canSeeCustomers: club.isOwner || club.viewerIsAdmin, isOwner: club.isOwner,
                                                           access: governance.access, locale: locale)
                     }
             }

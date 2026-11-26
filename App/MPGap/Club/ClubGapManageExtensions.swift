@@ -237,6 +237,9 @@ public struct ClubGapSettingsSheet: View {
     public var customerCountText: String? = nil
     public var topicCount: Int? = nil
     public var delegatedRoleCount: Int = 0
+    /// CLB-r11-detail-01 (MP detail wxml:863-871): owner-only 经营 · 俱乐部分润; nil hides the section.
+    public var onClubFinance: (() -> Void)? = nil
+    public var settledAmountText: String? = nil
 
     @Environment(\.dismiss) private var dismiss
 
@@ -266,6 +269,21 @@ public struct ClubGapSettingsSheet: View {
                         settingsRow("club.settings.roles", onRoles, count: delegatedRoleCount > 0 ? Text("club.settings.delegated \(delegatedRoleCount)") : nil)
                     } header: {
                         Text("club.settings.customersSection")
+                    }
+                }
+                if let onClubFinance {
+                    Section {
+                        Button {
+                            dismiss()
+                            onClubFinance()
+                        } label: {
+                            LabeledContent("club.settings.clubFinance") {
+                                if let settledAmountText { Text(verbatim: settledAmountText) }
+                            }
+                        }
+                        .accessibilityIdentifier("club.settings.clubFinance")
+                    } header: {
+                        Text("club.settings.businessSection")
                     }
                 }
                 if canGovern {
@@ -313,6 +331,13 @@ public struct ClubGapSettingsSheet: View {
     public func clubToolCounts(customers: String?, topics: Int?, delegatedRoles: Int) -> Self {
         var copy = self
         copy.customerCountText = customers; copy.topicCount = topics; copy.delegatedRoleCount = delegatedRoles
+        return copy
+    }
+
+    /// CLB-r11-detail-01: 经营 · 俱乐部分润 and its amount text (MP loadSettingsCounts js:3587-3604).
+    public func clubFinance(_ action: (() -> Void)?, amount: String?) -> Self {
+        var copy = self
+        copy.onClubFinance = action; copy.settledAmountText = amount
         return copy
     }
 
