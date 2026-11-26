@@ -393,6 +393,14 @@ struct CYScreenOfflineWriteSection: View {
     @State private var syncModel = SessionOfflineSyncModel.shared
     private var reachability = SharedNetworkReachabilityState.shared
 
+    /// Explicit: the memberwise init is private because of the private stored properties (Xcode 26 rejects it).
+    init(routes: [String], session: AppSession? = nil, accessibilityID: String = "cy.offlineWrite.status", onSynced: (() -> Void)? = nil) {
+        self.routes = routes
+        self.session = session
+        self.accessibilityID = accessibilityID
+        self.onSynced = onSynced
+    }
+
     var body: some View {
         if syncModel.status(for: routes, isOnline: reachability.isOnline) != .none {
             Section {

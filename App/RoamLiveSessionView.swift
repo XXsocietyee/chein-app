@@ -132,7 +132,7 @@ import QuestifyCore
         }
         .onAppear { sessionSheetShown = true }
         .onDisappear { sessionSheetShown = false }
-        .sheet(isPresented: $sessionSheetShown) { sessionSheet.cySheetBackdropExempt() }
+        .sheet(isPresented: $sessionSheetShown) { sessionSheet }
         .task(id: runnersReadKey) { await readRunners() }
         .cyPageTitle("roam.experience.live")
     }
@@ -150,11 +150,11 @@ import QuestifyCore
         .presentationContentInteraction(.scrolls)
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled()
-        .cySheet(isPresented: $showTools) {
+        .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled,
                                       fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding)
         }
-        .cySheet(isPresented: $showingLocationPriming, onDismiss: {
+        .sheet(isPresented: $showingLocationPriming, onDismiss: {
             guard locationPrimingAllowed else { return }
             locationPrimingAllowed = false
             Task {
@@ -191,10 +191,10 @@ import QuestifyCore
                 "Your footprints and shop visits are saved. After settlement you can collect the footprint card. This roam settles now and can't be continued.",
                 locale: locale))
         }
-        .cySheet(isPresented: $showRules) {
+        .sheet(isPresented: $showRules) {
             NavigationStack { RoamLiveRulesView() }.cySheet()
         }
-        .cySheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
+        .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
         .background {
             if let target = browse.target {
                 RoamPausedBrowseSheetOwner(presentation: browse, target: target,
@@ -1257,7 +1257,7 @@ struct RoamPausedBrowseCopy {
     let reader: (any RoamExperienceReading)?
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .cySheet(item: presentation.binding(for: target, owner: owner, reader: reader),
+            .sheet(item: presentation.binding(for: target, owner: owner, reader: reader),
                    onDismiss: { presentation.close(id: target.id) }) { offered in Group {
                 NavigationStack {
                     if presentation.matches(offered, owner: owner, reader: reader) {
