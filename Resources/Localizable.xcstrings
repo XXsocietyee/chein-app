@@ -314108,6 +314108,23 @@
           }
         }
       }
+    },
+    "searchMap.needKeywordOrCategory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a keyword or select a category"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入关键词或选择类别"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
