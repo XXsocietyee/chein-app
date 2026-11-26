@@ -1729,42 +1729,6 @@
         }
       }
     },
-    "storeCharacter.voice.clear": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Clear voice" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "清除声音" } }
-      }
-    },
-    "storeCharacter.voice.clearTitle": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Clear this voice?" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "清除角色声音？" } }
-      }
-    },
-    "storeCharacter.voice.clearBody": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "The store character will stop speaking in this voice. Record again to restore it." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "清除后店铺角色不再用这段声音说话，需要重新录音生成才能恢复。" } }
-      }
-    },
-    "storeCharacter.voice.clearConfirm": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Clear" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "清除" } }
-      }
-    },
-    "storeCharacter.voice.clearCancel": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Cancel" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "取消" } }
-      }
-    },
-    "storeCharacter.notice.voiceCleared": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Voice cleared" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "角色声音已清除" } }
-      }
-    },
     "storeCharacter.voice.sentence1": {
       "localizations": {
         "en": {
