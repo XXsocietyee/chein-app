@@ -28,6 +28,9 @@ import SwiftUI
     /// R7-PC-B4-4 (MP pricing js:446-460): a confirmed price toasts and returns; a 支付资质 note is a modal first.
     @State private var successToast: String?
     @State private var paymentQualificationNote: String?
+    /// R7-PC-B4-3: MP `loadSaleStatus` / `loadPendingSettlements` (pages/topic/pricing/index.js:328-370). Read only.
+    @State private var pricingExtra = TopicPricingExtraStatus()
+    @Environment(\.topicRouteGapService) private var makePricingGapService
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
@@ -121,6 +124,8 @@ import SwiftUI
                     case nil: EmptyView()
                     }
                 }
+                // R7-PC-B4-3: MP 开售状态 and 结算待处理 cards (pages/topic/pricing/index.wxml:79-86) before 合作阵容.
+                TopicPricingGapSection(ticketFields: .constant([]), extraStatus: pricingExtra)
                 if !preview.lineup.isEmpty {
                     Section {
                         ForEach(preview.lineup) { row in
@@ -179,6 +184,7 @@ import SwiftUI
         .cyPageTitle(verbatim: text("publisherPricing.confirmFinalPrice"))
         .cyPushedChrome(domain: .merchant)
         .task(id: preview?.lineup.map(\.id) ?? []) { await loadPartnerNames() }
+        .task(id: topicID) { await loadPricingExtra() }
         // Mini-program pages/topic/pricing calls preview() in onLoad: load the floor without a manual tap.
         // PC-B-4-6: load the floor on open whenever the inputs allow it (guided needs a group size).
         .task { visible = true; if preview == nil, !busy, subtype == .selfPlay || (Int(team) ?? 0) > 0 { beginLoad() } }
@@ -254,6 +260,22 @@ import SwiftUI
                 loadFailed = true; message = PublisherLifecycleCopy.error(error, zh: isChinese); resultSession = session
             }
         }
+    }
+    /// MP index.js:328-370: sale-status `message`, and settlement-pending rows filtered to this topic
+    /// (`activityName  ¥money` + reason). Failures leave the rows out (MP toasts and keeps the page).
+    private func loadPricingExtra() async {
+        guard topicID > 0, let service = makePricingGapService?() else { return }
+        let sale = await service.fetchTopicPricingSaleStatus(topicID: topicID).data?["message"].text
+        let rows = await service.fetchTopicPricingSettlementPending(topicID: topicID).data?.array ?? []
+        let pending = rows.filter { $0["topicId"].tolerantInteger == topicID }.map { row -> String in
+            let name = row["activityName"].text ?? "场次"
+            let amount = row["money"].double.map { " ¥" + String(format: "%.2f", $0) } ?? ""
+            let reason = row["reason"].text.map { $0.isEmpty ? "" : "\n" + $0 } ?? ""
+            return name + amount + reason
+        }
+        guard !Task.isCancelled else { return }
+        pricingExtra = TopicPricingExtraStatus(saleStatusText: sale?.isEmpty == false ? sale : nil,
+                                               settlementPendingText: pending.isEmpty ? nil : pending.joined(separator: "\n"))
     }
     private func beginPrepare() {
         guard visible, phase == .active, !busy, let session = client.session,
