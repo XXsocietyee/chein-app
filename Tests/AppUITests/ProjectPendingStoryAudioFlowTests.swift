@@ -65,7 +65,7 @@ import XCTest
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-edit-pending", "--project-story-image", "--project-story-audio"]
         app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
-        tap("projectEdit.saveLocal", app, fixed: true); var saved = try snapshot(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); var saved = try snapshot(app)
         let materialID = try material(saved), name = try XCTUnwrap(chapter(saved)["name"] as? String)
         let chapterID = try XCTUnwrap(chapter(saved)["id"] as? String)
         chooseChapter(app, materialID: materialID, chapterID: chapterID, name: name); tap("projectStoryAudio.add", app)

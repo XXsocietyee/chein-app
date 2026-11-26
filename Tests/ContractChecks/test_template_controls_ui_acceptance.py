@@ -81,7 +81,8 @@ class TemplateControlsUIAcceptanceChecks(unittest.TestCase):
         self.assertIn('bytes(restored.draft.ruleInstructions, originalRules)', self.ui)
 
     def test_local_save_restore_clear_and_locked_readback_are_observed_not_seeded(self):
-        for token in ['tap("templateAuthor.saveLocal", in: app)', 'tap("templateAuthor.fixture.reopen", in: app)',
+        # r10 C-T5: 保存到此设备 moved into the ⋯ menu (MP temp/index.wxml:1492-1494 bar has only 保存草稿 + 发布).
+        for token in ['tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app)', 'tap("templateAuthor.fixture.reopen", in: app)',
                       'tap("templateAuthor.restore", in: app)', 'setHints(false, in: app)',
                       'assertHints(["", "", ""], draft: cleared.draft)',
                       'assertHints(["", "", ""], draft: restored.draft)',

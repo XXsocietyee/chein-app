@@ -119,7 +119,7 @@ import XCTest
         XCTAssertTrue(app.navigationBars["Story timeline"].waitForExistence(timeout: 5))
     }
     private func saveAndRestore(_ app: XCUIApplication) {
-        tap("templateAuthor.saveLocal", in: app)
+        tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app)
         let status = app.staticTexts["templateAuthor.status"]
         reveal(status, in: app, hittable: false); XCTAssertEqual(status.label, localSaved)
         tap("templateAuthor.fixture.reopen", in: app)
@@ -229,9 +229,14 @@ import XCTest
         let method = app.descendants(matching: .any)["templateAuthor.method"].firstMatch
         reveal(method, in: app, towardTop: true, hittable: false); XCTAssertFalse(method.isEnabled)
         reveal(original, in: app, towardTop: true, hittable: false); bytes(original.label, originalRules)
-        for id in ["templateAuthor.saveLocal", "templateAuthor.reviewDraft", "templateAuthor.reviewPublish"] {
+        for id in ["templateAuthor.reviewDraft", "templateAuthor.reviewPublish"] {
             let button = app.buttons[id]; reveal(button, in: app, hittable: false); XCTAssertFalse(button.isEnabled)
         }
+        // r10 C-T5: 保存到此设备 is inside the ⋯ menu (MP temp/index.wxml:1492-1494 has no such bar button).
+        app.buttons["templateEditorMenu.more"].tap()
+        let saveLocal = app.buttons["templateAuthor.saveLocal"]
+        XCTAssertTrue(saveLocal.waitForExistence(timeout: 5)); XCTAssertFalse(saveLocal.isEnabled)
+        app.navigationBars.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         XCTAssertEqual(try inspect(app, requests: 1, locked: true).state, "simulated")
         tap("templateAuthor.fixture.signOut", in: app)
         XCTAssertTrue(app.staticTexts["templateAuthor.signIn"].waitForExistence(timeout: 5))

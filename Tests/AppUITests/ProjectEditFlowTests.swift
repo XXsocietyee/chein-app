@@ -7,7 +7,8 @@ func revealProjectEditorNameInForm(in app: XCUIApplication) -> Bool {
     guard forms.firstMatch.exists, forms.count == 1 else { return false }
     let form = forms.firstMatch
     let navigation = app.navigationBars.firstMatch
-    let save = app.buttons["projectEdit.saveLocal"]
+    // r10 C-F4: 存到本机 moved into the ⋯ menu (MP fabu bar is 保存草稿 + 下一步); 下一步 marks the bar edge.
+    let save = app.buttons["projectEdit.review"]
     let review = app.buttons["projectEdit.review"]
     let name = app.textFields["projectEdit.name"]
     for attempt in 0...10 {
@@ -70,7 +71,8 @@ final class ProjectEditFlowTests: XCTestCase {
         guard forms.count == 1, let form = forms.first else { return false }
         for attempt in 0...8 {
             let tickets = form.buttons.matching(identifier: ticketID)
-            let save = app.buttons.matching(identifier: "projectEdit.saveLocal")
+            // r10 C-F4: 存到本机 is in the ⋯ menu; 下一步 marks the bar edge.
+            let save = app.buttons.matching(identifier: "projectEdit.review")
             let review = app.buttons.matching(identifier: "projectEdit.review")
             let navigation = app.navigationBars["Route editor"]
             guard tickets.count == 1, save.count == 1, review.count == 1, navigation.exists else { return false }
@@ -194,7 +196,7 @@ final class ProjectEditFlowTests: XCTestCase {
     func testLocalDraftOffersExplicitRestoreAfterReopen() {
         let app = launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
         replace(app.textFields["projectEdit.name"], with: "Saved local fixture")
-        app.buttons["projectEdit.saveLocal"].tap(); app.buttons["projectEdit.fixture.reopen"].tap()
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); app.buttons["projectEdit.fixture.reopen"].tap()
         let restore = app.buttons["projectEdit.restore"]; XCTAssertTrue(restore.waitForExistence(timeout: 5)); restore.tap()
         XCTAssertEqual(app.textFields["projectEdit.name"].value as? String, "Saved local fixture")
     }
@@ -211,7 +213,8 @@ final class ProjectEditFlowTests: XCTestCase {
         let app = launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
         app.buttons["projectEdit.fixture.signOut"].tap()
         XCTAssertTrue(app.staticTexts["projectEdit.signIn"].waitForExistence(timeout: 5))
-        XCTAssertNotEqual(app.textFields["projectEdit.name"].value as? String, "Synthetic harbor trail"); XCTAssertFalse(app.buttons["projectEdit.saveLocal"].isEnabled)
+        XCTAssertNotEqual(app.textFields["projectEdit.name"].value as? String, "Synthetic harbor trail"); let more = app.buttons["projectEdit.more"]
+        if more.exists { more.tap(); XCTAssertFalse(app.buttons["projectEdit.saveLocal"].isEnabled) }
     }
     func testSimulationIsExplicitlyNotPublication() {
         let app = launch(); XCTAssertTrue(app.buttons["projectEdit.review"].waitForExistence(timeout: 5)); app.buttons["projectEdit.review"].tap()
