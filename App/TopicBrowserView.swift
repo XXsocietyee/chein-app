@@ -33,10 +33,10 @@ struct TopicBrowserView: View {
                     Toggle("topic.recommended", isOn: $recommend)
                 }
                 if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
-                else if loadedKey != key { CYLoadingStateView(rows: 3).listRowBackground(Color.clear).accessibilityLabel(Text("topic.loading")) }
+                else if loadedKey != key { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("topic.loading")) }
                 else {
                     if let issue { TopicIssueView(issue: issue) { Task { await load(reset: pagination.rows.isEmpty) } } }
-                    if pagination.rows.isEmpty && !loading && issue == nil { CYEmptyState(systemImage: "map", "topic.empty", messageIdentifier: "topic.empty").listRowBackground(Color.clear) }
+                    if pagination.rows.isEmpty && !loading && issue == nil { ContentUnavailableView { Label("topic.empty", systemImage: "map") }.accessibilityIdentifier("topic.empty") }
                     ForEach(pagination.rows) { item in
                         NavigationLink {
                             TopicDetailView(id: item.id, reader: reader, publicMerchant: publicMerchant, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, selfPlayDestination: selfPlayDestination)
@@ -51,13 +51,13 @@ struct TopicBrowserView: View {
                         }.buttonStyle(QuestifyCardButtonStyle()).questifyHidesLinkIndicator().questifyCardListRow()
                         .accessibilityIdentifier("topic.row.\(item.id)")
                     }
-                    if loading { CYLoadingStateView(rows: 1).listRowBackground(Color.clear).accessibilityLabel(Text("topic.loading")) }
+                    if loading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("topic.loading")) }
                     else if pagination.hasMore && issue == nil {
                         Button("topic.loadMore") { Task { await load(reset: false) } }
                             .accessibilityIdentifier("topic.loadMore")
                     }
                 }
-                Section { Text("topic.readOnly").cyText(.caption).foregroundStyle(CYColor.textSecondary) }.listRowBackground(Color.clear)
+                Section {} footer: { Text("topic.readOnly") }
             }
             .appNavigationTitle("topic.title")
             .navigationBarTitleDisplayMode(.inline)

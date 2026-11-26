@@ -2,7 +2,6 @@ import SwiftUI
 
 @MainActor
 struct TopicDetailView: View {
-    @Environment(\.cyPalette) private var palette
     let id: Int
     let reader: any TopicReading
     var preferSession = false
@@ -67,7 +66,7 @@ struct TopicDetailView: View {
     var body: some View {
         Group {
             if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
-            else if phase.isLoading || loadedKey != key { CYLoadingStateView(rows: 1).accessibilityLabel(Text("topic.loading")) }
+            else if phase.isLoading || loadedKey != key { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity).accessibilityLabel(Text("topic.loading")) }
             else {
                 switch phase {
                 case .failed(let issue, _): TopicDetailIssueState(issue: issue) { loads.start { await load() } }
@@ -131,120 +130,125 @@ struct TopicDetailView: View {
             .cyDomainSheet(detents: [.half, .full])
         }
         .sheet(isPresented: $showingClubTransferPicker) {
-            CYOptionSheet(
-                title: PlayCloseCopy.text("选择承接俱乐部", "Choose host club", locale),
-                items: transferClubs.map { club in
-                    CYOptionSheetItem(id: club.id, title: club.name, subtitle: club.city, systemImage: "person.3")
-                },
-                selectedID: selectedTransferClub?.id,
-                closeIdentifier: cyAccessibilityID(id: "topic.transfer.clubSheet.close"),
-                onSelect: { clubID in
-                    showingClubTransferPicker = false
-                    selectedTransferClub = transferClubs.first(where: { $0.id == clubID })
-                    showingTransferConfirm = selectedTransferClub != nil
-                },
-                onClose: { showingClubTransferPicker = false }
-            )
-            .cyDomainSheet(detents: [.half, .full])
+            NavigationStack {
+                List(transferClubs) { club in
+                    Button {
+                        showingClubTransferPicker = false
+                        selectedTransferClub = club
+                        showingTransferConfirm = true
+                    } label: {
+                        HStack {
+                            Label {
+                                VStack(alignment: .leading) {
+                                    Text(verbatim: club.name).foregroundStyle(.primary)
+                                    if let city = club.city, !city.isEmpty {
+                                        Text(verbatim: city).font(.subheadline).foregroundStyle(.secondary)
+                                    }
+                                }
+                            } icon: {
+                                Image(systemName: "person.3")
+                            }
+                            Spacer()
+                            if selectedTransferClub?.id == club.id {
+                                Image(systemName: "checkmark").foregroundStyle(.tint)
+                            }
+                        }
+                    }
+                }
+                .navigationTitle(Text(verbatim: PlayCloseCopy.text("选择承接俱乐部", "Choose host club", locale)))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { showingClubTransferPicker = false } label: { Text(verbatim: PlayCloseCopy.close(locale)) }
+                            .accessibilityIdentifier("topic.transfer.clubSheet.close")
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $showingContactSheet) {
-            PlayCloseSheetHost(
-                title: PlayCloseCopy.text("补全姓名和手机号", "Complete Name & Phone", locale),
-                detents: [.half],
-                onClose: { showingContactSheet = false }
-            ) {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    CYField(
-                        label: PlayCloseCopy.text("真实姓名", "Real name", locale),
-                        placeholder: PlayCloseCopy.text("请输入姓名", "Enter name", locale),
-                        text: $contactRealName,
-                        isRequired: true
-                    )
-                    CYField(
-                        label: PlayCloseCopy.text("手机号", "Phone number", locale),
-                        placeholder: PlayCloseCopy.text("请输入手机号", "Enter phone", locale),
-                        text: $contactPhone,
-                        isRequired: true
-                    )
-                    Button {
-                        saveContactBeforeSelfPlay()
-                    } label: {
-                        Text(verbatim: PlayCloseCopy.text("保存并继续", "Save and continue", locale))
-                    }
-                    .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: popupBusy))
-                    .disabled(popupBusy || contactRealName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || contactPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-                .padding(CYSpacing.pageHorizontal)
-                .padding(.bottom, CYSpacing.lg)
-            }
-        }
-        .sheet(isPresented: Binding(get: { resultSheetTitle != nil }, set: { if !$0 { resultSheetTitle = nil; resultSheetMessage = nil } })) {
-            if let title = resultSheetTitle, let message = resultSheetMessage {
-                PlayCloseResultSheet(
-                    title: title,
-                    message: message,
-                    onPrimary: nil,
-                    onClose: { resultSheetTitle = nil; resultSheetMessage = nil }
-                )
-            }
-        }
-        .cyModalOverlay(isPresented: showingGraduateBetaConfirm) {
-            CYModal(
-                title: PlayCloseCopy.text("转为正式主题", "Graduate to Official Topic", locale),
-                message: PlayCloseCopy.text("转正后不再显示 Beta 标记。主题内容、已售出的票和进行中的行程都不受影响。", "The Beta tag will be removed. Topic content, sold tickets, and active runs stay unaffected.", locale),
-                cancelTitle: PlayCloseCopy.cancel(locale),
-                confirmTitle: PlayCloseCopy.text("确认转正", "Confirm", locale),
-                isConfirmLoading: popupBusy,
-                confirmIdentifier: "topic.graduateBeta.confirm",
-                onCancel: { showingGraduateBetaConfirm = false },
-                onConfirm: { graduateCurrentBetaTopic() }
-            )
-        }
-        .cyModalOverlay(isPresented: showingTransferConfirm) {
-            if let club = selectedTransferClub {
-                CYModal(
-                    title: PlayCloseCopy.text("移交给俱乐部承接", "Transfer to Club", locale),
-                    message: PlayCloseCopy.text("将复制一份新的城市定向主题(有人带),挂到「\(club.name)」名下。原草稿与历史记录会保留。", "Creates an instructor-led City Orienteering copy under \"\(club.name)\".", locale),
-                    cancelTitle: PlayCloseCopy.cancel(locale),
-                    confirmTitle: PlayCloseCopy.text("确认移交", "Confirm transfer", locale),
-                    isConfirmLoading: popupBusy,
-                    confirmIdentifier: "topic.transferClub.confirm",
-                    onCancel: { showingTransferConfirm = false },
-                    onConfirm: { performTopicClubTransfer(club) }
-                )
-            }
-        }
-        .cyModalOverlay(isPresented: showingTransferredResult) {
-            CYModal(
-                title: PlayCloseCopy.text("已移交", "Transferred", locale),
-                message: PlayCloseCopy.text("已生成新的城市定向草稿，去配置票种并邀请该俱乐部承接?", "Created a new City Orienteering draft. Configure tickets and invite the club to host?", locale),
-                cancelTitle: PlayCloseCopy.text("留在本页", "Stay here", locale),
-                confirmTitle: PlayCloseCopy.text("去配置票种", "Configure tickets", locale),
-                confirmIdentifier: "topic.transferred.configure",
-                onCancel: { showingTransferredResult = false },
-                onConfirm: {
-                    showingTransferredResult = false
-                    if pricingDestination != nil {
-                        showsPricing = true
-                    } else if let transferredTopicID {
-                        topicToastMessage = PlayCloseCopy.text("已生成新草稿 #\(transferredTopicID)", "Created draft #\(transferredTopicID)", locale)
+            NavigationStack {
+                Form {
+                    Section {
+                        TextField(PlayCloseCopy.text("真实姓名", "Real name", locale), text: $contactRealName,
+                                  prompt: Text(verbatim: PlayCloseCopy.text("请输入姓名", "Enter name", locale)))
+                            .textContentType(.name)
+                            .submitLabel(.next)
+                        TextField(PlayCloseCopy.text("手机号", "Phone number", locale), text: $contactPhone,
+                                  prompt: Text(verbatim: PlayCloseCopy.text("请输入手机号", "Enter phone", locale)))
+                            .textContentType(.telephoneNumber)
+                            .keyboardType(.phonePad)
                     }
                 }
-            )
-        }
-        .cyModalOverlay(isPresented: showingContactPromptModal) {
-            CYModal(
-                title: PlayCloseCopy.text("还差姓名和手机号", "Name and phone needed", locale),
-                message: PlayCloseCopy.text("建单要用你的真实姓名和手机号，补一次就好，之后不用再填。", "Your real name and phone are needed to place this order. Save them once for future orders.", locale),
-                cancelTitle: PlayCloseCopy.cancel(locale),
-                confirmTitle: PlayCloseCopy.text("去填写", "Fill in", locale),
-                confirmIdentifier: "topic.contactPrompt.fill",
-                onCancel: { showingContactPromptModal = false },
-                onConfirm: {
-                    showingContactPromptModal = false
-                    showingContactSheet = true
+                .navigationTitle(Text(verbatim: PlayCloseCopy.text("补全姓名和手机号", "Complete Name & Phone", locale)))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { showingContactSheet = false } label: { Text(verbatim: PlayCloseCopy.cancel(locale)) }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        if popupBusy {
+                            ProgressView()
+                        } else {
+                            Button {
+                                saveContactBeforeSelfPlay()
+                            } label: {
+                                Text(verbatim: PlayCloseCopy.text("保存并继续", "Save and continue", locale))
+                            }
+                            .disabled(contactRealName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || contactPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        }
+                    }
                 }
-            )
+            }
+            .presentationDetents([.medium, .large])
+        }
+        .alert(
+            Text(verbatim: resultSheetTitle ?? ""),
+            isPresented: Binding(get: { resultSheetTitle != nil }, set: { if !$0 { resultSheetTitle = nil; resultSheetMessage = nil } })
+        ) {
+            Button(role: .cancel) { resultSheetTitle = nil; resultSheetMessage = nil } label: { Text(verbatim: PlayCloseCopy.close(locale)) }
+        } message: {
+            Text(verbatim: resultSheetMessage ?? "")
+        }
+        .alert(Text(verbatim: PlayCloseCopy.text("转为正式主题", "Graduate to Official Topic", locale)), isPresented: $showingGraduateBetaConfirm) {
+            Button(role: .cancel) { showingGraduateBetaConfirm = false } label: { Text(verbatim: PlayCloseCopy.cancel(locale)) }
+            Button { graduateCurrentBetaTopic() } label: { Text(verbatim: PlayCloseCopy.text("确认转正", "Confirm", locale)) }
+                .disabled(popupBusy)
+                .accessibilityIdentifier("topic.graduateBeta.confirm")
+        } message: {
+            Text(verbatim: PlayCloseCopy.text("转正后不再显示 Beta 标记。主题内容、已售出的票和进行中的行程都不受影响。", "The Beta tag will be removed. Topic content, sold tickets, and active runs stay unaffected.", locale))
+        }
+        .alert(Text(verbatim: PlayCloseCopy.text("移交给俱乐部承接", "Transfer to Club", locale)), isPresented: $showingTransferConfirm, presenting: selectedTransferClub) { club in
+            Button(role: .cancel) { showingTransferConfirm = false } label: { Text(verbatim: PlayCloseCopy.cancel(locale)) }
+            Button { performTopicClubTransfer(club) } label: { Text(verbatim: PlayCloseCopy.text("确认移交", "Confirm transfer", locale)) }
+                .disabled(popupBusy)
+                .accessibilityIdentifier("topic.transferClub.confirm")
+        } message: { club in
+            Text(verbatim: PlayCloseCopy.text("将复制一份新的城市定向主题(有人带),挂到「\(club.name)」名下。原草稿与历史记录会保留。", "Creates an instructor-led City Orienteering copy under \"\(club.name)\".", locale))
+        }
+        .alert(Text(verbatim: PlayCloseCopy.text("已移交", "Transferred", locale)), isPresented: $showingTransferredResult) {
+            Button(role: .cancel) { showingTransferredResult = false } label: { Text(verbatim: PlayCloseCopy.text("留在本页", "Stay here", locale)) }
+            Button {
+                showingTransferredResult = false
+                if pricingDestination != nil {
+                    showsPricing = true
+                } else if let transferredTopicID {
+                    topicToastMessage = PlayCloseCopy.text("已生成新草稿 #\(transferredTopicID)", "Created draft #\(transferredTopicID)", locale)
+                }
+            } label: { Text(verbatim: PlayCloseCopy.text("去配置票种", "Configure tickets", locale)) }
+                .accessibilityIdentifier("topic.transferred.configure")
+        } message: {
+            Text(verbatim: PlayCloseCopy.text("已生成新的城市定向草稿，去配置票种并邀请该俱乐部承接?", "Created a new City Orienteering draft. Configure tickets and invite the club to host?", locale))
+        }
+        .alert(Text(verbatim: PlayCloseCopy.text("还差姓名和手机号", "Name and phone needed", locale)), isPresented: $showingContactPromptModal) {
+            Button(role: .cancel) { showingContactPromptModal = false } label: { Text(verbatim: PlayCloseCopy.cancel(locale)) }
+            Button {
+                showingContactPromptModal = false
+                showingContactSheet = true
+            } label: { Text(verbatim: PlayCloseCopy.text("去填写", "Fill in", locale)) }
+                .accessibilityIdentifier("topic.contactPrompt.fill")
+        } message: {
+            Text(verbatim: PlayCloseCopy.text("建单要用你的真实姓名和手机号，补一次就好，之后不用再填。", "Your real name and phone are needed to place this order. Save them once for future orders.", locale))
         }
         .cyToast(verbatimMessage: $topicToastMessage)
     }
@@ -256,20 +260,20 @@ struct TopicDetailView: View {
                 let covers = value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9))
                 if covers.isEmpty {
                     // Mini-program `cover-brief` (no cover): type, title and one-line hint on an opaque card.
-                    // Source D3 (hengyin d31517215): no-cover header is the look gradient plus a small route mark.
-                    CYCard(variant: .elevated, radius: CYRadius.lg, padding: CYSpacing.xl) {
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            // verify-r1 PL-14: the type is a fact, not a link or a status, so it is ink, not blue.
-                            // Round 4 image parity: the route mark is the MP `/images/cover-route.svg` (topic/index.wxml:49/78).
-                            MPAsset.BannerCover.coverRoute.resizable().scaledToFit()
-                                .accessibilityHidden(true)
-                                .frame(width: 40, height: 40)
-                            Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
-                                .cyText(.label, weight: .semibold).foregroundStyle(CYColor.textSecondary)
-                            Text(verbatim: value.name).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
-                            if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).cyText(.body).foregroundStyle(CYColor.textSecondary).lineLimit(1) }
-                            else { Text("topicXcx.coverHint").cyText(.body).foregroundStyle(CYColor.textSecondary) }
-                        }
+                    // native r2: a plain first-section header (route mark, type, title), no card chrome.
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        // verify-r1 PL-14: the type is a fact, not a link or a status, so it is ink, not blue.
+                        // Round 4 image parity: the route mark is the MP `/images/cover-route.svg` (topic/index.wxml:49/78).
+                        MPAsset.BannerCover.coverRoute.resizable().scaledToFit()
+                            .accessibilityHidden(true)
+                            .frame(width: 40, height: 40)
+                        Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                        Text(verbatim: value.name).font(.title2.bold()).foregroundStyle(.primary)
+                        if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).font(.body).foregroundStyle(.secondary).lineLimit(1) }
+                        else { Text("topicXcx.coverHint").font(.body).foregroundStyle(.secondary) }
+                    }
+                    .padding(.vertical, CYSpacing.sm)
                     }.accessibilityElement(children: .combine)
                 } else {
                     // verify-r1 3.1 / PL-23 (`169:6954`): the photo is the hero and carries no text, so a cover that
@@ -277,7 +281,6 @@ struct TopicDetailView: View {
                     Group {
                         if RetainedPublicImageReader().enabled {
                             NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
                         } else {
                             // Coordinator review: photos cannot load here (no image storage), so the hero is the designed
                             // cover, never a 图片暂不可用 line.
@@ -285,39 +288,34 @@ struct TopicDetailView: View {
                                 .aspectRatio(16 / 9, contentMode: .fit)
                         }
                     }
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: CYSpacing.md, trailing: 0))
-                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
-                            .cyText(.meta, weight: .semibold)
-                            .foregroundStyle(palette.textSecondary)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
                         Text(verbatim: value.name)
-                            .cyText(.pageTitle)
-                            .foregroundStyle(palette.textPrimary)
+                            .font(.title2.bold())
+                            .foregroundStyle(.primary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("topic.detail.title")
                     }
                     .accessibilityElement(children: .combine)
-                    .listRowBackground(Color.clear)
                 }
-                TopicXcxHero(topic: value).listRowBackground(Color.clear)
+                TopicXcxHero(topic: value)
                 // P0-14 生成式 AI 内容显式标识 (`utils/aigc-label.js`): only for `publishMode == ai_simple`.
                 if AIGCDisclosure.isAIGenerated(publishMode: value.publishMode) { AIGCLabel() }
                 if value.betaFlag == 1 {
                     // Source topic-beta block: badge plus feedback note.
                     HStack(spacing: 8) {
-                        Text("topic.source.betaBadge").cyText(.label)
-                            .padding(.horizontal, 8).padding(.vertical, 3)
-                            .foregroundStyle(CYColor.brand)
-                            .background(Capsule().fill(CYColor.brandSoft))
-                        Text("topic.source.betaNote").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text("topic.source.betaBadge").font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.tint)
+                        Text("topic.source.betaNote").font(.caption).foregroundStyle(.secondary)
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                 }
                 // Design hand-off r1 PL-23: one hero, then the title and stats. The cover's 查看详情与报名 scroll button is
                 // gone: the pinned 详情 / 故事 / 路线 tabs and the sticky bar (price left, primary right) carry those paths.
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value), stops: value.locationCount)
-                    .listRowBackground(Color.clear)
                 // One container for 详情 / 故事 / 路线: inline here, and pinned under the bar once it scrolls away.
                 let line = pinLine
                 TopicXcxTabs(proxy: proxy, productType: value.productType).selection($tab)
@@ -332,7 +330,6 @@ struct TopicDetailView: View {
                     .onDisappear {
                         Task { @MainActor in if topicPageVisible { tabsPinned = true } }
                     }
-                    .listRowBackground(Color.clear)
             }
             // verify-r1 3.1 (`169:6954`): the hero block reads as one page header, not as list rows with dividers.
             .listRowSeparator(.hidden)
@@ -342,9 +339,9 @@ struct TopicDetailView: View {
                 if (value.locationCount ?? 0) > 0 {
                     TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
                 }
-                if let subtitle = value.subtitle { Text(verbatim: subtitle).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                if let subtitle = value.subtitle { Text(verbatim: subtitle).font(.headline) }
                 if let venue = TopicXcxFacts.venue(value.addressName) {
-                    Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name).cyText(.bodyMedium); if let address = venue.address { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textTertiary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(CYColor.brand) }
+                    Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name); if let address = venue.address { Text(verbatim: address).font(.subheadline).foregroundStyle(.secondary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(.tint) }
                 }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
             }.id(TopicXcxTab.details.anchor)
@@ -358,11 +355,10 @@ struct TopicDetailView: View {
             let story = TopicDepartNotes.split(value.introduction).story
             if !story.isEmpty {
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("topicXcx.section.contents").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                        Text(verbatim: story).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
-                            .accessibilityIdentifier("topic.story")
-                    }
+                    Text(verbatim: story).font(.body).textSelection(.enabled)
+                        .accessibilityIdentifier("topic.story")
+                } header: {
+                    Text("topicXcx.section.contents")
                 }
             }
             TopicDepartSection(items: TopicDepartNotes.items(for: value))
@@ -385,20 +381,20 @@ struct TopicDetailView: View {
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         // Grouped session card: one element. The visible rows stay in source order.
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text(verbatim: ticket.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                            if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) { Text(verbatim: session).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                            Text(verbatim: ticket.name).font(.headline).foregroundStyle(.primary)
+                            if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) { Text(verbatim: session).font(.subheadline).foregroundStyle(.secondary) }
                             else {
                                 if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
                                 if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
                             }
-                            if let meeting = ticket.meetingPoint { Text("topic.source.meetingPoint \(meeting)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
-                            if let refund = ticket.refundRule { Text("topic.source.refundRule \(refund)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                            if let meeting = ticket.meetingPoint { Text("topic.source.meetingPoint \(meeting)").font(.footnote).foregroundStyle(.secondary) }
+                            if let refund = ticket.refundRule { Text("topic.source.refundRule \(refund)").font(.footnote).foregroundStyle(.secondary) }
                         }
                         Spacer(minLength: CYSpacing.sm)
                         VStack(alignment: .trailing, spacing: CYSpacing.xs) {
-                            TopicPrice(value: ticket.price, label: "topic.price").cyText(.numericBody).monospacedDigit()
-                            if let remaining = ticket.remaining { Text("topic.source.seatsLeft \(remaining)").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
-                            else { Text("topic.source.seatsUnknown").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                            TopicPrice(value: ticket.price, label: "topic.price").font(.body).monospacedDigit()
+                            if let remaining = ticket.remaining { Text("topic.source.seatsLeft \(remaining)").font(.footnote).monospacedDigit().foregroundStyle(.secondary) }
+                            else { Text("topic.source.seatsUnknown").font(.footnote).foregroundStyle(.secondary) }
                         }
                     }.accessibilityElement(children: .combine)
                     .contentShape(Rectangle())
@@ -406,7 +402,7 @@ struct TopicDetailView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("topic.session.row")
                 }
-                if !value.tickets.isEmpty { Text("topic.source.sessionNote.mp").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                if !value.tickets.isEmpty { Text("topic.source.sessionNote.mp").font(.footnote).foregroundStyle(.secondary) }
             }.id("topicXcx.anchor.sessions")
             }
             if let activities = value.activities {
@@ -475,7 +471,8 @@ struct TopicDetailView: View {
                 if value.selfPlay == 1 {
                     TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice")
                     if value.canOfferPurchase && !saleClosed(value) {
-                        CYPillButton("contextSelfPlay.title", style: .secondary) { asSignedIn { showingSelfPlay = true } }
+                        Button { asSignedIn { showingSelfPlay = true } } label: { Text("contextSelfPlay.title") }
+                            .buttonStyle(.bordered)
                             .accessibilityIdentifier("contextSelfPlay.open")
                     }
                 }
@@ -527,17 +524,18 @@ struct TopicDetailView: View {
                     // PC-B-1-15: the price of what unlocks (MP paywall price row); unknown price → row hidden.
                     if value.selfPlay == 1, let price = value.selfPlayPrice {
                         Text(verbatim: MoneyDisplay.yuan(price))  // owner decision 9: ¥12.50
-                            .cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
+                            .font(.title3.weight(.semibold)).monospacedDigit()
                             .accessibilityIdentifier("topic.paywall.price")
                     }
                     if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) {
-                        CYPillButton("topicXcx.paywall.unlock", style: .primary) { asSignedIn { showingSelfPlay = true } }.accessibilityIdentifier("topic.paywall.unlock")
+                        Button { asSignedIn { showingSelfPlay = true } } label: { Text("topicXcx.paywall.unlock").frame(maxWidth: .infinity) }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .accessibilityIdentifier("topic.paywall.unlock")
                     }
                     // PC-B-1-15: a buyer whose purchase has not synced yet has a way out (MP 已购？去票夹).
                     if ticketWalletDestination != nil {
-                        Button { showingTickets = true } label: { Text("topicXcx.paywall.purchased").cyText(.meta) }
-                            .buttonStyle(.plain).foregroundStyle(CYColor.brand)
-                            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                        Button { showingTickets = true } label: { Text("topicXcx.paywall.purchased") }
+                            .buttonStyle(.borderless)
                             .accessibilityIdentifier("topic.paywall.tickets")
                     }
                 }
@@ -547,17 +545,13 @@ struct TopicDetailView: View {
         }
         .listStyle(.insetGrouped)
         .listSectionSpacing(.compact)
-        // One divider style on the page: a hairline in border-subtle, inset to the text (coordinator review).
-        .listRowSeparatorTint(palette.borderSubtle)
-        .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
         // An overlay, not a safe-area inset: an inset would shift the list and flip the pin back and forth.
         .overlay(alignment: .top) {
             if tabsPinned {
                 TopicXcxTabs(proxy: proxy, productType: value.productType).selection($tab)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .background(palette.bgPage)
+                    .background(.bar)
                     .frame(maxHeight: .infinity, alignment: .top)
                     .transition(.opacity)
             }
@@ -839,7 +833,10 @@ struct TopicChapterView: View {
     var body: some View {
         switch issue {
         case .unavailable:
-            CYEmptyState(systemImage: "eye.slash", "mpfresh.topic.refused.title", tableName: "MpFresh", messageIdentifier: "topic.error")
+            ContentUnavailableView {
+                Label { Text("mpfresh.topic.refused.title", tableName: "MpFresh") } icon: { Image(systemName: "eye.slash") }
+            }
+                .accessibilityIdentifier("topic.error")
                 .safeAreaInset(edge: .bottom) {
                     CYPillButton("mpfresh.topic.back", style: .secondary, tableName: "MpFresh") { dismiss() }
                         .padding(CYSpacing.pageHorizontal)
@@ -847,7 +844,7 @@ struct TopicChapterView: View {
                 }
         case .failed:
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                Text("mpfresh.topic.failed.title", tableName: "MpFresh").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text("mpfresh.topic.failed.title", tableName: "MpFresh").font(.title3.weight(.semibold))
                 TopicIssueView(issue: issue, retry: retry)
             }
             .padding(CYSpacing.pageHorizontal)

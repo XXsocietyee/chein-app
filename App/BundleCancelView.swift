@@ -20,9 +20,7 @@ import SwiftUI
             seed: reservationID.isEmpty ? "bundle-cancel" : reservationID,
             symbol: "calendar.badge.minus"
         ) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                stateBody
-            }
+            stateBody
         }
         .cyAnimation(value: model.state)
         .onChange(of: model.state) { _, new in
@@ -38,15 +36,14 @@ import SwiftUI
     @ViewBuilder private var stateBody: some View {
         switch model.state {
         case .idle:
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYInfoCard {
-                    Toggle(isOn: $useWaiver) { Text(verbatim: phrase("使用本月豁免次数", "Use this month's waiver")) }
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                }
-                CYPillButton(verbatim: phrase("查看取消结果", "Check cancellation"), systemImage: "doc.text.magnifyingglass") {
+            Section {
+                Toggle(isOn: $useWaiver) { Text(verbatim: phrase("使用本月豁免次数", "Use this month's waiver")) }
+            }
+            Section {
+                Button {
                     Task { await model.requestQuote(reservationID: reservationID, useWaiver: useWaiver) }
+                } label: {
+                    Label(phrase("查看取消结果", "Check cancellation"), systemImage: "doc.text.magnifyingglass")
                 }
                 .accessibilityLabel(Text(verbatim: phrase("查看取消结果", "Check cancellation")))
             }
@@ -55,66 +52,79 @@ import SwiftUI
         case .cancelling:
             loading(phrase("正在取消", "Cancelling"))
         case .awaitingConfirmation(_, _, let quote):
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYNoteBanner(text: Text(verbatim: Cloud03Copy.shown(quote.message)), symbol: "text.quote", tone: .neutral)
+            Section {
+                Cloud03Note(text: Text(verbatim: Cloud03Copy.shown(quote.message)), symbol: "text.quote", tone: .neutral)
+            }
+            Section {
                 Button(role: .destructive) { Task { await canceler.confirm(on: model) } } label: {
                     Text(verbatim: phrase("确认取消", "Confirm cancellation"))
                 }
-                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                 .accessibilityLabel(Text(verbatim: phrase("确认取消", "Confirm cancellation")))
-                CYPillButton(verbatim: phrase("返回", "Back"), style: .secondary) { model.dismiss() }
-                    .accessibilityLabel(Text(verbatim: phrase("返回", "Back")))
+                Button { model.dismiss() } label: {
+                    Text(verbatim: phrase("返回", "Back"))
+                }
+                .accessibilityLabel(Text(verbatim: phrase("返回", "Back")))
             }
         case .cancelled(let status):
-            CYNoteBanner(
-                text: Text(verbatim: phrase(
-                    "预约已取消（\(Cloud03Copy.shown(status))）",
-                    "Reservation cancelled (\(Cloud03Copy.shown(status)))."
-                )),
-                symbol: "checkmark.circle",
-                tone: .success
-            )
+            Section {
+                Cloud03Note(
+                    text: Text(verbatim: phrase(
+                        "预约已取消（\(Cloud03Copy.shown(status))）",
+                        "Reservation cancelled (\(Cloud03Copy.shown(status)))."
+                    )),
+                    symbol: "checkmark.circle",
+                    tone: .success
+                )
+            }
         case .failed(let message):
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYNoteBanner(text: Text(verbatim: Cloud03Copy.shown(message)), symbol: "exclamationmark.triangle", tone: .danger)
-                CYPillButton(verbatim: phrase("返回", "Back"), style: .primary) { model.dismiss() }
-                    .accessibilityLabel(Text(verbatim: phrase("返回", "Back")))
+            Section {
+                Cloud03Note(text: Text(verbatim: Cloud03Copy.shown(message)), symbol: "exclamationmark.triangle", tone: .danger)
+            }
+            Section {
+                Button { model.dismiss() } label: {
+                    Text(verbatim: phrase("返回", "Back"))
+                }
+                .accessibilityLabel(Text(verbatim: phrase("返回", "Back")))
             }
         case .awaitingServerConfirmation:
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYNoteBanner(
-                text: Text(verbatim: phrase(
-                    "正在等待服务器确认，请勿重复提交",
-                    "Waiting for the server to confirm. Please don't submit again."
-                )),
-                symbol: "clock",
-                tone: .warning
-            )
-            CYPillButton(verbatim: phrase("刷新状态", "Refresh status"), systemImage: "arrow.clockwise") {
-                Task {
-                    await canceler.readBack(
-                        model: model,
-                        service: service,
-                        registrationID: registrationID,
-                        reservationID: reservationID
-                    )
+            Section {
+                Cloud03Note(
+                    text: Text(verbatim: phrase(
+                        "正在等待服务器确认，请勿重复提交",
+                        "Waiting for the server to confirm. Please don't submit again."
+                    )),
+                    symbol: "clock",
+                    tone: .warning
+                )
+                Button {
+                    Task {
+                        await canceler.readBack(
+                            model: model,
+                            service: service,
+                            registrationID: registrationID,
+                            reservationID: reservationID
+                        )
+                    }
+                } label: {
+                    Label(phrase("刷新状态", "Refresh status"), systemImage: "arrow.clockwise")
                 }
-            }
-            .accessibilityLabel(Text(verbatim: phrase("刷新状态", "Refresh status")))
+                .accessibilityLabel(Text(verbatim: phrase("刷新状态", "Refresh status")))
             }
         case .unavailable:
-            CYStateLayout(kind: .offline, title: Text(verbatim: phrase("暂未开放", "Not open yet")))
+            ContentUnavailableView(phrase("暂未开放", "Not open yet"), systemImage: "wifi.slash")
+                .listRowBackground(Color.clear)
         }
     }
 
     private func loading(_ label: String) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            CYSkeleton().accessibilityHidden(true)
-            Text(verbatim: label)
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+        Section {
+            HStack(spacing: CYSpacing.sm) {
+                ProgressView()
+                Text(verbatim: label)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .accessibilityElement(children: .combine)
         }
-        .accessibilityElement(children: .combine)
     }
 }
