@@ -94,6 +94,8 @@ enum CYPassCardPick {
                         } else {
                             TicketPassCard(ticket: ticket, onVerified: { glowTick += 1 })
                         }
+                        // G-056: Apple's Add to Apple Wallet button; hidden until a signed pass is available locally.
+                        TicketAppleWalletPassButton(ticketID: ticket.id)
                         // PLY-21-3 / PLY-21-4: MP signup wxml:103-106 puts 开始游戏 (查看记录 once cleared) under the pass.
                         if playProvider != nil, ticket.status == .ready, ticket.action == .detail, !ticket.isWalletLocked,
                            TicketWalletPlayEntry.entry(ticket: ticket, requestedID: ticket.id) != nil {
@@ -120,27 +122,50 @@ enum CYPassCardPick {
                 }
                 .refreshable { loadToken += 1 }
             } else {
-                ScrollView { CYStateView(content: emptyContent, onPrimary: onOpenWallet) }
+                ScrollView { emptyState }.refreshable { loadToken += 1 }
             }
         case .empty:
-            ScrollView { CYStateView(content: emptyContent, onPrimary: onOpenWallet) }
+            ScrollView { emptyState }.refreshable { loadToken += 1 }
         case .failed:
             ScrollView {
+                // G-058: system ContentUnavailableView states (Wallet's empty pass list), same copy and identifiers.
                 if !reader.isAuthenticated {
-                    CYStateView(content: .empty(glyph: "person.crop.circle", title: c.t("登录后查看票券", "Sign in to see your pass"),
-                                                body: c.t("登录后，你买到的票会出现在这里。", "Tickets you buy show up here once you're signed in."),
-                                                actionTitle: c.t("关闭", "Close")), onPrimary: onClose)
+                    ContentUnavailableView {
+                        Label { Text(verbatim: c.t("登录后查看票券", "Sign in to see your pass")) } icon: { Image(systemName: "person.crop.circle") }
+                    } description: {
+                        Text(verbatim: c.t("登录后，你买到的票会出现在这里。", "Tickets you buy show up here once you're signed in."))
+                    } actions: {
+                        Button(action: onClose) { Text(verbatim: c.t("关闭", "Close")) }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .accessibilityIdentifier("cy.state.empty.action")
+                    }
+                    .accessibilityIdentifier("cy.state.empty")
                 } else {
-                    CYStateView.server(locale: locale) { loadToken += 1 }
+                    ContentUnavailableView {
+                        Label("cy.kit.server.title", systemImage: "exclamationmark.circle")
+                    } description: {
+                        Text("cy.kit.server.body")
+                    } actions: {
+                        Button("cy.kit.offline.retry") { loadToken += 1 }
+                            .buttonStyle(.bordered).controlSize(.large)
+                            .accessibilityIdentifier("cy.state.server.action")
+                    }
+                    .accessibilityIdentifier("cy.state.server")
                 }
             }
+            .refreshable { loadToken += 1 }
         }
     }
 
-    private var emptyContent: CYStateContent {
-        .empty(glyph: "ticket", title: c.t("还没有票", "No tickets yet"),
-               body: "",
-               actionTitle: c.t("查看全部票券", "All tickets"))
+    private var emptyState: some View {
+        ContentUnavailableView {
+            Label { Text(verbatim: c.t("还没有票", "No tickets yet")) } icon: { Image(systemName: "ticket") }
+        } actions: {
+            Button(action: onOpenWallet) { Text(verbatim: c.t("查看全部票券", "All tickets")) }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .accessibilityIdentifier("cy.state.empty.action")
+        }
+        .accessibilityIdentifier("cy.state.empty")
     }
 
     private func current(in snapshot: TicketWalletSnapshot) -> TicketWalletTicket? {

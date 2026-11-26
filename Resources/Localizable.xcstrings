@@ -323307,6 +323307,856 @@
           }
         }
       }
+    },
+    "memberPopup.deregistrationCancelConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account returns to normal use immediately after cancelling."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销后账号立即恢复正常使用。"
+          }
+        }
+      }
+    },
+    "memberPopup.deregistrationCancelConfirmSheet.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in and purchases continue working normally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号恢复正常，登录与购买不受影响"
+          }
+        }
+      }
+    },
+    "memberPopup.deregistrationCancelConfirmSheet.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can submit a closure request again later if needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "之后需要注销可以再次申请"
+          }
+        }
+      }
+    },
+    "memberPopup.deregistrationSubmitConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once submitted, you can still cancel while the request is pending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交后进入受理期，处理完成前仍可随时撤销"
+          }
+        }
+      }
+    },
+    "memberPopup.deregistrationSubmitConfirmSheet.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once closure completes, the account and data cannot be recovered."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核通过并完成注销后，账号与数据将无法恢复"
+          }
+        }
+      }
+    },
+    "memberPopup.bankWithdrawalDiscardConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard unsubmitted bank details?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃本次提现填写？"
+          }
+        }
+      }
+    },
+    "memberPopup.bankWithdrawalDiscardConfirmSheet.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entered bank details will not be saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已填写的信息不会被保存"
+          }
+        }
+      }
+    },
+    "memberPopup.bundleSwapConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swap merchant?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更换商家？"
+          }
+        }
+      }
+    },
+    "memberPopup.bundleSwapConfirmSheet.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to %@. Your validity period stays unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改选%@，有效期不变。"
+          }
+        }
+      }
+    },
+    "memberPopup.bundleSwapConfirmSheet.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swap"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更换"
+          }
+        }
+      }
+    },
+    "memberPopup.reportAppealConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit this appeal?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认提交申诉？"
+          }
+        }
+      }
+    },
+    "memberPopup.reportAppealConfirmSheet.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The platform will review your appeal and update the status on this detail page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交后将由平台复核处理，处理结果会更新在本页进度中。"
+          }
+        }
+      }
+    },
+    "memberPopup.reportAppealConfirmSheet.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交申诉"
+          }
+        }
+      }
+    },
+    "memberPopup.couponDiscardConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entered coupon details will not be saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已填写的优惠券内容不会保存。"
+          }
+        }
+      }
+    },
+    "memberPopup.couponStopConfirmModal.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop issuing \"%@\"?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停发「%@」?"
+          }
+        }
+      }
+    },
+    "memberPopup.couponStopConfirmModal.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No new coupons will be issued, while claimed coupons can still be redeemed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停发后将不再新增发放，但已领取的优惠券仍可正常核销。"
+          }
+        }
+      }
+    },
+    "memberPopup.couponStopConfirmModal.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unclaimed users cannot claim it anymore; claimed coupons stay valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没领的人再也领不到；已领到的券照常可用、可核销"
+          }
+        }
+      }
+    },
+    "memberPopup.couponStopConfirmModal.4": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This can't be undone. Issuing cannot be resumed after stopping."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，停发后无法恢复继续发放"
+          }
+        }
+      }
+    },
+    "memberPopup.couponStopConfirmModal.5": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop issuing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停发该券"
+          }
+        }
+      }
+    },
+    "memberPopup.invoiceWithdrawConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orders can apply for an invoice again after withdrawing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回后，订单可重新申请开票。"
+          }
+        }
+      }
+    },
+    "memberPopup.invoiceTitleDeleteConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitted applications are not affected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除后不影响已提交的申请。"
+          }
+        }
+      }
+    },
+    "memberPopup.nPCLogDeleteConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies to all AI conversations under your account, not only the current thread."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "范围是你账号下所有 AI 对话（漫游向导和店铺形象），不只是当前这一段"
+          }
+        }
+      }
+    },
+    "memberPopup.nPCLogDeleteConfirmSheet.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your roam footprints, stamps, orders and other records stay intact."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不影响你的漫游足迹、邮票、订单等其他数据"
+          }
+        }
+      }
+    },
+    "memberPopup.nPCLogDeleteConfirmSheet.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This can't be undone. Deleted conversations cannot be recovered."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，删除后无法恢复这些对话"
+          }
+        }
+      }
+    },
+    "memberPopup.orientScoreConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once confirmed, this request will be sent to the scoring service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后将按当前请求提交至计分系统处理。"
+          }
+        }
+      }
+    },
+    "memberPopup.profileDiscardConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discarding keeps your saved avatar without uploading the new selection."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃后将保留当前已保存的头像，不会上传或提交这张新头像。"
+          }
+        }
+      }
+    },
+    "memberPopup.settingsSceneDiscardModal.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard current changes?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃本轮修改"
+          }
+        }
+      }
+    },
+    "memberPopup.settingsSceneDiscardModal.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsaved changes in this screen will be discarded if you leave."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "离开当前页面后，未提交的修改不会保存。"
+          }
+        }
+      }
+    },
+    "memberPopup.settingsSceneDiscardModal.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "memberPopup.settingsSceneDiscardModal.4": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认放弃"
+          }
+        }
+      }
+    },
+    "memberPopup.settingsClubPickerSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a club to manage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要管理的俱乐部"
+          }
+        }
+      }
+    },
+    "memberPopup.aIChatRecordsOptionSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Chat Records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 对话记录"
+          }
+        }
+      }
+    },
+    "memberPopup.aIChatRecordsOptionSheet.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View chat records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看对话记录"
+          }
+        }
+      }
+    },
+    "memberPopup.aIChatRecordsOptionSheet.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export chat records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出对话记录"
+          }
+        }
+      }
+    },
+    "memberPopup.aIChatRecordsOptionSheet.4": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear chat records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除对话记录"
+          }
+        }
+      }
+    },
+    "memberPopup.merchantNPCChatSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export my records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出我的对话记录"
+          }
+        }
+      }
+    },
+    "memberPopup.merchantNPCChatSheet.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear my records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除我的对话记录"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteDiscardConfirmSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your unsaved invitation note will be lost."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回后当前填写的邀约说明将不会被保存。"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteSheet.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No topics ready to invite"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可邀约主题，请先在项目工作台创建"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteSheet.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择项目主题"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteSheet.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择邀约章节"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteSheet.4": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional cooperation note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写合作说明（选填）"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteSheet.5": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作说明"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteSheet.6": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send Invitation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送邀约"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteSheet.7": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteSheet.8": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation invites open in the Cooperation Center"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部直发合作邀约已按合规策略收口至合作中心"
+          }
+        }
+      }
+    },
+    "memberPopup.coopInviteSheet.9": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送"
+          }
+        }
+      }
+    },
+    "memberPopup.signOut.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear sign-in state on this device. You will need to sign in again next time. Purchased passes, orders and coupons stay saved in your account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除本机登录状态，下次进入需要重新登录。已购通行证、订单和券都保留在账号里，不会丢。"
+          }
+        }
+      }
+    },
+    "profile.orders.search.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索订单"
+          }
+        }
+      }
+    },
+    "ticketWallet.appleWallet.added": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to Apple Wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加到 Apple 钱包"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

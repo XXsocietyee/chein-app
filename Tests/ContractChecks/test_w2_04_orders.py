@@ -17,9 +17,11 @@ class W204OrderParityChecks(unittest.TestCase):
         self.ui = read('App/ProfileOrderFilterSection.swift')
         self.screen = read('App/ProfileReadScreen.swift')
 
-    def test_chip_row_replaces_menu_without_requests(self):
-        self.assertNotIn('.pickerStyle(.menu)', self.ui)
-        self.assertIn('ScrollView(.horizontal, showsIndicators: false)', self.ui)
+    def test_filter_menu_without_requests(self):
+        # Design P1 G-053: the MP chip row is drawn as the system filter menu (one Picker row, nine MP options).
+        self.assertIn('.pickerStyle(.menu)', self.ui)
+        self.assertNotIn('ScrollView(.horizontal', self.ui)
+        self.assertNotIn('OrderFilterPill', self.ui)
         self.assertIn('ForEach(ProfileOrderHistoryFilter.allCases)', self.ui)
         self.assertIn('.accessibilityIdentifier("profile.orderFilter.chip.\\(filter.rawValue)")', self.ui)
         self.assertIn('.accessibilityIdentifier("profile.orderFilter.picker")', self.ui)
