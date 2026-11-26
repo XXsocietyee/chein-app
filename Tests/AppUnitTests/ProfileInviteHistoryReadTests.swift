@@ -190,6 +190,21 @@ import SwiftUI
             XCTAssertNil(ProfileInviteRewardReview(scan: value.rewardScan).cumulativePoints)
         }
     }
+    func testToolbarShareUsesTheAccountInviteLinkAndHidesWhenItIsMissing() {
+        let guest = ProfileInviteRewardReviewFixtureReader("guest")
+        let signedOut = SocialInviteHistoryView(reader: guest, squareReader: guest)
+        XCTAssertNil(signedOut.personalInviteLink)
+        XCTAssertNil(signedOut.personalInviteShareText)
+        let reader = ProfileInviteRewardReviewFixtureReader("complete")
+        let screen = SocialInviteHistoryView(reader: reader, squareReader: reader)
+        XCTAssertEqual(screen.personalInviteLink?.path, "/pages/index/index?inviter=81")
+        XCTAssertNil(screen.personalInviteLink?.httpsURL())
+        XCTAssertEqual(screen.personalInviteShareText, "/pages/index/index?inviter=81")
+        reader.identity = .init(accountID: 0, epoch: 1, role: "player")
+        XCTAssertNil(SocialInviteHistoryView(reader: reader, squareReader: reader).personalInviteLink)
+        let hosted = MemberInviteShareLink(userID: "81")?.httpsURL(verifiedOrigins: ["https://example.test"])
+        XCTAssertEqual(hosted?.absoluteString, "https://example.test/pages/index/index?inviter=81")
+    }
     func testOrdinaryHistoryDestinationUsesSameSessionReaderAndLoadsTwoRequests() async throws {
         let wire = Wire(), session = try root(wire, Grants()).makeSession(); await login(session); wire.requests = []
         let host = UIHostingController(rootView: NavigationStack {
