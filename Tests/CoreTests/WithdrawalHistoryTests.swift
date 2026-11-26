@@ -120,6 +120,51 @@ import FoundationNetworking
         XCTAssertEqual(String(data: transport.requests[1].httpBody!, encoding: .utf8), "pageNum=2&pageSize=10")
         XCTAssertFalse(model.loadMoreFailed)
     }
+
+    func testLoadMoreFailureKeepsRowsAlreadyOnScreen() async throws {
+        let raw = #"{"code":200,"data":{"rows":[{"id":1,"status":1,"receivedAmount":1}],"total":11}}"#
+        let transport = WithdrawalHistoryScriptedTransport(raw, statuses: [200, 500, 200])
+        let scope = WalletCommerceScope(namespace: "synthetic-cn", accountID: 9, epoch: UUID())
+        let service = WalletCommerceService(configuration: try .init(baseURL: URL(string: "https://example.com")!), transport: transport)
+        let model = WithdrawalHistoryCoordinator(reader: WalletCommerceReader(service: service) {
+            (scope: scope, token: "synthetic-token")
+        })
+        await model.load()
+        XCTAssertEqual(model.phase, .ready)
+        XCTAssertEqual(model.rows.map(\.id), [1])
+        XCTAssertTrue(model.hasMore)
+        let kept = model.rows
+        await model.loadMore()
+        XCTAssertTrue(model.loadMoreFailed)
+        XCTAssertEqual(model.phase, .ready)
+        XCTAssertEqual(model.rows, kept)
+        XCTAssertEqual(model.pageNumber, 1)
+        XCTAssertTrue(model.hasMore)
+        XCTAssertEqual(transport.requests.count, 2)
+        XCTAssertEqual(transport.requests[1].url?.path, "/api/withdrawal/list")
+        XCTAssertEqual(transport.requests[1].httpMethod, "POST")
+        XCTAssertEqual(String(data: transport.requests[1].httpBody!, encoding: .utf8), "pageNum=2&pageSize=10")
+        await model.loadMore()
+        XCTAssertFalse(model.loadMoreFailed)
+        XCTAssertEqual(model.phase, .ready)
+        XCTAssertEqual(model.rows.map(\.id), [1, 1])
+        XCTAssertEqual(model.pageNumber, 2)
+        XCTAssertFalse(model.hasMore)
+        XCTAssertEqual(String(data: transport.requests[2].httpBody!, encoding: .utf8), "pageNum=2&pageSize=10")
+    }
+}
+
+/// Same body each time; HTTP status follows the script so a later page can fail without clearing rows.
+private final class WithdrawalHistoryScriptedTransport: HTTPTransport {
+    var requests: [URLRequest] = []
+    let body: String
+    let statuses: [Int]
+    init(_ body: String, statuses: [Int]) { self.body = body; self.statuses = statuses }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        let code = statuses.indices.contains(requests.count - 1) ? statuses[requests.count - 1] : 500
+        return (Data(body.utf8), code)
+    }
 }
 
 private final class WithdrawalHistoryTestTransport: HTTPTransport {
