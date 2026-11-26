@@ -13,6 +13,13 @@ public enum PlayerContentMPContract {
     /// (MP pages/topic/pricing/index.js:419-460). It is not a payment, so it does not follow the money switch.
     public static var pricingGrantEnabled: Bool { true }
 
+    /// R8-PC-B1-1: MP pages/topic/index/index.js:1469. A ¥0 self-play order is not money and is always open;
+    /// a paid total follows the payment switch. A missing price is closed.
+    public static func selfPlayCreateOpen(price: Decimal?) -> Bool {
+        guard let price, !price.isNaN, price >= 0 else { return false }
+        return price == 0 || moneyEnabled
+    }
+
     public enum Refusal: Error, Equatable {
         case moneyDisabled
         case pricingGrantDisabled

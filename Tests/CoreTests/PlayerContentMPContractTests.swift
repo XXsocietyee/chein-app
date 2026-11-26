@@ -398,6 +398,19 @@ final class PlayerContentMPContractTests: XCTestCase {
             leadCost: nil, teamSize: 4, selfPrice: nil))
     }
 
+    /// R8-PC-B1-1: MP pages/topic/index/index.js:1469. A ¥0 self-play order always sends; a paid one follows the payment switch.
+    func testSelfPlayCreateOpensFreeOrdersAndPaidFollowsMoney() {
+        let prior = ReleaseMoneyWriteSwitch.testDerivation
+        defer { ReleaseMoneyWriteSwitch.testDerivation = prior }
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        XCTAssertTrue(PlayerContentMPContract.selfPlayCreateOpen(price: 0))
+        XCTAssertFalse(PlayerContentMPContract.selfPlayCreateOpen(price: 12))
+        XCTAssertFalse(PlayerContentMPContract.selfPlayCreateOpen(price: nil))
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .payment }
+        XCTAssertTrue(PlayerContentMPContract.selfPlayCreateOpen(price: 12))
+        XCTAssertFalse(PlayerContentMPContract.selfPlayCreateOpen(price: -1))
+    }
+
     private func body(_ request: URLRequest) -> String {
         String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
     }
