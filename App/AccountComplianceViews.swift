@@ -732,7 +732,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                         Divider().padding(.vertical, CYSpacing.xs)
                         Toggle(isOn: Binding(get: { row.value(channel) }, set: { value in
                             guard scenePhase == .active, model.marketingRead() != nil else { return }
-                            marketingChange = model.coordinator.reviewMarketing(row, channel: channel, optedIn: value)
+                            if let change = model.coordinator.reviewMarketing(row, channel: channel, optedIn: value) { sendMarketing(change) }
                         })) {
                             // B-MK-02: MP rows are the channel name and the switch only.
                             Text(LocalizedStringKey("compliance.channel." + channel.rawValue)).cyText(.body)
@@ -750,34 +750,22 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Task { await model.coordinator.loadMarketing(intent: intent) }
             }.accessibilityIdentifier("compliance.marketing.refresh")
         }
-        .sheet(isPresented: Binding(
-            get: { marketingChange != nil },
-            set: { if !$0 { marketingChange = nil } }
-        )) {
-            if let change = marketingChange {
-                MemberMarketingConsentConfirmSheet(
-                    merchantName: change.row.merchantName,
-                    channelKey: String.LocalizationValue(stringLiteral: "compliance.channel." + change.channel.rawValue),
-                    optedIn: change.optedIn
-                ) {
-                    guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
-                    marketingChange = nil
-                    Task {
-                        await SessionOfflineSyncModel.shared.performWriteOptIn(
-                            environmentSession: offlineWriteSession.session,
-                            routes: ["/api/compliance/consents"]
-                        ) {
-                            await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
-                        }
-                        // B-MK-05: MP toast 已同意 / 已退订 once the server confirmed the new value.
-                        if model.state.error == nil,
-                           model.state.marketing.first(where: { $0.id == change.row.id })?.value(change.channel) == change.optedIn {
-                            toastTone = .info
-                            toastMessage = change.optedIn ? "compliance.marketing.toast.agreed" : "compliance.marketing.toast.unsubscribed"
-                        }
-                    }
-                }
-                .themeDomain(.player)
+    }
+    /// B-MK-05 (r9): MP pages/marketing-consent/index.js:60-80 sends on toggle (no confirm sheet), then toasts 已同意 / 已退订.
+    private func sendMarketing(_ change: ComplianceMarketingReview) {
+        guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
+        marketingChange = nil
+        Task {
+            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                environmentSession: offlineWriteSession.session,
+                routes: ["/api/compliance/consents"]
+            ) {
+                await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
+            }
+            if model.state.error == nil,
+               model.state.marketing.first(where: { $0.id == change.row.id })?.value(change.channel) == change.optedIn {
+                toastTone = .info
+                toastMessage = change.optedIn ? "compliance.marketing.toast.agreed" : "compliance.marketing.toast.unsubscribed"
             }
         }
     }
