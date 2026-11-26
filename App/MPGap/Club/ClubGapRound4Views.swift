@@ -204,6 +204,36 @@ public struct ClubGapApplyCertImagesSection: View {
     }
 }
 
+/// One range end as a `DatePicker`; an unset end (empty string, no filter) is a row that sets it to today.
+/// The value stays the MP `YYYY-MM-DD` string the query builder sends.
+struct ClubGapRangeDateRow: View {
+    let title: String
+    @Binding var text: String
+    private static let formatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+    var body: some View {
+        if let date = Self.formatter.date(from: text) {
+            DatePicker(selection: Binding(get: { date }, set: { text = Self.formatter.string(from: $0) }),
+                       displayedComponents: .date) {
+                Text(verbatim: title)
+            }
+        } else {
+            Button { text = Self.formatter.string(from: Date()) } label: {
+                LabeledContent {
+                    Image(systemName: "calendar.badge.plus").accessibilityHidden(true)
+                } label: {
+                    Text(verbatim: title).foregroundStyle(.primary)
+                }
+            }
+        }
+    }
+}
+
 /// Mount hook for `ClubFEReferenceSettlementSection` (`CLB-r7-D-01`):
 /// Date range filter (`from` / `to`, `清除`) + `导出` button.
 public struct ClubGapFEReferenceRangeBar: View {
@@ -219,8 +249,9 @@ public struct ClubGapFEReferenceRangeBar: View {
 
     public var body: some View {
         Section {
-            TextField(ClubRound4Copy.rangeStartPlaceholder, text: $range.fromDate)
-            TextField(ClubRound4Copy.rangeEndPlaceholder, text: $range.toDate)
+            // CLB-r10-nat-settlement-04 (MP fe-reference-settlement picker mode="date", value YYYY-MM-DD): system DatePickers.
+            ClubGapRangeDateRow(title: ClubRound4Copy.rangeStartPlaceholder, text: $range.fromDate)
+            ClubGapRangeDateRow(title: ClubRound4Copy.rangeEndPlaceholder, text: $range.toDate)
             HStack(spacing: 8) {
                 if range.isActive {
                     Button(ClubRound4Copy.rangeClear) { range.clear() }
