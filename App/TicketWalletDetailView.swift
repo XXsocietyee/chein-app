@@ -55,7 +55,7 @@ import SwiftUI
                         if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {
                             // MP: a cleared ticket shows no entry code (PLY-21-4); a locked one cannot be presented yet.
                             // The pass holder's one primary action. Staff verify; the real code only comes from the injected factory.
-                            Button { presenting = true } label: {
+                            Button(action: { presenting = true }) {
                                 Label { Text(verbatim: c.t("出示票券", "Present pass")) } icon: { Image(systemName: "qrcode") }
                                     .frame(maxWidth: .infinity)
                             }

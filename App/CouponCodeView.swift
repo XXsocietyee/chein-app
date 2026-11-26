@@ -24,34 +24,38 @@ extension EnvironmentValues {
     var body: some View {
         let appearance = viewPresentation
         let presentation = appearance.permit
-        return ScrollView {
-            VStack(spacing: 20) {
+        return List {
                 if model.ownerIsCurrent {
                     // Source coupon-qr head card: coupon name over its usage note.
                     if model.couponName != nil || model.couponDescription != nil {
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            if let name = model.couponName { Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                            if let description = model.couponDescription { Text(verbatim: description).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                        Section {
+                            VStack(alignment: .leading, spacing: 4) {
+                                if let name = model.couponName { Text(verbatim: name).font(.headline) }
+                                if let description = model.couponDescription { Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary) }
+                            }
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityElement(children: .combine)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
-                        .accessibilityElement(children: .combine)
                     }
                     // Source parity: validity is shown on the expired result only.
                     if model.phase == .expired, let end = AccountCollectionCoupon.calendarDay(model.endTime) {
-                        LabeledContent("accountCollection.coupon.validUntil") { Text(verbatim: end) }
+                        Section {
+                            LabeledContent("accountCollection.coupon.validUntil") { Text(verbatim: end) }
+                        }
                     }
                 }
-                if model.historyID <= 0 {
-                    // MP coupon-qr missing-param (index.wxml:31-39): 链接已失效 · 返回.
-                    MemberMissingLinkState(identifier: "couponCode.missing")
-                } else { content(presentation: presentation, appearance: appearance) }
-                if model.pollDelayed { Text("couponCode.pollDelayed").cyText(.meta) }
-                Text("couponCode.authority").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            }.padding().frame(maxWidth: .infinity)
-        }.cyPageTitle("couponCode.title")
-            .cyDomainPageBackground()
+                Section {
+                    if model.historyID <= 0 {
+                        // MP coupon-qr missing-param (index.wxml:31-39): 链接已失效 · 返回.
+                        MemberMissingLinkState(identifier: "couponCode.missing")
+                    } else { content(presentation: presentation, appearance: appearance) }
+                    if model.pollDelayed { Text("couponCode.pollDelayed").font(.footnote).foregroundStyle(.secondary) }
+                } footer: {
+                    Text("couponCode.authority")
+                }
+        }
+            .listStyle(.insetGrouped)
+            .cyPageTitle("couponCode.title")
             .privacySensitive().accessibilityIdentifier("couponCode.view")
             // MKT-9-4: MP coupon-qr vibrates once when the merchant scan lands (index.js:413-418).
             .cyHaptic(.success, trigger: model.phase == .used, where: { old, new in !old && new })
@@ -97,14 +101,15 @@ extension EnvironmentValues {
             Button("couponCode.show") {
                 guard !appearance.isClosed, let presentation, model.presentation === presentation else { return }
                 review = true
-            }.buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).accessibilityIdentifier("couponCode.review")
+            }.buttonStyle(.borderedProminent).controlSize(.large).frame(maxWidth: .infinity).accessibilityIdentifier("couponCode.review")
         case .ready:
             if model.canDisplay {
-                if let token = model.displayToken { CouponLocalQRImage(token: token) }
+                if let token = model.displayToken { CouponLocalQRImage(token: token).frame(maxWidth: .infinity) }
                 else if let bytes = model.imageBytes, let image = UIImage(data: bytes) {
                     Image(uiImage: image).resizable().interpolation(.none).scaledToFit().frame(width: 240, height: 240)
                         .overlay { CouponQRLogoMark() }
                         .padding(24).background(.white).accessibilityLabel("couponCode.image")
+                        .frame(maxWidth: .infinity)
                 } else { CouponQRRenderFailed() }
                 // Source: 二维码 Ns 后自动刷新 under the code. Page model countdown: hidden or unknown is an em dash, a displayed 0 stays 0.
                 Group {
@@ -116,18 +121,20 @@ extension EnvironmentValues {
                             .animation(reduceMotion ? nil : CYMotion.standard, value: model.remainingText)
                     }
                 }
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .font(.footnote).foregroundStyle(.secondary)
                 .accessibilityIdentifier("couponCode.remaining")
-                Text("couponCode.presentToMerchant").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                Text("couponCode.presentToMerchant").font(.subheadline).foregroundStyle(.secondary)
                 retryButton("couponCode.refresh", identifier: "couponCode.refresh", presentation: presentation, appearance: appearance)
-                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
             }
-        case .loading: CYLoadingState("couponCode.loading", messageIdentifier: "couponCode.loading")
+        case .loading:
+            ProgressView { Text("couponCode.loading") }
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("couponCode.loading")
         case .waiting:
             Label("couponCode.waiting", systemImage: "clock")
             if let start = AccountCollectionCoupon.calendarDay(model.receipt?.startTime) {
                 // MP sub line: `{start} 起可用`.
-                Text("couponWallet.validFrom \(start)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("couponWallet.validFrom \(start)").font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("couponCode.waiting.start")
             }
             retryButton("couponCode.fetchAgain", identifier: "couponCode.fetchAgain", presentation: presentation, appearance: appearance)
@@ -135,34 +142,40 @@ extension EnvironmentValues {
         case .notMine:
             // MP: 无权查看该券 — the coupon is not in this account's wallet; no retry.
             // coupon-qr/index.wxml:28 `cy-empty … cta="返回" bind:cta="onClose"`.
-            CYStateLayout(kind: .empty, title: Text("couponCode.notMine"),
-                          primary: (title: "couponCode.notMine.back", action: { dismiss() }),
-                          primaryIdentifier: "couponCode.notMine.back")
+            ContentUnavailableView {
+                Label("couponCode.notMine", systemImage: "tray")
+            } actions: {
+                Button("couponCode.notMine.back") { dismiss() }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("couponCode.notMine.back")
+            }
                 .accessibilityIdentifier("couponCode.notMine")
         case .failed:
             // Source: 二维码暂时没能生成，请稍后重试 with one 重试 pill.
-            CYEmptyState(systemImage: "exclamationmark.triangle", "u9cde.coupon.failed",
-                         messageIdentifier: "couponCode.failed",
-                         actionTitle: "action.retry",
-                         actionIdentifier: "couponCode.retry",
-                         kind: .failure) {
-                guard let offer = model.offerRetry(presentation: presentation) else { return }
-                appearance.actionTask?.cancel()
-                appearance.actionTask = Task { await model.retry(permit: offer) }
+            ContentUnavailableView {
+                Label("u9cde.coupon.failed", systemImage: "exclamationmark.triangle")
+            } actions: {
+                Button("action.retry") {
+                    guard let offer = model.offerRetry(presentation: presentation) else { return }
+                    appearance.actionTask?.cancel()
+                    appearance.actionTask = Task { await model.retry(permit: offer) }
+                }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("couponCode.retry")
             }
+            .accessibilityIdentifier("couponCode.failed")
         case .used:
             // Source used state: a large success disc, 已核销, then the redemption time.
-            VStack(spacing: CYSpacing.md) {
-                Image(systemName: "checkmark.circle")
-                    .cyText(.pageTitle, weight: .semibold)
-                    .foregroundStyle(CYColor.successText)
-                    .frame(width: 64, height: 64)
-                    .background(Circle().fill(CYColor.successSoft))
+            VStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.largeTitle)
+                    .foregroundStyle(.green)
                     .accessibilityHidden(true)
-                Text("u9cde.coupon.used").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                if let time = model.useTime { Text(verbatim: time).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
+                Text("u9cde.coupon.used").font(.headline)
+                if let time = model.useTime { Text(verbatim: time).font(.footnote).monospacedDigit().foregroundStyle(.secondary) }
             }
-            .padding(.top, CYSpacing.xxl)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical)
             .accessibilityElement(children: .combine)
         case .expired: Label("couponCode.expired", systemImage: "clock.badge.xmark")
         case .invalid: Label("couponCode.invalid", systemImage: "xmark.seal")
@@ -247,13 +260,13 @@ private struct CouponQRLogoMark: View {
 /// MP `qr__error`: `/images/no_data.svg` above 二维码未加载.
 private struct CouponQRRenderFailed: View {
     var body: some View {
-        VStack(spacing: CYSpacing.sm) {
+        VStack(spacing: 8) {
             MPAsset.EmptyState.noData
                 .resizable()
                 .scaledToFit()
                 .accessibilityHidden(true)
                 .frame(width: 64, height: 64)
-            Text("couponCode.renderFailed").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            Text("couponCode.renderFailed").font(.subheadline).foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
     }

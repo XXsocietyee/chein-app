@@ -56,7 +56,6 @@ struct SettingsView: View {
                     // MP shezhi.wxml:14: the merchant row (品牌中心) carries icon_lc_store; players keep the initial avatar.
                     NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true,
                                                                        brandMark: route.access.target == .brand) }
-                        .questifyHidesLinkIndicator()
                         .accessibilityIdentifier("settingsNative.openProfile")
                 } else {
                     SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: false)
@@ -76,21 +75,19 @@ struct SettingsView: View {
             case .error:
                 if homeFacts.retriesProfileOnTap {
                     Button { Task { await refreshAccountProfile() } } label: {
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Label {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text(verbatim: SettingsAccountProfileClient.deniedCopy)
-                            } icon: {
-                                AccountPublishMPGlyph(MPAsset.FeatureIcon.iconQaPerson).accessibilityHidden(true)
+                                    .foregroundStyle(.primary)
+                                Text(verbatim: SettingsAccountProfileClient.deniedRetry)
+                                    .font(.subheadline).foregroundStyle(.secondary)
                             }
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            Text(verbatim: SettingsAccountProfileClient.deniedRetry)
-                                .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                        } icon: {
+                            AccountPublishMPGlyph(MPAsset.FeatureIcon.iconQaPerson).accessibilityHidden(true)
                         }
                     }
-                    // B-SZ-09: a second tap while the read is in flight is dropped; 44 pt row.
+                    // B-SZ-09: a second tap while the read is in flight is dropped; the system list row is 44 pt.
                     .disabled(accountProfileLoading)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .padding(.horizontal, CYSpacing.lg)
                     .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
                 } else {
                     settingsPhaseLabel
@@ -99,7 +96,6 @@ struct SettingsView: View {
                 EmptyView()
             }
         }
-        .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
     }
 
     private var settingsPhaseLabel: some View {
@@ -109,8 +105,7 @@ struct SettingsView: View {
             Image(systemName: homeFacts.phase == .loading ? "hourglass" : homeFacts.phase == .error ? "exclamationmark.triangle" : "questionmark.circle")
                 .accessibilityHidden(true)
         }
-        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-        .padding(.horizontal, CYSpacing.lg)
+        .foregroundStyle(.secondary)
         .accessibilityAddTraits(homeFacts.phase == .loading ? .updatesFrequently : .isStaticText)
         .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
     }
@@ -269,8 +264,6 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("settings.search.prompt"))
-            .cyDomainPageBackground()
-            .listSectionSpacing(.custom(20))
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
             .appNavigationTitle("settings.title")
@@ -321,16 +314,16 @@ struct SettingsGuideHandoff {
 }
 
 
-/// Night-city tile colours: one muted hue per group. Lantern stays off chrome; CYColor.tabSelected stays off these tiles.
+/// iOS Settings tile colours: one system hue per group (they adapt to Light/Dark and Increase Contrast).
 enum SettingsTint {
-    static let blue = CYNight.tileBlue
-    static let green = CYNight.tileGreen
-    static let orange = CYNight.tileOrange
-    static let red = CYNight.tileRed
-    static let pink = CYNight.tilePink
-    static let indigo = CYNight.indigo
-    static let teal = CYNight.tileTeal
-    static let gray = CYNight.ink2
+    static let blue = Color.blue
+    static let green = Color.green
+    static let orange = Color.orange
+    static let red = Color.red
+    static let pink = Color.pink
+    static let indigo = Color.indigo
+    static let teal = Color.teal
+    static let gray = Color.gray
 }
 private struct SettingsTileTintKey: EnvironmentKey { static let defaultValue: Color = SettingsTint.gray }
 extension EnvironmentValues {
@@ -340,18 +333,16 @@ extension EnvironmentValues {
     }
 }
 
-/// Account header card: art backdrop, initial avatar, name, level. Image-led like the Phantom and Instagram settings headers.
+/// Account header row, as the Apple Account row at the top of iOS Settings: round initial avatar, name, level.
 struct SettingsAccountCard: View {
     let nickname: String
     let level: Int
     let tappable: Bool
     /// Merchant view: MP `icon_lc_store` in place of the initial.
     var brandMark = false
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.themeDomain) private var themeDomain
     @Environment(\.locale) private var locale
     var body: some View {
-        HStack(alignment: .center, spacing: CYSpacing.lg) {
+        HStack(alignment: .center, spacing: 12) {
             Group {
                 if brandMark {
                     MPAsset.FeatureIcon.iconLcStore.resizable().scaledToFit().padding(16)
@@ -359,27 +350,19 @@ struct SettingsAccountCard: View {
                     Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
                 }
             }
-                .cyText(.dataXL).foregroundStyle(palette.textPrimary)
+                .font(.title.weight(.semibold)).foregroundStyle(.secondary)
                 .frame(width: 60, height: 60)
-                .background(Circle().fill(palette.bgRaised))
-                .overlay {
-                    if themeDomain == .player {
-                        Circle().strokeBorder(palette.avatarRing, lineWidth: 3)
-                    }
-                }
+                .background(.quaternary, in: Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale).cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
+                PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale).font(.title3.weight(.semibold)).foregroundStyle(.primary)
                     .cyWrapText()
-                Text("settings.account.subtitle \(level)").cyText(.meta).foregroundStyle(palette.textSecondary)
+                Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(.secondary)
                     .cyWrapText()
             }
             Spacer(minLength: 0)
-            if tappable { Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(palette.textTertiary).accessibilityHidden(true) }
         }
-        .padding(CYSpacing.lg)
-        .background(palette.cardFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .cyPressTracking()
+        .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(tappable ? .isButton : .isStaticText)
     }
@@ -452,10 +435,10 @@ private struct SettingsSearchResults: View {
                     HStack {
                         label
                         Spacer(minLength: 0)
-                        Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(.tertiary)
+                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                     }
                 }
-                .foregroundStyle(CYColor.textPrimary)
+                .foregroundStyle(.primary)
                 .accessibilityIdentifier("settings.search.\(e.id)")
             } else { label }
         default:

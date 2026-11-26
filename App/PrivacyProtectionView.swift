@@ -54,9 +54,10 @@ struct PrivacyProtectionView: View {
                     .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
                     .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
                 if !isPrivacyPolicyBundled {
-                    Label { Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry") } icon: { Image(systemName: "doc.questionmark") }
-                        .foregroundStyle(.secondary)
-                        .accessibilityIdentifier("authEntry.privacy.guideUnavailable")
+                    ContentUnavailableView {
+                        Label { Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry") } icon: { Image(systemName: "doc.questionmark") }
+                    }
+                    .cyIdentifier("authEntry.privacy.guideUnavailable")
                 }
                 Button { document = AuthEntryLegalSheet(type: .userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.agreement")

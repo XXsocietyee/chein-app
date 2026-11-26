@@ -88,26 +88,29 @@ struct InvoiceLaunchApplyGroup: Identifiable {
                 Section {
                     if overview.titles.isEmpty {
                         // Source cy-inline-error 还没有发票抬头 · 新增抬头 (FIN-13-3).
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            invoiceText("noTitles").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                            if model.allows(.saveTitle) {
-                                CYPillButton("addTitle", style: .secondary, fullWidth: false, tableName: "InvoiceLaunchUI") { addingTitle = true }
-                                    .accessibilityIdentifier("invoice.apply.addTitle")
+                        invoiceText("noTitles").foregroundStyle(.secondary)
+                        if model.allows(.saveTitle) {
+                            Button { addingTitle = true } label: {
+                                Label { invoiceText("addTitle") } icon: { Image(systemName: "plus.circle.fill") }
                             }
+                            .accessibilityIdentifier("invoice.apply.addTitle")
                         }
                     } else {
                         Button { choosingTitle = true } label: {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(verbatim: title?.titleName ?? InvoiceLaunchApplyPage.unknownDisplay)
-                                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
-                                if let title {
-                                    Text(verbatim: invoiceTitleLine(title)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(verbatim: title?.titleName ?? InvoiceLaunchApplyPage.unknownDisplay)
+                                        .foregroundStyle(.primary).cyWrapText()
+                                    if let title {
+                                        Text(verbatim: invoiceTitleLine(title)).font(.subheadline).foregroundStyle(.secondary)
+                                    }
                                 }
+                                Spacer(minLength: 8)
+                                Image(systemName: "chevron.up.chevron.down").font(.footnote).foregroundStyle(.tertiary)
+                                    .accessibilityHidden(true)
                             }
-                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
                         .disabled(!model.allows(.apply))
                         .accessibilityLabel(invoiceText("chooseTitleSheet"))
                         .accessibilityValue(Text(verbatim: title?.titleName ?? InvoiceLaunchApplyPage.unknownDisplay))
@@ -126,9 +129,9 @@ struct InvoiceLaunchApplyGroup: Identifiable {
                     }
                     // Source 开票金额: 已选订单 N 笔 + 总计 (FIN-13-1).
                     Section {
-                        LabeledContent { Text(verbatim: "\(selected.count)").cyText(.numericBody) } label: { invoiceText("selectedCount") }
+                        LabeledContent { Text(verbatim: "\(selected.count)").monospacedDigit() } label: { invoiceText("selectedCount") }
                         LabeledContent {
-                            Text(verbatim: totalText).cyText(.numericBody).monospacedDigit()
+                            Text(verbatim: totalText).monospacedDigit()
                         } label: { invoiceText("total") }
                             .accessibilityIdentifier("invoice.apply.total")
                     } header: { invoiceText("amount") }
@@ -137,8 +140,10 @@ struct InvoiceLaunchApplyGroup: Identifiable {
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.overview != nil, applyPage.showsApplyAction {
-                CYFooterBar {
-                    VStack(spacing: CYSpacing.sm) {
+                // System bottom bar (toolbar material), as Mail/Wallet pin their one action.
+                VStack(spacing: 0) {
+                    Divider()
+                    VStack(spacing: 8) {
                         if overMax {
                             // Source 一次最多合并 50 笔订单 · 重新选择 (FIN-13-7).
                             InvoiceLaunchWriteNoticeView(notice: InvoiceLaunchWriteNotice(action: .apply, kind: .tooMany, code: nil), onReselect: reselect)
@@ -146,13 +151,13 @@ struct InvoiceLaunchApplyGroup: Identifiable {
                             // A refused apply keeps the page and the selection (FIN-13-2).
                             InvoiceLaunchWriteNoticeView(notice: notice, onReselect: reselect)
                         }
-                        HStack(spacing: CYSpacing.md) {
+                        HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 0) {
-                                invoiceText("total").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                Text(verbatim: totalText).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                                invoiceText("total").font(.footnote).foregroundStyle(.secondary)
+                                Text(verbatim: totalText).font(.headline).monospacedDigit().foregroundStyle(.primary)
                             }
                             .accessibilityElement(children: .combine)
-                            CYPillButton("submit", style: .primary, tableName: "InvoiceLaunchUI") {
+                            Button {
                                 guard let titleID, canSubmit else { return }
                                 let intent = InvoiceLaunchApplyIntent(titleID: titleID, selected: selected,
                                     identityRevision: model.identityRevision)
@@ -161,15 +166,21 @@ struct InvoiceLaunchApplyGroup: Identifiable {
                                         await model.apply(titleID: title, orderIDs: orders)
                                     }) { dismiss() } else { keepValidSelection() }
                                 }
+                            } label: {
+                                Text("submit", tableName: "InvoiceLaunchUI").frame(maxWidth: .infinity)
                             }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
                             .disabled(!canSubmit).accessibilityIdentifier("invoice.submit")
                         }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                 }
+                .background(.bar)
             }
         }
         .cyPushedChrome(domain: .player)
-        .cyDomainPageBackground()
         .cyPageTitle(verbatim: invoiceString("apply"))
         .listStyle(.insetGrouped)
         .onChange(of: model.identityRevision) { _, _ in titleID = nil; selected = []; choosingTitle = false; dismiss() }
@@ -178,7 +189,8 @@ struct InvoiceLaunchApplyGroup: Identifiable {
         .sheet(isPresented: $choosingTitle) {
             titlePicker
                 .themeDomain(.player)
-                .cySheet()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
         .navigationDestination(isPresented: $managingTitles) { InvoiceLaunchTitlesView(model: model, onSignIn: onSignIn) }
         .navigationDestination(isPresented: $addingTitle) { InvoiceLaunchTitleEditor(model: model, title: nil) }
@@ -210,12 +222,12 @@ struct InvoiceLaunchApplyGroup: Identifiable {
     @ViewBuilder private func groupHeader(_ group: InvoiceLaunchApplyGroup, orders: [InvoiceLaunchOrder]) -> some View {
         HStack {
             if group.blocked { invoiceText("blockedGroup") } else { Text("issuerGroup \(group.name)", tableName: "InvoiceLaunchUI") }
-            Spacer(minLength: CYSpacing.sm)
+            Spacer(minLength: 8)
             // Source 全选本单位: only for an opened issuer that matches the current selection (FIN-13-4).
             if let issuer = group.issuerID, activeIssuer == nil || activeIssuer == issuer, model.allows(.apply) {
-                Button { pickAll(issuer: issuer, orders: orders) } label: { invoiceText("pickAll").cyText(.label) }
-                    .buttonStyle(.plain).foregroundStyle(CYColor.brand)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
+                Button { pickAll(issuer: issuer, orders: orders) } label: { invoiceText("pickAll") }
+                    .buttonStyle(.borderless)
+                    .textCase(nil)
                     .accessibilityIdentifier("invoice.pickAll.\(issuer)")
             }
         }
@@ -239,17 +251,17 @@ struct InvoiceLaunchApplyGroup: Identifiable {
         let isOn = selected.contains(order.orderId)
         let blocked = group.blocked || (activeIssuer != nil && order.issuerId != activeIssuer)
         return Button { toggle(order, in: all) } label: {
-            HStack(alignment: .center, spacing: CYSpacing.md) {
+            HStack(alignment: .center, spacing: 12) {
                 Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isOn ? CYColor.brand : CYColor.textTertiary)
+                    .font(.title3)
+                    .foregroundStyle(isOn ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
                     .accessibilityHidden(true)
                 Text(verbatim: orderName(order))
-                    .cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(verbatim: applyAmount(order)).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: applyAmount(order)).monospacedDigit().foregroundStyle(.secondary)
             }
-            .frame(minHeight: CYSpacing.minTouchTarget)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -287,48 +299,59 @@ struct InvoiceLaunchApplyGroup: Identifiable {
     }
 
     private var titlePicker: some View {
-        CYSheetContainer(title: MemberPopupCopy.table("chooseTitleSheet", table: "InvoiceLaunchUI", locale: locale), onClose: { choosingTitle = false }) {
-            VStack(spacing: CYSpacing.sm) {
+        NavigationStack {
+            List {
                 if (model.overview?.titles ?? []).isEmpty {
-                    CYEmptyState(systemImage: "tray", "noTitles", tableName: "InvoiceLaunchUI")
-                }
-                ForEach(model.overview?.titles ?? [], id: \.id) { candidate in
-                    Button {
-                        titleID = candidate.id
-                        choosingTitle = false
-                    } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(verbatim: candidate.titleName)
-                                    .cyText(.body)
-                                    .foregroundStyle(CYColor.textPrimary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                Text(verbatim: invoiceTitleLine(candidate))
-                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            }
-                            Spacer(minLength: CYSpacing.sm)
-                            if candidate.id == titleID {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(CYColor.brand)
-                            }
-                        }
-                        .padding(CYSpacing.md)
-                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                        .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    ContentUnavailableView {
+                        Label { Text("noTitles", tableName: "InvoiceLaunchUI") } icon: { Image(systemName: "tray") }
                     }
-                    .buttonStyle(.plain)
-                    .disabled(!model.allows(.apply))
-                    .accessibilityAddTraits(candidate.id == titleID ? .isSelected : [])
+                }
+                Section {
+                    ForEach(model.overview?.titles ?? [], id: \.id) { candidate in
+                        Button {
+                            titleID = candidate.id
+                            choosingTitle = false
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(verbatim: candidate.titleName)
+                                        .foregroundStyle(.primary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    Text(verbatim: invoiceTitleLine(candidate))
+                                        .font(.subheadline).foregroundStyle(.secondary)
+                                }
+                                Spacer(minLength: 8)
+                                if candidate.id == titleID {
+                                    Image(systemName: "checkmark")
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.tint)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .disabled(!model.allows(.apply))
+                        .accessibilityAddTraits(candidate.id == titleID ? .isSelected : [])
+                    }
                 }
                 // Source footer 管理发票抬头 (FIN-13-8).
-                CYPillButton("manageTitles", style: .primary, tableName: "InvoiceLaunchUI") {
-                    choosingTitle = false; managingTitles = true
+                Section {
+                    Button {
+                        choosingTitle = false; managingTitles = true
+                    } label: {
+                        Text("manageTitles", tableName: "InvoiceLaunchUI")
+                    }
+                    .accessibilityIdentifier("invoice.apply.manageTitles")
                 }
-                .accessibilityIdentifier("invoice.apply.manageTitles")
             }
-            .padding(.bottom, CYSpacing.lg)
+            .listStyle(.insetGrouped)
+            .navigationTitle(Text(verbatim: MemberPopupCopy.table("chooseTitleSheet", table: "InvoiceLaunchUI", locale: locale)))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.cancel") { choosingTitle = false }
+                }
+            }
         }
-        .cyDomainSheet(detents: [.half, .full])
     }
     private func applyAmount(_ order: InvoiceLaunchOrder) -> String {
         let line = applyPage.lines.first { $0.orderID == order.orderId }

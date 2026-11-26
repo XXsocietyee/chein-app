@@ -168,8 +168,8 @@ import UIKit
                     // overwrite the independent copy button and feedback identifiers.
                     Text(verbatim: attribution.title).font(.subheadline.weight(.semibold))
                         .accessibilityIdentifier("settingsNative.attribution.\(attribution.id)")
-                    Text(verbatim: attribution.detail).cyText(.bodyCompact)
-                    Text(verbatim: attribution.sourceURL).cyText(.bodyCompact).foregroundStyle(.secondary)
+                    Text(verbatim: attribution.detail).font(.subheadline)
+                    Text(verbatim: attribution.sourceURL).font(.subheadline).foregroundStyle(.secondary)
                         .textSelection(.enabled)
                     NativeCopyTextButton(text: attribution.sourceURL,
                         title: LocalizedStringKey(attribution.copyTitleKey),
@@ -181,16 +181,16 @@ import UIKit
 }
 
 /// iOS Settings style row icon: a 30pt continuous rounded-square tile, filled with the group tint
-/// (`settingsTileTint`) and a white glyph. Rows in a group share a hue; the default is neutral gray.
+/// (`settingsTileTint`, a system colour) and a white glyph, exactly as the Settings app draws its rows.
 struct SettingsTileLabelStyle: LabelStyle {
-    @Environment(\.cyPalette) private var palette
+    @Environment(\.settingsTileTint) private var tint
     func makeBody(configuration: Configuration) -> some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
+        HStack(alignment: .center, spacing: 12) {
             configuration.icon
-                .cyText(.cardTitle)
-                .foregroundStyle(palette.textPrimary)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.white)
                 .frame(width: 30, height: 30)
-                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+                .background(tint, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                 .accessibilityHidden(true)
             configuration.title
                 .fixedSize(horizontal: false, vertical: true)

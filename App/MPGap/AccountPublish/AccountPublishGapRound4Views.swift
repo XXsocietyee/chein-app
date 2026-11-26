@@ -24,35 +24,29 @@ public struct ProjectEditGapRichStoryBlocksSection: View {
         Group {
             Section {
                 TextField(AccountPublishRound4Copy.speakerPlaceholder, text: $dialogueSpeaker)
-                    .cyText(.body)
                 Button(AccountPublishRound4Copy.lineDividerLabel, action: onInsertDividerLine)
-                    .cyText(.body)
             } header: {
-                Text(verbatim: "对白与分割线").cyText(.sectionTitle)
+                Text(verbatim: "对白与分割线")
             }
 
             Section {
                 TextField(AccountPublishRound4Copy.branchQuestionPlaceholder, text: $branch.question)
-                    .cyText(.body)
                 ForEach($branch.options) { $option in
                     TextField("accountPublish.round4.optionLabel", text: $option.label)
-                        .cyText(.body)
                 }
                 if branch.options.count < 3 {
                     Button(AccountPublishRound4Copy.addBranchOption) {
                         branch.options.append(ProjectEditBranchOptionDraft())
                     }
-                    .cyText(.body)
                 }
             } header: {
-                Text(verbatim: ProjectEditExtraStoryBlockKind.branch.title).cyText(.sectionTitle)
+                Text(verbatim: ProjectEditExtraStoryBlockKind.branch.title)
             }
 
             Section {
                 Stepper("画廊列数：\(gallery.columns)", value: $gallery.columns, in: 1...4)
-                    .cyText(.body)
             } header: {
-                Text(verbatim: ProjectEditExtraStoryBlockKind.gallery.title).cyText(.sectionTitle)
+                Text(verbatim: ProjectEditExtraStoryBlockKind.gallery.title)
             }
         }
     }
@@ -78,17 +72,16 @@ public struct ProjectEditGapCastEditorSheet: View {
         NavigationStack {
             List {
                 if members.isEmpty {
-                    Text("fixr8.cast.empty").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("fixr8.cast.empty").foregroundStyle(.secondary)
                 }
                 ForEach($members) { $member in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 8) {
                         TextField("fixr8.cast.name", text: $member.name)
-                            .cyText(.cardTitle)
                             .onChange(of: member.name) { _, value in
                                 if value.count > ProjectEditCastConfig.nameMax { member.name = String(value.prefix(ProjectEditCastConfig.nameMax)) }
                             }
                         TextField("fixr8.cast.identity", text: $member.roleTitle, axis: .vertical)
-                            .cyText(.meta)
+                            .font(.subheadline)
                             .onChange(of: member.roleTitle) { _, value in
                                 if value.count > ProjectEditCastConfig.identityMax { member.roleTitle = String(value.prefix(ProjectEditCastConfig.identityMax)) }
                             }
@@ -101,13 +94,11 @@ public struct ProjectEditGapCastEditorSheet: View {
                         } label: {
                             Text("fixr8.cast.voice")
                         }
-                        .cyText(.body)
                         if let onPreviewVoice, member.voiceID != nil {
                             Button("fixr8.cast.preview") { onPreviewVoice(member) }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                                .buttonStyle(.bordered)
                         }
                     }
-                    .padding(.vertical, CYSpacing.xs)
                 }
                 .onDelete { offsets in
                     members.remove(atOffsets: offsets)
@@ -116,10 +107,9 @@ public struct ProjectEditGapCastEditorSheet: View {
                     Button("fixr8.cast.add") {
                         members.append(TopicCastMemberDraft(id: ProjectEditCastConfig.freshID(existing: members), name: "", roleTitle: ""))
                     }
-                    .cyText(.body)
                     .accessibilityIdentifier("projectEdit.cast.add")
                 } else {
-                    Text("fixr8.cast.max \(ProjectEditCastConfig.maxCast)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("fixr8.cast.max \(ProjectEditCastConfig.maxCast)").foregroundStyle(.secondary)
                 }
             }
             .cyPageTitle("fixr8.cast.list")
@@ -146,11 +136,8 @@ public struct ProjectEditGapChapterExtrasSection: View {
     public var body: some View {
         Section {
             Button(AccountPublishRound4Copy.addPrologue, action: onAddPrologue)
-                .cyText(.body)
             Toggle(AccountPublishRound4Copy.endingChapterToggle, isOn: $settings.isEndingChapter)
-                .cyText(.body)
             Toggle(AccountPublishRound4Copy.staffOpeningToggle, isOn: $settings.staffOpening)
-                .cyText(.body)
         }
     }
 }
@@ -225,15 +212,15 @@ public struct ProjectEditGapChapterExtrasSection: View {
     @ViewBuilder private func outcomeLabel(_ label: TemplateTriggerableOutcomes.Label) -> some View {
         switch label {
         case .authored(let text):
-            Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: text).foregroundStyle(.secondary)
         case .completed:
-            Text("templateAuthor.outcome.completed").cyText(.body).foregroundStyle(CYColor.textSecondary)
+            Text("templateAuthor.outcome.completed").foregroundStyle(.secondary)
         case .d20Success:
-            Text("templateAuthor.outcome.d20Success").cyText(.body).foregroundStyle(CYColor.textSecondary)
+            Text("templateAuthor.outcome.d20Success").foregroundStyle(.secondary)
         case .d20Failure:
-            Text("templateAuthor.outcome.d20Failure").cyText(.body).foregroundStyle(CYColor.textSecondary)
+            Text("templateAuthor.outcome.d20Failure").foregroundStyle(.secondary)
         case .unnamed:
-            Text("templateAuthor.outcome.unnamed").cyText(.body).foregroundStyle(CYColor.textSecondary)
+            Text("templateAuthor.outcome.unnamed").foregroundStyle(.secondary)
         }
     }
 
@@ -274,9 +261,9 @@ public struct ProjectEditGapChapterExtrasSection: View {
                     ForEach(triggerableOutcomes.issues) { issue in
                         switch issue.code {
                         case .invalidCode:
-                            Text("templateAuthor.outcome.invalidCode").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                            Text("templateAuthor.outcome.invalidCode").font(.footnote).foregroundStyle(.red)
                         case .duplicateCode:
-                            Text("templateAuthor.outcome.duplicateCode").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                            Text("templateAuthor.outcome.duplicateCode").font(.footnote).foregroundStyle(.red)
                         }
                     }
                 } header: {
@@ -303,7 +290,6 @@ public struct TeamDetailGapSaveInviteImageRow: View {
             showPrivacyAlert = true
         } label: {
             Label("fixr8.team.saveImage", systemImage: "square.and.arrow.down")
-                .cyText(.body)
         }
         .alert(Text("fixr8.team.saveImage"), isPresented: $showPrivacyAlert) {
             Button("common.cancel", role: .cancel) {}

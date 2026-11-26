@@ -33,20 +33,20 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     /// Nil, signed-out, unconfigured, pending, denied, and failed all stay closed.
     private var postsAllowed: Bool { gateModel.postsAllowed(reader: reader, gate: communityGate) }
     private var showsCityNodesTab: Bool { playerGapService != nil }
-    private var favoriteTabs: [CYTabItem<Tab>] {
-        var items: [CYTabItem<Tab>] = []
-        if postsAllowed { items.append(.init(id: .posts, title: appLocalized("social.posts", locale: locale))) }
-        items.append(.init(id: .topics, title: appLocalized("searchMap.kind.topic", locale: locale)))
-        if showsCityNodesTab { items.append(.init(id: .cityNodes, title: appLocalized("accountCollection.favorites.nodesTab", locale: locale))) }
-        return items
-    }
     var body: some View {
         VStack(spacing: 0) {
             // A4-02: 删除我的帖文 lives on 我的帖文 / 帖文详情 / 俱乐部, not on 我的收藏 (MP mylike has no such block).
             if postsAllowed || showsCityNodesTab {
-                // X5 (MP owner ruling 2026-07-31): underline tabs switch content areas, as on mylike.
-                CYTabs(items: favoriteTabs, selection: $selectedTab, variant: .underline)
-                    .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
+                // X5 (MP owner ruling 2026-07-31): tabs switch content areas, as on mylike (system segmented control).
+                Picker(selection: $selectedTab) {
+                    if postsAllowed { Text("social.posts").tag(Tab.posts) }
+                    Text("searchMap.kind.topic").tag(Tab.topics)
+                    if showsCityNodesTab { Text("accountCollection.favorites.nodesTab").tag(Tab.cityNodes) }
+                } label: {
+                    Text("accountCollection.favorites.title")
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal).padding(.vertical, 8)
                     .accessibilityElement(children: .contain)
                     .accessibilityLabel(Text("accountCollection.favorites.title"))
                     .accessibilityIdentifier("accountCollection.favorites.tabs")
@@ -54,7 +54,6 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
             if showsCityNodesTab && selectedTab == .cityNodes {
                 List { CityFavoriteNodesSection() }
                     .listStyle(.insetGrouped)
-                    .cyGroupedSurface()
             } else if postsAllowed && selectedTab == .posts {
                 AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval)
             } else {
@@ -86,20 +85,17 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     @State private var showRecommendNote = false
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     @State private var skeletonShown = false
-    @State private var stagger = CYStaggerGate()
     private var isLoadingNow: Bool { model.state.isLoading || model.state.loadedScope != key.scope }
     var body: some View {
         List {
-            if reader.isOfflineExample { CYStatusChip("accountCollection.offlineExample", tone: .neutral, systemImage: "testtube.2").listRowBackground(Color.clear).listRowSeparator(.hidden) }
+            if reader.isOfflineExample { Label("accountCollection.offlineExample", systemImage: "testtube.2").font(.footnote).foregroundStyle(.secondary) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if isLoadingNow || skeletonShown {
-                // Loading-to-content (docs/release/motion-spec-loading.md): skeleton after 120 ms, held 350 ms.
+                // Loading-to-content (docs/release/motion-spec-loading.md): spinner after 120 ms, held 350 ms.
                 if skeletonShown {
-                    CYLoadingStateView(rows: 4)
+                    ProgressView().frame(maxWidth: .infinity)
                         .accessibilityLabel(Text("accountCollection.loading"))
-                        .listRowBackground(Color.clear).listRowSeparator(.hidden).listRowInsets(EdgeInsets())
-                        .transition(.opacity)
                 }
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
@@ -109,26 +105,23 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                     Button { showRecommendNote = true } label: {
                         Label { Text("member.favorites.recommendNote.entry", tableName: "MemberProfile") } icon: { Image(systemName: "info.circle") }
                     }
-                    .frame(minHeight: 44)
                     .accessibilityIdentifier("accountCollection.favorites.recommendNote")
                 }
                 if model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
-                    CYEmptyState(systemImage: "tray", "accountCollection.favorites.empty", messageIdentifier: "accountCollection.favorites.empty", kind: .favorites)
-                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    ContentUnavailableView("accountCollection.favorites.empty", systemImage: "tray")
+                        .accessibilityIdentifier("accountCollection.favorites.empty")
                 }
-                ForEach(Array(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }.enumerated()), id: \.element.id) { index, topic in
+                ForEach(Array(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }.enumerated()), id: \.element.id) { _, topic in
                     Button { onOpenTopic(topic.id) } label: { AccountCollectionFavoriteCard(topic: topic) }
-                        .buttonStyle(QuestifyCardButtonStyle())
-                        .cyStaggeredAppear(index: index, gate: stagger)
                         .accessibilityIdentifier("accountCollection.favorite.\(topic.id)")
                         .overlay(alignment: .topTrailing) {
-                            HStack(spacing: CYSpacing.sm) {
+                            HStack(spacing: 0) {
                                 // A4-04: MP mylike topic card 分享 (wxml:50-55) → the public topic link.
                                 if let url = PublicContentShareLink.topic(id: topic.id) {
                                     ShareLink(item: url, subject: Text(verbatim: topic.name)) {
                                         // MP: pages/mylike/mylike.wxml:90 (icon_up.png, 32rpx glyph in the glass circle)
-                                        MPAsset.FeatureIcon.iconUp.resizable().scaledToFit().frame(width: 16, height: 16).padding(12)
-                                            .background(.thinMaterial, in: Circle())
+                                        MPAsset.FeatureIcon.iconUp.resizable().scaledToFit().frame(width: 16, height: 16)
+                                            .frame(width: 44, height: 44)
                                     }
                                     .buttonStyle(.plain)
                                     .accessibilityLabel(Text("accountCollection.favorite.share"))
@@ -136,7 +129,6 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                                 }
                                 if let unlike, unlike.isAvailable { TopicUnlikeButton(topicID: topic.id, controller: unlike) }
                             }
-                            .padding(8)
                         }
                         // A4-06: MP onReachBottom — the last card loads the next page; 加载更多 stays as the fallback.
                         .onAppear {
@@ -145,25 +137,21 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                                   model.state.moreIssue == nil else { return }
                             Task { await loadMore() }
                         }
-                        .questifyCardListRow()
                 }
                 if let issue = model.state.moreIssue {
                     AccountCollectionIssueView(issue: issue, retry: { Task { await loadMore() } })
-                } else if model.state.isLoadingMore { CYSkeleton() }
+                } else if model.state.isLoadingMore { ProgressView().frame(maxWidth: .infinity) }
                 else if model.state.pagination.hasMore {
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
-                        .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.favorites.loadMore")
                 } else if !model.state.visibleRows(scope: key.scope).isEmpty {
-                    Text("member.favorites.topicsEnd", tableName: "MemberProfile").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("member.favorites.topicsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.favorites.end")
                 }
             }
         }
         .listStyle(.insetGrouped)
-        .cyGroupedSurface()
         .cySkeletonTiming(isLoading: isLoadingNow && reader.isAuthenticated && reader.isConfigured, visible: $skeletonShown)
-        .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         // mylike.js onPullDownRefresh parity. Native restyle r1 (spec §3.1): pull to refresh is the one refresh.
         .refreshable { await refresh() }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
@@ -188,24 +176,53 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     }
 }
 
-/// Shared full-bleed card; artwork and topic routes remain server-backed.
+/// Native list row (thumbnail + title + metadata); artwork and topic routes remain server-backed.
 private struct AccountCollectionFavoriteCard: View {
     let topic: TopicSummary
     var body: some View {
-        QuestifyImageEntityCard(imageSource: topic.imageURL, title: topic.name,
-                               fallbackTitle: "accountCollection.favorites.untitled",
-                               fallbackSymbol: "photo", minimumHeight: 250) {
-            if let categories = topic.favoriteCategoryText {
-                QuestifyImageEntityMetadata(label: "accountCollection.favorites.categories", value: categories, systemImage: "tag")
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("accountCollection.favorite.categories.\(topic.id)")
+        HStack(alignment: .top, spacing: 12) {
+            Group {
+                if let url = QuestifyCardArtwork.safeURL(topic.imageURL) {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() }
+                        else { Image(systemName: "photo").foregroundStyle(.secondary) }
+                    }
+                } else {
+                    Image(systemName: "photo").foregroundStyle(.secondary)
+                }
             }
-            // Unknown stop count is an em dash (pages/mylike page model), never 未知 or 0.
-            TopicTotalStops(count: topic.locationCount, identifier: "accountCollection.totalStops.\(topic.id)", unknownMark: AccountCollectionFavoritesDisplay.unknownMark)
-            if let place = topic.addressName, !place.isEmpty {
-                QuestifyImageEntityMetadata(label: "accountCollection.favorites.place", value: place, systemImage: "mappin.and.ellipse")
+            .frame(width: 64, height: 64)
+            .clipped()
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                if topic.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("accountCollection.favorites.untitled").font(.headline)
+                } else {
+                    Text(verbatim: topic.name).font(.headline)
+                }
+                Group {
+                    if let categories = topic.favoriteCategoryText {
+                        Label { Text(verbatim: categories) } icon: { Image(systemName: "tag").accessibilityHidden(true) }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text("accountCollection.favorites.categories") + Text(verbatim: ": " + categories))
+                            .accessibilityIdentifier("accountCollection.favorite.categories.\(topic.id)")
+                    }
+                    // Unknown stop count is an em dash (pages/mylike page model), never 未知 or 0.
+                    TopicTotalStops(count: topic.locationCount, identifier: "accountCollection.totalStops.\(topic.id)", unknownMark: AccountCollectionFavoritesDisplay.unknownMark)
+                    if let place = topic.addressName, !place.isEmpty {
+                        Label { Text(verbatim: place) } icon: { Image(systemName: "mappin.and.ellipse").accessibilityHidden(true) }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text("accountCollection.favorites.place") + Text(verbatim: ": " + place))
+                    }
+                }
+                .font(.subheadline).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // Room for the share / unlike controls overlaid at the top trailing corner.
+            .padding(.trailing, 88)
         }
+        .foregroundStyle(.primary)
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("accountCollection.favorites.openHint"))
     }
@@ -266,29 +283,33 @@ private struct AccountCollectionFavoriteCard: View {
                     isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope },
                     onRemoved: { await refresh() })
             }
-            if reader.isOfflineExample { CYStatusChip("accountCollection.offlineExample", tone: .neutral, systemImage: "testtube.2").listRowBackground(Color.clear).listRowSeparator(.hidden) }
+            if reader.isOfflineExample { Label("accountCollection.offlineExample", systemImage: "testtube.2").font(.footnote).foregroundStyle(.secondary) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if isLoadingNow || skeletonShown {
-                // Loading-to-content (docs/release/motion-spec-loading.md): skeleton after 120 ms, held 350 ms.
+                // Loading-to-content (docs/release/motion-spec-loading.md): spinner after 120 ms, held 350 ms.
                 if skeletonShown {
-                    CYLoadingStateView(rows: 4)
+                    ProgressView().frame(maxWidth: .infinity)
                         .accessibilityLabel(Text("accountCollection.loading"))
-                        .listRowBackground(Color.clear).listRowSeparator(.hidden).listRowInsets(EdgeInsets())
-                        .transition(.opacity)
                 }
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else if case .unknown? = model.pagePhase {
                 // A missing or UNKNOWN list is not an empty collection.
-                CYEmptyState(systemImage: "questionmark.circle", "accountCollection.favorites.unknown",
-                             messageIdentifier: "accountCollection.posts.unknown", actionTitle: "accountCollection.retry",
-                             actionIdentifier: "accountCollection.retry", kind: .failure) { Task { await refresh() } }
-                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                ContentUnavailableView {
+                    Label("accountCollection.favorites.unknown", systemImage: "questionmark.circle")
+                } actions: {
+                    Button("accountCollection.retry") { Task { await refresh() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("accountCollection.retry")
+                }
+                .accessibilityIdentifier("accountCollection.posts.unknown")
             } else {
                 if model.state.visibleRows(scope: key.scope).isEmpty {
-                    CYEmptyState(systemImage: "tray", "member.favorites.postsEmpty", tableName: "MemberProfile", messageIdentifier: "accountCollection.posts.empty", kind: .favorites)
-                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    ContentUnavailableView {
+                        Label { Text("member.favorites.postsEmpty", tableName: "MemberProfile") } icon: { Image(systemName: "tray") }
+                    }
+                    .accessibilityIdentifier("accountCollection.posts.empty")
                 }
                 ForEach(model.state.visibleRows(scope: key.scope)) { post in
                     Button {
@@ -298,12 +319,9 @@ private struct AccountCollectionFavoriteCard: View {
                     } label: {
                         // A4-05 (mylike.wxml:25-27): the standard post card, images included.
                         SquarePostContent(post: post, compact: true, showImages: true)
-                            .padding(CYSpacing.lg)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle))
+                            .foregroundStyle(.primary)
                     }
-                    .buttonStyle(QuestifyCardButtonStyle())
                     .disabled(onOpenPost == nil)
                     .accessibilityIdentifier("accountCollection.post.\(post.id)")
                     // A4-06: the last post loads the next page (MP onReachBottom); 加载更多 stays as the fallback.
@@ -330,28 +348,23 @@ private struct AccountCollectionFavoriteCard: View {
                                     onRemoved: { await refresh() }, presentsAsMenu: true)
                             }
                         }
-                        .padding(.trailing, CYSpacing.xs)
                     }
-                    .questifyCardListRow()
                     NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 }
                 if let issue = model.state.moreIssue {
                     AccountCollectionIssueView(issue: issue, retry: { Task { await loadMore() } })
-                } else if model.state.isLoadingMore { CYSkeleton() }
+                } else if model.state.isLoadingMore { ProgressView().frame(maxWidth: .infinity) }
                 else if model.state.pagination.hasMore {
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
-                        .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.posts.loadMore")
                 } else if !model.state.visibleRows(scope: key.scope).isEmpty {
-                    Text("member.favorites.postsEnd", tableName: "MemberProfile").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("member.favorites.postsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.posts.end")
                 }
             }
         }
         .listStyle(.insetGrouped)
-        .cyGroupedSurface()
         .cySkeletonTiming(isLoading: isLoadingNow && reader.isAuthenticated && reader.isConfigured, visible: $skeletonShown)
-        .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         .refreshable { await refresh() }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
     }
