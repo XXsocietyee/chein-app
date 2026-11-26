@@ -18,7 +18,6 @@ extension EnvironmentValues {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
-    @State private var review = false
     @State private var viewPresentation = CouponCodeViewPresentation()
     private struct TaskKey: Hashable { let active: Bool; let presentationID: UUID? }
     var body: some View {
@@ -59,17 +58,17 @@ extension EnvironmentValues {
             .privacySensitive().accessibilityIdentifier("couponCode.view")
             // MKT-9-4: MP coupon-qr vibrates once when the merchant scan lands (index.js:413-418).
             .cyHaptic(.success, trigger: model.phase == .used, where: { old, new in !old && new })
-            .sheet(isPresented: $review) {
-                MemberCouponShowConfirmSheet {
-                    review = false
-                    guard let offer = model.offerConfirmation(presentation: presentation) else { return }
-                    appearance.actionTask?.cancel()
-                    appearance.actionTask = Task { await model.confirmPresentation(permit: offer) }
-                }
-            }
             .onAppear {
                 guard let permit = appearance.begin(model: model) else { return }
-                if scenePhase == .active { resume(presentation: permit, appearance: appearance) } else { model.pause(presentation: permit) }
+                if scenePhase == .active {
+                    resume(presentation: permit, appearance: appearance)
+                    issue(presentation: permit, appearance: appearance)
+                } else { model.pause(presentation: permit) }
+            }
+            // MKT-9-2: MP coupon-qr `onShow` → `refreshToken()` with no confirm step (index.js:58-85).
+            .onChange(of: model.phase) { _, phase in
+                guard phase == .review, scenePhase == .active else { return }
+                issue(presentation: presentation, appearance: appearance)
             }
             .task(id: TaskKey(active: scenePhase == .active, presentationID: presentation?.id)) {
                 guard let presentation else { return }
@@ -81,13 +80,23 @@ extension EnvironmentValues {
             }
             .onChange(of: scenePhase) { _, phase in
                 guard let presentation, model.presentation === presentation else { return }
-                if phase == .active { resume(presentation: presentation, appearance: appearance) }
-                else { review = false; appearance.actionTask?.cancel(); appearance.foregroundTask?.cancel(); model.pause(presentation: presentation) }
+                if phase == .active {
+                    resume(presentation: presentation, appearance: appearance)
+                    issue(presentation: presentation, appearance: appearance)
+                }
+                else { appearance.actionTask?.cancel(); appearance.foregroundTask?.cancel(); model.pause(presentation: presentation) }
             }
             .onDisappear {
-                if appearance.end(model: model) { review = false }
+                _ = appearance.end(model: model)
                 if viewPresentation === appearance { viewPresentation = CouponCodeViewPresentation() }
             }
+    }
+    /// MKT-9-2: issue the code as soon as the page is shown, including from the focused link (MP has no confirm).
+    private func issue(presentation: CouponCodePresentationPermit?, appearance: CouponCodeViewPresentation) {
+        guard !appearance.isClosed, let presentation, model.presentation === presentation, model.phase == .review,
+              let offer = model.offerConfirmation(presentation: presentation) else { return }
+        appearance.actionTask?.cancel()
+        appearance.actionTask = Task { await model.confirmPresentation(permit: offer) }
     }
     private func resume(presentation: CouponCodePresentationPermit?, appearance: CouponCodeViewPresentation) {
         guard let offer = model.offerResume(presentation: presentation) else { return }
@@ -97,11 +106,10 @@ extension EnvironmentValues {
     @ViewBuilder private func content(presentation: CouponCodePresentationPermit?, appearance: CouponCodeViewPresentation) -> some View {
         switch model.phase {
         case .review:
-            Text("couponCode.review.detail")
-            Button("couponCode.show") {
-                guard !appearance.isClosed, let presentation, model.presentation === presentation else { return }
-                review = true
-            }.buttonStyle(.borderedProminent).controlSize(.large).frame(maxWidth: .infinity).accessibilityIdentifier("couponCode.review")
+            // MKT-9-2: no 出示 step; the code is requested on appear (`issue`).
+            ProgressView { Text("couponCode.loading") }
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("couponCode.loading")
         case .ready:
             if model.canDisplay {
                 if let token = model.displayToken { CouponLocalQRImage(token: token).frame(maxWidth: .infinity) }

@@ -258,14 +258,26 @@ extension EnvironmentValues {
     let metadataReader: (any DiscoveryReading)?
     private let onSavedDraft: ((TemplateAuthoringSavedDraft) -> Void)?
     private let canReturnSavedDraft: (TemplateAuthoringSavedDraft) -> Bool
+    /// r9 C-T6b: MP temp `options.from`. index.wxml:1578 labels the primary 保存玩法 (citynode),
+    /// 保存并绑定 (fabu) or 发布玩法.
+    let from: String?
+    private var publishLabelKey: LocalizedStringKey {
+        switch from {
+        case "citynode": return "fixr9.ap.template.saveGameplay"
+        case "fabu": return "fixr9.ap.template.saveAndBind"
+        default: return "templateAuthor.reviewPublish"
+        }
+    }
     init(coordinator: TemplateAuthoringCoordinator, sessionRevision: UInt64, metadataReader: (any DiscoveryReading)? = nil,
          imageSelectionApproved: @escaping () -> Bool = { false }, mediaFixtureMode: String? = nil,
          onSavedDraft: ((TemplateAuthoringSavedDraft) -> Void)? = nil,
          canReturnSavedDraft: @escaping (TemplateAuthoringSavedDraft) -> Bool = { _ in false },
          makeCoverService: (() -> ActivityCoverService?)? = nil,
          coverSession: @escaping () -> PublishingSession? = { nil },
-         startsInEditor: Bool = false) {
+         startsInEditor: Bool = false,
+         from: String? = nil) {
         self.makeCoverService = makeCoverService; self.coverSession = coverSession
+        self.from = from
         // MP `pages/publish/temp/index` opens on the editor (the intro is its own page, template-intro).
         _step = State(initialValue: startsInEditor ? .edit : .intro)
         let value = TemplateAuthoringModel(coordinator: coordinator)
@@ -400,7 +412,8 @@ extension EnvironmentValues {
                         Button {
                             if model.draft.publishIssues.isEmpty { model.prepare(.publish) } else { jumpToFirstError(proxy) }
                         } label: {
-                            Text("templateAuthor.reviewPublish")
+                            // C-T6b: merchant scope reads 保存并绑定 / 保存玩法 (template-intro/index.js:296).
+                            Text(publishLabelKey)
                         }
                         .buttonStyle(.borderedProminent)
                         .disabled(!model.canEdit || model.draft.validationMethod.isLocalConfigurationOnly)
@@ -443,9 +456,9 @@ extension EnvironmentValues {
         .background { RetainedImagePresenterHost(host: questionImage.pickerHost).frame(width: 0, height: 0) }
         // Screens r4 · Figma 237:71933 (CF-51, SR2-19): 选择玩法 as a sheet with the one confirm in the header.
         .editorSheet(isPresented: $gameplayPicker, family: .gameplayPicker) {
-            TemplateGameplayPickerSheet(current: model.draft.validationMethod, locked: !model.draft.advanced.enabledGames.isEmpty) { picked in
-                model.legacyHintMethodBinding().wrappedValue = picked
-            }
+            TemplateGameplayPickerSheet(current: model.draft.validationMethod, locked: !model.draft.advanced.enabledGames.isEmpty,
+                                        commit: { picked in model.legacyHintMethodBinding().wrappedValue = picked },
+                                        commitGame: { game in model.setGameEnabled(game, true) })
             .themeDomain(.topicEditor)
         }
         .preference(key: TemplateAuthoringSavedResultPreferenceKey.self, value: TemplateAuthoringSavedResultObservation.capture(model: model, eligible: onSavedDraft == nil))

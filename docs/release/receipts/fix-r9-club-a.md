@@ -38,6 +38,33 @@ Rules: MP-first (MP file:line in each commit and code comment), Apple components
 | CLB-r9-topic-story-01 | P2 | fixed | 333115610 | App/MPReviewedPageScreen.swift (topic-story without topicId) |
 | CLB-event-ops-05 | P2 | fixed | 96e188c2e | App/ClubOpsEventView.swift |
 | CLB-r7-A-07 | P2 | fixed | cef838d90 | App/ClubMembersView.swift (loadGovernGrant) |
+| CLB-r9-native-07 | P2 | fixed | 9bb9fff7c | App/MPGap/Club/ClubGapManageExtensions.swift, App/MPGap/Club/ClubGapRound4Views.swift |
+| CLB-r9-detail-03 | P2 | fixed | 0589d6682 | App/MPGap/Club/ClubGapManageExtensions.swift (settingsRow / LabeledContent), App/ClubDetailR8Mounts.swift (loadSettingsCounts locale) |
+| CLB-r9-detail-01 | P2 | partly | b698382a1 | App/MPGap/Club/ClubGapManageExtensions.swift (ClubGapMemberAvatarStrip), App/ClubDetailView.swift (stripProfileAction). Open: the MP 公开资料 / 客户档案 choice from the strip. |
+| CLB-r9-detail-02 | P2 | fixed by another lane | — | App/ClubDetailR8Mounts.swift ClubInlineLeaderboardRows already opens the profile / customer choice. |
+| CLB-r9-edit-01 | P2 | fixed | 34fe2a021 | App/MPReviewedPageScreen.swift (pages/club/edit) |
+| CLB-r9-create-01 | P2 | fixed | b4f4c4227 | App/ClubOperationsViews.swift (loading row) |
+| CLB-r8-badges-02 | P2 | fixed | 7f9b218c1 | App/ClubBadgeManagementView.swift (needsReview where lastWasCreate) |
+| CLB-r9-enroll-01 | P2 | fixed | aa40ec35d | App/ClubEnrollmentView.swift |
+| CLB-workbench-03 | P2 | fixed | 42450ede4 | App/MPReviewedPageScreen.swift (ClubSingleOwnedEntry .failed) |
+| CLB-enroll-08 | P2 | fixed | 42450ede4 | App/MPReviewedPageScreen.swift (ClubFirstOwnedEntry) |
+| CLB-r9-create-03 | P2 | fixed | 69a8b248d | App/ClubOperationsViews.swift (toolbar 「n / 4」) |
+| CLB-r9-native-01 | P2 | fixed | d64789428 | App/ClubTopicDetail+Port.swift |
+| CLB-r9-native-06 | P2 | fixed (merged with the native-r2 club sweep) | d4e13af8c | App/ClubBadgeManagementView.swift |
+| CLB-r9-native-02 | P2 | fixed (App side) | 269b8dac0 | App/MPGap/Club/ClubGapTopicDirectorViews.swift. Core's ClubTopicDirectorCopy literals stay for Cursor. |
+| CLB-r9-topic-detail-02 | P2 | fixed | ed97d12fe | App/ClubGovernanceViews.swift (更多 sheet rows, openAfterMoreSheet) |
+| CLB-r9-native-03 | P2 | fixed | ed617b4ab, re-applied in the native-r2 merge | App/ClubPayoutReceiverView.swift, App/ClubFEReferenceSettlementHost.swift, App/ClubOpsEventView.swift |
+| CLB-r9-native-05 | P2 | fixed | 6baff7f92 | App/ClubStoryViews.swift, App/MPGap/Club/ClubGapRound4Views.swift (the club mark became a system Label in the native-r2 sweep) |
+| CLB-G13d | P2 | fixed | 7eba5ec4f | App/ClubTopicDirectorMount.swift (ClubTopicDirectorToolsSection) |
+| CLB-topic-detail-05 | P2 | fixed | 70cccab93 | App/ClubTopicDetail+Port.swift (台账), App/ClubGovernanceViews.swift (topicLedger, 场次管理 / 退出与暂停规则) |
+| CLB-r9-payout-receiver-02 | P2 | fixed | f95ea5f56 | App/ClubPayoutReceiverView.swift (TEST-only bind row) |
+| CLB-r9-native-04 | P2 | no change | — | `.font(.footnote)` is a system Dynamic Type style, which native-r2 asks for. |
+| CLB-r9-create-04 | P2 | not done | — | HANDOFF-R1 MC-10 (owner) chose the city picker row; the MP typed field would reverse it. Needs an owner call. |
+| CLB-r9-create-02 | P2 | not done | — | A non-host sees 申请成为主理人 as one tap; the MP auto-redirect would need the create Form to hand over to the host-status page. Open. |
+| CLB-r9-event-ops-01 | P2 | not done | — | The topic picker inline in the hub needs the series-create return machinery to take a picked topic. Open. |
+| CLB-event-ops-09 | P2 | needs a simulator check | — | Rows are system NavigationLinks after the native-r2 sweep. |
+| CLB-topic-story-08 | P2 | not done (native-r2) | — | A drawn connector line is decoration; native-r2 uses numbered SF Symbol circles instead. |
+| CLB-r8-governance-01 | P2 | blocked (Cursor Core) | — | `MiniProgramPageLink.swift` still requires clubId for pages/club/governance. |
 
 ## Native notes (no Apple equivalent → closest Apple control)
 
@@ -47,6 +74,8 @@ Rules: MP-first (MP file:line in each commit and code comment), Apple components
 - MP `cy-upload` grid → `PhotosPicker` + List rows with swipe-to-delete.
 
 ## For Cursor Core
+
+0. `ClubTopicDirectorCopy` / `ClubRound4Copy` Chinese literals in Core (native-02 App side no longer reads the director ones).
 
 1. Release (or reconcile by re-read) the journal lock after an acknowledged `saveTopicSettings` / `saveCustomer`, so inline saves can repeat (topic-detail-06, customer-detail-04).
 2. Expose `broadcastBlocker` on `PlayDirectorProjection` (topic-detail-10).

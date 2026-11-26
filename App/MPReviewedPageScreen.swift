@@ -279,15 +279,17 @@ import SwiftUI
             SessionActivityPublishingDestination(editingID: positiveID(query["id"])).environmentObject(session)
         case "pages/publish/template-intro/index":
             // C-I1: the intro → name → editor flow the 发布 tab opens.
-            sessionTemplateAuthoringEntry(session)
+            sessionTemplateAuthoringEntry(session, scope: query["scope"])
         case "pages/publish/temp/index":
             // C-T1: `?id=` opens that template's own editor; the bare path opens the editor, not the intro.
             if let id = positiveID(query["id"]).flatMap(MemberPlayTemplateID.init(rawValue:)) {
                 SessionOwnedTemplateConfigurationView(id: id).environmentObject(session)
             } else {
-                TemplateAuthoringView(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,
+                // r9 C-T6b: MP temp/index.js:1392-1416 honours `from` and `scope=MERCHANT`.
+                TemplateAuthoringView(coordinator: session.templateAuthoringEditor(from: query["from"], scope: query["scope"]),
+                                     sessionRevision: session.sessionRevision, metadataReader: session,
                                      makeCoverService: { session.makeActivityCoverService() }, coverSession: { session.publishingSession },
-                                     startsInEditor: true)
+                                     startsInEditor: true, from: query["from"])
             }
         case "subpackageMember/mytemplate/mytemplate":
             // R8-MEM-26-1: retired the rewrite onto 我发布的. This route is the template author's 我的 page and keeps the link query.
@@ -809,9 +811,12 @@ import SwiftUI
         case "pages/userinfo/userinfo":
             // A2-01: MP share links use `userId`; `id` is the older key. `tab` picks the first tab (A2-06).
             if let id = positiveID(query["userId"]) ?? reviewedID(query) {
-                SocialPublicProfileView(memberID: id, reader: session.socialAccountReader, squareReader: session.squareReader,
-                                        actions: session.socialActionCoordinator, initialTab: query["tab"])
-                    .environment(\.socialConversationDestination, session.socialConversationDestination) // A2-03 发消息
+                // r9 A2-02b / A2-10: a merchant subject swaps to the public merchant home (+ 发起合作 for visitors).
+                R9MerchantAwareProfileHost(session: session, memberID: id) {
+                    SocialPublicProfileView(memberID: id, reader: session.socialAccountReader, squareReader: session.squareReader,
+                                            actions: session.socialActionCoordinator, initialTab: query["tab"])
+                        .environment(\.socialConversationDestination, session.socialConversationDestination) // A2-03 发消息
+                }
             } else { unavailable }
         case "subpackageRoam/history/index":
             if session.account == nil {

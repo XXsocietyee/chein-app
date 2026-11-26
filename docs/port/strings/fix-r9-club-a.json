@@ -3179,6 +3179,23 @@
           }
         }
       }
+    },
+    "payoutReceiver.bind.mpOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bind your payout account in the Chengyin mini-program"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在城瘾小程序里绑定收款账户"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

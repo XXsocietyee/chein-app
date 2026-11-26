@@ -45,9 +45,9 @@ struct ProfileOrderSourceDetailSections: View {
                 ProfileOptionalRow(key: "profile.orderParity.entitlementExpires", value: order.sourceExpiresAtText)
             }
         }
-        if let party = order.party?.text {
+        if let party = ProfileOrderSettlementCopy.party(order.party) {
             Section("profile.order.party") {
-                Text(verbatim: party).accessibilityIdentifier("profile.order.party")
+                party.accessibilityIdentifier("profile.order.party")
             }
         }
         if order.walletExpired {
@@ -58,35 +58,66 @@ struct ProfileOrderSourceDetailSections: View {
     }
 }
 
-/// Team and companion seats already on the registration detail. Seats open the existing
-/// journey lobby. Club join stays on the club page, which already sends through
-/// `ClubActionCoordinator`. This view does not follow, pay, refund, or create an order.
+/// Team, open seats, and club from the order. Follow posts `api/user/follow/action` and does not pay.
+/// FIN-17-4: MP order detail 和队友一起出发 (D:125-145, `startOrderTeam` → team create), 同行席位
+/// (D:205-214, `goSeats` → `subpackageJourney/pages/seats`) and the host club follow (`followClub` → /api/user/follow/action).
+/// The club row opens the club page (which sends join / apply / leave through `ClubActionCoordinator`) when it is configured.
 struct ProfileOrderTeamSeatClubSection: View {
     let order: ProfileOrder
     @EnvironmentObject private var session: AppSession
-    @Environment(\.mpParity) private var mpParity
+    @Environment(\.mpParity) private var bindings
+    @State private var followed = false
 
     var body: some View {
-        if order.teamOpen || order.seatsOpen || order.club != nil {
-            Section {
-                if order.teamOpen {
+        Group {
+            if order.teamOpen, let activityID = order.ownerID, activityID > 0 {
+                Section {
+                    NavigationLink { SessionTeamCreateView(activityID: activityID, registrationID: order.id) } label: {
+                        Label("orderDetail.inviteTeammates", systemImage: "person.2.badge.plus")
+                    }
+                    .accessibilityIdentifier("profile.order.teamOpen")
+                } header: {
+                    Text("orderDetail.teamAndSeats")
+                } footer: {
+                    Text("orderDetail.team.note")
+                }
+            } else if order.teamOpen {
+                Section {
                     Text("orderDetail.inviteTeammates")
-                        .cyText(.body)
                         .accessibilityIdentifier("profile.order.teamOpen")
                 }
-                if order.seatsOpen {
-                    seatsEntry
+            }
+            if order.seatsOpen {
+                Section("orderDetail.seatsEntry") {
+                    if bindings.journeySeats != nil {
+                        NavigationLink { MPParityDestination(route: .journeySeats(registrationID: String(order.id))) } label: {
+                            LabeledContent("orderDetail.seats.manage") {
+                                Text("orderDetail.seats.count \(order.orderNum ?? 0)")
+                            }
+                        }
+                        .accessibilityIdentifier("profile.order.seatsOpen")
+                    } else {
+                        LabeledContent("orderDetail.seats.manage") {
+                            Text("orderDetail.seats.count \(order.orderNum ?? 0)")
+                        }
+                        .accessibilityIdentifier("profile.order.seatsOpen")
+                    }
                 }
-                if let club = order.club {
+            }
+            if let club = order.club {
+                Section("orderDetail.club.section") {
                     clubRow(club)
+                    if let leader = club.leaderMemberID, leader > 0, !followed {
+                        Button("orderDetail.club.follow") { Task { await follow(leader) } }
+                            .accessibilityIdentifier("profile.order.follow")
+                    }
                 }
             }
         }
     }
 
-    /// The coordinator already sends join, apply, and leave from the club page. Follow is not one of those actions, so this row does not post it.
     @ViewBuilder private func clubRow(_ club: ProfileOrderClub) -> some View {
-        let name = Text(verbatim: club.name.isEmpty ? "—" : club.name).cyText(.body)
+        let name = Text(verbatim: club.name.isEmpty ? "—" : club.name)
         if session.clubActionCoordinator.isConfigured {
             NavigationLink {
                 ClubDetailView(
@@ -107,19 +138,11 @@ struct ProfileOrderTeamSeatClubSection: View {
         }
     }
 
-    @ViewBuilder private var seatsEntry: some View {
-        if mpParity.journeySeats != nil {
-            NavigationLink {
-                MPParityDestination(route: .journeySeats(registrationID: String(order.id)))
-            } label: {
-                Text("orderDetail.seatsEntry").cyText(.body)
-            }
-            .accessibilityIdentifier("profile.order.seatsOpen")
-        } else {
-            Text("orderDetail.seatsEntry")
-                .cyText(.body)
-                .accessibilityIdentifier("profile.order.seatsOpen")
-        }
+    private func follow(_ memberID: Int) async {
+        guard let base = session.currentRuntimeDependencyContext?.baseURL else { return }
+        let service = MemberRound2Service(baseURL: base, token: { [weak session] in session?.token }, transport: session.runtimeHTTPTransport)
+        let reply = await service.followClubOwner(memberID: memberID)
+        if case .ok = reply { followed = true }
     }
 }
 
@@ -172,5 +195,45 @@ private struct ProfileOrderTimelineStepRow: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("profile.order.timeline.\(step.id)")
+    }
+}
+
+/// R9-MEM-17-2: MP order detail (scene-member-order-detail D:110-123 settlement, D:260-275 party) copy keyed in the
+/// catalog so English does not show Core's Chinese. Core keeps its zh text; unknown text stays verbatim.
+enum ProfileOrderSettlementCopy {
+    private static let stageKeys: [String: String] = [
+        "退款审核中": "profile.order.settlement.stage.underReview",
+        "已批准，等待原路退回": "profile.order.settlement.stage.payoutPending",
+        "人工退款处理中": "profile.order.settlement.stage.manualPayout",
+        "已原路退回": "profile.order.settlement.stage.completed",
+        "退款未通过": "profile.order.settlement.stage.rejected",
+        "售后处理中": "profile.order.settlement.stage.manualReview",
+        "退款状态待确认": "profile.order.settlement.stage.unknown"
+    ]
+    private static let rowKeys: Set<String> = ["pending", "processing", "completed", "total", "entitlement"]
+
+    static func stage(_ text: String) -> Text {
+        if let key = stageKeys[text] { return Text(LocalizedStringKey(key)) }
+        return Text(verbatim: text)
+    }
+
+    static func label(_ row: ProfileOrderSettlementView.Row) -> Text {
+        if rowKeys.contains(row.key) { return Text(LocalizedStringKey("profile.order.settlement.row." + row.key)) }
+        return Text(verbatim: row.label)
+    }
+
+    static func value(_ row: ProfileOrderSettlementView.Row) -> Text {
+        if row.value == "金额待确认" { return Text("profile.order.settlement.amountPending") }
+        return Text(verbatim: row.value)
+    }
+
+    /// Same rule as `ProfileOrderParty.text`: nothing without children.
+    static func party(_ party: ProfileOrderParty?) -> Text? {
+        guard let party, party.childCount > 0 else { return nil }
+        let counts = Text("profile.order.party.counts \(party.adultCount) \(party.childCount)")
+        if let age = party.childAge, !age.isEmpty {
+            return counts + Text("profile.order.party.childAge \(age)")
+        }
+        return counts
     }
 }

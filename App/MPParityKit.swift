@@ -110,9 +110,8 @@ enum MPParityRoute: Hashable, Identifiable {
     case pass(productID: String)
     case gift(token: String)
     /// `subpackageMember/market/gift/index?mode=code`. Platform redeem, not a gift claim.
+    /// R9-MEM-3-1: the only redeem page (`PlatformCodeRedeemPage`); the unrouted `PassRedeemCodeView` duplicate is gone.
     case platformCode
-    /// The same MP page (member-a variant, `PassRedeemCodeView`); deep links parse to `.platformCode`.
-    case passRedeemCode
     case membership
     case library(kind: PassLibraryKind)
     /// `subpackageMember/market/pass-order/index?orderNo=`: one city-pass order, read only.
@@ -294,8 +293,6 @@ enum MPParityRoute: Hashable, Identifiable {
             } else if let make = bindings.passGift { PassGiftClaimHost(binding: make(token)) } else { unavailable }
         case .platformCode:
             PlatformCodeRedeemPage()
-        case .passRedeemCode:
-            PassRedeemCodeView()
         case .membership:
             if let make = bindings.membership { PassMembershipHost(binding: make()) } else { unavailable }
         case .library(let kind):

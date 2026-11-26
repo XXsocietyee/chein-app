@@ -47,9 +47,11 @@ class ClubFeedReadParityContracts(unittest.TestCase):
         binding = view.split('ClubGovernanceHomeEntries(feedContext:')[1].split('identity: reader.clubIdentity')[0]
         self.assertIn('readerIdentity: ObjectIdentifier(reader)', binding)
         self.assertIn('viewerRevision:', binding)
-        self.assertIn('ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, publicRoster: publicRoster)', binding)
-        for token in ['actionCoordinator:', 'community:', 'management:']:
-            self.assertNotIn(token, binding)
+        # CLB-detail-34 (666d94a69): the feed opens the same full club page as the list rows, so it carries exactly
+        # the list-row coordinator/management/community and nothing more. Revision and reader fences stay above.
+        self.assertIn('ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator,\n                                                       management: management, community: community, publicRoster: publicRoster)', binding)
+        self.assertIn('ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)', view)
+        self.assertEqual(binding.count('ClubDetailView('), 1)
 
     def test_navigation_rechecks_exact_snapshot_row_reader_and_content(self):
         core = source('Core/ClubFeedPresentation.swift')

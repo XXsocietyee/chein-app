@@ -3,6 +3,15 @@ import SwiftUI
 /// Real-data consumer only. No fixture, transport, factory, or production entry is installed here.
 @MainActor struct FreeExploreBundleLaunchView: View {
     @Bindable var model: FreeExploreBundleLaunchModel
+    /// MKT-7-3b: the authorized read host. With it the page offers the MP 取消预约 / 更换商家 / 商家评价;
+    /// without it (fixtures, the participation-detail mount) the page stays read-only.
+    var host: FreeExploreBundleReadHost? = nil
+    @State private var bundleAction: FreeExploreBundleAction?
+    @Environment(\.bundleCommerceBaseURL) private var bundleBaseURL
+    /// Same gate as the 套餐 hub (`BundleCommerceCatalog.shows`): the route must be admitted and not forced off.
+    private func offers(_ entry: BundleCommerceEntry) -> Bool {
+        host?.current == true && BundleCommerceCatalog.shows(entry, baseURL: bundleBaseURL)
+    }
     @State private var unitID: FreeExploreLaunchID?
     @State private var offerID: FreeExploreLaunchID?
     @State private var date = Date()
@@ -21,6 +30,11 @@ import SwiftUI
     private var ledgerOff: Bool {
         if case .response(_, _, let businessCode, _)? = model.failure { return businessCode == "BUNDLE_LEDGER_OFF" }
         return false
+    }
+    /// R8-MEM-7-3: MP free-explore/index.js:97 `res.msg || '权益加载失败，请重试'`: the server message first, then the fixed copy.
+    private var errorText: Text {
+        if case .response(_, _, _, let message)? = model.failure, let message, !message.isEmpty { return Text(verbatim: message) }
+        return text("error")
     }
     /// Menu-picker row inside a card: label left, current choice right, 48pt tall.
     private func choice<P: View>(_ label: Text, selected: String?, @ViewBuilder picker: () -> P) -> some View {
@@ -66,7 +80,7 @@ import SwiftUI
                 CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table)
                     .accessibilityIdentifier("freeBundle.empty")
             case .error(.load):
-                CYNoteBanner(text: text("error"), symbol: "exclamationmark.triangle", tone: .warning).accessibilityIdentifier("freeBundle.error")
+                Label { errorText } icon: { Image(systemName: "exclamationmark.triangle") }.accessibilityIdentifier("freeBundle.error")
                 // R7-MEM-7-2 (MP R11 F-7): with the bundle ledger switched off a refresh cannot change anything, so 刷新 is hidden.
                 if !ledgerOff {
                     CYPillButton(LocalizedStringKey("retry"), style: .tertiary, tableName: table) { Task { await model.load() } }
@@ -118,6 +132,26 @@ import SwiftUI
             }
             .cyDomainSheet(detents: [.half, .full])
         }
+        // MKT-7-3b: sheets, not pushes, so the read host is not retired while an action is open.
+        .sheet(item: $bundleAction) { action in
+            if let host {
+                NavigationStack {
+                    FreeExploreBundleActionSheet(action: action, host: host, model: model)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("action.done") { bundleAction = nil }
+                                    .accessibilityIdentifier("freeBundle.action.done")
+                            }
+                        }
+                }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
+        }
+        .onChange(of: bundleAction) { old, new in
+            // The bundle may have changed (cancel, swap or review); read it again once the sheet closes.
+            if old != nil, new == nil { Task { await model.load() } }
+        }
         // A reopened destination must receive a fresh model from its authorized host.
         .onDisappear { model.cancelReview() }
     }
@@ -125,7 +159,7 @@ import SwiftUI
         if facts.refreshing { CYLoadingStateView(rows: 2) }
         if facts.refreshFailed {
             // A failed refresh keeps the last record on screen instead of zeroing it.
-            CYNoteBanner(text: text("error"), symbol: "exclamationmark.triangle", tone: .warning).accessibilityIdentifier("freeBundle.error")
+            Label { errorText } icon: { Image(systemName: "exclamationmark.triangle") }.accessibilityIdentifier("freeBundle.error")
         }
         if facts.saleEnabled == nil {
             CYNoteBanner(text: text("saleUnknown"), symbol: "questionmark.circle", tone: .info)
@@ -194,6 +228,13 @@ import SwiftUI
                             }
                         }
                         .accessibilityIdentifier("freeBundle.unit.\(unit.id.text)")
+                        // MP free-explore/index.wxml:44 更换商家 on RESERVED / AVAILABLE units.
+                        if unit.status == "RESERVED" || unit.status == "AVAILABLE", offers(.exitSwap) {
+                            Button("freeBundle.action.exitSwap") { bundleAction = .exitSwap }
+                                .buttonStyle(.bordered)
+                                .disabled(model.busy)
+                                .accessibilityIdentifier("freeBundle.unit.exitSwap.\(unit.id.text)")
+                        }
                     }
                 }
             }
@@ -219,18 +260,33 @@ import SwiftUI
                 ForEach(bundle.reservations, id: \.id) { reservation in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         // MP `{shopName || chapterName || 预约} · {statusText}`.
-                        CYListRow(verbatim: "\(reservationHeading(reservation, bundle: bundle)) · \(Self.statusString(reservation.status))", meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
+                        CYListRow(verbatim: "\(reservationHeading(reservation, bundle: bundle)) · \(Self.statusString(reservation.status))", meta: Self.startAtText(reservation.startAt, locale: locale), trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
                             .accessibilityIdentifier("freeBundle.reservation.\(reservation.id.text)")
-                        // BOOKED only. The labels are the MP copy; this round does not send a cancel.
+                        // BOOKED only. The cancel goes through the quote → confirm form (BundleCancelView); no refund is sent here.
                         if reservation.canCancel {
-                            Text("reservation.cancel", tableName: table)
-                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            // MKT-7-3b: MP free-explore/index.wxml:58-61 取消预约 (the waiver is the toggle in the quote form).
+                            if offers(.cancel) {
+                                Button(role: .destructive) { bundleAction = .cancel(reservation.id) } label: {
+                                    Text("reservation.cancel", tableName: table)
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(model.busy)
                                 .accessibilityIdentifier("freeBundle.reservation.canCancel.\(reservation.id.text)")
+                            } else {
+                                Text("reservation.cancel", tableName: table)
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("freeBundle.reservation.canCancel.\(reservation.id.text)")
+                            }
                             Text("reservation.monthlyWaiver", tableName: table)
                                 .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                                 .accessibilityIdentifier("freeBundle.reservation.waiver.\(reservation.id.text)")
+                        }
+                        // MKT-7-3b: MP free-explore/index.wxml:62 商家评价 (public-home → reviews/public → reviews/create).
+                        if offers(.review) {
+                            Button("freeBundle.action.review") { bundleAction = .review }
+                                .buttonStyle(.bordered)
+                                .accessibilityIdentifier("freeBundle.reservation.review.\(reservation.id.text)")
                         }
                     }
                 }
@@ -320,6 +376,16 @@ import SwiftUI
     /// MP `free-explore-bundle.js` STATES (units and reservations share one table). Unknown is an em dash.
     private static let knownStatuses: Set<String> = ["AVAILABLE", "RESERVED", "REDEEMED", "FORFEITED", "HELD", "REFUND_PENDING",
         "REFUNDED", "BOOKED", "CANCELLED", "WAIVED", "LATE_CANCELLED", "NO_SHOW", "FULFILLED", "MERCHANT_EXITED"]
+    /// MKT-7-3: MP free-explore-bundle.js:20 shows `String(row.startAt)`. Epoch milliseconds become a China-time
+    /// date and time; any other text stays as the server sent it.
+    static func startAtText(_ raw: String, locale: Locale) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.allSatisfy(\.isASCII), trimmed.allSatisfy(\.isNumber),
+              let millis = Int64(trimmed), millis > 0 else { return trimmed.isEmpty ? "—" : trimmed }
+        var style = Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale)
+        if let zone = TimeZone(identifier: "Asia/Shanghai") { style.timeZone = zone }
+        return Date(timeIntervalSince1970: Double(millis) / 1_000).formatted(style)
+    }
     static func statusString(_ raw: String) -> String {
         knownStatuses.contains(raw) ? String(localized: String.LocalizationValue("freeBundle.status." + raw)) : "—"
     }

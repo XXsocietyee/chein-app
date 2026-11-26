@@ -9,6 +9,8 @@ struct TopicSessionSelectionView: View {
     let detail: TopicDetail
     let scope: UUID
     var activityDestination: ((Int) -> AnyView)? = nil
+    /// R7-PC-B1-13: the ticket the player tapped on the topic page (MP preselects it by name).
+    var preferredTicketName: String? = nil
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -52,12 +54,21 @@ struct TopicSessionSelectionView: View {
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("topic.sessionSelection.ticketDependency")
                         ForEach(Array(detail.tickets.enumerated()), id: \.offset) { _, ticket in
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: ticket.name).font(.headline)
-                                TopicPrice(value: ticket.price, label: "topic.price")
-                                if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
-                                if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
+                            let preferred = !(preferredTicketName ?? "").isEmpty
+                                && ticket.name.trimmingCharacters(in: .whitespacesAndNewlines) == preferredTicketName
+                            HStack(alignment: .top) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(verbatim: ticket.name).font(.headline)
+                                    TopicPrice(value: ticket.price, label: "topic.price")
+                                    if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
+                                    if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
+                                }
+                                if preferred {
+                                    Spacer()
+                                    Image(systemName: "checkmark").foregroundStyle(.tint).accessibilityHidden(true)
+                                }
                             }
+                            .accessibilityAddTraits(preferred ? .isSelected : [])
                         }
                     }
                 }

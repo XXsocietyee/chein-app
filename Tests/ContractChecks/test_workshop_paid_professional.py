@@ -77,8 +77,10 @@ class PaidProfessionalContracts(unittest.TestCase):
             self.assertIn(marker,factory)
     def test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging(self):
         s = self.source('Core/WorkshopPaidProfessionalPreparation.swift')
-        for marker in ['for _ in 0..<10','installReader.targets(','.targetDraftId == body.originalTargetDraftID','value.businessType == "TOPIC"','defer { bridge.revoke() }']:
+        for marker in ['for _ in 0..<10','installReader.targets(','.targetDraftId == body.originalTargetDraftID','value.businessType == WorkshopPaidInstallTarget.businessTypeValue','defer { bridge.revoke() }']:
             self.assertIn(marker,s)
+        # 6009e19f3: one MEMBER_TEMPLATE business type shared by v2 install and professional materialization.
+        self.assertIn('public static let businessTypeValue = "MEMBER_TEMPLATE"', self.source('Core/WorkshopPaidInstallContracts.swift'))
         self.assertNotIn('payloadJSON',s)
         self.assertNotIn('TemplateAuthoringDraft',s)
     def test_five_states_and_modes_are_fully_localized(self):

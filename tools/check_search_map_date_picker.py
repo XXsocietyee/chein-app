@@ -44,20 +44,15 @@ def main():
     check('Confirm compares both directions before assigning a copied draft',
           '(field == .start && value > otherValue) || (field == .end && value < otherValue)' in core and
           core.index('throw APIError.invalidRequest') < core.index('var result = draft'))
-    check('nested presentation has a separate local picker draft',
-          '@State private var datePicker: SearchMapDatePickerDraft?' in app and '@State private var picker: SearchMapDatePickerDraft' in app and '.sheet(item: $datePicker)' in app)
-    check('successful Confirm updates only outer draft',
-          'dateDraft = try selection.confirming(in: dateDraft)' in app and 'invalid = false; datePicker = nil' in app)
-    nested = app.split('@MainActor private struct SearchMapDatePickerSheet: View {', 1)[1]
-    check('picker cancellation dismisses without calling Confirm or Apply',
-          'Button("searchMap.cancel") { dismiss() }.accessibilityIdentifier("mapDatePicker.cancel")' in nested and 'apply(' not in nested)
-    check('invalid Confirm stays in the picker for correction', 'Button("mapDatePicker.confirm") { invalid = !confirm(picker) }' in nested)
-    check('three native wheels have independent stable identifiers', all(f'identifier: "mapDatePicker.{key}"' in nested for key in ['year', 'month', 'day']) and '.pickerStyle(.wheel)' in nested)
-    check('accessibility text sizes stack wheels in a scrollable sheet',
-          'dynamicTypeSize.isAccessibilitySize' in nested and 'AnyLayout(VStackLayout' in nested and 'ScrollView {' in nested)
+    # R7-PC-A3-3: the sheet-on-sheet wheel is replaced by inline Form DatePicker rows (MP search2 index.wxml:100-129).
+    nested = app
+    check('inline native DatePicker rows replace the nested wheel sheet',
+          '.sheet(item: $datePicker)' not in app and 'SearchMapDatePickerSheet' not in app and
+          all(f'DatePicker("mapDatePicker.{key}", selection: dateValue(\\.{key}Date), displayedComponents: .date)' in app for key in ['start', 'end']))
     for key in ['start', 'end']:
-        check(f'existing {key} manual field retained', f'TextField("searchMap.{key}Date", text: $dateDraft.{key}Date).accessibilityIdentifier("searchMap.filter.{key}")' in app)
-        check(f'{key} optional picker button has a minimum target', f'.frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.{key}")' in app)
+        check(f'{key} date is optional behind a native Toggle', f'Toggle("searchMap.{key}Date", isOn: dateEnabled(\\.{key}Date))' in app)
+        check(f'{key} date keeps its stable identifier', f'.accessibilityIdentifier("searchMap.filter.{key}")' in app)
+    check('civil dates use the Gregorian calendar in the phone zone', 'Calendar(identifier: .gregorian); calendar.timeZone = .current' in app)
     check('existing today and tomorrow remain available', all(f'selectDatePreset(.{key})' in app for key in ['today', 'tomorrow']))
     check('Apply is still the only applied-query callback', app.count('apply(applied)') == 1 and 'let applied = try dateDraft.applying(to: draft)' in app)
     check('Reset clears only the filter draft and retains keyword',

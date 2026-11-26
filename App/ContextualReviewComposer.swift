@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftUI
 
 @MainActor struct ContextualReviewComposer: View {
@@ -12,10 +13,33 @@ import SwiftUI
     @State private var revision = 0
     @State private var confirmDiscard = false
     @FocusState private var typing: Bool
+    /// R7-PC-B1-7 / R7-PC-C1-6: MP review sheets add ≤9 photos through `app.chooseImage` and send them in `img_arr`
+    /// (pages/topic/index/index.wxml:441-460, index.js:1256; scene-play-activity-detail/index.wxml:138-139, index.js:590-605, 644).
+    @Environment(\.playerContentImageUploader) private var imageUploader
+    @State private var photoItems: [PhotosPickerItem] = []
+    @State private var uploadingPhotos = false
+    @State private var photoUploadFailure: String?
+    private static let maximumPhotos = 9
     /// MP topic / activity review textarea maxlength (300); Core still accepts up to 500.
     static let maximumContents = 300
     /// Round 4 copy (MP topic/index.wxml:438/448): the topic sheet is 评价路线 with 请输入您的评价内容...
     private var isTopic: Bool { if case .topic = target { return true } else { return false } }
+    @ScaledMetric(relativeTo: .body) private var photoSide: CGFloat = 72
+    /// R9-PC-BN-3 / R9-PC-CN-3: the MP star size follows Dynamic Type.
+    @ScaledMetric(relativeTo: .title2) private var starSide: CGFloat = 32
+    private func uploadPhotos(_ items: [PhotosPickerItem]) {
+        guard !items.isEmpty else { return }
+        guard let imageUploader, !uploadingPhotos else { photoItems = []; return }
+        let batch = Array(items.prefix(max(0, Self.maximumPhotos - draft.imageURLs.count)))
+        guard !batch.isEmpty else { photoItems = []; return }
+        uploadingPhotos = true; photoUploadFailure = nil
+        Task { @MainActor in
+            let result = await imageUploader.upload(items: batch)
+            draft.imageURLs = Array((draft.imageURLs + result.urls).prefix(Self.maximumPhotos))
+            if result.failed > 0 { photoUploadFailure = result.message ?? appLocalized("merchantApply.pic.uploadFailed", locale: .current) }
+            uploadingPhotos = false; photoItems = []
+        }
+    }
     private var state: ContextualReviewState { let _ = revision; return owner?.state ?? .idle }
     var body: some View {
         Form {
@@ -27,7 +51,7 @@ import SwiftUI
                             (star <= draft.rating ? MPAsset.FeatureIcon.iconStar2 : MPAsset.FeatureIcon.iconStar1)
                                 .resizable().scaledToFit()
                                 .accessibilityHidden(true)
-                                .frame(width: 32, height: 32)
+                                .frame(width: starSide, height: starSide)
                                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         }
                         .buttonStyle(.plain)
@@ -46,6 +70,46 @@ import SwiftUI
                     }
                 Text(verbatim: "\(draft.contents.count)/\(Self.maximumContents)").cyText(.meta)
             }.disabled(busy || state == .unknown || state == .acknowledged)
+            if imageUploader != nil {
+                Section {
+                    if !draft.imageURLs.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: CYSpacing.sm) {
+                                ForEach(Array(draft.imageURLs.enumerated()), id: \.offset) { index, url in
+                                    ZStack(alignment: .topTrailing) {
+                                        CYCachedAsyncImage(url, role: .shelf)
+                                            .frame(width: photoSide, height: photoSide)
+                                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                                            .accessibilityLabel(Text("context.review.photo \(index + 1)"))
+                                        Button {
+                                            if draft.imageURLs.indices.contains(index) { draft.imageURLs.remove(at: index) }
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill").symbolRenderingMode(.hierarchical)
+                                        }
+                                        .accessibilityLabel(Text("context.review.removePhoto \(index + 1)"))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    PhotosPicker(selection: $photoItems,
+                                 maxSelectionCount: max(1, Self.maximumPhotos - draft.imageURLs.count),
+                                 matching: .images) {
+                        Label("context.review.addPhotos", systemImage: "photo.on.rectangle.angled")
+                    }
+                    .disabled(uploadingPhotos || draft.imageURLs.count >= Self.maximumPhotos)
+                    .onChange(of: photoItems) { _, items in uploadPhotos(items) }
+                    if uploadingPhotos { ProgressView("merchantApply.pic.uploading") }
+                    if let photoUploadFailure {
+                        Text(verbatim: photoUploadFailure).foregroundStyle(.red)
+                    }
+                } header: {
+                    Text("context.review.photos")
+                } footer: {
+                    Text(verbatim: "\(draft.imageURLs.count)/\(Self.maximumPhotos)").monospacedDigit()
+                }
+                .disabled(busy || state == .unknown || state == .acknowledged)
+            }
             if owner?.writer.isConfigured != true { Section { Text("context.review.disabled") } }
             Section {
                 switch state {
@@ -57,7 +121,7 @@ import SwiftUI
                 case .idle: EmptyView()
                 }
                 Button("context.review.preview") { typing = false; captured = owner?.writer.session; review = draft }
-                    .disabled(!draft.isValid || busy || state == .unknown || state == .acknowledged)
+                    .disabled(!draft.isValid || busy || uploadingPhotos || state == .unknown || state == .acknowledged)
                     .accessibilityIdentifier("context.review.preview")
             }
         }

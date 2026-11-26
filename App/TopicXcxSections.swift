@@ -502,7 +502,17 @@ struct TopicXcxRouteSection: View {
     @Environment(\.locale) private var locale
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.openURL) private var openURL
+    /// R7-PC-B1-6: MP `_loadProgress` reads the buyer's own `/api/play/nodes` total/doneCount (bought only; otherwise 0, no fake
+    /// progress) (pages/topic/index/index.js:765-780).
+    @Environment(\.topicRouteGapService) private var makeGapService
+    @State private var routeProgress: (done: Int, total: Int) = (0, 0)
     let topic: TopicDetail
+    private func loadRouteProgress() async {
+        guard topic.isSignUp, let service = makeGapService?() else { routeProgress = (0, 0); return }
+        guard let data = await service.fetchTopicRouteNodes(topicID: topic.id).data,
+              let total = data["total"].tolerantInteger, total > 0, !Task.isCancelled else { routeProgress = (0, 0); return }
+        routeProgress = (min(total, max(0, data["doneCount"].tolerantInteger ?? 0)), total)
+    }
     private var routeNoteText: String {
         let zh = locale.language.languageCode?.identifier == "zh"
         let separator = zh ? "，" : ", "
@@ -543,13 +553,14 @@ struct TopicXcxRouteSection: View {
             // Flow gap PC-B-1-5: the route map. Progress / teams need a play read, so they stay off on the detail.
             let pins = Self.mapPins(topic)
             if !pins.isEmpty {
-                TopicRouteMapAndTeamsSection(pins: pins, completedCount: 0, totalCount: 0, isFreeExplore: topic.productType == 2,
+                TopicRouteMapAndTeamsSection(pins: pins, completedCount: routeProgress.done, totalCount: routeProgress.total, isFreeExplore: topic.productType == 2,
                                              onSelectPin: { pin in
                                                  let node = topic.chapters.flatMap(\.nodes).first { $0.name == pin.name && $0.latitude == pin.latitude && $0.longitude == pin.longitude }
                                                  if let node, let url = TopicStopMapsLink.url(for: node) { openURL(url) }
                                              })
                     .accessibilityElement(children: .contain)
                     .accessibilityIdentifier("topic.route.map")
+                    .task(id: TopicRouteProgressKey(topicID: topic.id, bought: topic.isSignUp)) { await loadRouteProgress() }
             }
             // Source `route-note`: 固定路线 for city orienteering, 没有固定路线 for free explore.
             Text(topic.productType == 2 ? "u9cde.topic.routeNote.free" : "u9cde.topic.routeNote.fixed")
@@ -749,5 +760,25 @@ extension EnvironmentValues {
     var topicLineupMerchantDestination: ((Int) -> AnyView)? {
         get { self[TopicLineupMerchantDestinationKey.self] }
         set { self[TopicLineupMerchantDestinationKey.self] = newValue }
+    }
+}
+
+private struct TopicRouteProgressKey: Hashable { let topicID: Int; let bought: Bool }
+
+private struct TopicRouteGapServiceKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> PlayerContentGapService?)? = nil
+}
+extension EnvironmentValues {
+    /// R7-PC-B1-6: signed-in player-content gap reads for the topic route (play nodes progress).
+    var topicRouteGapService: (@MainActor () -> PlayerContentGapService?)? {
+        get { self[TopicRouteGapServiceKey.self] }
+        set { self[TopicRouteGapServiceKey.self] = newValue }
+    }
+}
+
+extension AppSession {
+    func makeTopicRouteGapService() -> PlayerContentGapService? {
+        guard (account?.id ?? 0) > 0, let token, let api = regionalConfiguration?.apiConfiguration else { return nil }
+        return PlayerContentGapService(baseURL: api.baseURL, token: { token }, transport: runtimeHTTPTransport)
     }
 }

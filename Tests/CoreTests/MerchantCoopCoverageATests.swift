@@ -203,7 +203,8 @@ final class MerchantCoopCoverageATests: XCTestCase {
         XCTAssertEqual(method, "POST")
         guard case .object(let clubOnly) = try plain.body() else { return XCTFail("summary body") }
         XCTAssertEqual(Set(clubOnly.keys), ["clubId"])
-        XCTAssertEqual(clubOnly["personal"], .null)
+        // The key is absent (not a JSON null): `.null` here would promote to Optional(.null) and never equal nil.
+        XCTAssertNil(clubOnly["personal"])
         let personal = CoopFlowRead.clubSettlementSummary(clubID: 7, personal: true)
         guard case .object(let withPersonal) = try personal.body() else { return XCTFail("personal body") }
         XCTAssertEqual(withPersonal["clubId"], .id(7))

@@ -207,7 +207,10 @@ final class MerchantCoopCoreTests: XCTestCase {
         let token = String(repeating: "a", count: 16)
         XCTAssertEqual(MiniProgramPageLink(path: "pages/merchant/team/index", query: ["invite": token])?.query["invite"], token)
         XCTAssertTrue(MerchantFinanceDetailLoad.isMissingRecord(code: "404", statusCode: nil, message: nil))
-        XCTAssertTrue(MerchantFinanceDetailLoad.isMissingRecord(code: nil, statusCode: nil, message: "这条结算批次不存在或已不可见"))
+        // finance-detail-load.js: 404, or a server message saying 记录不存在 / 记录不可见. `batchMissingRecord` is the
+        // page's own fallback copy shown after that decision, not a server message, so it is not an input here.
+        XCTAssertTrue(MerchantFinanceDetailLoad.isMissingRecord(code: nil, statusCode: nil, message: "记录不可见"))
+        XCTAssertTrue(MerchantFinanceDetailLoad.isMissingRecord(code: "500", statusCode: nil, message: "该结算记录不存在"))
         XCTAssertFalse(MerchantFinanceDetailLoad.isMissingRecord(code: "500", statusCode: nil, message: "结算详情加载失败"))
         XCTAssertEqual(MerchantFinanceDetailLoad.batchMissingParam, "缺少结算批次信息")
         let unverified: [String: Any] = ["topicId": 4, "name": "夜跑", "status": "settled", "amountStatus": "unverified", "amountText": NSNull(),

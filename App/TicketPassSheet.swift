@@ -213,13 +213,8 @@ enum CYPassCardPick {
     @Environment(\.verificationCodeFactory) private var codeFactory
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
-    @State private var topHeight: CGFloat = 0
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     private var state: CYPassState { CYPassState(ticket.status) }
-    private let tearBand: CGFloat = 22
-    private var shape: CYTicketPassShape {
-        CYTicketPassShape(notchY: topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: 12, notch: 11, perforation: 3, perforationGap: 7)
-    }
 
     /// Native r2: the Wallet pass layout (system fill, perforation notch), no foil, tilt, flip or tear motion. The verified
     /// status shows on the code tile; the host plays the success haptic.
@@ -233,14 +228,14 @@ enum CYPassCardPick {
     /// The live pass: the face every state starts on.
     private var front: some View {
         VStack(spacing: 0) {
-            header.background(GeometryReader { Color.clear.preference(key: TicketPassTopHeightKey.self, value: $0.size.height) })
-            Color.clear.frame(height: tearBand).accessibilityHidden(true)
+            header
+            // NAT-13 (native-r2): a plain separator like Wallet's pass back; no notched tear shape.
+            Divider().padding(.vertical, 11)
             tile.padding(.horizontal).padding(.bottom, 20)
         }
-        .onPreferenceChange(TicketPassTopHeightKey.self) { topHeight = $0 }
         .frame(maxWidth: .infinity)
-        .background(CYColor.bgSurface)
-        .clipShape(shape, style: FillStyle(eoFill: true))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .opacity(state.isRetired ? 0.74 : 1)
         .cyBrightnessBoost(ticket.status == .ready)
         .privacySensitive()
@@ -278,6 +273,15 @@ enum CYPassCardPick {
                 Group {
                     Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }
                     Label { Text(verbatim: nonEmpty(ticket.addressName)).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
+                    // PLY-21-5: MP signup walletCard (index.js:777,784) appends ` · 已核销 x/y 家` and ` · N 大 M 小同享`.
+                    if let progress = ticket.exploreProgress {
+                        Label { Text("ticketPass.exploreProgress \(progress.redeemed) \(progress.required)") } icon: { Image(systemName: "checkmark.seal") }
+                            .accessibilityIdentifier("ticketPass.exploreProgress")
+                    }
+                    if let party = ticket.party, party.childCount > 0 {
+                        Label { Text("ticketPass.party \(party.adultCount) \(party.childCount)") } icon: { Image(systemName: "figure.and.child.holdinghands") }
+                            .accessibilityIdentifier("ticketPass.party")
+                    }
                 }
                 .font(.subheadline).foregroundStyle(.secondary)
             }
@@ -343,11 +347,6 @@ enum CYPassCardPick {
         case .unknown: return "—"
         }
     }
-}
-
-private struct TicketPassTopHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
 

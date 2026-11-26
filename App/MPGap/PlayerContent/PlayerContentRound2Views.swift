@@ -98,35 +98,90 @@ public struct ContextualReviewStarAndPhotoComposerView: View {
 /// `PC-B-3-2` / `PC-B-3-3`: Merchant application address/map picker, photo upload, & success card
 /// (write goes through `MerchantContentWriteApproval`, MP-first default on).
 public struct MerchantApplySuccessSummaryView: View {
-    public let shopName: String
-    public let topicTitle: String
-    public var onViewProgress: () -> Void
-    public var onBackHome: () -> Void
+    /// MP `registrationId` set: 修改已保存; otherwise 报名已提交.
+    public let saved: Bool
+    /// Route · chapter · stop names the link carried (MP summary card); empty hides the card.
+    public let lines: [String]
+    public var onViewProgress: (() -> Void)?
+    public var onBackHome: (() -> Void)?
 
-    public init(
-        shopName: String,
-        topicTitle: String,
-        onViewProgress: @escaping () -> Void,
-        onBackHome: @escaping () -> Void
-    ) {
-        self.shopName = shopName
-        self.topicTitle = topicTitle
+    public init(saved: Bool, lines: [String], onViewProgress: (() -> Void)?, onBackHome: (() -> Void)?) {
+        self.saved = saved
+        self.lines = lines
         self.onViewProgress = onViewProgress
         self.onBackHome = onBackHome
     }
 
     public var body: some View {
         ContentUnavailableView {
-            Label("merchantApply.success.title", systemImage: "checkmark.seal.fill")
+            Label(saved ? "merchantApply.success.saved" : "merchantApply.success.title", systemImage: "checkmark.circle")
         } description: {
-            Text("\(shopName) · \(topicTitle)")
-                .cyText(.body)
+            VStack(spacing: 4) {
+                // MP index.wxml:177-185: 已保存 after an edit; 主理人确认后生效，预计 1–3 天 after a create.
+                Text(saved ? "merchantApply.success.savedDetail" : "merchantApply.success.pending")
+                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                    Text(verbatim: line).foregroundStyle(.secondary)
+                }
+            }
         } actions: {
-            Button("merchantApply.success.viewProgress", action: onViewProgress)
-                .buttonStyle(.borderedProminent)
-            Button("merchantApply.success.backHome", action: onBackHome)
-                .buttonStyle(.bordered)
+            if let onViewProgress {
+                Button("merchantApply.success.viewProgress", action: onViewProgress)
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("merchantApply.success.viewProgress")
+            }
+            if let onBackHome {
+                Button("merchantApply.success.backHome", action: onBackHome)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("merchantApply.success.backHome")
+            }
         }
+    }
+}
+
+/// R7-PC-B3-3: MP merchantapply `shop` from `POST /api/merchant/info` (index.js:240-255).
+struct MerchantApplyShop: Equatable {
+    let name: String
+    let address: String
+    let businessTime: String
+    let cover: URL?
+    let latitude: Double?
+    let longitude: Double?
+
+    init(_ d: PlayWireValue) {
+        func text(_ key: String) -> String { (d[key].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }
+        func number(_ key: String) -> Double? { d[key].double ?? d[key].text.flatMap { Double($0.trimmingCharacters(in: .whitespaces)) } }
+        name = text("name"); address = text("address"); businessTime = text("businessTime")
+        // Cover: 门头图 first, else the logo; first of a comma list; https only.
+        let firstCover = (text("coverImage").isEmpty ? text("logo") : text("coverImage"))
+            .split(separator: ",").first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
+        cover = URL(string: firstCover).flatMap { $0.scheme?.lowercased() == "https" ? $0 : nil }
+        latitude = number("locationLat"); longitude = number("locationLng")
+    }
+    var isEmpty: Bool { name.isEmpty && address.isEmpty && businessTime.isEmpty }
+    /// Apple Maps link at the store coordinate; nil without a real point.
+    var mapURL: URL? {
+        guard let latitude, let longitude, latitude.isFinite, longitude.isFinite, !(latitude == 0 && longitude == 0) else { return nil }
+        var parts = URLComponents(string: "https://maps.apple.com/")
+        parts?.queryItems = [URLQueryItem(name: "ll", value: "\(latitude),\(longitude)"), URLQueryItem(name: "q", value: name.isEmpty ? address : name)]
+        return parts?.url
+    }
+}
+
+private struct MerchantApplyShopServiceKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> PlayerContentRound2Service?)? = nil
+}
+extension EnvironmentValues {
+    /// R7-PC-B3-3: signed-in `/api/merchant/info` read for the merchantapply store card.
+    var merchantApplyShopService: (@MainActor () -> PlayerContentRound2Service?)? {
+        get { self[MerchantApplyShopServiceKey.self] }
+        set { self[MerchantApplyShopServiceKey.self] = newValue }
+    }
+}
+
+extension AppSession {
+    func makeMerchantApplyShopService() -> PlayerContentRound2Service? {
+        guard (account?.id ?? 0) > 0, let token, let api = regionalConfiguration?.apiConfiguration else { return nil }
+        return PlayerContentRound2Service(baseURL: api.baseURL, token: { token }, transport: runtimeHTTPTransport)
     }
 }
 
@@ -148,12 +203,15 @@ public struct ActivityCancelledStateView: View {
         } description: {
             Text("activity.cancelled.subtitle")
         } actions: {
+            // R9-PC-C1-1: one CTA, as the MP cy-empty (scene-play-activity-detail/index.wxml:5-6):
+            // 查看我的订单 with an own order, otherwise 返回活动列表.
             if canViewOwnOrders {
                 Button("activity.cancelled.viewOrders", action: onViewOrders)
                     .buttonStyle(.borderedProminent)
+            } else {
+                Button("activity.cancelled.backToList", action: onBack)
+                    .buttonStyle(.borderedProminent)
             }
-            Button("common.back", action: onBack)
-                .buttonStyle(.bordered)
         }
     }
 }

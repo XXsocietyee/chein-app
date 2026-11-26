@@ -77,8 +77,7 @@ class ProfileCasePictureRemovalContracts(unittest.TestCase):
     def test_main_entry_and_review_are_connected_without_arbitrary_text_editor(self):
         s=read('App/ProfileEditView.swift')
         for token in ['Button("profile.caseRemoval.open") { model.beginTextEdit(.casePictures) }',
-                      'ProfileCasePictureRemovalEditor(edit: value,','model.confirmCasePictureRemoval(value, remove: $0)',
-                      'if value.payload.removesCasePictures { Text("profile.caseRemoval.review") }']:
+                      'ProfileCasePictureRemovalEditor(edit: value,','model.confirmCasePictureRemoval(value, remove: $0)']:
             self.assertIn(token,s)
         editor=read('App/ProfileTextFieldEditor.swift')
         self.assertIn('case .casePictures: return ""',editor);self.assertIn('.disabled(edit.field == .casePictures)',editor)

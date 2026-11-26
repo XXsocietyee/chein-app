@@ -120,8 +120,16 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             }
             if PayoutReceiverBridge.payoutOpen(session) { Section {
                 if let key = status.bindKey {
-                    Button { if !busy { confirmingBind = true } } label: { Text(LocalizedStringKey(key), tableName: "PayoutReceiver") }
-                        .disabled(busy).accessibilityIdentifier("payoutReceiver.bind")
+                    if PayoutReceiverBridge.weChatCode != nil {
+                        Button { if !busy { confirmingBind = true } } label: { Text(LocalizedStringKey(key), tableName: "PayoutReceiver") }
+                            .disabled(busy).accessibilityIdentifier("payoutReceiver.bind")
+                    } else {
+                        // CLB-r9-payout-receiver-02 (MP payout-receiver/index.js:106-112): binding needs the MP-only wx.login
+                        // code, so without it the row points to the mini-program instead of a button that always fails.
+                        Label("payoutReceiver.bind.mpOnly", systemImage: "info.circle")
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("payoutReceiver.bind.mpOnly")
+                    }
                 }
                 if status.pageState != .unbound, status.canUnbind {
                     Button(role: .destructive) { if !busy { confirmingUnbind = true } } label: { Text("payoutReceiver.unbind", tableName: "PayoutReceiver") }

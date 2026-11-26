@@ -74,6 +74,8 @@ import SwiftUI
 private struct PeopleMark: View {
     let url: URL?
     let systemImage: String
+    /// R9-PC-CN-3: the 32 pt avatar follows Dynamic Type.
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 32
     var body: some View {
         Group {
             if let url {
@@ -85,7 +87,7 @@ private struct PeopleMark: View {
                 Image(systemName: systemImage)
             }
         }
-        .frame(width: 32, height: 32)
+        .frame(width: side, height: side)
         .clipShape(Circle())
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)

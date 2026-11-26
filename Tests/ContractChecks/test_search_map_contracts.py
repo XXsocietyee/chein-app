@@ -71,7 +71,8 @@ class SearchMapSourceChecks(unittest.TestCase):
         app=self.text('App/GlobalSearchView.swift')
         self.assertIn('var next = filter; next.categoryID = category.id; applyFilter(next)',app)
         self.assertIn('filter = next; invalidate(); Task { await search() }',app)
-        self.assertIn('guard reader.isConfigured, query.canSearch else { return }',app)
+        self.assertIn('guard reader.isConfigured else { return }',app)
+        self.assertIn('guard query.canSearch else {',app)
         self.assertIn('filter == query',app)
         ui=self.text('Tests/AppUITests/SearchMapFlowTests.swift')
         for method in ['testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions',

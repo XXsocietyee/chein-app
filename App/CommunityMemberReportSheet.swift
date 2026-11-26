@@ -103,14 +103,12 @@ enum CommunityMemberReportTaxonomy {
     @State private var requestID = ""
     @State private var loadSequence = 0
 
+    // R9-PC-D9-2 (native r2): a grouped Form (reason section, 具体说明 section with the counter in its footer,
+    // 提交 in the toolbar) and ContentUnavailableView for the load-failed and result states. Same request flow
+    // (MP subpackageMember/components/cy/report-sheet/index.wxml).
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) { content }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.lg)
-            }
-            .background(CYColor.bgPage)
+            Form { content }
             .navigationTitle(Text("im.chat.more.reportPeer"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -118,6 +116,16 @@ enum CommunityMemberReportTaxonomy {
                     Button { dismiss() } label: { Text("im.reportPeer.cancel") }
                         .disabled(stage == .busy)
                         .accessibilityIdentifier("im.reportPeer.close")
+                }
+                if stage == .form || stage == .busy {
+                    ToolbarItem(placement: .confirmationAction) {
+                        if stage == .busy {
+                            ProgressView().accessibilityLabel(Text("im.reportPeer.busy"))
+                        } else {
+                            Button("im.reportPeer.submit") { Task { await submit() } }
+                                .accessibilityIdentifier("im.reportPeer.submit")
+                        }
+                    }
                 }
             }
         }
@@ -129,29 +137,28 @@ enum CommunityMemberReportTaxonomy {
     @ViewBuilder private var content: some View {
         switch stage {
         case .loading:
-            CYSkeleton().accessibilityLabel(Text("im.reportPeer.loading"))
-            Text("im.reportPeer.loading").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-        case .loadFailed(let why):
-            result(title: "im.reportPeer.loadFailed.title", why: why, identifier: "im.reportPeer.loadFailed")
-            CYPillButton("im.reportPeer.retry", style: .primary) { Task { await loadTaxonomy() } }
-            CYPillButton("im.reportPeer.cancel", style: .secondary) { dismiss() }
-        case .pick:
-            Text("im.reportPeer.pickHeader").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-            ForEach(reasons) { option in
-                Button { select(option) } label: {
-                    HStack {
-                        Text(verbatim: option.label).cyText(.label).foregroundStyle(CYColor.textPrimary)
-                        Spacer()
-                        Image(systemName: "chevron.right").cyText(.caption).foregroundStyle(CYColor.textTertiary)
-                            .accessibilityHidden(true)
-                    }
-                    .padding(CYSpacing.md)
-                    .frame(minHeight: 44)
-                    .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            Section {
+                HStack(spacing: 12) {
+                    ProgressView()
+                    Text("im.reportPeer.loading").foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text(verbatim: option.label))
-                .accessibilityIdentifier("im.reportPeer.reason." + option.code)
+            }
+        case .loadFailed(let why):
+            result(title: "im.reportPeer.loadFailed.title", why: why, identifier: "im.reportPeer.loadFailed",
+                   systemImage: "exclamationmark.triangle") {
+                Button("im.reportPeer.retry") { Task { await loadTaxonomy() } }.buttonStyle(.borderedProminent)
+                Button("im.reportPeer.cancel") { dismiss() }.buttonStyle(.bordered)
+            }
+        case .pick:
+            Section {
+                ForEach(reasons) { option in
+                    Button { select(option) } label: {
+                        Text(verbatim: option.label).foregroundStyle(.primary)
+                    }
+                    .accessibilityIdentifier("im.reportPeer.reason." + option.code)
+                }
+            } header: {
+                Text("im.reportPeer.pickHeader")
             }
         case .form, .busy:
             form
@@ -159,59 +166,65 @@ enum CommunityMemberReportTaxonomy {
             result(title: "im.reportPeer.ok.title",
                    why: (receipt.isEmpty ? "" : appLocalized("im.reportPeer.ok.receiptPrefix", locale: locale) + receipt + appLocalized("im.reportPeer.ok.receiptSuffix", locale: locale))
                         + appLocalized("im.reportPeer.ok.sub", locale: locale),
-                   identifier: "im.reportPeer.ok")
-            CYPillButton("im.reportPeer.ok.done", style: .primary) { dismiss() }
+                   identifier: "im.reportPeer.ok", systemImage: "checkmark.circle") {
+                Button("im.reportPeer.ok.done") { dismiss() }.buttonStyle(.borderedProminent)
+            }
         case .failed(let why):
-            result(title: "im.reportPeer.failed.title", why: why, identifier: "im.reportPeer.failed")
-            CYPillButton("im.reportPeer.backToForm", style: .primary) { stage = .form }
-            CYPillButton("im.reportPeer.cancel", style: .secondary) { dismiss() }
+            result(title: "im.reportPeer.failed.title", why: why, identifier: "im.reportPeer.failed",
+                   systemImage: "xmark.octagon") {
+                Button("im.reportPeer.backToForm") { stage = .form }.buttonStyle(.borderedProminent)
+                Button("im.reportPeer.cancel") { dismiss() }.buttonStyle(.bordered)
+            }
         case .unknown:
-            result(title: "im.reportPeer.unknown.title", why: appLocalized("im.reportPeer.unknown.why", locale: locale), identifier: "im.reportPeer.unknown")
-            CYPillButton("im.reportPeer.unknown.retry", style: .primary) { Task { await submit() } }
-            CYPillButton("im.reportPeer.unknown.later", style: .secondary) { dismiss() }
+            result(title: "im.reportPeer.unknown.title", why: appLocalized("im.reportPeer.unknown.why", locale: locale),
+                   identifier: "im.reportPeer.unknown", systemImage: "questionmark.circle") {
+                Button("im.reportPeer.unknown.retry") { Task { await submit() } }.buttonStyle(.borderedProminent)
+                Button("im.reportPeer.unknown.later") { dismiss() }.buttonStyle(.bordered)
+            }
         }
     }
 
-    private var form: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+    @ViewBuilder private var form: some View {
+        Section {
             Text(verbatim: appLocalized("im.reportPeer.reasonPrefix", locale: locale) + (reason?.label ?? ""))
-                .cyText(.label).foregroundStyle(CYColor.textPrimary)
-            if let reason, case let note = CommunityMemberReportTaxonomy.responseText(reason, locale: locale), !note.isEmpty {
-                Text(verbatim: note).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Button("im.reportPeer.changeReason") { stage = .pick }
+                .disabled(stage == .busy)
+        } footer: {
+            if let picked = reason, case let note = CommunityMemberReportTaxonomy.responseText(picked, locale: locale), !note.isEmpty {
+                Text(verbatim: note)
             }
-            Text("im.reportPeer.detailLabel").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+        }
+        Section {
             TextField(text: $detail, prompt: Text("im.reportPeer.detailPlaceholder"), axis: .vertical) {
                 Text("im.reportPeer.detailLabel")
             }
             .lineLimit(4...10)
-            .padding(CYSpacing.md)
-            .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .disabled(stage == .busy)
             .onChange(of: detail) { _, _ in requestID = ""; detailError = nil }
             .accessibilityIdentifier("im.reportPeer.detail")
-            HStack {
-                if let detailError {
-                    Text(verbatim: detailError).cyText(.meta).foregroundStyle(CYColor.dangerText)
+        } header: {
+            Text("im.reportPeer.detailLabel")
+        } footer: {
+            VStack(alignment: .leading, spacing: 4) {
+                if let message = detailError {
+                    Text(verbatim: message).foregroundStyle(.red)
                         .accessibilityIdentifier("im.reportPeer.detailError")
                 }
-                Spacer()
-                Text(verbatim: "\(detail.count)/\(CommunityMemberReportDraft.descriptionMax)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-            }
-            Text("im.reportPeer.anonymous").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            HStack(spacing: CYSpacing.sm) {
-                CYPillButton("im.reportPeer.changeReason", style: .secondary) { stage = .pick }
-                CYPillButton(stage == .busy ? "im.reportPeer.busy" : "im.reportPeer.submit", style: .primary) { Task { await submit() } }
-                    .disabled(stage == .busy)
+                Text(verbatim: "\(detail.count)/\(CommunityMemberReportDraft.descriptionMax)").monospacedDigit()
+                Text("im.reportPeer.anonymous")
             }
         }
     }
 
-    private func result(title: LocalizedStringKey, why: String, identifier: String) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-            if !why.isEmpty { Text(verbatim: why).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+    private func result<Actions: View>(title: LocalizedStringKey, why: String, identifier: String, systemImage: String,
+                                       @ViewBuilder actions: () -> Actions) -> some View {
+        ContentUnavailableView {
+            Label(title, systemImage: systemImage)
+        } description: {
+            if !why.isEmpty { Text(verbatim: why) }
+        } actions: {
+            actions()
         }
-        .accessibilityElement(children: .combine)
         .accessibilityIdentifier(identifier)
     }
 

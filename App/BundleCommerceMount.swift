@@ -977,3 +977,33 @@ enum BundleCommerceFailure {
             .themeDomain(.player)
     }
 }
+
+/// MKT-7-3b: the free-explore page's 取消预约 / 更换商家 / 商家评价 (MP free-explore/index.wxml:44,58-62).
+/// Shown in a sheet over the bundle page so the read host is not retired by a push.
+enum FreeExploreBundleAction: Identifiable, Hashable {
+    case cancel(FreeExploreLaunchID)
+    case exitSwap
+    case review
+
+    var id: String {
+        switch self {
+        case .cancel(let reservation): return "cancel." + reservation.text
+        case .exitSwap: return "exitSwap"
+        case .review: return "review"
+        }
+    }
+}
+
+@MainActor struct FreeExploreBundleActionSheet: View {
+    let action: FreeExploreBundleAction
+    let host: FreeExploreBundleReadHost
+    let model: FreeExploreBundleLaunchModel
+
+    var body: some View {
+        switch action {
+        case .cancel(let reservation): BundleCommerceCancelForm(host: host, reservationID: reservation)
+        case .exitSwap: BundleExitSwapView(host: host).themeDomain(.player)
+        case .review: BundleCommerceReviewHub(model: model)
+        }
+    }
+}

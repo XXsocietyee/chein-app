@@ -29,8 +29,7 @@ final class ProfilePreferenceRemovalFlowTests: XCTestCase {
     func testRemoveReviewSaveAndReopenShowsOnlyVerifiedSelection() {
         launch(); openPreferences(); app.buttons["profile.preferenceRemoval.remove.7007"].tap(); app.buttons["profile.preferenceRemoval.apply"].tap()
         app.swipeUp(); app.buttons["profile.edit.review"].tap()
-        XCTAssertTrue(app.otherElements["profile.preferenceRemoval.review"].waitForExistence(timeout: 5) || app.staticTexts["Selected preference IDs"].exists)
-        app.buttons["profile.edit.confirm"].tap(); let status = app.staticTexts["profile.edit.status"]
+        let status = app.staticTexts["profile.edit.status"]
         XCTAssertTrue(status.waitForExistence(timeout: 10)); XCTAssertEqual(status.label, "Your profile was saved and verified.")
         openPreferences(); XCTAssertTrue(app.buttons["profile.preferenceRemoval.remove.4"].exists)
         XCTAssertFalse(app.buttons["profile.preferenceRemoval.remove.7007"].exists)

@@ -46,3 +46,153 @@ struct R9PublicShareButton: View {
         }
     }
 }
+
+// MARK: - A2-02b / A2-10 merchant subject (MP components cy/profile index.js:900-970 public-home probe,
+// index.wxml:578-582 发起合作 bar, :2277-2283 onCoopInvite → coop/invite type=0 toId=memberId)
+
+/// Probes `api/merchant/public-home` by the viewed member id (Core `SocialPublicProfile.merchantHomeTarget` shape).
+/// A public merchant record swaps the page to `PublicMerchantHomeView`; anything else keeps the member profile.
+/// A signed-in visitor (not the merchant themself) gets the bottom 发起合作 bar, which opens the coop invite with
+/// type 0 and the merchant's member id; that page owns the publisher-topic check (MP `canInviteCoop`).
+@MainActor struct R9MerchantAwareProfileHost<Profile: View>: View {
+    @ObservedObject var session: AppSession
+    let memberID: Int
+    @ViewBuilder let profile: () -> Profile
+    @State private var isMerchant = false
+    @State private var opensCoopInvite = false
+
+    private var showsCoopBar: Bool {
+        guard isMerchant, let viewer = session.account?.id else { return false }
+        return viewer != memberID
+    }
+
+    var body: some View {
+        Group {
+            if isMerchant, let owner = PublicMerchantOwnerID(memberID) {
+                PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext)
+            } else {
+                profile()
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if showsCoopBar {
+                SocialPublicProfileGapCoopBar { opensCoopInvite = true }
+                    .background(.bar)
+                    .accessibilityIdentifier("profile.merchant.coopInvite")
+            }
+        }
+        .navigationDestination(isPresented: $opensCoopInvite) {
+            MPReviewedPageScreen(page: "pages/coop/invite/index", query: ["type": "0", "toId": String(memberID)])
+                .environmentObject(session)
+        }
+        .task(id: memberID) { await probe() }
+    }
+
+    private func probe() async {
+        isMerchant = false
+        guard let owner = PublicMerchantOwnerID(memberID) else { return }
+        let reader = session.publicMerchantHomeContext.reader
+        guard reader.isConfigured else { return }
+        do {
+            _ = try await reader.home(.ownerMemberID(owner))
+            guard !Task.isCancelled else { return }
+            isMerchant = true
+        } catch {
+            isMerchant = false
+        }
+    }
+}
+
+// MARK: - C-T6b template editor `from` / `scope` (MP pages/publish/temp/index.js:1392-1416,
+// template-intro/index.js:291 `temp/index?scope=MERCHANT`)
+
+extension AppSession {
+    /// MP temp/index.js:1400: `operationScope = options.scope === 'MERCHANT' ? 'MERCHANT' : ''`. Only MERCHANT is
+    /// written, onto both the shelf requests (`coordinator.operationScope`) and the submit payload (`draft.operationScope`,
+    /// which `TemplateAuthoringContract` turns into `scope=MERCHANT`). `from` only changes labels (see `TemplateAuthoringView`).
+    func templateAuthoringEditor(adopting source: DiscoveryPlayTemplate? = nil, from: String?, scope: String?) -> TemplateAuthoringCoordinator {
+        let coordinator = templateAuthoringEditor(adopting: source)
+        guard scope == "MERCHANT" else { return coordinator }
+        coordinator.operationScope = "MERCHANT"
+        if coordinator.draft.operationScope != "MERCHANT" {
+            var draft = coordinator.draft
+            draft.operationScope = "MERCHANT"
+            coordinator.change(draft)
+        }
+        return coordinator
+    }
+}
+
+// MARK: - A7-02 MiniCropView → MerchantImageCropRect (generalises the r8 avatar mapping to any aspect)
+
+enum R9MiniCropRect {
+    /// Inverse of `MerchantImageCropRect(sourceWidth:sourceHeight:aspect:horizontal:vertical:zoom:)`.
+    /// 使用原图 (`.original`) is the centred, unzoomed frame of that aspect.
+    static func merchantRect(_ result: MiniCropView.Result?, source: RetainedSelectedImage,
+                             aspect: MerchantImageCropAspect) -> MerchantImageCropRect? {
+        let w = source.width, h = source.height
+        guard case .crop(let picked)? = result else {
+            return try? MerchantImageCropRect(sourceWidth: w, sourceHeight: h, aspect: aspect)
+        }
+        let available = min(w / aspect.widthUnits, h / aspect.heightUnits)
+        guard available > 0 else { return nil }
+        let pickedUnits = max(1, min(picked.width / Double(aspect.widthUnits), picked.height / Double(aspect.heightUnits)))
+        let zoom = min(4, max(1, Double(available) / pickedUnits))
+        let units = max(1, Int((Double(available) / zoom).rounded(.down)))
+        let travelX = Double(w - units * aspect.widthUnits), travelY = Double(h - units * aspect.heightUnits)
+        let horizontal = travelX > 0 ? min(1, max(0, picked.x / travelX)) : 0.5
+        let vertical = travelY > 0 ? min(1, max(0, picked.y / travelY)) : 0.5
+        return try? MerchantImageCropRect(sourceWidth: w, sourceHeight: h, aspect: aspect,
+                                          horizontal: horizontal, vertical: vertical, zoom: zoom)
+    }
+}
+
+// MARK: - C-F7d (r10): chapter 由工作人员开幕 (MP pages/publish/fabu/index.wxml:1324-1334,
+// theme-runtime-structure.js:200-201 display, :215-227 onChapterHostUnlock)
+
+/// One `Toggle` row on the chapter page, bound to Core `ProjectEditRuntimeActs` (acts[].hostUnlock).
+/// The subtitle is the MP's disabled reason when there is one, otherwise the on / off summary.
+/// Turning on is blocked while a reason applies; turning off is always allowed (MP js:223).
+/// A refusal from Core shows as the section footer (MP `structureError`). No request: the topic save carries it.
+@MainActor struct ProjectEditChapterHostUnlockSection: View {
+    @ObservedObject var model: ProjectEditModel
+    let chapterID: String
+    @State private var refusalKey: String?
+
+    private var chapterIndex: Int? { model.draft.chapters.firstIndex { $0.id == chapterID } }
+
+    var body: some View {
+        if let index = chapterIndex {
+            let host = ProjectEditRuntimeActs.chapterHost(in: model.draft, chapterIndex: index)
+            Section {
+                Toggle(isOn: Binding(get: { host.enabled }, set: { set($0, index: index) })) {
+                    Label {
+                        Text("projectEdit.hostUnlock.title")
+                        Text(LocalizedStringKey(host.disabledReasonKey ?? host.summaryKey))
+                    } icon: {
+                        Image(systemName: "lock")
+                    }
+                }
+                .disabled(!model.fullEdit || (host.openingBlocked && !host.enabled))
+                .accessibilityIdentifier("projectEdit.chapter.hostUnlock")
+            } footer: {
+                if let refusalKey {
+                    Label(LocalizedStringKey(refusalKey), systemImage: "exclamationmark.circle")
+                        .foregroundStyle(.red)
+                        .accessibilityIdentifier("projectEdit.chapter.hostUnlock.error")
+                }
+            }
+        }
+    }
+
+    private func set(_ enabled: Bool, index: Int) {
+        do {
+            model.draft = try ProjectEditRuntimeActs.setEnabled(enabled, chapterIndex: index, in: model.draft)
+            refusalKey = nil
+        } catch ProjectEditRuntimeActsError.refused(let key) {
+            refusalKey = key
+        } catch {
+            refusalKey = ProjectEditRuntimeActs.Copy.displayUnsaved
+        }
+    }
+}

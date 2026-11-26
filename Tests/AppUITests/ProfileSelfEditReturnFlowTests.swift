@@ -78,7 +78,6 @@ final class ProfileSelfEditReturnFlowTests: XCTestCase {
     }
     func testSavedEditorReturnsFreshPublicIntroduction() {
         launch();open();stage();app.swipeUp();app.buttons["profile.edit.review"].tap()
-        let confirm=app.buttons.matching(identifier:"profile.edit.confirm").firstMatch;XCTAssertTrue(confirm.waitForExistence(timeout:5));confirm.tap()
         XCTAssertTrue(app.buttons["profile.selfEdit.open"].waitForExistence(timeout:5))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","introduction updated")).firstMatch.waitForExistence(timeout:5))
         XCTAssertTrue(app.staticTexts["profile.selfEditFixture.counts"].label.contains("Writes: 1"))
@@ -101,14 +100,8 @@ final class ProfileSelfEditReturnFlowTests: XCTestCase {
         stage()
         let review = app.buttons["profile.edit.review"]
         for _ in 0..<4 where !review.isHittable { app.swipeUp() }
+        // A3-06 (r9): MP gerenziliao saveInfo — 保存 writes on tap, no review sheet.
         XCTAssertTrue(review.waitForExistence(timeout: 5)); XCTAssertTrue(review.isHittable); review.tap()
-        let candidates = app.buttons.matching(identifier: "profile.edit.confirm")
-        let exists = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in candidates.count > 0 }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [exists], timeout: 5), .completed)
-        let leaves = candidates.allElementsBoundByIndex.filter { $0.descendants(matching: .button).count == 0 }
-        XCTAssertEqual(leaves.count, 1)
-        guard leaves.count == 1, let confirm = leaves.first else { return }
-        XCTAssertTrue(confirm.isEnabled); XCTAssertTrue(confirm.isHittable); confirm.tap()
     }
     private func assertStillInEditor(file: StaticString = #filePath, line: UInt = #line) {
         let counts = app.staticTexts["profile.savedReturnFixture.counts"]

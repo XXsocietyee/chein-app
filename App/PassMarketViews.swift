@@ -1104,7 +1104,7 @@ struct PassOrderDetailView: View {
         }
         if order.canResume || order.canCancel || order.canRefund {
             Section {
-                PassOrderRefusedWrites(order: order)
+                PassOrderRefusedWrites(order: order, onWritten: onRetry)
             }
         }
     }
@@ -1114,6 +1114,8 @@ struct PassOrderDetailView: View {
 /// The three writes throw before any transport send. No pay request is built.
 private struct PassOrderRefusedWrites: View {
     let order: PlatformPassSubscriptionOrder
+    /// R9-MEM-5-1: MP market/pass-order/index.js:70-127 re-reads the order after a write succeeds.
+    var onWritten: () -> Void = {}
     @Environment(\.passOrderWriteSession) private var session
     @State private var confirmCancel = false
     @State private var refunding = false
@@ -1198,10 +1200,11 @@ private struct PassOrderRefusedWrites: View {
     private enum Write { case resume, cancel, refund }
 
     /// Money stays off. A missing reader does not invent a sender. Every refusal shows the gate notice.
+    /// R9-MEM-5-1: only a refusal shows 已拒绝; a TEST write that succeeds re-reads the order like the MP (index.js:70-127).
     private func refuse(_ write: Write, reason: String = "") {
-        defer { refusedNotice = true }
-        guard PlatformPass.moneyEnabled == false, MPParityBindings.moneyEnabled == false else { return }
-        guard let session, let client = session.makePlatformPassReader() else { return }
+        refusedNotice = false
+        guard PlatformPass.moneyEnabled == false, MPParityBindings.moneyEnabled == false else { refusedNotice = true; return }
+        guard let session, let client = session.makePlatformPassReader() else { refusedNotice = true; return }
         let token = session.passReadToken() ?? ""
         let kind: PlatformPass.OrderWriteKind
         switch write {
@@ -1219,7 +1222,10 @@ private struct PassOrderRefusedWrites: View {
                     case .cancel: _ = try await client.sendCancelPassOrder(orderNo: orderNo, token: token)
                     case .refundApply: _ = try await client.sendRefundApplyPassOrder(orderNo: orderNo, reason: reason, token: token)
                     }
-                } catch { return }
+                    onWritten()
+                } catch {
+                    refusedNotice = true
+                }
             }
             return
         }
@@ -1235,8 +1241,9 @@ private struct PassOrderRefusedWrites: View {
                 _ = PlatformPass.passOrderRefundApplyPath(orderNo: order.orderNo)
                 try client.refundApplyPassOrder(orderNo: order.orderNo, reason: reason, token: token)
             }
+            onWritten()
         } catch {
-            return
+            refusedNotice = true
         }
     }
 }

@@ -88,7 +88,7 @@ class ClubOpsEventContracts(unittest.TestCase):
         for path in ['App/ClubOpsEventView.swift', 'App/ClubOpsEventFormFields.swift', 'App/ClubRosterBucketContent.swift',
                      'App/ClubSeriesOccurrenceBrowser.swift', 'App/ClubSeriesLeadPicker.swift', 'App/ClubGovernanceCommandForm.swift',
                      'App/ClubSeriesScheduleEditor.swift', 'App/ClubGovernanceViews.swift']:
-            source = re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)|(?:message|action)Identifier: "[^"]*"', '', text(path))
+            source = re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)|(?:message|action)Identifier: "[^"]*"|\bidentifier: "[^"]*"', '', text(path))
             for key in re.findall(r'"(clubOpsEvent\.[A-Za-z.]+(?: \\\([^"]*)?)"', source):
                 if key.endswith('.'):
                     continue

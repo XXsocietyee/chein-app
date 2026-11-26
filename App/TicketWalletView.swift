@@ -17,8 +17,6 @@ import SwiftUI
     /// Pushed inside a host stack (deep link, topic, participation): no own NavigationStack (PLY-21-9).
     var isPushed = false
     @Environment(\.ticketWalletPendingOrderProvider) private var pendingOrderProvider
-    @Environment(\.ticketWalletCompletionReader) private var completionReader
-    @State private var walletFilter = TicketWalletFilter.all
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletSnapshot>()
     @State private var isVisible = false
@@ -67,17 +65,11 @@ import SwiftUI
                             } icon: { Image(systemName: "ticket") }
                         }
                     }
-                    let shown = filtered(snapshot.tickets)
-                    if !snapshot.tickets.isEmpty && shown.isEmpty {
-                        // Source filter 即将开始 / 已通关 with no match: say so instead of an empty wallet.
-                        Text(LocalizedStringKey(walletFilter.emptyKey), tableName: "MpFresh")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity)
-                            .accessibilityIdentifier("ticketWallet.filterEmpty")
-                    }
-                    ticketCarousel(shown)
+                    // R9-MEM-NIT-1: the MP signup wallet has no filter (signup/index.wxml), so every ticket shows.
+                    let shown = snapshot.tickets
+                    // NAT-12 (native-r2): MP signup/index.wxml has no swiper; the rows are the one list (no app-only carousel).
                     // Source preserves both lanes and row order, including repeated server IDs.
-                    ForEach(Array(snapshot.tickets.enumerated()).filter { shown.contains($0.element) }, id: \.offset) { rowIndex, ticket in
+                    ForEach(Array(shown.enumerated()), id: \.offset) { rowIndex, ticket in
                         if ticket.action == .detail && !ticket.isWalletLocked {
                             NavigationLink {
                                 TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
@@ -105,15 +97,10 @@ import SwiftUI
                     }
                 }
                 if !companions.isEmpty {
+                    // R8-MEM-21-1: companion seats join the wallet as 同伴席位 rows (MP signup index.js:293-300).
                     Section {
-                        ForEach(companions, id: \.invitationID) { card in
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(verbatim: card.title.isEmpty ? "—" : card.title)
-                                if !card.usableUntil.isEmpty {
-                                    Text(verbatim: card.usableUntil).font(.subheadline).foregroundStyle(.secondary)
-                                }
-                            }
-                            .accessibilityIdentifier("ticketWallet.companion.\(card.invitationID)")
+                        ForEach(companions, id: \.invitationID) { seat in
+                            TicketWalletCompanionCard(seat: seat)
                         }
                     }
                     .accessibilityIdentifier("ticketWallet.companions")
@@ -208,9 +195,15 @@ import SwiftUI
             let ticket = try await reader.ticketDetail(id: id)
             guard !Task.isCancelled, focusPhase == .resolving, focusRegistrationID == id else { return }
             // R8-MEM-21-2: MP index.js:200-203 also needs a paid registration (`registrationStatus == 2`) on a
-            // topic or activity (`ownerType` 1/2); anything else is 未定位到原报名凭证. (`memberId` is not decoded yet.)
+            // topic or activity (`ownerType` 1/2), and a present `memberId` must be the signed-in member
+            // (`row.memberId != null && String(row.memberId) !== owner`); anything else is 未定位到原报名凭证.
             guard ticket.id == id, ticket.registrationStatus == 2, ticket.ownerType == 1 || ticket.ownerType == 2 else {
                 focusPhase = .missing; return
+            }
+            if let memberID = ticket.memberID {
+                guard let owner = session.currentRuntimeDependencyContext?.session.accountID, memberID == String(owner) else {
+                    focusPhase = .missing; return
+                }
             }
             focusPhase = .found
             carouselTicketID = id
@@ -285,65 +278,6 @@ import SwiftUI
            let provider, provider.owner == pendingOrderProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured) != nil {
             pendingOrderReadOwner = provider.owner
-        }
-    }
-}
-
-extension TicketWalletView {
-    /// Source「票夹 ▾」pop-over (全部 / 即将开始 / 已通关, split by server topicCompleted; hengyin 91aab64b4).
-    fileprivate var filterMenu: some View {
-        Menu {
-            Picker(selection: $walletFilter) {
-                ForEach(TicketWalletFilter.allCases, id: \.self) { filter in
-                    Text(LocalizedStringKey(filter.titleKey), tableName: "MpFresh").tag(filter)
-                }
-            } label: { EmptyView() }
-        } label: {
-            HStack(spacing: 4) {
-                Text(LocalizedStringKey(walletFilter.navKey), tableName: "MpFresh").font(.headline)
-                Image(systemName: "chevron.down").font(.caption.weight(.semibold)).accessibilityHidden(true)
-            }
-            .foregroundStyle(.primary)
-        }
-        .accessibilityLabel(Text("mpfresh.ticketWallet.filter.a11y \(Text(LocalizedStringKey(walletFilter.titleKey), tableName: "MpFresh"))", tableName: "MpFresh"))
-        .accessibilityIdentifier("ticketWallet.filter")
-    }
-    fileprivate func filtered(_ tickets: [TicketWalletTicket]) -> [TicketWalletTicket] {
-        guard walletFilter != .all, let completionReader else { return tickets }
-        return tickets.filter { ticket in
-            // Unknown completion stays in 全部 only; it is never guessed into either bucket.
-            guard let done = completionReader.topicCompleted(ticket) else { return false }
-            return walletFilter == .completed ? done : !done
-        }
-    }
-    /// Glass carousel entry over the openable tickets (detail action only, same destination as the rows below). Two or more tickets;
-    /// accessibility Dynamic Type sizes skip it and keep the vertical rows.
-    @ViewBuilder fileprivate func ticketCarousel(_ tickets: [TicketWalletTicket]) -> some View {
-        // R7-MEM-21-2: locked tickets never open from the carousel (MP index.wxml:59-61).
-        let openable = Array(tickets.enumerated()).filter { $0.element.action == .detail && !$0.element.isWalletLocked }.prefix(12)
-        if openable.count >= 2 && !dynamicTypeSize.isAccessibilitySize {
-            let slides = openable.map { offset, ticket in
-                CYCarouselSlide(id: "\(offset)-\(ticket.id)", seed: "ticket-\(ticket.id)",
-                                title: ticket.title.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 } ?? appLocalized("ticketWallet.untitled", locale: locale),
-                                date: ticket.participateDate, place: ticket.addressName, badge: statusTitle(ticket.status),
-                                kind: .ticket, dimmed: ticket.status == .cancelled || ticket.status == .expired)
-            }
-            Section {
-                CYCarouselRail(phase: .loaded(Array(slides)), railLabel: "carousel.tickets", onOpen: { key in
-                    if let match = openable.first(where: { "\($0.offset)-\($0.element.id)" == key }) { carouselTicketID = match.element.id }
-                }) { EmptyView() }
-                    .questifyCardListRow()
-            }
-        }
-    }
-    private func statusTitle(_ status: TicketWalletStatus) -> String {
-        switch status {
-        case .ready: return appLocalized("ticketWallet.status.ready", locale: locale)
-        case .pending: return appLocalized("ticketWallet.status.pending", locale: locale)
-        case .verified: return appLocalized("ticketWallet.status.verified", locale: locale)
-        case .cancelled: return appLocalized("ticketWallet.status.cancelled", locale: locale)
-        case .expired: return appLocalized("ticketWallet.status.expired", locale: locale)
-        case .unknown: return appLocalized("ticketWallet.status.unknown", locale: locale)
         }
     }
 }

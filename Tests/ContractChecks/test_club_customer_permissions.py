@@ -111,6 +111,12 @@ class ClubCustomerPermissionContracts(unittest.TestCase):
         from tools.club_customer_directory_admission import restore_product_source
         path = 'Tests/CoreTests/ClubGovernanceProductionTests.swift'
         raw = (ROOT / path).read_bytes()
+        # 097702ffb (CLB-r9-gate-01..04, owner-approved non-money club writes in Release) added one
+        # additive Core test. Strip exactly that hash-pinned method; any other fixture byte still fails.
+        start = raw.index(b'    func testLiveCatalogPermitsNamedOperationsWithoutAPreboundTarget()')
+        end = raw.index(b'    func testDefaultFactoryDoesNotDispatch()')
+        self.assertEqual(hashlib.sha256(raw[start:end]).hexdigest(), '8f34e97e22523164ca09939b63d472392ea29d205aa2aa26002e787fa151129c')
+        raw = raw[:start] + raw[end:]
         # MP pages/club/governance/index.js:466-476 sends durationDays (the server clock owns the expiry;
         # choices are 7/30/90). index.js:270-277 admits member governance only for CLUB_OWNER or CLUB_CO_OWNER,
         # so the ban-flow access fixture is CLUB_OWNER. Both edits reverse to the admitted P044 bytes.

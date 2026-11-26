@@ -29,6 +29,10 @@ import SwiftUI
     @State private var showApplyPicker = false
     /// R7-PC-B3-3: MP merchantapply target summary lines (topicName / chapterName / nodeName from the link).
     var applyTarget: [String]? = nil
+    /// R7-PC-B3-3: MP merchantapply 你的门店 card (index.js:225-262 `/api/merchant/info`); nil hides the section.
+    @State private var applyShop: MerchantApplyShop?
+    @State private var showsApplyProgress = false
+    @Environment(\.merchantApplyShopService) private var makeApplyShopService
     private struct AddressConfirmation: Equatable {
         let scope: UUID
         let observedAt: Date
@@ -87,7 +91,9 @@ import SwiftUI
                     }
                 }.accessibilityIdentifier("merchant.registrationAvailability.retryReadback")
             }
-            if c.isCurrent, let source = c.snapshot {
+            if let progressTopicID = applySuccessTopicID {
+                applySuccessSection(topicID: progressTopicID)
+            } else if c.isCurrent, let source = c.snapshot {
                 fields(source)
                 Section {
                     if case .placement = kind, !MerchantCityQuota(catalog: source.value["catalog"]).canPlace {
@@ -113,6 +119,12 @@ import SwiftUI
             } else if c.busy { ProgressView("merchant.loading") }
         }
         .accessibilityIdentifier("merchant.content.editor")
+        .task(id: service.scope) { await loadApplyShop() }
+        .navigationDestination(isPresented: $showsApplyProgress) {
+            if let topicID = applySuccessTopicID {
+                MerchantContentDocumentView(service: service, query: .project(topicID: topicID), focusedTopicID: topicID)
+            }
+        }
         .sheet(isPresented: $showApplyPicker) {
             NavigationStack {
                 MerchantApplyPickerGapView(location: applyLocationBinding, ruleInstructions: binding("activityDesc"),
@@ -209,6 +221,64 @@ import SwiftUI
         addressGeneration = UUID(); addressConfirmation = addressContext(snapshot)
         dirty = true; model.cancel(); return true
     }
+    /// MP merchantapply phase `success` (index.wxml:173-216): the registration was created or saved.
+    private var applySuccessTopicID: Int? {
+        guard c.isCurrent, c.receipt != nil, availabilityReplacement == nil, !c.busy, !c.locked else { return nil }
+        switch kind {
+        case .registrationCreate(let topicID, _): return topicID
+        case .registrationEdit: return c.snapshot?.value["topicId"].integer ?? 0
+        default: return nil
+        }
+    }
+    private var isApplyEdit: Bool { if case .registrationEdit = kind { return true }; return false }
+    @ViewBuilder private func applySuccessSection(topicID: Int) -> some View {
+        Section {
+            MerchantApplySuccessSummaryView(
+                saved: isApplyEdit,
+                lines: applyTarget ?? [],
+                onViewProgress: topicID > 0 ? { showsApplyProgress = true } : nil,
+                // MP shows 返回商家首页 only after an edit (index.wxml:203-206).
+                onBackHome: isApplyEdit ? { dismiss() } : nil)
+        }
+        .accessibilityIdentifier("merchantApply.success")
+    }
+    @ViewBuilder private func applyShopSection(_ shop: MerchantApplyShop) -> some View {
+        Section("merchantApply.shop.title") {
+            if let cover = shop.cover {
+                AsyncImage(url: cover) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: { EmptyView() }
+                .frame(maxWidth: .infinity, maxHeight: 160)
+                .clipped()
+                .listRowInsets(EdgeInsets())
+                .accessibilityHidden(true)
+            }
+            if !shop.name.isEmpty { Text(verbatim: shop.name).font(.headline) }
+            if !shop.businessTime.isEmpty {
+                Label { Text(verbatim: shop.businessTime) } icon: { Image(systemName: "clock") }
+            }
+            if !shop.address.isEmpty {
+                // MP 第九轮 m1-9: the store address opens the map.
+                if let mapURL = shop.mapURL {
+                    Link(destination: mapURL) {
+                        Label { Text(verbatim: shop.address) } icon: { Image(systemName: "mappin.and.ellipse") }
+                    }
+                } else {
+                    Label { Text(verbatim: shop.address) } icon: { Image(systemName: "mappin.and.ellipse") }
+                }
+            }
+        }
+        .accessibilityIdentifier("merchantApply.shop")
+    }
+    private func loadApplyShop() async {
+        switch kind { case .registrationCreate, .registrationEdit: break; default: return }
+        applyShop = nil
+        guard let gap = makeApplyShopService?() else { return }
+        let scope = service.scope
+        let reply = await gap.fetchMerchantPrefillInfo()
+        guard !Task.isCancelled, service.scope == scope, case .ok(let data, _) = reply else { return }
+        applyShop = MerchantApplyShop(data)
+    }
     private func binding(_ name: String) -> Binding<String> { Binding(get: { text[name] ?? "" }, set: {
         if Self.addressFields.contains(name), text[name]?.utf8.elementsEqual($0.utf8) != true { addressGeneration = UUID(); addressConfirmation = nil }
         text[name] = $0; dirty = true; model.cancel()
@@ -252,6 +322,7 @@ import SwiftUI
                 }
                 .accessibilityIdentifier("merchantApply.target")
             }
+            if let shop = applyShop, !shop.isEmpty { applyShopSection(shop) }
             Section("merchant.content.registrationContent") {
                 // R7-PC-B3-2: MP merchantapply map picker + ≤9 photos + 承接说明 replace the raw address/coordinate/picUrl fields.
                 field("addressName")

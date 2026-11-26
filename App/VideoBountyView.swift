@@ -136,42 +136,49 @@ struct VideoBountyView: View {
     @State private var cancelTarget: VideoBountySubmissionRow?
     @Environment(\.rootTabSwitch) private var rootTabSwitch
 
+    // R9-PC-D7-1 (native r2): an inset-grouped List; the submit fields are Form-style Section rows
+    // (MP subpackageA/pages/video-bounty/index.wxml:12-30: platform tabs, 视频页链接, 原视频分组, 提交投稿).
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                if state.signedOut {
-                    // PC-D-7-1: a permission problem is not a retryable error; 登录 opens 我的, where sign-in lives.
+        List {
+            if state.signedOut {
+                // PC-D-7-1: a permission problem is not a retryable error; 登录 opens 我的, where sign-in lives.
+                ContentUnavailableView {
+                    Label("mp.vb.signedOut", systemImage: "person.crop.circle")
+                        .accessibilityIdentifier("videoBounty.signedOut")
+                } actions: {
                     if rootTabSwitch.isAvailable {
-                        CYEmptyState(systemImage: "person.crop.circle", "mp.vb.signedOut", messageIdentifier: "videoBounty.signedOut",
-                                     actionTitle: "mp.common.signIn", actionIdentifier: "videoBounty.signIn",
-                                     actionStyle: .primary, action: { rootTabSwitch(.mine) })
-                    } else {
-                        CYEmptyState(systemImage: "person.crop.circle", "mp.vb.signedOut", messageIdentifier: "videoBounty.signedOut")
+                        Button("mp.common.signIn") { rootTabSwitch(.mine) }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("videoBounty.signIn")
                     }
-                } else {
+                }
+                .listRowBackground(Color.clear)
+            } else {
                 if let campaign { form(campaign) }
-                MPChipTabs(tabs: VideoBountyTab.allCases, selection: $tab, title: { tab in
-                    (tab == .submissions ? Text("mp.vb.tab.submissions") : Text("mp.vb.tab.accruals"))
-                }, identifier: { "videoBounty.tab.\($0.rawValue)" })
-                .padding(.horizontal, -CYSpacing.pageHorizontal)
-                Group {
+                Section {
+                    Picker("mp.vb.title", selection: $tab) {
+                        Text("mp.vb.tab.submissions").tag(VideoBountyTab.submissions)
+                        Text("mp.vb.tab.accruals").tag(VideoBountyTab.accruals)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .accessibilityIdentifier("videoBounty.tab")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                }
+                Section {
                     switch tab {
                     case .submissions: submissions
                     case .accruals: accruals
                     }
                 }
-                .transition(.opacity)
                 // R7-PC-D7-1 MP-first: subpackageA/pages/video-bounty/index.wxml has no campaign-ID attribution block.
-                }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
-        .cyAnimation(value: tab)
+        .listStyle(.insetGrouped)
         .refreshable { onLoad() }
-        .background { MPNightGround() }
-        .cyDomainScreen(.player)
-        .cyPageTitle("mp.vb.title") // PC-D-7-2: pushed page, inline title
+        .navigationTitle("mp.vb.title")
+        .navigationBarTitleDisplayMode(.inline) // PC-D-7-2: pushed page, inline title
         .onChange(of: state.submitRevision) { _, _ in
             platform = nil; sourceURL = ""; groupKey = ""; tab = .submissions
         }
@@ -185,36 +192,51 @@ struct VideoBountyView: View {
             Button("mp.vb.cancel.confirm", role: .destructive) { if let target = cancelTarget { onCancel(target.id) } }
             Button("mp.vb.cancel.keep", role: .cancel) {}
         } message: { Text("mp.vb.cancel.message") }
-        .cyDomainScreen(.player)
     }
 
     // MARK: Form (ops link only)
 
-    private func form(_ campaign: (String, String)) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            MPChipTabs(tabs: VideoBountyPlatform.allCases, selection: $platform,
-                       title: { Text(verbatim: $0.label) }, identifier: { "videoBounty.platform.\($0.rawValue)" })
-                .padding(.horizontal, -CYSpacing.pageHorizontal)
-            if state.fieldError?.field == .platform, let text = state.fieldError?.text { MPInlineError(text: Text(verbatim: text)) }
-            MPCard {
-                TextField(text: $sourceURL) { Text("mp.vb.form.url") }
-                    .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    .padding(CYSpacing.lg).frame(minHeight: CYSpacing.minTouchTarget)
-                    .onChange(of: sourceURL) { _, value in if value.count > 512 { sourceURL = String(value.prefix(512)) } }
-                    .accessibilityIdentifier("videoBounty.form.url")
-                MPDivider()
-                TextField(text: $groupKey) { Text("mp.vb.form.group") }
-                    .textInputAutocapitalization(.never).autocorrectionDisabled()
-                    .padding(CYSpacing.lg).frame(minHeight: CYSpacing.minTouchTarget)
-                    .onChange(of: groupKey) { _, value in if value.count > 64 { groupKey = String(value.prefix(64)) } }
-                    .accessibilityIdentifier("videoBounty.form.group")
+    @ViewBuilder private func form(_ campaign: (String, String)) -> some View {
+        Section {
+            Picker("mp.vb.form.platform", selection: $platform) {
+                Text("mp.vb.form.platform").tag(VideoBountyPlatform?.none)
+                ForEach(VideoBountyPlatform.allCases) { item in
+                    Text(verbatim: item.label).tag(Optional(item))
+                }
             }
-            if state.fieldError?.field == .sourceURL, let text = state.fieldError?.text { MPInlineError(text: Text(verbatim: text)) }
-            if let error = state.submitError { MPInlineError(text: Text(verbatim: error)) }
-            CYMorphButton("mp.vb.form.submit", state: state.submitting ? .working : .idle, action: {
+            .accessibilityIdentifier("videoBounty.platform")
+            TextField("mp.vb.form.url", text: $sourceURL)
+                .textContentType(.URL).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                .submitLabel(.next)
+                .onChange(of: sourceURL) { _, value in if value.count > 512 { sourceURL = String(value.prefix(512)) } }
+                .accessibilityIdentifier("videoBounty.form.url")
+            TextField("mp.vb.form.group", text: $groupKey)
+                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                .submitLabel(.done)
+                .onChange(of: groupKey) { _, value in if value.count > 64 { groupKey = String(value.prefix(64)) } }
+                .accessibilityIdentifier("videoBounty.form.group")
+        } footer: {
+            // Validation in the section footer (native r2), same texts as the MP inline errors.
+            if let text = state.fieldError?.text, state.fieldError?.field == .platform || state.fieldError?.field == .sourceURL {
+                Text(verbatim: text).foregroundStyle(.red)
+            } else if let error = state.submitError {
+                Text(verbatim: error).foregroundStyle(.red)
+            }
+        }
+        Section {
+            Button {
                 onSubmit(campaign.0, campaign.1, platform, sourceURL.trimmingCharacters(in: .whitespacesAndNewlines), groupKey.trimmingCharacters(in: .whitespacesAndNewlines))
-            })
-            .identifier("videoBounty.form.submit")
+            } label: {
+                HStack {
+                    Text("mp.vb.form.submit")
+                    if state.submitting { Spacer(); ProgressView() }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent).controlSize(.large)
+            .disabled(state.submitting)
+            .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            .accessibilityIdentifier("videoBounty.form.submit")
         }
     }
 
@@ -388,19 +410,19 @@ private struct VideoBountyAppealSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                TextField(text: $note, axis: .vertical) { Text("mp.vb.appeal.placeholder") }
-                    .lineLimit(4...8)
-                    .focused($focused)
-                    .padding(CYSpacing.lg)
-                    .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                    .onChange(of: note) { _, _ in showsRequired = false }
-                    .accessibilityIdentifier("videoBounty.appeal.note")
-                if showsRequired { MPInlineError(text: Text("mp.vb.appeal.required")) }
-                Spacer()
+            // R10-PC-D-N13: system Form on the system background; validation in the section footer.
+            Form {
+                Section {
+                    TextField(text: $note, axis: .vertical) { Text("mp.vb.appeal.placeholder") }
+                        .lineLimit(4...8)
+                        .focused($focused)
+                        .submitLabel(.done)
+                        .onChange(of: note) { _, _ in showsRequired = false }
+                        .accessibilityIdentifier("videoBounty.appeal.note")
+                } footer: {
+                    if showsRequired { Text("mp.vb.appeal.required").foregroundStyle(.red) }
+                }
             }
-            .padding(CYSpacing.pageHorizontal)
-            .background(CYNight.ink0.ignoresSafeArea())
             .navigationTitle(Text("mp.vb.appeal.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -416,6 +438,6 @@ private struct VideoBountyAppealSheet: View {
             }
             .onAppear { focused = true }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
     }
 }

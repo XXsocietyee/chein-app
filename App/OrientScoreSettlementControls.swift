@@ -157,7 +157,8 @@ import QuestifyCore
 
     var body: some View {
         if model.noticeKey != nil || model.pendingKind != nil || model.needsManualReview || model.journalUnreadable {
-            CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
+            // NAT-10 (native-r2): a list Section, not a card.
+            Section {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text(LocalizedStringKey(model.noticeKey ?? "orientScore.notice.pending"))
                         .cyText(.bodyCompact)
@@ -170,14 +171,14 @@ import QuestifyCore
                         Button { Task { await model.recover() } } label: {
                             Text("orientScore.pending.recover").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                         }
-                        .buttonStyle(.cySecondary(fullWidth: true))
+                        .buttonStyle(.bordered)
                         .disabled(model.busy)
                         .accessibilityIdentifier("orientScore.pending.recover")
                         if model.needsManualReview {
                             Button { confirmManual = true } label: {
                                 Text("orientScore.pending.manual").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                             }
-                            .buttonStyle(.cySecondary(fullWidth: true))
+                            .buttonStyle(.bordered)
                             .disabled(model.busy)
                             .accessibilityIdentifier("orientScore.pending.manual")
                         }
@@ -185,7 +186,7 @@ import QuestifyCore
                             Button { confirmResume = true } label: {
                                 Text("orientScore.pending.resume").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                             }
-                            .buttonStyle(.cySecondary(fullWidth: true))
+                            .buttonStyle(.bordered)
                             .disabled(model.busy)
                             .accessibilityIdentifier("orientScore.pending.resume")
                         }

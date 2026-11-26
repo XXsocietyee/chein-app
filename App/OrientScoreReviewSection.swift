@@ -72,7 +72,8 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
     /// MP orient-score wxml:73-113: 申诉这一条 per ledger row (not while that row's appeal is pending), 申诉漏记任务,
     /// and the 成绩争议 entry; each opens the review sheet (reason up to 500, 节点编号 for a missed task).
     var body: some View {
-        CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
+        // NAT-10 (native-r2): a list Section, not a card.
+        Section {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 let appealable = entries.filter { !$0.appealPending }
                 if !appealable.isEmpty {
@@ -85,14 +86,14 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
                     } label: {
                         Text("orientScore.review.appealEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.cySecondary(fullWidth: true))
+                    .buttonStyle(.bordered)
                     .disabled(busy)
                     .accessibilityIdentifier("orientScore.review.entry")
                 }
                 Button { sheet = OrientScoreReviewSheetTarget(kind: .appeal, entryID: nil) } label: {
                     Text("orientScore.review.appealMissing").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                 }
-                .buttonStyle(.cySecondary(fullWidth: true))
+                .buttonStyle(.bordered)
                 .disabled(busy)
                 .accessibilityIdentifier("orientScore.review.missing")
                 if let disputeDeadline, !disputeDeadline.isEmpty {
@@ -105,7 +106,7 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
                     Button { sheet = OrientScoreReviewSheetTarget(kind: .dispute, entryID: nil) } label: {
                         Text("orientScore.review.disputeEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.cySecondary(fullWidth: true))
+                    .buttonStyle(.bordered)
                     .disabled(busy)
                     .accessibilityIdentifier("orientScore.review.dispute")
                 }

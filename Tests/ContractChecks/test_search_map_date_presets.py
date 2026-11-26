@@ -14,7 +14,7 @@ class SearchMapDatePresetContractTests(unittest.TestCase):
 
     def test_shipping_sheet_uses_draft_helper_and_shows_shortcuts_for_global_and_city(self):
         self.assertIn('@State private var dateDraft: SearchMapDateFilterDraft', self.sheet)
-        dates = self.sheet.split('Section("searchMap.dates") {', 1)[1].split('TextField("searchMap.startDate"', 1)[0]
+        dates = self.sheet.split('Section("searchMap.dates") {', 1)[1].split('Toggle("searchMap.startDate"', 1)[0]
         # Shortcuts come first and are not gated by applyCityOptions: the same buttons serve global and city.
         self.assertLess(dates.index('Button("mapDatePreset.tomorrow")'), dates.index('if applyCityOptions != nil'))
         self.assertLess(dates.index('Button("mapDatePreset.today")'), dates.index('Button("mapDatePreset.tomorrow")'))
@@ -23,8 +23,9 @@ class SearchMapDatePresetContractTests(unittest.TestCase):
         self.assertEqual(dates.count('Button("mapDatePreset.tomorrow")'), 1)
         self.assertIn('Text("globalDatePreset.disclosure")', dates)
         self.assertIn('selectDatePreset(.tomorrow)', self.sheet)
-        self.assertIn('text: $dateDraft.startDate', self.sheet)
-        self.assertIn('text: $dateDraft.endDate', self.sheet)
+        # R7-PC-A3-3: inline native DatePicker rows replace the free-text dates (MP search2 index.wxml:100-129).
+        self.assertIn('selection: dateValue(\\.startDate)', self.sheet)
+        self.assertIn('selection: dateValue(\\.endDate)', self.sheet)
 
     def test_calendar_is_phone_zone_gregorian_with_calendar_day_addition(self):
         for text in ['Calendar(identifier: .gregorian)', 'timeZone: TimeZone = .current',

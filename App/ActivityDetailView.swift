@@ -80,7 +80,8 @@ struct ActivityDetailView: View {
             hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess,
             opensRegistrationOnLoad: guestSignIn == nil && opensRegistrationOnLoad,
             registrationTicketID: registrationTicketID,
-            guestSignIn: guestSignIn)
+            guestSignIn: guestSignIn,
+            viewerAccountID: session.account?.id)
             .environment(\.inGameChannelHost, session.inGameChannelHost)
             .id(session.contentDetailRevision)
     }
@@ -106,6 +107,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     var registrationTicketID: Int? = nil
     /// Guest 立即报名. Nil for a signed-in reader, which opens the registration sheet instead.
     var guestSignIn: (() -> Void)? = nil
+    /// R9-PC-C1-2: signed-in viewer, so the host still sees 取消活动并退款 (disabled) while refunds are money-off.
+    var viewerAccountID: Int? = nil
     @State private var openedRegistrationOnLoad = false
     @Environment(\.locale) private var locale
     @QuestifyReduceMotion private var reduceMotion
@@ -131,6 +134,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     /// tile (`performPrimaryAction`) opens the same sheets; it sets this so they keep the plain slide-up. Cleared on dismiss.
     @State private var tileOpenedSheet = false
     @State private var showsPlay = false
+    @State private var showsOwnOrders = false
     /// One load lifecycle instead of `access` / `loading` / `failed` (docs/release/state-machines/views.md).
     @State private var phase: CYPhase<ActivityDetailAccess, ActivityDetailLoadIssue> = .idle
     private var access: ActivityDetailAccess? { phase.value }
@@ -161,6 +165,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             case .idle, .loading, .empty:
                 loadingState
             case .failed(let issue, _):
+                // R9-PC-CN-1: system ContentUnavailableView for the missing and failed reads.
                 if issue == .missing {
                     ContentUnavailableView {
                         Label { Text("activity.detail.missing") } icon: { Image(systemName: "calendar.badge.exclamationmark") }
@@ -193,8 +198,9 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     }
                 case .cancelled(let canViewOwnOrders):
                     // MP activity detail: a cancelled activity shows the cancelled state; 查看订单 only for the player's own orders.
-                    ActivityCancelledStateView(canViewOwnOrders: canViewOwnOrders && rootTabSwitch.isAvailable,
-                                               onViewOrders: { rootTabSwitch(.mine) }, onBack: { dismiss() })
+                    // R9-PC-C1-1: MP onCancelledAction pushes /subpackageMember/order/order (index.js:436-441).
+                    ActivityCancelledStateView(canViewOwnOrders: canViewOwnOrders,
+                                               onViewOrders: { showsOwnOrders = true }, onBack: { dismiss() })
                         .accessibilityIdentifier("activity.detail.cancelled")
                 }
             }
@@ -280,6 +286,9 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             .environment(\.registrationPreselectedTicketID, registrationTicketID)
             .themeDomain(.player)
             .cySheet(detents: [.large])
+        }
+        .navigationDestination(isPresented: $showsOwnOrders) {
+            SubscribeMessageTapEntry(route: .playerOrderList)
         }
         .navigationDestination(isPresented: $showsPlay) {
             // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.
@@ -717,6 +726,22 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     }
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
+                }
+            } else if hostCancelAccess == nil, !detail.isCancelled,
+                      ActivityHostCancelRules.isHost(hostMemberID: detail.hostMemberID, accountID: viewerAccountID) {
+                // R9-PC-C1-2: MP host footer (scene-play-activity-detail/index.wxml:149-151, `isOwner` index.js:338) is
+                // 取消活动并退款, never 立即报名. The refund write is money (TEST-only), so in Release it is shown disabled.
+                VStack(spacing: CYSpacing.xxs) {
+                    Button(role: .destructive) {} label: {
+                        Text(verbatim: CoreLoopCopy(locale: locale).t("取消活动并退款", "Cancel event & refund"))
+                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(true)
+                    .accessibilityIdentifier("activity.hostCancel.footer.unavailable")
+                    Text("activity.hostCancel.refundUnavailable")
+                        .cyText(.meta)
+                        .foregroundStyle(.secondary)
                 }
             } else if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
                 // PC-C-1-3: nothing can be bought; the pill is disabled and names the reason (MP noTicketText).

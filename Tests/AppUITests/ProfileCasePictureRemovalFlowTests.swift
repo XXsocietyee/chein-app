@@ -37,8 +37,7 @@ final class ProfileCasePictureRemovalFlowTests: XCTestCase {
     func testReviewSaveAndReopenConfirmsAllImagesRemoved() {
         launch(); openImages(); app.buttons["profile.caseRemoval.remove"].tap(); app.buttons["profile.caseRemoval.apply"].tap()
         app.swipeUp(); app.buttons["profile.edit.review"].tap()
-        XCTAssertTrue(app.staticTexts["All existing work images will be removed."].waitForExistence(timeout: 5))
-        app.buttons["profile.edit.confirm"].tap(); let status = app.staticTexts["profile.edit.status"]
+        let status = app.staticTexts["profile.edit.status"]
         XCTAssertTrue(status.waitForExistence(timeout: 10)); XCTAssertEqual(status.label, "Your profile was saved and verified.")
         openImages(); XCTAssertTrue(app.staticTexts["profile.caseRemoval.empty"].exists); XCTAssertFalse(app.buttons["profile.caseRemoval.remove"].exists)
     }
@@ -86,8 +85,6 @@ final class ProfileCasePictureRemovalFlowTests: XCTestCase {
     func testReviewedSubsetSaveLeavesOneRealImageWithoutNewMediaRead() throws {
         launch(); openImages(); try imageSwitch(0).tap(); app.buttons["profile.caseRemoval.apply"].tap()
         app.swipeUp(); app.buttons["profile.edit.review"].tap()
-        let confirm = app.buttons["profile.edit.confirm"]
-        XCTAssertTrue(confirm.waitForExistence(timeout: 5)); confirm.tap()
         let status = app.staticTexts["profile.edit.status"]
         XCTAssertTrue(status.waitForExistence(timeout: 10)); XCTAssertEqual(status.label, "Your profile was saved and verified.")
         openImages(); XCTAssertEqual(try imageSwitch(0).value as? String, "1")

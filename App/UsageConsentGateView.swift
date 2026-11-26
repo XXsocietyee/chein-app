@@ -54,99 +54,65 @@ struct UsageConsentGateView: View {
     @State private var agreementChecked = false
 
     /// MP privacy/index.wxml:10: one checkbox row 我已阅读并同意《用户服务协议》《隐私保护指引》.
-    private var agreementCheckbox: some View {
-        Button {
-            agreementChecked.toggle()
-        } label: {
-            Label {
-                Text("fixr9.ap.consent.readAndAgree")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .multilineTextAlignment(.leading)
-            } icon: {
-                Image(systemName: agreementChecked ? "checkmark.square.fill" : "square")
-                    .foregroundStyle(agreementChecked ? CYColor.brand : CYColor.textSecondary)
-            }
-            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-            .contentShape(Rectangle())
+    /// iOS has no checkbox control, so the closest Apple control is a `Toggle` (native-r2 N-12, noted in the receipt).
+    private var agreementToggle: some View {
+        Toggle(isOn: $agreementChecked) {
+            Text("fixr9.ap.consent.readAndAgree")
         }
-        .buttonStyle(.plain)
         .accessibilityIdentifier("authEntry.gate.checkbox")
-        .accessibilityAddTraits(agreementChecked ? [.isSelected] : [])
-        .accessibilityValue(Text(agreementChecked ? "fixr9.ap.consent.checked" : "fixr9.ap.consent.unchecked"))
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                    Text("authEntry.gate.title", tableName: "AuthEntry")
-                        .cyText(.pageTitle)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.isHeader)
+            Form {
+                Section {
                     Text("authEntry.gate.lead", tableName: "AuthEntry")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("authEntry.gate.lead")
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("authEntry.gate.continueMeans", tableName: "AuthEntry")
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
-                        documentRow("authEntry.gate.openAgreement", id: "authEntry.gate.agreement", type: .userAgreement)
-                        documentRow("authEntry.gate.openPrivacyGuide", id: "authEntry.gate.privacyGuide", type: .privacyPolicy)
-                        agreementCheckbox
-                    }
                 }
-                .padding(CYSpacing.xxl)
-            }
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: CYSpacing.sm) {
-                    // One confirm button agrees to both documents. Declining stays a text button.
+                Section {
+                    documentRow("authEntry.gate.openAgreement", id: "authEntry.gate.agreement", type: .userAgreement)
+                    documentRow("authEntry.gate.openPrivacyGuide", id: "authEntry.gate.privacyGuide", type: .privacyPolicy)
+                } header: {
+                    Text("authEntry.gate.continueMeans", tableName: "AuthEntry")
+                }
+                Section {
+                    agreementToggle
+                }
+                Section {
+                    // One confirm button agrees to both documents (MP privacy/index.wxml:22). Declining stays borderless.
                     Button {
                         agreeTaps += 1
                         onAgree()
-                    } label: { Text("authEntry.gate.agree", tableName: "AuthEntry") }
-                        .buttonStyle(.cyPrimary)
-                        .disabled(!agreementChecked)
-                        .cyHaptic(.success, trigger: agreeTaps)
-                        .accessibilityIdentifier("authEntry.gate.agree")
-                        .accessibilityLabel(Text("authEntry.gate.agree", tableName: "AuthEntry"))
-                        .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
-                        .accessibilityHint(Text("authEntry.gate.continueMeans", tableName: "AuthEntry"))
-                    Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
-                        .cyText(.bodyCompact)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("authEntry.gate.decline")
-                        .accessibilityLabel(Text("authEntry.gate.decline", tableName: "AuthEntry"))
-                        .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
-                        .accessibilityHint(Text("authEntry.gate.continueMeans", tableName: "AuthEntry"))
+                    } label: {
+                        Text("authEntry.gate.agree", tableName: "AuthEntry").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(!agreementChecked)
+                    .sensoryFeedback(.success, trigger: agreeTaps)
+                    .accessibilityIdentifier("authEntry.gate.agree")
+                    .accessibilityHint(Text("authEntry.gate.continueMeans", tableName: "AuthEntry"))
+                    Button(action: onDecline) {
+                        Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityIdentifier("authEntry.gate.decline")
+                    .accessibilityHint(Text("authEntry.gate.continueMeans", tableName: "AuthEntry"))
                 }
-                .padding(.horizontal, CYSpacing.xxl)
-                .padding(.top, CYSpacing.md)
-                .padding(.bottom, CYSpacing.md)
-                .background(CYColor.bgPage)
+                .listRowBackground(Color.clear)
             }
-            .background(CYColor.bgPage)
             .themeDomain(.player)
             .navigationTitle(Text("authEntry.gate.title", tableName: "AuthEntry"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(.hidden, for: .navigationBar)
-            .sheet(item: $document) { sheet in Group {
+            .sheet(item: $document) { sheet in
                 NavigationStack {
                     SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button("action.close") { document = nil }
                                     .accessibilityIdentifier("usageConsent.legal.close")
-                                    .accessibilityLabel(Text("action.close"))
-                                    .accessibilityValue(Text("authEntry.gate.title", tableName: "AuthEntry"))
-                                    .accessibilityHint(Text("action.close"))
                             }
                         }
-                }
                 }
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
@@ -156,24 +122,16 @@ struct UsageConsentGateView: View {
     }
 
     private func documentRow(_ title: LocalizedStringKey, id: String, type: SettingsLegalType) -> some View {
+        // A sheet instead of a pushed page keeps the gate in place (Settings → Privacy style rows with a chevron).
         Button { document = AuthEntryLegalSheet(type: type) } label: {
-            HStack(spacing: CYSpacing.md) {
-                Text(title, tableName: "AuthEntry")
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .multilineTextAlignment(.leading)
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                    .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            LabeledContent {
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            } label: {
+                Text(title, tableName: "AuthEntry").foregroundStyle(.primary)
             }
-            .frame(minHeight: CYSpacing.minTouchTarget + CYSpacing.sm)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
         .accessibilityIdentifier(id)
-        .accessibilityLabel(Text(title, tableName: "AuthEntry"))
-        .accessibilityValue(Text(title, tableName: "AuthEntry"))
-        .accessibilityHint(Text("authEntry.gate.continueMeans", tableName: "AuthEntry"))
     }
 }
 

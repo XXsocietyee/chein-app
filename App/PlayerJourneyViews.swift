@@ -31,6 +31,25 @@ extension EnvironmentValues {
         set { self[ParticipationCharacterProbeKey.self] = newValue }
     }
 }
+/// PLY-23-4: MP participation-detail `goModify` (index.js:670-673) opens `merchantapply?mode=1&id=<registration>`,
+/// the shipped merchant registration editor. Nil (fixtures) keeps the text-only note.
+private struct ParticipationModifyEditorKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int) -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    var participationModifyEditor: (@MainActor (Int) -> AnyView)? {
+        get { self[ParticipationModifyEditorKey.self] }
+        set { self[ParticipationModifyEditorKey.self] = newValue }
+    }
+}
+extension AppSession {
+    /// MP `merchantapply` with a registration `id` (App/MPReviewedPageScreen.swift `pages/topic/merchantapply/index`).
+    func participationModifyEditor(registrationID: Int) -> AnyView {
+        AnyView(MerchantContentEditView(service: merchantContentService, query: .registration(id: registrationID),
+                                        kind: .registrationEdit(registrationID))
+            .cyPushedChrome())
+    }
+}
 extension AppSession {
     /// One silent topic-scoped read; the lease is retired straight after, so no card stays in memory.
     func probeCharacterCard(topicID: Int) async -> Bool {
@@ -73,6 +92,7 @@ extension AppSession {
         }.id(session.sessionRevision).privacySensitive()
         .environment(\.participationBundleEntryEnabled, session.freeExploreBundleReadProvider != nil)
         .environment(\.participationCharacterProbe, { [weak session] topicID in await session?.probeCharacterCard(topicID: topicID) ?? false })
+        .environment(\.participationModifyEditor, { [weak session] id in session?.participationModifyEditor(registrationID: id) ?? AnyView(EmptyView()) })
         .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
         .sheet(isPresented: $login) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
         .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
@@ -91,6 +111,7 @@ extension AppSession {
                                 open: { route = $0 })
             .environment(\.participationBundleEntryEnabled, session.freeExploreBundleReadProvider != nil)
             .environment(\.participationCharacterProbe, { [weak session] topicID in await session?.probeCharacterCard(topicID: topicID) ?? false })
+            .environment(\.participationModifyEditor, { [weak session] id in session?.participationModifyEditor(registrationID: id) ?? AnyView(EmptyView()) })
             .id(session.sessionRevision).privacySensitive()
             .cyPushedChrome(domain: .player)
             .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
@@ -290,6 +311,7 @@ extension AppSession {
     @State private var quietReload = false
     @Environment(\.participationBundleEntryEnabled) private var bundleEntryEnabled
     @Environment(\.participationCharacterProbe) private var characterProbe
+    @Environment(\.participationModifyEditor) private var modifyEditor
     var body: some View {
         List {
             Section {
@@ -321,13 +343,9 @@ extension AppSession {
                             .buttonStyle(.plain).accessibilityIdentifier("playerJourney.participation.\(row.id)")
                             .accessibilityFocused($focusedParticipationID, equals: row.id)
                         // MP mycanyu「查看报名凭证」→ 票夹 focused on this registration (PLY-22-1).
-                        Button { open(.ticket(registrationID: row.id)) } label: {
-                            Text("playerJourney.viewVoucher").cyText(.label, weight: .semibold)
-                                .padding(.horizontal, CYSpacing.md)
-                                .frame(minHeight: CYSpacing.minTouchTarget)
-                                .background(CYColor.bgRaised, in: Capsule())
-                        }
-                        .buttonStyle(.plain)
+                        // NAT-17 (native-r2): a system bordered button, not a drawn capsule.
+                        Button("playerJourney.viewVoucher") { open(.ticket(registrationID: row.id)) }
+                            .buttonStyle(.bordered)
                         .accessibilityIdentifier("playerJourney.viewVoucher.\(row.id)")
                     }
                 }
@@ -369,6 +387,7 @@ extension AppSession {
             }
             .environment(\.participationBundleEntryEnabled, bundleEntryEnabled)
             .environment(\.participationCharacterProbe, characterProbe)
+            .environment(\.participationModifyEditor, modifyEditor)
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
@@ -451,8 +470,7 @@ private struct ParticipationCoverPlaceholder: View {
     var body: some View {
         MPAsset.BannerCover.routeCityCover.resizable().scaledToFill()
             .frame(height: 136).frame(maxWidth: .infinity)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipped()
             .accessibilityHidden(true).accessibilityIdentifier("playerJourney.row.coverPlaceholder")
     }
 }
@@ -464,6 +482,7 @@ private struct ParticipationCoverPlaceholder: View {
     let open: (PlayerJourneyRoute) -> Void
     @Environment(\.participationBundleEntryEnabled) private var bundleEntryEnabled
     @Environment(\.participationCharacterProbe) private var characterProbe
+    @Environment(\.participationModifyEditor) private var modifyEditor
     /// R7-MEM-23-1: nil until the probe answers (row hidden), then the MP `characterEntry`.
     @State private var characterEntry: Bool?
     @State private var detail: ParticipationDetail?
@@ -477,9 +496,9 @@ private struct ParticipationCoverPlaceholder: View {
             if loading { ProgressView("playerJourney.parity.detailLoading") }
             if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
             if let detail {
-                // PLY-23-6: MP mycanyuinfo `picUrl` cover (cmsTopic/cmsActivity imgUrl || imgArr), https only, none when absent.
-                ParticipationDetailGapSections(coverURL: QuestifyCardArtwork.safeURL(detail.templateBannerURL)?.absoluteString
-                    ?? QuestifyCardArtwork.safeURL(detail.record.cover)?.absoluteString)
+                // PLY-23-6: MP participation-detail index.wxml:29-30 `picUrl` cover (cmsTopic/cmsActivity imgUrl || imgArr),
+                // https only, none when absent. The topic banner has its own slot in the template row (wxml:101).
+                ParticipationDetailGapSections(coverURL: QuestifyCardArtwork.safeURL(detail.record.cover)?.absoluteString)
                 ParticipationDetailHeader(detail: detail)
                 // PLY-23-4: 自由探索权益 under the info card (MP wxml:64-66, `_bundleEntry`: ownerType 1 +
                 // cmsTopic + purchaseKind 3 or productType 2). The route opens FreeExploreBundleLaunchView.
@@ -541,6 +560,14 @@ private struct ParticipationCoverPlaceholder: View {
                 }
                 if let rawID = detail.templateID, let id = MemberPlayTemplateID(rawValue: rawID) {
                     Section("playerJourney.template") {
+                        // PLY-23-6: MP wxml:101 `mci-banner` = first `topicImgArr` image, inside the template row.
+                        if let banner = QuestifyCardArtwork.safeURL(detail.templateBannerURL)?.absoluteString {
+                            CYCachedAsyncImage(banner, role: .cover)
+                                .frame(maxWidth: .infinity, minHeight: 120)
+                                .listRowInsets(EdgeInsets())
+                                .accessibilityHidden(true)
+                                .accessibilityIdentifier("playerJourney.templateBanner")
+                        }
                         if let templateName = detail.templateName { Text(verbatim: templateName) }
                         NavigationLink { SessionMemberTemplateDetailView(id: id) } label: {
                             Label("memberTemplate.title", systemImage: "doc.text.magnifyingglass")
@@ -590,8 +617,13 @@ private struct ParticipationCoverPlaceholder: View {
             }
         }
         .navigationDestination(item: $merchantApplyID) { registrationID in
-            // Source goModify: /pages/topic/merchantapply/index?mode=1&id= . This screen is already that editor.
-            MPReviewedPageScreen(page: "pages/topic/merchantapply/index", query: ["mode": "1", "id": String(registrationID)])
+            // Source goModify (participation-detail wxml:136, js:670-673): /pages/topic/merchantapply/index?mode=1&id= .
+            // PLY-23-4: the session host pushes the shipped registration editor; fixtures keep the reviewed MP page.
+            if let modifyEditor {
+                modifyEditor(registrationID)
+            } else {
+                MPReviewedPageScreen(page: "pages/topic/merchantapply/index", query: ["mode": "1", "id": String(registrationID)])
+            }
         }
         .task(id: reader.scope) { detail = nil; merchantApplyID = nil; await load() }
         // R7-MEM-23-1: silent probe per topic; a failed read hides the row (MP `settle(null)`).

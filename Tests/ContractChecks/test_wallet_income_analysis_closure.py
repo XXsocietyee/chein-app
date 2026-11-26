@@ -7,7 +7,8 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
  def testNormalEntryUsesExistingIncomeGateAndSameReader(self):
   s=self.src('App/WalletCommerceViews.swift')
   # R7-PC-D5-2: 分析 is the quick action only (MP scene-asset-earnings); the 更多 menu no longer repeats it.
-  expected='''if visibility.income { out.append(.init(title: "wallet.analysis.title", icon: "chart.bar.xaxis", id: "wallet.analysis.quick") { AnyView(WalletIncomeAnalysisView(reader: reader)) }) }'''
+  # 6afe54b4a compile fix: the destination is an explicit labelled argument (a trailing closure bound to the wrong init).
+  expected='''if visibility.income { out.append(.init(title: "wallet.analysis.title", icon: "chart.bar.xaxis", id: "wallet.analysis.quick", destination: { AnyView(WalletIncomeAnalysisView(reader: reader)) })) }'''
   self.assertIn(expected,s)
   self.assertIn('WalletCommerceHomeView(reader: session.walletHistoryReader',self.src('App/SessionWalletCommerceView.swift'))
  def testAnalysisNeverCreatesReaderGrantOrMutation(self):
@@ -61,7 +62,8 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
  def testLocalLayoutReplacesMissingHistoricalHelpers(self):
   s=self.src('App/WalletIncomeAnalysisView.swift')
   self.assertNotIn('.walletContentList()',s);self.assertNotIn('WalletReadOnlyDetailStyle()',s)
-  self.assertIn('private struct WalletIncomeAnalysisDetailStyle: LabeledContentStyle',s)
+  # native-r2 me-account batch 2 (63c28ff09): system LabeledContent rows replace the local detail style.
+  self.assertNotIn('WalletIncomeAnalysisDetailStyle',s);self.assertIn('LabeledContent { Text(verbatim: String(summary.unknownCount)) } label: { text("unknown") }',s)
   self.assertIn('if !dynamicTypeSize.isAccessibilitySize',s)
   self.assertIn('else { monthRows(summary, currency: currency) }',s)
  def testNativeRegressionScenariosAreAuthored(self):

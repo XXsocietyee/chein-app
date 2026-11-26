@@ -27,8 +27,12 @@ import SwiftUI
     @State private var templateResults: GlobalTemplateSearchResults?
     @Environment(\.globalTemplateSearch) private var templateLanes
     @State private var filter = GlobalSearchQuery()
+    /// R7-PC-A3-2: MP search2 `navigateToSearchList` toast (pages/search2/index.js:130, 250).
+    @State private var emptySearchToast: LocalizedStringKey?
     /// PC-A-3-3: empty Search submit. Nil hides the prompt.
     @State private var emptySearchNotice: LocalizedStringKey?
+    /// R7-PC-A4-1: unified rows are inline, so the topic/activity lanes step aside (pages/search2/result/index.js:95-100).
+    @State private var unifiedReplacesLanes = false
     @State private var categoryRecovery = SearchMapCategoryRecovery()
     @State private var categoryPresentationID = UUID()
     @State private var filterPresentationID = UUID()
@@ -149,6 +153,7 @@ import SwiftUI
             case .shops: MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)
             }
         }
+        .cyToast(message: $emptySearchToast)
         .sheet(isPresented: $showsFilters) {
             let presentationID = filterPresentationID
             let context = categoryRecovery.context(for: categoryOwner)
@@ -218,6 +223,16 @@ import SwiftUI
         .onChange(of: filter.keyword) { _, _ in emptySearchNotice = nil }
     }
     private var categoryOwner: SearchMapCategoryRecovery.Owner { .init(reader: reader) }
+    private func showsRow(_ row: GlobalSearchRow) -> Bool {
+        if hidesMerchants && row.kind == .merchant { return false }
+        if let kind = selectedKind { return row.kind == kind }
+        return !(unifiedReplacesLanes && (row.kind == .topic || row.kind == .activity))
+    }
+    /// MP merges unified rows only for a bare keyword: no category, date or price narrowing.
+    private var unifiedKeywordOnly: Bool {
+        filter.categoryID == nil && filter.startDate == nil && filter.endDate == nil
+            && filter.minimumPrice == nil && filter.maximumPrice == nil
+    }
     /// 首页's search state: the field it was tapped from, 筛选 and 取消 in one top row. Same field, spinner, clear and
     /// filters as the inline row; only its place changes.
     private func hostedFieldRow(_ host: GlobalSearchInPageHost) -> some View {
@@ -473,7 +488,7 @@ import SwiftUI
                 }
             }
         }
-        let visible = value.rows.filter { !(hidesMerchants && $0.kind == .merchant) && (selectedKind == nil || $0.kind == selectedKind) }
+        let visible = value.rows.filter(showsRow)
         Section {
             // pages/search2/index readiness: a failed/gated player lane beside empty lanes is unknown, not "no results".
             if !loading, GlobalSearchEntryReadiness.phase(configured: reader.isConfigured, loading: loading, issueKey: nil,
@@ -509,7 +524,10 @@ import SwiftUI
                 Text("searchMap.templates")
             }
         }
-        if !loading { UnifiedSearchEntry(keyword: filter.keyword, destination: destination) }
+        if !loading, selectedKind == nil {
+            UnifiedSearchEntry(keyword: filter.keyword, keywordOnly: unifiedKeywordOnly,
+                               onRows: { unifiedReplacesLanes = $0 }, destination: destination)
+        }
         // Mini-program result footer: "内容已加载完" under results; "刷新搜索结果" also stays on an empty or failed page.
         if !loading {
             Section {
@@ -558,7 +576,13 @@ import SwiftUI
     private func search() async {
         let query = filter
         guard isVisible else { return }
-        guard reader.isConfigured, query.canSearch else { return }
+        guard reader.isConfigured else { return }
+        guard query.canSearch else {
+            // MP: no keyword, category, date or narrowed price → toast('请输入关键词或选择类别').
+            let narrowedPrice = (query.minimumPrice ?? 0) > 0 || (query.maximumPrice.map { $0 < 1000 } ?? false)
+            if query.startDate == nil, query.endDate == nil, !narrowedPrice { emptySearchToast = "searchMap.emptySubmit" }
+            return
+        }
         let captured = resultContext
         let ticket = retainedResults.begin(in: captured)
         phase = .loading

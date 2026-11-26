@@ -39,6 +39,7 @@ struct OfficialIssueView: View {
     var onBack: (() -> Void)? = nil
     /// Round 4 copy: a page may name an issue in its own MP words (nil keeps `issue.key`).
     var label: LocalizedStringKey? = nil
+    // R9-PC-CN-2: system ContentUnavailableView (label, description, one action).
     var body: some View {
         ContentUnavailableView {
             if let copy {

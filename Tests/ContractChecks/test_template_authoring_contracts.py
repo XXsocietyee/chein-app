@@ -20,9 +20,13 @@ class TemplateAuthoringContracts(unittest.TestCase):
         paths=set(re.findall(r'"(/api/[^\"]+)"',native))
         # PLY-26-1: 提交广场审核 follows the mini-program (`utils/template-market.js`), not Flutter.
         market='/api/template/\\(id.rawValue)/market-submit'
-        self.assertEqual(paths, {'/api/template/my-list','/api/template/draft','/api/template/publish','/api/template/delete','/api/template/updateLibraryStatus','/api/common/dict',market})
+        # C-T3c (2d605cc80): MP `from=citynode` submits to the merchant city-node path. `request` refuses citynode
+        # drafts, so this constant never rides the personal draft/publish pipe (asserted below).
+        city='/api/merchant/city-node/template/submit'
+        self.assertEqual(paths, {'/api/template/my-list','/api/template/draft','/api/template/publish','/api/template/delete','/api/template/updateLibraryStatus','/api/common/dict',market,city})
+        self.assertIn('guard draft.authoringFrom != "citynode" else { throw TemplateAuthoringError.invalidDraft }',native)
         source=self.source('lib/data/api/template_api.dart')+self.source('lib/data/api/registration_api.dart')
-        for path in paths-{market}:self.assertIn("'"+path+"'",source)
+        for path in paths-{market,city}:self.assertIn("'"+path+"'",source)
     def test_payload_field_names_match_all_source_fields(self):
         source=self.source('lib/data/models/template_draft.dart').split('Map<String, dynamic> toJson()')[1].split('class TemplatePublishException')[0]
         expected=set(re.findall(r"'([^']+)'\s*:",source))
@@ -152,7 +156,9 @@ class TemplateAuthoringContracts(unittest.TestCase):
         selected=re.search(r'destination == \.roam \? \.(\w+) : \.(\w+)',app)
         self.assertIsNotNone(actual);self.assertIsNotNone(selected)
         self.assertEqual(actual.group(1),selected.group(1))
-        home=re.search(r'SessionHomeFeedView[^\n]+\.tag\(RootTab\.(\w+)\)',app)
+        # native-r2 shell (95fe28012): the home feed lives in `homeTab`, tagged in the TabView.
+        self.assertRegex(app,r'private var homeTab: some View \{\s*SessionHomeFeedView\(')
+        home=re.search(r'homeTab\.tabItem \{[^\n]+\}\.tag\(RootTab\.(\w+)\)',app)
         self.assertIsNotNone(home);self.assertEqual(home.group(1),selected.group(2))
     def test_no_false_gameplay_in_prefab_preview(self):
         native=self.read('App/PrefabPreviewView.swift')

@@ -98,8 +98,9 @@ private struct SessionPublishingRootChrome: ViewModifier {
 }
 
 /// 互动: template intro, naming, then the template editor (MP template-intro → temp).
-@MainActor func sessionTemplateAuthoringEntry(_ session: AppSession) -> AnyView {
-    AnyView(TemplateAuthoringEntryDestination(factory: { session.templateAuthoringEditor() },
+/// r9 C-T6b: MP template-intro/index.js:291 opens `temp/index?scope=MERCHANT` for merchants.
+@MainActor func sessionTemplateAuthoringEntry(_ session: AppSession, scope: String? = nil) -> AnyView {
+    AnyView(TemplateAuthoringEntryDestination(factory: { session.templateAuthoringEditor(from: nil, scope: scope) },
         completion: session.templateAuthoringCompletionContext,
         sessionRevision: session.sessionRevision, metadataReader: session,
         imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })

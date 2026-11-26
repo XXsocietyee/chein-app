@@ -29,6 +29,11 @@ import SwiftUI
     @State private var nearbyResults: SearchMapNearbyResults?
     @State private var readOwner = ManualMapReadTaskOwner()
     @State private var loading = false
+    /// R7-PC-A5-6: MP searchmap offline bar (pages/searchmap/index.wxml:81-85): 当前离线 + cache time + 重试连接.
+    @Environment(\.searchMapConnectivity) private var injectedConnectivity
+    @State private var ownConnectivity: SearchMapConnectivity?
+    @State private var lastLoadedAt: Date?
+    @State private var stillOffline = false
     @State private var issue: String?
     @State private var selectedPin: String?
     @State private var viewportSelection = SearchMapViewportSelection()
@@ -77,6 +82,7 @@ import SwiftUI
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 if reader.isOfflineExample { Text("searchMap.offline").font(.caption).foregroundStyle(.secondary) }
+                SearchMapOfflineBannerView(state: offlineBanner, stillOffline: stillOffline, retry: retryConnection)
                 if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline).accessibilityAddTraits(.isHeader) }
                 if mode == .city {
                     // The keyword field is the navigation bar's system search field (`.searchable` below);
@@ -153,6 +159,13 @@ import SwiftUI
             scroll.scrollTo("selected-place-summary", anchor: .top)
             selectionFocused = true
         }
+        }
+        .task { if injectedConnectivity == nil, ownConnectivity == nil { ownConnectivity = SearchMapConnectivity() } }
+        .onChange(of: pagination.rows.count) { _, count in if count > 0, isOnline { lastLoadedAt = Date() } }
+        .onChange(of: isOnline) { wasOnline, nowOnline in
+            if nowOnline { stillOffline = false }
+            if SearchMapOfflineBanner.shouldRefreshOnReconnect(wasOnline: wasOnline, isOnline: nowOnline,
+                                                               hasResults: !pagination.rows.isEmpty) { startLoad() }
         }
         .appNavigationTitle(key: mode == .city ? "searchMap.mapTitle" : "searchMap.nearby")
         .navigationBarTitleDisplayMode(.inline)
@@ -311,7 +324,7 @@ import SwiftUI
             Button { showsFilters = true } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease") }
                 .buttonStyle(.bordered).accessibilityIdentifier("searchMap.filters")
             Picker("searchMap.sort", selection: $sortType) {
-                Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
+                Text("searchMap.nearest").tag(1) // R7-PC-A5-3: MP searchmap sort_type 最近 only; 最热 removed (pages/searchmap/index.js:281)
             }.pickerStyle(.menu).accessibilityIdentifier("searchMap.sortPicker")
         }
     }
@@ -545,6 +558,17 @@ import SwiftUI
         layerNavigation = nil; publicLayerNavigation = nil
         invalidateViewport()
         readOwner.cancel(); refresh.invalidate(); gate.invalidate(); pagination.invalidate(); cityResults = nil; nearbyResults = nil; selectedPin = nil; issue = nil; loading = false
+    }
+    private var connectivity: SearchMapConnectivity? { injectedConnectivity ?? ownConnectivity }
+    private var isOnline: Bool { connectivity?.isOnline ?? true }
+    private var offlineBanner: SearchMapOfflineBanner {
+        .resolve(online: isOnline, lastLoaded: lastLoadedAt, hasResults: !pagination.rows.isEmpty)
+    }
+    /// 重试连接: re-read the path; online refreshes, still offline says so.
+    private func retryConnection() {
+        let online = connectivity?.recheck() ?? true
+        stillOffline = !online
+        if online { startLoad() }
     }
     private func startLoad(confirmedViewport: (center: RuntimeLocationProjection.MapCenter, viewport: SearchMapViewport)? = nil) {
         // This button explicitly searches the shown manual area, including after another view changed it.
