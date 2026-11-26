@@ -90,6 +90,7 @@ Merged `origin/ui/combined-r7` @ ae477be47 (conflicts in ClubTopicDirectorOpsSec
 
 - `python3 tools/check_scaffold.py`: PASS structural checks.
 - `python3 -B tools/check_a11y_lint.py`: PASS (0 new).
+- Round 3 push: `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 192 / 192, **new 0**. One pin updated on purpose: `test_club_series_offer_window.py:29` (offer-window rows moved into `commandFieldRows`, indent only).
 - Round 2 final push (all 52 P2 rows): `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 192 / 192, **new 0**.
 - Round 2 first push: `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 192 failing vs baseline 192, **new 0**. One pin updated on purpose: `test_club_operations_contracts.py:91` (edit header no longer uses QuestifyImageEntityCard; MP scene-club-edit club head).
 - Round 1: `python3 -B tools/contract_ratchet.py --check`: 193 failing vs baseline 192, **new 1, not from this lane**: `test_social_article_content…test_renderer_is_wired_only_to_existing_scoped_article_contents` expects the old `SocialReadScreen` `.onDisappear { loads.cancel(); generation += 1; busy = false }`, which base commit 03732e2df on `ui/combined-r7` rewrote. This lane touches no social files; the coordinator/owner of 03732e2df should update that pin.
