@@ -54,6 +54,7 @@ public struct SearchMapExplorerGapView: View {
                     Button {
                         selectedPlace = place
                     } label: {
+                        // MP map marker art (`pages/searchmap/images/dsmapicon`).
                         MPAsset.MapMarker.pagesSearchmapImagesDSmapicon
                             .resizable()
                             .scaledToFit()
@@ -66,47 +67,48 @@ public struct SearchMapExplorerGapView: View {
                 }
             }
         }
+        .mapControls {
+            MapCompass()
+            MapScaleView()
+        }
         .ignoresSafeArea(edges: .bottom)
-        .safeAreaInset(edge: .top) {
-            VStack(spacing: CYSpacing.xs) {
-                HStack(spacing: CYSpacing.xs) {
-                    TextField("searchMap.placeholder", text: $keyword)
-                        .textFieldStyle(.roundedBorder)
-                        .submitLabel(.search)
-                        .onSubmit(onSearch)
-                    Button("searchMap.searchAction", action: onSearch)
-                        .buttonStyle(.borderedProminent)
-                }
-                if !categories.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: CYSpacing.xs) {
-                            ForEach(categories) { cat in
-                                let active = selectedCategoryID == cat.id
-                                Button(cat.name) {
-                                    selectedCategoryID = active ? nil : cat.id
-                                    onSearch()
-                                }
-                                .buttonStyle(.bordered)
-                                .tint(active ? CYColor.brand : CYColor.textSecondary)
+        // Apple Maps pattern: the system search field in the navigation bar; submitting searches.
+        .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("searchMap.placeholder"))
+        .onSubmit(of: .search, onSearch)
+        .toolbar {
+            if !categories.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    // Merchant category filter as a system menu; choosing the active one clears it (MP chip toggle).
+                    Menu {
+                        ForEach(categories) { cat in
+                            let active = selectedCategoryID == cat.id
+                            Button {
+                                selectedCategoryID = active ? nil : cat.id
+                                onSearch()
+                            } label: {
+                                if active { Label(cat.name, systemImage: "checkmark") } else { Text(verbatim: cat.name) }
                             }
                         }
+                    } label: {
+                        Label("searchMap.filters", systemImage: selectedCategoryID == nil
+                              ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
                     }
-                }
-                if locationDenied {
-                    HStack {
-                        Text("searchMap.locationDenied")
-                            .cyText(.meta)
-                        Spacer()
-                        Button("searchMap.openSettings", action: onOpenLocationSettings)
-                            .cyText(.label)
-                    }
-                    .padding(CYSpacing.xs)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 }
             }
-            .padding(CYSpacing.sm)
-            .background(.ultraThinMaterial)
+        }
+        .safeAreaInset(edge: .top) {
+            if locationDenied {
+                HStack {
+                    Label("searchMap.locationDenied", systemImage: "location.slash")
+                        .font(.footnote)
+                    Spacer()
+                    Button("searchMap.openSettings", action: onOpenLocationSettings)
+                        .font(.footnote)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(.bar)
+            }
         }
         .safeAreaInset(edge: .bottom) {
             Button {
@@ -115,24 +117,22 @@ public struct SearchMapExplorerGapView: View {
                 HStack {
                     if isLoading { ProgressView() }
                     Text("附近共 \(places.count) 个结果 · 最近")
-                        .cyText(.cardTitle, monospacedDigit: true)
+                        .font(.headline)
+                        .monospacedDigit()
                     Spacer()
                     Image(systemName: "chevron.up")
-                        .cyText(.meta)
+                        .font(.footnote)
+                        .accessibilityHidden(true)
                 }
-                .padding(CYSpacing.md)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                .padding(.horizontal, CYSpacing.md)
-                .padding(.bottom, CYSpacing.xs)
+                .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .padding(.horizontal)
+            .padding(.bottom, 8)
         }
         .sheet(item: $selectedPlace) { place in
-            VStack(spacing: 0) {
-                CYSheetHeader(title: Text(verbatim: place.title), style: .player) {
-                    selectedPlace = nil
-                }
+            NavigationStack {
                 List {
                     Section {
                         LabeledContent("searchMap.place.kind", value: place.kindLabel)
@@ -141,36 +141,50 @@ public struct SearchMapExplorerGapView: View {
                     Section {
                         Button("searchMap.place.openMaps") { onOpenInMaps(place) }
                         Button("searchMap.place.viewDetail") { onSelectPlace(place) }
-                            .buttonStyle(.borderedProminent)
                     }
                 }
                 .listStyle(.insetGrouped)
-            }
-            .presentationDetents([.medium])
-        }
-        .sheet(isPresented: $showAllResultsSheet) {
-            VStack(spacing: 0) {
-                CYSheetHeader(title: Text("searchMap.allResults"), style: .player) {
-                    showAllResultsSheet = false
-                }
-                if places.isEmpty {
-                    ContentUnavailableView("searchMap.emptyResults", systemImage: "magnifyingglass")
-                } else {
-                    List(places) { place in
-                        Button {
-                            showAllResultsSheet = false
-                            selectedPlace = place
-                        } label: {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(place.title).cyText(.cardTitle)
-                                Text(place.address).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            }
-                        }
+                .navigationTitle(Text(verbatim: place.title))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { selectedPlace = nil } label: { Label("action.close", systemImage: "xmark") }
                     }
-                    .listStyle(.insetGrouped)
                 }
             }
             .presentationDetents([.medium, .large])
+            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        }
+        .sheet(isPresented: $showAllResultsSheet) {
+            NavigationStack {
+                Group {
+                    if places.isEmpty {
+                        ContentUnavailableView("searchMap.emptyResults", systemImage: "magnifyingglass")
+                    } else {
+                        List(places) { place in
+                            Button {
+                                showAllResultsSheet = false
+                                selectedPlace = place
+                            } label: {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(place.title).font(.body).foregroundStyle(.primary)
+                                    Text(place.address).font(.subheadline).foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .listStyle(.insetGrouped)
+                    }
+                }
+                .navigationTitle(Text("searchMap.allResults"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { showAllResultsSheet = false } label: { Label("action.close", systemImage: "xmark") }
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
+            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
         .cyPageTitle("searchMap.title")
     }

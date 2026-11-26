@@ -37,9 +37,8 @@ public enum SocialEditorPurpose: String, Identifiable {
     var body: some View {
         Form {
             Section {
-                CYHeroHeader(LocalizedStringKey(title)).listRowBackground(Color.clear)
-                if coordinator.availability == .syntheticOnly { CYStatusChip("social.offline", tone: .neutral, systemImage: "wifi.slash") }
-                else if coordinator.availability(for: command(), target: target) == .disabled { CYStatusChip("social.writesDisabled", tone: .warning, systemImage: "lock") }
+                if coordinator.availability == .syntheticOnly { Label("social.offline", systemImage: "wifi.slash").foregroundStyle(.secondary) }
+                else if coordinator.availability(for: command(), target: target) == .disabled { Label("social.writesDisabled", systemImage: "lock").foregroundStyle(.orange) }
                 if coordinator.identity.accountID == nil { SocialIssueView(error: SocialActionBlock.signIn) }
                 if let memberID = target.memberID { LabeledContent("social.targetMember", value: String(memberID)) }
                 if let postID = target.postID { LabeledContent("social.targetPost", value: String(postID)) }
@@ -53,10 +52,10 @@ public enum SocialEditorPurpose: String, Identifiable {
                         LabeledContent {
                             Text(verbatim: "\(text.utf16.count) / \(limit)").monospacedDigit()
                         } label: { Text("count", tableName: "SocialCommentLength") }
-                            .cyText(.bodyCompact).accessibilityIdentifier("social.editor.commentLength")
+                            .accessibilityIdentifier("social.editor.commentLength")
                         if commentTooLong {
                             Text("tooLong", tableName: "SocialCommentLength")
-                                .cyText(.bodyCompact).foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true)
+                                .foregroundStyle(.red)
                                 .accessibilityIdentifier("social.editor.commentTooLong")
                         }
                     }
@@ -67,10 +66,10 @@ public enum SocialEditorPurpose: String, Identifiable {
                     Toggle("social.actionEnabled", isOn: $enabled).disabled(state.locksForm)
                 }
             }
-            if purpose == .like && contentGeneration == .legacySquare { Section { Text("squareReport.legacyLikeHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) } }
-            if purpose == .toggleFollow { Section { Text("social.followToggleHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) } }
-            if purpose == .startChat { Section { Text("social.startChatHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) } }
-            if purpose == .commentLike && contentGeneration != .communityV1 { Section { Text("social.toggleHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) } }
+            if purpose == .like && contentGeneration == .legacySquare { Section { Text("squareReport.legacyLikeHint").font(.footnote).foregroundStyle(.secondary) } }
+            if purpose == .toggleFollow { Section { Text("social.followToggleHint").font(.footnote).foregroundStyle(.secondary) } }
+            if purpose == .startChat { Section { Text("social.startChatHint").font(.footnote).foregroundStyle(.secondary) } }
+            if purpose == .commentLike && contentGeneration != .communityV1 { Section { Text("social.toggleHint").font(.footnote).foregroundStyle(.secondary) } }
             if purpose == .report {
                 Section {
                     if needsLegacyReason {
@@ -80,20 +79,21 @@ public enum SocialEditorPurpose: String, Identifiable {
                                 Text(LocalizedStringKey("squareReport.legacyReason." + String(index))).tag(Optional(label))
                             }
                         }.accessibilityIdentifier("social.editor.legacyReportReason")
-                        Text("squareReport.legacyHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                    } else { Text("social.reportHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                        Text("squareReport.legacyHint").font(.footnote).foregroundStyle(.secondary)
+                    } else { Text("social.reportHint").font(.footnote).foregroundStyle(.secondary) }
                 }
             }
             if let issue { SocialIssueView(error: issue) }
             SocialActionStateView(state: state)
             Section {
-                CYPillButton("social.review") { textFocused = false; Task { await prepare() } }
+                Button("social.review") { textFocused = false; Task { await prepare() } }
                     .disabled(preparing || commentTooLong || state.locksForm || coordinator.identity.accountID == nil || (hasText && SocialText.nonempty(text) == nil) || (needsLegacyReason && legacyReportReason == nil))
                     .accessibilityIdentifier("social.editor.review")
             }
         }
-        .cyGroupedSurface()
-        .cyHeroScreen().privacySensitive()
+        .navigationTitle(Text(LocalizedStringKey(title)))
+        .navigationBarTitleDisplayMode(.inline)
+        .privacySensitive()
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -108,23 +108,17 @@ public enum SocialEditorPurpose: String, Identifiable {
             }
         }
         .interactiveDismissDisabled(hasDraft || preparing)
-        .sheet(isPresented: $confirmsDiscard) {
-            CYConfirmSheet(
-                title: appLocalized("social.editor.discardTitle", locale: locale),
-                message: appLocalized("social.editor.discardMessage", locale: locale),
-                confirmTitle: appLocalized("social.editor.discard", locale: locale),
-                cancelTitle: appLocalized("social.editor.keepEditing", locale: locale),
-                isDestructive: true,
-                confirmIdentifier: "social.editor.discard",
-                cancelIdentifier: "social.editor.keepEditing",
-                onCancel: { confirmsDiscard = false },
-                onConfirm: {
-                    confirmsDiscard = false
-                    text = ""
-                    dismiss()
-                }
-            )
-            .cyDomainSheet(detents: [.peek, .half])
+        .confirmationDialog(Text("social.editor.discardTitle"), isPresented: $confirmsDiscard, titleVisibility: .visible) {
+            Button("social.editor.discard", role: .destructive) {
+                confirmsDiscard = false
+                text = ""
+                dismiss()
+            }
+            .accessibilityIdentifier("social.editor.discard")
+            Button("social.editor.keepEditing", role: .cancel) { confirmsDiscard = false }
+                .accessibilityIdentifier("social.editor.keepEditing")
+        } message: {
+            Text("social.editor.discardMessage")
         }
         .onAppear {
             sessionIdentity = coordinator.identity
@@ -188,7 +182,6 @@ public enum SocialEditorPurpose: String, Identifiable {
     private var state: SocialActionState { _ = revision; return coordinator.state(target: review.target, generation: review.command.requiredGeneration) }
     var body: some View {
         List {
-            CYHeroHeader("social.review").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if !current { SocialIssueView(error: SocialActionBlock.changed) }
             else {
                 Section("social.reviewTarget") {
@@ -221,8 +214,9 @@ public enum SocialEditorPurpose: String, Identifiable {
                     if coordinator.availability(for: review.command, target: review.target) == .disabled { Text("social.writesDisabled") }
                 }
                 SocialActionStateView(state: state)
+                Section {
                 if coordinator.availability == .syntheticOnly {
-                    CYPillButton("social.simulate") {
+                    Button("social.simulate") {
                         busy = true
                         Task { await coordinator.confirm(review);
 #if DEBUG
@@ -231,15 +225,18 @@ public enum SocialEditorPurpose: String, Identifiable {
                             busy = false; revision += 1 }
                     }.disabled(busy || state != .reviewing).accessibilityIdentifier("social.review.confirm")
                 } else if coordinator.availability(for: review.command, target: review.target) == .approved {
-                    CYPillButton("social.submit") {
+                    Button("social.submit") {
                         busy = true
                         Task { await coordinator.confirm(review); busy = false; revision += 1 }
                     }.disabled(busy || state != .reviewing).accessibilityIdentifier("social.review.confirm")
                 } else {
-                    CYPillButton("social.submit") {}.disabled(true).accessibilityIdentifier("social.review.disabled")
+                    Button("social.submit") {}.disabled(true).accessibilityIdentifier("social.review.disabled")
+                }
                 }
             }
-        }.cyHeroScreen()
+        }
+            .navigationTitle(Text("social.review"))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose).disabled(busy).accessibilityIdentifier("social.review.close")
 #if DEBUG
                 .modifier(SocialReviewFixtureDiagnostic(coordinator: coordinator, review: review, busy: busy))
@@ -286,20 +283,20 @@ private struct SocialActionStateView: View {
         Group {
             switch state {
             case .idle, .reviewing: EmptyView()
-            case .preparing, .preflighting, .submitting: CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading"))
-            case .notSent: CYStatusChip("social.notSent", tone: .neutral, systemImage: "paperplane").accessibilityIdentifier("social.state.notSent")
+            case .preparing, .preflighting, .submitting: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("social.loading"))
+            case .notSent: Label("social.notSent", systemImage: "paperplane").foregroundStyle(.secondary).accessibilityIdentifier("social.state.notSent")
             case .rejected:
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    CYStatusChip("social.rejected", tone: .danger, systemImage: "xmark.circle").accessibilityIdentifier("social.state.rejected")
+                    Label("social.rejected", systemImage: "xmark.circle").foregroundStyle(.red).accessibilityIdentifier("social.state.rejected")
                     if let row = RequestReferenceRow(pathFragment: "/api/") { row }
                 }
             case .outcomeUnknown:
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    CYStatusChip("social.unknown", tone: .warning, systemImage: "questionmark.circle").accessibilityIdentifier("social.state.unknown")
+                    Label("social.unknown", systemImage: "questionmark.circle").foregroundStyle(.orange).accessibilityIdentifier("social.state.unknown")
                     if let row = RequestReferenceRow(pathFragment: "/api/") { row }
                 }
             case .acknowledged(let receipt):
-                CYStatusChip(LocalizedStringKey(receipt.synthetic ? "social.simulated" : "social.acknowledged"), tone: .success, systemImage: "checkmark").accessibilityIdentifier("social.state.acknowledged")
+                Label(LocalizedStringKey(receipt.synthetic ? "social.simulated" : "social.acknowledged"), systemImage: "checkmark").foregroundStyle(.green).accessibilityIdentifier("social.state.acknowledged")
             }
         }.accessibilityElement(children: .combine)
     }

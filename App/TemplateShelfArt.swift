@@ -146,47 +146,28 @@ enum TemplateShelfArt {
     }
 }
 
-/// Hero shelf card over a bundled MP cover: the photo fills the card, with the same bottom scrim and text as `CYImageCard`.
+/// Hero shelf card over a bundled MP cover: the photo, then the title and meta below it in system text styles.
 struct TemplateShelfArtHeroCard: View {
     let art: Image
     let title: Text
     var meta: String? = nil
-    @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
-    @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
         let stacked = typeSize.isAccessibilitySize
-        let text = VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            title.cyText(.sectionTitle).lineLimit(stacked ? nil : 2)
-            if let meta, !meta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text(verbatim: meta).cyText(.meta).lineLimit(stacked ? nil : 2)
+        VStack(alignment: .leading, spacing: 8) {
+            Color.clear
+                .aspectRatio(16.0 / 10.0, contentMode: .fit)
+                .overlay { art.resizable().scaledToFill().accessibilityHidden(true) }
+                .clipShape(.rect(cornerRadius: 10, style: .continuous)) // image crop only
+            VStack(alignment: .leading, spacing: 2) {
+                title.font(.headline).foregroundStyle(.primary).lineLimit(stacked ? nil : 2)
+                if let meta, !meta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary).lineLimit(stacked ? nil : 2)
+                }
             }
+            .fixedSize(horizontal: false, vertical: stacked)
         }
-        .fixedSize(horizontal: false, vertical: stacked)
-        .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        let photo = Color.clear
-            .aspectRatio(16.0 / 10.0, contentMode: .fit)
-            .overlay { art.resizable().scaledToFill().accessibilityHidden(true) }
-            .clipped()
-        Group {
-            if stacked {
-                VStack(spacing: 0) {
-                    photo
-                    text.foregroundStyle(palette.textPrimary).background(palette.bgElevated)
-                }
-            } else {
-                photo.overlay(alignment: .bottomLeading) {
-                    text.foregroundStyle(.white)
-                        .padding(.top, CYSpacing.jumbo)
-                        .background(LinearGradient(stops: [.init(color: .clear, location: 0),
-                                                           .init(color: .black.opacity(contrast == .increased ? 0.92 : 0.78), location: 0.7)],
-                                                    startPoint: .top, endPoint: .bottom))
-                }
-            }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .shadow(color: palette.cardShadowColor.opacity(0.4), radius: 8, x: 0, y: 3)
         .accessibilityElement(children: .combine)
     }
 }
@@ -198,7 +179,7 @@ struct TemplateShelfArtThumb: View {
     var body: some View {
         art.resizable().scaledToFill()
             .frame(width: side, height: side)
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .clipShape(.rect(cornerRadius: 8, style: .continuous)) // image crop only
             .accessibilityHidden(true)
     }
 }

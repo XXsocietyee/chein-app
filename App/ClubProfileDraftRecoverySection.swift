@@ -23,16 +23,16 @@ import SwiftUI
                     .disabled(busy).accessibilityIdentifier("club.profile.draft.discard")
             }
             if !flow.differences.isEmpty {
-                Text("localDraft.comparison", tableName: "ClubProfileLocalDraft").cyText(.cardTitle)
+                Text("localDraft.comparison", tableName: "ClubProfileLocalDraft").font(.headline)
                 ForEach(flow.differences) { difference in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey("localDraft.field." + difference.id), tableName: "ClubProfileLocalDraft").cyText(.meta, weight: .bold)
+                        Text(LocalizedStringKey("localDraft.field." + difference.id), tableName: "ClubProfileLocalDraft").font(.subheadline.bold())
                         if difference.id == "logo" || difference.id == "cover" {
                             Text("localDraft.imageDifference", tableName: "ClubProfileLocalDraft")
                         } else {
-                            Text("localDraft.savedValue", tableName: "ClubProfileLocalDraft").cyText(.meta)
+                            Text("localDraft.savedValue", tableName: "ClubProfileLocalDraft").font(.footnote).foregroundStyle(.secondary)
                             Text(verbatim: difference.saved).textSelection(.enabled)
-                            Text("localDraft.currentValue", tableName: "ClubProfileLocalDraft").cyText(.meta)
+                            Text("localDraft.currentValue", tableName: "ClubProfileLocalDraft").font(.footnote).foregroundStyle(.secondary)
                             Text(verbatim: difference.current).textSelection(.enabled)
                         }
                     }.accessibilityIdentifier("club.profile.draft.compare." + difference.id)
@@ -47,22 +47,20 @@ import SwiftUI
                 Button { readFresh() } label: { Text("localDraft.readFresh", tableName: "ClubProfileLocalDraft") }
                     .disabled(busy).accessibilityIdentifier("club.profile.draft.readFresh")
             }
-            Text("localDraft.localOnly", tableName: "ClubProfileLocalDraft").cyText(.bodyCompact).foregroundStyle(.secondary)
-        } header: { Text("localDraft.title", tableName: "ClubProfileLocalDraft") }
-        .sheet(isPresented: $confirmsDiscard) {
-            CYConfirmSheet(
-                title: String(localized: LocalizedStringResource("localDraft.discardTitle", table: "ClubProfileLocalDraft", locale: locale)),
-                message: String(localized: LocalizedStringResource("localDraft.discardMessage", table: "ClubProfileLocalDraft", locale: locale)),
-                confirmTitle: String(localized: LocalizedStringResource("localDraft.discard", table: "ClubProfileLocalDraft", locale: locale)),
-                cancelTitle: String(localized: LocalizedStringResource("localDraft.cancel", table: "ClubProfileLocalDraft", locale: locale)),
-                isDestructive: true,
-                onCancel: { confirmsDiscard = false },
-                onConfirm: {
-                    confirmsDiscard = false
-                    discard()
-                }
-            )
-            .cyDomainSheet(detents: [.peek, .half])
+        } header: { Text("localDraft.title", tableName: "ClubProfileLocalDraft") } footer: {
+            Text("localDraft.localOnly", tableName: "ClubProfileLocalDraft")
+        }
+        .confirmationDialog(String(localized: LocalizedStringResource("localDraft.discardTitle", table: "ClubProfileLocalDraft", locale: locale)),
+                            isPresented: $confirmsDiscard, titleVisibility: .visible) {
+            Button(String(localized: LocalizedStringResource("localDraft.discard", table: "ClubProfileLocalDraft", locale: locale)), role: .destructive) {
+                confirmsDiscard = false
+                discard()
+            }
+            Button(String(localized: LocalizedStringResource("localDraft.cancel", table: "ClubProfileLocalDraft", locale: locale)), role: .cancel) {
+                confirmsDiscard = false
+            }
+        } message: {
+            Text("localDraft.discardMessage", tableName: "ClubProfileLocalDraft")
         }
     }
 }

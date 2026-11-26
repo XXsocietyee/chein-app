@@ -148,25 +148,25 @@ struct ClubBadgeTile: View {
     var condition: String?
     let state: ClubBadgeState
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        VStack(spacing: CYSpacing.sm) {
+        VStack(spacing: 8) {
             ZStack {
                 if case .inProgress(let current, let target) = state {
+                    // Fitness-style progress ring in system colours.
                     Circle()
-                        .stroke(palette.borderStrong, lineWidth: 3)
+                        .stroke(Color.secondary.opacity(0.25), lineWidth: 3)
                     Circle()
                         .trim(from: 0, to: ClubBadgeTile.fraction(current, target))
-                        .stroke(palette.textPrimary, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                 }
                 ClubBadgeArt(name: name, seed: seed, category: category, isLit: state == .earned, size: 56)
             }
             .frame(width: 72, height: 72)
             Text(verbatim: clubR1Value(name))
-                .cyText(.label, weight: .semibold)
-                .foregroundStyle(state == .earned ? palette.textPrimary : palette.textSecondary)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(state == .earned ? Color.primary : Color.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
             switch state {
@@ -174,14 +174,15 @@ struct ClubBadgeTile: View {
                 EmptyView()
             case .locked:
                 Text(verbatim: clubR1Value(condition))
-                    .cyText(.caption)
-                    .foregroundStyle(palette.textTertiary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
             case .inProgress(let current, let target):
                 Text(verbatim: "\(current) / \(target)")
-                    .cyText(.caption, monospacedDigit: true)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity)

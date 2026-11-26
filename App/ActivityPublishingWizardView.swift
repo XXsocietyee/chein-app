@@ -27,7 +27,6 @@ enum ActivityPublishingStatusHelper {
     var onSubmitReview: (() -> Void)? = nil
 
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private static let fieldOwned: Set<String> = ["name", "addressName", "startDate", "endDate", "categoryIds",
         "description", "imgUrl", "templateId", "collaborators", "ticket"]
@@ -39,52 +38,64 @@ enum ActivityPublishingStatusHelper {
     }
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
-    /// Design hand-off r1 CF-58 / CF-19 / CF-22: a three-segment step bar under the nav (a visited segment is
-    /// tappable), one save chip, and no second primary or large in-content title. Errors stay inline under
-    /// their fields; the one primary is the bottom bar's 下一步 / 发布.
+    /// Design hand-off r1 CF-58 / CF-19 / CF-22: step progress under the nav (a visited step is tappable), one save
+    /// status line, and no second primary or large in-content title. Errors stay inline under their fields; the one
+    /// primary is the bottom bar's 下一步 / 发布.
+    /// The MP step bar has no Apple control: closest is a `ProgressView` plus plain borderless step buttons.
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            HStack(spacing: CYSpacing.sm) {
-                ForEach(Array(ActivityPublishingWizard.progress(current).enumerated()), id: \.element.id) { index, item in
+        let items = ActivityPublishingWizard.progress(current)
+        VStack(alignment: .leading, spacing: 10) {
+            ProgressView(value: Double(current + 1), total: Double(max(items.count, 1)))
+                .accessibilityHidden(true)
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                : AnyLayout(HStackLayout(spacing: 8))
+            layout {
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                     Button { if index < current { onSelectStep?(index) } } label: {
-                        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center, spacing: 6) {
-                            Capsule()
-                                .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
-                                .frame(height: 4)
+                        Label {
                             Text(Self.titleKey(item.key))
-                                .cyText(item.state == "current" ? .label : .meta)
-                                .foregroundStyle(item.state == "todo" ? palette.textSecondary : palette.textPrimary)
-                                .cyWrapText(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+                                .fontWeight(item.state == "current" ? .semibold : .regular)
+                        } icon: {
+                            Image(systemName: item.state == "todo" ? "circle" : (item.state == "current" ? "circle.inset.filled" : "checkmark.circle.fill"))
                         }
-                        .frame(maxWidth: .infinity, minHeight: EditorKitMetric.hit, alignment: .top)
-                        .contentShape(Rectangle())
+                        .font(.footnote)
+                        .foregroundStyle(item.state == "todo" ? Color.secondary : Color.primary)
+                        .frame(maxWidth: .infinity, alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderless)
                     .disabled(index >= current)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("publishModes.activity.wizard.progress." + item.key)
                     .accessibilityAddTraits(item.state == "current" ? .isSelected : [])
                 }
             }
-            HStack(spacing: CYSpacing.sm) {
-                EditorSaveChip(state: chipState, detail: chipDetail)
-                if let onRetry = retryAction {
-                    Button(action: onRetry) { EditorKitText.text("editorKit.retry") }
-                        .buttonStyle(.editorSecondary)
-                        .accessibilityIdentifier("publishModes.activity.wizard.saveRetry")
+            HStack(spacing: 8) {
+                Label { EditorKitText.text(chipState.key) } icon: { Image(systemName: chipState.symbol) }
+                    .font(.footnote)
+                    .foregroundStyle(chipState.usesErrorColour ? Color.red : Color.secondary)
+                    .accessibilityIdentifier("editorKit.saveChip")
+                if let chipDetail {
+                    chipDetail.font(.footnote).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer(minLength: 0)
+                if let onRetry = retryAction {
+                    Button(action: onRetry) { EditorKitText.text("editorKit.retry") }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .accessibilityIdentifier("publishModes.activity.wizard.saveRetry")
+                }
             }
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
-                    .cyText(.meta)
-                    .foregroundStyle(palette.danger)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
             }
         }
-        .padding(.vertical, CYSpacing.xs)
+        .padding(.vertical, 4)
         .accessibilityIdentifier("publishModes.activity.wizard.step." + String(current))
     }
     private var chipState: EditorSaveState {
@@ -103,23 +114,6 @@ enum ActivityPublishingStatusHelper {
         case .savedDraft(let updatedAt): return Text(verbatim: updatedAt)
         case .unsavedChanges: return nil
         case .saveFailed(let reason, _): return Text(verbatim: reason)
-        }
-    }
-    @ViewBuilder private func wizardSteps(_ current: Int) -> some View {
-        ForEach(ActivityPublishingWizard.progress(current)) { item in
-            VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center, spacing: 6) {
-                Capsule()
-                    .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
-                    .frame(height: 4)
-                Text(Self.titleKey(item.key))
-                    .cyText(item.state == "current" ? .label : .meta)
-                    .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
-                    .cyWrapText(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
-            }
-            .frame(maxWidth: .infinity, alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("publishModes.activity.wizard.progress." + item.key)
-            .accessibilityAddTraits(item.state == "current" ? .isSelected : [])
         }
     }
     private static func titleKey(_ key: String) -> LocalizedStringKey {
@@ -145,8 +139,8 @@ enum ActivityPublishingStatusHelper {
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
         let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(spacing: CYSpacing.sm))
-            : AnyLayout(HStackLayout(spacing: CYSpacing.md))
+            ? AnyLayout(VStackLayout(spacing: 8))
+            : AnyLayout(HStackLayout(spacing: 12))
         layout {
             secondary(current, fullWidth: dynamicTypeSize.isAccessibilitySize)
             primary(current)
@@ -154,22 +148,30 @@ enum ActivityPublishingStatusHelper {
     }
     @ViewBuilder private func secondary(_ current: Int, fullWidth: Bool) -> some View {
         if current == 0 {
-            CYPillButton("publishModes.cancel", style: .secondary, fullWidth: fullWidth, compact: true, action: onCancel)
+            Button(action: onCancel) { Text("publishModes.cancel").frame(maxWidth: fullWidth ? CGFloat.infinity : nil) }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
                 .disabled(!enabled)
                 .accessibilityIdentifier("publishModes.activity.wizard.cancel")
         } else {
-            CYPillButton("publishModes.wizard.back", style: .secondary, fullWidth: fullWidth, compact: true, action: onBack)
+            Button(action: onBack) { Text("publishModes.wizard.back").frame(maxWidth: fullWidth ? CGFloat.infinity : nil) }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
                 .disabled(!enabled)
                 .accessibilityIdentifier("publishModes.activity.wizard.back")
         }
     }
     @ViewBuilder private func primary(_ current: Int) -> some View {
         if current < ActivityPublishingWizard.steps.count - 1 {
-            CYPillButton("publishModes.wizard.next", compact: true, action: onNext)
+            Button(action: onNext) { Text("publishModes.wizard.next").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(!enabled)
                 .accessibilityIdentifier("publishModes.activity.wizard.next")
         } else {
-            CYPillButton("publishModes.review", compact: true, action: onReview)
+            Button(action: onReview) { Text("publishModes.review").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(!enabled)
                 .accessibilityIdentifier("publishModes.activity.review")
         }
@@ -181,7 +183,6 @@ enum ActivityPublishingStatusHelper {
     let rawSummary: ActivityPublishingWizard.ReviewSummary
     var merchantHost: Bool = false
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     private var summary: ActivityPublishingWizard.ReviewSummary { copy.reviewSummary(rawSummary) }
     init(summary: ActivityPublishingWizard.ReviewSummary, merchantHost: Bool = false) {
@@ -191,16 +192,15 @@ enum ActivityPublishingStatusHelper {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: summary.heading)
-                .cyText(.cardTitle)
-                .foregroundStyle(palette.textPrimary)
+                .font(.headline)
                 .accessibilityIdentifier("publishModes.activity.reviewSummary.heading")
 
             if merchantHost {
                 Text(verbatim: copy.merchantFreeTicketOnlyNotice)
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("publishModes.activity.reviewSummary.merchantFreeNotice")
             }
 
@@ -213,13 +213,12 @@ enum ActivityPublishingStatusHelper {
             }
 
             Text(verbatim: summary.visibilityNotice)
-                .cyText(.meta)
-                .foregroundStyle(palette.textSecondary)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.reviewSummary.visibility")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
         .accessibilityIdentifier("publishModes.activity.reviewSummary")
     }
 
@@ -227,18 +226,16 @@ enum ActivityPublishingStatusHelper {
     private func summaryRow(label: String, value: String, id: String) -> some View {
         if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: label).cyText(.meta).foregroundStyle(palette.textSecondary)
-                Text(verbatim: value).cyText(.bodyCompact).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: label).font(.footnote).foregroundStyle(.secondary)
+                Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
         } else {
             LabeledContent {
                 Text(verbatim: value)
-                    .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             } label: {
                 Text(verbatim: label)
-                    .foregroundStyle(palette.textSecondary)
             }
             .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
         }

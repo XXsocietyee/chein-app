@@ -6,7 +6,9 @@ import SwiftUI
 /// - CLB-G08: the overview member avatar strip (MP wxml:265-280).
 /// Each read is keyed; a newer key (club, account, tab) drops the older result.
 @MainActor final class ClubDetailR8MountModel: ObservableObject {
-    @Published private(set) var projects: [ClubManagedProjectDirectorItem] = []
+    /// CLB-detail-09 (MP `loadTopics` js:2265-2316): every `/api/club/topics` row; sessions are read on tap.
+    @Published private(set) var projects: [ClubManagedProjectRow] = []
+    @Published private(set) var projectsState: ClubManagedProjectsState = .idle
     @Published private(set) var coopPool: ClubCoopPoolLoadState = .idle
     @Published private(set) var memberAvatars: [ClubGapMemberAvatarStrip.AvatarItem] = []
     @Published private(set) var memberTotal = 0
@@ -21,12 +23,9 @@ import SwiftUI
     private var projectsKey: String?
     private var poolKey: String?
     private var avatarsKey: String?
-    /// MP lists every managed topic; the app reads each topic's sessions up front, so it stops at a page.
-    static let maxProjects = 12
-
     /// CLB-r7-A-06 (MP loadSettingsCounts js:3579-3601): read once per club when 俱乐部设置 opens; a failure clears the
     /// guard so the next opening asks again. Owner / admin only, as the MP sends it.
-    func loadSettingsCounts(clubID: Int, canSeeCustomers: Bool, access: any ClubGovernanceAccess) async {
+    func loadSettingsCounts(clubID: Int, canSeeCustomers: Bool, access: any ClubGovernanceAccess, locale: Locale = .current) async {
         guard canSeeCustomers, settingsCountsFor != clubID else { return }
         settingsCountsFor = clubID
         if topicTotal == nil,
@@ -37,17 +36,20 @@ import SwiftUI
         do {
             let count = try await access.read(.customerCount, scope: .init(clubID: clubID), options: [:])
             guard settingsCountsFor == clubID, !Task.isCancelled else { return }
-            if let total = count.value["total"].int, total > 0 { customerCountText = "\(total) 人" }
+            if let total = count.value["total"].int, total > 0 { customerCountText = String(format: appLocalized("club.settings.customerCount %lld", locale: locale), total) }
         } catch {
             guard settingsCountsFor == clubID, !Task.isCancelled else { return }
             settingsCountsFor = nil
-            customerCountText = "暂时读不到"
+            customerCountText = appLocalized("club.settings.countUnavailable", locale: locale)
         }
     }
 
-    func loadProjects(key: String, clubID: Int, showsDirector: Bool, locale: Locale, access: any ClubGovernanceAccess) async {
-        guard projectsKey != key else { return }
-        projectsKey = key; projects = []
+    func loadProjects(key: String, clubID: Int, showsDirector: Bool, locale: Locale, access: any ClubGovernanceAccess,
+                      force: Bool = false) async {
+        guard force || projectsKey != key else { return }
+        projectsKey = key
+        // MP CP-03: a refresh keeps the ready list; a first read shows the skeleton.
+        if !(force && projectsState == .ready) { projectsState = .loading; projects = [] }
         let current = { [weak self] in self?.projectsKey == key && !Task.isCancelled }
         do {
             let topics = try await access.read(.topics, scope: .init(clubID: clubID), options: [:]) {
@@ -55,26 +57,24 @@ import SwiftUI
             }
             guard current() else { return }
             topicTotal = topics.value.array?.count
-            var items: [ClubManagedProjectDirectorItem] = []
-            for row in (topics.value.array ?? []).prefix(Self.maxProjects) {
-                guard let topicID = row["id"].int, topicID > 0 else { continue }
-                let overview = try? await access.read(.topicOverview, scope: .init(clubID: clubID, topicID: topicID), options: [:]) {
-                    guard current() else { throw CancellationError() }
-                }
-                guard current() else { return }
-                let name = row["name"].string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                let gameModule = row["gameModuleEnabled"].bool == true || row["gameModuleEnabled"].int == 1
-                items.append(.init(id: topicID,
-                                   title: name.isEmpty ? appLocalized("clubR8.project.untitled", locale: locale) : name,
-                                   gameModuleEnabled: showsDirector && gameModule,
-                                   sessions: Self.sessions(overview?.value["activityList"], locale: locale)))
-            }
-            projects = items
+            projects = (topics.value.array ?? []).compactMap { ClubManagedProjectRow(value: $0, showsDirector: showsDirector, locale: locale) }
+            projectsState = .ready
         } catch {
-            // A failed read leaves the section out (MP shows 项目列表加载失败 above it); the next appearance retries.
+            // MP wxml:456: 项目列表加载失败 + 重新加载 (the next appearance also retries).
             guard current() else { return }
             projectsKey = nil
+            projects = []
+            projectsState = .failed
         }
+    }
+
+    /// MP `_topicActivities` (js:1159-1176): one topic's sessions, read when 活动导演台 or 场次工具 is tapped.
+    /// Nil means the read failed (MP E-15f: a failure is not "no sessions").
+    static func topicSessions(topicID: Int, clubID: Int, locale: Locale, access: any ClubGovernanceAccess) async -> [ClubManagedDirectorSession]? {
+        guard let overview = try? await access.read(.topicOverview, scope: .init(clubID: clubID, topicID: topicID), options: [:]) else {
+            return nil
+        }
+        return sessions(overview.value["activityList"], locale: locale)
     }
 
     /// MP `listGroupCodeActivities`: drops the topic's self-host shell; the label is 「名称 · M月D日 HH:mm」.
@@ -162,7 +162,8 @@ import SwiftUI
         guard let directory = try? await reader.clubMembers(id: clubID, isCurrent: { [weak self] in self?.avatarsKey == key }),
               avatarsKey == key, !Task.isCancelled else { return }
         memberAvatars = directory.members.prefix(4).map {
-            .init(id: String($0.memberId), name: $0.nickname ?? "", url: ClubCloud14HTTPS.url($0.avatar))
+            .init(id: String($0.memberId), name: $0.nickname ?? "", url: ClubCloud14HTTPS.url($0.avatar),
+                  memberID: $0.memberId, roleKey: $0.isOwner ? "club.strip.owner" : ($0.role == 1 ? "club.strip.admin" : nil))
         }
         memberTotal = max(directory.club.memberCount, directory.members.count)
     }
@@ -183,27 +184,9 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     case customers, enroll, eventOps, roles
     /// CLB-detail-20: 发布主题 from the empty 活动 state.
     case publish
+    /// CLB-detail-35: 出示团码 / 出示二维码 → that topic's 选择场次 step (MP showGroupCode js:3072-3088).
+    case groupCode(topicID: Int)
     var id: Self { self }
-}
-
-/// CLB-detail-09: the manage tab's project list; 活动导演台 opens the topic page in director mode (`activityId`),
-/// 场次工具 opens 现场名册与核销 / 分配领队与核销员 / 通知本场成员 for that session.
-@MainActor struct ClubManagedProjectsMount: View {
-    @ObservedObject var model: ClubDetailR8MountModel
-    let open: (ClubDetailR8Route) -> Void
-    var body: some View {
-        ClubGapManagedProjectsDirectorSection(
-            projects: model.projects,
-            onOpenDirector: { open(.director(topicID: $0, activityID: $1)) },
-            onSelectSessionTool: { topicID, activityID, tool in
-                open(.tool(topicID: topicID, activityID: activityID, tool, label: sessionTitle(activityID)))
-            })
-    }
-    private func sessionTitle(_ activityID: Int) -> String? {
-        model.projects.flatMap(\.sessions).first { $0.id == activityID }.map { session in
-            [session.title, session.timeLabel].compactMap { $0 }.joined(separator: " · ")
-        }
-    }
 }
 
 /// CLB-G04: 可对接的活动 for the owner; 我的合作 and 查看申请 open the pool applications list.
@@ -225,10 +208,10 @@ enum ClubDetailR8Route: Hashable, Identifiable {
             onOpenApplication: { _ in open(.myCoop) },
             onOpenMyCoop: { open(.myCoop) })
         if let key = model.coopApplyNoticeKey {
-            Section { Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            Section { Text(LocalizedStringKey(key)).font(.subheadline).foregroundStyle(.secondary) }
                 .accessibilityIdentifier("club.coopPool.notice")
         } else if let notice = model.coopApplyServerNotice {
-            Section { Text(verbatim: notice).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            Section { Text(verbatim: notice).font(.subheadline).foregroundStyle(.secondary) }
                 .accessibilityIdentifier("club.coopPool.notice")
         }
     }
@@ -273,6 +256,9 @@ enum ClubDetailR8Route: Hashable, Identifiable {
             case .transferOwner:
                 ClubGovernanceReadView(operation: .members, scope: .init(clubID: clubID), identity: identity,
                                        access: governance.access, coordinator: governance.coordinator)
+            case .groupCode(let topicID):
+                ClubGroupCodeSessionStep(clubID: clubID, topicID: topicID, identity: identity,
+                                         access: governance.access, coordinator: governance.coordinator)
             case .myCoop, .workspace, .undertake, .publish:
                 nonGovernance
             }
@@ -399,7 +385,9 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
     var body: some View {
         rows
             .navigationDestination(item: $destination) { destinationPage($0) }
-            .sheet(isPresented: $choosing) { choiceSheet.cyDomainSheet(detents: [.peek, .half]) }
+            .confirmationDialog(Text("club.detail.leaderboard.member.open", tableName: "ClubPublicRoster"),
+                                isPresented: $choosing, titleVisibility: .visible) { choiceActions }
+            .onChange(of: choosing) { _, open in if !open { choice = nil } }
             .onChange(of: identity) { _, _ in reset() }
             .onChange(of: governance.viewerRevision) { _, _ in reset() }
             .onChange(of: model.phase) { _, _ in prune() }
@@ -407,17 +395,26 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
     @ViewBuilder private var rows: some View {
         switch model.phase {
         case .idle, .loading:
-            CYSkeleton(variant: .row).accessibilityLabel(Text("club.loading"))
+            ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("club.loading"))
         case .failed:
-            CYEmptyState(systemImage: "exclamationmark.triangle", "clubR8.lb.failed", actionTitle: "action.retry",
-                         actionIdentifier: "club.detail.leaderboard.retry", action: retry)
+            ContentUnavailableView {
+                Label("clubR8.lb.failed", systemImage: "exclamationmark.triangle")
+            } actions: {
+                Button("action.retry", action: retry)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("club.detail.leaderboard.retry")
+            }
         case .ready(let rows) where rows.isEmpty:
-            CYEmptyState(systemImage: "trophy", model.sort.emptyKey, messageIdentifier: "club.detail.leaderboard.empty")
+            ContentUnavailableView {
+                Label { Text(model.sort.emptyKey).accessibilityIdentifier("club.detail.leaderboard.empty") } icon: {
+                    Image(systemName: "trophy")
+                }
+            }
         case .ready(let rows):
             ForEach(rows) { row in
                 if let hidden = row.hiddenCount {
                     Text(String(format: appLocalized("clubR8.lb.gap %lld", locale: locale), hidden))
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     rowView(row)
@@ -427,8 +424,7 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
     }
     @ViewBuilder private func rowView(_ row: ClubInlineLeaderboardModel.Row) -> some View {
         if row.memberID > 0, profileOpenable || offersCustomer {
-            Button { open(row.memberID) } label: { rowBody(row) }
-                .buttonStyle(.plain)
+            Button { open(row.memberID) } label: { rowBody(row).foregroundStyle(Color.primary) }
                 .accessibilityHint(Text("club.detail.leaderboard.member.hint", tableName: "ClubPublicRoster"))
                 .accessibilityIdentifier("club.detail.leaderboard.row.\(row.memberID)")
         } else {
@@ -436,26 +432,25 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
         }
     }
     private func rowBody(_ row: ClubInlineLeaderboardModel.Row) -> some View {
-        HStack(spacing: CYSpacing.md) {
-            Text(row.rank, format: .number).cyText(.cardTitle).monospacedDigit()
-                .foregroundStyle(row.rank <= 3 ? CYColor.brand : CYColor.textSecondary)
+        HStack(spacing: 12) {
+            Text(row.rank, format: .number).font(.headline).monospacedDigit()
+                .foregroundStyle(row.rank <= 3 ? Color.accentColor : Color.secondary)
                 .frame(minWidth: 24)
             ClubMPAvatar(url: row.avatar.flatMap(URL.init(string:)), name: row.nickname, size: .sm)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                HStack(spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
                     Text(verbatim: row.isMe ? appLocalized("clubR8.lb.you", locale: locale)
                          : (row.nickname.isEmpty ? appLocalized("club.community.user", locale: locale) : row.nickname))
-                        .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(1)
-                    if row.isMe { CYStatusChip("clubR8.lb.me", tone: .info) }
+                        .lineLimit(1)
+                    if row.isMe { Text("clubR8.lb.me").font(.caption).foregroundStyle(.tint) }
                 }
                 Text(verbatim: String(format: appLocalized("clubR8.lb.meta %lld %@ %@", locale: locale),
                                       row.clearCount, mileageText(row), durationText(row)))
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(.subheadline).foregroundStyle(.secondary)
             }
-            Spacer(minLength: CYSpacing.sm)
-            Text(verbatim: primaryText(row)).cyText(.bodyMedium).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            Spacer(minLength: 8)
+            Text(verbatim: primaryText(row)).monospacedDigit()
         }
-        .frame(minHeight: CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
@@ -499,31 +494,29 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
                                                            identity: identity, viewerRevision: governance.viewerRevision)
         }
     }
-    @ViewBuilder private var choiceSheet: some View {
-        // Bind under another name: the closures below reset the @State `choice`, and shadowing it crashes swift-frontend.
+    /// The 公开主页 / 客户详情 choice is a system confirmation dialog (action sheet).
+    @ViewBuilder private var choiceActions: some View {
+        // Read `choice` inside the actions: the buttons reset the @State `choice`, and shadowing it crashes swift-frontend.
         if let pending = choice, current(pending) {
-            CYOptionSheet(
-                title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.open", table: "ClubPublicRoster", locale: locale)),
-                items: [
-                    CYOptionSheetItem(id: "public", title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.public", table: "ClubPublicRoster", locale: locale)),
-                                      systemImage: "person.crop.circle", identifier: "club.detail.leaderboard.choice.public"),
-                    CYOptionSheetItem(id: "customer", title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.customer", table: "ClubPublicRoster", locale: locale)),
-                                      systemImage: "person.text.rectangle", identifier: "club.detail.leaderboard.choice.customer")
-                ],
-                onSelect: { selected in
-                    guard let picked = choice, current(picked) else { choosing = false; choice = nil; return }
-                    let next = ClubDetailLeaderboardMemberOpen(id: UUID(), memberID: picked.memberID, customer: selected == "customer",
-                                                                clubID: club.id, identity: identity, viewerRevision: governance.viewerRevision)
-                    guard current(next) else { choosing = false; choice = nil; return }
-                    destination = next
-                    choosing = false
-                    choice = nil
-                },
-                onClose: { choosing = false; choice = nil }
-            )
-        } else {
-            Color.clear.onAppear { choosing = false; choice = nil }
+            Button { pickChoice(customer: false) } label: {
+                Text("club.detail.leaderboard.member.public", tableName: "ClubPublicRoster")
+            }
+            .accessibilityIdentifier("club.detail.leaderboard.choice.public")
+            Button { pickChoice(customer: true) } label: {
+                Text("club.detail.leaderboard.member.customer", tableName: "ClubPublicRoster")
+            }
+            .accessibilityIdentifier("club.detail.leaderboard.choice.customer")
         }
+        Button("action.cancel", role: .cancel) { choosing = false; choice = nil }
+    }
+    private func pickChoice(customer: Bool) {
+        guard let picked = choice, current(picked) else { choosing = false; choice = nil; return }
+        let next = ClubDetailLeaderboardMemberOpen(id: UUID(), memberID: picked.memberID, customer: customer,
+                                                    clubID: club.id, identity: identity, viewerRevision: governance.viewerRevision)
+        guard current(next) else { choosing = false; choice = nil; return }
+        destination = next
+        choosing = false
+        choice = nil
     }
     @ViewBuilder private func destinationPage(_ target: ClubDetailLeaderboardMemberOpen) -> some View {
         if current(target), target.customer {

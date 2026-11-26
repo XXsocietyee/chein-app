@@ -14,17 +14,10 @@ import SwiftUI
                 NativeChannelWelcomeView(flow: flow, selectChannel: { if parentRouteIsActive() { selection.selected = $0 } })
             } else {
                 List {
-                    Section {
-                        CYHeroHeader("d7.channelWelcome.title")
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets())
-                    }
-                    CYEmptyState(systemImage: "signpost.right", "d7.channelWelcome.unavailable")
+                    ContentUnavailableView("d7.channelWelcome.unavailable", systemImage: "signpost.right")
                 }
-                .listStyle(.insetGrouped)
-                .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
-                .cyGroupedSurface()
-                .cyHeroScreen()
+                .navigationTitle(Text("d7.channelWelcome.title"))
+                .navigationBarTitleDisplayMode(.inline)
             }
         }
         .task { reopen() }
@@ -52,7 +45,7 @@ import SwiftUI
     let selectChannel: (NativeChannelManagementID) -> Void
     var body: some View {
         List {
-            Section { hero.listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            hero
             if flow.isCurrent {
                 if let issue = flow.issue {
                     NativeChannelFlowNotice(title: Text(verbatim: issue), symbol: "exclamationmark.circle")
@@ -64,63 +57,74 @@ import SwiftUI
                         Section {
                             ForEach(value.signposts) { item in
                                 Button { select(item.id) } label: { signpostRow(item) }
-                                    .buttonStyle(.cyPressable)
                                     .disabled(flow.busy)
                                     .accessibilityLabel(Text(verbatim: item.label))
                             }
                         } header: {
-                            CYSectionHeader("d7.channelWelcome.getStarted")
-                                .textCase(nil)
+                            Text("d7.channelWelcome.getStarted")
                         }
                     }
                     Section {
-                        CYPillButton("d7.channelWelcome.enter") { select(value.entryChannelID) }
+                        Button { select(value.entryChannelID) } label: { Text("d7.channelWelcome.enter") }
                             .disabled(flow.busy)
                             .accessibilityLabel(Text("d7.channelWelcome.enter"))
                     }
                 }
             } else {
-                CYEmptyState(systemImage: "lock.shield", "d7.channelWelcome.expired")
+                ContentUnavailableView("d7.channelWelcome.expired", systemImage: "lock.shield")
             }
         }
-        .listStyle(.insetGrouped)
-        .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
-        .listSectionSpacing(CYSpacing.xxl)
         .refreshable { await flow.refresh() }
+        .navigationTitle(titleText)
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
-        .cyHeroScreen()
         .privacySensitive()
         .task { await flow.activate() }
         .onDisappear { flow.deactivate() }
         .cyAnimation(value: flow.snapshot?.version)
     }
 
+    private var trimmedTitle: String {
+        (flow.isCurrent ? flow.snapshot : nil)?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
+    /// The channel's welcome title is the navigation title; the generic title stands in while it is unknown.
+    private var titleText: Text {
+        trimmedTitle.isEmpty ? Text("d7.channelWelcome.title") : Text(verbatim: trimmedTitle)
+    }
+
+    /// One optional header image (the generated cover) and the description, in the first section.
     @ViewBuilder private var hero: some View {
         let snapshot = flow.isCurrent ? flow.snapshot : nil
-        let trimmed = snapshot?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let trimmed = trimmedTitle
         let detail = snapshot?.description.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        if trimmed.isEmpty {
-            CYHeroHeader("d7.channelWelcome.title")
-            if !detail.isEmpty {
-                Text(verbatim: detail)
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        } else {
-            CYHeroHeader(verbatim: trimmed, subtitle: detail.isEmpty ? nil : detail) {
-                NativeChannelCoverBanner(seed: trimmed, symbol: "signpost.right")
+        if !trimmed.isEmpty || !detail.isEmpty {
+            Section {
+                if !trimmed.isEmpty {
+                    NativeChannelCoverBanner(seed: trimmed, symbol: "signpost.right")
+                        .listRowInsets(EdgeInsets())
+                }
+                if !detail.isEmpty {
+                    Text(verbatim: detail)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
 
     private func signpostRow(_ item: NativeChannelWelcomeSnapshot.Signpost) -> some View {
-        CYListRow(verbatim: item.label, trailing: .chevron) {
-            Text(verbatim: item.emoji)
-                .cyText(.sectionTitle)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+        HStack {
+            Label {
+                Text(verbatim: item.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : item.label)
+                    .foregroundStyle(.primary)
+            } icon: {
+                Text(verbatim: item.emoji)
+                    .accessibilityHidden(true)
+            }
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
                 .accessibilityHidden(true)
         }
     }
@@ -133,9 +137,9 @@ import SwiftUI
 
 private struct NativeChannelWelcomeLoading: View {
     var body: some View {
-        CYSkeleton()
+        ProgressView()
+            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("cy.state.loading"))
-            .listRowBackground(Color.clear)
     }
 }

@@ -61,7 +61,12 @@ class BackendSyncSourceTests(unittest.TestCase):
    self.assertNotIn('TopicLikeOperationFactory', value, p)
   host = (ROOT/'App/TopicFavoriteHost.swift').read_text()
   self.assertIn('composition.topicUnlikeApproval(context) != nil', host)
-  self.assertIn('TopicLikeOperationFactory(configuration: api)', host)
+  # 104580afa: the host builds the MP body through TopicLikeHostController.miniProgramLikeRequest (id then type)
+  # instead of the factory; the lease gate and the single wiring point are unchanged.
+  self.assertIn('TopicLikeHostController.miniProgramLikeRequest(\n                    baseURL: api.baseURL, topicID: topicID, direction: direction, token: token)', host)
+  for p, value in self.swift().items():
+   if p.parts[0] != 'App' or p.name == 'TopicFavoriteHost.swift': continue
+   self.assertNotIn('miniProgramLikeRequest', value, p)
  def test_legacy_square_bookmark_never_routes_through_community_id(self):
   contracts = (ROOT/'Core/SocialActionContracts.swift').read_text()
   self.assertIn('case .communityComment, .communityCommentLike, .postAction: return .communityV1', contracts)

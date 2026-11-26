@@ -16,49 +16,46 @@ struct GlobalTemplateResultRow: View {
         // R7-PC-A4-2 (r8): MP search2/result draws template results as cover cards too; accessibility sizes keep the row.
         if typeSize.isAccessibilitySize { rowLayout } else { coverLayout }
     }
+    /// One plain header image above the row text (no card chrome).
     private var coverLayout: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 8) {
             coverArt
                 .frame(maxWidth: .infinity)
                 .frame(height: 160)
                 .clipped()
-            textColumn.padding(CYSpacing.md)
+            textColumn
         }
-        .background(CYColor.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
     }
     /// MP: pages/search2/result/index.wxml:55 — no cover → `.tpl-big__art` (200rpx, aspectFit, centred) from utils/template-art.js via utils/discover-search.js:117.
     @ViewBuilder private var coverArt: some View {
         if row.kind != .topicTemplate, (row.imageURL ?? "").isEmpty, let art = TemplateShelfArt.interactionIcon(row.title) {
             ZStack {
-                CYColor.bgElevated
+                Rectangle().fill(.quaternary)
                 art.resizable().scaledToFit().frame(width: 100, height: 100).accessibilityHidden(true)
             }
         } else {
-            E1CoverArt(seed: row.title, symbol: row.kind == .topicTemplate ? "map" : "puzzlepiece.extension",
-                       imageURL: row.imageURL, debugLabel: false)
+            DiscoveryArtwork(source: row.imageURL, height: 160)
         }
     }
     private var rowLayout: some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
+        HStack(alignment: .top, spacing: 12) {
             DiscoveryTopicCoverThumb(urlString: row.imageURL, seed: row.title)
             textColumn
             Spacer(minLength: 0)
         }
-        .frame(minHeight: CYSpacing.minTouchTarget)
         .accessibilityElement(children: .combine)
     }
     private var textColumn: some View {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(row.kind == .topicTemplate ? "searchMap.kind.topicTemplate" : "searchMap.kind.playTemplate")
-                    .cyText(.caption).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: row.title).font(.body).foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let detail = row.detail, !detail.isEmpty {
-                    Text(verbatim: detail).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(2)
+                    Text(verbatim: detail).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
                 }
-                if row.previewOnly { Text("searchMap.template.previewOnly").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                if row.previewOnly { Text("searchMap.template.previewOnly").font(.caption).foregroundStyle(.secondary) }
             }
     }
 }
@@ -66,16 +63,17 @@ struct SearchMapIssue: View {
     let key: String
     var retry: (() -> Void)? = nil
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        // Native r2: the system unavailable view (symbol, title, one bordered retry) instead of a drawn card.
+        ContentUnavailableView {
             Label(LocalizedStringKey(key), systemImage: key.contains("unauthorized") ? "lock" : "exclamationmark.circle")
-                .cyText(.bodyMedium)
-                .fixedSize(horizontal: false, vertical: true)
+        } description: {
+            EmptyView()
+        } actions: {
             if let retry {
-                Button(action: retry) { Text("searchMap.retry").frame(minHeight: 44) }
-                    .buttonStyle(.cySecondary(fullWidth: false))
+                Button(action: retry) { Text("searchMap.retry") }
+                    .buttonStyle(.bordered)
             }
-        }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        }
             .accessibilityElement(children: .contain).accessibilityIdentifier("searchMap.issue")
     }
     static func key(_ error: Error) -> String {
@@ -96,57 +94,41 @@ struct SearchMapCard: View {
     var body: some View {
         if usesCoverCard { coverCard } else { rowCard }
     }
+    /// One plain header image above the row text (no card chrome); the List row draws the chevron.
     private var coverCard: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            E1CoverArt(seed: row.title, symbol: row.kind.symbol, imageURL: offline ? nil : row.imageURL, debugLabel: false)
-                .frame(maxWidth: .infinity)
-                .frame(height: 160)
-                .clipped()
-            textColumn.padding(CYSpacing.md)
+        VStack(alignment: .leading, spacing: 8) {
+            DiscoveryArtwork(source: offline ? nil : row.imageURL, height: 160)
+            textColumn
         }
-        .background(CYColor.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
     }
     private var rowCard: some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
+        HStack(alignment: .center, spacing: 12) {
             if !typeSize.isAccessibilitySize {
-                E1CoverArt(seed: row.title, symbol: row.kind.symbol, imageURL: offline ? nil : row.imageURL, debugLabel: false)
-                    .frame(width: 84, height: 84)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                DiscoveryTopicCoverThumb(urlString: offline ? nil : row.imageURL, seed: row.title)
             }
             textColumn
-            Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
         }
-        .padding(CYSpacing.md)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
     }
     private var textColumn: some View {
         Group {
-            VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
+            VStack(alignment: .leading, spacing: 2) {
                 Label(row.kind.titleKey, systemImage: row.kind.symbol)
-                    .cyText(.caption, weight: .semibold).foregroundStyle(CYColor.textSecondary)
-                    .padding(.horizontal, CYSpacing.sm + 2).padding(.vertical, 3)
-                    .searchNightPill()
+                    .font(.caption).foregroundStyle(.secondary)
                 Group {
                     if row.title.isEmpty { Text("searchMap.untitled") } else { Text(verbatim: row.title) }
                 }
-                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .font(.body).foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
                 if let detail = row.detail, !detail.isEmpty {
-                    Text(verbatim: detail).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: detail).font(.subheadline).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if !row.tags.isEmpty {
-                    // Mini-program result card: tags are small filled chips, at most three, and they wrap.
-                    HStack(spacing: CYSpacing.xs) {
-                        ForEach(Array(row.tags.prefix(3).enumerated()), id: \.offset) { _, tag in
-                            Text(verbatim: tag).cyText(.caption).foregroundStyle(CYColor.textSecondary).cyWrapText()
-                                .padding(.horizontal, CYSpacing.sm).padding(.vertical, 3)
-                                .background(Capsule(style: .continuous).fill(CYColor.bgSurfaceSubtle))
-                        }
-                    }
+                    // Mini-program result tags (at most three), as one quiet secondary line.
+                    Text(verbatim: row.tags.prefix(3).joined(separator: " · "))
+                        .font(.caption).foregroundStyle(.secondary).cyWrapText()
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

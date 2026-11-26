@@ -72,7 +72,8 @@ class CreatorPendingContracts(unittest.TestCase):
    s=read(path);self.assertIn('workshopCreatorLocalized(key, locale: locale)',s)
    self.assertNotRegex(s,r'\b(?:Text|Button|Section|Toggle|LabeledContent|ProgressView|navigationTitle)\("workshop(?:Creator|Pending)\.')
    self.assertNotIn('LocalizedStringKey(',s)
-  self.assertIn('CYListRow(verbatim: workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale))',read('App/TemplateAuthoringMineView.swift'))
+  # native r2: CYListRow(verbatim:) became a system Label with the same pre-resolved (verbatim) string
+  self.assertIn('Label(workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale), systemImage: "person.badge.shield.checkmark")',read('App/TemplateAuthoringMineView.swift'))
   self.assertIn('testEveryCreatorLabelUsesItsNamedCatalogAndSelectedLanguage',read('Tests/AppUnitTests/WorkshopCreatorPendingNormalFlowTests.swift'))
  def test_fixture_stays_debug_and_does_not_register_a_network_client(self):
   for path in ['App/WorkshopCreatorPendingFixtureData.swift','App/WorkshopCreatorPendingFixtureSupport.swift']:

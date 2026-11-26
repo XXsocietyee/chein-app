@@ -90,10 +90,12 @@ import Combine
     }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateCoin.rehearse", subtitle: controller.mode == .sourceExample ? "templateCoin.exampleOnly" : nil) }.e1HeroRow()
+            if controller.mode == .sourceExample {
+                Section { Text("templateCoin.exampleOnly").foregroundStyle(.secondary) }
+            }
             if let state = controller.visibleState {
                 Section {
-                    Text(verbatim: state.kicker).cyText(.sectionTitle).accessibilityIdentifier("templateCoin.kicker")
+                    Text(verbatim: state.kicker).font(.headline).accessibilityIdentifier("templateCoin.kicker")
                     side(state.heads, key: "templateCoin.heads")
                     side(state.tails, key: "templateCoin.tails")
                 }
@@ -102,28 +104,38 @@ import Combine
                         ForEach(TemplateCoinFlipRehearsal.Face.allCases) { face in Text(LocalizedStringKey(face.labelKey)).tag(face) }
                     }.pickerStyle(.segmented).accessibilityIdentifier("templateCoin.selection")
                     if state.result == nil {
-                        CYPillButton("templateCoin.show", systemImage: "circle.lefthalf.filled", action: controller.showAction()).accessibilityIdentifier("templateCoin.show").e1ActionRow()
+                        Button("templateCoin.show", systemImage: "circle.lefthalf.filled", action: controller.showAction())
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .accessibilityIdentifier("templateCoin.show")
                     } else {
-                        CYPillButton("templateCoin.again", systemImage: "arrow.clockwise", action: controller.showAction()).accessibilityIdentifier("templateCoin.again").e1ActionRow()
+                        Button("templateCoin.again", systemImage: "arrow.clockwise", action: controller.showAction())
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .accessibilityIdentifier("templateCoin.again")
                     }
                 }
                 if let result = state.result {
                     Section("templateCoin.result") {
-                        Text(LocalizedStringKey(result.face.labelKey)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                        Text(verbatim: result.side.label).cyText(.dataXL).accessibilityIdentifier("templateCoin.result.label")
+                        Text(LocalizedStringKey(result.face.labelKey)).font(.footnote).foregroundStyle(.tertiary)
+                        Text(verbatim: result.side.label).font(.largeTitle.bold()).accessibilityIdentifier("templateCoin.result.label")
                         if result.side.action.isEmpty { Text("templateCoin.emptyAction") }
                         else { Text(verbatim: result.side.action).accessibilityIdentifier("templateCoin.result.action") }
                     }
                 }
-                CYPillButton("creator.reset", style: .tertiary, action: controller.resetAction()).accessibilityIdentifier("templateCoin.reset").e1ActionRow()
+                Section {
+                    Button("creator.reset", action: controller.resetAction())
+                        .accessibilityIdentifier("templateCoin.reset")
+                }
             } else {
                 Section {
                     Text("templateCoin.unavailable")
-                    CYPillButton("templateCoin.reload", style: .secondary, systemImage: "arrow.clockwise") { controller.reload() }.disabled(!controller.canReload)
-                        .accessibilityIdentifier("templateCoin.reload").e1ActionRow()
+                    Button("templateCoin.reload", systemImage: "arrow.clockwise") { controller.reload() }
+                        .buttonStyle(.bordered).controlSize(.large)
+                        .disabled(!controller.canReload)
+                        .accessibilityIdentifier("templateCoin.reload")
                 }
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().privacySensitive()
+        }.formStyle(.grouped).privacySensitive()
+            .navigationTitle(Text("templateCoin.rehearse")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("templateAuthor.close", action: controller.closeAction { dismiss() }).accessibilityIdentifier("templateCoin.close")
             } }
@@ -132,9 +144,9 @@ import Combine
             .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
     }
     private func side(_ side: TemplateCoinFlipRehearsal.Side, key: String) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
-            Text(verbatim: side.label).cyText(.cardTitle)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(LocalizedStringKey(key)).font(.footnote).foregroundStyle(.tertiary)
+            Text(verbatim: side.label).font(.headline)
             if side.action.isEmpty { Text("templateCoin.emptyAction").foregroundStyle(.secondary) }
             else { Text(verbatim: side.action) }
         }

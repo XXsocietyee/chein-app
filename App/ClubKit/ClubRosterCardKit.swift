@@ -81,103 +81,77 @@ extension ClubRosterCardModel {
     }
 }
 
+/// MC-25 as a system disclosure row: title, date and `5 / 50` with a capacity gauge; expanding lists the
+/// 实收 · 已退 · 净额 figures and the attendees with their status.
 struct ClubRosterCard: View {
     let model: ClubRosterCardModel
     var coverSeed: String = ""
     @State private var expanded = false
-    @State private var shownFill: Double = 0
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
-    @QuestifyReduceMotion private var reduceMotion
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Button {
-                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.3)) { expanded.toggle() }
-            } label: {
-                HStack(alignment: .top, spacing: CYSpacing.md) {
-                    CYCoverArt(seed: coverSeed.isEmpty ? model.title : coverSeed, showsDebugLabel: false)
-                        .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: clubR1Value(model.title))
-                            .cyText(.bodyMedium)
-                            .foregroundStyle(palette.textPrimary)
-                        Text(verbatim: clubR1Value(model.dateText))
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textSecondary)
-                        HStack(spacing: CYSpacing.sm) {
-                            if model.fill != nil { capacityBar }
-                            Text(verbatim: model.countText)
-                                .cyText(.meta, monospacedDigit: true)
-                                .foregroundStyle(palette.textSecondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    if model.isExpandable {
-                        Image(systemName: "chevron.down")
-                            .cyText(.label, weight: .semibold)
-                            .foregroundStyle(palette.textTertiary)
-                            .rotationEffect(.degrees(expanded ? 180 : 0))
-                            .accessibilityHidden(true)
-                    }
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            // Not `.disabled`: a summary-only card keeps full-strength text; it just does not toggle.
-            .allowsHitTesting(model.isExpandable)
-            .accessibilityValue(Text(verbatim: model.countText))
-            .accessibilityHint(model.isExpandable ? Text(verbatim: clubR1(expanded ? "roster.collapse" : "roster.expand", locale)) : Text(verbatim: ""))
-            if expanded {
+        if model.isExpandable {
+            DisclosureGroup(isExpanded: $expanded) {
                 if model.showsMoney {
-                    HStack(spacing: CYSpacing.md) {
-                        money("roster.received", model.received)
-                        money("roster.refunded", model.refunded)
-                        money("roster.net", model.net)
-                    }
+                    money("roster.received", model.received)
+                    money("roster.refunded", model.refunded)
+                    money("roster.net", model.net)
                 }
                 ForEach(model.attendees) { attendee in
-                    HStack {
+                    LabeledContent {
+                        Text(verbatim: attendee.statusText)
+                            .foregroundStyle(statusColor(attendee.status))
+                    } label: {
                         Text(verbatim: clubR1Value(attendee.name))
-                            .cyText(.body)
-                            .foregroundStyle(palette.textPrimary)
-                        Spacer(minLength: CYSpacing.sm)
-                        CYStatusTag(verbatim: attendee.statusText, state: attendee.status.tagState)
                     }
-                    .frame(minHeight: 44)
                 }
+            } label: {
+                summary
             }
-        }
-        .padding(CYSpacing.lg)
-        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
-        .onAppear {
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.4)) { shownFill = model.fill ?? 0 }
+            .accessibilityHint(Text(verbatim: clubR1(expanded ? "roster.collapse" : "roster.expand", locale)))
+        } else {
+            summary
         }
     }
 
-    private var capacityBar: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .leading) {
-                Capsule().fill(palette.bgRaised)
-                Capsule().fill(palette.textPrimary).frame(width: proxy.size.width * shownFill)
-            }
-        }
-        .frame(width: 72, height: 4)
-        .accessibilityHidden(true)
-    }
-
-    private func money(_ key: String, _ raw: String?) -> some View {
+    private var summary: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: clubR1Value(raw))
-                .cyText(.numericBody)
-                .foregroundStyle(palette.textPrimary)
-            Text(verbatim: clubR1(key, locale))
-                .cyText(.meta)
-                .foregroundStyle(palette.textSecondary)
+            Text(verbatim: clubR1Value(model.title))
+                .font(.headline)
+            Text(verbatim: clubR1Value(model.dateText))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            HStack(spacing: CYSpacing.sm) {
+                if let fill = model.fill {
+                    ProgressView(value: fill)
+                        .frame(width: 72)
+                        .accessibilityHidden(true)
+                }
+                Text(verbatim: model.countText)
+                    .font(.subheadline)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+        .accessibilityValue(Text(verbatim: model.countText))
+    }
+
+    private func statusColor(_ status: ClubR1Status) -> Color {
+        switch status {
+        case .live: return .green
+        case .pending: return .orange
+        case .ended: return .secondary
+        case .rejected: return .red
+        }
+    }
+
+    private func money(_ key: String, _ raw: String?) -> some View {
+        LabeledContent {
+            Text(verbatim: clubR1Value(raw)).monospacedDigit()
+        } label: {
+            Text(verbatim: clubR1(key, locale))
+        }
     }
 }

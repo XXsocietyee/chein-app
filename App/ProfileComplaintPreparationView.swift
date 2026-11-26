@@ -96,7 +96,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
             Section {
                 EmptyView()
             } footer: {
-                Text("profile.complaint.pageSubtitle").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("profile.complaint.pageSubtitle").fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("profile.complaint.pageSubtitle")
             }
             if !model.contextMatches {
@@ -106,19 +106,20 @@ private struct ProfileComplaintPresentationKey: Hashable {
             } else {
                 if model.isLoading {
                     // Source copy: 正在加载可投诉的活动.
-                    CYLoadingState("profile.complaint.loadingTopics", messageIdentifier: "profile.complaint.loading")
-                        .listRowBackground(Color.clear)
+                    ProgressView { Text("profile.complaint.loadingTopics") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("profile.complaint.loading")
                 }
                 if let issue = model.issue {
                     Section {
-                        Text(LocalizedStringKey(issue.sourceTitleKey)).cyText(.cardTitle)
+                        Text(LocalizedStringKey(issue.sourceTitleKey)).font(.headline)
                             .accessibilityIdentifier("profile.complaint.issueTitle")
                         if issue != .unavailable {
                             if model.isNetworkFailure && issue == .failed {
-                                Text("profile.complaint.read.network").cyText(.bodyCompact)
+                                Text("profile.complaint.read.network").font(.subheadline).foregroundStyle(.secondary)
                                     .accessibilityIdentifier("profile.complaint.issueDetail")
                             } else {
-                                Text(LocalizedStringKey(issue.sourceDetailKey)).cyText(.bodyCompact)
+                                Text(LocalizedStringKey(issue.sourceDetailKey)).font(.subheadline).foregroundStyle(.secondary)
                                     .accessibilityIdentifier("profile.complaint.issueDetail")
                             }
                         }
@@ -128,7 +129,6 @@ private struct ProfileComplaintPresentationKey: Hashable {
                                 .disabled(model.isLoading).accessibilityIdentifier("profile.complaint.retry")
                         } else if issue == .signIn, let onSignIn {
                             Button("auth.signIn", action: onSignIn)
-                                .frame(minHeight: CYSpacing.minTouchTarget)
                                 .accessibilityIdentifier("profile.complaint.signIn")
                         }
                     }
@@ -139,14 +139,13 @@ private struct ProfileComplaintPresentationKey: Hashable {
                             // Native restyle r1 (spec §3.5): empty source list as a ContentUnavailableView.
                             ContentUnavailableView {
                                 Label { Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty") } icon: {
-                                    CYEmptyIllustration(kind: .generic, size: 96)
+                                    Image(systemName: "tray")
                                 }
                             } description: {
                                 Text("profile.complaint.sourceEmptyHint")
                                     .accessibilityIdentifier("profile.complaint.emptyHint")
                             }
                         }
-                        .cyCardRow()
                     } else if !topics.isEmpty {
                         editor(topics).disabled(!model.canEdit)
                     }
@@ -213,16 +212,11 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 }.accessibilityIdentifier("profile.complaint.kind")
             }
             Section {
-                TextEditor(text: Binding(get: { model.draft.reason }, set: { value in model.change { $0.reason = value } }))
-                    .frame(minHeight: 140).focused($focused, equals: .reason)
-                    .scrollContentBackground(.hidden)
-                    .overlay(alignment: .topLeading) {
-                        // Source placeholder: 请详细描述遇到的问题…
-                        if model.draft.reason.isEmpty {
-                            Text("profile.complaint.reasonPlaceholder").foregroundStyle(CYColor.textTertiary)
-                                .padding(.top, 8).padding(.leading, 5).allowsHitTesting(false).accessibilityHidden(true)
-                        }
-                    }
+                // Source placeholder: 请详细描述遇到的问题… (the system prompt of a multi-line TextField).
+                TextField("profile.complaint.reason", text: Binding(get: { model.draft.reason }, set: { value in model.change { $0.reason = value } }),
+                          prompt: Text("profile.complaint.reasonPlaceholder"), axis: .vertical)
+                    .lineLimit(6...12)
+                    .focused($focused, equals: .reason)
                     .accessibilityLabel(Text("profile.complaint.reason"))
                     .accessibilityIdentifier("profile.complaint.reason")
             } header: {
@@ -231,7 +225,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 // Counter mirrors the 500 UTF-16 unit rule enforced by the draft validation.
                 let used = model.draft.reason.utf16.count
                 Text(verbatim: "\(used)/500").monospacedDigit()
-                    .foregroundStyle(used > 500 ? CYColor.dangerText : CYColor.textSecondary)
+                    .foregroundStyle(used > 500 ? Color.red : Color.secondary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .accessibilityIdentifier("profile.complaint.reasonCount")
             }
@@ -239,17 +233,18 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 TextField("profile.complaint.optional", text: Binding(get: { model.draft.contact },
                     set: { value in model.change { $0.contact = value } }), prompt: Text("profile.complaint.contactPlaceholder"))
                     .focused($focused, equals: .contact).textInputAutocapitalization(.never)
+                    .submitLabel(.done)
                     .accessibilityLabel(Text("profile.complaint.contact"))
                     .accessibilityIdentifier("profile.complaint.contact")
             }
             Section {
                 if let validation = model.validation {
-                    Text(LocalizedStringKey(validation.titleKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
+                    Text(LocalizedStringKey(validation.titleKey)).font(.subheadline).foregroundStyle(.red)
                         .accessibilityIdentifier("profile.complaint.validation")
                 }
                 // PLY-27-3: one primary 提交投诉 (complaint/index.wxml:75-76). A valid draft goes straight to the
                 // confirm sheet; the review section below only remains as the fallback after a cancel or failure.
-                CYPillButton(sending.isConfigured ? "profile.complaint.submit.action" : "profile.complaint.review") {
+                Button {
                     focused = nil
                     if !model.beginReview() {
                         switch model.validation {
@@ -260,7 +255,11 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     } else if sending.isConfigured, sending.canSend(review: model.review) {
                         confirmingSend = true
                     }
+                } label: {
+                    Text(LocalizedStringKey(sending.isConfigured ? "profile.complaint.submit.action" : "profile.complaint.review"))
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 // PLY-27-6: MP complaint/index.js:283-287 keeps 提交投诉 disabled until a topic is chosen and the reason
                 // has 5 characters; over-limit text still reaches the inline message on tap.
                 .disabled({
@@ -274,22 +273,23 @@ private struct ProfileComplaintPresentationKey: Hashable {
     private func reviewSection(_ review: ProfileComplaintReview) -> some View {
         Group {
             Section("profile.complaint.reviewTitle") {
-                topicLabel(review.topic).cyText(.cardTitle)
+                topicLabel(review.topic).font(.headline)
                 Text(verbatim: review.reason).accessibilityIdentifier("profile.complaint.reviewText")
                 if sending.state == .succeeded {
-                    CYStatusChip("profile.complaint.submit.done", tone: .success, systemImage: "checkmark")
+                    Label("profile.complaint.submit.done", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
                         .accessibilityIdentifier("profile.complaint.submit.done")
                 } else if !sending.isConfigured {
-                    Text("profile.complaint.notSubmitted").cyText(.bodyCompact)
+                    Text("profile.complaint.notSubmitted").font(.subheadline).foregroundStyle(.secondary)
                         .accessibilityIdentifier("profile.complaint.notSubmitted")
                 }
             }
             if case .failed(let failure) = sending.state {
                 Section {
-                    Text(LocalizedStringKey(failure.titleKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
+                    Text(LocalizedStringKey(failure.titleKey)).foregroundStyle(.red)
                         .accessibilityIdentifier("profile.complaint.submit.failure")
                     if case .rejected(let message?) = failure {
-                        Text(verbatim: message).cyText(.bodyCompact).accessibilityIdentifier("profile.complaint.submit.serverMessage")
+                        Text(verbatim: message).font(.subheadline).accessibilityIdentifier("profile.complaint.submit.serverMessage")
                     }
                 }
             }
@@ -299,13 +299,20 @@ private struct ProfileComplaintPresentationKey: Hashable {
                         .accessibilityIdentifier("profile.complaint.submit.close")
                 } else {
                     if sending.isConfigured {
-                        CYPillButton(LocalizedStringKey(sending.state == .sending ? "profile.complaint.submit.sending" : "profile.complaint.submit.action")) {
+                        Button {
                             confirmingSend = true
+                        } label: {
+                            Text(LocalizedStringKey(sending.state == .sending ? "profile.complaint.submit.sending" : "profile.complaint.submit.action"))
+                                .frame(maxWidth: .infinity)
                         }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
                         .disabled(!sending.canSend(review: model.review))
                         .accessibilityIdentifier("profile.complaint.submit.action")
                     }
-                    CYPillButton("profile.complaint.continueEditing", style: .secondary) { model.continueEditing() }
+                    Button { model.continueEditing() } label: {
+                        Text("profile.complaint.continueEditing").frame(maxWidth: .infinity)
+                    }
+                        .buttonStyle(.bordered).controlSize(.large)
                         .disabled(sending.state == .sending)
                         .accessibilityIdentifier("profile.complaint.continueEditing")
                 }

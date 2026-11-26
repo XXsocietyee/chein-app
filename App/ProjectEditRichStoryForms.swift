@@ -129,7 +129,7 @@ import SwiftUI
                 }
                 Section("fixr9.ap.story.branch.options") {
                     ForEach(0..<branchOptions.count, id: \.self) { index in
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        VStack(alignment: .leading, spacing: 4) {
                             TextField("fixr9.ap.story.branch.optionPrompt", text: branchText(index))
                                 .accessibilityIdentifier("projectEdit.rich.branch.option." + String(index))
                             Picker("fixr9.ap.story.branch.to", selection: branchTo(index)) {

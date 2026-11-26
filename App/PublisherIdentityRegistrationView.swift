@@ -125,46 +125,46 @@ import SwiftUI
                     PublishingStatusRow(title: Text("unknownReadback", tableName: "PublisherIdentityRegistration"), symbol: "clock")
                 }
                 if owner.busy {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        CYSkeletonBlock(height: 12).frame(maxWidth: 160)
+                    ProgressView {
                         Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "正在处理，请稍候" : "Processing, please wait")
-                            .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("publisherIdentity.busy")
                 }
                 if owner.status != .registered && owner.status != .acknowledgedReadFailed {
-                    PublishingField(title: Text("name", tableName: "PublisherIdentityRegistration"), required: true) {
-                        TextField(text: owner.textBinding(nameField: true)) { Text("name", tableName: "PublisherIdentityRegistration") }
-                            .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                            .focused($focusedInput, equals: .name)
-                            .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.name")
-                    }
-                    PublishingField(title: Text("idCard", tableName: "PublisherIdentityRegistration"), required: true) {
-                        SecureField(text: owner.textBinding(nameField: false)) { Text("idCard", tableName: "PublisherIdentityRegistration") }
-                            .textInputAutocapitalization(.characters).autocorrectionDisabled().privacySensitive()
-                            .focused($focusedInput, equals: .idCard)
-                            .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.idCard")
-                    }
+                    TextField(text: owner.textBinding(nameField: true)) { Text("name", tableName: "PublisherIdentityRegistration") }
+                        .textContentType(.name).submitLabel(.next)
+                        .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                        .focused($focusedInput, equals: .name)
+                        .onSubmit { focusedInput = .idCard }
+                        .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.name")
+                    SecureField(text: owner.textBinding(nameField: false)) { Text("idCard", tableName: "PublisherIdentityRegistration") }
+                        .submitLabel(.done)
+                        .textInputAutocapitalization(.characters).autocorrectionDisabled().privacySensitive()
+                        .focused($focusedInput, equals: .idCard)
+                        .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.idCard")
                     Toggle(isOn: owner.consentBinding()) { Text("consent", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true) }
                         .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.consent")
                     Button { Task { await owner.submit(currentYear: Calendar(identifier: .gregorian).component(.year, from: Date()), expected: stamp) } }
-                        label: { Text("submit", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
-                        .buttonStyle(.questifyPrimary)
+                        label: { Text("submit", tableName: "PublisherIdentityRegistration") }
                         .disabled(!owner.canEdit || !owner.consent).accessibilityIdentifier("publisherIdentity.submit")
                 }
                 if !owner.busy {
-                    CYPillButton("refresh", style: .secondary, systemImage: "arrow.clockwise", tableName: "PublisherIdentityRegistration") { Task { await owner.refresh(expected: stamp) } }
-                        .accessibilityIdentifier("publisherIdentity.refresh").e1ActionRow()
+                    Button { Task { await owner.refresh(expected: stamp) } } label: {
+                        Label { Text("refresh", tableName: "PublisherIdentityRegistration") } icon: { Image(systemName: "arrow.clockwise") }
+                    }
+                    .accessibilityIdentifier("publisherIdentity.refresh")
                 }
-                CYPillButton("return", style: .tertiary, tableName: "PublisherIdentityRegistration") { owner.close(stamp) }
-                    .accessibilityIdentifier("publisherIdentity.return").e1ActionRow()
+                Button { owner.close(stamp) } label: { Text("return", tableName: "PublisherIdentityRegistration") }
+                    .accessibilityIdentifier("publisherIdentity.return")
             } else {
                 if owner.confirmedRegistered {
                     PublishingStatusRow(title: Text("status.registered", tableName: "PublisherIdentityRegistration"), symbol: "checkmark.circle")
                 }
-                CYPillButton("open", style: .secondary, systemImage: "person.crop.rectangle", tableName: "PublisherIdentityRegistration") { Task { await owner.begin(service: makeService?(), expected: stamp) } }
-                    .disabled(!enabled).accessibilityIdentifier("publisherIdentity.open").e1ActionRow()
+                Button { Task { await owner.begin(service: makeService?(), expected: stamp) } } label: {
+                    Label { Text("open", tableName: "PublisherIdentityRegistration") } icon: { Image(systemName: "person.crop.rectangle") }
+                }
+                .disabled(!enabled).accessibilityIdentifier("publisherIdentity.open")
             }
         } header: { Text("title", tableName: "PublisherIdentityRegistration") }
         .toolbar {

@@ -712,13 +712,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collection"
+            "value": "Collectibles"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "藏品册"
+            "value": "藏品"
           }
         }
       }

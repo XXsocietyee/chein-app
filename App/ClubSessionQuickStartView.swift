@@ -80,7 +80,7 @@ import SwiftUI
                     .environment(\.clubTerminalSessions, governance.terminalSessions)
                     .environment(\.clubOwnerFunds, governance.ownerFunds)
             } label: {
-                CYListRow("club.sessionStart.title", trailing: .none) { CYRowIcon(systemImage: "calendar.badge.plus") }
+                Label("club.sessionStart.title", systemImage: "calendar.badge.plus")
             }
             .accessibilityIdentifier("club.sessionStart.entry")
             .accessibilityLabel(Text("club.sessionStart.title"))
@@ -93,7 +93,6 @@ import SwiftUI
     @ObservedObject var reader: Reader
     let governance: ClubGovernanceContext
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.cyPalette) private var palette
     @StateObject private var model = ClubSessionQuickStartModel()
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var creation = ClubSeriesCreationReturn()
@@ -113,26 +112,30 @@ import SwiftUI
         let _ = model.bind(scope)
         List {
             Section {
-                CYHeroHeader("club.sessionStart.title") {
-                    ClubCloud14Banner(seed: sessionBannerSeed, symbol: "calendar.badge.plus", imageURL: ClubCloud14HTTPS.url(club.cover))
+                ClubCloud14Banner(seed: sessionBannerSeed, symbol: "calendar.badge.plus", imageURL: ClubCloud14HTTPS.url(club.cover))
+                    .listRowInsets(EdgeInsets())
+                Text(verbatim: shown(club.name)).font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
+                LabeledContent {
+                    Text(verbatim: String(scope.clubID)).monospacedDigit()
+                } label: {
+                    Label("club.ops.clubID", systemImage: "number")
                 }
-                .listRowBackground(Color.clear).listRowSeparator(.hidden)
-                Text(verbatim: shown(club.name)).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                CYListRow("club.ops.clubID", trailing: .value(String(scope.clubID))) { CYRowIcon(systemImage: "number") }
-                Text("club.sessionStart.hint").cyText(.meta).foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+            } footer: {
+                Text("club.sessionStart.hint")
             }
             if !scope.canRead || model.phase == .denied {
-                CYStatusChip("club.sessionStart.ownerRequired", tone: .warning, systemImage: "lock")
-                    .accessibilityIdentifier("club.sessionStart.denied")
+                Section {
+                    Label("club.sessionStart.ownerRequired", systemImage: "lock")
+                        .foregroundStyle(.orange)
+                        .accessibilityIdentifier("club.sessionStart.denied")
+                }
             } else {
                 sessionActions(scope)
             }
         }
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("club.sessionStart.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { pendingSelection = nil; creation.retire(); model.leave(scope); dismiss() }.accessibilityIdentifier("club.sessionStart.cancel") } }
         .onAppear { hostVisible = true; finishCreationReturn() }
         .task(id: ReadTrigger(context: scope, visible: hostVisible, active: scenePhase == .active)) {
@@ -179,67 +182,83 @@ import SwiftUI
         Section {
             if model.phase == .loading { sessionLoading }
             if model.phase == .failed {
-                CYStatusChip("club.sessionStart.failed", tone: .danger, systemImage: "exclamationmark.triangle")
+                Label("club.sessionStart.failed", systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.red)
                     .accessibilityIdentifier("club.sessionStart.failed")
             }
             if model.phase == .topicUnavailable {
-                CYStatusChip("club.sessionStart.topicUnavailable", tone: .warning, systemImage: "calendar.badge.exclamationmark")
+                Label("club.sessionStart.topicUnavailable", systemImage: "calendar.badge.exclamationmark")
+                    .foregroundStyle(.orange)
             }
             sessionReload(scope)
         }
         if let topics = accepted(scope) { topicChoices(topics, scope) }
     }
     private var sessionLoading: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYSkeleton().accessibilityHidden(true)
-            Text("club.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
+        HStack(spacing: 8) {
+            ProgressView().accessibilityHidden(true)
+            Text("club.loading").foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("club.sessionStart.loading")
     }
     private func sessionReload(_ scope: ClubSessionQuickStartContext) -> some View {
-        CYPillButton(
-            LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh"),
-            style: model.phase == .failed ? .primary : .secondary,
-            systemImage: "arrow.clockwise"
-        ) { reload(scope) }
+        Button { reload(scope) } label: {
+            Label(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh"), systemImage: "arrow.clockwise")
+        }
         .disabled(model.phase == .loading || pendingSelection != nil || creation.holdsSource || model.permit(in: scope) == nil)
         .accessibilityIdentifier("club.sessionStart.reload")
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
     }
     @ViewBuilder private func topicChoices(_ topics: ClubSessionQuickStartTopics, _ scope: ClubSessionQuickStartContext) -> some View {
         Section {
-            CYSectionHeader("club.sessionStart.chooseTopic")
-                .listRowBackground(Color.clear).listRowSeparator(.hidden)
             if topics.rows.isEmpty {
-                CYEmptyState(systemImage: "calendar", "club.sessionStart.empty", messageIdentifier: "club.sessionStart.empty")
+                ContentUnavailableView {
+                    Label {
+                        Text("club.sessionStart.empty").accessibilityIdentifier("club.sessionStart.empty")
+                    } icon: {
+                        Image(systemName: "calendar")
+                    }
+                }
             }
             ForEach(topics.rows) { topic in
                 Button { choose(topic.id, scope: scope) } label: { topicRow(topic, scope) }
-                    .buttonStyle(.plain)
+                    .tint(.primary)
                     .disabled(pendingSelection != nil || creation.holdsSource)
                     .accessibilityIdentifier("club.sessionStart.topic.\(topic.id)")
             }
+        } header: {
+            Text("club.sessionStart.chooseTopic")
         }
     }
     private func topicRow(_ topic: ClubSessionQuickStartTopic, _ scope: ClubSessionQuickStartContext) -> some View {
         let name = topic.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            if name.isEmpty {
-                CYListRow("club.sessionStart.unnamedTopic", trailing: .chevron) { CYRowIcon(systemImage: "flag") }
-            } else {
-                CYListRow(verbatim: name, trailing: .chevron) { CYRowIcon(systemImage: "flag") }
+        return HStack {
+            VStack(alignment: .leading, spacing: 6) {
+                if name.isEmpty {
+                    Label("club.sessionStart.unnamedTopic", systemImage: "flag")
+                } else {
+                    Label(name, systemImage: "flag")
+                }
+                Group {
+                    LabeledContent("club.gov.field.topicId") { Text(verbatim: String(topic.id)).monospacedDigit() }
+                    Label(LocalizedStringKey(topic.originKey(currentClubID: scope.clubID)), systemImage: "person.2")
+                    if let date = topic.startDate {
+                        LabeledContent("club.sessionStart.startDate") { Text(verbatim: date).monospacedDigit() }
+                    }
+                    if let date = topic.endDate {
+                        LabeledContent("club.sessionStart.endDate") { Text(verbatim: date).monospacedDigit() }
+                    }
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             }
-            LabeledContent("club.gov.field.topicId") { Text(verbatim: String(topic.id)).monospacedDigit() }
-            CYStatusChip(LocalizedStringKey(topic.originKey(currentClubID: scope.clubID)), tone: .neutral, systemImage: "person.2")
-            if let date = topic.startDate {
-                LabeledContent("club.sessionStart.startDate") { Text(verbatim: date).monospacedDigit() }
-            }
-            if let date = topic.endDate {
-                LabeledContent("club.sessionStart.endDate") { Text(verbatim: date).monospacedDigit() }
-            }
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
         }
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
     private func creationSource(_ item: ClubSeriesCreationReturn.Item) -> ClubSeriesCreationReturn.Source? {
@@ -290,7 +309,7 @@ private struct ClubCloud14Banner: View {
                     }
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+            .clipped()
             .accessibilityHidden(true)
     }
 }

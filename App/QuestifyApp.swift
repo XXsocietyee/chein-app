@@ -294,12 +294,74 @@ struct SessionRootView: View {
                         .environment(\.cyTabBarVisibility, homeTabBarVisibility)
     }
 
-    /// 漫游 tab root (owner Q9, P 210:8322): the City Monopoly map. Hold to start opens the live roam.
+    /// 漫游 tab root. Native r2 (`NativeR2Flags.mapHome`, default on): the Apple-Maps-style map home, with the
+    /// City board as a map mode. Flag off: the City Monopoly map (owner Q9, P 210:8322); hold to start opens the live roam.
     @ViewBuilder private var roamTab: some View {
+        if NativeR2Flags.mapHome {
+                    RoamMapHomeView(dependencies: roamMapHomeDependencies)
+                        .environment(\.roamPOIActions, session.makeRoamPOIActions())
+                        .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
+                        .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
+                        .environment(\.roamPlaceExtrasProvider, { poiID in poiID > 0 ? RoamPlaceExtrasProduction(poiID: poiID, session: session) : nil })
+                        .environment(\.inGameChannelHost, session.inGameChannelHost)
+                        .themeDomain(.player)
+                        .environment(\.cyTabBarVisibility, roamTabBarVisibility)
+        } else {
                     SessionCityRoamRoot(liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) },
                                         passportDestination: { AnyView(roamBrowser) }, onChooseArea: { showsAreaPicker = true })
                         .cyFloatingTabBarClearance()
                         .environment(\.cyTabBarVisibility, roamTabBarVisibility)
+        }
+    }
+
+    private var roamLiveDestination: AnyView {
+        AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost))
+    }
+
+    private func roamEventDestination(_ target: RoamEventDestination) -> AnyView {
+        switch target {
+        case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
+        case .topic(let id): return AnyView(SessionTopicDetailView(id: id, session: session))
+        }
+    }
+
+    /// Native r2 map home: the readers and destinations the City root and `roamBrowser` already use.
+    private var roamMapHomeDependencies: RoamMapHomeDependencies {
+        let session = session
+        let signIn: () -> Void = { selectedTab = .mine }
+        return RoamMapHomeDependencies(
+            roamReader: session.roamReader,
+            entryReader: session.roamEntryNearbyReader,
+            entryTeams: { await session.roamEntryTeams(area: $0) },
+            officialRouteReader: session.officialRouteReader,
+            locationSettings: RoamSystemLocationSettingsProvider(),
+            mediaScope: session.platformConsumers.scope,
+            makeExternalMaps: session.platformConsumers.mapsFactory,
+            liveDestination: { roamLiveDestination },
+            passportDestination: { AnyView(roamBrowser) },
+            cityBoardDestination: {
+                AnyView(SessionCityRoamRoot(liveDestination: { roamLiveDestination }, passportDestination: { AnyView(roamBrowser) },
+                                            onChooseArea: { showsAreaPicker = true }))
+            },
+            placeDetailDestination: { item in
+                AnyView(RoamItemDetailView(item: item, reader: session.roamReader, mediaScope: session.platformConsumers.scope,
+                    makeExternalMaps: session.platformConsumers.mapsFactory, stampDestination: { AnyView(SessionRoamStampCameraView()) },
+                    posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: roamEventDestination,
+                    playerProfileDestination: { memberID in
+                        AnyView(SocialPublicProfileView(memberID: memberID, reader: session.socialAccountReader,
+                            squareReader: session.squareReader, actions: nil).id(session.socialAccountReader.identity))
+                    },
+                    couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader)))
+            },
+            eventDestination: roamEventDestination,
+            myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: signIn)) },
+            nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environment(\.nearbyTeamsSignIn, signIn)) },
+            nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: signIn)) },
+            searchDestination: { keyword in
+                AnyView(SessionLinkedSearchView(initialQuery: GlobalSearchQuery(keyword: keyword), startsOnMap: true, onSignIn: signIn))
+            },
+            onChooseArea: { showsAreaPicker = true },
+            onOpenAccount: signIn)
     }
 
     /// The shipped roam page (走起, 漫游护照, tools). Owner Q9: the 漫游 root is the map; this page opens from it.

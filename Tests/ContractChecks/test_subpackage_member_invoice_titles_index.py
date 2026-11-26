@@ -93,7 +93,8 @@ class InvoiceTitlesPageReadyTests(unittest.TestCase):
         ]:
             self.assertIn(literal, note)
         view = self.read("App/InvoiceLaunchTitlesView.swift")
-        self.assertIn('CYEmptyState(systemImage: "person.text.rectangle", "noTitles", tableName: "InvoiceLaunchUI")', view)
+        # native r2 me-account (da7f2c201): the empty state is the stock ContentUnavailableView, same key and table.
+        self.assertIn('ContentUnavailableView {\n                    Label { Text("noTitles", tableName: "InvoiceLaunchUI") }', view)
         self.assertIn("InvoiceLaunchStateSection", view)
         presentation = self.read("App/InvoiceLaunchPresentation.swift")
         self.assertIn('issue = "unknown"', presentation)

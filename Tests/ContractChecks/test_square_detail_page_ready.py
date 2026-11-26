@@ -28,10 +28,8 @@ MISSING_COPY = [
     "评论已发送，计数请刷新查看",
     "选择举报原因",
 ]
+# medalGold / medalSilver / medalBronze are decoded since r8 (45f2b0991, SquareContracts info.medal*; nil when absent).
 MISSING_FIELDS = [
-    "medalGold",
-    "medalSilver",
-    "medalBronze",
     "distanceText",
     "shopText",
     "durationText",
@@ -46,7 +44,8 @@ MISSING_FIELDS = [
 
 # social.portfolio.preview shares the words 查看大图 (cy-profile index.wxml:521).
 # Square detail's own image label (pages/square/detail/index.wxml:95) is still missing.
-UNRELATED_KEYS = {"ui.cloud05.admission.more", "share.title", "share.entry", "social.portfolio.preview"}
+# im.reportPeer.pickHeader is the IM peer-report sheet (选择举报原因); square detail's own report picker is still missing.
+UNRELATED_KEYS = {"ui.cloud05.admission.more", "share.title", "share.entry", "social.portfolio.preview", "im.reportPeer.pickHeader"}
 
 
 def catalog_values():

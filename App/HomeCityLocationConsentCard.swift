@@ -8,38 +8,38 @@ struct HomeCityLocationConsentCard: View {
     let onDecline: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Label {
-                Text("homeCityConsent.title").cyText(.cardTitle)
-            } icon: {
-                Image(systemName: "location.circle").foregroundStyle(CYColor.brand)
+        // System GroupBox: the platform's own grouped container for a short in-feed prompt.
+        GroupBox {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Text("homeCityConsent.body")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: CYSpacing.md) { buttons }
+                    VStack(spacing: CYSpacing.sm) { buttons }
+                }
             }
-            .foregroundStyle(CYColor.textPrimary)
-            Text("homeCityConsent.body")
-                .cyText(.bodyCompact)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: CYSpacing.md) { buttons }
-                VStack(spacing: CYSpacing.sm) { buttons }
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } label: {
+            Label("homeCityConsent.title", systemImage: "location.circle")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(CYSpacing.lg)
-        .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .cyNightCardDepth(radius: CYRadius.lg)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("homeCityConsent")
     }
 
     @ViewBuilder private var buttons: some View {
-        Button("homeCityConsent.decline", action: onDecline)
-            .buttonStyle(.cySecondary(fullWidth: true))
-            .frame(minHeight: CYSpacing.minTouchTarget)
+        Button(action: onDecline) {
+            Text("homeCityConsent.decline").frame(maxWidth: .infinity)
+        }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
             .accessibilityIdentifier("homeCityConsent.decline")
-        Button("homeCityConsent.agree", action: onAgree)
-            .buttonStyle(.cyPrimary)
-            .frame(minHeight: CYSpacing.minTouchTarget)
+        Button(action: onAgree) {
+            Text("homeCityConsent.agree").frame(maxWidth: .infinity)
+        }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .accessibilityIdentifier("homeCityConsent.agree")
     }
 }

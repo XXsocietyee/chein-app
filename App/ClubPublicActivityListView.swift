@@ -7,7 +7,6 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var onSignIn: (() -> Void)? = nil
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.cyPalette) private var palette
     @StateObject private var model = ClubPublicActivityListModel()
     @State private var visible = false
     @State private var destination: ClubPublicTopicDestination?
@@ -38,6 +37,29 @@ import SwiftUI
     var undertake: ((Int) -> Void)? = nil
     /// CLB-detail-20 (MP wxml:204-213, C3): the empty state offers 发布主题 to the owner or an activity manager.
     var onPublish: (() -> Void)? = nil
+    /// CLB-detail-35 (MP wxml:192, 212, js:3072-3088): 出示团码 on each card for the owner, an admin or
+    /// `club:event:checkin`; the host opens the 选择场次 step for that topic.
+    var groupCode: ((Int) -> Void)? = nil
+    /// Card actions: merchant 邀约承接 (CLB-G01) and manager 出示团码 (CLB-detail-35). Nil when neither applies.
+    private var cardActions: ((ClubActivityRow) -> AnyView)? {
+        guard undertake != nil || groupCode != nil else { return nil }
+        let undertake = undertake, groupCode = groupCode
+        return { row in
+            AnyView(HStack(spacing: CYSpacing.sm) {
+                if let undertake {
+                    ClubGapActivityAndScanActions(showsUndertake: true, showsScanVerify: false,
+                                                  onTapUndertake: { undertake(row.id) }, onTapScanVerify: {})
+                        .accessibilityIdentifier("club.activity.undertake.\(row.id)")
+                }
+                if let groupCode {
+                    Button("club.activity.groupCode") { groupCode(row.id) }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                        .accessibilityIdentifier("club.activity.groupCode.\(row.id)")
+                }
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget))
+        }
+    }
     var body: some View {
         if embedded != nil { embeddedBody } else { pageBody }
     }
@@ -69,30 +91,26 @@ import SwiftUI
             // No issued reader, or a reader whose session no longer matches the scope (the grant is not issued in this
             // build, or the E2E host override), reads as unavailable, not as an endless loading row.
             if scope == nil || source == nil || source?.scope(clubID: clubID) != scope {
-                Section {
-                    CYEmptyState(systemImage: "lock.slash", "publicTopics.unavailable", tableName: "ClubPublicTopics", messageIdentifier: "club.publicTopics.unavailable")
-                }
+                Section { unavailableState }
             } else if let snapshot = accepted, !model.loading {
                 let renderedSnapshotID = model.snapshotID
                 let rows = snapshot.rows.filter { $0.status != .ended }
                 if rows.isEmpty {
                     Section {
-                        CYEmptyState(systemImage: "calendar", "club.detail.events.empty", messageIdentifier: "club.detail.events.empty",
-                                     actionTitle: onPublish == nil ? nil : "club.detail.events.publish",
-                                     actionIdentifier: "club.detail.events.emptyPublish", actionStyle: .primary, action: onPublish)
-                            .listRowBackground(Color.clear)
+                        ContentUnavailableView {
+                            Label { Text("club.detail.events.empty").accessibilityIdentifier("club.detail.events.empty") } icon: { Image(systemName: "calendar") }
+                        } actions: {
+                            if let onPublish {
+                                Button("club.detail.events.publish", action: onPublish)
+                                    .buttonStyle(.borderedProminent)
+                                    .accessibilityIdentifier("club.detail.events.emptyPublish")
+                            }
+                        }
                     }
                 } else {
                     ClubActivityListContent(rows: rows, canOpen: visible && scenePhase == .active && opening == nil, open: { row in
                         select(row, from: snapshot, snapshotID: renderedSnapshotID)
-                    }, report: undertake.map { action -> (ClubActivityRow) -> AnyView in
-                        { row in
-                            AnyView(ClubGapActivityAndScanActions(showsUndertake: true, showsScanVerify: false,
-                                                                  onTapUndertake: { action(row.id) }, onTapScanVerify: {})
-                                .frame(minHeight: CYSpacing.minTouchTarget)
-                                .accessibilityIdentifier("club.activity.undertake.\(row.id)"))
-                        }
-                    }, embedded: true)
+                    }, report: cardActions, embedded: true)
                 }
             } else if !model.loading, model.issueScope == scope, let issue = model.issue {
                 issueSection(issue)
@@ -104,25 +122,22 @@ import SwiftUI
     private var pageBody: some View {
         List {
             Section {
-                CYHeroHeader("publicTopics.title", tableName: "ClubPublicTopics") {
-                    ClubCloud14Banner(seed: "public-topics-\(clubID)", symbol: "list.bullet.rectangle")
-                }
-                .listRowBackground(Color.clear).listRowSeparator(.hidden)
-                Text("publicTopics.scope", tableName: "ClubPublicTopics")
-                    .cyText(.meta).foregroundStyle(palette.textSecondary)
+                Label { Text("publicTopics.scope", tableName: "ClubPublicTopics") } icon: { Image(systemName: "info.circle") }
+                    .font(.subheadline).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if !session.clubIdentity.isSignedIn {
-                    Text("publicTopics.guestHandoff", tableName: "ClubPublicTopics")
-                        .cyText(.meta).foregroundStyle(palette.textSecondary)
+                    Label { Text("publicTopics.guestHandoff", tableName: "ClubPublicTopics") } icon: { Image(systemName: "person.crop.circle") }
+                        .font(.subheadline).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if selectedUnavailable {
-                CYStatusChip(verbatim: topicsCopy("publicTopics.removed"), tone: .warning, systemImage: "eye.slash")
+                Label { Text(verbatim: topicsCopy("publicTopics.removed")) } icon: { Image(systemName: "eye.slash").foregroundStyle(.orange) }
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.publicTopics.selectionRevoked")
             }
             if scope == nil {
-                CYEmptyState(systemImage: "lock.slash", "publicTopics.unavailable", tableName: "ClubPublicTopics", messageIdentifier: "club.publicTopics.unavailable")
+                unavailableState
             } else if model.loading {
                 activityLoading
             } else if let snapshot = accepted {
@@ -134,9 +149,8 @@ import SwiftUI
                 issueSection(issue)
             }
         }
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("publicTopics.title", tableName: "ClubPublicTopics"))
+        .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .refreshable { await refresh() }
         .toolbar {
@@ -153,9 +167,10 @@ import SwiftUI
                     // A list response is not a content-read or purchase entitlement.
                     SessionTopicDetailView(id: target.topicID, session: session)
                     if !session.clubIdentity.isSignedIn, let onSignIn {
-                        CYPillButton("club.signIn", style: .secondary, action: onSignIn)
-                            .padding(CYSpacing.pageHorizontal)
-                            .padding(.bottom, CYSpacing.lg)
+                        Button(action: onSignIn) { Text("club.signIn").frame(maxWidth: .infinity) }
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
+                            .padding()
                             .accessibilityIdentifier("club.publicTopics.detail.signIn")
                     }
                 }.id(target.id)
@@ -178,7 +193,7 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { destination = nil; opening = nil; selectedUnavailable = false; model.retire() }
         }
-        .cyDomainScreen(.player)
+        .themeDomain(.player)
     }
     private func refresh() async {
         guard visible, scenePhase == .active, let source, let scope else { return }
@@ -211,44 +226,38 @@ import SwiftUI
         String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "ClubPublicTopics", locale: locale))
     }
     private var activityLoading: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYSkeleton().accessibilityHidden(true)
-            Text("club.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
+        ProgressView { Text("club.loading") }
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("club.publicTopics.loading")
+    }
+    private var unavailableState: some View {
+        ContentUnavailableView {
+            Label {
+                Text("publicTopics.unavailable", tableName: "ClubPublicTopics").accessibilityIdentifier("club.publicTopics.unavailable")
+            } icon: { Image(systemName: "lock.slash") }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("club.publicTopics.loading")
     }
     @ViewBuilder private func issueSection(_ issue: ClubLoadIssue) -> some View {
         Section {
-            CYStatusChip(verbatim: String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: issue.titleKey), locale: locale)), tone: .danger, systemImage: "exclamationmark.triangle")
+            Label {
+                Text(verbatim: String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: issue.titleKey), locale: locale)))
+            } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
+                .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.publicTopics.error")
             if let message = issue.message {
-                Text(verbatim: message).cyText(.body).foregroundStyle(palette.textPrimary)
+                Text(verbatim: message)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                Text(LocalizedStringKey(issue.hintKey)).cyText(.body).foregroundStyle(palette.textSecondary)
+                Text(LocalizedStringKey(issue.hintKey)).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if issue.needsSignIn, let onSignIn {
-                CYPillButton("club.signIn", systemImage: "person.crop.circle", action: onSignIn)
+                Button(action: onSignIn) { Label("club.signIn", systemImage: "person.crop.circle") }
             }
-            CYPillButton("action.retry", style: issue.needsSignIn ? .secondary : .primary, systemImage: "arrow.clockwise") { Task { await refresh() } }
+            Button { Task { await refresh() } } label: { Label("action.retry", systemImage: "arrow.clockwise") }
                 .accessibilityIdentifier("club.publicTopics.retry")
-                .listRowBackground(Color.clear).listRowSeparator(.hidden)
         }
-    }
-}
-
-/// Slim generated cover. The page title stays in `CYHeroHeader`, below the art.
-private struct ClubCloud14Banner: View {
-    let seed: String
-    var symbol: String? = nil
-    var body: some View {
-        Color.clear
-            .aspectRatio(2.4, contentMode: .fit)
-            .overlay { CYCoverArt(seed: seed, symbol: symbol) }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-            .accessibilityHidden(true)
     }
 }
 

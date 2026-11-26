@@ -71,7 +71,6 @@ struct ClubOperationsEntryButton: View {
 }
 
 struct ClubOperationsWorkspaceView: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let target: ClubOperationsTarget
     let identity: ClubReadIdentity?
     let access: any ClubOperationsAccess
@@ -183,24 +182,39 @@ struct ClubOperationsWorkspaceView: View {
     }
     var body: some View {
         Form {
-            if loading { ProgressView().accessibilityIdentifier("club.ops.loading") }
+            // CLB-r9-create-01 (MP create wxml:12-15): the create check reads 正在确认创建资格 while it runs.
+            if loading {
+                if target == .create {
+                    ProgressView { Text("club.ops.create.checking") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("club.ops.loading")
+                } else {
+                    ProgressView().accessibilityIdentifier("club.ops.loading")
+                }
+            }
             // CLB-create-03 (MP create wxml:16-28): guest → 登录; a failed check → 重新检查.
             if identity == nil {
                 // Round 4 copy (MP create wxml:20): the create page says 登录后创建俱乐部.
-                CYEmptyState(systemImage: "person.crop.circle", target == .create ? "club.ops.create.signedOut" : "club.ops.signedOut",
-                             actionTitle: rootTabSwitch.isAvailable ? "club.host.signIn.action" : nil,
-                             actionIdentifier: "club.host.signIn.action", actionStyle: .primary,
-                             action: rootTabSwitch.isAvailable ? { dismiss(); rootTabSwitch(.mine) } : nil)
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label(LocalizedStringKey(target == .create ? "club.ops.create.signedOut" : "club.ops.signedOut"), systemImage: "person.crop.circle")
+                } actions: {
+                    if rootTabSwitch.isAvailable {
+                        Button { dismiss(); rootTabSwitch(.mine) } label: { Text("club.host.signIn.action") }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("club.host.signIn.action")
+                    }
+                }
             }
             else if !access.isConfigured { Text("club.ops.unavailable") }
             if target != .create, errorKey == "club.ops.error.forbidden" {
                 // CLB-edit-07 (MP scene-club-edit wxml:5): a dedicated 暂无编辑权限 state with 返回俱乐部.
-                CYEmptyState(systemImage: "lock", "club.ops.edit.noPermission",
-                             messageIdentifier: "club.ops.error",
-                             actionTitle: "club.ops.edit.backToClub", actionIdentifier: "club.ops.edit.backToClub",
-                             actionStyle: .secondary, kind: .generic, action: { dismiss() })
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label { Text("club.ops.edit.noPermission").accessibilityIdentifier("club.ops.error") } icon: { Image(systemName: "lock") }
+                } actions: {
+                    Button { dismiss() } label: { Text("club.ops.edit.backToClub") }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("club.ops.edit.backToClub")
+                }
             } else if let errorKey {
                 // Round 4 copy (MP create wxml:17): a failed create check is titled 创建资格未确认 above the reason.
                 if target == .create, snapshot == nil { Text("club.ops.create.checkFailed").cyText(.cardTitle).accessibilityAddTraits(.isHeader) }
@@ -218,8 +232,6 @@ struct ClubOperationsWorkspaceView: View {
             }
             status
         }
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
-        .cyGroupedSurface()
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if target == .create, createStepBar.step != nil, snapshot?.canCreate == true {
                 ClubCreateStepBarView(bar: createStepBar, submitting: loading)
@@ -227,7 +239,11 @@ struct ClubOperationsWorkspaceView: View {
             } else if target != .create, let value = snapshot, value.profile != nil {
                 // CLB-edit-01 / CLB-edit-05 (fix-r8-club): MP scene-club-edit pins 保存修改 in the bottom bar
                 // (wxml:161-170); a failed save replaces it with 保存失败 + 重新保存 / 继续编辑.
-                CYFooterBar { editSaveBar(value) }
+                editSaveBar(value)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(.bar)
             }
         }
         .navigationTitle(title).navigationBarTitleDisplayMode(.inline)
@@ -240,6 +256,16 @@ struct ClubOperationsWorkspaceView: View {
                 } label: { Image(systemName: "xmark") }
                 .accessibilityLabel(Text("club.ops.close"))
                 .accessibilityIdentifier("club.ops.close")
+            }
+            // CLB-r9-create-03 (MP create wxml:6-8): 「n / 4」 at the bar's trailing end while a wizard step shows.
+            if target == .create, let step = createStepBar.step, (1...4).contains(step) {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Text(verbatim: "\(step) / 4")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel(Text(verbatim: ClubPlayerCopy.progressLabel(step, locale: locale)))
+                        .accessibilityIdentifier("club.create.stepCount")
+                }
             }
         }
         .interactiveDismissDisabled(dirty || state.locksForm)
@@ -317,28 +343,22 @@ struct ClubOperationsWorkspaceView: View {
     }
     /// No cover uploaded: one calm identity card (mark, name, city, role) instead of a half-empty photo card.
     private func clubIdentityHero(_ club: ClubRecord) -> some View {
-        let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
-        return layout {
-            Image(systemName: "person.3.fill")
-                .cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)  // CLB-edit-06
-                .frame(width: 56, height: 56)
-                .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: club.name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: club.name).font(.headline)
                 if let city = club.city, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(verbatim: city).cyText(.body).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: city).font(.subheadline).foregroundStyle(.secondary)
                 }
-                CYStatusChip(club.isOwner ? "club.ops.owner" : "club.ops.administrator", systemImage: club.isOwner ? "crown" : "person.badge.key")
+                Label(LocalizedStringKey(club.isOwner ? "club.ops.owner" : "club.ops.administrator"), systemImage: club.isOwner ? "crown" : "person.badge.key")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
-            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
+        } icon: {
+            Image(systemName: "person.3.fill")  // CLB-edit-06
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
         }
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(CYColor.borderSubtle))
         .accessibilityElement(children: .combine)
-        .questifyCardListRow()
     }
     @ViewBuilder private func content(_ value: ClubOperationsSnapshot) -> some View {
         if let profile = value.profile {
@@ -357,9 +377,9 @@ struct ClubOperationsWorkspaceView: View {
         if target == .create && !value.canCreate {
             // Mini-program club/create no-permission and limit states.
             Section {
-                CYEmptyState(
-                    systemImage: value.accountRole != "club" ? "person.badge.plus" : "person.3",
-                    value.accountRole != "club" ? "club.ops.leaderRequired.title" : "club.ops.clubLimit.title"
+                ContentUnavailableView(
+                    LocalizedStringKey(value.accountRole != "club" ? "club.ops.leaderRequired.title" : "club.ops.clubLimit.title"),
+                    systemImage: value.accountRole != "club" ? "person.badge.plus" : "person.3"
                 )
                 // verify-r1 2.3 / N-15: the limit state says the real count once, with no unrelated save warning.
                 if value.accountRole != "club" { Text("club.ops.leaderRequired.apply") }
@@ -372,15 +392,14 @@ struct ClubOperationsWorkspaceView: View {
                                              query: value.ownedClubIDs.count == 1 ? ["id": String(value.ownedClubIDs[0]), "tab": "manage"]
                                                                                   : ["owner": "1", "tab": "manage"])
                     } label: {
-                        Text("club.ops.clubLimit.manage").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        Text("club.ops.clubLimit.manage")
                     }
-                    .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
                     .accessibilityIdentifier("club.ops.clubLimit.manage")
                 }
                 if value.accountRole != "club", let hostApplication {
                     if ClubCreatePageModel.interpret(signedIn: identity != nil, configured: access.isConfigured, loading: false, gate: ClubCreationGate(access: access), snapshot: value, readback: .received(value), onPlayerFirstEntry: false).showsHostApplication { ClubCreateHostApplicationLink(identity: identity, governance: hostApplication) }
                 }
-            }.listRowBackground(Color.clear)
+            }
         } else {
             if profileDraftEnabled {
                 ClubProfileDraftRecoverySection(flow: profileDraft, busy: loading || originalBusy || !draftVisit.matches(target: target, identity: identity, access: access), restore: {
@@ -410,10 +429,10 @@ struct ClubOperationsWorkspaceView: View {
                 .disabled(loading || state.locksForm || profileDraftBlocked)
             if target == .create && ClubPlayerSurface.flatCreateForm {
                 Section {
-                    reviewProfileButton(value)
+                    reviewProfileButton(value, inRow: true)
                         .disabled(loading || state.locksForm || profileDraftBlocked || (target != .create && !dirty) || (target == .create && ClubOperationsPort.missingCreateStep(clubType: draft.clubType, name: draft.name, city: draft.city) != nil))
                         .accessibilityIdentifier("club.ops.reviewProfile")
-                }.listRowBackground(Color.clear)
+                }
             }
         }
         if let profile = value.profile, profile.club.isOwner {
@@ -448,7 +467,7 @@ struct ClubOperationsWorkspaceView: View {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
                         .environment(\.clubProfileDraftFlow, profileDraft)
-                } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(CYColor.dangerText) }
+                } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(.red) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
                 // CLB-G19 (r9, MP edit js:35-39 goGovernance; scene-club-edit wxml:206 alt): 改为转让主理人 next to 解散
@@ -461,7 +480,7 @@ struct ClubOperationsWorkspaceView: View {
                     .accessibilityIdentifier("club.ops.transferInstead")
             } header: {
                 // CLB-edit-02 (parity r2): MP 危险操作 section with its consequence beside the button.
-                Text("club.ops.danger").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
+                Text("club.ops.danger")
             } footer: { Text("club.ops.dissolve.consequence") }
         }
         if access.writeAvailability == .unverified, !(target == .create && !value.canCreate) {
@@ -475,13 +494,14 @@ struct ClubOperationsWorkspaceView: View {
     }
     @ViewBuilder private func editSaveBar(_ value: ClubOperationsSnapshot) -> some View {
         if editSaveFailed, case .rejected(let failure) = state {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("clubR8b.edit.saveFailed").cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("clubR8b.edit.saveFailed").font(.headline).foregroundStyle(.red)
                     .accessibilityIdentifier("club.ops.edit.saveFailed")
-                if let message = failure.message { Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                HStack(spacing: CYSpacing.sm) {
+                if let message = failure.message { Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary) }
+                HStack(spacing: 8) {
                     Button { state = .idle } label: { Text("club.ops.keepEditing").frame(maxWidth: .infinity) }
-                        .buttonStyle(CYPillButtonStyle(style: .secondary))
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
                         .accessibilityIdentifier("club.ops.edit.keepEditing")
                     reviewProfileButton(value, titleKey: "clubR8b.edit.saveAgain")
                         .disabled(loading || profileDraftBlocked)
@@ -494,7 +514,7 @@ struct ClubOperationsWorkspaceView: View {
                 .accessibilityIdentifier("club.ops.reviewProfile")
         }
     }
-    @ViewBuilder private func reviewProfileButton(_ value: ClubOperationsSnapshot, titleKey: LocalizedStringKey? = nil) -> some View {
+    @ViewBuilder private func reviewProfileButton(_ value: ClubOperationsSnapshot, titleKey: LocalizedStringKey? = nil, inRow: Bool = false) -> some View {
         let button = Button {
             let command: ClubOperationsCommand
             if let original = value.profile { command = .update(draft, original: original) }
@@ -502,23 +522,20 @@ struct ClubOperationsWorkspaceView: View {
             // CLB-edit-05 (fix-r8-club): MP 保存修改 saves on the tap; the review sheet stays only when writes are unverified.
             Task { await prepare(command, confirmsInline: target != .create) }
         } label: {
-            Text(titleKey ?? LocalizedStringKey(target == .create ? "club.ops.create" : "club.ops.reviewProfile")).frame(maxWidth: .infinity)
+            Text(titleKey ?? LocalizedStringKey(target == .create ? "club.ops.create" : "club.ops.reviewProfile")).frame(maxWidth: inRow ? nil : .infinity)
         }
-        if target == .create {
-            button.buttonStyle(CYPillButtonStyle())
+        // A Form row action keeps the Settings look; the pinned bottom bar carries the one prominent button.
+        if inRow {
+            button
         } else {
-            button.buttonStyle(.questifyPrimary)
+            button.buttonStyle(.borderedProminent).controlSize(.large)
         }
     }
     @ViewBuilder private var status: some View {
         Section {
             switch state {
             case .preparing, .preflighting, .submitting:
-                if target == .create {
-                    CYSkeleton().accessibilityLabel(Text("club.ops.checking"))
-                } else {
-                    ProgressView("club.ops.checking")
-                }
+                ProgressView("club.ops.checking")
             case .notSent: Text("club.ops.notSent").accessibilityIdentifier("club.ops.notSent")
             case .acknowledged(let receipt):
                 Text("club.ops.acknowledged").accessibilityIdentifier("club.ops.acknowledged")
@@ -527,18 +544,16 @@ struct ClubOperationsWorkspaceView: View {
                 if target == .create {
                     // CLB-r8-create-01 (fix-r8-club): MP create wxml:134-135 创建没有完成 + the reason + 重试. A taken
                     // name already sends the wizard back to the name step, so it carries no retry here.
-                    Text("clubR8b.create.failed").cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
+                    Text("clubR8b.create.failed").font(.headline).foregroundStyle(.red)
                         .accessibilityIdentifier("club.ops.create.failed")
-                    Text(verbatim: failure.message ?? appLocalized("clubR8b.create.failedHint", locale: locale)).cyText(.bodyCompact)
+                    Text(verbatim: failure.message ?? appLocalized("clubR8b.create.failedHint", locale: locale))
                     if createNameTakenMessage == nil {
                         Button("clubR8b.retry") { Task { await prepare(.create(draft), confirmsInline: true) } }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
                             .disabled(loading || identity == nil)
                             .accessibilityIdentifier("club.ops.create.retry")
                     } else {
                         // CLB-r8-create-01 (r9, MP create wxml:135 action 去改名称, js:482 refreshStep(3)).
                         Button("club.ops.create.editName") { createStepBar.editName() }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
                             .accessibilityIdentifier("club.ops.create.editName")
                     }
                 } else if !editSaveFailed {
@@ -590,13 +605,13 @@ struct ClubOperationsWorkspaceView: View {
         // CLB-create-02 (MP create wxml:29-31): 俱乐部已创建, then 名称 · 城市; semantic type, no raw headline.
         // CLB-create-02 (MP create wxml:30, js:415): a resubmission (status 0) reads 已重新提交，等待审核.
         Text(LocalizedStringKey(flow.blockReason == nil && createPendingReview ? "club.ops.createdStatus.resubmitted" : Self.createStatusKey(flow.blockReason)))
-            .cyText(flow.canEnterManagement ? .cardTitle : .body)
+            .font(flow.canEnterManagement ? .headline : .body)
             .foregroundStyle(flow.canEnterManagement ? .primary : .secondary)
             .accessibilityIdentifier("clubCreateManage.status")
         let createdFacts = [draft.name, draft.city].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
         if flow.canEnterManagement, !createdFacts.isEmpty {
             Text(verbatim: createdFacts.joined(separator: " · "))
-                .cyText(.meta).foregroundStyle(.secondary)
+                .font(.subheadline).foregroundStyle(.secondary)
                 .accessibilityIdentifier("clubCreateManage.facts")
         }
         Button {
@@ -615,9 +630,7 @@ struct ClubOperationsWorkspaceView: View {
             }
         } label: {
             Text(flow.validatedTab == .manage || !flow.canEnterManagement ? "club.ops.enterManagement" : "club.ops.enterDetail")
-                .frame(maxWidth: .infinity)
         }
-        .buttonStyle(CYPillButtonStyle())
         .disabled(loading || !flow.canEnterManagement)
         .accessibilityIdentifier("clubCreateManage.enterManagement")
         if let destination = enteredManageDestination,
@@ -1031,7 +1044,6 @@ private struct ClubOperationsProfileForm: View {
     /// verify-r1 2.2: the stepped create flow publishes its 上一步 / 下一步 here; the page pins them in one bar.
     var createBar: ClubCreateStepBar? = nil
     @Environment(\.locale) private var formLocale
-    @Environment(\.cyPalette) private var formPalette
     @QuestifyReduceMotion private var reduceMotion
     @State private var createStep = 0
     @State private var createChecking = false
@@ -1052,11 +1064,7 @@ private struct ClubOperationsProfileForm: View {
         if ClubPlayerSurface.flatCreateForm { flatCreateSections } else { steppedCreateSections }
     }
     @ViewBuilder private var flatCreateSections: some View {
-        Section {
-            CYHeroHeader("club.ops.create", subtitle: "club.ops.clubType")
-                .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                .listRowBackground(Color.clear)
-        }
+        // The page title (club.ops.create) is the navigation title; the type header names the first section.
         Section {
             Picker("club.ops.clubType", selection: $draft.clubType) {
                 ForEach(ClubOperationsCatalog.types, id: \.self) { Text(LocalizedStringKey("club.ops.value." + $0)).tag($0) }
@@ -1089,55 +1097,40 @@ private struct ClubOperationsProfileForm: View {
         if createStep == 0 {
             Section {
                 Text(verbatim: ClubPlayerCopy.createIntroTitle(formLocale))
-                    .cyText(.pageTitle)
-                    // The domain's ink, like the step titles: the system primary was black on the dark page once the
-                    // row fill was cleared (light system appearance).
-                    .foregroundStyle(formPalette.textPrimary)
+                    .font(.title2.bold())
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("club.player.create.intro")
                     // A Section's own onAppear does not fire inside a List; the row's does.
                     .onAppear { publishCreateBar() }
-                    // On the page ground like the steps after it: without this the title sat in the system row fill,
-                    // a white capsule under a light system appearance (integ verify).
-                    .listRowBackground(Color.clear)
             }
         } else {
-            // verify-r1 2.2 / N-08 (Figma 204:24591): the step header sits on the page, not in a white card: a
-            // four-segment bar, a 13 pt eyebrow, a 28 pt title, and on step 2 the 已选 n / 3 count at the trailing end.
+            // verify-r1 2.2 / N-08: the step header is a system progress bar, the step eyebrow and the step title,
+            // and on step 2 the 已选 n / 3 count at the trailing end.
             Section {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    HStack(spacing: CYSpacing.xs) {
-                        ForEach(1...4, id: \.self) { index in
-                            Capsule(style: .continuous)
-                                .fill(index <= createStep ? formPalette.textPrimary : formPalette.borderSubtle)
-                                .frame(height: 4)
-                        }
-                    }
-                    .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: createStep)
-                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 8) {
+                    ProgressView(value: Double(min(max(createStep, 0), 4)), total: 4)
+                        .accessibilityHidden(true)
                     Text(verbatim: ClubPlayerCopy.progressLabel(createStep, locale: formLocale))
-                        .cyText(.bodyMedium)
-                        .foregroundStyle(formPalette.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.player.create.progress")
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(verbatim: ClubPlayerCopy.createTitle(step: createStep, locale: formLocale))
-                            .cyText(.display)
-                            .foregroundStyle(formPalette.textPrimary)
+                            .font(.title2.bold())
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("club.player.create.stepTitle")
                         if createStep == 2 {
                             Text(verbatim: ClubPlayerCopy.directionCount(draft.activityPrefs.count, locale: formLocale))
-                                .cyText(.meta, monospacedDigit: true)
-                                .foregroundStyle(formPalette.textSecondary)
+                                .font(.subheadline)
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
                                 .contentTransition(.numericText())
                                 .accessibilityIdentifier("club.player.create.directionCount")
                         }
                     }
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
                 .onAppear { publishCreateBar() }
             }
         }
@@ -1153,14 +1146,12 @@ private struct ClubOperationsProfileForm: View {
                 else { createAdvanceButton.accessibilityIdentifier("club.player.create.next") }
                 if createStep > 1 {
                     Button { setCreateStep(createStep - 1) } label: {
-                        Text(verbatim: ChannelCopy.text("上一步", "Back", locale: formLocale)).frame(maxWidth: .infinity)
+                        Text(verbatim: ChannelCopy.text("上一步", "Back", locale: formLocale))
                     }
-                    .buttonStyle(CYPillButtonStyle(style: .tertiary))
                     .accessibilityIdentifier("club.player.create.back")
                 }
             }
         }
-            .listRowBackground(Color.clear)
             .onAppear { publishCreateBar() }
             .onDisappear { createBar?.step = nil }
             .onChange(of: createStep) { _, _ in publishCreateBar() }
@@ -1189,68 +1180,84 @@ private struct ClubOperationsProfileForm: View {
             }
     }
     @ViewBuilder private var createTypeSection: some View {
-        // HANDOFF-R1 MC-10: option cards with a check badge (Wizard/Option Card), not rows.
+        // HANDOFF-R1 MC-10: a Settings-style single-choice list with a checkmark on the chosen type.
         Section {
             ForEach(Array(ClubOperationsCatalog.types.enumerated()), id: \.element) { index, value in
-                ClubR1OptionCard(title: Text(LocalizedStringKey("club.ops.value." + value)),
-                                 subtitle: nil, // CLB-r7-C-04 MP-first: create/index.js:40 + wxml:68 show the type name only
-                                 systemImage: ClubR1CreateSymbols.type(index),
-                                 isSelected: draft.clubType == value) {
+                // CLB-r7-C-04 MP-first: create/index.js:40 + wxml:68 show the type name only.
+                checkRow(title: Text(LocalizedStringKey("club.ops.value." + value)),
+                         icon: Image(systemName: ClubR1CreateSymbols.type(index)),
+                         isSelected: draft.clubType == value) {
                     draft.clubType = draft.clubType == value ? "" : value
                     createTypeError = nil
                 }
                 .accessibilityIdentifier(index == 0 ? "club.ops.clubType" : "club.player.create.type.\(index)")
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
             }
             if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) {
                 Text(verbatim: draft.clubType)
             }
             if let createTypeError {
-                ClubR1FieldError(text: createTypeError)
+                fieldError(createTypeError)
                     .accessibilityIdentifier("club.player.create.typeError")
-                    .listRowBackground(Color.clear)
             }
         }
         .sensoryFeedback(.selection, trigger: draft.clubType)
     }
     @ViewBuilder private var createDirectionSection: some View {
-        // HANDOFF-R1 MC-10: direction chips (multi, at most 3); a fourth tap only shows the limit note.
+        // HANDOFF-R1 MC-10: a multi-choice checkmark list (at most 3); a fourth tap only shows the limit note.
         Section {
-            ClubR1WrapLayout(spacing: CYSpacing.md) {
-                ForEach(Array(ClubOperationsCatalog.directions.enumerated()), id: \.element) { index, value in
-                    let selected = draft.activityPrefs.contains(value)
-                    ClubR1Chip(title: Text(LocalizedStringKey("club.ops.value." + value)), icon: ClubDirectionIcon.image(for: value), isSelected: selected) {
-                        if selected {
-                            draft.activityPrefs.removeAll { $0 == value }
-                            createDirectionNote = nil
-                        } else if draft.activityPrefs.count >= 3 {
-                            createDirectionNote = ClubPlayerCopy.directionLimit(formLocale)
-                        } else {
-                            draft.activityPrefs.append(value)
-                            createDirectionNote = nil
-                        }
+            ForEach(Array(ClubOperationsCatalog.directions.enumerated()), id: \.element) { index, value in
+                let selected = draft.activityPrefs.contains(value)
+                checkRow(title: Text(LocalizedStringKey("club.ops.value." + value)), icon: ClubDirectionIcon.image(for: value), isSelected: selected) {
+                    if selected {
+                        draft.activityPrefs.removeAll { $0 == value }
+                        createDirectionNote = nil
+                    } else if draft.activityPrefs.count >= 3 {
+                        createDirectionNote = ClubPlayerCopy.directionLimit(formLocale)
+                    } else {
+                        draft.activityPrefs.append(value)
+                        createDirectionNote = nil
                     }
-                    .accessibilityIdentifier("club.player.create.direction.\(index)")
                 }
+                .accessibilityIdentifier("club.player.create.direction.\(index)")
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
             if let createDirectionNote {
-                ClubR1FieldError(text: createDirectionNote)
+                fieldError(createDirectionNote)
                     .accessibilityIdentifier("club.player.create.directionLimit")
-                    .listRowBackground(Color.clear)
             }
         }
         .sensoryFeedback(.selection, trigger: draft.activityPrefs)
+    }
+    /// Settings-style choice row: the option's icon and name, and a trailing checkmark when chosen.
+    private func checkRow(title: Text, icon: Image?, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Label {
+                    title.foregroundStyle(.primary)
+                } icon: {
+                    if let icon { icon.resizable().renderingMode(.template).scaledToFit().frame(width: 22, height: 22) }
+                }
+                Spacer(minLength: 8)
+                if isSelected {
+                    Image(systemName: "checkmark").font(.body.weight(.semibold)).foregroundStyle(.tint).accessibilityHidden(true)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+    /// Inline validation under a field, in the system red.
+    private func fieldError(_ text: String) -> some View {
+        Label(text, systemImage: "exclamationmark.circle.fill")
+            .font(.footnote)
+            .foregroundStyle(.red)
+            .accessibilityElement(children: .combine)
     }
     @ViewBuilder private var createProfileSection: some View {
         Section {
             field("name", text: $draft.name, focus: $createNameFocused)
             field("description", label: "club.ops.createDescription", text: $draft.description, axis: .vertical)
             if let createNameError {
-                Text(verbatim: createNameError).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                Text(verbatim: createNameError).font(.footnote).foregroundStyle(.red)
                     .accessibilityIdentifier("club.player.create.nameError")
             }
         } footer: { counterLabel("description", draft.description) }
@@ -1261,7 +1268,7 @@ private struct ClubOperationsProfileForm: View {
             ClubCreateCityRow(city: $draft.city, currentCity: nil, hasError: createCityError != nil)
                 .accessibilityIdentifier("club.player.create.city")
             if let createCityError {
-                ClubR1FieldError(text: createCityError)
+                fieldError(createCityError)
                     .accessibilityIdentifier("club.player.create.cityError")
             }
             field("keywords", text: $draft.keywords)
@@ -1276,9 +1283,7 @@ private struct ClubOperationsProfileForm: View {
                 else if createStep == 4 { Text("club.ops.create") }
                 else { Text(verbatim: ClubPlayerCopy.next(formLocale)) }
             }
-            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(CYPillButtonStyle())
         .disabled(createChecking && createStep != 3)
     }
     private func publishCreateBar() {
@@ -1384,20 +1389,20 @@ private struct ClubOperationsProfileForm: View {
             Section("club.ops.signupSettings") {
                 // HANDOFF-R1 MC-13: one neutral switch tint (owner Q-B) and one explanation line per switch.
                 Toggle(isOn: $draft.prioritySignupEnabled) {
-                    ClubR1SwitchLabel(title: Text("club.ops.prioritySignup"), explanation: clubR1("switch.prioritySignup", formLocale))
+                    Text("club.ops.prioritySignup")
+                    Text(verbatim: clubR1("switch.prioritySignup", formLocale))
                 }
-                .tint(CYColor.textSecondary)
                 .accessibilityIdentifier("club.ops.prioritySignup")
                 if joinPolicySupported {
                     Toggle(isOn: Binding(get: { draft.joinPolicy == 1 }, set: { draft.joinPolicy = $0 ? 1 : 0 })) {
-                        ClubR1SwitchLabel(title: Text("club.ops.joinReview"), explanation: clubR1("switch.joinReview", formLocale))
+                        Text("club.ops.joinReview")
+                        Text(verbatim: clubR1("switch.joinReview", formLocale))
                     }
-                    .tint(CYColor.textSecondary)
                     .accessibilityIdentifier("club.ops.joinPolicy")
                 }
                 LabeledContent {
                     // CLB-edit-08 (MP edit wxml:138): the quota reads with its unit 「个」.
-                    HStack(spacing: CYSpacing.xs) {
+                    HStack(spacing: 4) {
                         field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing).frame(maxWidth: 96)
                         Text("club.ops.quotaUnit").foregroundStyle(.secondary)
@@ -1433,7 +1438,7 @@ private struct ClubOperationsProfileForm: View {
     @ViewBuilder private func counterLabel(_ key: String, _ value: String) -> some View {
         if let counter = ClubOperationsPort.counter(value, field: key) {
             Text("club.ops.counter \(counter.used) \(counter.limit)")
-                .foregroundStyle(counter.used > counter.limit ? CYColor.dangerText : CYColor.textSecondary)
+                .foregroundStyle(counter.used > counter.limit ? Color.red : Color.secondary)
                 .accessibilityIdentifier("club.ops.counter." + key)
         }
     }
@@ -1450,15 +1455,15 @@ private struct ClubOperationsProfileForm: View {
                               axis: axis)
             .accessibilityLabel(Text(labelKey))
             .accessibilityIdentifier("club.ops.field." + key)
-        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        return VStack(alignment: .leading, spacing: 4) {
             // The edit page's 俱乐部介绍 is the section header (MP sec-label), so its field carries no second label.
             if !(editCopy && key == "description") {
                 HStack(spacing: 2) {
                     Text(labelKey)
-                    if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }
+                    if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true) }
                 }
-                .cyText(.label)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             }
             if let focus { input.focused(focus) } else { input }
@@ -1640,25 +1645,29 @@ struct ClubCreateStepBarView: View {
             }
             .frame(maxWidth: .infinity)
         }
-            .buttonStyle(CYPillButtonStyle())
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(bar.checking)
     }
 
     var body: some View {
         let step = bar.step ?? 0
-        CYFooterBar {
-            (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))) {
-                if step > 1 {
-                    Button { bar.back() } label: { Text(verbatim: bar.backTitle).frame(maxWidth: .infinity) }
-                        .buttonStyle(CYPillButtonStyle(style: .secondary))
-                        .accessibilityIdentifier("club.player.create.back")
-                }
-                if step == 4 {
-                    primary.accessibilityIdentifier("club.ops.reviewProfile")
-                } else {
-                    primary.accessibilityIdentifier("club.player.create.next")
-                }
+        (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))) {
+            if step > 1 {
+                Button { bar.back() } label: { Text(verbatim: bar.backTitle).frame(maxWidth: .infinity) }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("club.player.create.back")
+            }
+            if step == 4 {
+                primary.accessibilityIdentifier("club.ops.reviewProfile")
+            } else {
+                primary.accessibilityIdentifier("club.player.create.next")
             }
         }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .background(.bar)
     }
 }

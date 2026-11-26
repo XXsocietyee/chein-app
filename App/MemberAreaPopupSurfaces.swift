@@ -24,7 +24,7 @@ struct MemberSignOutConfirmSheet: View {
     }
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: appLocalized("auth.signOutConfirm", locale: locale),
             message: MemberPopupCopy.text(
                 "清除本机登录状态，下次进入需要重新登录。",
@@ -58,7 +58,7 @@ struct MemberDeregistrationCancelConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: MemberPopupCopy.table("compliance.cancelReview", table: "AccountCompliance", locale: locale),
             message: MemberPopupCopy.text(
                 "撤销后账号立即恢复正常使用。",
@@ -92,7 +92,7 @@ struct MemberDeregistrationSubmitConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: appLocalized("compliance.confirmSheet.title", locale: locale),
             message: appLocalized("compliance.confirmSheet.message", locale: locale),
             confirmTitle: appLocalized("compliance.confirmSheet.action", locale: locale),
@@ -128,7 +128,7 @@ struct MemberMarketingConsentConfirmSheet: View {
     var body: some View {
         let name = merchantName ?? appLocalized("compliance.merchant", locale: locale)
         let channel = appLocalized(channelKey, locale: locale)
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: MemberPopupCopy.table("compliance.marketing.review", table: "MarketingConsentOriginalPresentation", locale: locale),
             message: "\(name) · \(channel)",
             confirmTitle: MemberPopupCopy.table(
@@ -148,23 +148,27 @@ struct MemberFavoritesRecommendNoteSheet: View {
     let onDismiss: () -> Void
 
     var body: some View {
-        CYSheetContainer(
-            title: MemberPopupCopy.table("member.favorites.recommendNote.title", table: "MemberProfile", locale: locale),
-            onClose: onDismiss
-        ) {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                Text("member.favorites.recommendNote.body", tableName: "MemberProfile")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                CYPillButton("member.favorites.recommendNote.dismiss", style: .primary, tableName: "MemberProfile") {
-                    onDismiss()
+        NavigationStack {
+            List {
+                Section {
+                    Text("member.favorites.recommendNote.body", tableName: "MemberProfile")
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .accessibilityIdentifier("member.favorites.recommendNote.dismiss")
             }
-            .padding(.bottom, CYSpacing.lg)
+            .listStyle(.insetGrouped)
+            .navigationTitle(Text(verbatim: MemberPopupCopy.table("member.favorites.recommendNote.title", table: "MemberProfile", locale: locale)))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { onDismiss() } label: {
+                        Text("member.favorites.recommendNote.dismiss", tableName: "MemberProfile")
+                    }
+                    .accessibilityIdentifier("member.favorites.recommendNote.dismiss")
+                }
+            }
         }
-        .cyDomainSheet(detents: [.half, .full])
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 }
 
@@ -174,7 +178,7 @@ struct MemberTopicUnlikeConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: MemberPopupCopy.table("member.unlike.confirmTitle", table: "MemberProfile", locale: locale),
             message: MemberPopupCopy.table("member.unlike.confirmMessage", table: "MemberProfile", locale: locale),
             confirmTitle: MemberPopupCopy.table("member.unlike.confirm", table: "MemberProfile", locale: locale),
@@ -191,7 +195,7 @@ struct MemberBankWithdrawalDiscardConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: MemberPopupCopy.text("放弃本次提现填写？", "Discard unsubmitted bank details?", locale: locale),
             message: MemberPopupCopy.text("已填写的信息不会被保存", "Entered bank details will not be saved.", locale: locale),
             confirmTitle: appLocalized("bank.withdrawal.discard", locale: locale),
@@ -209,7 +213,7 @@ struct MemberBundleSwapConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: MemberPopupCopy.text("更换商家？", "Swap merchant?", locale: locale),
             message: MemberPopupCopy.text(
                 "改选\(merchantName)，有效期不变。",
@@ -229,7 +233,7 @@ struct MemberReportAppealConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: MemberPopupCopy.text("确认提交申诉？", "Submit this appeal?", locale: locale),
             message: MemberPopupCopy.text(
                 "提交后将由平台复核处理，处理结果会更新在本页进度中。",
@@ -249,7 +253,7 @@ struct MemberCouponShowConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: appLocalized("couponCode.review", locale: locale),
             message: appLocalized("couponCode.review.detail", locale: locale),
             confirmTitle: appLocalized("couponCode.show", locale: locale),
@@ -266,7 +270,7 @@ struct MemberCouponDiscardConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: appLocalized("couponManagement.discardTitle", locale: locale),
             message: MemberPopupCopy.text(
                 "已填写的优惠券内容不会保存。",
@@ -288,7 +292,7 @@ struct MemberCouponStopConfirmModal: View {
     let onCancel: () -> Void
 
     var body: some View {
-        CYModal(
+        MemberConfirmAlert(
             title: MemberPopupCopy.text("停发「\(couponName)」?", "Stop issuing \"\(couponName)\"?", locale: locale),
             message: MemberPopupCopy.text(
                 "停发后将不再新增发放，但已领取的优惠券仍可正常核销。",
@@ -326,7 +330,7 @@ struct MemberInvoiceWithdrawConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: MemberPopupCopy.table("withdrawConfirm", table: "InvoiceLaunchUI", locale: locale),
             message: MemberPopupCopy.text(
                 "撤回后，订单可重新申请开票。",
@@ -346,7 +350,7 @@ struct MemberInvoiceTitleDeleteConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: MemberPopupCopy.table("deleteConfirm", table: "InvoiceLaunchUI", locale: locale),
             message: MemberPopupCopy.text(
                 "删除后不影响已提交的申请。",
@@ -366,7 +370,7 @@ struct MemberNPCLogDeleteConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: MemberPopupCopy.table("npcLogDelete.confirmTitle", table: "NPCChatLogDeletion", locale: locale),
             message: MemberPopupCopy.table("npcLogDelete.confirmMessage", table: "NPCChatLogDeletion", locale: locale),
             confirmTitle: MemberPopupCopy.table("npcLogDelete.confirm", table: "NPCChatLogDeletion", locale: locale),
@@ -403,7 +407,7 @@ struct MemberOrientScoreConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: appLocalized("orientScore.review.confirmTitle", locale: locale),
             message: MemberPopupCopy.text(
                 "确认后将按当前请求提交至计分系统处理。",
@@ -435,7 +439,7 @@ struct MemberProfileDiscardConfirmSheet: View {
     var body: some View {
         switch kind {
         case .exitDiscard:
-            CYConfirmSheet(
+            MemberConfirmSheet(
                 title: appLocalized("profile.exitDiscard.title", locale: locale),
                 message: appLocalized("profile.exitDiscard.message", locale: locale),
                 confirmTitle: appLocalized("profile.exitDiscard.confirm", locale: locale),
@@ -445,7 +449,7 @@ struct MemberProfileDiscardConfirmSheet: View {
                 onConfirm: onConfirm
             )
         case .reloadDiscard:
-            CYConfirmSheet(
+            MemberConfirmSheet(
                 title: appLocalized("profile.reloadDiscard.title", locale: locale),
                 message: appLocalized("profile.reloadDiscard.message", locale: locale),
                 confirmTitle: appLocalized("profile.reloadDiscard.confirm", locale: locale),
@@ -455,7 +459,7 @@ struct MemberProfileDiscardConfirmSheet: View {
                 onConfirm: onConfirm
             )
         case .reviewRestore:
-            CYConfirmSheet(
+            MemberConfirmSheet(
                 title: appLocalized("profile.reviewRestore.title", locale: locale),
                 message: appLocalized("profile.reviewRestore.message", locale: locale),
                 confirmTitle: appLocalized("profile.reviewRestore.confirm", locale: locale),
@@ -466,7 +470,7 @@ struct MemberProfileDiscardConfirmSheet: View {
                 onConfirm: onConfirm
             )
         case .avatarDiscard:
-            CYConfirmSheet(
+            MemberConfirmSheet(
                 title: appLocalized("profile.avatar.discardTitle", locale: locale),
                 message: MemberPopupCopy.text(
                     "放弃后将保留当前已保存的头像，不会上传或提交这张新头像。",
@@ -499,7 +503,7 @@ struct MemberParticipantDeleteConfirmSheet: View {
         let bodyText = summary.isEmpty
             ? appLocalized("participant.list.deleteBody", locale: locale)
             : summary + "\n\n" + appLocalized("participant.list.deleteBody", locale: locale)
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: appLocalized("participant.list.deleteTitle", locale: locale),
             message: bodyText,
             confirmTitle: appLocalized("participant.list.deleteConfirm", locale: locale),
@@ -525,7 +529,7 @@ struct MemberComplaintSubmitConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: appLocalized("profile.complaint.submit.confirmTitle", locale: locale),
             message: appLocalized("profile.complaint.submit.confirmBody", locale: locale),
             confirmTitle: appLocalized("profile.complaint.submit.action", locale: locale),
@@ -543,7 +547,7 @@ struct MemberSettingsSceneDiscardModal: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYModal(
+        MemberConfirmAlert(
             title: MemberPopupCopy.text("放弃本轮修改", "Discard current changes?", locale: locale),
             message: MemberPopupCopy.text(
                 "离开当前页面后，未提交的修改不会保存。",
@@ -568,7 +572,7 @@ struct MemberSettingsClubPickerSheet: View {
     let onClose: () -> Void
 
     var body: some View {
-        CYOptionSheet(
+        MemberOptionSheet(
             title: MemberPopupCopy.text("选择要管理的俱乐部", "Select a club to manage", locale: locale),
             items: clubs.map { club in
                 CYOptionSheetItem(
@@ -595,7 +599,7 @@ struct MemberAIChatRecordsOptionSheet: View {
     let onClose: () -> Void
 
     var body: some View {
-        CYOptionSheet(
+        MemberOptionSheet(
             title: MemberPopupCopy.text("AI 对话记录", "AI Chat Records", locale: locale),
             items: [
                 CYOptionSheetItem(
@@ -648,33 +652,53 @@ struct MemberMerchantNPCChatSheet<Content: View>: View {
     }
 
     var body: some View {
-        CYSheetContainer(title: title, onClose: onClose) {
-            VStack(spacing: CYSpacing.sm) {
-                if onExport != nil || onClear != nil {
-                    HStack(spacing: CYSpacing.sm) {
-                        if let onExport {
-                            CYPillButton(
-                                verbatim: MemberPopupCopy.text("导出我的对话记录", "Export my records", locale: locale),
-                                style: .secondary
-                            ) {
-                                Task { await onExport() }
-                            }
-                            .accessibilityIdentifier("merchant.npcChat.export")
+        VStack(spacing: 12) {
+            // System sheet header: inline title and the standard close glyph (no NavigationStack: the hosted chat may own one).
+            HStack(spacing: 12) {
+                Text(verbatim: title)
+                    .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 8)
+                Button(action: onClose) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("action.close"))
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            if onExport != nil || onClear != nil {
+                HStack(spacing: 8) {
+                    if let onExport {
+                        Button {
+                            Task { await onExport() }
+                        } label: {
+                            Text(verbatim: MemberPopupCopy.text("导出我的对话记录", "Export my records", locale: locale))
+                                .frame(maxWidth: .infinity)
                         }
-                        if onClear != nil {
-                            CYPillButton(
-                                verbatim: MemberPopupCopy.text("清除我的对话记录", "Clear my records", locale: locale),
-                                style: .tertiary
-                            ) {
-                                confirmsClear = true
-                            }
-                            .accessibilityIdentifier("merchant.npcChat.clear")
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("merchant.npcChat.export")
+                    }
+                    if onClear != nil {
+                        Button(role: .destructive) {
+                            confirmsClear = true
+                        } label: {
+                            Text(verbatim: MemberPopupCopy.text("清除我的对话记录", "Clear my records", locale: locale))
+                                .frame(maxWidth: .infinity)
                         }
+                        .buttonStyle(.borderless)
+                        .accessibilityIdentifier("merchant.npcChat.clear")
                     }
                 }
-                content
+                .padding(.horizontal, 16)
             }
+            content
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .presentationDragIndicator(.visible)
         .sheet(isPresented: $confirmsClear) {
             MemberNPCLogDeleteConfirmSheet {
                 confirmsClear = false
@@ -682,7 +706,6 @@ struct MemberMerchantNPCChatSheet<Content: View>: View {
                     Task { await onClear() }
                 }
             }
-            .cyDomainSheet(detents: [.half])
         }
     }
 }
@@ -693,7 +716,7 @@ struct MemberCoopInviteDiscardConfirmSheet: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        CYConfirmSheet(
+        MemberConfirmSheet(
             title: appLocalized("coopflow.invite.discardPrompt", locale: locale),
             message: MemberPopupCopy.text(
                 "返回后当前填写的邀约说明将不会被保存。",
@@ -729,32 +752,26 @@ struct MemberCoopInviteSheet: View {
     private var dirty: Bool { draft.selectedChapterID != nil || draft.normalizedNote != nil }
 
     var body: some View {
-        CYSheetContainer(
-            title: MemberPopupCopy.text("发送邀约", "Send Invitation", locale: locale),
-            onClose: {
-                if dirty { showsDiscard = true } else { onClose() }
-            }
-        ) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
+        NavigationStack {
+            Form {
                 if !targetName.isEmpty {
-                    Text(verbatim: targetName)
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
+                    Section {
+                        Text(verbatim: targetName)
+                            .font(.headline)
+                    }
                 }
 
                 if loading {
-                    CYSkeleton()
+                    Section {
+                        ProgressView().frame(maxWidth: .infinity)
+                    }
                 } else if topics.isEmpty {
-                    CYEmptyState(
-                        systemImage: "doc.text",
-                        LocalizedStringKey(MemberPopupCopy.text("暂无可邀约主题，请先在项目工作台创建", "No topics ready to invite", locale: locale)),
-                        kind: .generic
+                    ContentUnavailableView(
+                        MemberPopupCopy.text("暂无可邀约主题，请先在项目工作台创建", "No topics ready to invite", locale: locale),
+                        systemImage: "doc.text"
                     )
                 } else {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: MemberPopupCopy.text("选择项目主题", "Topic", locale: locale))
-                            .cyText(.sectionTitle)
-                            .foregroundStyle(CYColor.textSecondary)
+                    Section {
                         ForEach(topics, id: \.id) { topic in
                             Button {
                                 selectedTopicID = topic.id
@@ -763,27 +780,25 @@ struct MemberCoopInviteSheet: View {
                             } label: {
                                 HStack {
                                     Text(verbatim: topic.title)
-                                        .cyText(.body)
-                                        .foregroundStyle(CYColor.textPrimary)
+                                        .foregroundStyle(.primary)
                                     Spacer()
                                     if selectedTopicID == topic.id {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundStyle(CYColor.brand)
+                                        Image(systemName: "checkmark")
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(.tint)
                                     }
                                 }
-                                .padding(.vertical, CYSpacing.xs)
+                                .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
                             .accessibilityIdentifier("member.coopInvite.topic.\(topic.id)")
                             .accessibilityAddTraits(selectedTopicID == topic.id ? .isSelected : [])
                         }
+                    } header: {
+                        Text(verbatim: MemberPopupCopy.text("选择项目主题", "Topic", locale: locale))
                     }
 
                     if !chapters.isEmpty {
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text(verbatim: MemberPopupCopy.text("选择邀约章节", "Chapter", locale: locale))
-                                .cyText(.sectionTitle)
-                                .foregroundStyle(CYColor.textSecondary)
+                        Section {
                             ForEach(chapters, id: \.id) { chapter in
                                 let numericID = Int(chapter.id) ?? 0
                                 Button {
@@ -791,45 +806,51 @@ struct MemberCoopInviteSheet: View {
                                 } label: {
                                     HStack {
                                         Text(verbatim: chapter.name.isEmpty ? "#\(chapter.id)" : chapter.name)
-                                            .cyText(.body)
-                                            .foregroundStyle(CYColor.textPrimary)
+                                            .foregroundStyle(.primary)
                                         Spacer()
                                         if draft.selectedChapterID == numericID {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundStyle(CYColor.brand)
+                                            Image(systemName: "checkmark")
+                                                .fontWeight(.semibold)
+                                                .foregroundStyle(.tint)
                                         }
                                     }
-                                    .padding(.vertical, CYSpacing.xs)
+                                    .contentShape(Rectangle())
                                 }
-                                .buttonStyle(.plain)
                                 .accessibilityIdentifier("member.coopInvite.chapter.\(chapter.id)")
                                 .accessibilityAddTraits(draft.selectedChapterID == numericID ? .isSelected : [])
                             }
+                        } header: {
+                            Text(verbatim: MemberPopupCopy.text("选择邀约章节", "Chapter", locale: locale))
                         }
                     }
 
-                    TextField(
-                        MemberPopupCopy.text("填写合作说明（选填）", "Optional cooperation note", locale: locale),
-                        text: $draft.note,
-                        axis: .vertical
-                    )
-                    .lineLimit(2...4)
-                    .textFieldStyle(.roundedBorder)
-                    .accessibilityLabel(MemberPopupCopy.text("合作说明", "Cooperation note", locale: locale))
-                    .accessibilityIdentifier("member.coopInvite.note")
-
-                    HStack(spacing: CYSpacing.sm) {
-                        CYPillButton(
-                            verbatim: MemberPopupCopy.text("关闭", "Close", locale: locale),
-                            style: .secondary
-                        ) {
-                            if dirty { showsDiscard = true } else { onClose() }
-                        }
-                        .accessibilityIdentifier("member.coopInvite.close")
-                        CYPillButton(
-                            verbatim: MemberPopupCopy.text("发送", "Send", locale: locale),
-                            style: .primary
-                        ) {
+                    Section {
+                        TextField(
+                            MemberPopupCopy.text("填写合作说明（选填）", "Optional cooperation note", locale: locale),
+                            text: $draft.note,
+                            axis: .vertical
+                        )
+                        .lineLimit(2...4)
+                        .accessibilityLabel(MemberPopupCopy.text("合作说明", "Cooperation note", locale: locale))
+                        .accessibilityIdentifier("member.coopInvite.note")
+                    }
+                }
+            }
+            .formStyle(.grouped)
+            .navigationTitle(Text(verbatim: MemberPopupCopy.text("发送邀约", "Send Invitation", locale: locale)))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        if dirty { showsDiscard = true } else { onClose() }
+                    } label: {
+                        Text(verbatim: MemberPopupCopy.text("关闭", "Close", locale: locale))
+                    }
+                    .accessibilityIdentifier("member.coopInvite.close")
+                }
+                if !loading && !topics.isEmpty {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button {
                             if let onOpenFullCoopFlow {
                                 onClose()
                                 onOpenFullCoopFlow()
@@ -841,6 +862,8 @@ struct MemberCoopInviteSheet: View {
                                         locale: locale)
                                 )
                             }
+                        } label: {
+                            Text(verbatim: MemberPopupCopy.text("发送", "Send", locale: locale))
                         }
                         .disabled(!draft.isReadyToSend || merchantMemberID == nil)
                         .accessibilityIdentifier("member.coopInvite.send")
@@ -854,7 +877,6 @@ struct MemberCoopInviteSheet: View {
                 showsDiscard = false
                 onClose()
             }
-            .cyDomainSheet(detents: [.half])
         }
         .task {
             loading = true
@@ -876,7 +898,7 @@ struct MemberDeepLinkDiscardModal: View {
 
     var body: some View {
         let prompt = DeepLinkSceneDiscardPrompt()
-        CYModal(
+        MemberConfirmAlert(
             title: MemberPopupCopy.text(prompt.title, "Discard current changes?", locale: locale),
             message: MemberPopupCopy.text(prompt.message, "Unsaved edits will be lost if you close.", locale: locale),
             cancelTitle: MemberPopupCopy.text(prompt.cancelTitle, "Keep editing", locale: locale),
@@ -887,5 +909,243 @@ struct MemberDeepLinkDiscardModal: View {
             onCancel: onCancel,
             onConfirm: onConfirm
         )
+    }
+}
+
+// MARK: - Native confirmation chrome (native r2)
+
+/// Native replacement for `CYConfirmSheet` (same arguments): a system sheet with the title and message in an inset
+/// grouped list, consequences as SF Symbol labels, and the confirm / cancel pair as system buttons in the bottom bar.
+struct MemberConfirmSheet: View {
+    private let title: String
+    private let message: String
+    private let confirmTitle: String
+    private let cancelTitle: String?
+    private let isDestructive: Bool
+    private let confirmDisabled: Bool
+    private let confirmIdentifier: String?
+    private let cancelIdentifier: String?
+    private let titleIdentifier: String?
+    private let consequences: [CYConfirmConsequence]
+    private let onCancel: (() -> Void)?
+    private let onConfirm: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    init(title: String, message: String, confirmTitle: String,
+         cancelTitle: String? = nil,
+         isDestructive: Bool = false, confirmDisabled: Bool = false,
+         confirmIdentifier: String? = nil,
+         cancelIdentifier: String? = nil, titleIdentifier: String? = nil,
+         consequences: [CYConfirmConsequence] = [],
+         onCancel: (() -> Void)? = nil,
+         onConfirm: @escaping () -> Void) {
+        self.title = title
+        self.message = message
+        self.confirmTitle = confirmTitle
+        self.cancelTitle = cancelTitle
+        self.isDestructive = isDestructive
+        self.confirmDisabled = confirmDisabled
+        self.confirmIdentifier = confirmIdentifier
+        self.cancelIdentifier = cancelIdentifier
+        self.titleIdentifier = titleIdentifier
+        self.consequences = consequences
+        self.onCancel = onCancel
+        self.onConfirm = onConfirm
+    }
+
+    var body: some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(verbatim: title)
+                        .font(.title3.weight(.semibold))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                        .memberOptionalIdentifier(titleIdentifier)
+                    if !message.isEmpty {
+                        Text(verbatim: message)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            if !consequences.isEmpty {
+                Section {
+                    ForEach(consequences) { item in
+                        Label {
+                            Text(verbatim: item.text).fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: item.systemImage).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("confirm.consequences")
+            }
+        }
+        .listStyle(.insetGrouped)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 8) {
+                Button(role: isDestructive ? .destructive : nil) {
+                    onConfirm()
+                } label: {
+                    Text(verbatim: confirmTitle).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(confirmDisabled)
+                .memberOptionalIdentifier(confirmIdentifier)
+                Button {
+                    onCancel?()
+                    dismiss()
+                } label: {
+                    Group {
+                        if let cancelTitle { Text(verbatim: cancelTitle) } else { Text("action.cancel") }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .memberOptionalIdentifier(cancelIdentifier)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(.bar)
+        }
+        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+/// Native replacement for the centred `CYModal` dialog (same arguments): a system `.alert`. The host shows this view
+/// only while its flag is on and clears the flag in `onCancel` / `onConfirm`. Consequences join the alert message.
+struct MemberConfirmAlert: View {
+    private let title: String
+    private let message: String
+    private let consequences: [CYConfirmConsequence]
+    private let cancelTitle: String?
+    private let confirmTitle: String
+    private let isDestructive: Bool
+    private let confirmIdentifier: String?
+    private let cancelIdentifier: String?
+    private let onCancel: () -> Void
+    private let onConfirm: () -> Void
+
+    init(title: String, message: String, consequences: [CYConfirmConsequence] = [],
+         cancelTitle: String? = nil, confirmTitle: String, isDestructive: Bool = false,
+         confirmIdentifier: String? = nil, cancelIdentifier: String? = nil,
+         onCancel: @escaping () -> Void, onConfirm: @escaping () -> Void) {
+        self.title = title
+        self.message = message
+        self.consequences = consequences
+        self.cancelTitle = cancelTitle
+        self.confirmTitle = confirmTitle
+        self.isDestructive = isDestructive
+        self.confirmIdentifier = confirmIdentifier
+        self.cancelIdentifier = cancelIdentifier
+        self.onCancel = onCancel
+        self.onConfirm = onConfirm
+    }
+
+    private var fullMessage: String {
+        ([message] + consequences.map { "• " + $0.text }).filter { !$0.isEmpty }.joined(separator: "\n")
+    }
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
+            .alert(Text(verbatim: title), isPresented: Binding(get: { true }, set: { _ in })) {
+                Button(role: isDestructive ? .destructive : nil, action: onConfirm) {
+                    Text(verbatim: confirmTitle)
+                }
+                .accessibilityIdentifier(confirmIdentifier ?? "memberPopup.alert.confirm")
+                Button(role: .cancel, action: onCancel) {
+                    if let cancelTitle { Text(verbatim: cancelTitle) } else { Text("action.cancel") }
+                }
+                .accessibilityIdentifier(cancelIdentifier ?? "memberPopup.alert.cancel")
+            } message: {
+                Text(verbatim: fullMessage)
+            }
+    }
+}
+
+/// Native replacement for `CYOptionSheet` (same arguments): an inset grouped list of system rows in a sheet,
+/// with the title inline and 关闭 in the toolbar. A danger item is a destructive button.
+struct MemberOptionSheet<ID: Hashable>: View {
+    let title: String
+    let items: [CYOptionSheetItem<ID>]
+    var selectedID: ID? = nil
+    var closeIdentifier: String? = nil
+    let onSelect: (ID) -> Void
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(items) { item in
+                        Button(role: item.isDanger ? .destructive : nil) {
+                            onSelect(item.id)
+                        } label: {
+                            HStack {
+                                if let systemImage = item.systemImage {
+                                    Label {
+                                        optionText(item)
+                                    } icon: {
+                                        Image(systemName: systemImage)
+                                    }
+                                } else {
+                                    optionText(item)
+                                }
+                                Spacer(minLength: 8)
+                                if item.id == selectedID {
+                                    Image(systemName: "checkmark")
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.tint)
+                                        .accessibilityHidden(true)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .foregroundStyle(item.isDanger ? Color.red : Color.primary)
+                        .accessibilityAddTraits(item.id == selectedID ? .isSelected : [])
+                        .memberOptionalIdentifier(item.identifier)
+                    }
+                }
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle(Text(verbatim: title))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.close", action: onClose)
+                        .memberOptionalIdentifier(closeIdentifier)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+
+    @ViewBuilder private func optionText(_ item: CYOptionSheetItem<ID>) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: item.title)
+                .fixedSize(horizontal: false, vertical: true)
+            if let subtitle = item.subtitle {
+                Text(verbatim: subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder func memberOptionalIdentifier(_ identifier: String?) -> some View {
+        if let identifier { accessibilityIdentifier(identifier) } else { self }
     }
 }

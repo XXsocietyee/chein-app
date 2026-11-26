@@ -40,16 +40,11 @@ private struct ClubGapSurfaceRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: surface.title(chinese: chinese))
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(.headline)
                 .accessibilityAddTraits(.isHeader)
             Text(verbatim: surface.method + " /" + surface.path)
-                .cyText(.meta)
+                .font(.footnote)
                 .foregroundStyle(CYColor.textSecondary)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
             CurA11yDashText(shown: ClubGapSurfaceRow.line(reply), color: CYColor.textSecondary)
                 .accessibilityHint(Text("curA11y.club.result.hint", tableName: "CurA11y"))
             CurA11yTextButton(
@@ -79,10 +74,7 @@ private struct ClubGapMerchantRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: chinese ? "商家合作邀请" : "Merchant cooperation invite")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(.headline)
                 .accessibilityAddTraits(.isHeader)
             CurA11yDashText(shown: ClubGapSurfaceRow.line(reply), color: CYColor.textSecondary)
                 .accessibilityHint(Text("curA11y.club.result.hint", tableName: "CurA11y"))

@@ -309,7 +309,8 @@ import SwiftUI
         case "pages/club/create/index":
             clubOperations(.create)
         case "pages/club/edit/index":
-            if let id = clubQueryID(query) { clubOperations(.club(id)) } else { unavailable }
+            // CLB-r9-edit-01: no id is the MP missing-param shell (链接已失效 + 返回), not the generic page.
+            if let id = clubQueryID(query) { clubOperations(.club(id)) } else { MemberMissingLinkState(identifier: "club.edit.missing") }
         case "pages/club/badges/index":
             // CLB-r8-badges-01 (fix-r8-club): no clubId is the MP missing-param shell (链接已失效 + 返回).
             if let id = clubQueryID(query), let host = badgeHost(id) { ClubBadgeManagementView(host: host).id(host.id) }
@@ -323,7 +324,12 @@ import SwiftUI
         case "pages/club/enroll/index":
             if let id = clubQueryID(query) {
                 clubGovernance { g in ClubEnrollmentView(clubID: id, focusTopicID: queryID(query, "topicId"), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
-            } else { unavailable }
+            } else {
+                // CLB-enroll-08: no clubId → the first owned club (MP enroll js:198-218).
+                ClubFirstOwnedEntry(reader: session) { owned in
+                    clubGovernance { g in ClubEnrollmentView(clubID: owned, focusTopicID: queryID(query, "topicId"), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+                }
+            }
         case "pages/club/event-ops/index":
             if let id = clubQueryID(query) {
                 clubGovernance { g in ClubOpsEventView(scope: .init(clubID: id, topicID: queryID(query, "topicId"), activityID: queryID(query, "activityId")), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
@@ -335,9 +341,12 @@ import SwiftUI
                     .environment(\.clubRoleActivityLabel, ClubRoleActivityLabel.entry(query["activityName"] ?? query["topicName"]))
             } else if let topic = queryID(query, "topicId") {
                 // CLB-group-code-05 (fix-r3-club-b round 4): topic-only links run the MP 选择场次 step (one session
-                // issues at once), not the whole topic overview. A link with neither id never reaches this route.
+                // issues at once), not the whole topic overview.
                 clubGovernance { g in ClubGroupCodeSessionStep(clubID: queryID(query, "clubId"), topicID: topic, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
-            } else { unavailable }
+            } else {
+                // CLB-group-code-05: neither id → the MP invalid state with 进入俱乐部管理.
+                ClubGroupCodeMissingLinkView()
+            }
         case "pages/club/join-requests/index":
             if let id = clubQueryID(query) {
                 let management = session.clubManagementContext
@@ -369,6 +378,9 @@ import SwiftUI
                     clubRead(.topicOverview, scope, needsClub: false)
                         .environment(\.clubTopicDirectorHost, scope.activityID == nil ? nil : session.clubTopicDirectorHost)
                 }
+            } else if page == "pages/club/topic-story/index" {
+                // CLB-r9-topic-story-01 (MP topic-story js:160-166, 203-206): no topicId is final; the way out is 返回.
+                MemberMissingLinkState(title: "club.story.missingTopic", identifier: "club.story.missingTopic")
             } else { unavailable }
         case "pages/club/governance/index":
             // MP governance onLoad (ClubGovernanceEntryRoute): manage → the governance workspace; report / appeal → 我的平台工单.
@@ -1111,21 +1123,80 @@ private struct ClubSingleOwnedEntry<Reader: ClubReading & ObservableObject, Sing
     @ObservedObject var reader: Reader
     let single: (Int) -> Single
     let fallback: () -> Fallback
-    private enum Resolution: Equatable { case single(Int), list }
+    private enum Resolution: Equatable { case single(Int), list, failed }
     @State private var resolved: Resolution?
+    @State private var attempt = 0
 
     var body: some View {
         Group {
             switch resolved {
             case .single(let id)?: single(id)
             case .list?: fallback()
-            case nil: CYSkeleton()
+            case .failed?:
+                // CLB-workbench-03 (MP workbench wxml:9-15): a failed owned-clubs read is 没能进入俱乐部管理 + 重试进入,
+                // not a silent fallback to the list.
+                ContentUnavailableView {
+                    Label("club.workbench.enterFailed", systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button("club.workbench.retryEnter") { resolved = nil; attempt += 1 }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("club.workbench.retryEnter")
+                }
+                .accessibilityIdentifier("club.workbench.enterFailed")
+            case nil: ProgressView()
             }
         }
-        .task {
+        .task(id: attempt) {
             guard resolved == nil else { return }
-            let rows = try? await reader.clubOwned()
-            if let rows, rows.count == 1, let only = rows.first { resolved = .single(only.id) } else { resolved = .list }
+            do {
+                let rows = try await reader.clubOwned()
+                if rows.count == 1, let only = rows.first { resolved = .single(only.id) } else { resolved = .list }
+            } catch {
+                guard !Task.isCancelled else { return }
+                // Signed out keeps the owned list, which owns the sign-in state.
+                resolved = reader.clubIdentity.isSignedIn ? .failed : .list
+            }
+        }
+    }
+}
+
+/// CLB-enroll-08 (MP enroll/index.js:198-218): 报名名册 without a clubId uses the first owned club; none →
+/// 还没有可管理的俱乐部 with 成为俱乐部主理人后，可在这里查看报名名册; a failed read → 俱乐部权限数据暂时不可用 + 重新加载.
+private struct ClubFirstOwnedEntry<Reader: ClubReading & ObservableObject, Content: View>: View {
+    @ObservedObject var reader: Reader
+    let content: (Int) -> Content
+    private enum Resolution: Equatable { case club(Int), none, failed }
+    @State private var resolved: Resolution?
+    @State private var attempt = 0
+
+    var body: some View {
+        Group {
+            switch resolved {
+            case .club(let id)?: content(id)
+            case .none?:
+                ContentUnavailableView("club.enroll.noOwned", systemImage: "person.3",
+                                       description: Text("club.enroll.noOwned.detail"))
+                    .accessibilityIdentifier("club.enroll.noOwned")
+            case .failed?:
+                ContentUnavailableView {
+                    Label("club.enroll.ownedFailed", systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button("action.reload") { resolved = nil; attempt += 1 }
+                        .buttonStyle(.bordered)
+                }
+                .accessibilityIdentifier("club.enroll.ownedFailed")
+            case nil: ProgressView()
+            }
+        }
+        .task(id: attempt) {
+            guard resolved == nil else { return }
+            do {
+                let rows = try await reader.clubOwned()
+                if let first = rows.first { resolved = .club(first.id) } else { resolved = Resolution.none }
+            } catch {
+                guard !Task.isCancelled else { return }
+                resolved = .failed
+            }
         }
     }
 }

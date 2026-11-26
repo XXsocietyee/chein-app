@@ -233,32 +233,42 @@ import UIKit
                     } label: {
                         // r4 · MC-29: a settlement row is title, status, date line and one amount; 原始 / 调整 / 净额 live
                         // behind the row on the detail page. An unverified amount is "—" with a 待核验 tag, never 0.
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                                Text(verbatim: row.name).cyText(.cardTitle)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text(verbatim: row.name).font(.headline)
                                     .fixedSize(horizontal: false, vertical: true)
-                                Spacer(minLength: CYSpacing.sm)
-                                if let amount = row.amountText { Text(verbatim: amount).cyText(.numericBody).monospacedDigit() }
+                                Spacer(minLength: 8)
+                                if let amount = row.amountText { Text(verbatim: amount).monospacedDigit() }
                                 else {
-                                    Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).cyText(.numericBody).monospacedDigit()
+                                    Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).monospacedDigit()
                                         .accessibilityHidden(true)
                                 }
                                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                                     .accessibilityHidden(true)
                             }
-                            HStack(spacing: CYSpacing.sm) {
-                                CYStatusChip(LocalizedStringKey(row.status.localizationKey), tone: row.status == .credited ? .success : .neutral)
+                            HStack(spacing: 8) {
+                                Label {
+                                    Text(LocalizedStringKey(row.status.localizationKey))
+                                } icon: {
+                                    Image(systemName: row.status == .credited ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(row.status == .credited ? Color.green : Color.secondary)
+                                }
                                 if row.amountText == nil {
-                                    CYStatusChip("clubOps.settlement.rowUnverified", tone: .warning, systemImage: "questionmark.circle", tableName: "ClubOpsCustomer")
+                                    Label {
+                                        Text("clubOps.settlement.rowUnverified", tableName: "ClubOpsCustomer")
+                                    } icon: {
+                                        Image(systemName: "questionmark.circle").foregroundStyle(.orange)
+                                    }
                                 }
                             }
-                            Text(verbatim: row.arrivedText).cyText(.meta).foregroundStyle(.secondary)
-                            if row.status == .void || row.status == .unverified { Text(verbatim: row.paidText).cyText(.meta).foregroundStyle(.secondary) }
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            Text(verbatim: row.arrivedText).font(.subheadline).foregroundStyle(.secondary)
+                            if row.status == .void || row.status == .unverified { Text(verbatim: row.paidText).font(.subheadline).foregroundStyle(.secondary) }
                         }
-                        .frame(minHeight: 52, alignment: .leading)
                         .contentShape(Rectangle())
-                        .foregroundStyle(.primary)
-                    }.buttonStyle(.plain).accessibilityIdentifier("club.settlementDetail.open.\(row.id)")
+                        .foregroundStyle(Color.primary)
+                    }.accessibilityIdentifier("club.settlementDetail.open.\(row.id)")
                         .accessibilityHint(Text("club.settlementDetail.open"))
                 }
             }
@@ -287,8 +297,8 @@ import UIKit
             if let failure = model.failure { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.settlementDetail.failure") }
             if sourceIsCurrent(), let row = model.accepted(expected, access: access) {
                 Section {
-                    Text(verbatim: row.name).cyText(.sheetTitle)
-                    Text("club.settlementDetail.perspective").cyText(.body)
+                    Text(verbatim: row.name).font(.headline)
+                    Text("club.settlementDetail.perspective")
                     Text(LocalizedStringKey(row.status.localizationKey))
                     LabeledContent(LocalizedStringKey(row.amountLabelKey)) {
                         if let amount = row.amountText { Text(verbatim: amount) }
@@ -310,7 +320,7 @@ import UIKit
                 Section {
                     LabeledContent("club.settlementDetail.recordID", value: String(row.id))
                     LabeledContent("club.gov.field.topicId", value: String(row.topicID))
-                    Text("club.settlementDetail.disclaimer").cyText(.bodyCompact)
+                    Text("club.settlementDetail.disclaimer").font(.footnote).foregroundStyle(.secondary)
                 }
             } else if sourceIsCurrent(), model.acceptedMissing(expected, access: access) {
                 Text("club.settlementDetail.missing").accessibilityIdentifier("club.settlementDetail.missing")
@@ -322,7 +332,6 @@ import UIKit
                 }.disabled(model.loading || model.permit(in: expected) == nil).accessibilityIdentifier("club.settlementDetail.reload")
             }
         }
-        .cyGroupedSurface()
         .navigationTitle("club.settlementDetail.title").navigationBarTitleDisplayMode(.inline)
         .task(id: expected) {
             guard sourceIsCurrent(), let permit = model.activate(expected) else { return }

@@ -6,7 +6,8 @@ struct ActivityReviewsSection: View {
 
     var body: some View {
         Section("activity.reviews.title") {
-            VStack(alignment: .leading, spacing: 12) {
+            // System rows: average and total as label/value rows, then one row per review.
+            Group {
                 if !reviews.hasConfirmedNoReviews {
                     LabeledContent("activity.reviews.average") {
                         if let average = reviews.averageRating {
@@ -38,12 +39,9 @@ struct ActivityReviewsSection: View {
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
-            .questifyCardSurface()
-            .questifyCardListRow()
             ForEach(Array(reviews.preview.enumerated()), id: \.offset) { index, review in
                 UGCBlockedFilterContainer(authorName: review.authorName) {
                     ActivityReviewCard(review: review, index: index)
-                        .questifyCardListRow()
                 }
             }
         }
@@ -67,12 +65,12 @@ private struct ActivityReviewCard: View {
                     if let name = review.authorName { Text(verbatim: name) }
                     else { Text("activity.reviews.authorUnknown") }
                 }
-                .cyText(.cardTitle)
+                .font(.headline)
                 .accessibilityIdentifier("activity.reviews.author.\(index)")
                 Spacer(minLength: 8)
                 if let date = review.createTime {
                     Text(verbatim: date)
-                        .cyText(.meta)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -83,8 +81,8 @@ private struct ActivityReviewCard: View {
                             Image(systemName: star < rating ? "star.fill" : "star")
                         }
                     }
-                    .cyText(.meta)
-                    .foregroundStyle(QuestifyPalette.accent)
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text(verbatim: "\(rating) / 5"))
                 } else {
@@ -104,6 +102,5 @@ private struct ActivityReviewCard: View {
             )
         }
         .fixedSize(horizontal: false, vertical: true)
-        .questifyCardSurface()
     }
 }

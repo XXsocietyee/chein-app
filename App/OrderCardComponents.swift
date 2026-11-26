@@ -57,7 +57,7 @@ struct OrderCoverTile: View {
         if let fallback {
             fallback.resizable().scaledToFit().padding(size * 0.18)
                 .frame(width: size, height: size)
-                .background(Color(uiColor: .secondarySystemFill))
+                .background(.quaternary)
         } else {
             E1CoverArt(seed: seed.isEmpty ? systemImage : seed, symbol: systemImage, debugLabel: false)
         }

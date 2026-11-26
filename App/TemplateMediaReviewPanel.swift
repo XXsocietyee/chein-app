@@ -47,7 +47,7 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(String(localized: LocalizedStringResource("templateMedia.scope", defaultValue: "Review a local image or audio inspection for one field. This does not upload or replace its saved reference.", locale: locale)))
-                .cyText(.meta).foregroundStyle(.secondary)
+                .font(.footnote).foregroundStyle(.secondary)
             ForEach(rows) { row in
                 Button { controller.open(row) } label: {
                     Label(TemplateMediaReviewLabels.title(row.field, ordinal: row.ordinal, locale: locale), systemImage: "doc.text.magnifyingglass")

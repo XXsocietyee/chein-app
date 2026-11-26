@@ -23,64 +23,47 @@ public struct ClubGapTopicDirectorEmbeddedSection: View {
         self.onToggleLeaderboardVisibility = onToggleLeaderboardVisibility
     }
 
+    /// CLB-r9-native-02: catalog keys instead of the Core Chinese literals; system buttons and sections.
     public var body: some View {
         Group {
             if summary.hasUnknownWrite {
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text(verbatim: summary.unknownWriteLabel ?? ClubTopicDirectorCopy.unknownWriteTitle)
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textPrimary)
-                        HStack(spacing: CYSpacing.sm) {
-                            Button(ClubTopicDirectorCopy.confirmResult, action: onConfirmUnknownWrite)
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
-                            Button(ClubTopicDirectorCopy.retryOriginalAction, action: onRetryUnknownWrite)
-                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
-                        }
+                    if let label = summary.unknownWriteLabel {
+                        Text(verbatim: label)
+                    } else {
+                        Text("club.director.unknownWrite")
                     }
-                    .padding(.vertical, CYSpacing.xs)
+                    HStack {
+                        Button("club.director.confirmResult", action: onConfirmUnknownWrite)
+                            .buttonStyle(.bordered)
+                        Button("club.director.retryOriginal", action: onRetryUnknownWrite)
+                            .buttonStyle(.borderedProminent)
+                    }
                 }
             }
 
-            Section {
-                LabeledContent("站点准备", value: "\(summary.readyStations) / \(summary.totalStations)")
-                    .cyText(.body)
-                LabeledContent("进行中队伍", value: "\(summary.activeTeams)")
-                    .cyText(.body)
-                if let caption = summary.caption, !caption.isEmpty {
-                    Text(verbatim: caption)
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                }
-            } header: {
-                Text(verbatim: ClubTopicDirectorCopy.prepOverviewTitle).cyText(.sectionTitle)
-            }
-
+            // CLB-G13c: 准备总览 moved to `ClubTopicDirectorReadySection` (preparing only, MP wxml:244-261).
             Section {
                 ForEach(ClubTopicDirectorToolKind.allCases) { tool in
                     Button {
                         onOpenTool(tool)
                     } label: {
-                        Label(tool.title, systemImage: tool.systemImage)
-                            .cyText(.body)
+                        Label(LocalizedStringKey("club.director.tool." + tool.rawValue), systemImage: tool.systemImage)
                     }
                 }
             } header: {
-                Text(verbatim: ClubTopicDirectorCopy.directorToolsTitle).cyText(.sectionTitle)
+                Text("club.director.tools")
             }
 
             Section {
                 Button {
                     onToggleLeaderboardVisibility()
                 } label: {
-                    Label(
-                        summary.leaderboardHidden ? ClubTopicDirectorCopy.showLeaderboard : ClubTopicDirectorCopy.hideLeaderboard,
-                        systemImage: summary.leaderboardHidden ? "eye" : "eye.slash"
-                    )
-                    .cyText(.body)
+                    Label(summary.leaderboardHidden ? LocalizedStringKey("club.director.showLeaderboard") : LocalizedStringKey("club.director.hideLeaderboard"),
+                          systemImage: summary.leaderboardHidden ? "eye" : "eye.slash")
                 }
             } header: {
-                Text(verbatim: ClubTopicDirectorCopy.leaderboardTitle).cyText(.sectionTitle)
+                Text("club.director.leaderboard")
             }
         }
     }
@@ -113,15 +96,15 @@ public struct ClubGapTopicMoreMenu: View {
     }
 
     public var body: some View {
-        Menu(ClubTopicDirectorCopy.moreMenuTitle) {
+        Menu("club.director.more") {
             if canEditContent {
-                Button(ClubTopicDirectorCopy.editTopicContent, action: onEditContent)
+                Button("club.director.editTopic", action: onEditContent)
             }
             if canConfirmFinalPrice {
-                Button(ClubTopicDirectorCopy.confirmFinalPrice, action: onConfirmFinalPrice)
+                Button("club.director.confirmFinalPrice", action: onConfirmFinalPrice)
             }
             if canReviewUndertake {
-                Button(ClubTopicDirectorCopy.reviewUndertake, action: onReviewUndertake)
+                Button("club.director.reviewUndertake", action: onReviewUndertake)
             }
         }
     }

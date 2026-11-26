@@ -56,37 +56,33 @@ import SwiftUI
         _model = StateObject(wrappedValue: GroupPollOriginalResultModel(owner: owner, reference: reference, current: current))
     }
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                CYHeroHeader("poll.title")
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text(verbatim: "原投票结果 · 只读")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(verbatim: "结果读取不代表仍可参与；本页不创建、投票、关闭或重试任何原操作。")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textTertiary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if !model.isCurrent {
-                    CYEmptyState(systemImage: "lock", "poll.disabled", kind: .generic)
-                } else if let poll = model.poll {
-                    pollBody(poll)
-                } else if model.failed {
-                    CYEmptyState(systemImage: "exclamationmark.triangle", "poll.failed", kind: .failure)
-                    CYPillButton(verbatim: "重新读取原投票结果", systemImage: "arrow.clockwise", action: reload)
-                        .disabled(model.loading)
-                        .accessibilityLabel(Text(verbatim: "重新读取原投票结果"))
-                }
-                if model.loading { loadingBlock("poll.loading") }
+        List {
+            Section {
+                Text(verbatim: "原投票结果 · 只读")
+                    .fixedSize(horizontal: false, vertical: true)
+            } footer: {
+                Text(verbatim: "结果读取不代表仍可参与；本页不创建、投票、关闭或重试任何原操作。")
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            if !model.isCurrent {
+                ContentUnavailableView("poll.disabled", systemImage: "lock")
+            } else if let poll = model.poll {
+                pollBody(poll)
+            } else if model.failed {
+                ContentUnavailableView {
+                    Label("poll.failed", systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button(action: reload) {
+                        Label { Text(verbatim: "重新读取原投票结果") } icon: { Image(systemName: "arrow.clockwise") }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(model.loading)
+                    .accessibilityLabel(Text(verbatim: "重新读取原投票结果"))
+                }
+            }
+            if model.loading { loadingBlock("poll.loading") }
         }
-        .cyDomainPageBackground()
-        .cyHeroScreen()
+        .navigationTitle(Text("poll.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .cyAnimation(value: model.loading)
         .toolbar { Button("messaging.refresh", systemImage: "arrow.clockwise") { reload() }.disabled(!model.isCurrent || model.loading).accessibilityLabel(Text("messaging.refresh")) }
         .privacySensitive().accessibilityIdentifier("poll.originalResult.readOnly")
@@ -109,27 +105,30 @@ import SwiftUI
     private func retire() { readTask?.cancel(); readTask = nil; model.retire() }
 
     @ViewBuilder private func pollBody(_ poll: GroupPoll) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            Color.clear
-                .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                .overlay { CYCoverArt(seed: poll.question.isEmpty ? "poll-\(poll.id)" : poll.question, symbol: "chart.bar.xaxis") }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                .accessibilityHidden(true)
+        Section {
             Text(verbatim: poll.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : poll.question)
-                .cyText(.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
+                .font(.headline)
                 .fixedSize(horizontal: false, vertical: true)
             statusChip(poll)
             if let date = poll.deadlineAt?.value {
-                CYListRow("poll.deadline", trailing: .value(date.formatted(.dateTime)), card: true) {
-                    CYRowIcon(systemImage: "calendar")
+                LabeledContent {
+                    Text(verbatim: date.formatted(.dateTime))
+                } label: {
+                    Label("poll.deadline", systemImage: "calendar")
                 }
             }
-            CYSectionHeader("poll.options")
+        }
+        Section {
             ForEach(poll.options) { option in optionRow(poll, option) }
-            if let total = poll.totalVoters {
-                CYListRow("poll.total", trailing: .value(String(total)), card: true) {
-                    CYRowIcon(systemImage: "person.2")
+        } header: {
+            Text("poll.options")
+        }
+        if let total = poll.totalVoters {
+            Section {
+                LabeledContent {
+                    Text(verbatim: String(total)).monospacedDigit()
+                } label: {
+                    Label("poll.total", systemImage: "person.2")
                 }
             }
         }
@@ -137,63 +136,46 @@ import SwiftUI
 
     @ViewBuilder private func statusChip(_ poll: GroupPoll) -> some View {
         if poll.status == "CLOSED" {
-            CYStatusChip("poll.closed", tone: .neutral, systemImage: "lock")
+            Label("poll.closed", systemImage: "lock")
+                .foregroundStyle(.secondary)
         } else if poll.isOpen() {
-            CYStatusChip("poll.open", tone: .success, systemImage: "circle")
+            Label("poll.open", systemImage: "circle")
+                .foregroundStyle(.green)
         } else {
-            CYStatusChip("poll.deadlinePassed", tone: .warning, systemImage: "clock")
+            Label("poll.deadlinePassed", systemImage: "clock")
+                .foregroundStyle(.orange)
         }
     }
 
     private func optionRow(_ poll: GroupPoll, _ option: GroupPollOption) -> some View {
-        CYCard {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: option.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : option.content)
-                    .cyText(.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: CYSpacing.sm)
+                if poll.myOptionId == option.id {
+                    Label("poll.yourVote", systemImage: "checkmark.circle.fill")
+                        .labelStyle(.iconOnly)
+                        .foregroundStyle(.tint)
+                }
                 if let count = option.voteCount, let total = poll.totalVoters {
                     Text(verbatim: "\(count) / \(total)")
-                        .cyText(.numericBody)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    PollShareBar(count: count, total: total)
-                }
-                if poll.myOptionId == option.id {
-                    CYStatusChip("poll.yourVote", tone: .success, systemImage: "checkmark.circle.fill")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
                 }
             }
-            .accessibilityElement(children: .combine)
-        }
-    }
-
-    private func loadingBlock(_ key: LocalizedStringKey) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text(key)
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            CYSkeleton().accessibilityHidden(true)
+            // Share of votes. A missing total stays off this row; a real 0 stays 0 and draws an empty track.
+            if let count = option.voteCount, let total = poll.totalVoters {
+                ProgressView(value: Double(total > 0 ? min(count, total) : 0), total: Double(max(total, 1)))
+                    .accessibilityHidden(true)
+            }
         }
         .accessibilityElement(children: .combine)
     }
-}
 
-/// Share of votes. A missing total stays off this row; a real 0 stays 0 and draws an empty track.
-private struct PollShareBar: View {
-    let count: Int
-    let total: Int
-    @ScaledMetric(relativeTo: .caption) private var barHeight: CGFloat = 6
-
-    var body: some View {
-        GeometryReader { proxy in
-            let fraction = total > 0 ? min(1, CGFloat(count) / CGFloat(total)) : 0
-            ZStack(alignment: .leading) {
-                Capsule().fill(CYColor.bgRaised)
-                Capsule().fill(CYColor.textPrimary).frame(width: max(0, proxy.size.width * fraction))
-            }
-        }
-        .frame(height: barHeight)
-        .accessibilityHidden(true)
+    private func loadingBlock(_ key: LocalizedStringKey) -> some View {
+        ProgressView { Text(key) }
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .combine)
     }
 }

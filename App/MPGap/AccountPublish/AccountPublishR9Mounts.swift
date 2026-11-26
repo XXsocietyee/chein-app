@@ -77,7 +77,7 @@ struct R9PublicShareButton: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if showsCoopBar {
                 SocialPublicProfileGapCoopBar { opensCoopInvite = true }
-                    .background(CYColor.bgPage)
+                    .background(.bar)
                     .accessibilityIdentifier("profile.merchant.coopInvite")
             }
         }

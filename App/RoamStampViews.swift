@@ -31,8 +31,13 @@ import UIKit
         }
     }
     var body: some View {
-        RoamStampAlbumContent(album: self).id(RoamAlbumReadOwner(reader: reader, scope: readOnlyScope))
-            .modifier(RoamReceivedStampNavigation(isEntry: !(reader is RoamReceivedStampReader)))
+        if NativeR2Flags.freeExplore {
+            // Native r2: same reader, scope and pager; the received-stamp entry is a row inside the album.
+            NativeStampAlbumView(album: self).id(RoamAlbumReadOwner(reader: reader, scope: readOnlyScope))
+        } else {
+            RoamStampAlbumContent(album: self).id(RoamAlbumReadOwner(reader: reader, scope: readOnlyScope))
+                .modifier(RoamReceivedStampNavigation(isEntry: !(reader is RoamReceivedStampReader)))
+        }
     }
 }
 

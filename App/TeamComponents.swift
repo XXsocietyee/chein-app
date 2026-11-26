@@ -111,15 +111,14 @@ import SwiftUI
     var body: some View {
         // Only real messages (and the example-content marker) earn a box; no standing "unavailable" banner.
         if canSimulate || messageKey != nil {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             if canSimulate { Label("team.fixtureNotice", systemImage: "testtube.2").accessibilityIdentifier("team.fixtureNotice") }
             if let key = messageKey {
                 Label(LocalizedStringKey(key), systemImage: hasPending ? "exclamationmark.triangle" : "info.circle")
                     .accessibilityIdentifier("team.message")
             }
-        }.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-            .padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        }.font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
@@ -146,7 +145,7 @@ struct TeamMemberRow: View {
     }
     var body: some View {
         // Mini `.team-member`: 32pt avatar, name (600) over role caption, trailing 移出 in danger text.
-        HStack(alignment: .center, spacing: CYSpacing.sm) {
+        HStack(alignment: .center, spacing: 12) {
             // MP team/detail wxml:102: `memberAvatar || /images/d_profile.png` (r9 Team avatars).
             Group {
                 if let url = memberAvatarURL {
@@ -158,14 +157,14 @@ struct TeamMemberRow: View {
                 }
             }
             .frame(width: 32, height: 32).clipShape(Circle()).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: 2) {
                 Group {
                     if member.name.isEmpty { Text("team.member.unnamed") } else { Text(verbatim: member.name).fixedSize(horizontal: false, vertical: true) }
-                }.cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                Text(member.isCaptain ? "team.member.captain" : member.role == 0 ? "team.member.player" : "team.member.unknownRole").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                }
+                Text(member.isCaptain ? "team.member.captain" : member.role == 0 ? "team.member.player" : "team.member.unknownRole").font(.subheadline).foregroundStyle(.secondary)
             }.frame(maxWidth: .infinity, alignment: .leading)
-            if let remove { Button("team.remove", role: .destructive, action: remove).cyText(.label).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("team.remove.\(member.id)") }
-        }.padding(.vertical, CYSpacing.xs)
+            if let remove { Button("team.remove", role: .destructive, action: remove).accessibilityIdentifier("team.remove.\(member.id)") }
+        }
     }
 }
 @MainActor struct TeamReviewSheet: View {
@@ -203,109 +202,98 @@ struct TeamMemberRow: View {
     }
 
     var body: some View {
-        CYSheetContainer(
-            title: actionTitle,
-            onClose: model.running ? nil : { model.cancel(); dismiss() }
-        ) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    if let detail = review.detail {
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: detail.team.title)
-                                .cyText(.cardTitle)
-                                .foregroundStyle(CYColor.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
+        NavigationStack {
+            List {
+                if let detail = review.detail {
+                    Section {
+                        LabeledContent {
                             Text(verbatim: "#\(detail.team.id)")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                        } label: {
+                            Text(verbatim: detail.team.title).font(.headline).fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    if case .remove(_, let memberID) = review.action, let member = review.detail?.members.first(where: { $0.id == memberID }) {
+                }
+                if case .remove(_, let memberID) = review.action, let member = review.detail?.members.first(where: { $0.id == memberID }) {
+                    Section {
                         Text(verbatim: member.name)
-                            .cyText(.cardTitle)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    if case .create(let context, let size, let inviteOnly) = review.action {
+                }
+                if case .create(let context, let size, let inviteOnly) = review.action {
+                    Section {
                         Text(verbatim: context.title)
-                            .cyText(.cardTitle)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                         LabeledContent("team.size") { Text(verbatim: "\(size)") }
-                            .cyText(.body)
                         Text(inviteOnly ? "team.mode.invitation" : "team.mode.public")
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .foregroundStyle(.secondary)
                     }
-                    if case .changeJoinMode(_, let mode) = review.action {
+                }
+                if case .changeJoinMode(_, let mode) = review.action {
+                    Section {
                         LabeledContent {
                             Text(LocalizedStringKey(review.detail?.team.joinMode.key ?? "team.mode.unknown"))
                         } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "当前方式" : "Current mode") }
-                            .cyText(.body)
                         LabeledContent {
                             Text(LocalizedStringKey(mode.key))
                         } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "确认后的方式" : "Requested mode") }
-                            .cyText(.body)
+                    } footer: {
                         Text(verbatim: locale.language.languageCode?.identifier == "zh"
                             ? "仅更改加入队伍的方式，不变更成员或报名。结果不明时会保留锁定，不自动重试。"
                             : "Only the joining mode changes; membership and registration stay unchanged. An unknown outcome remains locked without automatic retry.")
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    } else if consequenceKeys.isEmpty {
+                    }
+                } else if consequenceKeys.isEmpty {
+                    Section {
                         Text(LocalizedStringKey(TeamSeatPresentation.consequenceKey(review.action, detail: review.detail)))
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        Text(LocalizedStringKey(TeamSeatPresentation.consequenceKey(review.action, detail: review.detail)))
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
-                                HStack(alignment: .top, spacing: CYSpacing.sm) {
-                                    Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
-                                        .cyText(.body)
-                                        .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
-                                        .accessibilityHidden(true)
-                                    Text(LocalizedStringKey(key))
-                                        .cyText(.bodyCompact)
-                                        .foregroundStyle(CYColor.textPrimary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
+                    }
+                } else {
+                    Section {
+                        ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
+                            Label {
+                                Text(LocalizedStringKey(key))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            } icon: {
+                                Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
+                                    .foregroundStyle(idx == consequenceKeys.count - 1 ? Color.red : Color.secondary)
+                                    .accessibilityHidden(true)
                             }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(CYSpacing.md)
-                        .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    } footer: {
+                        Text(LocalizedStringKey(TeamSeatPresentation.consequenceKey(review.action, detail: review.detail)))
                     }
+                }
+                Section {
                     TeamNotice(coordinator: model.coordinator)
                     confirmActionButton
                     if case .disband(let teamID) = review.action {
                         Button {
                             model.prepare(.leave(teamID: teamID))
                         } label: {
-                            VStack(spacing: CYSpacing.xxs) {
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text("team.leaveInstead")
                                 Text("team.page.leaveAndTransfer")
-                                    .cyText(.meta)
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
-                            .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
                         .disabled(model.running)
                         .accessibilityIdentifier("team.review.leaveInstead")
                     }
+                }
+            }
+            .navigationTitle(Text(verbatim: actionTitle))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("team.cancel") { model.cancel(); dismiss() }
-                        .buttonStyle(CYGhostButtonStyle(isFullWidth: true))
                         .disabled(model.running)
                         .accessibilityIdentifier("team.review.cancel")
                 }
             }
-            .scrollBounceBehavior(.basedOnSize)
         }
         .interactiveDismissDisabled(model.running)
         .cyDomainSheet(detents: [.half, .full])
@@ -322,10 +310,11 @@ struct TeamMemberRow: View {
         }
         .disabled(!model.coordinator.canSubmit || model.running)
         .accessibilityIdentifier("team.review.confirm")
+        // A Settings-style row action; the destructive ones read in the system red.
         if isDestructiveAction {
-            button.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            button.foregroundStyle(.red)
         } else {
-            button.buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
+            button
         }
     }
 }
@@ -334,68 +323,60 @@ struct TeamMemberRow: View {
     @ObservedObject var model: TeamScreenModel
     @State private var copyMessageKey: String?
     @State private var copyPermit: TeamScreenModel.InviteCopyPermit?
-    @State private var toastMessage: LocalizedStringKey?
-    @State private var toastTone: CYToastTone = .info
+    @State private var copyFeedbackCount = 0
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     var body: some View {
-        CYSheetContainer(
-            title: appLocalized("team.invitePreview", locale: locale),
-            onClose: { endPreview(); dismiss() }
-        ) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        NavigationStack {
+            List {
+                Section {
                     Text(verbatim: team.title)
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .font(.headline)
                         .fixedSize(horizontal: false, vertical: true)
                     if let code = team.inviteCode, TeamLookup.validInvite(code) {
                         Text(verbatim: code)
-                            .cyText(.sectionTitle)
-                            .foregroundStyle(CYColor.brand)
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(.tint)
                             .monospaced()
                             .textSelection(.enabled)
                             .accessibilityIdentifier("team.invite.code")
                     } else {
                         Text("team.invite.unavailable")
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if let copyMessageKey {
                         Text(LocalizedStringKey(copyMessageKey))
-                            .cyText(.bodyCompact)
-                            .foregroundStyle(copyMessageKey == "team.invite.copied" ? CYColor.successText : CYColor.dangerText)
+                            .font(.subheadline)
+                            .foregroundStyle(copyMessageKey == "team.invite.copied" ? Color.green : Color.red)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("team.invite.copyFeedback")
                     }
+                } footer: {
                     Text("team.invite.previewOnly")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(CYSpacing.md)
-                .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
 
                 if let code = team.inviteCode, TeamLookup.validInvite(code) {
-                    Button("team.invite.copy") { copyInvitationCode(code) }
-                        .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
-                        .accessibilityIdentifier("team.invite.copy")
-                    ShareLink(item: code) {
-                        Label(CoreLoopCopy(locale: locale).t("分享邀请码", "Share invite code"), systemImage: "square.and.arrow.up")
-                            .frame(maxWidth: .infinity)
+                    Section {
+                        Button("team.invite.copy") { copyInvitationCode(code) }
+                            .accessibilityIdentifier("team.invite.copy")
+                        ShareLink(item: code) {
+                            Label(CoreLoopCopy(locale: locale).t("分享邀请码", "Share invite code"), systemImage: "square.and.arrow.up")
+                        }
+                        .accessibilityIdentifier("team.invite.share")
                     }
-                    .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
-                    .accessibilityIdentifier("team.invite.share")
                 }
-
-                Button("team.close") { endPreview(); dismiss() }
-                    .buttonStyle(CYGhostButtonStyle(isFullWidth: true))
-                    .accessibilityIdentifier("team.invite.close")
+            }
+            .navigationTitle(Text("team.invitePreview"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("team.close") { endPreview(); dismiss() }
+                        .accessibilityIdentifier("team.invite.close")
+                }
             }
         }
-        .cyToast(message: $toastMessage, tone: toastTone)
+        .sensoryFeedback(trigger: copyFeedbackCount) { _, _ in copyMessageKey == "team.invite.copied" ? SensoryFeedback.success : SensoryFeedback.warning }
         .cyDomainSheet(detents: [.half, .full])
         .onAppear { copyPermit = model.beginInvitePreview() }
         .onChange(of: team) { _, _ in endPreview() }
@@ -411,7 +392,6 @@ struct TeamMemberRow: View {
             LocalPasteboard.copy(value)
         }
         copyMessageKey = copied ? "team.invite.copied" : "team.invite.unavailable"
-        toastTone = copied ? .success : .warning
-        toastMessage = copied ? "team.invite.copied" : "team.invite.unavailable"
+        copyFeedbackCount += 1
     }
 }

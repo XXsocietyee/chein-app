@@ -228,7 +228,7 @@ extension ProfileLocalCoverOwner {
             } else { Text("profile.localCover.invalid") }
         } else {
             ZStack {
-                Color(uiColor: .secondarySystemFill)
+                Rectangle().fill(.quaternary)
                 Label("profile.localCover.default", systemImage: "photo")
             }.aspectRatio(16.0 / 9.0, contentMode: .fit).accessibilityIdentifier("profile.localCover.default")
         }

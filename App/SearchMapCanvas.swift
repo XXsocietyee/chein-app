@@ -52,17 +52,17 @@ struct SearchMapCanvas: View {
                     CYMapPlaceholder(fog: false)
                     VStack(spacing: 12) {
                         Label { Text("searchMap.offlineMap").accessibilityIdentifier("searchMap.map") } icon: { Image(systemName: "map") }
-                            .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
-                            .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                            .background(.thinMaterial, in: Capsule(style: .continuous))
+                            .font(.subheadline).foregroundStyle(.primary)
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .background(.regularMaterial, in: Capsule(style: .continuous))
                         ForEach(pins) { pin in
                             Button { onSelect?(pin.id) } label: {
                                 HStack(spacing: 12) {
                                     QuestifyMapPinSymbol(symbol: pin.symbol, selected: pin.id == selectedID)
-                                    Text(verbatim: pin.title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                                    Text(verbatim: pin.title).font(.body).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
                                         .multilineTextAlignment(.leading)
                                 }
-                                .padding(.trailing, CYSpacing.md)
+                                .padding(.trailing, 12)
                                 .background(.regularMaterial, in: Capsule(style: .continuous))
                             }.buttonStyle(.plain).frame(minHeight: 44)
                                 .accessibilityLabel(Text(verbatim: pin.title))
@@ -76,8 +76,7 @@ struct SearchMapCanvas: View {
                     polyline: polyline, onViewportChange: onViewportChange, onSelect: onSelect)
                     .accessibilityIdentifier("searchMap.map")
             }
-        }.frame(minHeight: 240).clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 0.5))
+        }.frame(minHeight: 240)
     }
     /// Reform plan v9 §12.2 MV01: the offline canvas uses the versioned ground token for the
     /// system appearance. MapKit tiles keep QuestifyMapAppearance; the palette is still a candidate.
