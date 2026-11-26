@@ -311,13 +311,13 @@ import SwiftUI
             } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
             if busy, route.operation == .issueGroupCode, groupCode == nil {
                 // CLB-r8-group-code-01 (fix-r8-club): MP sheet state loading shows a 生成中 placeholder in the code slot.
+                // CLB-r10-nat-group-code-02: one system `ProgressView("生成中")`.
                 Section {
-                    HStack {
-                        Text("clubR8b.groupCode.generating").foregroundStyle(.secondary)
+                    ProgressView {
+                        Text("clubR8b.groupCode.generating")
                             .accessibilityIdentifier("club.gov.groupCode.generating")
-                        Spacer()
-                        ProgressView()
                     }
+                    .frame(maxWidth: .infinity)
                 }
             } else if busy { ProgressView() }
             if let review, !(Self.directOperations.contains(route.operation) && consequenceReview?.id == review.id) {
