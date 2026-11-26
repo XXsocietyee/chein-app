@@ -175,7 +175,6 @@ final class MiniProgramPageLinkTests: XCTestCase {
         let rejected = [
             "/subpackageMember/market/checkout/index?id=1",                 // no native screen
             "/pages/index/index?id=1",                                      // open pages take no query
-            "/pages/club/governance/index",                                  // clubId required (MP governance onLoad)
             "/pages/club/roles/index?clubId=abc",                            // non-canonical id
             "/pages/club/customer-detail/index?clubId=7",                    // memberId required
             "/pages/club/topic-detail/index?topicId=1&foo=2",                // unknown key
@@ -240,6 +239,8 @@ final class MiniProgramPageLinkTests: XCTestCase {
             ("pages/club/topic-detail/index", ["topicId": "3", "clubId": "7", "activityId": "4"]),
             ("pages/club/topic-story/index", ["topicId": "3", "clubId": "7", "scope": "club"]),
             ("pages/club/governance/index", ["clubId": "7", "mode": "report", "targetType": "MEMBER", "targetId": "8", "targetName": "A"]),
+            // CLB-r8-governance-01: no clubId opens the page, which shows 链接已失效 (MP governance js:204-207).
+            ("pages/club/governance/index", [:]),
             ("pages/club/roles/index", ["clubId": "7", "activityId": "4", "activityLabel": "夜跑"]),
         ]
         for (page, query) in accepted {
