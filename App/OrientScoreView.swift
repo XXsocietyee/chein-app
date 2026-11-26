@@ -201,6 +201,7 @@ import QuestifyCore
             dimensionsCard
             if let settlement { OrientScoreSettlementPendingCard(model: settlement) }
             settlementCard
+            if !summary.recoveries.isEmpty { recoveriesCard }
             if session != nil, score != nil { boardCard }
             timelineCard
             reviewsCard(title: "orientScore.appeals", emptyText: "orientScore.appeals.empty", rows: summary.appeals)
@@ -270,6 +271,42 @@ import QuestifyCore
                 if let settlement { OrientScoreSettlementActions(model: settlement) }
             }
             .foregroundStyle(CYColor.textPrimary)
+        }
+    }
+
+    /// MP `score.recoveries`: 历史操作人工核对. Shown only when the server sent rows.
+    private var recoveriesCard: some View {
+        CYCard {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text("orientScore.recoveries.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                ForEach(summary.recoveries) { row in
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        (Text(LocalizedStringKey(recoveryKind(row.kind)))
+                            + Text(verbatim: " · ")
+                            + Text(LocalizedStringKey(row.status == 0 ? "orientScore.recoveries.pending" : "orientScore.recoveries.noted")))
+                            .cyText(.bodyMedium)
+                            .foregroundStyle(CYColor.textPrimary)
+                        if !row.note.isEmpty {
+                            Text("orientScore.recoveries.note \(row.note)")
+                                .cyText(.bodyCompact)
+                                .foregroundStyle(CYColor.textSecondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .combine)
+                }
+            }
+        }
+        .accessibilityIdentifier("orientScore.recoveries")
+    }
+
+    private func recoveryKind(_ kind: String) -> String {
+        switch kind {
+        case "SYNC": return "orientScore.kind.sync"
+        case "SETTLE": return "orientScore.kind.settle"
+        case "APPEAL": return "orientScore.review.appeal"
+        case "DISPUTE": return "orientScore.review.dispute"
+        default: return "orientScore.recoveries.kindFallback"
         }
     }
 

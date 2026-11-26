@@ -163,4 +163,29 @@ final class OrientScorePageReadyTests: XCTestCase {
         XCTAssertNotEqual(row.runningText, "5.00")
         XCTAssertNotEqual(row.runningText, "0")
     }
+
+    func testRecoveriesMatchTheMiniProgramRowRules() throws {
+        let base = "{\"sessionId\":9,\"topicId\":3,\"activityId\":0,\"status\":1,\"totalCenti\":1700,"
+            + "\"byDimension\":{\"TASK\":2000,\"PUZZLE\":0,\"BONUS\":0,\"PENALTY\":-300,\"ADJUSTMENT\":0},"
+            + "\"timeline\":[],\"settlement\":null,\"appeals\":[],\"disputes\":[]}"
+        let plain = try JSONDecoder().decode(OrientSessionScore.self, from: Data(base.utf8))
+        XCTAssertTrue(plain.recoveries.isEmpty)
+        XCTAssertTrue(OrientScorePresentation.summary(from: plain).recoveries.isEmpty)
+        let row = "{\"id\":4,\"sessionId\":9,\"kind\":\"SYNC\",\"status\":0,\"resolutionNote\":\"已核对\"}"
+        let listed = base.replacingOccurrences(of: "\"disputes\":[]", with: "\"disputes\":[],\"recoveries\":[\(row)]")
+        let score = try JSONDecoder().decode(OrientSessionScore.self, from: Data(listed.utf8))
+        XCTAssertEqual(score.recoveries.map(\.note), ["已核对"])
+        XCTAssertEqual(OrientScorePresentation.summary(from: score).recoveries.map(\.kind), ["SYNC"])
+        let absent = base.replacingOccurrences(of: "\"disputes\":[]", with: "\"disputes\":[],\"recoveries\":null")
+        XCTAssertTrue(try JSONDecoder().decode(OrientSessionScore.self, from: Data(absent.utf8)).recoveries.isEmpty)
+        for bad in [
+            "{\"id\":4,\"sessionId\":9,\"kind\":\"SYNC\",\"status\":2}",
+            "{\"id\":4,\"sessionId\":8,\"kind\":\"SYNC\",\"status\":0}",
+            "{\"id\":4,\"sessionId\":9,\"kind\":\"PAY\",\"status\":0}",
+            "{\"id\":0,\"sessionId\":9,\"kind\":\"SYNC\",\"status\":0}"
+        ] {
+            let raw = base.replacingOccurrences(of: "\"disputes\":[]", with: "\"disputes\":[],\"recoveries\":[\(bad)]")
+            XCTAssertThrowsError(try JSONDecoder().decode(OrientSessionScore.self, from: Data(raw.utf8)))
+        }
+    }
 }

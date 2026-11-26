@@ -312,4 +312,137 @@ private func board(rows: [String], me: String = "null", mode: String = "SCORE", 
         XCTAssertEqual(String(data: t.requests.first!.httpBody!, encoding: .utf8), "kind=SYNC")
         XCTAssertTrue(t.requests.first!.value(forHTTPHeaderField: "Content-Type")!.hasPrefix("application/x-www-form-urlencoded"))
     }
+
+    func testMissingRequestIdAsksForReviewAndDoesNotReplay() async throws {
+        let journal = ScoreSlotJournal()
+        journal.slot = OrientScoreSettlementSlot(kind: "SYNC", requestID: nil)
+        let transport = OrientTestTransport()
+        let writer = try scoreSettlementWriter(transport, journal: journal)
+        XCTAssertTrue(writer.needsManualReview)
+        XCTAssertEqual(writer.pendingKind, .sync)
+        XCTAssertNil(writer.pending)
+        transport.append("{\"id\":4,\"sessionId\":8,\"memberId\":1,\"kind\":\"SYNC\",\"status\":0}")
+        let rejected = await writer.requestManualReview()
+        XCTAssertEqual(rejected, .unknown)
+        XCTAssertTrue(writer.needsManualReview)
+        transport.append("{\"id\":4,\"sessionId\":9,\"memberId\":1,\"kind\":\"SYNC\",\"status\":0}")
+        let accepted = await writer.requestManualReview()
+        XCTAssertEqual(accepted, .confirmed(.sync))
+        XCTAssertEqual(transport.requests.count, 2)
+        XCTAssertTrue(transport.requests.allSatisfy { $0.url?.path == "/api/orient/scoring/session/9/recovery" && $0.httpMethod == "POST" })
+        let body = try XCTUnwrap(String(data: transport.requests[1].httpBody!, encoding: .utf8))
+        XCTAssertEqual(body, "kind=SYNC")
+        XCTAssertFalse(body.contains("idempotencyKey"))
+        XCTAssertFalse(body.contains("amount"))
+        XCTAssertTrue(writer.needsManualReview)
+        XCTAssertNil(journal.slot?.requestID)
+        XCTAssertEqual(await writer.write(.sync), .unknown)
+        XCTAssertEqual(transport.requests.count, 2)
+    }
+
+    func testSavedSyncKeyIsRestoredAndReadBackWithoutAnotherPost() async throws {
+        let journal = ScoreSlotJournal()
+        journal.slot = OrientScoreSettlementSlot(kind: "SYNC", requestID: "score-key-01")
+        let transport = OrientTestTransport()
+        let writer = try scoreSettlementWriter(transport, journal: journal)
+        XCTAssertFalse(writer.needsManualReview)
+        XCTAssertEqual(writer.pending?.key, "score-key-01")
+        transport.append(orientTestView())
+        transport.append(syncReceipt(key: "score-key-01"))
+        let outcome = await writer.recover()
+        XCTAssertEqual(outcome, .confirmed(.sync))
+        XCTAssertNil(writer.pending)
+        XCTAssertNil(journal.slot)
+        XCTAssertEqual(transport.requests.map { $0.httpMethod ?? "" }, ["GET", "GET"])
+        XCTAssertEqual(transport.requests[1].url?.query, "idempotencyKey=score-key-01&kind=SYNC&sessionId=9")
+    }
+
+    func testUnsavedPendingSendsNothing() async throws {
+        let journal = ScoreSlotJournal()
+        journal.failStore = true
+        let transport = OrientTestTransport()
+        let writer = try scoreSettlementWriter(transport, journal: journal)
+        let outcome = await writer.write(.sync)
+        XCTAssertEqual(outcome, .notStored)
+        XCTAssertTrue(transport.requests.isEmpty)
+        XCTAssertNil(writer.pending)
+        XCTAssertNil(journal.slot)
+    }
+
+    func testSyncStoresTheKeyBeforeThePost() async throws {
+        let journal = ScoreSlotJournal()
+        let transport = OrientTestTransport()
+        let writer = try scoreSettlementWriter(transport, journal: journal)
+        transport.beforeReply = { _ in
+            XCTAssertEqual(journal.slot?.kind, "SYNC")
+            XCTAssertNotNil(journal.slot?.requestID)
+        }
+        transport.append(syncReceipt(key: "different-key"))
+        let outcome = await writer.write(.sync)
+        XCTAssertEqual(outcome, .unknown)
+        let key = try XCTUnwrap(journal.slot?.requestID)
+        XCTAssertEqual(writer.pending?.key, key)
+        let body = try XCTUnwrap(String(data: transport.requests[0].httpBody!, encoding: .utf8))
+        XCTAssertTrue(body.contains("idempotencyKey=\(key)"))
+        XCTAssertTrue(body.contains("sessionId=9"))
+        XCTAssertEqual(transport.requests[0].url?.path, "/api/orient/scoring/session/9/sync")
+    }
+
+    func testDamagedRequestIdBecomesManualReview() async throws {
+        let journal = ScoreSlotJournal()
+        journal.slot = OrientScoreSettlementSlot(kind: "SETTLE", requestID: "bad key")
+        let writer = try scoreSettlementWriter(OrientTestTransport(), journal: journal)
+        XCTAssertTrue(writer.needsManualReview)
+        XCTAssertEqual(writer.pendingKind, .settle)
+        XCTAssertNil(writer.pending)
+    }
+
+    func testUnreadableJournalDoesNotPostRecovery() async throws {
+        let journal = ScoreSlotJournal()
+        journal.unreadable = true
+        let transport = OrientTestTransport()
+        let writer = try scoreSettlementWriter(transport, journal: journal)
+        XCTAssertTrue(writer.journalUnreadable)
+        XCTAssertFalse(writer.needsManualReview)
+        XCTAssertEqual(await writer.requestManualReview(), .unknown)
+        XCTAssertTrue(transport.requests.isEmpty)
+    }
+
+    func testFileJournalKeepsAnUnkeyedSettleRow() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("orient-score-slot-" + UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let first = try OrientScoreSettlementFileJournal(directory: root, accountID: 1, namespace: "synthetic-cn-realm", sessionID: 9)
+        try first.store(OrientScoreSettlementSlot(kind: "SETTLE", requestID: nil))
+        let reopened = try OrientScoreSettlementFileJournal(directory: root, accountID: 1, namespace: "synthetic-cn-realm", sessionID: 9)
+        XCTAssertEqual(try reopened.load(), OrientScoreSettlementSlot(kind: "SETTLE", requestID: nil))
+        let writer = try scoreSettlementWriter(OrientTestTransport(), journal: reopened)
+        XCTAssertTrue(writer.needsManualReview)
+        XCTAssertEqual(writer.pendingKind, .settle)
+    }
+}
+
+@MainActor private final class ScoreSlotJournal: OrientScoreSettlementJournal {
+    var slot: OrientScoreSettlementSlot?
+    var failStore = false
+    var unreadable = false
+    func load() throws -> OrientScoreSettlementSlot? {
+        if unreadable { throw OrientSessionFlowError.storageUnavailable }
+        return slot
+    }
+    func store(_ slot: OrientScoreSettlementSlot) throws {
+        if failStore || unreadable { throw OrientSessionFlowError.storageUnavailable }
+        self.slot = slot
+    }
+    func remove() throws {
+        if unreadable { throw OrientSessionFlowError.storageUnavailable }
+        slot = nil
+    }
+}
+
+@MainActor private func scoreSettlementWriter(_ transport: OrientTestTransport, journal: (any OrientScoreSettlementJournal)? = nil) throws -> OrientScoreSettlementWriter {
+    let score = try JSONDecoder().decode(OrientSessionScore.self, from: Data(orientTestScore().utf8))
+    return try OrientScoreSettlementWriter(
+        configuration: APIConfiguration(baseURL: URL(string: "https://example.test")!),
+        transport: transport, token: { "synthetic-token" },
+        ownerNamespace: "synthetic-cn-realm", accountID: 1, role: "player", score: score, journal: journal)
 }
