@@ -343,17 +343,23 @@ extension PlayKitScreen {
     @State private var mounted = false
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            CYPillButton(LocalizedStringKey("playkit.scan.capture"), systemImage: "qrcode.viewfinder") { purpose = true }.disabled(!enabled || model.busy || !model.supports(.scan))
+            // r10 N-KIT-FORMS: MP playkit-photo/-scan use one primary button per step (pages/playkit/components/playkit-photo).
+            Button { purpose = true } label: { Label("playkit.scan.capture", systemImage: "qrcode.viewfinder").frame(maxWidth: .infinity) }
+                .modifier(PlayKitStepButtonStyle(prominent: !(capturedIdentity == identity && model.output != nil)))
+                .disabled(!enabled || model.busy || !model.supports(.scan))
             if !model.supports(.scan) { Text("playkit.camera.gated") }
             if model.busy { ProgressView("playkit.scan.working") }
             if capturedIdentity == identity, let output = model.output, case .scan(let code) = output {
                 Label("playkit.scan.captured", systemImage: "qrcode")
-                CYPillButton(LocalizedStringKey("playkit.review"), systemImage: "checkmark") { if mounted && enabled { onCode(code) } }.disabled(!enabled)
+                Button { if mounted && enabled { onCode(code) } } label: { Label("playkit.review", systemImage: "checkmark").frame(maxWidth: .infinity) }
+                    .modifier(PlayKitStepButtonStyle(prominent: true))
+                    .disabled(!enabled)
             }
             if let issue = model.issue {
                 PlayExperienceIssueView(issue: issue)
                 if issue == .disabled, let settingsURL = Self.settingsURL {
-                    CYPillButton("playkit.media.openSettings", style: .secondary, systemImage: "gear") { openURL(settingsURL) }
+                    Button { openURL(settingsURL) } label: { Label("playkit.media.openSettings", systemImage: "gear") }
+                        .buttonStyle(.bordered)
                         .accessibilityIdentifier("playkit.scan.openSettings")
                 }
             }
