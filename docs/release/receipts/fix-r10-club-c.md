@@ -19,14 +19,14 @@ They were re-checked on the tip and are listed as fixed with the original SHA.
 | CLB-G13b | P1 | fixed (r9, verified on tip) | 9c917c011 | App/ClubGovernanceViews.swift:2113 (`directorActive` = director mounted), 结束活动 confirm + 更多 row. endTopic dispatch follows the money gate. |
 | CLB-G13c | P1 | fixed (r9, verified on tip) | 5a2c5bee1 | App/ClubTopicDirectorMount.swift:124-150 (准备总览 only while preparing, 联系商家 on `merchantHoldBlocked`) |
 | CLB-topic-detail-06 | P1 | blocked (Cursor Core) | — | Inline save-on-change toggles need (1) CLB-r10-gate-05 (club-b) so `saveTopicSettings` dispatches in Release and (2) `ClubGovernanceCoordinator.confirm` (Core/ClubGovernanceCoordinator.swift:171-221) to release or reconcile the journal lock after an acknowledged save; today a second toggle is refused as `outcomeLocked`. Not changed here: an uncompiled edit to the write journal is too risky. The sheet editor (App/ClubTopicSettingsReturn.swift) still works. |
-| CLB-topic-detail-10 | P1 | partly | ea3f91375 | App/ClubGovernanceViews.swift:1980-1996: the 定向广播 row stays visible (disabled) and the reason sits in the Section footer (MP wxml:621-624). Open: the NO_RECIPIENT sentence needs the director wire key for the broadcast blocker on `PlayDirectorProjection` (Core/PlayDirectorRuntime.swift:4); the MP source was not available in this run to confirm the key. |
+| CLB-topic-detail-10 | P1 | partly | ea3f91375, 208903166 | App/ClubGovernanceViews.swift:1980-1996: the 定向广播 row stays visible (disabled) and the reason sits in the Section footer (MP wxml:621-624). Open: the NO_RECIPIENT sentence needs the director wire key for the broadcast blocker on `PlayDirectorProjection` (Core/PlayDirectorRuntime.swift:4); the MP source was not available in this run to confirm the key. |
 | CLB-topic-story-04 | P1 | fixed | 87eb12b52, 701d5097e | Core/ClubStoryPresentation.swift (`ClubStoryStop.latitude/longitude`); App/ClubStoryViews.swift:213-215; App/MPGap/Club/ClubGapRound4Views.swift:135 (`club.story.openInMaps`) |
 
 Strings: `docs/port/strings/fix-r10-club-c.json` (1 key, merged into `Resources/Localizable.xcstrings`).
 Tests: Tests/CoreTests/PublicContentShareLinkTests.swift (club + ticket universal links parse back), Tests/CoreTests/ClubStoryPresentationTests.swift (stop coordinates);
 contract checks updated with MP citations: test_club_detail_tabs.py, test_community_media_integration.py, test_club_story_projection.py.
 
-Gates (see push commit): check_scaffold PASS, a11y lint PASS (0 new), contract_ratchet — see below.
+Gates at push: check_scaffold PASS structural checks; a11y lint PASS (0 new); contract_ratchet new 1 (`test_social_article_content…scoped_article_contents`), the same single new failure on the untouched base d9832ac50 — not from this lane.
 
 ## Hand-offs
 1. Cursor Core: release/reconcile the governance journal lock after an acknowledged `saveTopicSettings` (topic-detail-06; also unblocks CLB-customer-detail-04 for club-d).
