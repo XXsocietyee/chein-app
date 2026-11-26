@@ -140,6 +140,10 @@ struct RegistrationSheetView: View {
                         } else {
                         participantSection
                         activitySection
+                        // R7-PC-C2-1: MP baoming.wxml:206-212 + js:760-764, 1871-1876 — 商家暂停营业 banner and the 通行证 row.
+                        // 儿童年龄 and 包含内容 wait on the quote/create `childAge` field and the quote `delivery` rows (Core).
+                        ActivityRegistrationGapSections(merchantClosed: flow.activity.merchantClosed,
+                                                        coveredByPass: flow.quoteState.quoteValue?.coveredByPass == true)
                         ticketSection
                         if flow.selectedTicket != nil { G6PromotionCatalogSection(activityID: flow.activity.summary.id) }
                         quoteSection

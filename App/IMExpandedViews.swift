@@ -171,6 +171,9 @@ func imShownName(_ name: String) -> String {
     /// The loaded conversation's muted value. Nil (absent/unknown) shows explicit mute and unmute rows
     /// instead of a toggle, so no state is inferred.
     let isMuted: Bool?
+    /// R9-PC-D9-1 (MP im/chat/index.wxml:196, index.js:45): a `+` item opens only its own flow
+    /// (图片 → photo, 位置 → location, 路线 → route picker). Nil keeps every control.
+    let focus: IMComposerPlusItem?
     @State private var directoryPage: ChannelAdmissionGovernanceView?
     @State private var directoryFailed = false
     @State private var selectedTopic: TopicSummary?
@@ -183,7 +186,7 @@ func imShownName(_ name: String) -> String {
     init(coordinator: IMExpandedCoordinator, identity: MessagingReadIdentity?, uploadOwner: IMImageUploadCoordinator? = nil, topicReader: (any TopicReading)? = nil, replyPolicy: IMConversationReplyPolicy? = nil,
          isConversationCurrent: @escaping () -> Bool = { true }, readCursor: Int? = nil,
          admission: ChannelAdmissionRoute? = nil, directory: ChannelDirectoryAdmissionRequest? = nil, showsAdmissionEntry: Bool = false,
-         isMuted: Bool? = nil,
+         isMuted: Bool? = nil, focus: IMComposerPlusItem? = nil,
          onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }, onReceipt: @escaping (IMMutationReceipt) -> Void) {
         _model = StateObject(wrappedValue: IMExpandedViewModel(coordinator)); self.identity = identity; self.uploadOwner = uploadOwner; self.topicReader = topicReader; self.onReceipt = onReceipt
         self.replyPolicy = replyPolicy ?? .init(conversationID: coordinator.scope.conversationID, conversation: nil)
@@ -193,6 +196,7 @@ func imShownName(_ name: String) -> String {
         self.directory = directory
         self.showsAdmissionEntry = showsAdmissionEntry
         self.isMuted = isMuted
+        self.focus = focus
         self.onConversationMutationAccepted = onConversationMutationAccepted
     }
     private var permitsReply: Bool { replyPolicy.permitsReply && isConversationCurrent() && identity == model.owner.scope.identity && model.owner.isCurrent }
@@ -218,7 +222,10 @@ func imShownName(_ name: String) -> String {
         .navigationTitle(Text("im.full.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .accessibilityIdentifier("im.full.controls")
-        .onAppear { model.observe() }
+        .onAppear {
+            model.observe()
+            if focus == .route, permitsReply, topicReader != nil, selectedTopic == nil { showingTopics = true }
+        }
         .onChange(of: model.state) { _, state in if case .acknowledged(.muted(let value)) = state { acknowledgedMuted = value } }
         .onChange(of: identity) { _, _ in clearDrafts(); acknowledgedMuted = nil; model.invalidateQueued(); model.state = model.owner.visibleState }
         .onChange(of: permitsReply) { _, allowed in if !allowed { clearDrafts(); model.invalidateQueued() } }
@@ -230,7 +237,7 @@ func imShownName(_ name: String) -> String {
             if hasPendingState {
                 Section { pendingRows }
             }
-            if writerReady {
+            if writerReady && focus == nil {
                 Section {
                     Button { review(readMutation()) } label: { Label("d7.chatInfo.markRead", systemImage: "checkmark.message") }
                     if let muted = displayedMuted {
@@ -247,12 +254,12 @@ func imShownName(_ name: String) -> String {
                     }
                 }
             }
-            if showsAdmissionEntry { admissionSection }
+            if showsAdmissionEntry && focus == nil { admissionSection }
             if replyPolicy.isSystemNotice {
                 Section { Text("im.reply.systemNotice").accessibilityIdentifier("im.reply.controlsNotice") }
             }
             if permitsReply && writerReady {
-                if let uploadOwner {
+                if let uploadOwner, focus == nil || focus == .image {
                     Section {
                         NavigationLink {
                             IMImageComposeView(owner: uploadOwner, identity: identity, canReply: { permitsReply }) { url in
@@ -264,7 +271,7 @@ func imShownName(_ name: String) -> String {
                         } label: { Label("d7.chatInfo.sendPhoto", systemImage: "photo") }
                     }
                 }
-                if topicReader != nil {
+                if topicReader != nil, focus == nil || focus == .route {
                     Section("d7.chatInfo.route") {
                         Button { if model.appearance != nil && permitsReply { showingTopics = true } } label: {
                             if let selectedTopic { Label { Text(verbatim: selectedTopic.name) } icon: { Image(systemName: "map") } }
@@ -278,6 +285,7 @@ func imShownName(_ name: String) -> String {
                         }
                     }
                 }
+                if focus == nil || focus == .location {
                 Section("d7.chatInfo.location") {
                     TextField("im.full.name", text: $name)
                     TextField("im.full.address", text: $address)
@@ -287,6 +295,7 @@ func imShownName(_ name: String) -> String {
                         if let lat = Double(latitude), let lng = Double(longitude), (-90...90).contains(lat), (-180...180).contains(lng),
                            let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .location(name: name, address: address, latitude: lat, longitude: lng)) { review(.send(intent)) }
                     }
+                }
                 }
             }
             if !writerReady && !showsAdmissionEntry && !replyPolicy.isSystemNotice && !hasPendingState {

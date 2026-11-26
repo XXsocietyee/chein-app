@@ -67,8 +67,12 @@ public struct ActivityRegistrationGapSections: View {
                             .cyText(.bodyCompact)
                     }
                     if coveredByPass {
-                        LabeledContent("registration.pass.label", value: "你已可直接游玩")
-                            .cyText(.bodyCompact)
+                        LabeledContent {
+                            Text("registration.pass.covered")
+                        } label: {
+                            Text("registration.pass.label")
+                        }
+                        .cyText(.bodyCompact)
                     }
                 }
             }

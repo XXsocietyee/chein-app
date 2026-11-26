@@ -73,6 +73,8 @@ struct MessagingHistoryView: View {
     @State private var showingPollComposer = false
     /// R7-PC-D9-3: the composer `+` (图片 / 位置 / 路线) pushes the conversation's existing send controls.
     @State private var showingAttachControls = false
+    /// R9-PC-D9-1: the `+` item that opened the controls page; the toolbar entry opens it with nil (every control).
+    @State private var attachFocus: IMComposerPlusItem?
     @State private var pageBlocked: Bool?
     /// subpackageB/pages/im/chat/index page model for the last first-page read. Unknown stays unknown:
     /// an empty first page that still reports `hasMore` is not shown as "no messages".
@@ -104,9 +106,10 @@ struct MessagingHistoryView: View {
             admission: admission,
             directory: directory,
             showsAdmissionEntry: directory != nil || conversation?.kind == .group,
-            isMuted: conversation?.muted,
+            isMuted: conversation?.muted, focus: attachFocus,
             onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
     }
+    private func openAttach(_ item: IMComposerPlusItem) { attachFocus = item; showingAttachControls = true }
     private var replyBlock: IMReplyBlock? {
         IMReplyBlock.from(conversation: conversation, page: pageBlocked, blockedByMe: pageBlockedByMe)
     }
@@ -201,7 +204,7 @@ struct MessagingHistoryView: View {
                     canReply: { authority.permitsReply(lease) },
                     createPoll: canCreatePoll ? { showingPollComposer = true } : nil,
                     flight: sendFlight,
-                    attach: currentHistoryReady && expanded?.coordinator(conversationID) != nil ? { _ in showingAttachControls = true } : nil) { receipt in
+                    attach: currentHistoryReady && expanded?.coordinator(conversationID) != nil ? { item in openAttach(item) } : nil) { receipt in
                     // The ghost lands on the acknowledged message only if its bubble is not on screen yet.
                     if history.messages.contains(where: { $0.id == receipt.id }) { sendFlight.cancel() }
                     else { sendFlight.land(on: receipt.id) }

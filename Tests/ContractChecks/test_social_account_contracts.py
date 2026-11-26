@@ -71,8 +71,9 @@ class SocialAccountSourceTests(unittest.TestCase):
   # social.follow.failed — subpackageMember/components/cy/profile/index.js:1761-1763
   # social.portfolio.preview — subpackageMember/components/cy/profile/index.wxml:521 查看大图
   # social.startChat.failed — subpackageMember/components/cy/profile/index.js:1804-1808
+  # R9-PC-D3-1: social.article.image (文章图片) labels CMS article images (MP infomationdetail.js:116-125 keeps <img>).
   # Fixture isolation below is unchanged.
-  self.assertEqual(len(keys),124)
+  self.assertEqual(len(keys),125)
   for key,entry in keys.items():
    for language in ['en','zh-Hans']:self.assertTrue(entry['localizations'][language]['stringUnit']['value'].strip(),key)
   fixture=self.read('App/SocialAccountFixtureSupport.swift'); self.assertTrue(fixture.startswith('#if DEBUG'))
