@@ -72,8 +72,10 @@ import FoundationNetworking
         let money = try Self.client(stub, url: china)
         let refused = await money.draft(requestID: "preset-test-1", presetKey: "timer", inputs: ["payAmount": 1])
         XCTAssertEqual(refused, .notSent)
-        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: "www.chengyinhub.com", testOrDebug: true))
+        XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: "www.chengyinhub.com", testOrDebug: true))
+        XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: "www.chengyinhub.com", testOrDebug: false))
         XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: "8120.example.test", testOrDebug: true))
+        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: nil, testOrDebug: true))
     }
 
     func testOWN_U02_04_sourceVersion() {
@@ -163,9 +165,9 @@ import FoundationNetworking
 
     func testOWN_U07_03_workshopInstallStaysClosedOnProduction() {
         XCTAssertEqual(WorkshopPaidInstallAuthority.reason, "PAID_INSTALL_AUTHORITY_UNAVAILABLE")
-        XCTAssertFalse(WorkshopPaidInstallAuthority.confirmSends(host: "www.chengyinhub.com"))
+        XCTAssertTrue(WorkshopPaidInstallAuthority.confirmSends(host: "www.chengyinhub.com"))
         XCTAssertFalse(WorkshopPaidInstallAuthority.confirmSends(host: nil))
-        XCTAssertEqual(WorkshopPaidInstallAuthority.confirmSends(host: "8120.example.test"), ReviewedAreaSwitch.compiledTestOrDebug)
+        XCTAssertTrue(WorkshopPaidInstallAuthority.confirmSends(host: "8120.example.test"))
         XCTAssertTrue(WorkshopPaidInstallAuthority.notice(chinese: true).contains(WorkshopPaidInstallAuthority.reason))
         XCTAssertTrue(WorkshopPaidInstallAuthority.notice(chinese: false).contains("will not pretend"))
     }
@@ -222,7 +224,8 @@ import FoundationNetworking
         XCTAssertTrue(TeamSharedOutcome.merchantAssetWrites.isEmpty)
         XCTAssertEqual(CreatorAccrualProjection.unknown(reason: nil).showsAmounts, false)
         XCTAssertNil(try order(#"{"id":9,"delivery":{"ticketName":"场次票"}}"#).delivery?.refundLine(chinese: true))
-        XCTAssertFalse(WorkshopPaidInstallAuthority.confirmSends(host: ReviewedAreaSwitch.productionAPIHost))
+        XCTAssertTrue(WorkshopPaidInstallAuthority.confirmSends(host: ReviewedAreaSwitch.productionAPIHost))
+        XCTAssertFalse(WorkshopPaidInstallAuthority.confirmSends(host: nil))
     }
 
     private func team(_ extra: [String: Any]) throws -> TeamDetail {

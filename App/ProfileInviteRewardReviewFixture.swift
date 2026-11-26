@@ -8,6 +8,7 @@ import Observation
     let isOfflineExample=true
     var isSignedIn:Bool { identity.accountID != nil }
     var reads=0;var scenario:String
+    private var failedNextPage=false
     init(_ scenario:String="complete") {self.scenario=scenario;if scenario == "guest" {identity = .init(accountID:nil,epoch:1)}}
     func publicProfile(memberID:Int) async throws -> SocialPublicProfile {try JSONDecoder().decode(SocialPublicProfile.self,from:Data("{\"id\":\(memberID),\"nickname\":\"Synthetic invited member\"}".utf8))}
     func informationList() async throws -> [SocialInformation] {[]}
@@ -15,6 +16,9 @@ import Observation
     func invitationHistory(page:Int) async throws -> SocialInviteHistory {
         reads += 1
         if scenario == "failure" && reads == 1 {throw APIError.httpStatus(503)}
+        // First attempt at the next page fails once; a later page is never a stand-in for that retry.
+        if scenario == "nextFailure" && page > 2 {throw APIError.httpStatus(503)}
+        if scenario == "nextFailure" && page == 2 && !failedNextPage {failedNextPage=true;throw APIError.httpStatus(503)}
         let raw=page == 1 ? #"[{"id":201,"nickname":"Synthetic Ada","createTime":"2026-10-01 10:00:00"},{"id":202,"nickname":"Synthetic Bea","createTime":"2026-10-02 10:00:00"}]"# : #"[{"id":203,"nickname":"Synthetic Cy","createTime":"2026-09-01 10:00:00"}]"#
         let members=try JSONDecoder().decode([SocialInvitedMember].self,from:Data(raw.utf8))
         let ledgerRows = #"[{"eventType":5,"eventId":"201","changePoints":"1.25"},{"eventType":5,"eventId":"0201","changePoints":"1.25"},{"eventType":5,"eventId":"202","changePoints":"5.25"},{"eventType":5,"eventId":"999","changePoints":"3.25"}]"#
@@ -32,15 +36,17 @@ import Observation
     init(scenario:String="complete") {_reader=State(initialValue:.init(scenario))}
     var body:some View {
         NavigationStack {
-            SocialInviteHistoryView(reader:reader,squareReader:reader)
-                .safeAreaInset(edge:.bottom) {
-                    VStack {
-                        Text(verbatim:"Invitation reads: \(reader.reads)").accessibilityIdentifier("profile.inviteRewardsFixture.reads")
-                        Button("Retire synthetic account") {
-                            reader.identity = .init(accountID:nil,epoch:2);reader.presentationRevision += 1;reader.scope=UUID()
-                        }.accessibilityIdentifier("profile.inviteRewardsFixture.retire")
-                    }.cyText(.meta)
-                }
+            VStack(spacing: 0) {
+                SocialInviteHistoryView(reader:reader,squareReader:reader)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Below the list, so the empty-state and load-more entries stay tappable.
+                VStack {
+                    Text(verbatim:"Invitation reads: \(reader.reads)").accessibilityIdentifier("profile.inviteRewardsFixture.reads")
+                    Button("Retire synthetic account") {
+                        reader.identity = .init(accountID:nil,epoch:2);reader.presentationRevision += 1;reader.scope=UUID()
+                    }.accessibilityIdentifier("profile.inviteRewardsFixture.retire")
+                }.cyText(.meta)
+            }
         }
     }
 }

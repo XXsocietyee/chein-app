@@ -155,59 +155,136 @@ public struct ProjectEditGapChapterExtrasSection: View {
     }
 }
 
-/// Mount hook for `TemplateAuthoringView` (`C-T3`):
-/// `状态不好时松一点`, `可触发的结果`, `扫完回复`, and `from=citynode` mode row.
-public struct TemplateAuthoringGapRound4Section: View {
-    @Binding public var draft: TemplateAuthoringRound4Draft
+/// `C-T3` (r9): mounted in `TemplateAuthoringView` beside `TemplateAuthoringCompletionFields`.
+/// MP pages/publish/temp/index.wxml:108-118 (参与方式 → 扫完回复, r5-editor.js `toggleScanReply`),
+/// :973-975 (状态不好时松一点, index.js `_writeRelax` / `toggleRelax` / `onRelaxPick`)
+/// and :986 (可触发的结果, `node-outcome-contract.js`, not `outcomeRules`).
+/// 状态不好时松一点 writes through `setLowHPRelax`. 扫完回复 writes through `setScanReplyEnabled`.
+/// citynode 玩法形态 has `TemplateAuthoringContract.TemplateCityNodeInteraction` and `authoringFrom`,
+/// but the personal author-request pipe cannot post `/api/merchant/city-node/template/submit` (C-T3c).
+/// The picker stays off this screen so a city-node draft is not saved as a personal template.
+@MainActor struct TemplateAuthoringGapRound4Section: View {
+    @ObservedObject var model: TemplateAuthoringModel
 
-    public init(draft: Binding<TemplateAuthoringRound4Draft>) {
-        self._draft = draft
+    init(model: TemplateAuthoringModel) {
+        self.model = model
     }
 
-    public var body: some View {
+    /// MP r5-editor.js:25: participation is 扫码 when `scan.enabled` or `validationMethod === 4`.
+    private var isScanParticipation: Bool {
+        model.draft.advanced.enabled("scan") || model.draft.validationMethod == .scan
+    }
+    private var scanReplyOn: Bool {
+        (model.draft.advanced.value["scan"]?.object?["kind"]?.string ?? "TEXT") != "NONE"
+    }
+    private var scanKind: String { model.draft.advanced.value["scan"]?.object?["kind"]?.string ?? "TEXT" }
+    private var relaxConfiguration: TemplateLowHPPresetConfiguration { TemplateLowHPPresetConfiguration(model.draft.advanced) }
+    private var scanReplyBinding: Binding<Bool> {
+        Binding(get: { scanReplyOn }, set: { on in
+            guard model.canEdit else { return }
+            var draft = model.draft
+            draft.advanced.setScanReplyEnabled(on)
+            model.draft = draft
+            model.changed()
+        })
+    }
+    private var scanReplyText: Binding<String> {
+        Binding(get: { model.draft.advanced.text("scan", "reply") }, set: { text in
+            guard model.canEdit else { return }
+            var draft = model.draft
+            // MP maxlength="200" on the reply textarea.
+            draft.advanced.set("scan", "reply", .string(String(text.prefix(200))))
+            model.draft = draft
+            model.changed()
+        })
+    }
+    /// MP `toggleRelax`: on = the first preset, off = remove the editor variant.
+    private var relaxOn: Binding<Bool> {
+        Binding(get: { !relaxConfiguration.selectedID.isEmpty }, set: { on in
+            applyRelax(on ? (relaxConfiguration.options.first?.id ?? "") : "")
+        })
+    }
+    private var relaxPick: Binding<String> {
+        Binding(get: { relaxConfiguration.selectedID }, set: { applyRelax($0) })
+    }
+    private func applyRelax(_ selection: String) {
+        guard model.canEdit, relaxConfiguration.isSupported else { return }
+        var draft = model.draft
+        if selection.isEmpty {
+            // setLowHPRelax only writes a row. Off removes that editor variant and leaves other rules.
+            guard let next = relaxConfiguration.applying("") else { return }
+            draft.advanced = next
+        } else if let option = relaxConfiguration.options.first(where: { $0.id == selection }) {
+            draft.advanced.setLowHPRelax(path: option.field.rawValue, delta: option.operation)
+            guard draft.advanced.rootCreatorIssues.isEmpty else { return }
+        } else { return }
+        model.draft = draft
+        model.changed()
+    }
+    private var triggerableOutcomes: TemplateTriggerableOutcomes.Result { TemplateTriggerableOutcomes.extract(model.draft) }
+    @ViewBuilder private func outcomeLabel(_ label: TemplateTriggerableOutcomes.Label) -> some View {
+        switch label {
+        case .authored(let text):
+            Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textSecondary)
+        case .completed:
+            Text("templateAuthor.outcome.completed").cyText(.body).foregroundStyle(CYColor.textSecondary)
+        case .d20Success:
+            Text("templateAuthor.outcome.d20Success").cyText(.body).foregroundStyle(CYColor.textSecondary)
+        case .d20Failure:
+            Text("templateAuthor.outcome.d20Failure").cyText(.body).foregroundStyle(CYColor.textSecondary)
+        case .unnamed:
+            Text("templateAuthor.outcome.unnamed").cyText(.body).foregroundStyle(CYColor.textSecondary)
+        }
+    }
+
+    var body: some View {
         Group {
-            if draft.isCityNodeMode {
+            if isScanParticipation {
                 Section {
-                    LabeledContent("templateAuthor.round4.playForm", value: draft.cityNodeModeLabel)
-                        .cyText(.body)
-                }
-            }
-
-            Section {
-                Toggle(TemplateAuthoringExtraCopy.relaxOnLowHP, isOn: $draft.relaxOnLowHP)
-                    .cyText(.body)
-                if draft.relaxOnLowHP {
-                    Picker("templateAuthor.round4.relaxLevel", selection: $draft.relaxLevel) {
-                        ForEach(AccountPublishRound4Copy.relaxLevels, id: \.self) { level in
-                            Text(verbatim: level).tag(level)
-                        }
-                    }
-                    .cyText(.body)
-                }
-            }
-
-            Section {
-                Toggle(TemplateAuthoringExtraCopy.scanReply, isOn: $draft.scanReplyEnabled)
-                    .cyText(.body)
-                if draft.scanReplyEnabled {
-                    TextField("templateAuthor.round4.scanReplyPrompt", text: $draft.scanReplyText, axis: .vertical)
-                        .lineLimit(2...4)
-                        .cyText(.body)
-                }
-            }
-
-            if !draft.triggerableOutcomes.isEmpty {
-                Section {
-                    ForEach(draft.triggerableOutcomes, id: \.self) { outcome in
-                        Text(verbatim: outcome)
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                    Toggle("fixr9.ap.template.scanReply", isOn: scanReplyBinding)
+                        .accessibilityIdentifier("templateAuthor.scanReply")
+                    if scanReplyOn && scanKind == "TEXT" {
+                        TextField("templateAuthor.round4.scanReplyPrompt", text: scanReplyText, axis: .vertical)
+                            .lineLimit(2...6)
+                            .accessibilityIdentifier("templateAuthor.scanReply.text")
                     }
                 } header: {
-                    Text(verbatim: TemplateAuthoringExtraCopy.triggerableOutcomes).cyText(.sectionTitle)
+                    Text("fixr9.ap.template.participation")
+                }
+            }
+            if !relaxConfiguration.options.isEmpty && relaxConfiguration.isSupported {
+                Section {
+                    Toggle("fixr9.ap.template.relaxOnLowHP", isOn: relaxOn)
+                        .accessibilityIdentifier("templateAuthor.relaxOnLowHP")
+                    if !relaxConfiguration.selectedID.isEmpty {
+                        Picker("templateAuthor.round4.relaxLevel", selection: relaxPick) {
+                            ForEach(relaxConfiguration.options) { option in
+                                Text("\(Text(LocalizedStringKey(option.field.labelKey))) \(option.operation)").tag(option.id)
+                            }
+                        }
+                        .accessibilityIdentifier("templateAuthor.relaxLevel")
+                    }
+                }
+            }
+            if !model.draft.advanced.enabled("album") {
+                Section {
+                    ForEach(triggerableOutcomes.items) { item in
+                        outcomeLabel(item.label)
+                    }
+                    ForEach(triggerableOutcomes.issues) { issue in
+                        switch issue.code {
+                        case .invalidCode:
+                            Text("templateAuthor.outcome.invalidCode").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        case .duplicateCode:
+                            Text("templateAuthor.outcome.duplicateCode").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        }
+                    }
+                } header: {
+                    Text("fixr9.ap.template.outcomes")
                 }
             }
         }
+        .disabled(!model.canEdit)
     }
 }
 

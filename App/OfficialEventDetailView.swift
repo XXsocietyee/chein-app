@@ -20,10 +20,19 @@ enum OfficialDetailID {
     static let unavailable = leaf("unavailable"), backToList = leaf("backToList"), network = leaf("network")
     static let service = leaf("service"), topicNameError = leaf("topicNameError"), ctaTopic = leaf("ctaTopic")
     static let empty = leaf("empty"), unknown = leaf("unknown")
-    private static func leaf(_ name: String) -> String { "official.detail" + "." + name }
+    static func leaf(_ name: String) -> String { "official.detail" + "." + name }
 }
 
 @MainActor struct OfficialEventDetailView: View {
+    private static func collectivePercent(_ percent: Int?) -> String {
+        guard let percent else { return "—" }
+        return "\(percent)%"
+    }
+    private static func collectiveCount(_ current: Int?, _ threshold: Int?) -> String {
+        let lit: String = current.map { String($0) } ?? "—"
+        let goal: String = threshold.map { String($0) } ?? "—"
+        return lit + " / " + goal
+    }
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     let id: Int
     let reader: any OfficialEventReading
@@ -62,6 +71,57 @@ enum OfficialDetailID {
         }
     }
     /// PC-C-4-3: share card for an official event. Unknown facts stay out (em dash on the card, never a guess).
+    /// Split out of `body` so the detail list type-checks in reasonable time.
+    @ViewBuilder private func safetyNotice(event: OfficialEvent) -> some View {
+        if let notice = event.safetyNoticeTitle, event.signed != true {
+            Section {
+                Text(verbatim: notice)
+                    .cyText(.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+                    .accessibilityIdentifier(OfficialDetailID.leaf("safetyNotice"))
+            } header: {
+                Text(verbatim: OfficialReadCopy.safetyNoticeHeading(locale: locale))
+                    .cyText(.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+            }
+        }
+    }
+    /// Split out of `body` so the detail list type-checks in reasonable time.
+    @ViewBuilder private func rewardsAndCollective(event: OfficialEvent, presentation: OfficialEventDetailPresentation) -> some View {
+        // R7-PC-C4-3 (MP official-detail/index.wxml:155-156): no configured reward, no section.
+        if !event.rewards.isEmpty {
+        Section("official.detailParity.rewards.heading") {
+            ForEach(Array(event.rewards.enumerated()), id: \.offset) { _, reward in
+                switch reward {
+                case .badge: Label("official.reward.badge", systemImage: "seal")
+                case .coupon: Label("official.reward.coupon", systemImage: "ticket")
+                case .experience(let amount): LabeledContent("official.reward.experience", value: amount)
+                case .collectiveCoupon: Label("official.reward.collective", systemImage: "person.3")
+                }
+            }
+        }.accessibilityIdentifier(OfficialDetailID.rewards)
+        }
+        if let collective = event.collective, collective.enabled {
+            Section("official.collective") {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: Self.collectivePercent(collective.percent)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            Text("official.detailParity.collective.lit").cyText(.meta).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text(verbatim: Self.collectiveCount(collective.current, collective.threshold)).monospacedDigit()
+                    }
+                    if let fraction = collective.displayFraction {
+                        ProgressView(value: fraction).tint(CYColor.brand).accessibilityHidden(true)
+                    }
+                    Text(LocalizedStringKey(presentation.collectiveTipKey)).cyText(.bodyCompact).foregroundStyle(.secondary)
+                }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.collective)
+            }
+        }
+    }
     private func shareContent(_ event: OfficialEvent) -> CYShareCardContent {
         CYShareCardContent(
             kind: .activity,
@@ -120,8 +180,7 @@ enum OfficialDetailID {
                     }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(OfficialDetailID.overview)
                 }
                 if let board = event.leaderboard {
-                    OfficialEventLeaderboardSection(rows: board.rows, chipText: board.chipText, myRank: board.myRank, isFinal: board.isFinal)
-                        .accessibilityIdentifier("official.leaderboard")
+                    OfficialEventLeaderboardRead(board: board)
                 }
                 if !presentation.cards.isEmpty {
                     Section("official.detailParity.cardsHeading") {
@@ -152,7 +211,7 @@ enum OfficialDetailID {
                         }
                         if presentation.missions.isEmpty { CYEmptyState(systemImage: "checklist", "official.detailParity.tasks.empty") }
                         if topicNameFailed {
-                            Text("official.w206.detail.topicName.failed").font(.subheadline).foregroundStyle(.secondary)
+                            Text("official.w206.detail.topicName.failed").cyText(.bodyCompact).foregroundStyle(.secondary)
                                 .accessibilityIdentifier(OfficialDetailID.topicNameError)
                         }
                         ForEach(presentation.missions, id: \.index) { mission in
@@ -177,37 +236,7 @@ enum OfficialDetailID {
                         }.accessibilityIdentifier(OfficialDetailID.tasks)
                     }
                 }
-                // R7-PC-C4-3 (MP official-detail/index.wxml:155-156): no configured reward, no section.
-                if !event.rewards.isEmpty {
-                Section("official.detailParity.rewards.heading") {
-                    ForEach(Array(event.rewards.enumerated()), id: \.offset) { _, reward in
-                        switch reward {
-                        case .badge: Label("official.reward.badge", systemImage: "seal")
-                        case .coupon: Label("official.reward.coupon", systemImage: "ticket")
-                        case .experience(let amount): LabeledContent("official.reward.experience", value: amount)
-                        case .collectiveCoupon: Label("official.reward.collective", systemImage: "person.3")
-                        }
-                    }
-                }.accessibilityIdentifier(OfficialDetailID.rewards)
-                }
-                if let collective = event.collective, collective.enabled {
-                    Section("official.collective") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(alignment: .firstTextBaseline) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(verbatim: collective.percent.map { "\($0)%" } ?? "—").cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                                    Text("official.detailParity.collective.lit").cyText(.meta).foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Text(verbatim: "\(collective.current.map(String.init) ?? "—") / \(collective.threshold.map(String.init) ?? "—")").monospacedDigit()
-                            }
-                            if let fraction = collective.displayFraction {
-                                ProgressView(value: fraction).tint(CYColor.brand).accessibilityHidden(true)
-                            }
-                            Text(LocalizedStringKey(presentation.collectiveTipKey)).cyText(.bodyCompact).foregroundStyle(.secondary)
-                        }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.collective)
-                    }
-                }
+                rewardsAndCollective(event: event, presentation: presentation)
                 if !event.rewards.isEmpty {
                     Section {
                         VStack(alignment: .leading, spacing: 2) {
@@ -217,6 +246,7 @@ enum OfficialDetailID {
                             .accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.rewardFootnote)
                     }
                 }
+                safetyNotice(event: event)
                 Section("official.participation") {
                     Text(LocalizedStringKey(reader.isAuthenticated ? event.participationKey : event.statusKey)).accessibilityIdentifier("official.participationState")
                     if event.paused, let reason = event.pausedReason, !reason.isEmpty { Text(verbatim: reason) }
@@ -370,13 +400,31 @@ struct OfficialDetailTextView: View {
         }
     }
 }
+/// Read of an enabled leaderboard, including the source empty line when the server sent no rows.
+struct OfficialEventLeaderboardRead: View {
+    let board: OfficialEventLeaderboard
+    @Environment(\.locale) private var locale
+    var body: some View {
+        if board.isEmptyBoard {
+            Section("official.leaderboard.title") {
+                Text(verbatim: OfficialReadCopy.emptyLeaderboard(locale: locale))
+                    .cyText(.bodyCompact)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("official.leaderboard" + "." + "empty")
+            }
+        } else {
+            OfficialEventLeaderboardSection(rows: board.presentedRows(locale: locale), chipText: board.presentedChip(locale: locale), myRank: board.myRank, isFinal: board.isFinal)
+                .accessibilityIdentifier("official.leaderboard")
+        }
+    }
+}
 struct OfficialDetailMissionRow: View {
     let mission: OfficialDetailMission
     var topicName: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             OfficialDetailTextView(value: mission.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
+            if let topicName { Text("official.w206.detail.boundTopic \(topicName)").cyText(.bodyCompact) }
             OfficialDetailTextView(value: mission.description).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
             CYStatusChip(LocalizedStringKey(mission.action.key), tone: mission.action == .verified ? .success : .neutral, systemImage: symbol)
         }.accessibilityElement(children: .combine)

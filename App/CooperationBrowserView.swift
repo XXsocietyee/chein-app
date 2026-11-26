@@ -381,8 +381,8 @@ import SwiftUI
                         }
                         // MP inv-acts: a pending registration (audit 0) → 确认占槽 (candidates/confirm), 婉拒 secondary.
                         if peerReader != nil, row.auditStatus == 0 {
-                            CoopListRowActions(secondary: ("cooperation.list.registration.reject", .reject(registrationID: row.id)),
-                                               primary: ("cooperation.list.registration.confirm", .confirm(registrationID: row.id)),
+                            CoopListRowActions(secondary: ("cooperation.list.registration.reject", .reject(registrationID: row.id, scope: operationScope)),
+                                               primary: ("cooperation.list.registration.confirm", .confirm(registrationID: row.id, scope: operationScope)),
                                                identifier: "cooperation.list.registration.\(row.id)") { rowAction = .init(operation: $0) }
                         }
                         // MC8-30-5 (wxml:145-151 `goTermsInvite`): a confirmed registration can get its invite with terms,

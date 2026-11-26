@@ -119,9 +119,14 @@ import FoundationNetworking
         XCTAssertThrowsError(try reader.purchase(planCode: "YEAR", channel: "XPAY", token: "session-token")) {
             XCTAssertEqual($0 as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try reader.quote(productID: "9", token: "session-token"))
-        XCTAssertThrowsError(try reader.order(productID: "9", token: "session-token"))
-        XCTAssertThrowsError(try reader.claim(giftToken: "gift", requestID: "gift_1", token: "session-token"))
+        do { _ = try await reader.quote(productID: "9", token: "session-token"); XCTFail("quote") }
+        catch { XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable) }
+        do {
+            _ = try await reader.order(productID: "9", token: "session-token", payMode: 1, quoteSign: "sign", quoteExpiresAt: 1, requestID: "mkp_1")
+            XCTFail("order")
+        } catch { XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable) }
+        do { _ = try await reader.claim(giftToken: "gift", requestID: "gift_1", token: "session-token"); XCTFail("claim") }
+        catch { XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable) }
         XCTAssertEqual(wire.requests.count, 1)
     }
 

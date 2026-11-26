@@ -72,13 +72,24 @@ ADDED_TESTS = [
 ]
 
 
+# Other pages reuse a few sentences this page still does not catalog.
+# They are not my-like keys. Do not add those sentences here to clear the note,
+# and do not point the favorites view at AccountCollectionFavoritesPageModel.
+UNRELATED_KEYS = {
+    "share.title",
+    "share.entry",  # 转发帖文
+    "topic.share.mp",  # 分享主题
+    "topic.favorite.add",  # 收藏主题
+    "club.follow.networkFailed",  # 网络错误，请重试
+}
+
+
 def catalog_values():
     values = set()
     for path in (ROOT / "Resources").glob("*.xcstrings"):
         document = json.loads(path.read_text(encoding="utf-8"))
         for key, entry in (document.get("strings") or {}).items():
-            # Share-sheet copy reuses "转发帖文"; it is not a my-like key.
-            if key in {"share.title", "share.entry"}:
+            if key in UNRELATED_KEYS:
                 continue
             for node in (entry.get("localizations") or {}).values():
                 value = (node.get("stringUnit") or {}).get("value")

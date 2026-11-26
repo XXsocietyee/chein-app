@@ -102,6 +102,7 @@ import FoundationNetworking
         XCTAssertEqual(ClubGovernanceMutation.createSeries.path, "api/club/event-ops/series/create")
         let now = ISO8601DateFormatter().date(from: "2026-10-11T01:00:00Z")!
         var inside = ClubSeriesScheduleDraft(form: .init(operation: .createSeries, scope: scope), now: now)
+        inside.recurrence = "WEEKLY"
         inside.startDate = "2026-10-12"
         inside.startTime = "09:00"
         inside.occurrenceCount = 3

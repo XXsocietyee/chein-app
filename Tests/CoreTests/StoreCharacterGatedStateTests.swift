@@ -101,6 +101,7 @@ import XCTest
     func save(_: StoreCharacterSavePayload, requestID _: UUID) async throws {}
     func recordVoiceConsent(_: StoreCharacterVoiceConsentRecord) async throws {}
     func enroll(_: StoreCharacterVoiceEnrollment, requestID _: UUID) async throws -> StoreCharacterVoiceState.Status { .none }
+    func resetVoice(requestID _: UUID) async throws {}
     func saveMapPoint(_: StoreCharacterMapPointWrite, requestID _: UUID) async throws {}
 }
 #endif

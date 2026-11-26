@@ -426,7 +426,8 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             }
             MerchantWorkbenchReminders(todo: todo, access: access,
                 aftercareRoute: aftercareRoute,
-                predictionReader: predictionReader)
+                predictionReader: predictionReader,
+                settlement: marketingModel?.service)
             if access.isOwner || access.canReadAftercare {
                 Section("merchant.todo") {
                     MerchantSectionState(model: todo, retry: { Task { await loadTodo() } },

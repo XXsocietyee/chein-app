@@ -395,7 +395,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 .accessibilityIdentifier("activity.requiredClub.unavailable")
         }
     }
-    /// First fold: hero, three action tiles, info card, map, about, people, tickets, reviews, one "More info" row.
+    /// First fold: hero, action tiles, info card, cancellation, meta, map, about, people, tickets, reviews, one "More info" row.
+    /// Meta (分类 / 集合点 / 已报名) follows the cancellation notice and precedes 关于这场活动.
     /// Everything else (plays, journeys) sits behind the disclosure; host cancel stays its own section.
     private func detailContent(_ detail:ActivityDetail) -> some View {
         ScrollViewReader { proxy in
@@ -438,6 +439,9 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     .accessibilityIdentifier("activity.detail.cancelled")
                 }
             }
+            // MP scene-play-activity-detail activity-meta: 分类 / 集合点 / 已报名
+            // follow the cancellation notice and precede 关于这场活动.
+            ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))
             if detail.summary.hasValidCoordinates,
                let latitude=detail.summary.latitude, let longitude=detail.summary.longitude {
                 Section("activity.location") {
@@ -561,7 +565,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     }
     /// Secondary sections behind the "More info" disclosure.
     @ViewBuilder private func moreInfoSections(_ detail: ActivityDetail) -> some View {
-        // Source meta block (分类 / 集合点 / 已报名) sits after the cancellation notice.
+        // Associated plays stay behind More info. Meta rows are in the first fold.
         // Only this successful, current allowed response supplies these rows.
         // A scope/reader/activity/reread invalidation immediately removes them.
         if gateScope != nil, detail.summary.id == id {
@@ -752,7 +756,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     }
 }
 
-/// Source detail meta rows. Unknown values use explicit unconfirmed copy, never zero.
+/// Source detail meta rows. Unknown values stay an em dash, never zero. System text styles only.
 @MainActor private struct ActivityDetailMetaSection: View {
     let facts: ActivityDetailHeaderFacts
     var body: some View {
@@ -760,6 +764,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             LabeledContent("activityParity.header.category") {
                 Text(verbatim: facts.categoryText ?? "—")
             }
+            .font(.body)
             .accessibilityIdentifier("activity.detail.category")
             LabeledContent("activityParity.header.meetingPoint") {
                 switch facts.meetingPoint {
@@ -768,11 +773,13 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 case .unconfirmed: Text(verbatim: "—")
                 }
             }
+            .font(.body)
             .accessibilityIdentifier("activity.detail.meetingPoint")
             LabeledContent("activityParity.header.registered") {
                 if let count = facts.registrationCount { Text("activityParity.header.registeredCount \(count)") }
                 else { Text(verbatim: "—") }
             }
+            .font(.body)
             .accessibilityIdentifier("activity.detail.registeredCount")
         }
     }

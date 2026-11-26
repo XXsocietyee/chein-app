@@ -1,4 +1,5 @@
 import XCTest
+@testable import QuestifyCore
 
 /// Pins the cov3-d rows whose mini-program call keeps one `/api` path literal.
 /// Source: public `liboyang42-cpu/hengyin` `chengyinhub-xcx` `25eb6a0c`.

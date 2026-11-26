@@ -41,7 +41,7 @@ class ClubNotifyPageReady(unittest.TestCase):
         self.assertNotIn("pages/club/notify", self.search)
         self.assertIn("static let showsMerchantChoice = false", self.welcome)
         for name in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
-            self.assertIn("public static let %s = false" % name, self.money)
+            self.assertIn("public static var %s: Bool { testDerivation?" % name, self.money)
 
     def test_unknown_counts_are_an_em_dash_and_broadcast_stays_gated(self):
         self.assertIn('public static let unknownDisplay = "\u2014"', self.core)

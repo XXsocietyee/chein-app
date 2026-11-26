@@ -89,9 +89,16 @@ public enum OrientSessionWriteReceipt: Equatable {
               Set(values.map(\.rank)).count == values.count else { throw APIError.malformedResponse }
         return values
     }
-    /// `POST api/orient/scoring/session/{id}/recovery` (`orient-score` `requestManualReview`).
-    /// The body field is `kind`. Path only: this service does not send the recovery write.
+    /// `POST api/orient/scoring/session/{id}/recovery` (`orient-score/index.js` `requestManualReview`).
+    /// The body field is `kind` only. Not a payment, payout, or withdrawal.
     public static let recoveryPath = "api/orient/scoring/session/{}/recovery"
+
+    public func scoreRecovery(sessionID: Int, kind: String, token: String) async throws -> OrientSessionJSON {
+        try positive(sessionID)
+        guard ["SYNC", "SETTLE", "APPEAL", "DISPUTE"].contains(kind) else { throw APIError.invalidRequest }
+        let scored = Self.recoveryPath.replacingOccurrences(of: "{}", with: String(sessionID))
+        return try await execute(request(scored, method: "POST", fields: ["kind": kind], token: token))
+    }
 
     public func score(sessionID: Int, scope: OrientSessionScope, token: String) async throws -> OrientSessionScore {
         try positive(sessionID)
@@ -143,8 +150,8 @@ public enum OrientSessionWriteReceipt: Equatable {
         case .abandon: path = "api/play/orient/session/abandon"
         case .task(_, let task, let alternative):
             path = "api/play/orient/session/task/\(task)/result"; fields["alternativeTaskType"] = alternative?.rawValue
-        case .settle(let id): path = "api/orient/scoring/session/\(id)/settle"; fields.removeValue(forKey: "sessionId")
-        case .sync(let id): path = "api/orient/scoring/session/\(id)/sync"; fields.removeValue(forKey: "sessionId")
+        case .settle(let id): path = "api/orient/scoring/session/\(id)/settle"
+        case .sync(let id): path = "api/orient/scoring/session/\(id)/sync"
         case .appeal(_, let entry, let node, let reason):
             path = "api/orient/scoring/appeal"; fields["entryId"] = entry.map(String.init)
             fields["nodeId"] = node.map(String.init); fields["reason"] = reason

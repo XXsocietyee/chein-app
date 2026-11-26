@@ -176,4 +176,26 @@ final class FreeExploreBundlePageReadyTests: XCTestCase {
         XCTAssertFalse(account.contains("FreeExploreBundle"))
         XCTAssertTrue(orders.contains("FreeExploreBundleReadEntry"))
     }
+
+    func testBundleKeepsUnitValidityHoldExitAndShopName() throws {
+        let raw = #"{"registrationId":1,"bundle":{"order":{"registrationId":1,"holderMemberId":2,"topicId":3},"units":[{"id":4,"registrationId":1,"holderMemberId":2,"chapterId":5,"status":"AVAILABLE","validTo":"2026-12-31"}],"reservations":[{"id":6,"registrationId":1,"holderMemberId":2,"unitId":4,"chapterId":5,"offerId":7,"merchantId":8,"startAt":"t","status":"BOOKED","idempotencyKey":"k","requestFingerprint":"f"},{"id":12,"registrationId":1,"holderMemberId":2,"unitId":4,"chapterId":5,"offerId":7,"merchantId":8,"startAt":"t2","status":"CANCELLED","idempotencyKey":"k2","requestFingerprint":"f2"}],"chapters":[{"chapterId":5,"name":"章","content":"正文","stores":[{"offerId":7,"merchantName":"店"}]}],"refundHold":{"state":"PREPARED","refundId":9},"exitCases":[{"id":10,"decision":"SWAP_CONSENTED","unitId":4},{"id":11,"decision":"REFUND_UNFULFILLED"}]}}"#
+        let decoded = try order(raw)
+        let bundle = try XCTUnwrap(decoded.bundle)
+        XCTAssertEqual(bundle.units.first?.validTo, "2026-12-31")
+        XCTAssertEqual(bundle.chapterContent(chapterID: try .init(5)), "正文")
+        XCTAssertEqual(bundle.shopName(offerID: try .init(7)), "店")
+        XCTAssertEqual(bundle.refundHold?.state, "PREPARED")
+        XCTAssertEqual(bundle.refundHold?.refundId, "9")
+        XCTAssertEqual(bundle.exitCases.first?.decision, "SWAP_CONSENTED")
+        XCTAssertEqual(bundle.exitCases.map(\.decision), ["SWAP_CONSENTED", "REFUND_UNFULFILLED"])
+        XCTAssertTrue(bundle.reservations.first?.canCancel == true)
+        XCTAssertEqual(bundle.reservations.last?.status, "CANCELLED")
+        XCTAssertEqual(bundle.reservations.last?.canCancel, false)
+        let blankShop = try order(#"{"registrationId":1,"bundle":{"order":{"registrationId":1,"holderMemberId":2,"topicId":3},"units":[{"id":4,"registrationId":1,"holderMemberId":2,"chapterId":5,"status":"AVAILABLE"}],"reservations":[],"chapters":[{"chapterId":5,"content":"","stores":[{"offerId":7,"merchantName":" "}]}]}}"#)
+        XCTAssertEqual(blankShop.bundle?.shopName(offerID: try .init(7)), "商家")
+        XCTAssertEqual(blankShop.bundle?.chapterContent(chapterID: try .init(5)), "")
+        XCTAssertEqual(blankShop.bundle?.shopName(offerID: try .init(99)), "")
+        let legacy = try order(#"{"registrationId":1}"#)
+        XCTAssertNil(legacy.bundle)
+    }
 }

@@ -36,21 +36,13 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
     var topicReaderOverride: (any TopicReading)? = nil
     /// Club session card (`via=session`): the bar opens the session picker before self-play.
     var preferSession = false
+    /// CLB-detail-11: 带票分享 query. Nil for every other entry.
+    var ticketSource: TopicClubShareLink? = nil
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @State private var showsGuestLogin = false
     var body: some View {
         Group {
-            if session.account == nil {
-                // Missing state (not signed in): the message plus a way forward, like the activity detail.
-                VStack(spacing: CYSpacing.md) {
-                    TopicIssueView(issue: .unauthorized).accessibilityIdentifier("topic.detail.signIn")
-                    if rootTabSwitch.isAvailable {
-                        CYPillButton("auth.signIn", style: .secondary, fullWidth: false) { rootTabSwitch(.mine) }
-                            .accessibilityIdentifier("topic.detail.signInAction")
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-            } else if let message = session.contentDetailReadAvailability.messageKey {
+            if let message = session.contentDetailReadAvailability.messageKey {
                 ContentUnavailableView("topic.detail", systemImage: "network.slash", description: Text(LocalizedStringKey(message)))
                     .accessibilityIdentifier("topic.detail.configurationUnavailable")
             } else {
@@ -61,8 +53,10 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     publisherDestination: { detail in
                         guard detail.isOwner, let resource = try? PublishedResource(kind: .topic, value: detail.id) else { return AnyView(EmptyView()) }
                         return AnyView(PublisherLifecycleNavigationLink(session: session, resource: resource))
-                    }, reviewOwner: session.contextualReviews?.coordinator(.topic(id)),
-                    selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) },
+                    },
+                    reviewOwner: session.contextualReviews?.coordinator(.topic(id)),
+                    guestSignIn: session.account == nil ? { promptGuestSignIn() } : nil,
+                    selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0, ticketSource: ticketSource)) },
                     ticketWalletDestination: { topicID in
                         AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
                     })
@@ -98,6 +92,14 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     .environment(\.topicFavoriteHostFactory, { session.makeTopicFavoriteHost() })
             }
         }
+        .sheet(isPresented: $showsGuestLogin) {
+            Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible)
+        }
+        .onChange(of: session.account == nil) { _, signedOut in if !signedOut { showsGuestLogin = false } }
+    }
+    /// 收藏, buy, and review. The public info-to-user read stays open.
+    private func promptGuestSignIn() {
+        if rootTabSwitch.isAvailable { rootTabSwitch(.mine) } else { showsGuestLogin = true }
     }
 }
 

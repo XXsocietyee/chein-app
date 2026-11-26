@@ -1,0 +1,69 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "club.detail.leaderboard.member.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View this member"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看该成员"
+          }
+        }
+      }
+    },
+    "club.detail.leaderboard.member.public": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开资料"
+          }
+        }
+      }
+    },
+    "club.detail.leaderboard.member.customer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customer record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客户档案"
+          }
+        }
+      }
+    },
+    "club.detail.leaderboard.member.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the member profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开成员主页"
+          }
+        }
+      }
+    }
+  }
+}

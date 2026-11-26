@@ -11,10 +11,11 @@ public struct SquareService {
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
-    public func feed(query: SquareQuery = .init(), cursor: SquareCursor? = nil, token: String? = nil) async throws -> SquareFeedPage {
+    public func feed(query: SquareQuery = .init(), cursor: SquareCursor? = nil, token: String? = nil, limit: Int = 30) async throws -> SquareFeedPage {
         if query.mode.requiresAccount && token == nil { throw SquareReadFailure.signInRequired }
         if let token, !AuthRequestBuilder.isValidToken(token) { throw APIError.invalidRequest }
-        var fields = ["limit": "30"]
+        guard (1...50).contains(limit) else { throw APIError.invalidRequest }
+        var fields = ["limit": String(limit)]
         if let cursor {
             guard cursor.id > 0 else { throw APIError.invalidRequest }
             fields["cursor"] = String(cursor.id)

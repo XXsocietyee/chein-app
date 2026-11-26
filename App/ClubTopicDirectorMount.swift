@@ -51,6 +51,8 @@ extension EnvironmentValues {
 
     @ViewBuilder private func content(_ model: PlayDirectorCoordinator, host: ClubTopicDirectorHost) -> some View {
         if let projection = model.projection {
+            ClubTopicGenericOpsSection(activityID: activityID, revision: projection.revision) { _ in openingTool = true }
+            ClubTopicPlanFallbackSection(activityID: activityID, revision: projection.revision) { Task { await model.load() } }
             ClubGapTopicDirectorEmbeddedSection(
                 summary: Self.summary(projection, model: model, locale: locale),
                 onConfirmUnknownWrite: { Task { await model.recover() } },

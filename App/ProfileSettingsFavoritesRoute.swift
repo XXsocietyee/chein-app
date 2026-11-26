@@ -147,15 +147,6 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
                     ProfileSettingsFavoritesDestination(route: offered, owner: owner, current: { .current(session) }, session: session)
                 }.id(route.id)
             }
-            ProfileFavoriteNavigationLayer(owner: owner.posts) { selected in
-                ProfileFavoriteDetailDestination(selection: selected,
-                    makeReader: { session.makeProfileFavoriteDetailReader(selected) },
-                    accountReader: session.socialAccountReader, actions: session.socialActionCoordinator).id(selected.id)
-            }
-            ProfileFavoriteTopicNavigationLayer(owner: owner.topics) { selected in
-                ProfileFavoriteTopicDestination(selection: selected, session: session,
-                    makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
-            }
         }
     }
 }
@@ -183,20 +174,38 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
                     Button("action.close") { dismiss() }.accessibilityIdentifier("settingsNative.favorites.closeChanged")
                 }
             }
-        }.accessibilityIdentifier("settingsNative.favorites.destination")
+        }
+        .background {
+            // Detail pushes belong to this collection page. A sibling destination on the
+            // settings root treats the cover as a pop and retires the owner route.
+            if let session {
+                ProfileFavoriteNavigationLayer(owner: owner.posts) { selected in
+                    ProfileFavoriteDetailDestination(selection: selected,
+                        makeReader: { session.makeProfileFavoriteDetailReader(selected) },
+                        accountReader: session.socialAccountReader, actions: session.socialActionCoordinator).id(selected.id)
+                }
+                ProfileFavoriteTopicNavigationLayer(owner: owner.topics) { selected in
+                    ProfileFavoriteTopicDestination(selection: selected, session: session,
+                        makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
+                }
+            }
+        }
+        .accessibilityIdentifier("settingsNative.favorites.destination")
     }
 }
 
 /// Attach to the whole stack: pushing details, authors or chapters must not retire it.
+/// Inactive is a navigation transition or a cover. Only a real background drops the detail.
 @MainActor struct ProfileSettingsFavoritesLifecycle: ViewModifier {
     @ObservedObject var session: AppSession
     let owner: ProfileSettingsFavoritesOwner
     @Environment(\.scenePhase) private var scenePhase
+    static func keepsPage(_ phase: ScenePhase) -> Bool { phase != .background }
     func body(content: Content) -> some View {
         content
-            .onAppear { owner.appear(current: .current(session), foreground: scenePhase == .active) }
+            .onAppear { owner.appear(current: .current(session), foreground: Self.keepsPage(scenePhase)) }
             .onChange(of: ProfileSettingsFavoritesAccess.current(session)?.key) { _, _ in owner.synchronize(.current(session)) }
-            .onChange(of: scenePhase) { _, phase in owner.setForeground(phase == .active) }
+            .onChange(of: scenePhase) { _, phase in owner.setForeground(Self.keepsPage(phase)) }
             .onDisappear { owner.retire() }
     }
 }

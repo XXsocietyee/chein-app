@@ -610,3 +610,121 @@ extension ProjectEditTests {
         XCTAssertNil(payload["chapters"]); XCTAssertNoThrow(try ProjectEditStoryContract.validatePayload(payload, baseline: whitelist))
     }
 }
+
+final class ProjectEditCastLookCarryTests: XCTestCase {
+    func testCastConfigAndLookRideOnV2SaveAndLoad() throws {
+        XCTAssertTrue(ProjectEditContract.topicCarryOver.contains("castConfig"))
+        XCTAssertTrue(ProjectEditContract.topicCarryOver.contains("look"))
+        let cast: [String: ProjectEditJSON] = ["enabled": .bool(true), "playerName": .bool(true), "cast": .array([])]
+        let look = "{\"style\":\"PAPER\"}"
+        var draft = ProjectEditSyntheticFixtures.draft()
+        draft.preserved["publishMode"] = .string("pro")
+        draft.preserved["castConfig"] = .object(cast)
+        draft.preserved["look"] = .string(look)
+        let created = try ProjectEditContract.payload(draft, topicID: nil, scope: .full)
+        XCTAssertEqual(try ProjectEditStoryContract.path(payload: created, baseline: nil), ProjectEditStoryContract.createPath)
+        let createdCast = try JSONDecoder().decode(ProjectEditJSON.self, from: Data(try XCTUnwrap(created["castConfig"]?.text).utf8))
+        XCTAssertEqual(createdCast, .object(cast))
+        XCTAssertEqual(created["look"], .string(look))
+        let updated = try ProjectEditContract.payload(draft, topicID: 71, scope: .full)
+        XCTAssertEqual(try ProjectEditStoryContract.path(payload: updated, baseline: nil), ProjectEditStoryContract.updatePath)
+        XCTAssertEqual(updated["castConfig"], created["castConfig"])
+        XCTAssertEqual(updated["look"], .string(look))
+        let kept = "{\"enabled\":false}"
+        draft.preserved["castConfig"] = .string(kept)
+        XCTAssertEqual(try ProjectEditContract.payload(draft, topicID: 71, scope: .full)["castConfig"], .string(kept))
+        let loaded = try detail(topic: ["castConfig": .object(cast), "look": .string(look)])
+        XCTAssertEqual(loaded.preserved["castConfig"], .object(cast))
+        XCTAssertEqual(loaded.preserved["look"], .string(look))
+        let overlaid = try detail(topic: ["castConfig": .object(["enabled": .bool(false)]), "look": .string("topic")],
+                                  overlay: ["castConfig": .string(kept), "look": .string(look)])
+        XCTAssertEqual(overlaid.preserved["castConfig"], .string(kept))
+        XCTAssertEqual(overlaid.preserved["look"], .string(look))
+        draft.preserved["castConfig"] = .number(1)
+        XCTAssertThrowsError(try ProjectEditContract.payload(draft, topicID: 71, scope: .full))
+        let whitelist = try ProjectEditContract.payload(draft, topicID: 71, scope: .whitelist)
+        XCTAssertNil(whitelist["castConfig"]); XCTAssertNil(whitelist["look"])
+    }
+    private func detail(topic: [String: ProjectEditJSON], overlay: [String: ProjectEditJSON] = [:]) throws -> ProjectEditDraft {
+        var topicRow = topic
+        topicRow["id"] = .number(71)
+        topicRow["productType"] = .number(1)
+        topicRow["name"] = .string("Route")
+        topicRow["description"] = .string("Description")
+        topicRow["updateTime"] = .string("r1")
+        var body = overlay
+        body["editScope"] = .string("FULL")
+        body["topic"] = .object(topicRow)
+        body["chapters"] = .array([])
+        body["tickets"] = .array([.object(["name": .string("Free"), "price": .number(0)])])
+        let bytes = try JSONEncoder().encode(["code": ProjectEditJSON.number(200), "data": .object(body)])
+        return try ProjectEditContract.decodeEditDetail(bytes, expectedTopicID: 71, owner: .personal).draft
+    }
+}
+
+final class ProjectEditRuntimeActsTests: XCTestCase {
+    func testChapterHostUnlockFollowsTheActForThatChapter() throws {
+        let closed = try teamDraft(hostUnlock: false)
+        let resting = ProjectEditRuntimeActs.chapterHost(in: closed, chapterIndex: 0)
+        XCTAssertFalse(resting.enabled)
+        XCTAssertNil(resting.disabledReasonKey)
+        XCTAssertEqual(resting.summaryKey, ProjectEditRuntimeActs.Copy.off)
+        let opened = try ProjectEditRuntimeActs.setEnabled(true, chapterIndex: 0, in: closed)
+        XCTAssertTrue(ProjectEditRuntimeActs.chapterHost(in: opened, chapterIndex: 0).enabled)
+        XCTAssertEqual(ProjectEditRuntimeActs.chapterHost(in: opened, chapterIndex: 0).summaryKey, ProjectEditRuntimeActs.Copy.on)
+        XCTAssertNoThrow(try NativeRuntimeStructureAuthorDraft.validateOriginalSubmission(opened))
+        let saved = try ProjectEditContract.payload(opened, topicID: 71, scope: .full)
+        XCTAssertEqual(saved["themeRuntimeConfig"], opened.preserved["themeRuntimeConfig"])
+        let stored = try JSONDecoder().decode(ProjectEditJSON.self, from: Data(try XCTUnwrap(opened.preserved["themeRuntimeConfig"]?.text).utf8))
+        let act = stored.object?["gameplayRuntime"]?.object?["acts"]?.array?.first?.object
+        XCTAssertEqual(act?["hostUnlock"], .bool(true))
+    }
+    func testSoloPlayCanCloseStaffOpeningAndCannotOpenIt() throws {
+        let opened = try teamDraft(hostUnlock: true, player: true)
+        let row = ProjectEditRuntimeActs.chapterHost(in: opened, chapterIndex: 0)
+        XCTAssertTrue(row.enabled)
+        XCTAssertEqual(row.disabledReasonKey, ProjectEditRuntimeActs.Copy.displayPlayer)
+        XCTAssertTrue(row.openingBlocked)
+        XCTAssertThrowsError(try ProjectEditRuntimeActs.setEnabled(true, chapterIndex: 0, in: opened)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeActsError, .refused(ProjectEditRuntimeActs.Copy.refusePlayer))
+        }
+        XCTAssertEqual(opened.preserved["themeRuntimeConfig"], try teamDraft(hostUnlock: true, player: true).preserved["themeRuntimeConfig"])
+        let closed = try ProjectEditRuntimeActs.setEnabled(false, chapterIndex: 0, in: opened)
+        XCTAssertFalse(ProjectEditRuntimeActs.chapterHost(in: closed, chapterIndex: 0).enabled)
+    }
+    func testMissingModeAndUnsavedNodesRefuseWithoutWriting() throws {
+        let bare = ProjectEditSyntheticFixtures.draft()
+        XCTAssertEqual(ProjectEditRuntimeActs.chapterHost(in: bare, chapterIndex: 0).disabledReasonKey, ProjectEditRuntimeActs.Copy.displayUnsaved)
+        XCTAssertThrowsError(try ProjectEditRuntimeActs.setEnabled(true, chapterIndex: 0, in: bare)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeActsError, .refused(ProjectEditRuntimeActs.Copy.refuseMode))
+        }
+        var unsaved = try teamDraft()
+        unsaved.chapters[0].nodes[0].localMetadata["id"] = nil
+        XCTAssertThrowsError(try ProjectEditRuntimeActs.setEnabled(false, chapterIndex: 0, in: unsaved)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeActsError, .refused(ProjectEditRuntimeActs.Copy.refuseSaveNodes))
+        }
+        XCTAssertEqual(unsaved.preserved["themeRuntimeConfig"], try teamDraft().preserved["themeRuntimeConfig"])
+    }
+    private func teamDraft(nodeID: Int = 22, hostUnlock: Bool = false, player: Bool = false) throws -> ProjectEditDraft {
+        var draft = ProjectEditSyntheticFixtures.draft()
+        draft.chapters[0].nodes[0].localMetadata["id"] = .number(Decimal(nodeID))
+        var game: [String: ProjectEditJSON] = [
+            "runtimeScope": .string(player ? "PLAYER" : "TEAM"),
+            "acts": .array([.object([
+                "actKey": .string("chapter_1"), "hostUnlock": .bool(hostUnlock),
+                "completionRule": .object(["type": .string("ALL")]),
+                "questKeys": .array([.string("node_\(nodeID)")])
+            ])]),
+            "quests": .array([.object([
+                "questKey": .string("node_\(nodeID)"), "nodeId": .number(Decimal(nodeID)),
+                "actKey": .string("chapter_1"), "locationKey": .string("node_\(nodeID)"),
+                "settlementSlot": .string("node_\(nodeID)")
+            ])])
+        ]
+        if !player { game["worldMode"] = .string("TEAM_INDEPENDENT") }
+        let theme: [String: ProjectEditJSON] = ["schemaVersion": .number(1), "capacity": .number(0), "gameplayRuntime": .object(game)]
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        draft.preserved["themeRuntimeConfig"] = .string(String(decoding: try encoder.encode(theme), as: UTF8.self))
+        return draft
+    }
+}

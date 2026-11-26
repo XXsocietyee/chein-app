@@ -23,6 +23,8 @@ import SwiftUI
     /// Best effort: a failed read leaves the plain rows, which still open the full pages.
     @State private var occurrenceStatus: ClubGovernanceValue?
     @State private var rosterTotal: Int?
+    @State private var rosterSnapshot: ClubGovernanceSnapshot?
+    @State private var rosterTab: ClubRosterBucket = .registered
     private var key: Key { .init(identity: identity, authorization: access.authorizationGeneration, reader: ObjectIdentifier(access), scope: scope) }
     private var accessScope: ClubGovernanceScope { .init(clubID: scope.clubID, activityID: scope.activityID) }
     private var eventScope: ClubGovernanceScope { .init(clubID: scope.clubID, topicID: scope.topicID, activityID: scope.activityID) }
@@ -120,6 +122,12 @@ import SwiftUI
                     }
                 }
             }
+            // CLB-event-ops-02 (r9, MP wxml:79-113): bucket tabs + member cards inline under the row.
+            if let inlineRoster {
+                ClubOpsEventInlineRoster(roster: inlineRoster, selected: $rosterTab) {
+                    ClubGovernanceReadView(operation: .roster, scope: eventScope, identity: identity, access: access, coordinator: coordinator)
+                }
+            }
         case .series:
             // Mini-program 日期清单 card: title row + its one-line rule 「仅可修改无报名的未来场次」.
             Section {
@@ -145,6 +153,13 @@ import SwiftUI
             EmptyView()
         }
     }
+    /// CLB-event-ops-02: the hub's roster read as the shared presentation; nil when it is missing or malformed.
+    private var inlineRoster: ClubRosterPresentation? {
+        guard let rosterSnapshot else { return nil }
+        let context = ClubGovernanceReadContext(operation: .roster, scope: eventScope, identity: identity, viewerRevision: 0,
+                                                authorizationGeneration: access.authorizationGeneration, accessIdentity: ObjectIdentifier(access))
+        return try? ClubRosterPresentation(snapshot: rosterSnapshot, context: context)
+    }
     private func push<RowLabel: View>(_ read: ClubGovernanceRead, _ target: ClubGovernanceScope, @ViewBuilder label: () -> RowLabel) -> some View {
         NavigationLink {
             ClubGovernanceReadView(operation: read, scope: target, identity: identity, access: access, coordinator: coordinator)
@@ -168,7 +183,7 @@ import SwiftUI
                 throw ClubGovernanceFailure.malformed
             }
             model = ClubOpsEventAccess(permissions: permissions, scope: eventScope); loadedKey = expected
-            occurrenceStatus = nil; rosterTotal = nil
+            occurrenceStatus = nil; rosterTotal = nil; rosterSnapshot = nil
             if (scope.activityID ?? 0) > 0, let model {
                 if model.sections.contains(.occurrence),
                    let status = try? await access.read(.occurrenceStatus, scope: eventScope, options: [:], check: check) {
@@ -179,6 +194,7 @@ import SwiftUI
                     guard revision == generation, expected == key else { return }
                     let buckets = ["registered", "arrived", "noShow"].map { roster.value[$0].array }
                     if buckets.allSatisfy({ $0 != nil }) { rosterTotal = buckets.reduce(0) { $0 + ($1?.count ?? 0) } }
+                    rosterSnapshot = roster
                 }
             }
         } catch {

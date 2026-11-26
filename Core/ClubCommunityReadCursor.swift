@@ -15,6 +15,10 @@ public struct ClubCommunityFeedItem: Equatable, Identifiable {
     public static func original(_ post: ClubCommunityPost) -> Self {
         .init(id: "p\(post.id)", post: post, repostID: nil, reposterMemberID: nil, reposterName: "", repostTime: "", pagingID: post.id)
     }
+    /// Creative-square row. `c` keeps it distinct from a club post that shares the numeric id.
+    public static func creativeSquare(_ post: ClubCommunityPost) -> Self {
+        .init(id: "c\(post.id)", post: post, repostID: nil, reposterMemberID: nil, reposterName: "", repostTime: "", pagingID: post.id)
+    }
     init(row: [String: Any], clubID: Int?) throws {
         if let kind = row["itemType"], !(kind is NSNull) {
             guard kind as? String == "repost", let nested = row["post"] as? [String: Any],
@@ -63,7 +67,7 @@ public struct ClubCommunityPostPage: Equatable {
         self.clubID = clubID; self.beforeID = beforeID; self.limit = limit; self.items = items; unpinnedIDs = ids
     }
     public func snapshot() throws -> ClubCommunitySnapshot { try Self.snapshot(items: items, page: self) }
-    static func snapshot(items: [ClubCommunityFeedItem], page: Self?, clubCount: Int? = nil, feedHasMore: Bool = false, feedRequestedBeforeID: Int? = nil, feedNextBeforeID: Int? = nil) throws -> ClubCommunitySnapshot {
+    static func snapshot(items: [ClubCommunityFeedItem], page: Self?, clubCount: Int? = nil, feedHasMore: Bool = false, feedRequestedBeforeID: Int? = nil, feedNextBeforeID: Int? = nil, communityLaneIncluded: Bool = false, communityHasMore: Bool = false, communityNextCursor: Int? = nil) throws -> ClubCommunitySnapshot {
         var originals: [Int: ClubCommunityPost] = [:], ordered: [ClubCommunityPost] = []
         for item in items {
             if let existing = originals[item.post.id] {
@@ -76,15 +80,18 @@ public struct ClubCommunityPostPage: Equatable {
         }
         let visible = items.filter { $0.isRepost || $0.post.hasContent }
         let visibleIDs = Set(visible.map { $0.post.id })
-        return .init(posts: ordered.filter { visibleIDs.contains($0.id) }, comments: [], history: [], clubCount: clubCount, postPage: page, feedItems: visible, feedHasMore: feedHasMore, feedRequestedBeforeID: feedRequestedBeforeID, feedNextBeforeID: feedNextBeforeID)
+        return .init(posts: ordered.filter { visibleIDs.contains($0.id) }, comments: [], history: [], clubCount: clubCount, postPage: page, feedItems: visible, feedHasMore: feedHasMore, feedRequestedBeforeID: feedRequestedBeforeID, feedNextBeforeID: feedNextBeforeID, communityLaneIncluded: communityLaneIncluded, communityHasMore: communityHasMore, communityNextCursor: communityNextCursor)
     }
 }
 
-/// Cross-club `scope:"all"` feed. The next page sends the last row's paging id as `beforeId`.
+/// Cross-club `scope:"all"` feed. The next page sends the last club row's paging id as `beforeId`.
 public struct ClubCommunityFeedCursor {
     public private(set) var identity: ClubReadIdentity?
     public private(set) var beforeID: Int?
     public private(set) var hasMore = false
+    /// Creative-square cursor for `GET api/v1/community/feeds/LATEST`. Nil on the first page.
+    public private(set) var communityCursor: Int?
+    public private(set) var communityHasMore = false
     private var items: [ClubCommunityFeedItem] = []
     public init() {}
     public mutating func reset() { self = .init() }
@@ -98,8 +105,14 @@ public struct ClubCommunityFeedCursor {
         }
         var seen = Set(next.items.map(\.id))
         for item in snapshot.feedItems where seen.insert(item.id).inserted { next.items.append(item) }
-        next.beforeID = snapshot.feedItems.last?.pagingID
-        next.hasMore = snapshot.feedHasMore && next.beforeID != nil
+        next.beforeID = snapshot.feedNextBeforeID ?? snapshot.feedItems.last?.pagingID
+        if snapshot.communityLaneIncluded {
+            next.communityCursor = snapshot.communityNextCursor
+            next.communityHasMore = snapshot.communityHasMore
+        }
+        let clubContinues = snapshot.feedHasMore && next.beforeID != nil
+        let communityContinues = next.communityHasMore && next.beforeID != nil
+        next.hasMore = clubContinues || communityContinues
         let merged = try ClubCommunityPostPage.snapshot(items: next.items, page: nil, clubCount: snapshot.clubCount, feedHasMore: next.hasMore, feedRequestedBeforeID: snapshot.feedRequestedBeforeID, feedNextBeforeID: next.beforeID)
         self = next
         return merged

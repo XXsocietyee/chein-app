@@ -124,42 +124,42 @@ import UIKit
     func testActualOriginalCardPushPreservesScopeAndBackRefreshesMetadataOnce() async throws {
         let state = try AlbumIntentHostState(), scene = try HostedNavigationSceneWindow()
         let window = scene.window; mount(state, window: window); defer { scene.retire() }
-        try await waitFor { self.find("roam.experience.album.more", in: window) != nil }
-        XCTAssertEqual(state.rig.wire.pages, [1]); XCTAssertTrue(state.scope.isCurrent)
+        try await waitFor { state.rig.wire.pages == [1, 2] }
+        XCTAssertTrue(state.scope.isCurrent)
         let nav = try XCTUnwrap(navigation(window.rootViewController)), count = nav.viewControllers.count
         try await tap("roam.experience.album.stamp", in: window)
         try await waitFor { nav.viewControllers.count == count + 1 && nav.topViewController?.transitionCoordinator == nil }
         for _ in 0..<10 { await Task.yield() }
-        XCTAssertTrue(state.scope.isCurrent); XCTAssertEqual(state.rig.wire.pages, [1])
+        XCTAssertTrue(state.scope.isCurrent); XCTAssertEqual(state.rig.wire.pages, [1, 2])
         XCTAssertNil(find("roam.experience.album.openCamera", in: window))
         state.rig.wire.replacement = true
         XCTAssertNotNil(nav.popViewController(animated: false))
-        try await waitFor { state.rig.wire.pages == [1, 1] && self.findLabel("Replacement metadata", in: window) != nil }
+        try await waitFor { state.rig.wire.pages == [1, 2, 1, 2] && self.findLabel("Replacement metadata", in: window) != nil }
         XCTAssertTrue(state.scope.isCurrent); XCTAssertNil(findLabel("Original metadata", in: window))
     }
     func testActualBackgroundDoesNotReopenOriginalExpiredMetadataScope() async throws {
         let state = try AlbumIntentHostState(), scene = try HostedNavigationSceneWindow()
         let window = scene.window; mount(state, window: window); defer { scene.retire() }
-        try await waitFor { self.find("roam.experience.album.more", in: window) != nil }
+        try await waitFor { state.rig.wire.pages == [1, 2] }
         state.phase = .background
         try await waitFor { !state.scope.isCurrent && self.find("roam.experience.album.scopeExpired", in: window) != nil }
         state.phase = .active; try await Task.sleep(nanoseconds: 100_000_000)
-        XCTAssertFalse(state.scope.isCurrent); XCTAssertEqual(state.rig.wire.pages, [1])
+        XCTAssertFalse(state.scope.isCurrent); XCTAssertEqual(state.rig.wire.pages, [1, 2])
         XCTAssertNil(find("roam.experience.album.stamp", in: window)); XCTAssertNil(find("roam.experience.album.more", in: window))
         state.open = false
         try await waitFor { self.find("roam.experience.album", in: window) == nil }
         state.scope = try state.rig.scope(); state.open = true
-        try await waitFor { state.rig.wire.pages == [1, 1] && self.find("roam.experience.album.more", in: window) != nil }
+        try await waitFor { state.rig.wire.pages == [1, 2, 1, 2] && self.find("roam.experience.album.stamp", in: window) != nil }
         XCTAssertTrue(state.scope.isCurrent)
     }
     func testActualOriginalUnscopedTypedCallerReplacesReaderWithoutKeepingOldPager() async throws {
         let state = try AlbumIntentHostState(); state.scoped = false
         let scene = try HostedNavigationSceneWindow(), window = scene.window; mount(state, window: window); defer { scene.retire() }
-        try await waitFor { self.findLabel("Original metadata", in: window) != nil }
+        try await waitFor { state.rig.wire.pages == [1, 2] && self.findLabel("Original metadata", in: window) != nil }
         let old = state.rig, fresh = try AlbumIntentRig(); fresh.wire.replacement = true
         XCTAssertEqual(old.reader.identity, fresh.reader.identity); state.rig = fresh
-        try await waitFor { fresh.wire.pages == [1] && self.findLabel("Replacement metadata", in: window) != nil }
-        XCTAssertNil(findLabel("Original metadata", in: window)); XCTAssertEqual(old.wire.pages, [1])
+        try await waitFor { fresh.wire.pages == [1, 2] && self.findLabel("Replacement metadata", in: window) != nil }
+        XCTAssertNil(findLabel("Original metadata", in: window)); XCTAssertEqual(old.wire.pages, [1, 2])
         XCTAssertNil(find("roam.experience.album.openCamera", in: window))
     }
     private func mount(_ state: AlbumIntentHostState, window: UIWindow) {
@@ -254,18 +254,18 @@ import UIKit
     var pending: [Pending] = []
     func finishFirst(id: Int) {
         let item = pending.removeFirst()
-        item.continuation.resume(returning: (try! payload(page: item.page, pageSize: 20, id: id), 200))
+        item.continuation.resume(returning: (try! payload(page: item.page, pageSize: StampAlbumIndexPageModel.sourcePageSize, id: id), 200))
     }
     private func payload(page: Int, pageSize: Int, id: Int) throws -> Data {
         let rows: [[String: Any]] = empty ? [] : [["id": id, "checkState": 0,
             "caption": replacement ? "Replacement metadata" : "Original metadata"]]
         return try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["list": rows,
-            "total": empty ? 0 : 40, "pageNum": page, "pageSize": pageSize]])
+            "total": empty ? 0 : StampAlbumIndexPageModel.sourcePageSize * 2, "pageNum": page, "pageSize": pageSize]])
     }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         let route = try XCTUnwrap(RoamAlbumMetadataReadRoute(request: request, baseURL: Self.base))
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-album-intent")
-        XCTAssertEqual(route.pageSize, 20); pages.append(route.page)
+        XCTAssertEqual(route.pageSize, StampAlbumIndexPageModel.sourcePageSize); pages.append(route.page)
         if hold { return try await withCheckedThrowingContinuation { pending.append(.init(page: route.page, continuation: $0)) } }
         if status != 200 || code != 200 { return (Data("{\"code\":\(code)}".utf8), status) }
         return (try payload(page: route.page, pageSize: route.pageSize, id: route.page + (replacement ? 100 : 0)), 200)

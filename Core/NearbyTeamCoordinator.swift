@@ -98,6 +98,14 @@ public struct NearbyTeamReview: Identifiable, Equatable {
             applicants = rows; applicantsTeamID = teamID; revision &+= 1
         } catch { if !Task.isCancelled, !(error is CancellationError), valid(session, generation) { applicants = []; applicantsTeamID = nil; failure(error) } }
     }
+    /// RTEAMS-3c (MP subpackageRoam/my-teams/index.js:139-155 `_loadPending`): one quiet `POST /api/team/applications {teamId}`
+    /// per recruiting team the viewer leads. Does not touch `busy`, `applicants` or `messageKey`; any failure is `.unread`.
+    public func leaderApplicantFact(team: OwnedTeam) async -> NearbyLeaderApplicantFact? {
+        guard let session, session.valid, NearbyLeaderApplicantFact.asks(team: team, viewerAccountID: session.accountID) else { return nil }
+        let rows = try? await service.applications(NearbyTeamID(team.id), session: session)
+        guard self.session == session else { return nil }
+        return NearbyLeaderApplicantFact.interpret(rows)
+    }
     /// The view already posted `api/team/command`. This only retires the review row.
     public func adoptContractHandle(_ snapshot: NearbyTeamReview, sent: Bool) {
         guard review == snapshot, case .handle(_, let id, let approved) = snapshot.action else { return }

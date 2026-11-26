@@ -7,13 +7,15 @@ public enum StoreCharacterEndpoint {
     public static let save = "api/merchant/npc/save"
     public static let voiceStatus = "api/merchant/npc/voice/status"
     public static let voiceEnroll = "api/merchant/npc/voice/enroll"
+    /// JSON POST `{}`. pages/merchant/decor/ai-npc/index.js clearVoice. Permitted with voice enroll.
+    public static let voiceReset = "api/merchant/npc/voice/reset"
     public static let consent = "api/compliance/consents"
     public static let mapPointRead = "api/merchant/coop-profile"
     public static let mapPointSave = "api/merchant/decor/save"
     /// GET. Not a JSON POST, so it stays out of `reads`.
     public static let review = "api/merchant/npc/review"
     public static let reads: [String] = [access, profile, voiceStatus, mapPointRead]
-    public static let writes: [String] = [save, consent, voiceEnroll, mapPointSave]
+    public static let writes: [String] = [save, consent, voiceEnroll, voiceReset, mapPointSave]
     /// Required by the page gate (`need="canWriteProfile"`) and by every npc route on the server.
     public static let requiredPermission = "merchant:profile:write"
 }

@@ -130,6 +130,16 @@ private actor PrivateToolsWire: HTTPTransport {
         let good = PrivateToolsWire([#"{"code":200,"data":\#(goalJSON())}"#])
         let goal = try await service(good).goal(id: "22", token: "t")
         XCTAssertEqual(goal.percent, 40)
+        XCTAssertEqual(goal.progress, 2)
+        XCTAssertEqual(goal.knownPercent, 40)
+        let omitted = goalJSON().replacingOccurrences(of: #""progress":2,"#, with: "")
+        let unknown = try await service(PrivateToolsWire([#"{"code":200,"data":\#(omitted)}"#])).goal(id: "22", token: "t")
+        XCTAssertNil(unknown.progress)
+        XCTAssertNil(unknown.knownPercent)
+        XCTAssertEqual(unknown.percent, 0)
+        let achievedMissing = goalJSON(state: "ACHIEVED", progress: 5, commemoration: true).replacingOccurrences(of: #""progress":5,"#, with: "")
+        do { _ = try await service(PrivateToolsWire([#"{"code":200,"data":\#(achievedMissing)}"#])).goal(id: "22", token: "t"); XCTFail() }
+        catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
         let detailRequest = await good.requests[0]
         XCTAssertEqual(detailRequest.url?.absoluteString, "https://tools.example/native/api/exploration-goals/detail?id=22")
         for bad in [goalJSON(state: "ACHIEVED", progress: 5, commemoration: false), goalJSON(state: "ACHIEVED", progress: 3, commemoration: true),

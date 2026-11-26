@@ -223,7 +223,7 @@ import UIKit
             pages.append(route.page)
             let row: [String: Any] = ["id": route.page, "kind": 1, "caption": "Received metadata", "checkState": 1,
                 "picUrl": "https://unapproved.invalid/never-fetch.jpg", "createTime": "2026-11-01T10:00:00"]
-            let bytes = try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["list": [row], "total": 21, "pageNum": route.page, "pageSize": route.pageSize]])
+            let bytes = try JSONSerialization.data(withJSONObject: ["code": 200, "data": ["list": [row], "total": StampAlbumIndexPageModel.sourcePageSize + 1, "pageNum": route.page, "pageSize": route.pageSize]])
             if hold { held = bytes; return try await withCheckedThrowingContinuation { pending = $0 } }
             return (bytes, status)
         }

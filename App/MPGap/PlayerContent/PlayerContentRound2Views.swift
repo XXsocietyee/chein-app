@@ -171,22 +171,59 @@ public struct SocialArticleRichBlocksView: View {
             ForEach(blocks) { block in
                 switch block {
                 case .text(_, let content):
-                    Text(content)
+                    Text(verbatim: content)
                         .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                 case .image(_, let urlStr):
-                    if !urlStr.isEmpty {
-                        CYCachedAsyncImage(urlStr, role: .cover)
-                            .frame(maxWidth: .infinity, minHeight: 180)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    // A missing or unusable URL is omitted. A later load failure drops only this image.
+                    if let url = QuestifyCardArtwork.safeURL(urlStr),
+                       ObjectCardMediaPolicy.origin(url.absoluteString) != nil {
+                        SocialArticleRemoteImage(url: url)
                     }
                 case .link(_, let title, let urlStr):
-                    if let url = URL(string: urlStr) {
-                        Link(title, destination: url)
-                            .cyText(.bodyMedium)
+                    if let url = QuestifyCardArtwork.safeURL(urlStr) {
+                        Link(destination: url) {
+                            Text(verbatim: title)
+                                .cyText(.bodyMedium)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+/// Shows one CMS image with the feed remote-image view. Waiting and failure take no space, so the rest of the article stays.
+private struct SocialArticleRemoteImage: View {
+    let url: URL
+    private enum Phase { case waiting, shown, skipped }
+    @State private var phase: Phase = .waiting
+
+    var body: some View {
+        Group {
+            if phase == .shown {
+                PlayerFeedRemoteImage(
+                    url: url,
+                    maxPixel: 1200,
+                    placeholder: { Color.clear },
+                    failure: {
+                        Color.clear
+                            .frame(height: 0)
+                            .onAppear { phase = .skipped }
+                    }
+                )
+                .frame(maxWidth: .infinity)
+                .aspectRatio(CYCachedAsyncImageRole.cover.aspectRatio, contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            }
+        }
+        .task(id: url) {
+            phase = .waiting
+            let image = await PlayerFeedImages.image(for: url, maxPixel: 1200)
+            guard !Task.isCancelled else { return }
+            phase = image == nil ? .skipped : .shown
         }
     }
 }

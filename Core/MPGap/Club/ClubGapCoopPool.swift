@@ -101,3 +101,33 @@ public struct ClubEditionsEmptyReasonClient {
         )
     }
 }
+
+/// CLB-G04 (MP `pages/club/detail/index.js` applyCoopPool): 申请带队 posts
+/// `{ topicId, clubId, message }` to `/api/coop/pool/apply`. The merchant answers with a formal invite,
+/// so this states intent and is not a payment, refund, payout, or settlement.
+public struct ClubCoopPoolApplyClient {
+    private let configuration: APIConfiguration
+    private let transport: any HTTPTransport
+
+    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+        self.configuration = configuration
+        self.transport = transport
+    }
+
+    public func apply(topicID: Int, clubID: Int, message: String, token: String) async throws {
+        let note = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard topicID > 0, clubID > 0, note.count <= 500 else { throw APIError.invalidRequest }
+        try await MPGapHTTP.postAction(
+            configuration: configuration,
+            transport: transport,
+            path: "api/coop/pool/apply",
+            body: ["topicId": topicID, "clubId": clubID, "message": note],
+            token: token
+        )
+    }
+
+    /// MP `decoratePool`: open, declined, and withdrawn rows can apply again. Other states stay hidden.
+    public static func canApply(state: String?) -> Bool {
+        ["open", "declined", "withdrawn"].contains(state ?? "")
+    }
+}

@@ -92,7 +92,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/merchant/coop-center/index"] = Rule(allowed: ["tab", "topicId"], required: [], ids: ["topicId"])
         pages["pages/merchant/profile/index"] = Rule(allowed: ["id", "poiId", "topicId", "topicName"], required: [], ids: ["id", "poiId", "topicId"])
         pages["pages/merchant/team/index"] = Rule(allowed: ["invite"], required: [], ids: [])
-        pages["pages/coop/invite/index"] = Rule(allowed: ["type", "toId", "topicId"], required: [], ids: ["toId", "topicId"])
+        pages["pages/coop/invite/index"] = Rule(allowed: ["type", "toId", "topicId", "originApplyId", "toName", "scope"], required: [], ids: ["toId", "topicId", "originApplyId"])
         pages["pages/coop/invite-detail/index"] = Rule(allowed: ["inviteId", "box"], required: [], ids: ["inviteId"])
         pages["pages/coop/nearby/index"] = Rule(allowed: ["topicId", "topicName"], required: [], ids: ["topicId"])
         pages["pages/coop/settlement-detail/index"] = Rule(allowed: ["source", "id", "topicId", "clubId", "personal"], required: [], ids: ["id", "topicId", "clubId"])
@@ -121,12 +121,16 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/publish/temp/index"] = Rule(allowed: ["id", "scope", "from"], required: [], ids: ["id"])
         pages["pages/publish/activity/index"] = Rule(allowed: ["id", "scope"], required: [], ids: ["id"])
         pages["pages/publish/template-intro/index"] = Rule(allowed: ["scope"], required: [], ids: [])
+        // R8-MEM-26-1: mytemplate stays the template author's 我的 page. `id` and `scope`
+        // are kept; the link does not open 我发布的 or drop the query.
+        pages["subpackageMember/mytemplate/mytemplate"] = Rule(allowed: ["id", "scope"], required: [], ids: ["id"])
         pages["pages/team/detail/index"] = Rule(allowed: ["teamId"], required: [], ids: ["teamId"])
         // Only the manual-code form; `?code=` invitations keep the team-invitation parser (NativeNavigationCompletion).
         pages["pages/team/join/index"] = Rule(allowed: ["entry"], required: ["entry"], ids: [])
         // F14c retired catalog: optional id opens the topic, a bare path opens home. `via=session` is the club-session entry.
         pages["pages/topic/catalog/index"] = optionalID
-        pages["pages/topic/index/index"] = Rule(allowed: ["id", "via"], required: ["id"], ids: ["id"])
+        // CLB-detail-11: 带票分享 lands here with the club that shared the edition.
+        pages["pages/topic/index/index"] = Rule(allowed: ["id", "via", "sourceClubId", "clubCode"], required: ["id"], ids: ["id", "sourceClubId"])
         return pages
     }()
 
@@ -197,7 +201,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "subpackageMember/couponInfo/couponInfo",
         "subpackageMember/mycanyu/mycanyu",
         "subpackageMember/myinvite/myinvite",
-        "subpackageMember/mytemplate/mytemplate",
         "subpackageMember/order/order",
         "subpackageMember/points-history/index",
         "subpackageMember/report-mine/index",
@@ -272,10 +275,11 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/publish/temp/index": ["scope": ["MERCHANT", "my"], "from": ["fabu", "citynode"]],
         "pages/publish/activity/index": ["scope": ["MERCHANT"]],
         "pages/publish/template-intro/index": ["scope": ["MERCHANT"]],
+        "subpackageMember/mytemplate/mytemplate": ["scope": ["MERCHANT"]],
         "pages/team/join/index": ["entry": ["code"]],
         "pages/merchant/ledger/order-detail/index": ["recordType": ["redemption", "activity_ticket", "session_fee"]],
         "pages/coop/list/index": ["scope": ["MERCHANT"]],
-        "pages/coop/invite/index": ["type": ["0", "1"]],
+        "pages/coop/invite/index": ["type": ["0", "1"], "scope": ["MERCHANT"]],
         "pages/coop/invite-detail/index": ["box": ["received", "sent"]],
         "pages/coop/settlement-detail/index": ["personal": ["1"]],
         "pages/topic/index/index": ["via": ["session"]],

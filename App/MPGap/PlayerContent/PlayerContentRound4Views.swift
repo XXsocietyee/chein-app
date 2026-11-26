@@ -13,9 +13,16 @@ public struct MerchantApplyPickerGapView: View {
     @Binding public var ruleInstructions: String
     @Binding public var uploadedPicURLs: [String]
     public let writesEnabled: Bool
+    /// R9-PC-B3-2: false when mounted inside the editor, whose own review/submit footer is the one submit (MP has one).
+    public var showsSubmit: Bool = true
 
     @State private var showMapPicker = false
     @State private var pickerItems: [PhotosPickerItem] = []
+    /// R9-PC-B3-1: MP `uploadPic` → `app.chooseImage(cb, 9 - cur.length)` uploads, then appends to `picUrl` (≤9)
+    /// (pages/topic/merchantapply/index.js:501-509).
+    @Environment(\.playerContentImageUploader) private var imageUploader
+    @State private var uploadingPhotos = false
+    @State private var photoUploadFailure: String?
     public var onSelectPhotos: ([PhotosPickerItem]) -> Void = { _ in }
     public var onSubmit: () -> Void = {}
 
@@ -27,6 +34,7 @@ public struct MerchantApplyPickerGapView: View {
         ruleInstructions: Binding<String>,
         uploadedPicURLs: Binding<[String]>,
         writesEnabled: Bool = false,
+        showsSubmit: Bool = true,
         onSelectPhotos: @escaping ([PhotosPickerItem]) -> Void = { _ in },
         onSubmit: @escaping () -> Void = {}
     ) {
@@ -34,6 +42,7 @@ public struct MerchantApplyPickerGapView: View {
         self._ruleInstructions = ruleInstructions
         self._uploadedPicURLs = uploadedPicURLs
         self.writesEnabled = writesEnabled
+        self.showsSubmit = showsSubmit
         self.onSelectPhotos = onSelectPhotos
         self.onSubmit = onSubmit
     }
@@ -79,14 +88,30 @@ public struct MerchantApplyPickerGapView: View {
             Section {
                 PhotosPicker(
                     selection: $pickerItems,
-                    maxSelectionCount: maxImages,
+                    maxSelectionCount: max(1, maxImages - uploadedPicURLs.count),
                     matching: .images
                 ) {
                     Label("merchantApply.pic.upload", systemImage: "photo.on.rectangle.angled")
                         .cyText(.bodyCompact)
                 }
+                .disabled(imageUploader == nil || uploadingPhotos || uploadedPicURLs.count >= maxImages)
                 .onChange(of: pickerItems) { _, items in
+                    guard !items.isEmpty else { return }
                     onSelectPhotos(items)
+                    uploadPhotos(items)
+                }
+                if uploadingPhotos {
+                    ProgressView("merchantApply.pic.uploading")
+                }
+                if let photoUploadFailure {
+                    Text(verbatim: photoUploadFailure)
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.dangerText)
+                }
+                if imageUploader == nil {
+                    Text("merchantApply.pic.signIn")
+                        .cyText(.meta)
+                        .foregroundStyle(.secondary)
                 }
 
                 if !uploadedPicURLs.isEmpty {
@@ -113,15 +138,17 @@ public struct MerchantApplyPickerGapView: View {
                 Text("merchantApply.pic.title")
             }
 
-            Section {
-                Button("common.submit", action: onSubmit)
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                    .disabled(!writesEnabled || location == nil || ruleInstructions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || uploadedPicURLs.isEmpty)
-            } footer: {
-                if !writesEnabled {
-                    Text("merchantHost.workbench.gatedFooter")
-                        .cyText(.meta)
+            if showsSubmit {
+                Section {
+                    Button("common.submit", action: onSubmit)
+                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
+                        .disabled(!writesEnabled || location == nil || ruleInstructions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || uploadedPicURLs.isEmpty)
+                } footer: {
+                    if !writesEnabled {
+                        Text("merchantHost.workbench.gatedFooter")
+                            .cyText(.meta)
+                    }
                 }
             }
         }
@@ -131,40 +158,171 @@ public struct MerchantApplyPickerGapView: View {
             }
         }
     }
+
+    private func uploadPhotos(_ items: [PhotosPickerItem]) {
+        guard let imageUploader, !uploadingPhotos else { pickerItems = []; return }
+        let remaining = maxImages - uploadedPicURLs.count
+        guard remaining > 0 else { pickerItems = []; return }
+        let batch = Array(items.prefix(remaining))
+        uploadingPhotos = true
+        photoUploadFailure = nil
+        Task { @MainActor in
+            let result = await imageUploader.upload(items: batch)
+            uploadedPicURLs = Array((uploadedPicURLs + result.urls).prefix(maxImages))
+            if result.failed > 0 {
+                // MP: showModal(r.failures[0].msg || '上传失败')
+                photoUploadFailure = result.message ?? appLocalized("merchantApply.pic.uploadFailed", locale: .current)
+            }
+            uploadingPhotos = false
+            pickerItems = []
+        }
+    }
 }
 
+/// R7-PC-B3-2 (fix-r9): MP `choosePoiForNode` → `pickLocation` (wx.chooseLocation) returns the chosen POI's
+/// name / address / latitude / longitude (pages/topic/merchantapply/index.js:468-483). The pin follows a map tap
+/// or a place-search result; 保存 stays disabled until a real point is chosen and no default coordinate is written.
 private struct MerchantLocationMapPickerSheet: View {
     @Binding var selection: MerchantApplyLocationSelection?
     var onClose: () -> Void
     @State private var addressInput = ""
-    @State private var lat = 31.2304
-    @State private var lng = 121.4737
+    @State private var picked: CLLocationCoordinate2D?
+    @State private var position: MapCameraPosition = .automatic
+    @State private var query = ""
+    @State private var results: [MKMapItem] = []
+    @State private var searching = false
+    @State private var searchFailed = false
+
+    init(selection: Binding<MerchantApplyLocationSelection?>, onClose: @escaping () -> Void) {
+        self._selection = selection
+        self.onClose = onClose
+        if let current = selection.wrappedValue {
+            let coordinate = CLLocationCoordinate2D(latitude: current.latitude, longitude: current.longitude)
+            self._picked = State(initialValue: coordinate)
+            self._addressInput = State(initialValue: current.address)
+            self._position = State(initialValue: .region(MKCoordinateRegion(
+                center: coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )))
+        }
+    }
+
+    private var trimmedAddress: String {
+        addressInput.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canSave: Bool {
+        picked != nil && !trimmedAddress.isEmpty
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            CYSheetHeader(title: Text("merchantApply.location.choose"), style: .merchant, onClose: onClose)
-            Map()
-                .frame(height: 240)
+        NavigationStack {
             Form {
-                Section("merchantApply.location.addressDetail") {
-                    TextField("merchantApply.location.choose", text: $addressInput)
-                }
                 Section {
+                    MapReader { proxy in
+                        Map(position: $position, interactionModes: [.pan, .zoom]) {
+                            if let picked {
+                                Marker(addressInput, coordinate: picked)
+                            }
+                        }
+                        .frame(height: 240)
+                        .onTapGesture { point in
+                            guard let coordinate = proxy.convert(point, from: .local),
+                                  CLLocationCoordinate2DIsValid(coordinate) else { return }
+                            picked = coordinate
+                        }
+                        .accessibilityLabel(Text("merchantApply.location.mapHint"))
+                        .accessibilityAddTraits(.allowsDirectInteraction)
+                    }
+                    .listRowInsets(EdgeInsets())
+                } footer: {
+                    Text(picked == nil ? LocalizedStringKey("merchantApply.location.mapHint") : LocalizedStringKey("merchantApply.location.pinned"))
+                }
+
+                if searching {
+                    Section { ProgressView() }
+                } else if searchFailed {
+                    Section { Text("merchantApply.location.noResults").foregroundStyle(.secondary) }
+                } else if !results.isEmpty {
+                    Section("merchantApply.location.results") {
+                        ForEach(Array(results.enumerated()), id: \.offset) { _, item in
+                            Button {
+                                choose(item)
+                            } label: {
+                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                    Text(verbatim: item.name ?? "")
+                                        .foregroundStyle(.primary)
+                                    if let line = item.placemark.title, !line.isEmpty {
+                                        Text(verbatim: line)
+                                            .cyText(.meta)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Section("merchantApply.location.addressDetail") {
+                    TextField("merchantApply.location.choose", text: $addressInput, axis: .vertical)
+                }
+            }
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("merchantApply.location.searchPrompt"))
+            .onSubmit(of: .search) { Task { await runSearch() } }
+            .navigationTitle(Text("merchantApply.location.choose"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("common.cancel", action: onClose)
+                }
+                ToolbarItem(placement: .confirmationAction) {
                     Button("common.save") {
-                        let addr = addressInput.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard let picked, !trimmedAddress.isEmpty else { return }
                         selection = MerchantApplyLocationSelection(
-                            address: addr.isEmpty ? "已选定位点" : addr,
-                            latitude: lat,
-                            longitude: lng
+                            address: trimmedAddress,
+                            latitude: picked.latitude,
+                            longitude: picked.longitude
                         )
                         onClose()
                     }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
+                    .disabled(!canSave)
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
+    }
+
+    private func choose(_ item: MKMapItem) {
+        let coordinate = item.placemark.coordinate
+        guard CLLocationCoordinate2DIsValid(coordinate) else { return }
+        picked = coordinate
+        let name = item.name ?? ""
+        let line = item.placemark.title ?? ""
+        addressInput = line.isEmpty || line == name ? name : (name.isEmpty ? line : name + " · " + line)
+        position = .region(MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        ))
+        results = []
+    }
+
+    @MainActor
+    private func runSearch() async {
+        let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        searching = true
+        searchFailed = false
+        defer { searching = false }
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = text
+        do {
+            let response = try await MKLocalSearch(request: request).start()
+            results = Array(response.mapItems.prefix(20))
+            searchFailed = results.isEmpty
+        } catch {
+            results = []
+            searchFailed = true
+        }
     }
 }
 

@@ -42,19 +42,28 @@ def ordered(test, source, tokens):
 class ActivityDetailParityTests(unittest.TestCase):
     def test_meta_rows_follow_cancellation_and_precede_about(self):
         source = read("App/ActivityDetailView.swift")
-        ordered(self, source, (
+        # Ready body only. The page-level cancelled state reuses activity.detail.cancelled
+        # and does not show the meta rows or 关于这场活动.
+        fold = source.split("private func detailContent", 1)[1].split("private func moreInfoSections", 1)[0]
+        ordered(self, fold, (
             "E1ActivityHero(summary:detail.summary)",
             "E1ActivityInfoCard(detail:detail)",
             'accessibilityIdentifier("activity.detail.cancelled")',
+            "ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))",
             "detail.summary.hasValidCoordinates",
             'Section("activity.about")',
             'E1IconHeader(systemImage: "ticket"',
             'accessibilityIdentifier("activity.more.toggle")',
             "if showsMoreInfo { moreInfoSections(detail) }",
         ))
-        # R7-PC-C1-7 (r8 re-pin): MP shows 关于这场活动 in the first fold, above the people section, not behind 更多信息.
+        # MP scene-play-activity-detail: activity-meta follows the cancellation notice and precedes 关于这场活动.
+        self.assertLess(fold.index('accessibilityIdentifier("activity.detail.cancelled")'), fold.index("ActivityDetailMetaSection("))
+        self.assertLess(fold.index("ActivityDetailMetaSection("), fold.index('Section("activity.about")'))
+        # R7-PC-C1-7: 关于这场活动 stays in the first fold, above people, not behind 更多信息.
         self.assertLess(source.index('Section("activity.about")'), source.index("ActivityPeopleSection(people:"))
-        self.assertNotIn('Section("activity.about")', source.split("private func moreInfoSections", 1)[1].split("private func profileAction", 1)[0])
+        more = source.split("private func moreInfoSections", 1)[1].split("private func profileAction", 1)[0]
+        self.assertNotIn('Section("activity.about")', more)
+        self.assertNotIn("ActivityDetailMetaSection(", more)
         meta = source.split("private struct ActivityDetailMetaSection")[1].split("enum ActivityLocationAccessibility", 1)[0]
         for token in ('"activityParity.header.category"', 'facts.categoryText ?? "—"',
                       '"activityParity.header.meetingPoint"', 'case .mapOnly', 'case .unconfirmed',
@@ -63,9 +72,11 @@ class ActivityDetailParityTests(unittest.TestCase):
                       'else { Text(verbatim: "—") }',
                       'accessibilityIdentifier("activity.detail.category")',
                       'accessibilityIdentifier("activity.detail.meetingPoint")',
-                      'accessibilityIdentifier("activity.detail.registeredCount")'):
+                      'accessibilityIdentifier("activity.detail.registeredCount")',
+                      ".font(.body)"):
             self.assertIn(token, meta)
-        for forbidden in ("Button", "Task", "URLSession", "?? 0", "lineLimit"):
+        for forbidden in ("Button", "Task", "URLSession", "?? 0", "lineLimit", "payment", "StoreKit", "WXApi",
+                          ".system(size:", ".caption2", "Theme.Font"):
             self.assertNotIn(forbidden, meta)
 
     def test_header_facts_keep_unknown_values_unknown(self):

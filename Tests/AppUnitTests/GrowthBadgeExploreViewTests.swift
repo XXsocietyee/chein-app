@@ -63,4 +63,31 @@ import SwiftUI
         XCTAssertFalse(accepts(value, center: record, presentationID: UUID()))
         XCTAssertFalse(accepts(value, center: record, visible: false))
     }
+    func testFootprintHidesOnlyWhenEveryShownCountIsARealZero() throws {
+        XCTAssertTrue(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "0", topics: "[]")))
+        XCTAssertTrue(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "0", topics: #"[{"topicId":0}]"#)))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "null", mileage: "0", topics: "[]")))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "null", topics: "[]")))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "-1", topics: "[]")))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "-3", mileage: "0", topics: "[]")))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "1", mileage: "0", topics: "[]")))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "0.4", topics: "[]")))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "0", topics: #"[{"topicId":3}]"#)))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "0", topics: "[]", badges: #"[{"badgeCode":"explorer"}]"#)))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "0", topics: "[]", centerFailed: true)))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "0", topics: "[]", progressFailed: true)))
+        XCTAssertFalse(GrowthCenterView.footprintEmpty(try footprint(exp: "0", mileage: "0", topics: "[]", completedFailed: true)))
+    }
+    private func footprint(exp: String, mileage: String, topics: String, badges: String = "[]",
+                           centerFailed: Bool = false, progressFailed: Bool = false, completedFailed: Bool = false) throws -> GrowthCenterOverview {
+        let center = try JSONDecoder().decode(GrowthCenterRecord.self, from: Data("""
+        {"growth":{"expValue":\(exp)},"points":0,"badges":\(badges),"missions":[]}
+        """.utf8))
+        let progress = try JSONDecoder().decode(GrowthPlayProgress.self, from: Data("{\"totalMileage\":\(mileage)}".utf8))
+        let completed = try JSONDecoder().decode([GrowthCompletedActivity].self, from: Data(topics.utf8))
+        return GrowthCenterOverview(center: centerFailed ? .failure(.unavailable) : .content(center),
+                                     progress: progressFailed ? .failure(.network) : .content(progress),
+                                     completed: completedFailed ? .failure(.failed) : .content(completed),
+                                     rank: .failure(.unavailable))
+    }
 }

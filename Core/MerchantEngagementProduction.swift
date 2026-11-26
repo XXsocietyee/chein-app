@@ -38,6 +38,30 @@ public struct MerchantEngagementProductionApproval {
     public let reviewedObligations: Set<MerchantEngagementObligation>
     public let reviewedPolicyVersion: String
     public static let acceptInvitationPath = "api/merchant/operators/invite/accept"
+    /// Marker so customer contact is admitted only on the MP-first catalog, not every empty-grant approval.
+    public static let customerCatalogPath = "api/merchant/crm/customers"
+    /// MP-first empty-grant catalog. Campaigns and broadcasts stay off.
+    static func liveCatalog(_ command: MerchantEngagementCommand, merchantID: Int, path: String, paths: Set<String>) -> Bool {
+        switch command {
+        case .acceptInvitation:
+            return MerchantCoopLiveWrites.admitsAccept(command, merchantID: merchantID)
+                && path == acceptInvitationPath && paths.contains(path)
+        case .contact:
+            return merchantID > 0 && paths.contains(customerCatalogPath)
+                && path.hasPrefix(customerCatalogPath + "/") && path.hasSuffix("/contact")
+        case .uploadEvidence:
+            return merchantID > 0 && paths.contains("api/common/uploadOSS") && path == "api/common/uploadOSS"
+        case .saveSegment:
+            return merchantID > 0 && paths.contains("api/merchant/crm/segments") && path == "api/merchant/crm/segments"
+        case .createExport:
+            return merchantID > 0 && paths.contains("api/merchant/crm/exports") && path == "api/merchant/crm/exports"
+        case .downloadExport:
+            return merchantID > 0 && paths.contains("api/merchant/crm/exports")
+                && path.hasPrefix("api/merchant/crm/exports/") && path.hasSuffix("/download")
+        default:
+            return false
+        }
+    }
     public init(market: RegionalMarket, endpoints: OperationEndpointApproval, grants: [MerchantEngagementActionGrant],
                 deviceGrants: [MerchantEngagementDeviceGrant] = [], reviewedObligations: Set<MerchantEngagementObligation> = [], reviewedPolicyVersion: String) throws {
         guard !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.invalidConfiguration }
@@ -49,15 +73,22 @@ public struct MerchantEngagementProductionApproval {
         endpoints.accountID == context.session.accountID && endpoints.namespace == context.session.namespace
     }
     public func permits(_ command: MerchantEngagementCommand, merchantID: Int, context: RuntimeDependencyContext) -> Bool {
-        if grants.isEmpty, MerchantCoopLiveWrites.admitsAccept(command, merchantID: merchantID) {
+        if grants.isEmpty, reviewedPolicyVersion == MerchantCoopLiveWrites.policyVersion {
             guard matches(context), let request = try? command.request(requestID: "grant-validation") else { return false }
-            return request.path == Self.acceptInvitationPath && endpoints.paths.contains(request.path)
+            return Self.liveCatalog(command, merchantID: merchantID, path: request.path, paths: endpoints.paths)
         }
         guard matches(context), let request = try? command.request(requestID: "grant-validation"), endpoints.paths.contains(request.path),
               grants.contains(where: { $0.merchantID == merchantID && $0.command == command }) else { return false }
         return command.productionObligation.map { reviewedObligations.contains($0) } ?? true
     }
+    /// Empty device grants open only the aftercare evidence picker on the MP-first catalog.
+    /// Contact and export device grants stay off (those rows are not this change).
     public func permitsDevice(_ action: MerchantEngagementDeviceGrant.Action, merchantID: Int, context: RuntimeDependencyContext) -> Bool {
+        if deviceGrants.isEmpty, reviewedPolicyVersion == MerchantCoopLiveWrites.policyVersion {
+            guard matches(context), merchantID > 0, endpoints.paths.contains("api/common/uploadOSS"),
+                  case .selectEvidence = action else { return false }
+            return true
+        }
         guard matches(context), deviceGrants.contains(where: { $0.merchantID == merchantID && $0.action == action }) else { return false }
         switch action {
         case .contact: return reviewedObligations.contains(.customerContactPrivacy)

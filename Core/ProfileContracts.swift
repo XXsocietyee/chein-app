@@ -30,121 +30,6 @@ public struct ProfileParticipant: Decodable, Equatable, Identifiable {
     }
 }
 
-/// `data` object of the existing `POST api/user/address/list` payload.
-/// `rows` is the page the client already reads. `total` is the table count on that
-/// same object. A missing or null total stays nil. A numeric string is rejected
-/// so it cannot be read as zero. This type does not add a contact field.
-public struct ProfileParticipantListFacts: Decodable, Equatable {
-    public let rows: [ProfileParticipant]
-    public let total: Int?
-
-    public init(rows: [ProfileParticipant], total: Int?) {
-        self.rows = rows
-        self.total = total
-    }
-
-    private enum CodingKeys: String, CodingKey { case rows, total }
-    private struct Count: Decodable {
-        let value: Int
-        init(from decoder: Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            let value = try container.decode(Int.self)
-            guard value >= 0 else {
-                throw DecodingError.dataCorruptedError(in: container, debugDescription: "negative count")
-            }
-            self.value = value
-        }
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        rows = try container.decode([ProfileParticipant].self, forKey: .rows)
-        guard container.contains(.total) else { total = nil; return }
-        if try container.decodeNil(forKey: .total) { total = nil; return }
-        total = try container.decode(Count.self, forKey: .total).value
-    }
-}
-
-/// pages/address/address. Derived from a list read the app already performs.
-/// It does not fetch, add a route, or mark a route live.
-public enum ProfileParticipantListPhase: Equatable {
-    case loading, empty, error, unknown, ready
-}
-
-/// One list row. Only the name and phone already on `ProfileParticipant`.
-public struct ProfileParticipantListCard: Equatable, Identifiable {
-    public let id: Int
-    public let fullName: String
-    public let mobilePhone: String
-    /// A blank phone is unknown. The stored value is never replaced with a number.
-    public var phoneText: String {
-        mobilePhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ? ProfileParticipantListPage.unknownMark : mobilePhone
-    }
-    public init(_ row: ProfileParticipant) {
-        id = row.id
-        fullName = row.fullName
-        mobilePhone = row.mobilePhone
-    }
-}
-
-public struct ProfileParticipantListPage: Equatable {
-    /// Missing numeric facts. Never a stand-in zero.
-    public static let unknownMark = "—"
-    public let phase: ProfileParticipantListPhase
-    public let cards: [ProfileParticipantListCard]
-    /// Nil while the table total was absent, null, or the list is not a settled success.
-    public let total: Int?
-    /// True only while a newer read is in flight and a previous list is still on screen.
-    public let isRefreshing: Bool
-    public var totalText: String { total.map(String.init) ?? Self.unknownMark }
-    /// Mini-program footer: the add action is on a settled list, including a known empty one.
-    public var showsAdd: Bool { phase == .ready || phase == .empty }
-
-    public init(phase: ProfileParticipantListPhase, cards: [ProfileParticipantListCard], total: Int?, isRefreshing: Bool) {
-        self.phase = phase
-        self.cards = cards
-        self.total = total
-        self.isRefreshing = isRefreshing
-    }
-}
-
-public enum ProfileParticipantListCoordinator {
-    /// `list == nil` is still loading, unless a retained list is on screen (refresh).
-    /// Cancellation keeps that list, or stays loading when there is none.
-    /// A malformed payload with nothing retained is unknown, not an empty list.
-    /// Any other first-load failure is an error. A failure that still has a retained
-    /// list keeps that list. Counts stay an em dash until a real total arrives.
-    /// A literal total of zero stays "0". The row count is never used as the total.
-    public static func project(list: Result<ProfileParticipantListFacts, Error>?,
-                               retained: ProfileParticipantListFacts? = nil,
-                               outcomeUnknown: Bool = false) -> ProfileParticipantListPage {
-        if outcomeUnknown { return unsettled(.unknown) }
-        guard let list else { return retained.map { settled($0, isRefreshing: true) } ?? unsettled(.loading) }
-        switch list {
-        case .failure(let error):
-            if error is CancellationError {
-                return retained.map { settled($0, isRefreshing: true) } ?? unsettled(.loading)
-            }
-            if let retained { return settled(retained, isRefreshing: false) }
-            if case APIError.malformedResponse = error { return unsettled(.unknown) }
-            return unsettled(.error)
-        case .success(let facts):
-            return settled(facts, isRefreshing: false)
-        }
-    }
-
-    private static func settled(_ facts: ProfileParticipantListFacts, isRefreshing: Bool) -> ProfileParticipantListPage {
-        ProfileParticipantListPage(phase: facts.rows.isEmpty ? .empty : .ready,
-                                   cards: facts.rows.map(ProfileParticipantListCard.init),
-                                   total: facts.total, isRefreshing: isRefreshing)
-    }
-
-    private static func unsettled(_ phase: ProfileParticipantListPhase) -> ProfileParticipantListPage {
-        ProfileParticipantListPage(phase: phase, cards: [], total: nil, isRefreshing: false)
-    }
-}
-
 /// Registration and verification are separate facts. Neither becomes a payment verdict.
 public enum ProfileRegistrationState: Equatable {
     case awaitingPayment, registered, cancelled, expired, unknown
@@ -793,5 +678,123 @@ public enum ProfileOrderSourceMode: Equatable {
         case 2: self = .freeExplore
         default: return nil
         }
+    }
+}
+
+/// `data` object of the existing `POST api/user/address/list` payload.
+/// `rows` is the page the client already reads. `total` is the table count on that
+/// same object. A missing or null total stays nil. A numeric string is rejected
+/// so it cannot be read as zero. This type does not add a contact field.
+public struct ProfileParticipantListFacts: Decodable, Equatable {
+    public let rows: [ProfileParticipant]
+    public let total: Int?
+
+    public init(rows: [ProfileParticipant], total: Int?) {
+        self.rows = rows
+        self.total = total
+    }
+
+    private enum CodingKeys: String, CodingKey { case rows, total }
+    private struct Count: Decodable {
+        let value: Int
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let value = try container.decode(Int.self)
+            guard value >= 0 else {
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: "negative count")
+            }
+            self.value = value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        rows = try container.decode([ProfileParticipant].self, forKey: .rows)
+        guard container.contains(.total) else { total = nil; return }
+        if try container.decodeNil(forKey: .total) { total = nil; return }
+        total = try container.decode(Count.self, forKey: .total).value
+    }
+}
+
+/// pages/address/address. Derived from a list read the app already performs.
+/// It does not fetch, add a route, or mark a route live.
+public enum ProfileParticipantListPhase: Equatable {
+    case loading, empty, error, unknown, ready
+}
+
+/// pages/address/address stays at the end of this file.
+/// The table total is the only count. A missing total stays an em dash, and the number of rows is not that total.
+
+/// One list row. Only the name and phone already on `ProfileParticipant`.
+public struct ProfileParticipantListCard: Equatable, Identifiable {
+    public let id: Int
+    public let fullName: String
+    public let mobilePhone: String
+    /// A blank phone is unknown. The stored value is never replaced with a number.
+    public var phoneText: String {
+        mobilePhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? ProfileParticipantListPage.unknownMark : mobilePhone
+    }
+    public init(_ row: ProfileParticipant) {
+        id = row.id
+        fullName = row.fullName
+        mobilePhone = row.mobilePhone
+    }
+}
+
+public struct ProfileParticipantListPage: Equatable {
+    /// Missing numeric facts. Never a stand-in zero.
+    public static let unknownMark = "—"
+    public let phase: ProfileParticipantListPhase
+    public let cards: [ProfileParticipantListCard]
+    /// Nil while the table total was absent, null, or the list is not a settled success.
+    public let total: Int?
+    /// True only while a newer read is in flight and a previous list is still on screen.
+    public let isRefreshing: Bool
+    public var totalText: String { total.map(String.init) ?? Self.unknownMark }
+    /// Mini-program footer: the add action is on a settled list, including a known empty one.
+    public var showsAdd: Bool { phase == .ready || phase == .empty }
+
+    public init(phase: ProfileParticipantListPhase, cards: [ProfileParticipantListCard], total: Int?, isRefreshing: Bool) {
+        self.phase = phase
+        self.cards = cards
+        self.total = total
+        self.isRefreshing = isRefreshing
+    }
+}
+
+public enum ProfileParticipantListCoordinator {
+    /// `list == nil` is still loading, unless a retained list is on screen (refresh).
+    /// Cancellation keeps that list, or stays loading when there is none.
+    /// A malformed payload with nothing retained is unknown, not an empty list.
+    /// Any other first-load failure is an error. A failure that still has a retained
+    /// list keeps that list. Counts stay an em dash until a real total arrives.
+    /// A literal total of zero stays "0". The row count is never used as the total.
+    public static func project(list: Result<ProfileParticipantListFacts, Error>?,
+                               retained: ProfileParticipantListFacts? = nil,
+                               outcomeUnknown: Bool = false) -> ProfileParticipantListPage {
+        if outcomeUnknown { return unsettled(.unknown) }
+        guard let list else { return retained.map { settled($0, isRefreshing: true) } ?? unsettled(.loading) }
+        switch list {
+        case .failure(let error):
+            if error is CancellationError {
+                return retained.map { settled($0, isRefreshing: true) } ?? unsettled(.loading)
+            }
+            if let retained { return settled(retained, isRefreshing: false) }
+            if case APIError.malformedResponse = error { return unsettled(.unknown) }
+            return unsettled(.error)
+        case .success(let facts):
+            return settled(facts, isRefreshing: false)
+        }
+    }
+
+    private static func settled(_ facts: ProfileParticipantListFacts, isRefreshing: Bool) -> ProfileParticipantListPage {
+        ProfileParticipantListPage(phase: facts.rows.isEmpty ? .empty : .ready,
+                                   cards: facts.rows.map(ProfileParticipantListCard.init),
+                                   total: facts.total, isRefreshing: isRefreshing)
+    }
+
+    private static func unsettled(_ phase: ProfileParticipantListPhase) -> ProfileParticipantListPage {
+        ProfileParticipantListPage(phase: phase, cards: [], total: nil, isRefreshing: false)
     }
 }

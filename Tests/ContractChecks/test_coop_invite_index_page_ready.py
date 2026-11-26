@@ -32,7 +32,7 @@ class CoopInviteIndexPageReadyContract(unittest.TestCase):
         capability = CAPABILITY.read_text()
         self.assertNotIn('"/api/coop/invite": .liveInProduction', capability)
         for flag in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
-            self.assertIn("public static let %s = false" % flag, capability)
+            self.assertIn("public static var %s: Bool { testDerivation?" % flag, capability)
 
     def test_missing_keys_are_listed_and_not_invented_as_a_surface(self):
         model = MODEL.read_text()

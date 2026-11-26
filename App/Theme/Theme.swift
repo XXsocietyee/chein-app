@@ -7,10 +7,32 @@ import UIKit
 enum ThemeDomain: String, CaseIterable {
     case player, merchant, topicEditor, dark, game
 
+    /// The role's nominal appearance (kept for callers that branch on the role, e.g. palette fallbacks).
     var colorScheme: ColorScheme {
         switch self {
         case .player, .dark, .game: return .dark
         case .merchant, .topicEditor: return .light
+        }
+    }
+
+    /// Native iOS r2 (owner 2026-11-26: "native UI components, identical to Apple's"): player, merchant and editor
+    /// screens follow the system Light/Dark setting like Apple's own apps. Only the play stage (`.game`) and explicit
+    /// `.dark` surfaces stay dark. `nil` = follow the system.
+    var forcedColorScheme: ColorScheme? {
+        switch self {
+        case .dark, .game: return .dark
+        case .player, .merchant, .topicEditor: return nil
+        }
+    }
+}
+
+extension View {
+    /// Applies a forced scheme when the domain has one; otherwise leaves the system appearance alone.
+    @ViewBuilder func cyApplyColorScheme(_ scheme: ColorScheme?) -> some View {
+        if let scheme {
+            self.environment(\.colorScheme, scheme).preferredColorScheme(scheme)
+        } else {
+            self
         }
     }
 }
@@ -210,18 +232,17 @@ private struct CYThemeDomainModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .environment(\.themeDomain, domain)
-            .environment(\.colorScheme, domain.colorScheme)
+            .cyApplyColorScheme(domain.forcedColorScheme)
             .environment(\.cyThemeDepth, depth + 1)
             // verify-r2 N-01: controls take this domain's brand tint; inheriting the shell's (white on the player)
             // made a light sheet's 关闭 button invisible.
             .tint(CYDomainPalette(domain).brand)
             // Applies to the nearest presentation. Inside a role root it is overridden by the root's arbitrated value,
             // which is why the request below exists; in a sheet it is what sets the sheet's scheme.
-            .preferredColorScheme(domain.colorScheme)
             .background {
                 #if canImport(UIKit)
-                if requestsShellScheme, let arbiter {
-                    CYShellSchemeRequestHost(arbiter: arbiter, depth: depth + 1, scheme: domain.colorScheme)
+                if requestsShellScheme, let arbiter, let forced = domain.forcedColorScheme {
+                    CYShellSchemeRequestHost(arbiter: arbiter, depth: depth + 1, scheme: forced)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
                 }

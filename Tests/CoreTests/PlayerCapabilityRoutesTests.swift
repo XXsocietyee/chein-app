@@ -105,6 +105,31 @@ final class PlayerCapabilityRoutesTests: XCTestCase {
         XCTAssertEqual(text, "举报编号 31 · 当前阶段：申诉中")
     }
 
+    func testReportAppealKeepsTheRequestIdAndDoesNotTreatUnknownAsSuccess() async throws {
+        let first = try XCTUnwrap(CommunityTrustPlayerService.appealSubmission(existingRequestID: "", lockedReason: "", reason: "  处理不公  ", reportID: 31))
+        let retry = try XCTUnwrap(CommunityTrustPlayerService.appealSubmission(existingRequestID: first.requestID, lockedReason: first.reason, reason: "换成另一段理由", reportID: 31))
+        XCTAssertEqual(retry.requestID, first.requestID)
+        XCTAssertEqual(retry.reason, "处理不公")
+        XCTAssertNil(CommunityTrustPlayerService.appealSubmission(existingRequestID: "", lockedReason: "", reason: " ", reportID: 31))
+        XCTAssertNil(CommunityTrustPlayerService.appealSubmission(existingRequestID: "", lockedReason: "", reason: String(repeating: "理", count: 1001), reportID: 31))
+        XCTAssertNil(CommunityTrustPlayerService.appealSubmission(existingRequestID: "short", lockedReason: "处理不公", reason: "处理不公", reportID: 31))
+
+        let stub = RouteStub()
+        let service = CommunityTrustPlayerService(client: client(stub))
+        stub.replies["api/community-trust/reports/appeal"] = (#"{"code":200,"data":{}}"#, 200)
+        do {
+            _ = try await service.appeal(reportID: 31, reason: "处理不公", requestID: first.requestID, stageLabel: { CommunityTrustPlayerService.stageLabels[$0] })
+            XCTFail("unconfirmed receipt")
+        } catch { XCTAssertEqual(error as? PlayerCapabilityFailure, .outcomeUnknown) }
+        XCTAssertEqual(stub.lastJSON["requestId"] as? String, first.requestID)
+        stub.fail = true
+        do {
+            _ = try await service.appeal(reportID: 31, reason: "处理不公", requestID: first.requestID, stageLabel: { CommunityTrustPlayerService.stageLabels[$0] })
+            XCTFail("transport")
+        } catch { XCTAssertEqual(error as? PlayerCapabilityFailure, .outcomeUnknown) }
+        XCTAssertEqual(stub.requests.count, 2)
+    }
+
     func testCommunityMineListsReadPostsAndBookmarks() async throws {
         let stub = RouteStub()
         let service = SquareService(configuration: try APIConfiguration(baseURL: base), transport: stub)

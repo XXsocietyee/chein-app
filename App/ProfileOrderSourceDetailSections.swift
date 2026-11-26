@@ -61,6 +61,7 @@ struct ProfileOrderSourceDetailSections: View {
 /// Team, open seats, and club from the order. Follow posts `api/user/follow/action` and does not pay.
 /// FIN-17-4: MP order detail 和队友一起出发 (D:125-145, `startOrderTeam` → team create), 同行席位
 /// (D:205-214, `goSeats` → `subpackageJourney/pages/seats`) and the host club follow (`followClub` → /api/user/follow/action).
+/// The club row opens the club page (which sends join / apply / leave through `ClubActionCoordinator`) when it is configured.
 struct ProfileOrderTeamSeatClubSection: View {
     let order: ProfileOrder
     @EnvironmentObject private var session: AppSession
@@ -80,29 +81,60 @@ struct ProfileOrderTeamSeatClubSection: View {
                 } footer: {
                     Text("orderDetail.team.note")
                 }
+            } else if order.teamOpen {
+                Section {
+                    Text("orderDetail.inviteTeammates")
+                        .accessibilityIdentifier("profile.order.teamOpen")
+                }
             }
-            if order.seatsOpen, bindings.journeySeats != nil {
+            if order.seatsOpen {
                 Section("orderDetail.seatsEntry") {
-                    NavigationLink { MPParityDestination(route: .journeySeats(registrationID: String(order.id))) } label: {
+                    if bindings.journeySeats != nil {
+                        NavigationLink { MPParityDestination(route: .journeySeats(registrationID: String(order.id))) } label: {
+                            LabeledContent("orderDetail.seats.manage") {
+                                Text("orderDetail.seats.count \(order.orderNum ?? 0)")
+                            }
+                        }
+                        .accessibilityIdentifier("profile.order.seatsOpen")
+                    } else {
                         LabeledContent("orderDetail.seats.manage") {
                             Text("orderDetail.seats.count \(order.orderNum ?? 0)")
                         }
+                        .accessibilityIdentifier("profile.order.seatsOpen")
                     }
-                    .accessibilityIdentifier("profile.order.seatsOpen")
                 }
             }
             if let club = order.club {
                 Section("orderDetail.club.section") {
-                    LabeledContent("profile.order.club") {
-                        Text(verbatim: club.name.isEmpty ? "—" : club.name)
-                    }
-                    .accessibilityIdentifier("profile.order.club")
+                    clubRow(club)
                     if let leader = club.leaderMemberID, leader > 0, !followed {
                         Button("orderDetail.club.follow") { Task { await follow(leader) } }
                             .accessibilityIdentifier("profile.order.follow")
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder private func clubRow(_ club: ProfileOrderClub) -> some View {
+        let name = Text(verbatim: club.name.isEmpty ? "—" : club.name)
+        if session.clubActionCoordinator.isConfigured {
+            NavigationLink {
+                ClubDetailView(
+                    id: club.id,
+                    reader: session,
+                    actionCoordinator: session.clubActionCoordinator,
+                    management: session.clubManagementContext,
+                    community: session.clubCommunityContext,
+                    publicRoster: session.clubPublicRosterReader
+                )
+            } label: {
+                LabeledContent("profile.order.club") { name }
+            }
+            .accessibilityIdentifier("profile.order.club")
+        } else {
+            LabeledContent("profile.order.club") { name }
+                .accessibilityIdentifier("profile.order.club")
         }
     }
 
@@ -115,6 +147,7 @@ struct ProfileOrderTeamSeatClubSection: View {
 }
 
 /// One unpaid marketing-consent row for this order's merchant, after the existing marketing GET.
+/// Display only. The consent write is not sent from this page.
 struct ProfileOrderConsentSection: View {
     let order: ProfileOrder
     @EnvironmentObject private var session: AppSession
@@ -123,12 +156,15 @@ struct ProfileOrderConsentSection: View {
     var body: some View {
         Group {
             if let offer {
-                Section("profile.order.consent") {
+                Section("orderDetail.merchantConsent.section") {
                     if let name = offer.merchantName, !name.isEmpty {
-                        Text(verbatim: name).accessibilityIdentifier("profile.order.consent.name")
+                        Text(verbatim: name)
+                            .cyText(.body)
+                            .accessibilityIdentifier("profile.order.consent.name")
                     }
-                    Button("profile.order.follow") { Task { await follow(offer.merchantOwnerMemberId) } }
-                        .accessibilityIdentifier("profile.order.consent.follow")
+                    Text("profile.order.consent")
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityIdentifier("profile.order.consent")
             }
@@ -140,12 +176,6 @@ struct ProfileOrderConsentSection: View {
         guard let pair = session.complianceSignupContext() else { return }
         let rows = (try? await pair.0.marketing(session: pair.1)) ?? []
         offer = ProfileOrderConsentOffer.pick(rows: rows, ownerMemberID: order.merchantOwnerMemberID)
-    }
-
-    private func follow(_ memberID: Int) async {
-        guard memberID > 0, let base = session.currentRuntimeDependencyContext?.baseURL else { return }
-        let service = MemberRound2Service(baseURL: base, token: { [weak session] in session?.token }, transport: session.runtimeHTTPTransport)
-        _ = await service.followClubOwner(memberID: memberID)
     }
 }
 

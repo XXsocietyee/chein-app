@@ -7,6 +7,10 @@ import SwiftUI
     /// Payout area: open for DEBUG/TEST off the production host, closed on www.chengyinhub.com and in Release.
     static func payoutOpen(_ session: AppSession) -> Bool { ReviewedAreaSwitch.payoutOpen(session: session) }
     static func paymentsOpen(_ session: AppSession) -> Bool { ReviewedAreaSwitch.paymentsOpen(session: session) }
+    /// CLB-settlement-05 (MP settlement/index.js:117-125; cy/fe-reference-settlement/index.js:41): the settlement **reads**
+    /// (mine list, personal summary, direct ledger, FE payer list and export) move no money, so they are not behind the
+    /// payout area. Bind, unbind, settle and withdraw stay TEST-only (AppLease / ReleaseMoneyWriteSwitch / FE money gate).
+    static func readsOpen(_ session: AppSession) -> Bool { session.regionalConfiguration?.apiConfiguration != nil }
 
     /// The native app has no mini-program `wx.login`. Bind needs a one-time WeChat code; the WeChat SDK is not configured
     /// in this build, so this stays nil and bind answers 「请先完成微信登录」 instead of sending a request.

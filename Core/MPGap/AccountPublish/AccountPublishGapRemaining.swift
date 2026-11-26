@@ -52,15 +52,10 @@ public struct AccountPublishRemainingClient {
 
     public func bindPhone(code: String, token: String) async throws -> String {
         let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { throw APIError.invalidRequest }
-        struct PhonePayload: Decodable { let phone: String }
-        let payload: PhonePayload = try await MPGapHTTP.postJSON(
-            configuration: configuration,
-            transport: transport,
-            path: "api/getwxbindphone",
-            body: ["code": trimmed],
-            token: token
-        )
-        return payload.phone
+        guard !trimmed.isEmpty, !token.isEmpty else { throw APIError.invalidRequest }
+        // OWN-D-09: a WeChat phone code is not a native bind. SMS bind is a different route.
+        _ = configuration
+        _ = transport
+        throw APIError.notConfigured
     }
 }

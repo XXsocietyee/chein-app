@@ -18,8 +18,7 @@ struct GlobalTemplateResultRow: View {
     }
     private var coverLayout: some View {
         VStack(alignment: .leading, spacing: 0) {
-            E1CoverArt(seed: row.title, symbol: row.kind == .topicTemplate ? "map" : "puzzlepiece.extension",
-                       imageURL: row.imageURL, debugLabel: false)
+            coverArt
                 .frame(maxWidth: .infinity)
                 .frame(height: 160)
                 .clipped()
@@ -28,6 +27,18 @@ struct GlobalTemplateResultRow: View {
         .background(CYColor.bgElevated)
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
+    }
+    /// MP: pages/search2/result/index.wxml:55 — no cover → `.tpl-big__art` (200rpx, aspectFit, centred) from utils/template-art.js via utils/discover-search.js:117.
+    @ViewBuilder private var coverArt: some View {
+        if row.kind != .topicTemplate, (row.imageURL ?? "").isEmpty, let art = TemplateShelfArt.interactionIcon(row.title) {
+            ZStack {
+                CYColor.bgElevated
+                art.resizable().scaledToFit().frame(width: 100, height: 100).accessibilityHidden(true)
+            }
+        } else {
+            E1CoverArt(seed: row.title, symbol: row.kind == .topicTemplate ? "map" : "puzzlepiece.extension",
+                       imageURL: row.imageURL, debugLabel: false)
+        }
     }
     private var rowLayout: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {

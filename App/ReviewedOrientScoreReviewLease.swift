@@ -3,7 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// The two orient score writes ride the existing reports grant. Sync, settle, purchase, and payout do not.
+/// Appeal and dispute ride the reports grant. Sync, settle, and recovery admit the MP body. Purchase and payout do not.
 enum OrientScoreReviewLease {
     static let appeal = "api/orient/scoring/appeal"
     static let dispute = "api/orient/scoring/dispute"
@@ -11,11 +11,14 @@ enum OrientScoreReviewLease {
 }
 
 extension ReviewedProductionFormMutationRoute {
-    /// Nil when this request is not an orient score review. False refuses it, including sync and settle.
+    /// Nil when this request is not an orient score review. Sync, settle, and recovery
+    /// send only the MP body. Purchase and payout stay closed.
     static func orientScoreReviewDecision(_ request: URLRequest, relative: String, reports: OperationEndpointApproval) -> Bool? {
-        if relative.hasPrefix("api/orient/scoring/session/")
-            && (relative.hasSuffix("/sync") || relative.hasSuffix("/settle")) {
-            return false
+        if relative.hasPrefix("api/orient/scoring/session/") && (relative.hasSuffix("/sync") || relative.hasSuffix("/settle")) {
+            return scoreSessionWrite(request, relative: relative)
+        }
+        if relative.hasPrefix("api/orient/scoring/session/") && relative.hasSuffix("/recovery") {
+            return scoreRecoveryWrite(request, relative: relative)
         }
         if relative == OrientScoreReviewLease.receipt {
             guard covers(OrientScoreReviewLease.appeal, reports), covers(OrientScoreReviewLease.dispute, reports) else { return false }
@@ -50,6 +53,35 @@ extension ReviewedProductionFormMutationRoute {
         return Set(fields.keys).isSubset(of: allowed)
     }
 
+    /// POST sync or settle. Body is exactly `idempotencyKey` and `sessionId` (`orient-score/index.js` `write`).
+    private static func scoreSessionWrite(_ request: URLRequest, relative: String) -> Bool {
+        guard request.httpMethod == "POST", request.url?.query == nil,
+              request.value(forHTTPHeaderField: "Content-Type") == "application/x-www-form-urlencoded; charset=utf-8",
+              let body = request.httpBody, let text = String(data: body, encoding: .utf8),
+              let fields = formFields(text) else { return false }
+        let money = ["payChannel", "payAmount", "price", "amount", "payableAmount"]
+        guard money.allSatisfy({ fields[$0] == nil }),
+              Set(fields.keys) == ["idempotencyKey", "sessionId"],
+              reviewKey(fields["idempotencyKey"]), positive(fields["sessionId"]),
+              let session = fields["sessionId"] else { return false }
+        return relative == "api/orient/scoring/session/\(session)/sync"
+            || relative == "api/orient/scoring/session/\(session)/settle"
+    }
+
+    /// POST recovery. Body is exactly `kind` (`orient-score/index.js` `requestManualReview`).
+    private static func scoreRecoveryWrite(_ request: URLRequest, relative: String) -> Bool {
+        guard request.httpMethod == "POST", request.url?.query == nil,
+              request.value(forHTTPHeaderField: "Content-Type") == "application/x-www-form-urlencoded; charset=utf-8",
+              let body = request.httpBody, let text = String(data: body, encoding: .utf8),
+              let fields = formFields(text), Set(fields.keys) == ["kind"],
+              let kind = fields["kind"], ["SYNC", "SETTLE", "APPEAL", "DISPUTE"].contains(kind) else { return false }
+        let prefix = "api/orient/scoring/session/"
+        let suffix = "/recovery"
+        guard relative.hasPrefix(prefix), relative.hasSuffix(suffix) else { return false }
+        let session = String(relative.dropFirst(prefix.count).dropLast(suffix.count))
+        return positive(session)
+    }
+
     private static func receiptRead(_ request: URLRequest) -> Bool {
         guard request.httpMethod == "GET", request.httpBody == nil || request.httpBody?.isEmpty == true,
               request.value(forHTTPHeaderField: "Content-Type") == nil,
@@ -60,7 +92,7 @@ extension ReviewedProductionFormMutationRoute {
         guard Set(names).count == names.count else { return false }
         let values = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value ?? "") })
         guard values.count == 3, reviewKey(values["idempotencyKey"]), positive(values["sessionId"]),
-              values["kind"] == "APPEAL" || values["kind"] == "DISPUTE" else { return false }
+              ["SYNC", "SETTLE", "APPEAL", "DISPUTE"].contains(values["kind"] ?? "") else { return false }
         return true
     }
 

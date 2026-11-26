@@ -237,7 +237,7 @@ struct OfficialFlowSurface: ViewModifier {
             .scrollContentBackground(.hidden)
             .background(Theme.Generated.color("--cy-color-bg-page", in: domain) ?? Color(uiColor: .systemGroupedBackground))
             .tint(Theme.Generated.color("--cy-color-brand", in: domain) ?? Color.accentColor)
-            .preferredColorScheme(domain.colorScheme)
+            .cyApplyColorScheme(domain.forcedColorScheme)
     }
 }
 
@@ -303,7 +303,7 @@ struct OfficialFlowActionBar<Content: View>: View {
             .frame(maxWidth: .infinity).padding(.horizontal, 16).padding(.vertical, 12)
             .controlSize(.large).background(.bar)
             .tint(Theme.Generated.color("--cy-color-brand", in: domain) ?? Color.accentColor)
-            .preferredColorScheme(domain.colorScheme)
+            .cyApplyColorScheme(domain.forcedColorScheme)
     }
 }
 

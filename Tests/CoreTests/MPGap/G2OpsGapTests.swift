@@ -159,9 +159,6 @@ final class G2OpsGapTests: XCTestCase {
             if req.url?.path.hasSuffix("cast/voice") == true {
                 return (Data(#"{"code":200,"data":{"url":"https://example.com/a.mp3"}}"#.utf8), 200)
             }
-            if req.url?.path.hasSuffix("getwxbindphone") == true {
-                return (Data(#"{"code":200,"data":{"phone":"138****0000"}}"#.utf8), 200)
-            }
             return (Data(#"{"code":200}"#.utf8), 200)
         }
         let client = AccountPublishGapClient(configuration: baseConfig, transport: transport)
@@ -183,9 +180,11 @@ final class G2OpsGapTests: XCTestCase {
         XCTAssertNil(handleBody["applicationId"])
         XCTAssertNil(handleBody["teamId"])
 
+        let sent = transport.requests.count
         let remClient = AccountPublishRemainingClient(configuration: baseConfig, transport: transport)
-        let phone = try await remClient.bindPhone(code: "wx-code", token: validToken)
-        XCTAssertEqual(phone, "138****0000")
+        do { _ = try await remClient.bindPhone(code: "wx-code", token: validToken); XCTFail("WeChat phone bind stays out") }
+        catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+        XCTAssertEqual(transport.requests.count, sent)
     }
 
     func testReferenceSettlementReadsSendTheRangeAndMoneyWritesSendNothing() async throws {
