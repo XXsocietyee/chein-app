@@ -6,8 +6,8 @@ import FoundationNetworking
 
 final class ChinaReviewedRouteCapabilityTests: XCTestCase {
     func testEveryCallSiteHasOneMark() {
-        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 995)
-        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 983)
+        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 996)
+        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 984)
         XCTAssertEqual(ChinaReviewedRouteCapability.newBackendOnlyCount, 0)
         // Channels contract 8.1: the five /api/native/blacklist/* routes are live (375 -> 370).
         XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 12)  // 2026-11-13 backend-final-gaps: only the 12 backend-closed workshop stubs stay missing (each row says why)
@@ -17,7 +17,7 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
             ChinaReviewedRouteCapability.callSiteCount
         )
         // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution + in-game channel resolve/summary.
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 679)
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 680)
         XCTAssertEqual(
             ChinaReviewedRouteCapability.productionBackendCommit,
             "014fc0d83afe9f53cf4a8b1f9544bcf634e9ce6c"

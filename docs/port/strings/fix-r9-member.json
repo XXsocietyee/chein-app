@@ -459,6 +459,244 @@
           }
         }
       }
+    },
+    "orientScore.pending.manual": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask for a review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请人工核对"
+          }
+        }
+      }
+    },
+    "orientScore.manual.confirmTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit this past action for review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交历史操作人工核对"
+          }
+        }
+      }
+    },
+    "orientScore.manual.confirmMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send this round's unfinished action to scoring review. Filing it does not replay the action or clear the original pending item."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将本局历史待办交给计分审核人员核对。登记不会重放原操作，也不会解除原待办。"
+          }
+        }
+      }
+    },
+    "orientScore.manual.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit for review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交核对"
+          }
+        }
+      }
+    },
+    "orientScore.notice.manualHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This step can't be confirmed on its own. You can ask for a review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一步没法自动确认，可以请人工核对"
+          }
+        }
+      }
+    },
+    "orientScore.notice.manualUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The review request isn't confirmed yet. Refresh later and check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对申请还没确认，稍后刷新看看"
+          }
+        }
+      }
+    },
+    "orientScore.notice.storage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone can't read the saved record. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这台手机上的记录读不出来，刷新试试"
+          }
+        }
+      }
+    },
+    "orientScore.notice.notStored": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The pending item wasn't saved, so nothing was sent. Check storage on this phone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待办未能保存，本次未提交，请检查本机存储"
+          }
+        }
+      }
+    },
+    "orientScore.kind.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原操作"
+          }
+        }
+      }
+    },
+    "orientScore.recoveries.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Past actions under review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史操作人工核对"
+          }
+        }
+      }
+    },
+    "orientScore.recoveries.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Under review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人工核对中"
+          }
+        }
+      }
+    },
+    "orientScore.recoveries.noted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review note recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录核对意见"
+          }
+        }
+      }
+    },
+    "orientScore.recoveries.note %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review note: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对意见：%@"
+          }
+        }
+      }
+    },
+    "orientScore.recoveries.kindFallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Past action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史操作"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

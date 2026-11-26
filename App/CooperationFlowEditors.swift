@@ -12,11 +12,14 @@ struct CoopFlowRequestPreview: View {
     @State private var openedConversation: Int?
     private let review: CoopFlowRequestReviewContext?
     private let operation: CoopFlowMutation
+    /// True only for 取消合作 on an accepted invite. That refund stays off the MP-first catalog.
+    private let cancelsAcceptedCooperation: Bool
     private enum Outcome: Equatable { case idle, sending, sent, failed(String?), unknown }
     @State private var outcome: Outcome = .idle
     init(operation: CoopFlowMutation, invitationContext: CoopFlowInvitationContext? = nil,
-         currentSession: CoopFlowSession? = nil) {
+         currentSession: CoopFlowSession? = nil, cancelsAcceptedCooperation: Bool = false) {
         self.operation = operation
+        self.cancelsAcceptedCooperation = cancelsAcceptedCooperation
         review = try? CoopFlowRequestReviewContext(operation: operation, invitationContext: invitationContext,
                                                   currentSession: currentSession)
     }
@@ -35,7 +38,7 @@ struct CoopFlowRequestPreview: View {
                 Label("coopflow.submit.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("coopflow.submit.unknown")
             default:
-                if review != nil, write?.make(operation) != nil {
+                if review != nil, write?.coordinator(for: operation, cancelsAcceptedCooperation: cancelsAcceptedCooperation) != nil {
                     Button { Task { await submit() } } label: {
                         HStack { Text("coopflow.submit"); if outcome == .sending { Spacer(); ProgressView() } }
                     }
@@ -54,7 +57,7 @@ struct CoopFlowRequestPreview: View {
                         .accessibilityIdentifier("coopflow.submit.editTopic")
                     }
                 } else {
-                    // Gated, not removed: production keeps merchant writes closed (ReviewedAreaSwitch).
+                    // Gated, not removed: China MP-first opens non-money writes. 取消合作 stays on the TEST host.
                     Button("coopflow.submit") {}.disabled(true).accessibilityIdentifier("coopflow.submit.disabled")
                     Text("coopflow.submit.gated").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
@@ -62,7 +65,7 @@ struct CoopFlowRequestPreview: View {
         }
     }
     private func submit() async {
-        guard outcome != .sending, let coordinator = write?.make(operation) else { return }
+        guard outcome != .sending, let coordinator = write?.coordinator(for: operation, cancelsAcceptedCooperation: cancelsAcceptedCooperation) else { return }
         outcome = .sending
         do {
             let accepted = try await coordinator.prepare(operation)
@@ -298,7 +301,8 @@ struct CoopFlowHandleEditor: View {
             }
         )
         .navigationDestination(isPresented: $proceedPreview) {
-            CoopFlowRequestPreview(operation: .handle(inviteID: inviteID, action: action, reason: reason))
+            CoopFlowRequestPreview(operation: .handle(inviteID: inviteID, action: action, reason: reason),
+                                   cancelsAcceptedCooperation: action == .cancel && currentStatus == 1)
         }
         .cyToast(verbatimMessage: $toastMessage)
     }
@@ -334,8 +338,8 @@ struct CoopFlowHandleEditor: View {
         }
     }
 
-    /// The TEST-only gated sender (`CoopFlowPreviewWriteFactory.stationAccept`, same per-op `.handle` approval as the
-    /// generic accept). Production returns nil, so the send falls to `flowReader`, whose dormant grant sends nothing.
+    /// Station accept (`CoopFlowPreviewWriteFactory.stationAccept`), the same per-op `.handle` approval as the
+    /// generic accept. Nil where that write is closed, so the send falls to `flowReader`.
     private var stationSender: ((_ inviteID: Int, _ reason: String?, _ stationID: Int) async throws -> CoopFlowJSON)? {
         write?.stationAccept()
     }

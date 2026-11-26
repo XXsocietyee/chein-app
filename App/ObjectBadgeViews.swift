@@ -23,6 +23,35 @@ struct ObjectBadgeWallLayoutSelection {
     mutating func retire() { owner = nil; layout = .list }
 }
 
+/// BWALL-3 grouping for the wall the server already returned. Lit identities stay in server order,
+/// then city medals, then achievements. Locked identities stay in server order. Medals are lit.
+/// A missing medal collection is not invented. Identifiers stay on the old family prefixes.
+private enum ObjectBadgeWallColumns {
+    struct Slot {
+        let badge: ProfileBadgeSelection
+        let identifier: String
+    }
+    static func split(_ wall: ProfileBadgeWall) -> (lit: [Slot], locked: [Slot]) {
+        var lit: [Slot] = []
+        var locked: [Slot] = []
+        for (index, badge) in ObjectBadgeWallOrdering.litFirst(wall.identities).enumerated() {
+            let slot = Slot(badge: .identity(badge), identifier: "profile.badge.identity.\(index)")
+            if badge.unlocked { lit.append(slot) } else { locked.append(slot) }
+        }
+        if let medals = wall.medals {
+            let city = medals.filter { !$0.isAchievement }
+            let achievements = medals.filter(\.isAchievement)
+            for (index, badge) in city.enumerated() {
+                lit.append(Slot(badge: .medal(badge), identifier: "profile.badge.medal.\(index)"))
+            }
+            for (index, badge) in achievements.enumerated() {
+                lit.append(Slot(badge: .medal(badge), identifier: "profile.badge.achievement.\(index)"))
+            }
+        }
+        return (lit, locked)
+    }
+}
+
 /// Additive replacement for the old wall's unrestricted AsyncImage and static detail.
 /// Same ProfileService two-endpoint/partial-result reads; no new endpoint or model assets.
 @MainActor struct ObjectBadgeWallView: View {
@@ -30,41 +59,25 @@ struct ObjectBadgeWallLayoutSelection {
     var media: (any ObjectCardImageLoading)? = nil
     /// Play-side badge code to read back on the loaded wall (source query `badgeCode`).
     var focusBadgeCode: String? = nil
-    @State private var layoutSelection = ObjectBadgeWallLayoutSelection()
     @Environment(\.objectCardMedia) private var envMedia
     @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     @Namespace private var hero
     @CYAlbumSeen private var seen
     @Environment(\.rootTabSwitch) private var rootTabSwitch
-    private var layoutOwner: ObjectBadgeWallLayoutOwner {
-        .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
+    /// BWALL-3: two columns at the default text size, one column when Dynamic Type is an accessibility size.
+    private var badgeWallColumns: [GridItem] {
+        let count = dynamicTypeSize.isAccessibilitySize ? 1 : 2
+        return Array(repeating: GridItem(.flexible(), spacing: CYSpacing.md, alignment: .top), count: count)
     }
     var body: some View {
-        let owner = layoutOwner
-        let layout = layoutSelection.value(for: owner)
         // BWALL-5: the signed-out state offers 登录 (opens 我的) like the MP access gate.
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", onSignIn: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil,
                           load: { try await reader.profileBadges() }) { wall in
+            let groups = ObjectBadgeWallColumns.split(wall)
             List {
                 ObjectBadgeWallParityHeader(wall: wall, focusBadgeCode: focusBadgeCode)
-                Section {
-                    ObjectBadgeWallLayoutControl(selection: Binding(
-                        get: { layoutSelection.value(for: layoutOwner) },
-                        set: { layoutSelection.choose($0, rendered: owner, current: layoutOwner) }))
-                }
-                .listRowBackground(palette.bgElevated)
-                if layout == .wall {
-                    let showcase = ObjectBadgeAlbumItem.showcase(wall: wall)
-                    if !showcase.isEmpty {
-                        Section {
-                            ObjectBadgeShowcase(items: showcase, seen: seen)
-                                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
-                        }
-                    }
-                }
                 if wall.isPartial {
                     Section {
                         Text("profile.badges.partial")
@@ -82,46 +95,31 @@ struct ObjectBadgeWallLayoutSelection {
                         .accessibilityIdentifier("profile.badges.emptyState")
                         .listRowBackground(palette.bgElevated)
                 }
-                if !wall.identities.isEmpty {
-                    Section("profile.badges.identities") {
-                        badgeRows(ObjectBadgeWallOrdering.litFirst(wall.identities).map { .identity($0) }, accessibilityPrefix: "profile.badge.identity", layout: layout, wall: wall)
+                // BWALL-3: the wall is 已点亮 then 未解锁. Each group is a system grid, not a family list.
+                if !groups.lit.isEmpty {
+                    Section("profile.badges.unlocked") {
+                        badgeGrid(groups.lit, wall: wall)
                     }
                     .listRowBackground(palette.bgElevated)
                 }
-                if let medals = wall.medals {
-                    let city = medals.filter { !$0.isAchievement }
-                    let achievements = medals.filter(\.isAchievement)
-                    if !city.isEmpty {
-                        Section("profile.badges.medals") {
-                            badgeRows(city.map { .medal($0) }, accessibilityPrefix: "profile.badge.medal", layout: layout, wall: wall)
-                        }
-                        .listRowBackground(palette.bgElevated)
+                if !groups.locked.isEmpty {
+                    Section("profile.badges.notUnlocked") {
+                        badgeGrid(groups.locked, wall: wall)
                     }
-                    if !achievements.isEmpty {
-                        Section("profile.badges.achievements") {
-                            badgeRows(achievements.map { .medal($0) }, accessibilityPrefix: "profile.badge.achievement", layout: layout, wall: wall)
-                        }
-                        .listRowBackground(palette.bgElevated)
-                    }
+                    .listRowBackground(palette.bgElevated)
                 }
             }
         }.scrollContentBackground(.hidden).cyDomainPageBackground().cyAlbumChildTitle("profile.badges.title")
             .cyHideTabBar()
             // The typed internal badge-path entry is not a player feature and is not offered here.
-            .onChange(of: layoutOwner) { _, _ in layoutSelection.retire() }
     }
-    @ViewBuilder private func badgeRows(_ badges: [ProfileBadgeSelection], accessibilityPrefix: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
-        if layout == .wall {
-            LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
-                ForEach(Array(badges.enumerated()), id: \.offset) { index, badge in
-                    link(badge, identifier: "\(accessibilityPrefix).\(index)", albumID: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall).buttonStyle(.plain)
-                }
-            }.padding(.vertical, 4)
-        } else {
-            ForEach(Array(badges.enumerated()), id: \.offset) { index, badge in
-                link(badge, identifier: "\(accessibilityPrefix).\(index)", albumID: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall)
+    @ViewBuilder private func badgeGrid(_ slots: [ObjectBadgeWallColumns.Slot], wall: ProfileBadgeWall) -> some View {
+        let layout = ObjectBadgeWallLayout.wall
+        LazyVGrid(columns: badgeWallColumns, alignment: .leading, spacing: CYCollectionGrid.spacing) {
+            ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
+                link(slot.badge, identifier: slot.identifier, albumID: slot.identifier, layout: layout, wall: wall).buttonStyle(.plain)
             }
-        }
+        }.padding(.vertical, 4)
     }
     private func link(_ badge: ProfileBadgeSelection, identifier: String, albumID: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
         let capturedIdentity = reader.identity
@@ -161,111 +159,6 @@ struct ObjectBadgeAlbumItem: Identifiable {
     /// Unlocked within the last seven days. Locked badges are never new.
     static func isNew(_ badge: ProfileBadgeSelection) -> Bool {
         !badge.isLocked && CYAlbumRecency.isNew(obtainedRaw(badge))
-    }
-    /// Unlocked pieces, newest first, at most eight, with unique ids for the pager.
-    static func showcase(wall: ProfileBadgeWall) -> [ObjectBadgeAlbumItem] {
-        var candidates: [ProfileBadgeSelection] = wall.identities.filter(\.unlocked).map { ProfileBadgeSelection.identity($0) }
-        candidates.append(contentsOf: (wall.medals ?? []).map { ProfileBadgeSelection.medal($0) })
-        candidates.sort { (CYAlbumRecency.date(obtainedRaw($0)) ?? .distantPast) > (CYAlbumRecency.date(obtainedRaw($1)) ?? .distantPast) }
-        var used: Set<String> = []
-        var items: [ObjectBadgeAlbumItem] = []
-        for (index, badge) in candidates.prefix(8).enumerated() {
-            var id = seenKey(badge)
-            if id.isEmpty || used.contains(id) { id = "showcase.\(index)" }
-            used.insert(id)
-            items.append(ObjectBadgeAlbumItem(id: id, badge: badge))
-        }
-        return items
-    }
-}
-
-/// Unlocked badges as album pages that turn on their spine. Each page flips: medal in front, how it was earned on the back.
-private struct ObjectBadgeShowcase: View {
-    let items: [ObjectBadgeAlbumItem]
-    let seen: Set<String>
-    @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
-    var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: ChannelCopy.text("已点亮", "Lit up", locale: locale))
-                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .accessibilityAddTraits(.isHeader)
-            CYAlbumPager(items: items, height: 312, pageLabel: { page, count in
-                Text(verbatim: ChannelCopy.text("第 \(page) 页，共 \(count) 页", "Page \(page) of \(count)", locale: locale))
-            }) { item in
-                ObjectBadgeShowcasePage(badge: item.badge, isNew: ObjectBadgeAlbumItem.isNew(item.badge) && !seen.contains(ObjectBadgeAlbumItem.seenKey(item.badge)))
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-            }
-        }
-        .padding(.vertical, CYSpacing.sm)
-        .accessibilityIdentifier("objects.badge.showcase")
-    }
-}
-
-private struct ObjectBadgeShowcasePage: View {
-    let badge: ProfileBadgeSelection
-    let isNew: Bool
-    @State private var flipped = false
-    @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
-    private var name: String { badge.name.isEmpty ? ChannelCopy.text("徽章", "Badge", locale: locale) : badge.name }
-    private var obtained: String? { ObjectBadgePresentation.date(ObjectBadgeAlbumItem.obtainedRaw(badge)) }
-    private var requirement: String {
-        switch badge {
-        case .identity(let value): return value.unlockHint.isEmpty ? value.statement : value.unlockHint
-        case .medal(let value): return value.displayCondition
-        }
-    }
-    var body: some View {
-        CYFlipCard(flipped: $flipped, flipActionTitle: Text(verbatim: ChannelCopy.text("翻面", "Flip", locale: locale))) {
-            front
-        } back: {
-            back
-        }
-        .cyNewPulse(isNew, text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
-    }
-    private var front: some View {
-        VStack(spacing: CYSpacing.md) {
-            CYFoilMedal(unlocked: true, size: 150) {
-                ZStack {
-                    // MP badge-3d / xr-badge default art `badge-demo.png` (MP assets), not an SF medal.
-                    MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit().padding(CYSpacing.md)
-                }
-            }
-            Text(verbatim: name).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                .multilineTextAlignment(.center).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-            if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained, tone: .success, systemImage: "checkmark.seal.fill") }
-            else { CYStatusChip("profile.badges.unlocked", tone: .success, systemImage: "checkmark.seal.fill") }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .cyAlbumCard(padding: CYSpacing.lg)
-        .cyFoilSheen(trigger: flipped ? 0 : 1)
-        .accessibilityElement(children: .combine)
-        .accessibilityHint(Text(verbatim: ChannelCopy.text("双击翻面查看获得条件", "Double-tap to flip for how it was earned", locale: locale)))
-    }
-    private var back: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            HStack {
-                Text(badge.familyKey).cyText(.meta).foregroundStyle(palette.textSecondary)
-                Spacer(minLength: CYSpacing.sm)
-                Image(systemName: "medal.fill").foregroundStyle(CYAlbumMotion.gold).accessibilityHidden(true)
-            }
-            Divider()
-            Text(verbatim: name).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
-            if let obtained, !obtained.isEmpty {
-                CYFactRow(label: Text(verbatim: ChannelCopy.text("获得日期", "Earned on", locale: locale)), value: obtained)
-            }
-            Text(verbatim: ChannelCopy.text("获得条件", "How it was earned", locale: locale))
-                .cyText(.meta).foregroundStyle(palette.textSecondary)
-            Text(verbatim: requirement.isEmpty ? CYAlbumCopy.unknownMark : requirement)
-                .cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-            Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
-                .cyText(.caption).foregroundStyle(palette.textTertiary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .cyAlbumCard(padding: CYSpacing.lg)
     }
 }
 

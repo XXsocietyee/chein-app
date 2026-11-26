@@ -87,12 +87,6 @@ public enum OrientReviewSheetKind: String, Identifiable, Sendable {
     case dispute = "DISPUTE"
 
     public var id: String { rawValue }
-    public var title: String {
-        switch self {
-        case .appeal: return "计分申诉"
-        case .dispute: return "成绩争议"
-        }
-    }
 }
 
 public enum OrientAppealValidator {

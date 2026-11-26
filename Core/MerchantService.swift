@@ -32,7 +32,7 @@ public struct MerchantService {
             else { values = try decoder.container(keyedBy: CodingKeys.self).decode([Value].self, forKey: .rows) }
         }
     }
-    private enum Body { case none, json([String: Int]), form([String: String]), urlencoded }
+    private enum Body { case none, json([String: Int]), form([String: String]), urlencoded, emptyObject }
     private func post<Value: Decodable>(_ path: String, body: Body = .none, token: String) async throws -> Value {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         let url = configuration.baseURL.appendingPathComponent(path)
@@ -44,11 +44,14 @@ public struct MerchantService {
             request = try AuthRequestBuilder.makeFormRequest(url: url, fields: [:], token: token, includesBody: false)
             request.httpBody = Data()
             request.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        case .none, .json:
+        case .none, .json, .emptyObject:
             request = try AuthRequestBuilder.makeFormRequest(url: url, fields: [:], token: token, includesBody: false)
             if case .json(let fields) = body {
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+            } else if case .emptyObject = body {
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.httpBody = Data("{}".utf8)
             }
         }
         let (data, status) = try await transport.send(request)
@@ -91,6 +94,12 @@ public struct MerchantService {
         return try await post("api/project/my", body: .form([
             "type": "all", "state": "all", "ownerType": "all", "scope": "MERCHANT", "pageNum": "1", "pageSize": "200"
         ]), token: token)
+    }
+    /// pages/merchant/index/index.js loadUpcomingRuns: POST JSON `{}`. Skipped without verify-record read.
+    public func upcomingRuns(access: MerchantAccess, token: String) async throws -> [MerchantUpcomingRun] {
+        guard access.allows(.verifyRecordRead) else { throw MerchantReadError.accessDenied }
+        let rows: Rows<MerchantUpcomingRun> = try await post("api/merchant/upcoming-runs", body: .emptyObject, token: token)
+        return rows.values
     }
 }
 

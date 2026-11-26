@@ -2925,6 +2925,40 @@
         }
       }
     },
+    "merchantOps.aftercare.manualCase.amount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款金额"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.number": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Case number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工单编号"
+          }
+        }
+      }
+    },
     "merchantOps.aftercare.manualCase.progress": {
       "extractionState": "manual",
       "localizations": {

@@ -280,15 +280,18 @@ import SwiftUI
                                      startsInEditor: true, from: query["from"])
             }
         case "subpackageMember/mytemplate/mytemplate":
+            // R8-MEM-26-1: retired the rewrite onto 我发布的. This route is the template author's 我的 page and keeps the link query.
             TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision,
                                       memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0).environmentObject(session)) },
                                       ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0).environmentObject(session)) },
-                                      creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0).environmentObject(session)) })
+                                      creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0).environmentObject(session)) },
+                                      linkQuery: query)
         case "pages/club/detail/index":
             // MP detail onLoad: `tab` = manage | overview; `owner` without an id resolves my own club.
             if let id = reviewedID(query) {
-                clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil },
-                           postID: positiveID(query["postId"]))
+                let scan = query["scan"] == "1"
+                clubDetail(id, tab: scan ? .manage : ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil },
+                           postID: positiveID(query["postId"]), autoScan: scan)
             } else if query["owner"] != nil {
                 // MP club/detail/index.js:798-819 resolveOwnerEntry: exactly one owned club opens it (on `tab`); several → picker.
                 let tab = ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil }
@@ -408,7 +411,8 @@ import SwiftUI
         case "pages/topic/index/index":
             if let id = reviewedID(query) {
                 let preferSession = MiniProgramPageLink(path: page, query: query)?.opensSessionPickerFirst == true
-                SessionTopicDetailView(id: id, session: session, preferSession: preferSession)
+                SessionTopicDetailView(id: id, session: session, preferSession: preferSession,
+                                       ticketSource: ticketSource(id, query))
             } else { unavailable }
         case "pages/templatedetail/templatedetail":
             // R7-PC-A6-1: MP `scope=my` is the viewer's own template (member read), never the public `api/template/info`.
@@ -566,10 +570,11 @@ import SwiftUI
         // MC7-31-10 / MC8-31-1: the new-invitation page with the `type` / `toId` / `topicId` presets applied.
         case "pages/coop/invite/index":
             let inviteLink = CoopInviteLink(query)
-            CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: nil,
+            CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: inviteLink?.scope,
                                       initialType: inviteLink?.type,
-                                      lockedTarget: inviteLink.flatMap { link in link.toID.map { CoopInviteLockedTarget(type: link.type, toID: $0, name: "") } },
-                                      initialTopicID: inviteLink?.topicID)
+                                      lockedTarget: inviteLink.flatMap { link in link.toID.map { CoopInviteLockedTarget(type: link.type, toID: $0, name: link.toName ?? "") } },
+                                      initialTopicID: inviteLink?.topicID,
+                                      originApplyID: inviteLink?.originApplyID)
                 .environment(\.coopTopicPublishDestination, { scope in
                     AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: scope.map { ["scope": $0] } ?? [:]).environmentObject(session))
                 })
@@ -829,10 +834,22 @@ import SwiftUI
 
     @Environment(\.clubBadgeHostFactory) private var badgeHost
 
-    private func clubDetail(_ id: Int, tab: ClubDetailTab?, postID: Int? = nil) -> some View {
+    private func clubDetail(_ id: Int, tab: ClubDetailTab?, postID: Int? = nil, autoScan: Bool = false) -> some View {
         ClubDetailView(id: id, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
                        management: session.clubManagementContext, community: session.clubCommunityContext,
-                       publicRoster: session.clubPublicRosterReader, requestedTab: tab, focusPostID: postID)
+                       publicRoster: session.clubPublicRosterReader, requestedTab: tab, focusPostID: postID, autoScan: autoScan)
+    }
+
+    /// CLB-detail-11: keep the share card only when it names this topic.
+    private func ticketSource(_ topicID: Int, _ query: [String: String]) -> TopicClubShareLink? {
+        guard let clubID = reviewedID(query, key: "sourceClubId") else { return nil }
+        let raw = query["clubCode"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let code = raw.flatMap { value -> String? in
+            guard (1...64).contains(value.unicodeScalars.count),
+                  value.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }) else { return nil }
+            return value
+        }
+        return TopicClubShareLink(topicID: topicID, sourceClubId: clubID, clubCode: code)
     }
 
     private var ownedClubs: some View {

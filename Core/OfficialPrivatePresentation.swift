@@ -338,7 +338,7 @@ public enum OfficialMinePageIssue: Equatable {
             case .noPublisherPermission: self = .noPublisherPermission
             case .unavailable: self = .unavailable
             case .forbidden: self = .forbidden
-            case .rejected(let code): self = .rejected(code)
+            case .rejected(let code), .explained(let code, _): self = .rejected(code)
             }
             return
         }

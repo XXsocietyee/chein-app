@@ -94,6 +94,22 @@ private final class RetainedImageFakeTransport: HTTPTransport {
         guard case .reviewing(let review) = owner.state else { return XCTFail() }
         owner.clear(); await owner.confirm(review); XCTAssertTrue(t.requests.isEmpty)
     }
+    func testTopicImageDestinationsSendChooseImageBizType() async throws {
+        let cases: [(RetainedImageScope.Destination, String)] = [
+            (.topicCover, "image_3_4"), (.topicGallery, "image_16_9"), (.topicRichMedia, "image_free"), (.stamp, "stamp")
+        ]
+        for (destination, biz) in cases {
+            let imageScope = try RetainedImageScope(accountID: 8, epoch: UUID(), realm: realm, destination: destination, namespace: "test-deployment")
+            let transport = RetainedImageFakeTransport()
+            _ = try await client(imageScope, transport).upload(.init(scope: imageScope, selection: selection()))
+            let body = String(decoding: try XCTUnwrap(transport.requests.first?.httpBody), as: UTF8.self)
+            XCTAssertTrue(body.contains("name=\"bizType\"\r\n\r\n" + biz), biz)
+            XCTAssertEqual(transport.requests.first?.url?.path, "/api/common/uploadOSS")
+        }
+        let merchant = try scope(field: .logo), transport = RetainedImageFakeTransport()
+        _ = try await client(merchant, transport).upload(.init(scope: merchant, selection: selection()))
+        XCTAssertFalse(String(decoding: try XCTUnwrap(transport.requests.first?.httpBody), as: UTF8.self).contains("bizType"))
+    }
     func testBoundsAndURLPolicy() throws {
         XCTAssertThrowsError(try RetainedSelectedImage(jpeg: Data(), width: 1, height: 1))
         XCTAssertThrowsError(try RetainedSelectedImage(jpeg: Data([255,216,255]), width: 4097, height: 1))

@@ -9,6 +9,7 @@ import SwiftUI
     let access: MerchantAccess
     let aftercareRoute: MerchantWorkbenchBusinessRoute?
     let predictionReader: MerchantPredictionReader?
+    var settlement: MerchantMarketingService? = nil
 
     static func aftercareCount(_ todo: MerchantTodo?, access: MerchantAccess, isLoading: Bool, errorKey: String? = nil) -> Int? {
         guard !isLoading, errorKey == nil, let todo, access.canReadAftercare, todo.refundCount > 0 else { return nil }
@@ -34,7 +35,7 @@ import SwiftUI
                 }
                 if let predict {
                     if let predictionReader, predictionReader.isConfigured {
-                        NavigationLink { MerchantPredictionInboxView(reader: predictionReader.isolatedReader()) } label: {
+                        NavigationLink { MerchantPredictionInboxView(reader: predictionReader.isolatedReader(), settlement: settlement) } label: {
                             reminder(Text("merchant.workbench.predictReminder \(predict)"))
                         }.accessibilityIdentifier("merchant.workbench.reminder.predict")
                     } else {

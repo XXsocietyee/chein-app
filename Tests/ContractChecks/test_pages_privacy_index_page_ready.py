@@ -61,7 +61,7 @@ class PagesPrivacyIndexPageReadyTests(unittest.TestCase):
         self.assertIn('"/api/compliance/usage-records": .liveInProduction', routes)
         self.assertNotIn('"/api/compliance/usage-records": .missing', routes)
         for name in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
-            self.assertIn(f"public static let {name} = false", routes)
+            self.assertIn(f"public static var {name}: Bool {{ testDerivation?", routes)
         welcome = (ROOT / "App/WelcomeView.swift").read_text(encoding="utf-8")
         self.assertIn("static let showsMerchantChoice = false", welcome)
 

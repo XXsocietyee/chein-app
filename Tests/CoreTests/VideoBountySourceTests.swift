@@ -187,8 +187,8 @@ final class VideoBountySourceTests: XCTestCase {
         }
         // The affiliate summary GET is admitted by the separate player-journey owner grant (cloud-stubs-affiliate); never a bounty path.
         XCTAssertFalse(VideoBountySource.paths.contains("/api/marketing/affiliate/summary"))
-        // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution + IM in-game resolve/summary (679).
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 679)
+        // 679 + orient scoring session recovery.
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 680)
         XCTAssertFalse(VideoBountySource.paths.contains { path in
             ["payout", "withdraw", "redeem", "wallet"].contains { path.contains($0) }
         })

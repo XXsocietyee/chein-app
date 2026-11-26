@@ -152,8 +152,9 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
     }
     public func serialize() throws -> String {
         guard issues.isEmpty else { throw TemplateAuthoringError.invalidDraft }
-        guard value.keys.contains(where: { enabled($0) }) || hasRootAuthoringConfiguration || hintLadderOn
-                || TemplateR5Authoring.rootKeys.contains(where: { value[$0] != nil }) else { return "" }
+        guard value.keys.contains(where: { enabled($0) })
+                || TemplateR5Authoring.rootKeys.contains(where: { value[$0] != nil })
+                || hasRootAuthoringConfiguration || hintLadderOn else { return "" }
         var normalized = self
         for game in TemplateAdvancedGame.allCases where enabled(game.section) {
             let section = game.section

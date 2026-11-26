@@ -1,0 +1,16 @@
+{
+  "topicXcx.routeNote.gifts %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "%lld stops include a shop gift" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "其中 %lld 站有到店礼" } }
+    }
+  },
+  "topicXcx.stop.gift %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": { "stringUnit": { "state": "translated", "value": "Shop gift · %@" } },
+      "zh-Hans": { "stringUnit": { "state": "translated", "value": "到店礼 · %@" } }
+    }
+  }
+}

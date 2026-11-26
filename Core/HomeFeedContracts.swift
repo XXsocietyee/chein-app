@@ -39,6 +39,30 @@ public enum HomeFeedItem: Equatable, Identifiable {
     public var statusLabel: String? {
         switch self { case .activity(let a): return a.statusLabel; case .topic(let t): return t.statusLabel }
     }
+    /// Category names already on the topic-list row (at most the two feed tags). Blank names are dropped.
+    public var featuredCategoryTags: [String] {
+        feedTags.compactMap { raw in
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+    }
+    /// Server status text from the same row. A missing or blank label stays nil.
+    public var featuredStatusText: String? {
+        guard let raw = statusLabel else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    /// Club or merchant name from the same row. A category is not treated as a club.
+    public var featuredClubText: String? {
+        let raw: String?
+        switch self {
+        case .activity(let activity): raw = activity.clubName ?? activity.merchantName
+        case .topic(let topic): raw = topic.clubName ?? topic.merchantName
+        }
+        guard let raw else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
     public var place: String? {
         switch self { case .activity(let a): return homeFeedNonempty(a.addressName) ?? homeFeedNonempty(a.address)
         case .topic(let t): return homeFeedNonempty(t.addressName) }

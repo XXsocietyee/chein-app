@@ -14,8 +14,7 @@ struct CYScreenStyle: ViewModifier {
     func body(content: Content) -> some View {
         let palette = CYDomainPalette(domain)
         content
-            .environment(\.colorScheme, domain.colorScheme)
-            .preferredColorScheme(domain.colorScheme)
+            .cyApplyColorScheme(domain.forcedColorScheme)
             // Unstyled system buttons inherit this. Primary / secondary / tertiary actions stay `CYPillButton`.
             .tint(palette.brand)
             // Native restyle r1 (spec §3.2, §3.6): system bordered buttons are capsules; lists and forms show the
@@ -320,7 +319,7 @@ private struct CYPushedChromeModifier: ViewModifier {
                 .tint(CYDomainPalette(domain).brand)
                 // verify-r2 N-01: the navigation bar belongs to the NavigationStack, which inherits the shell's scheme.
                 // While this page is on top, the bar (and its back button) takes the page's scheme.
-                .toolbarColorScheme(domain.colorScheme, for: .navigationBar)
+                .toolbarColorScheme(domain.forcedColorScheme, for: .navigationBar)
         } else {
             base
         }

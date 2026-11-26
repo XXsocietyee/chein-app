@@ -32,4 +32,18 @@ final class TopicXcxNodeFactsTests: XCTestCase {
         XCTAssertEqual(TopicXcxFacts.nodeFoot(nodes[0]), .init(merchant: "Synthetic cafe", node: "Gate", merchantCount: 2))
         XCTAssertNil(TopicXcxFacts.nodeFoot(nodes[1]).merchant)
     }
+    func testStopGiftReadsTheFirstMerchantBenefitOnly() throws {
+        let gifted: [String: Any] = ["memberId": 9, "mmsMerchant": ["name": "Synthetic cafe", "derivativeBenefits": " 盖章 "]]
+        let blank: [String: Any] = ["memberId": 8, "mmsMerchant": ["name": "Quiet", "derivativeBenefits": "  "]]
+        let number: [String: Any] = ["memberId": 7, "derivativeBenefits": "not on the shop", "mmsMerchant": ["name": "Count", "derivativeBenefits": 3]]
+        let second: [String: Any] = ["memberId": 10, "mmsMerchant": ["name": "Later", "derivativeBenefits": "ignored"]]
+        let value = try topic([["id": 1, "name": "A", "nodes": [
+            ["id": 1, "name": "Gate", "registrationMerchantList": [gifted, second]],
+            ["id": 2, "name": "Park", "registrationMerchantList": [blank]],
+            ["id": 3, "name": "Lane", "registrationMerchantList": [number]]
+        ]]])
+        XCTAssertEqual(value.chapters[0].nodes.map(\.shopGift), ["盖章", nil, nil])
+        XCTAssertEqual(TopicXcxFacts.giftStopCount(value), 1)
+        XCTAssertEqual(TopicXcxFacts.giftStopCount(try topic([["id": 1, "name": "A", "nodes": [["id": 4, "name": "None"]]]])), 0)
+    }
 }

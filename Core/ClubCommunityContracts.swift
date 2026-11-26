@@ -116,10 +116,15 @@ public struct ClubCommunitySnapshot {
     public let feedRequestedBeforeID: Int?
     /// Last row id to send as the next `beforeId`.
     public let feedNextBeforeID: Int?
-    public init(posts: [ClubCommunityPost], comments: [ClubCommunityComment], history: [ClubCommunityRevision], clubCount: Int?, postPage: ClubCommunityPostPage? = nil, feedItems: [ClubCommunityFeedItem]? = nil, feedHasMore: Bool = false, feedRequestedBeforeID: Int? = nil, feedNextBeforeID: Int? = nil) {
+    /// True when this page merged a creative-square lane, including an empty one.
+    public let communityLaneIncluded: Bool
+    public let communityHasMore: Bool
+    public let communityNextCursor: Int?
+    public init(posts: [ClubCommunityPost], comments: [ClubCommunityComment], history: [ClubCommunityRevision], clubCount: Int?, postPage: ClubCommunityPostPage? = nil, feedItems: [ClubCommunityFeedItem]? = nil, feedHasMore: Bool = false, feedRequestedBeforeID: Int? = nil, feedNextBeforeID: Int? = nil, communityLaneIncluded: Bool = false, communityHasMore: Bool = false, communityNextCursor: Int? = nil) {
         self.posts = posts; self.comments = comments; self.history = history; self.clubCount = clubCount
         self.postPage = postPage; self.feedItems = feedItems ?? posts.map { .original($0) }
         self.feedHasMore = feedHasMore; self.feedRequestedBeforeID = feedRequestedBeforeID; self.feedNextBeforeID = feedNextBeforeID
+        self.communityLaneIncluded = communityLaneIncluded; self.communityHasMore = communityHasMore; self.communityNextCursor = communityNextCursor
     }
 }
 public enum ClubCommunityOperation: Equatable {

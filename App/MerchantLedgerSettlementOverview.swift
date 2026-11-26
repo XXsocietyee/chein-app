@@ -114,6 +114,7 @@ import UIKit
     /// Opens 核销 rows on their detail page; nil keeps the rows read-only.
     let journal: (any MerchantBusinessIntentStore)?
     @State private var ledgerView: MerchantR1LedgerView = .redemptions
+    @AppStorage("merchant.settleRemind.coopSettle") private var settleRemindEnabled = false
     @Environment(\.merchantR1CumulativeRevenue) private var cumulativeRevenue
     @Environment(\.merchantCoopSettlementDetailDestination) private var coopSettlementDetail
     @Environment(\.locale) private var locale
@@ -164,6 +165,20 @@ import UIKit
             if ledgerView == .redemptions {
                 MerchantLedgerRedemptionsSections(model: redemptions, journal: journal)
             } else {
+                Section {
+                    Toggle(isOn: Binding(get: { settleRemindEnabled }, set: { value in
+                        settleRemindEnabled = MerchantSettleRemindOptIn(enabled: value).enabled
+                        if value {
+                            Task { try? await NativeNotificationPermissionAdapter().requestFromUserAction() }
+                        }
+                    })) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("merchant.ledger.settleRemind")
+                            Text("merchant.ledger.settleRemindDetail").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        }
+                    }
+                    .accessibilityIdentifier("merchant.ledger.settleRemind." + MerchantSettleRemindOptIn.subscribeKey)
+                }
                 section(.entries)
                 section(.batches)
             }

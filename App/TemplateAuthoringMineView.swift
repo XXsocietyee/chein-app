@@ -8,6 +8,9 @@ import SwiftUI
     var ownerConfiguration: ((MemberPlayTemplateID) -> AnyView)? = nil
     var creatorConsent: ((WorkshopCreatorConsentSelection) -> AnyView)? = nil
     var fixtureSignOut: (() -> Void)? = nil
+    /// Query kept from `subpackageMember/mytemplate/mytemplate`. `scope=MERCHANT` is the merchant shelf.
+    /// A player link omits it. `id` stays on this page and does not open another screen.
+    var linkQuery: [String: String] = [:]
     @Environment(\.locale) private var creatorLocale
     @State private var selectedCreatorConsent: WorkshopCreatorConsentSelection?
     @State private var selectedMember: MemberPlayTemplateID?
@@ -29,8 +32,10 @@ import SwiftUI
     @Environment(\.themeDomain) private var themeDomain
     @Environment(\.roleTheme) private var roleTheme
     /// MP `mytemplate` writes `scope=MERCHANT` only for the merchant theme. A player page omits it.
+    /// A kept link query with `scope=MERCHANT` selects the same shelf; any other value does not.
     private var shelfOperationScope: String? {
-        (themeDomain == .merchant || roleTheme == .merchant) ? "MERCHANT" : nil
+        if linkQuery["scope"] == "MERCHANT" { return "MERCHANT" }
+        return (themeDomain == .merchant || roleTheme == .merchant) ? "MERCHANT" : nil
     }
     private var pageDomain: ThemeDomain { shelfOperationScope == "MERCHANT" ? .merchant : .player }
     var body: some View {

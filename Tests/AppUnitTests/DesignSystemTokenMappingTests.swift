@@ -126,8 +126,13 @@ final class DesignSystemTokenMappingTests: XCTestCase {
         XCTAssertFalse(merchant.isDarkDomain)
         XCTAssertEqual(merchant.resolvedSurfaceDomain, .merchant)
 
+        // Native iOS r2: player follows the system appearance; only the play stage is forced dark.
+        XCTAssertNil(ThemeDomain.player.forcedColorScheme)
+        XCTAssertNil(ThemeDomain.merchant.forcedColorScheme)
+        XCTAssertEqual(ThemeDomain.game.forcedColorScheme, .dark)
         let player = CYDomainPalette(.player)
-        XCTAssertTrue(player.isDarkDomain)
+        XCTAssertFalse(player.isDarkDomain)
+        XCTAssertTrue(player.followsSystem)
         XCTAssertEqual(player.resolvedSurfaceDomain, .player)
 
         let game = CYDomainPalette(.game)

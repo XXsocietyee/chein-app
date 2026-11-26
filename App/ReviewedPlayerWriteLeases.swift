@@ -4,7 +4,8 @@ import FoundationNetworking
 #endif
 
 /// Same paths as `ChinaReviewedRouteCapability.ownerDecisionGuardGrant`.
-/// Reads are admitted. Payout and merchant writes also need `ReviewedAreaSwitch`, which stays closed on www.chengyinhub.com.
+/// Reads are admitted. Payout writes follow the payout switch, including www.chengyinhub.com.
+/// Merchant content writes stay closed on that host.
 enum OwnerDecisionGuardLease {
     static let paths: Set<String> = [
         "api/club/personal-receiver/status",
@@ -14,14 +15,13 @@ enum OwnerDecisionGuardLease {
 
     static func admits(relative: String, method: String, body: Data?, host: String?) -> Bool {
         guard paths.contains(relative) else { return false }
-        let production = host?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == ReviewedAreaSwitch.productionAPIHost
         if relative == "api/club/personal-receiver/status" {
             return method == "GET" && (body == nil || body?.isEmpty == true)
         }
         if relative == "api/merchant/payout-account" {
             return method == "POST" && (body == nil || body?.isEmpty == true)
         }
-        guard !production, !ReleaseMoneyWriteSwitch.blocks("/" + relative), ReviewedAreaSwitch.payout(host: host) else { return false }
+        guard !ReleaseMoneyWriteSwitch.blocks("/" + relative), ReviewedAreaSwitch.payout(host: host) else { return false }
         if relative.hasPrefix("api/merchant/") {
             guard ReviewedAreaSwitch.merchantWrites(host: host) else { return false }
         }
@@ -360,7 +360,7 @@ extension ReviewedProductionFormMutationRoute {
         case "api/coupon/usability":
             return request.httpBody == nil || request.httpBody?.isEmpty == true
         case "api/marketing/group-checkout/create", "api/marketing/product/activate":
-            let open = MPCommerceGate.purchasesEnabled && ReviewedAreaSwitch.moneyPayments(host: baseURL.host)
+            let open = ReviewedAreaSwitch.moneyPayments(host: baseURL.host)
             return open && wp07WriteBody(request, relative: relative)
         default:
             return false
@@ -1449,6 +1449,7 @@ enum ReviewedPlayerReadRoute {
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             couponCodeApproval: couponCodeApproval,
+            clubGovernanceApproval: playerWritesEnabled ? MPFirstClubApprovals.governance(context) : nil,
             merchantBusinessApproval: MPFirstMerchantApprovals.business(context),
             merchantEngagementApproval: MPFirstMerchantApprovals.engagement(context),
             orderLifecycleConfiguration: orderConfiguration,

@@ -15,23 +15,14 @@ struct DiscoveryTemplateBrowserView: View {
     let onRetryMerchantAccess: (() -> Void)?
     /// Mini-program template tab: the "+" opens the publish menu. Hidden for staff who only browse.
     let publishDestination: (() -> AnyView)?
-    /// R7-PC-A2-2 (MP `goSearch`, owner ruling 2026-10-22): templates are a result type of the one global search. When
-    /// the host supplies it, one read-only capsule pushes that search instead of the two local fields.
-    let searchDestination: (() -> AnyView)?
     /// Round 4 (MP template/index.wxml:16 `tpl-bell` → `subpackageB/pages/im/list/index`): the bell opens the IM inbox.
     let inboxDestination: (() -> AnyView)?
     @State private var tab = Shelf.topics
     @State private var topicTag: String?
     @State private var gameTag: String?
     @State private var showsAllTags = false
-    @State private var keyword = ""
-    @State private var appliedKeyword = ""
-    @State private var topicKeyword = ""
-    @FocusState private var topicSearchFocused: Bool
-    @State private var appliedTopicSearch = DiscoveryTopicTemplateNameSearch("")
     @StateObject private var topics = PublicTemplateCatalogVisitOwner()
     @State private var topicSelection: PublicTemplateCatalogSelection?
-    @StateObject private var games = DiscoveryLoader<[DiscoveryPlayTemplate]>()
     @StateObject private var shelfGames = DiscoveryLoader<[DiscoveryPlayTemplate]>()
     @StateObject private var home = DiscoveryLoader<DiscoveryTemplateHome>()
     @State private var toastMessage: String?
@@ -39,18 +30,13 @@ struct DiscoveryTemplateBrowserView: View {
     @Environment(\.locale) private var locale
 
     private enum Shelf: String, CaseIterable { case topics, games }
-    private struct Query: Equatable {
-        let tab: Shelf
-        let keyword: String
-    }
-    private var query: Query { Query(tab: tab, keyword: appliedKeyword) }
-    private var hasGameKeyword: Bool { !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false, searchDestination: (() -> AnyView)? = nil, inboxDestination: (() -> AnyView)? = nil) {
+    /// `searchDestination` stays so existing callers still compile. MP `goSearch` has one entrance, so this shelf
+    /// does not open that closure as a second screen.
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false, searchDestination _: (() -> AnyView)? = nil, inboxDestination: (() -> AnyView)? = nil) {
         _tab = State(initialValue: startOnGames ? .games : .topics)
         self.inboxDestination = inboxDestination
         self.publishDestination = publishDestination
-        self.searchDestination = searchDestination
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
         self.imageReader = imageReader; self.authoringCompletion = authoringCompletion
         self.templateTabScope = templateTabScope
@@ -96,23 +82,21 @@ struct DiscoveryTemplateBrowserView: View {
                             .accessibilityAddTraits(.isStaticText)
                             .pageTemplateReadingOrder(40)
                         }
-                        if let searchDestination {
-                            NavigationLink { searchDestination() } label: {
-                                HStack(spacing: CYSpacing.sm) {
-                                    Image(systemName: "magnifyingglass").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-                                    Text("discovery.searchAll").cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
-                                    Spacer(minLength: 0)
-                                }
-                                .padding(.horizontal, CYSpacing.lg)
-                                .frame(minHeight: CYSpacing.minTouchTarget)
-                                .background(palette.bgElevated, in: Capsule(style: .continuous))
-                                .contentShape(Capsule(style: .continuous))
+                        // MP pages/template/index.js goSearch → /pages/search2/index. One capsule, both shelves.
+                        NavigationLink { templateShelfSearch } label: {
+                            HStack(spacing: CYSpacing.sm) {
+                                Image(systemName: "magnifyingglass").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+                                Text("discovery.searchAll").cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                                Spacer(minLength: 0)
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityAddTraits(.isSearchField)
-                            .accessibilityIdentifier("discovery.globalSearch")
-                            .pageTemplateReadingOrder(35)
+                            .padding(.horizontal, CYSpacing.lg)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .background(palette.bgElevated, in: Capsule(style: .continuous))
+                            .contentShape(Capsule(style: .continuous))
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("discovery.globalSearch")
+                        .pageTemplateReadingOrder(35)
                         Picker("discovery.shelf", selection: $tab) {
                             Text("discovery.topics").tag(Shelf.topics)
                             Text("discovery.games").tag(Shelf.games)
@@ -155,10 +139,6 @@ struct DiscoveryTemplateBrowserView: View {
         .task {
             guard reader.isConfigured, home.value == nil else { return }
             await loadHome()
-        }
-        .task(id: query) {
-            guard reader.isConfigured else { return }
-            if tab == .games && hasGameKeyword { await loadGames() }
         }
         .task(id: tab) {
             guard reader.isConfigured, tab == .games, shelfGames.value == nil else { return }
@@ -215,28 +195,16 @@ struct DiscoveryTemplateBrowserView: View {
         Task { await topics.load(reader: reader, visit: visit) }
     }
 
-    private func searchPill(_ prompt: LocalizedStringKey, text: Binding<String>, field: String, submitID: String?, focus: FocusState<Bool>.Binding? = nil, submit: @escaping () -> Void) -> some View {
-        HStack(spacing: CYSpacing.sm) {
-            Image(systemName: "magnifyingglass").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-            TextField(prompt, text: text)
-                .submitLabel(.search)
-                .onSubmit(submit)
-                .accessibilityLabel(Text(prompt))
-                .accessibilityIdentifier(field)
-                .accessibilityLabel(Text(prompt))
-                .accessibilityValue(Text(verbatim: text.wrappedValue.isEmpty ? "—" : text.wrappedValue))
-                .accessibilityHint(Text("discovery.searchAction"))
-            Button("discovery.searchAction", action: submit)
-                .cyText(.meta, weight: .semibold).foregroundStyle(palette.textSecondary)
-                .pageTemplateControl(label: Text("discovery.searchAction"), traits: .isButton)
-                .accessibilityIdentifier(submitID ?? "\(field).submit")
-                .accessibilityLabel(Text("discovery.searchAction"))
-                .accessibilityValue(Text(verbatim: text.wrappedValue.isEmpty ? "—" : text.wrappedValue))
-                .accessibilityHint(Text(prompt))
+    /// Session readers attach the template lanes `GlobalSearchView` already reads. Anyone else still gets that page,
+    /// with an unconfigured session so opening it does not post.
+    @ViewBuilder private var templateShelfSearch: some View {
+        if let session = reader as? AppSession {
+            SessionGlobalSearchView()
+                .environmentObject(session)
+                .environment(\.globalTemplateSearch, .session(session))
+        } else {
+            TemplateShelfSearchWithoutSession()
         }
-        .padding(.horizontal, CYSpacing.lg)
-        .frame(minHeight: CYSpacing.minTouchTarget)
-        .background(palette.bgElevated, in: Capsule(style: .continuous))
     }
 
     private func filterChip(_ title: Text, selected: Bool, action: @escaping () -> Void) -> some View {
@@ -254,27 +222,6 @@ struct DiscoveryTemplateBrowserView: View {
     }
 
     @ViewBuilder private var topicShelf: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            if searchDestination == nil {
-            searchPill("discovery.topicNameSearch", text: $topicKeyword, field: "discovery.topicNameSearch", submitID: "discovery.topicNameSearch.submit", submit: applyTopicSearch)
-            if appliedTopicSearch.isActive {
-                HStack {
-                    Text("discovery.searchingFor \(appliedTopicSearch.keyword)")
-                        .cyText(.meta).foregroundStyle(palette.textSecondary)
-                        .accessibilityIdentifier("discovery.topicNameSearch.applied")
-                    Spacer(minLength: CYSpacing.sm)
-                    Button("discovery.clearTopicNameSearch") {
-                        topicKeyword = ""; appliedTopicSearch = DiscoveryTopicTemplateNameSearch("")
-                        topicSearchFocused = false
-                    }.cyText(.meta, weight: .semibold).foregroundStyle(palette.textPrimary)
-                        .accessibilityIdentifier("discovery.topicNameSearch.clear")
-                        .accessibilityLabel(Text("discovery.clearTopicNameSearch"))
-                        .accessibilityValue(Text(verbatim: appliedTopicSearch.keyword.isEmpty ? "—" : appliedTopicSearch.keyword))
-                        .accessibilityHint(Text("discovery.topicNameSearch"))
-                }
-            }
-            }
-        }
         shelfChipRow(SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag), field: "shelf.topic") { topicTag = $0 }
         if let error = topics.error {
             shelfIssue(error, failedTitle: "discovery.topicsFailed") { Task { await loadTopics() } }
@@ -288,18 +235,16 @@ struct DiscoveryTemplateBrowserView: View {
                     .accessibilityIdentifier("discovery.emptyRefresh")
             } else {
                 let catalog = SearchDiscoveryFilterParity.visibleTopics(rows)
-                let named = appliedTopicSearch.filter(catalog)
                 let tags = SearchDiscoveryFilterParity.topicTags(in: catalog, selected: topicTag)
-                let shown = SearchDiscoveryFilterParity.topics(named, matching: tags.selection)
+                let shown = SearchDiscoveryFilterParity.topics(catalog, matching: tags.selection)
                 if catalog.isEmpty {
                     CYEmptyState(systemImage: "map", "discovery.emptyTopics", actionTitle: "discovery.emptyRefresh") { Task { await loadTopics() } }
                         .accessibilityIdentifier("discovery.emptyRefresh")
-                } else if named.isEmpty || shown.isEmpty {
+                } else if shown.isEmpty {
                     CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults")
-                        .accessibilityIdentifier("discovery.topicNameSearch.noResults")
                 } else if let selection = tags.selection, let tag = tags.row.first(where: { $0.key == selection }) ?? tags.groups.flatMap(\.tags).first(where: { $0.key == selection }) {
                     topicSection("discovery.topics", rows: shown, hero: true, verbatimTitle: locale.pick(tag.zh, tag.en))
-                } else if named.count == catalog.count {
+                } else {
                     // R7-PC-A2-3 topic half (MP shelf/index.js:309 `buildTopics`): 精选 rail in FEATURED_TOPICS order,
                     // then 全部主题, then the TOPIC_SHELVES rows that have content.
                     let featured = TemplateShelfArt.featuredTopics(shown)
@@ -309,8 +254,6 @@ struct DiscoveryTemplateBrowserView: View {
                     topicSection("discovery.shelf.scifi", rows: SearchDiscoveryFilterParity.topics(shown, matching: "scifi"), shelfKey: "shelfScifi")
                     topicSection("discovery.shelf.cityMemory", rows: SearchDiscoveryFilterParity.topics(shown, matching: "nostalgia"), shelfKey: "shelfMemory")
                     topicSection("discovery.shelf.solo", rows: SearchDiscoveryFilterParity.topics(shown, matching: "solo"), shelfKey: "shelfSolo")
-                } else {
-                    topicSection("discovery.topics", rows: shown, hero: true)
                 }
             }
         }
@@ -325,13 +268,10 @@ struct DiscoveryTemplateBrowserView: View {
 
     @ViewBuilder private var gameShelf: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            if searchDestination == nil {
-                searchPill("discovery.search", text: $keyword, field: "discovery.search", submitID: "discovery.search.submit", submit: applySearch)
-            }
             shelfChipRow(SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag), field: "shelf.game") { gameTag = $0 }
-            if hasGameKeyword || gameTag != nil {
+            if gameTag != nil {
                 Button("discovery.clearFilters") {
-                    keyword = ""; appliedKeyword = ""; gameTag = nil
+                    gameTag = nil
                 }.cyText(.meta, weight: .semibold).foregroundStyle(palette.textSecondary)
                     .accessibilityLabel(Text("discovery.clearFilters"))
                     .accessibilityValue(Text(verbatim: clearFilterSpoken))
@@ -341,17 +281,7 @@ struct DiscoveryTemplateBrowserView: View {
         if let error = shelfGames.error, shelfGames.value == nil {
             DiscoveryErrorView(error: error) { Task { await loadShelfGames() } }
         }
-        if hasGameKeyword {
-            if games.isLoading { CYSkeleton() }
-            if let error = games.error {
-                shelfIssue(error, failedTitle: "discovery.gamesFailed") { Task { await loadGames() } }
-            }
-            if let rows = games.value {
-                let matched = keywordGames(rows)
-                if matched.rows.isEmpty { CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults") }
-                else { gameSection("discovery.searchResults", rows: matched.rows, verbatimTitle: matched.title) }
-            }
-        } else if let selection = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag).selection {
+        if let selection = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag).selection {
             if shelfGames.isLoading, shelfGames.value == nil { CYSkeleton() }
             if let rows = shelfGames.value {
                 let shown = SearchDiscoveryFilterParity.games(rows, matching: selection)
@@ -575,20 +505,12 @@ struct DiscoveryTemplateBrowserView: View {
         return title + Text(verbatim: ", ") + Text(verbatim: detail)
     }
 
-    private func applyTopicSearch() {
-        appliedTopicSearch = DiscoveryTopicTemplateNameSearch(topicKeyword)
-        topicSearchFocused = false
-    }
-    private func applySearch() {
-        appliedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
     private func loadHome() async { await home.load { try await reader.discoveryTemplateHome() } }
     private func loadTopics() async {
         await topics.load(reader: reader, visit: topics.visit)
     }
-    /// A typed keyword stays as typed, including 0. No keyword and no chosen tag is unknown.
+    /// A chosen category chip is spoken by its shelf name. No chosen tag is unknown.
     private var clearFilterSpoken: String {
-        if !appliedKeyword.isEmpty { return appliedKeyword }
         guard let gameTag else { return "—" }
         let tags = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag)
         if let tag = shelfTag(tags, key: gameTag) { return locale.pick(tag.zh, tag.en) }
@@ -597,14 +519,6 @@ struct DiscoveryTemplateBrowserView: View {
 
     private func shelfTag(_ tags: DiscoveryShelfTagSet, key: String) -> DiscoveryShelfTag? {
         tags.row.first { $0.key == key } ?? tags.groups.flatMap(\.tags).first { $0.key == key }
-    }
-
-    private func keywordGames(_ rows: [DiscoveryPlayTemplate]) -> (rows: [DiscoveryPlayTemplate], title: String?) {
-        let tags = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? rows, selected: gameTag)
-        guard let selection = tags.selection else { return (rows, nil) }
-        let matched = rows.filter { SearchDiscoveryFilterParity.gameMatches($0, key: selection) }
-        let title = shelfTag(tags, key: selection).map { locale.pick($0.zh, $0.en) }
-        return (matched, title)
     }
 
     private func shelfChipRow(_ tags: DiscoveryShelfTagSet, field: String, select: @escaping (String?) -> Void) -> some View {
@@ -622,10 +536,6 @@ struct DiscoveryTemplateBrowserView: View {
         }.accessibilityIdentifier(field)
     }
 
-    private func loadGames() async {
-        let requestedKeyword = appliedKeyword
-        await games.load { try await reader.discoveryPlayTemplates(keyword: requestedKeyword, packType: nil) }
-    }
     private func loadShelfGames() async {
         await shelfGames.load { try await reader.discoveryPlayTemplates(keyword: "", packType: .single) }
     }
@@ -634,15 +544,19 @@ struct DiscoveryTemplateBrowserView: View {
             async let a: Void = loadTopics()
             async let b: Void = loadHome()
             _ = await (a, b)
-        } else if hasGameKeyword {
-            async let a: Void = loadGames()
-            async let b: Void = loadShelfGames()
-            _ = await (a, b)
         } else {
             async let a: Void = loadHome()
             async let b: Void = loadShelfGames()
             _ = await (a, b)
         }
+    }
+}
+
+/// Fixtures have no session reader. The same search page still opens, and an unconfigured session does not post.
+@MainActor private struct TemplateShelfSearchWithoutSession: View {
+    @StateObject private var session = AppSession(composition: AppCompositionRoot(deployment: .unconfigured))
+    var body: some View {
+        SessionGlobalSearchView().environmentObject(session)
     }
 }
 

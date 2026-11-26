@@ -16,20 +16,29 @@ public struct TopicSelfPlayIntent: Encodable, Equatable {
     public let phone: String
     public let requestID: String
     public let sourceClubId: Int?
-    public init(topic: SelfPlayTopicID, realName: String, phone: String, requestID: String, sourceClubId: Int? = nil) throws {
+    /// Share-card `clubCode`. Registration places it in `sourceChannelCode` and does not send while money is off.
+    public let sourceChannelCode: String?
+    public init(topic: SelfPlayTopicID, realName: String, phone: String, requestID: String, sourceClubId: Int? = nil, sourceChannelCode: String? = nil) throws {
         let name = realName.trimmingCharacters(in: .whitespacesAndNewlines), phone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty, phone.range(of: "^1[0-9]{10}$", options: .regularExpression) != nil,
               !requestID.isEmpty, requestID.utf16.count <= 64 else { throw APIError.invalidRequest }
         self.topic = topic; self.realName = name; self.phone = phone; self.requestID = requestID
         self.sourceClubId = sourceClubId.flatMap { $0 > 0 ? $0 : nil }
+        if let sourceChannelCode {
+            let code = sourceChannelCode.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard (1...64).contains(code.unicodeScalars.count),
+                  code.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }) else { throw APIError.invalidRequest }
+            self.sourceChannelCode = code
+        } else { self.sourceChannelCode = nil }
     }
-    enum CodingKeys: String, CodingKey { case ownerType, ownerId, realName, phone, isUsePoint, payChannel, requestId, sourceClubId }
+    enum CodingKeys: String, CodingKey { case ownerType, ownerId, realName, phone, isUsePoint, payChannel, requestId, sourceClubId, sourceChannelCode }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(1, forKey: .ownerType); try c.encode(topic.rawValue, forKey: .ownerId)
         try c.encode(realName, forKey: .realName); try c.encode(phone, forKey: .phone)
         try c.encode(0, forKey: .isUsePoint); try c.encode("APP", forKey: .payChannel); try c.encode(requestID, forKey: .requestId)
         if let sourceClubId { try c.encode(sourceClubId, forKey: .sourceClubId) }
+        if let sourceChannelCode { try c.encode(sourceChannelCode, forKey: .sourceChannelCode) }
     }
 }
 public struct TopicSelfPlayDocument: Equatable {

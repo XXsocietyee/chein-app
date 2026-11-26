@@ -163,7 +163,7 @@ class StampAlbumIndexPageTests(unittest.TestCase):
         self.assertIn("static let showsMerchantChoice = false", (ROOT / "App" / "WelcomeView.swift").read_text())
         switches = SWITCHES.read_text()
         for name in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
-            self.assertIn("public static let %s = false" % name, switches)
+            self.assertIn("public static var %s: Bool { testDerivation?" % name, switches)
 
     def test_empty_and_unknown_are_an_em_dash_and_a_numeric_string_is_not_zero(self):
         self.assertEqual(ord(DASH), 0x2014)

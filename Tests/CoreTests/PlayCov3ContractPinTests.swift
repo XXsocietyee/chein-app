@@ -69,7 +69,7 @@ final class PlayCov3ContractPinTests: XCTestCase {
     }
 
     /// Quote, create, pay, refund, and pricing confirm throw before a request exists.
-    func testQuoteCreatePayRefundAndPricingConfirmSendNothing() throws {
+    func testQuoteCreatePayRefundAndPricingConfirmSendNothing() async throws {
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
         XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertFalse(PlatformPass.moneyEnabled)
@@ -95,10 +95,16 @@ final class PlayCov3ContractPinTests: XCTestCase {
         }
         let transport = PlayCov3PinTransport()
         let pass = PlatformPass(configuration: try APIConfiguration(baseURL: base), transport: transport)
-        XCTAssertThrowsError(try pass.quote(productID: "9", token: "synthetic")) { error in
+        do {
+            _ = try await pass.quote(productID: "9", token: "synthetic")
+            XCTFail("quote")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")) { error in
+        do {
+            _ = try await pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")
+            XCTFail("pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertThrowsError(try pass.refundApplyPassOrder(orderNo: "NO1", reason: "不想要了", token: "synthetic")) { error in

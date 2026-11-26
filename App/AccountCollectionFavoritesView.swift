@@ -126,7 +126,8 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                                 // A4-04: MP mylike topic card 分享 (wxml:50-55) → the public topic link.
                                 if let url = PublicContentShareLink.topic(id: topic.id) {
                                     ShareLink(item: url, subject: Text(verbatim: topic.name)) {
-                                        Image(systemName: "square.and.arrow.up").font(.title3).padding(10)
+                                        // MP: pages/mylike/mylike.wxml:90 (icon_up.png, 32rpx glyph in the glass circle)
+                                        MPAsset.FeatureIcon.iconUp.resizable().scaledToFit().frame(width: 16, height: 16).padding(12)
                                             .background(.thinMaterial, in: Circle())
                                     }
                                     .buttonStyle(.plain)

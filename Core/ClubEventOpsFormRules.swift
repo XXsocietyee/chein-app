@@ -18,13 +18,13 @@ public enum ClubEventOpsFormRules {
         return "\(minutes / 60) 小时 \(minutes % 60) 分"
     }
 
-    /// Weekly occurrences that fit from `startDate` through today + 90 Shanghai calendar days.
-    /// A date outside that window returns 0. Keys are `yyyy-MM-dd`, compared as civil dates.
+    /// Weekly occurrences that fit in the 90 Shanghai days that begin on `startDate`.
+    /// The first date itself must fall on today through today + 90 days; a date outside that returns 0.
+    /// Keys are `yyyy-MM-dd`, compared as civil dates. 90 / 7 + 1 is 13.
     public static func maxWeeklyOccurrences(startDate: String, todayKey: String) -> Int {
         guard let start = dayNumber(startDate), let today = dayNumber(todayKey) else { return 0 }
-        let horizon = today + maxFutureDays
-        if start < today || start > horizon { return 0 }
-        return min(maxOccurrences, (horizon - start) / 7 + 1)
+        if start < today || start > today + maxFutureDays { return 0 }
+        return min(maxOccurrences, maxFutureDays / 7 + 1)
     }
 
     public static func weeklyHorizonMessage(max: Int) -> String {

@@ -72,10 +72,17 @@ struct MerchantAftercareReadOnlyNote: View {
 }
 
 /// Source pages/merchant/aftercare/detail (recordType=MANUAL_CASE): a read-only 人工退款工单 with the platform's
-/// status and a two-step timeline. No amount and no merchant decision (the platform handles the refund).
+/// status, 工单编号, amount, and a two-step timeline. No merchant decision (the platform handles the refund).
 struct MerchantManualCaseDetailView: View {
     let row: MerchantAftercareParity.ListRow
+    var loadDetail: (() async throws -> MerchantAftercareManualDetail)? = nil
+    @State private var loadedCase: MerchantAftercareManualDetail?
     private var completed: Bool { row.tone == .neutral }
+    private var caseID: Int? {
+        let digits = row.title.filter(\.isNumber)
+        guard let id = Int(digits), id > 0 else { return nil }
+        return id
+    }
     var body: some View {
         List {
             Section {
@@ -87,6 +94,18 @@ struct MerchantManualCaseDetailView: View {
                         .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .padding(.vertical, CYSpacing.xs)
+                if let loadedCase {
+                    LabeledContent {
+                        Text(verbatim: loadedCase.numberText)
+                    } label: {
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.number"))
+                    }
+                    LabeledContent {
+                        Text(verbatim: loadedCase.amountText ?? MerchantOpsCopy.text("merchantOps.aftercare.amountPending"))
+                    } label: {
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.amount"))
+                    }
+                }
                 if let activity = row.activityTitle {
                     LabeledContent { Text(verbatim: activity) } label: { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.activity")) }
                         .cyText(.body)
@@ -103,6 +122,12 @@ struct MerchantManualCaseDetailView: View {
         .navigationTitle(Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.title")))
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("merchantOps.aftercare.manualCase.\(row.id)")
+        .task { await loadCase() }
+    }
+    private func loadCase() async {
+        guard let loadDetail, let caseID else { return }
+        loadedCase = try? await loadDetail()
+        if loadedCase?.id != caseID { loadedCase = nil }
     }
     private func timelineNode(title: String, time: String?, done: Bool) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {

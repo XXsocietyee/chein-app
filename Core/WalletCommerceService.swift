@@ -86,10 +86,13 @@ public struct WalletCommerceService {
         let e = try JSONDecoder().decode(WithdrawalEnvelope.self, from: bytes)
         return WalletPage(rows: e.rows, total: e.total, page: nil, pageSize: nil)
     }
-    /// Same bodyless request as withdrawals(token:); the source controller ignores the
-    /// mini-program's pageNum/pageSize, so the response is identical. Mapping: WithdrawalHistory.swift.
-    public func withdrawalHistory(token: String) async throws -> WithdrawalHistoryPage {
-        try WithdrawalHistoryPage.decode(envelope: await send(path: "api/withdrawal/list", fields: [:], token: token, body: false))
+    /// `POST api/withdrawal/list` with the MP body `{pageNum, pageSize}` (`scene-member-withdraw-history`).
+    /// A history read. This does not create, preflight, or transfer a withdrawal.
+    public func withdrawalHistory(pageNum: Int = 1, token: String) async throws -> WithdrawalHistoryPage {
+        guard pageNum > 0 else { throw APIError.invalidRequest }
+        let fields = ["pageNum": String(pageNum), "pageSize": String(WithdrawalHistoryPage.pageSize)]
+        let bytes = try await send(path: "api/withdrawal/list", fields: fields, token: token, urlEncoded: true)
+        return try WithdrawalHistoryPage.decode(envelope: bytes)
     }
     private static func validProduct(_ product: WalletProduct) -> Bool {
         product.id > 0 && (product.price.map { $0.value >= 0 } ?? true) &&
@@ -100,9 +103,16 @@ public struct WalletCommerceService {
     private func validateCart(_ rows: [WalletCartItem]) throws {
         guard rows.allSatisfy({ $0.id > 0 && $0.productId > 0 && $0.skuId > 0 && $0.quantity > 0 && ($0.price.map { $0.value >= 0 } ?? true) }) else { throw APIError.malformedResponse }
     }
-    private func send(path: String, fields: [String: String], token: String, json: Bool = false, body: Bool = true) async throws -> Data {
+    private func send(path: String, fields: [String: String], token: String, json: Bool = false, body: Bool = true, urlEncoded: Bool = false) async throws -> Data {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token, includesBody: body && !json)
+        var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token, includesBody: body && !json && !urlEncoded)
+        if urlEncoded {
+            guard fields.keys.allSatisfy({ $0 == "pageNum" || $0 == "pageSize" }),
+                  fields.values.allSatisfy({ !$0.isEmpty && $0.allSatisfy(\.isNumber) }) else { throw APIError.invalidRequest }
+            let encoded = fields.keys.sorted().map { $0 + "=" + fields[$0]! }.joined(separator: "&")
+            request.setValue("application/x-www-form-urlencoded;", forHTTPHeaderField: "Content-Type")
+            request.httpBody = Data(encoded.utf8)
+        }
         if json { request.setValue("application/json", forHTTPHeaderField: "Content-Type"); request.httpBody = Data("{}".utf8) }
         try Task.checkCancellation()
         let response: (Data, Int)

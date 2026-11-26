@@ -78,6 +78,8 @@ public struct ClubDetailTabPolicy: Equatable, Sendable {
 }
 
 /// Mini-program `pages/club/detail` 3-up overview facts grid: 主理人 / 等级 / 所在城市.
+/// A missing host or city is 待补充. A level outside 1...5 is 待定. Unknown counts stay on
+/// `ClubDetailPageModel.unknownMark` and are not rewritten here.
 public struct ClubDetailOverviewFactsGrid: Equatable, Sendable {
     public enum Field: String, CaseIterable, Identifiable, Sendable {
         case leader, level, city

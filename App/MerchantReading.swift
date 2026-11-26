@@ -15,6 +15,12 @@ protocol MerchantReading: ObservableObject {
     func merchantEvents(access: MerchantAccess) async throws -> [MerchantEvent]
     func merchantOrders(access: MerchantAccess, filter: MerchantOrderFilter) async throws -> [MerchantOrder]
     func merchantProjects(access: MerchantAccess) async throws -> MerchantProjectPage
+    func merchantUpcomingRuns(access: MerchantAccess) async throws -> [MerchantUpcomingRun]
+}
+extension MerchantReading {
+    func merchantUpcomingRuns(access: MerchantAccess) async throws -> [MerchantUpcomingRun] {
+        throw APIError.notConfigured
+    }
 }
 
 enum MerchantLoadDisposition: Equatable {

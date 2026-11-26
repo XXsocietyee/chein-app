@@ -18,7 +18,7 @@ private final class Cov4PlayerSquarePinTransport: HTTPTransport {
 /// Quotes the method and the literal fields. No new endpoint. No invented path or method.
 /// Pricing confirm, quote, registration create, pay, refund, payout, withdrawal, and gift claim
 /// stay off and are not built or sent. `pricingGrantEnabled` and `moneyEnabled` stay false.
-/// Chapter invite, respond, apply, and withdraw stay off.
+/// Chapter invite, respond, apply, and withdraw default on.
 final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
 
     /// `pages/topic/merchantinfo/merchantinfo.js:984`
@@ -34,7 +34,8 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
     }
 
     /// `pages/topic/merchantinfo/merchantinfo.js:1680`
-    /// JSON `{applicationId, scope}`. Chapter invite stays off. This does not build the revoke call.
+    /// JSON `{applicationId, scope}`. This quotes the revoke call. It does not send revoke.
+    /// Chapter invite, respond, apply, and withdraw default on.
     func testChapterInvitationRevokeQuotesPostAndLiteralFields() {
         let path = "api/merchant/chapter-application/invite/revoke"
         let method = "POST"
@@ -43,14 +44,14 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         XCTAssertEqual(method, "POST")
         XCTAssertEqual(fields, ["applicationId", "scope"])
         let approval = MerchantContentWriteApproval()
-        XCTAssertFalse(approval.chapterInvite)
-        XCTAssertFalse(approval.chapterRespond)
-        XCTAssertFalse(approval.chapterApply)
-        XCTAssertFalse(approval.chapterWithdraw)
+        XCTAssertTrue(approval.chapterInvite)
+        XCTAssertTrue(approval.chapterRespond)
+        XCTAssertTrue(approval.chapterApply)
+        XCTAssertTrue(approval.chapterWithdraw)
     }
 
     /// `pages/topic/merchantinfo/merchantinfo.js:1778`
-    /// JSON `{applicationId}`. Chapter withdraw stays off. This does not build the withdraw call.
+    /// JSON `{applicationId}`. Chapter withdraw defaults on. This test only quotes the path.
     func testChapterApplicationWithdrawQuotesPostAndApplicationId() {
         let path = "api/merchant/chapter-application/withdraw"
         let method = "POST"
@@ -58,7 +59,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         XCTAssertEqual(path, "api/merchant/chapter-application/withdraw")
         XCTAssertEqual(method, "POST")
         XCTAssertEqual(fields, ["applicationId"])
-        XCTAssertFalse(MerchantContentWriteApproval().chapterWithdraw)
+        XCTAssertTrue(MerchantContentWriteApproval().chapterWithdraw)
     }
 
     /// `pages/topic/merchantinfo/merchantinfo.js:1827`
@@ -132,7 +133,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         let path = "api/coop/candidates/confirm"
         let method = "POST"
         let fields = ["registrationId", "scope"]
-        XCTAssertEqual(CoopFlowMutation.confirm(registrationID: 1).path, path)
+        XCTAssertEqual(CoopFlowMutation.confirm(registrationID: 1, scope: nil).path, path)
         XCTAssertEqual(method, "POST")
         XCTAssertEqual(fields, ["registrationId", "scope"])
     }
@@ -188,7 +189,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         XCTAssertEqual(MerchantGameNodeHTTPService.entriesPath, path)
         XCTAssertEqual(method, "GET")
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.stationCommands)
-        XCTAssertFalse(MerchantCityNPCParityGates.mpFirst.stationCommands)
+        XCTAssertTrue(MerchantCityNPCParityGates.mpFirst.stationCommands)
     }
 
     /// `subpackageB/pages/im/chat/index.js:1160`
@@ -286,7 +287,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         let method = "POST"
         let fields = ["id", "scope"]
         XCTAssertEqual(merchant, "api/topic/info-to-merchant")
-        XCTAssertEqual(SquareL5Logic.topicPath, player)
+        XCTAssertEqual(SquareRouteMap.topicPath, player)
         XCTAssertEqual(method, "POST")
         XCTAssertEqual(fields, ["id", "scope"])
     }
@@ -405,9 +406,9 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
     }
 
     /// Pricing confirm, quote, registration create, pay, refund, payout, withdrawal, and gift claim
-    /// stay off. Nothing is built or sent. Chapter invite, respond, apply, and withdraw stay off.
+    /// stay off. Nothing is built or sent. Chapter invite, respond, apply, and withdraw default on.
     /// Station commands stay off.
-    func testMoneyAndChapterWritesStayOff() throws {
+    func testMoneyAndChapterWritesStayOff() async throws {
         ReleaseMoneyWriteSwitch.testDerivation = nil
         PlatformPass.orderWriteTestDerivation = nil
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
@@ -419,12 +420,12 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.refundEnabled)
         let approval = MerchantContentWriteApproval()
-        XCTAssertFalse(approval.chapterInvite)
-        XCTAssertFalse(approval.chapterRespond)
-        XCTAssertFalse(approval.chapterApply)
-        XCTAssertFalse(approval.chapterWithdraw)
+        XCTAssertTrue(approval.chapterInvite)
+        XCTAssertTrue(approval.chapterRespond)
+        XCTAssertTrue(approval.chapterApply)
+        XCTAssertTrue(approval.chapterWithdraw)
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.stationCommands)
-        XCTAssertFalse(MerchantCityNPCParityGates.mpFirst.stationCommands)
+        XCTAssertTrue(MerchantCityNPCParityGates.mpFirst.stationCommands)
         let base = try XCTUnwrap(URL(string: "https://example.com"))
         XCTAssertThrowsError(try PlayerContentMPContract.registrationQuote(baseURL: base, ownerType: 1, ownerID: 4)) { error in
             XCTAssertEqual(error as? PlayerContentMPContract.Refusal, .moneyDisabled)
@@ -444,19 +445,31 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         }
         let transport = Cov4PlayerSquarePinTransport()
         let pass = PlatformPass(configuration: try APIConfiguration(baseURL: base), transport: transport)
-        XCTAssertThrowsError(try pass.quote(productID: "9", token: "synthetic")) { error in
+        do {
+            _ = try await pass.quote(productID: "9", token: "synthetic")
+            XCTFail("quote")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")) { error in
+        do {
+            _ = try await pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")
+            XCTFail("pass pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.payProductOrder(orderNo: "NO1", token: "synthetic")) { error in
+        do {
+            _ = try await pass.payProductOrder(orderNo: "NO1", token: "synthetic")
+            XCTFail("pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertThrowsError(try pass.refundApplyPassOrder(orderNo: "NO1", reason: "no", token: "synthetic")) { error in
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.claim(giftToken: "g", requestID: "r", token: "synthetic")) { error in
+        do {
+            _ = try await pass.claim(giftToken: "g", requestID: "r", token: "synthetic")
+            XCTFail("claim")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)

@@ -69,7 +69,8 @@ struct RoamAlbumReadOwner: Hashable {
         self.reader = reader; self.scope = scope; owner = .init(reader: reader, scope: scope)
         let albumReader: any RoamExperienceReading
         if let scope { albumReader = scope } else { albumReader = reader }
-        pager = .init(reader: albumReader)
+        // SALBUM-6: the album page asks for 50, the same size the mini-program sends.
+        pager = .init(reader: albumReader, pageSize: StampAlbumIndexPageModel.sourcePageSize)
     }
     var isCurrent: Bool {
         owner == RoamAlbumReadOwner(reader: reader, scope: scope) && (scope?.matches(reader) ?? true)
@@ -219,6 +220,7 @@ struct RoamAlbumReadOwner: Hashable {
                                 .cyNewPulse(CYAlbumRecency.isNew(stamp.createTime), text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
                                 .cyHeroSource(stamp.id, in: hero)
                         }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
+                            .onAppear { requestNextPageIfLast(index) }
                     }
                 }
                 if let error = pager.error, StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) == .retryContinuation {
@@ -264,6 +266,14 @@ struct RoamAlbumReadOwner: Hashable {
             .refreshable { await refresh() }
             .onDisappear { presentation.disappear() }
             .accessibilityIdentifier("roam.experience.album")
+    }
+
+    /// The last tile that is on screen asks the existing album reader for the next page.
+    /// A failed page leaves the stamps in place; the continuation copy below is the retry.
+    private func requestNextPageIfLast(_ index: Int) {
+        guard canShowAlbum, index == pager.stamps.count - 1 else { return }
+        guard pager.loaded, pager.hasMore, pager.error == nil, !presentation.loading else { return }
+        presentation.readAction()()
     }
 }
 /// B62 stamp look inside 收集册: a white perforated edge and a small per-stamp tilt (deterministic from the id).

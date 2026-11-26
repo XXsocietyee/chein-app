@@ -4,13 +4,14 @@ import SwiftUI
 /// first open projects (status, type, N 张待核销, title, place), 全部 N → 项目 list, and the cy_logo_mark cover when a
 /// project has no image. It reads `merchantProjects(access:)` (the read the 项目 list already uses) once per
 /// workbench reload; a failed read leaves the section out (MP: errors stay blank, no orphan title).
-/// Not here yet (for Cursor): the project `thumb`, and the upcoming-runs read for the 谁、哪天几点到店 line.
+/// Cover uses `imgUrl` / `topicImgUrl`. The visit line is the upcoming-runs read (verify-record permission).
 struct MerchantWorkbenchProjectCards<Reader: MerchantReading>: View {
     @ObservedObject var reader: Reader
     let access: MerchantAccess
     let reloadKey: UInt64
     let allProjects: () -> AnyView
     @State private var page: MerchantProjectPage?
+    @State private var visits: [MerchantUpcomingRun] = []
     @State private var loading = false
 
     private static var visibleLimit: Int { 4 }
@@ -59,6 +60,9 @@ struct MerchantWorkbenchProjectCards<Reader: MerchantReading>: View {
             let value = try await reader.merchantProjects(access: access)
             guard !Task.isCancelled else { return }
             page = value
+            if access.allows(.verifyRecordRead) {
+                visits = (try? await reader.merchantUpcomingRuns(access: access)) ?? []
+            } else { visits = [] }
         } catch {
             guard !Task.isCancelled else { return }
             page = nil
@@ -69,9 +73,15 @@ struct MerchantWorkbenchProjectCards<Reader: MerchantReading>: View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 12).fill(CYColor.bgRaised)
-                // MC8-01-6: MP `/images/cy_logo_mark.png` placeholder (MerchantProject carries no thumb yet).
-                MPAsset.BrandLogo.cyLogoMark.resizable().scaledToFit().padding(28).opacity(0.35)
-                    .accessibilityHidden(true)
+                if let thumb = project.thumb {
+                    CYCachedAsyncImage(thumb, role: .cover)
+                        .frame(width: 200, height: 150)
+                        .clipped()
+                        .accessibilityHidden(true)
+                } else {
+                    MPAsset.BrandLogo.cyLogoMark.resizable().scaledToFit().padding(28).opacity(0.35)
+                        .accessibilityHidden(true)
+                }
                 HStack {
                     if let state = project.stateText ?? project.acceptStatusText, !state.isEmpty {
                         CYStatusChip(verbatim: state, tone: .neutral)
@@ -91,6 +101,11 @@ struct MerchantWorkbenchProjectCards<Reader: MerchantReading>: View {
             Text(verbatim: project.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
             if let place = project.addressName, !place.isEmpty {
                 Text(verbatim: place).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+            }
+            if let topic = project.visitTopicID,
+               let visit = MerchantUpcomingVisit.line(runs: visits, topicID: topic, roleJoin: project.isJoinCard),
+               !visit.isEmpty {
+                Text(verbatim: visit).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(2)
             }
         }
         .frame(width: 200, alignment: .leading)

@@ -139,4 +139,19 @@ import XCTest
         XCTAssertTrue(defaults.bool(forKey: tombstone)); XCTAssertTrue(detail.isInvalidated)
         XCTAssertNil(detail.value); XCTAssertNil(detail.error); XCTAssertFalse(detail.isLoading)
     }
+
+    /// MP `gameArt(title)` only draws a prop for the 25 shelf plays. Anything else stays nil so the stop uses the play symbol.
+    func testShelfGamePropMatchesTheMiniProgramPlayTable() {
+        let titles = ["今晚的暗号", "老板的秘密题", "拍下这一刻", "收集这枚风味印章", "新品盲测局", "今日搭配任务", "集合点亮",
+                      "小队竞速点亮", "街角谜题", "城市取景任务", "城市接力棒", "今日角色任务", "招牌菜限时盲猜", "咖啡风味人格",
+                      "分支故事接力", "细节观察挑战", "一桌任务宾果", "小队能量接力", "闭眼味觉师", "沉默点单", "便利店调酒师",
+                      "治愈音乐角", "午夜电台", "低碳行动", "今日城市签"]
+        for title in titles {
+            XCTAssertNotNil(TemplateShelfArt.gameProp(" \(title) "), title)
+        }
+        XCTAssertEqual(titles.count, 25)
+        XCTAssertNil(TemplateShelfArt.gameProp(nil))
+        XCTAssertNil(TemplateShelfArt.gameProp("  "))
+        XCTAssertNil(TemplateShelfArt.gameProp("不是货架玩法"))
+    }
 }

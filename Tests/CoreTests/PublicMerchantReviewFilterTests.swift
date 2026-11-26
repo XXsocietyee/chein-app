@@ -52,7 +52,7 @@ final class PublicMerchantReviewFilterTests: XCTestCase {
         let items = try [item(1, rating: 5), item(2, rating: 4)]
         let page = PublicMerchantReviewPage(mode: "public", pageNum: 1, pageSize: 20, total: 43,
             hasMore: true, averageRating: 4.7,
-            eligibility: .init(canCreate: false, reasonCode: "LOGIN_REQUIRED", registrationId: nil), items: items)
+            eligibility: .init(canCreate: false, reasonCode: "LOGIN_REQUIRED", registrationId: nil, requestedRegistrationId: nil), items: items)
         let original = page
         XCTAssertTrue(page.items.filter(PublicMerchantReviewFilter.low.matches).isEmpty)
         XCTAssertEqual(page, original); XCTAssertEqual(page.total, 43); XCTAssertEqual(page.averageRating, 4.7)

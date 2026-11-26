@@ -626,6 +626,13 @@ extension RoamGoalState {
     private func amountText(_ metric: RoamGoalMetric, _ value: Int) -> Text {
         metric == .distinctRoutes ? Text("roam.goals.unit.routes \(value)") : Text("roam.goals.unit.days \(value)")
     }
+    /// MP list row: `progress + " / " + target` when the count arrived, otherwise target and unit only.
+    private func goalCount(_ row: RoamExplorationGoal) -> Text {
+        if let progress = row.progress {
+            return Text(verbatim: "\(progress) / ") + amountText(row.metric, row.target)
+        }
+        return amountText(row.metric, row.target)
+    }
     var body: some View {
         List {
             if page.isPresented {
@@ -666,11 +673,13 @@ extension RoamGoalState {
                     Button { page.read { await model.open(row.id) } } label: {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack {
-                                (Text(verbatim: "\(row.progress) / ") + amountText(row.metric, row.target)).cyText(.cardTitle).monospacedDigit()
+                                goalCount(row).cyText(.cardTitle).monospacedDigit()
                                 Spacer()
                                 CYStatusChip(row.state.titleKey, tone: row.state == .achieved ? .success : .neutral)
                             }
-                            ProgressView(value: Double(row.percent), total: 100)
+                            if let percent = row.knownPercent {
+                                ProgressView(value: Double(percent), total: 100)
+                            }
                             (Text(verbatim: "\(row.startDate) – \(row.endDateExclusive) · ") + Text(row.metric.titleKey)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         }.accessibilityElement(children: .combine)
                     }.buttonStyle(.plain).accessibilityIdentifier("roam.goals.row")
@@ -809,7 +818,7 @@ extension RoamGoalState {
     @ViewBuilder private func detailSection(_ detail: RoamExplorationGoal) -> some View {
         Section {
             (Text(detail.metric.titleKey) + Text(verbatim: " · ") + Text(detail.state.titleKey)).cyText(.meta).foregroundStyle(.secondary)
-            (Text(verbatim: "\(detail.progress)").cyText(.dataXL) + Text(verbatim: " / \(detail.target)").cyText(.sheetTitle))
+            (Text(verbatim: "\(detail.progress ?? 0)").cyText(.dataXL) + Text(verbatim: " / \(detail.target)").cyText(.sheetTitle))
                 .monospacedDigit().accessibilityIdentifier("roam.goals.detail.progress")
             ProgressView(value: Double(detail.percent), total: 100).accessibilityLabel(Text(detail.metric.titleKey))
             Text("roam.goals.range \(detail.startDate) \(detail.endDateExclusive)").cyText(.meta).foregroundStyle(.secondary)

@@ -9,11 +9,12 @@ Verifies:
    bundle ID (com.chengyinhub.chengyinApp), and 10-char team ID.
 3. Release-compiled Swift projection (DEBUG and TEST unset, Release exclusions applied)
    contains no DEBUG fixture hosts, test-host overrides, or E2E test-host endpoints.
-4. Money, merchant, and password switches stay closed for production in Release:
-   - Core/ChinaReviewedRouteCapability.swift: ReleaseMoneyWriteSwitch constants all false
-   - App/ReviewedAreaSwitch.swift: production host closed, Release branches all false
+4. Money writes follow the host derivation in Release and default off when no host is installed.
+   Virtual goods stay off. Password login stays closed in Release.
+   - Core/ChinaReviewedRouteCapability.swift: ReleaseMoneyWriteSwitch reads testDerivation, default false
+   - App/ReviewedAreaSwitch.swift: installReleaseMoneyDerivation compiles; password/merchant Release branches stay false
    - App/AppSession.swift: passwordLoginCompiledIn & canUsePassword false in Release
-   - App/WalletCommerceViews.swift: WalletPayoutCapability.isOn = false (Release projection)
+   - App/WalletCommerceViews.swift: WalletPayoutCapability.isOn follows the withdrawal switch
 """
 from pathlib import Path
 import re
@@ -219,7 +220,7 @@ def check_no_debug_fixtures_or_test_host_in_release(root: Path, excluded_names: 
 
 
 def check_switches_closed_for_production(root: Path, failures: list[str]) -> None:
-    # 1. Core/ChinaReviewedRouteCapability.swift: ReleaseMoneyWriteSwitch constants must all be false in Release
+    # 1. ReleaseMoneyWriteSwitch follows the host derivation in Release and defaults off.
     cap_path = root / "Core/ChinaReviewedRouteCapability.swift"
     cap_active, cap_errors = release_projection_no_debug_no_test(cap_path.read_text(encoding="utf-8"))
     for err in cap_errors:
@@ -228,12 +229,26 @@ def check_switches_closed_for_production(root: Path, failures: list[str]) -> Non
     if "enum ReleaseMoneyWriteSwitch" not in cap_code:
         failures.append("Core/ChinaReviewedRouteCapability.swift missing ReleaseMoneyWriteSwitch in Release")
     else:
-        switch_block = cap_code.split("enum ReleaseMoneyWriteSwitch", 1)[1].split("public struct ChinaReviewedProductionTransport", 1)[0]
-        if "testDerivation" in switch_block:
-            failures.append("ReleaseMoneyWriteSwitch.testDerivation must not compile in Release")
-        for flag in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
-            if f"public static let {flag} = false" not in switch_block:
-                failures.append(f"ReleaseMoneyWriteSwitch.{flag} must be constant false in Release")
+        switch_block = re.sub(
+            r"\s+",
+            " ",
+            cap_code.split("enum ReleaseMoneyWriteSwitch", 1)[1].split("public struct ChinaReviewedProductionTransport", 1)[0],
+        )
+        if "testDerivation" not in switch_block:
+            failures.append("ReleaseMoneyWriteSwitch.testDerivation must compile in Release")
+        for flag, kind in (
+            ("paymentEnabled", "payment"),
+            ("payoutEnabled", "payout"),
+            ("withdrawalEnabled", "withdrawal"),
+            ("virtualGoodsEnabled", "virtualGoods"),
+            ("refundEnabled", "refund"),
+            ("hostCancelRefundEnabled", "hostCancelRefund"),
+        ):
+            snippet = f"public static var {flag}: Bool {{ testDerivation?(.{kind}) ?? false }}"
+            if snippet not in switch_block:
+                failures.append(f"ReleaseMoneyWriteSwitch.{flag} must follow testDerivation and default false")
+            if f"{flag} = true" in switch_block:
+                failures.append(f"ReleaseMoneyWriteSwitch.{flag} must not be constant true")
 
     # 2. App/ReviewedAreaSwitch.swift: production host & Release branches closed
     area_path = root / "App/ReviewedAreaSwitch.swift"
@@ -243,13 +258,15 @@ def check_switches_closed_for_production(root: Path, failures: list[str]) -> Non
     area_code = "\n".join(code for _, code, _ in area_active)
     if f'static let productionAPIHost = "{PROD_HOST}"' not in area_code:
         failures.append(f"ReviewedAreaSwitch.productionAPIHost must be {PROD_HOST!r}")
-    for forbidden in ("E2ETestHostOverride", "installReleaseMoneyDerivation", "releaseMoneyDerivation"):
+    for forbidden in ("E2ETestHostOverride",):
         if forbidden in area_code:
             failures.append(f"App/ReviewedAreaSwitch.swift: {forbidden} must not compile in Release")
     for expected_snippet in (
         "static var compiledTestOrDebug: Bool { return false }",
         "private static var configuredEnabled: Bool { return false }",
-        "private static func areaOpen(_ rawHost: String?) -> Bool { return false }",
+        "static func installReleaseMoneyDerivation(host: String?)",
+        "case .virtualGoods: return false",
+        "private static func testAreaOnly(_ rawHost: String?) -> Bool { _ = rawHost return false }",
         "return admits(debug: false, apiBaseURL: bundleBaseURL())",
         'return ProcessInfo.processInfo.environment["QUESTIFY_TEST_AREA_SWITCHES"] == "1"',
     ):
@@ -271,16 +288,16 @@ def check_switches_closed_for_production(root: Path, failures: list[str]) -> Non
         if expected_snippet not in session_code:
             failures.append(f"App/AppSession.swift Release projection missing password-login closure: {expected_snippet}")
 
-    # 4. App/WalletCommerceViews.swift: WalletPayoutCapability stays false in the Release projection
-    #    (owner rule F-13: withdrawal opens only in DEBUG/TEST builds off the production host).
+    # 4. Withdrawal entry follows the same host switch in Release. A missing derivation stays off.
     wallet_text = (root / "App/WalletCommerceViews.swift").read_text(encoding="utf-8")
     wallet_active, wallet_errors = release_projection_no_debug_no_test(wallet_text)
     for err in wallet_errors:
         failures.append(f"App/WalletCommerceViews.swift: {err}")
     wallet_code = re.sub(r"\s+", " ", "\n".join(code for _, code, _ in wallet_active))
-    if "enum WalletPayoutCapability {" not in wallet_code or "static let isOn = false" not in wallet_code \
-            or "static var isOn" in wallet_code:
-        failures.append("App/WalletCommerceViews.swift: WalletPayoutCapability.isOn must be false in Release")
+    if "enum WalletPayoutCapability {" not in wallet_code \
+            or "static var isOn: Bool { ReleaseMoneyWriteSwitch.withdrawalEnabled }" not in wallet_code \
+            or "static let isOn = false" in wallet_code:
+        failures.append("App/WalletCommerceViews.swift: WalletPayoutCapability.isOn must follow the withdrawal switch")
 
     # 5. Core/SettingsIdentityApplications.swift, ActivityPublishingWizard.swift, RoamStampCaptureCoordinator.swift
     for rel in (

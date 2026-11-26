@@ -7,7 +7,9 @@ import FoundationNetworking
 final class CooperationFlowContractTests: XCTestCase {
     func testDistinctWireIDsAndScope() throws {
         XCTAssertEqual(try CoopFlowMutation.withdraw(topicID: 9).body(), .object(["topicId": .id(9)]))
-        XCTAssertEqual(try CoopFlowMutation.confirm(registrationID: 3).body(), .object(["registrationId": .id(3)]))
+        XCTAssertEqual(try CoopFlowMutation.confirm(registrationID: 3, scope: nil).body(), .object(["registrationId": .id(3)]))
+        XCTAssertEqual(try CoopFlowMutation.confirm(registrationID: 3, scope: "MERCHANT").body()["scope"], .string("MERCHANT"))
+        XCTAssertEqual(try CoopFlowMutation.reject(registrationID: 3, scope: "MERCHANT").body()["scope"], .string("MERCHANT"))
         XCTAssertEqual(try CoopFlowMutation.decline(applyID: 7, scope: "MERCHANT").body()["scope"], .string("MERCHANT"))
     }
     func testReasonFieldsAndReviewComment() throws {
@@ -22,6 +24,9 @@ final class CooperationFlowContractTests: XCTestCase {
         let body = try CoopFlowMutation.invite(form).body()
         XCTAssertEqual(body["shareMode"], .id(2)); XCTAssertEqual(body["toType"], .string("club"))
         XCTAssertEqual(body["originApplyId"], .id(4))
+        let station = try CoopFlowInvitation(kind: .merchant, recipient: CoopFlowIdentity(.member, 9), topicID: 8, message: "", supplyStationID: 12)
+        XCTAssertEqual(try CoopFlowMutation.invite(station).body()["supplyStationId"], .id(12))
+        XCTAssertThrowsError(try CoopFlowInvitation(kind: .club, recipient: CoopFlowIdentity(.club, 3), topicID: 8, message: "", supplyStationID: 12))
     }
     func testTemplateIsCreateOnlyAndDecimalValidation() throws {
         XCTAssertThrowsError(try CoopFlowPerkTemplate(name: "x", type: 0, retailValue: Decimal(string: "1.001")!, unitCost: nil, quota: 1, validEnd: nil))

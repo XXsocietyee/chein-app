@@ -65,6 +65,18 @@ final class TemplateCreatorConfigurationTests: XCTestCase {
         var draft = try fixture(.note); draft.set("note", "title", .string(String(repeating: "🎨", count: 33)))
         XCTAssertTrue(draft.creatorIssues(.note).contains { $0.path == "title" && $0.code == "length" })
     }
+    func testScanReplyOffStaysNoneWithoutJoiningResponseKindChoices() throws {
+        guard let kind = TemplateCreatorSchema.fields(.scan).first(where: { $0.id == "kind" }), case .choice(let choices) = kind.kind else {
+            return XCTFail("scan kind")
+        }
+        XCTAssertEqual(choices, ["TEXT", "VOICE", "IMAGE", "OVERLAY"])
+        var draft = try fixture(.scan)
+        draft.setScanReplyEnabled(false)
+        XCTAssertEqual(draft.value["scan"]?.object?["kind"], .string("NONE"))
+        XCTAssertTrue(draft.enabled("scan"))
+        XCTAssertTrue(draft.creatorIssues(.scan).isEmpty, "\(draft.creatorIssues(.scan))")
+        XCTAssertFalse(try draft.serialize().isEmpty)
+    }
     func testSourceWireValuesDoNotUseDisplayTranslations() throws {
         var draft = try fixture(.leaderboard); draft.set("leaderboard", "metric", .string("得分"))
         XCTAssertFalse(draft.creatorIssues(.leaderboard).isEmpty)

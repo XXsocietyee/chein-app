@@ -58,43 +58,73 @@ struct ProfileOrderSourceDetailSections: View {
     }
 }
 
-/// Team, open seats, and club from the order. Follow posts `api/user/follow/action` and does not pay.
+/// Team and companion seats already on the registration detail. Seats open the existing
+/// journey lobby. Club join stays on the club page, which already sends through
+/// `ClubActionCoordinator`. This view does not follow, pay, refund, or create an order.
 struct ProfileOrderTeamSeatClubSection: View {
     let order: ProfileOrder
     @EnvironmentObject private var session: AppSession
-    @State private var followed = false
+    @Environment(\.mpParity) private var mpParity
 
     var body: some View {
         if order.teamOpen || order.seatsOpen || order.club != nil {
             Section {
-                if order.teamOpen { Text("profile.order.teamOpen").accessibilityIdentifier("profile.order.teamOpen") }
-                if order.seatsOpen { Text("profile.order.seatsOpen").accessibilityIdentifier("profile.order.seatsOpen") }
+                if order.teamOpen {
+                    Text("orderDetail.inviteTeammates")
+                        .cyText(.body)
+                        .accessibilityIdentifier("profile.order.teamOpen")
+                }
+                if order.seatsOpen {
+                    seatsEntry
+                }
                 if let club = order.club {
-                    LabeledContent("profile.order.club") {
-                        Text(verbatim: club.name.isEmpty ? "—" : club.name)
-                    }
-                    .accessibilityIdentifier("profile.order.club")
-                    if let leader = club.leaderMemberID, leader > 0 {
-                        Button(followed ? "profile.order.follow" : "profile.order.follow") {
-                            Task { await follow(leader) }
-                        }
-                        .disabled(followed)
-                        .accessibilityIdentifier("profile.order.follow")
-                    }
+                    clubRow(club)
                 }
             }
         }
     }
 
-    private func follow(_ memberID: Int) async {
-        guard let base = session.currentRuntimeDependencyContext?.baseURL else { return }
-        let service = MemberRound2Service(baseURL: base, token: { [weak session] in session?.token }, transport: session.runtimeHTTPTransport)
-        let reply = await service.followClubOwner(memberID: memberID)
-        if case .ok = reply { followed = true }
+    /// The coordinator already sends join, apply, and leave from the club page. Follow is not one of those actions, so this row does not post it.
+    @ViewBuilder private func clubRow(_ club: ProfileOrderClub) -> some View {
+        let name = Text(verbatim: club.name.isEmpty ? "—" : club.name).cyText(.body)
+        if session.clubActionCoordinator.isConfigured {
+            NavigationLink {
+                ClubDetailView(
+                    id: club.id,
+                    reader: session,
+                    actionCoordinator: session.clubActionCoordinator,
+                    management: session.clubManagementContext,
+                    community: session.clubCommunityContext,
+                    publicRoster: session.clubPublicRosterReader
+                )
+            } label: {
+                LabeledContent("profile.order.club") { name }
+            }
+            .accessibilityIdentifier("profile.order.club")
+        } else {
+            LabeledContent("profile.order.club") { name }
+                .accessibilityIdentifier("profile.order.club")
+        }
+    }
+
+    @ViewBuilder private var seatsEntry: some View {
+        if mpParity.journeySeats != nil {
+            NavigationLink {
+                MPParityDestination(route: .journeySeats(registrationID: String(order.id)))
+            } label: {
+                Text("orderDetail.seatsEntry").cyText(.body)
+            }
+            .accessibilityIdentifier("profile.order.seatsOpen")
+        } else {
+            Text("orderDetail.seatsEntry")
+                .cyText(.body)
+                .accessibilityIdentifier("profile.order.seatsOpen")
+        }
     }
 }
 
 /// One unpaid marketing-consent row for this order's merchant, after the existing marketing GET.
+/// Display only. The consent write is not sent from this page.
 struct ProfileOrderConsentSection: View {
     let order: ProfileOrder
     @EnvironmentObject private var session: AppSession
@@ -103,12 +133,15 @@ struct ProfileOrderConsentSection: View {
     var body: some View {
         Group {
             if let offer {
-                Section("profile.order.consent") {
+                Section("orderDetail.merchantConsent.section") {
                     if let name = offer.merchantName, !name.isEmpty {
-                        Text(verbatim: name).accessibilityIdentifier("profile.order.consent.name")
+                        Text(verbatim: name)
+                            .cyText(.body)
+                            .accessibilityIdentifier("profile.order.consent.name")
                     }
-                    Button("profile.order.follow") { Task { await follow(offer.merchantOwnerMemberId) } }
-                        .accessibilityIdentifier("profile.order.consent.follow")
+                    Text("profile.order.consent")
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityIdentifier("profile.order.consent")
             }
@@ -120,12 +153,6 @@ struct ProfileOrderConsentSection: View {
         guard let pair = session.complianceSignupContext() else { return }
         let rows = (try? await pair.0.marketing(session: pair.1)) ?? []
         offer = ProfileOrderConsentOffer.pick(rows: rows, ownerMemberID: order.merchantOwnerMemberID)
-    }
-
-    private func follow(_ memberID: Int) async {
-        guard memberID > 0, let base = session.currentRuntimeDependencyContext?.baseURL else { return }
-        let service = MemberRound2Service(baseURL: base, token: { [weak session] in session?.token }, transport: session.runtimeHTTPTransport)
-        _ = await service.followClubOwner(memberID: memberID)
     }
 }
 

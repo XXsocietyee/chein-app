@@ -7,15 +7,20 @@ import QuestifyCore
 final class ReviewedAreaSwitchTests: XCTestCase {
     func testMoneySwitchesOpenOnlyForATestBuildOffTheProductionHost() {
         let testHost = "8120.example.test"
+        let production = ReviewedAreaSwitch.productionAPIHost
         XCTAssertTrue(ReviewedAreaSwitch.payout(apiHost: testHost, testOrDebug: true))
         XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: testHost, testOrDebug: true))
         XCTAssertTrue(ReviewedAreaSwitch.merchantWrites(apiHost: testHost, testOrDebug: true))
         XCTAssertTrue(ReviewedAreaSwitch.passwordLogin(apiHost: testHost, testOrDebug: true))
-        XCTAssertFalse(ReviewedAreaSwitch.payout(apiHost: testHost, testOrDebug: false))
-        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: ReviewedAreaSwitch.productionAPIHost, testOrDebug: true))
+        XCTAssertTrue(ReviewedAreaSwitch.payout(apiHost: testHost, testOrDebug: false))
+        XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: production, testOrDebug: true))
+        XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: production, testOrDebug: false))
+        XCTAssertTrue(ReviewedAreaSwitch.payout(apiHost: "WWW.CHENGYINHUB.COM", testOrDebug: false))
         XCTAssertFalse(ReviewedAreaSwitch.merchantWrites(apiHost: "WWW.CHENGYINHUB.COM", testOrDebug: true))
+        XCTAssertFalse(ReviewedAreaSwitch.passwordLogin(apiHost: production, testOrDebug: true))
         XCTAssertFalse(ReviewedAreaSwitch.passwordLogin(apiHost: nil, testOrDebug: true))
         XCTAssertFalse(ReviewedAreaSwitch.payout(apiHost: "  ", testOrDebug: true))
+        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: nil, testOrDebug: true))
     }
 
     func testExternalGamesFollowTheHostOnly() {
@@ -25,22 +30,29 @@ final class ReviewedAreaSwitchTests: XCTestCase {
         XCTAssertFalse(ReviewedAreaSwitch.externalGames(apiHost: ""))
     }
 
-    /// Owner 2026-11-13: Core money writes follow the area switch in DEBUG/TEST builds. Production host and no host stay off;
-    /// virtual goods stay off for every host. Release builds keep the Core constants false (compiled out, checked in source).
+    /// Owner 2026-11-25: a test host and www.chengyinhub.com open payment, refund, payout, and withdrawal.
+    /// Virtual goods stay off. A missing host, and a cleared derivation, stay off.
     func testDebugMoneyWriteSwitchFollowsTheHostAndRestoresClosed() {
         defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
         ReviewedAreaSwitch.installReleaseMoneyDerivation(host: "8120.example.test")
         XCTAssertTrue(ReleaseMoneyWriteSwitch.paymentEnabled)
         XCTAssertTrue(ReleaseMoneyWriteSwitch.payoutEnabled)
         XCTAssertTrue(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.refundEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.hostCancelRefundEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.blocks("/api/pay/create"))
         ReviewedAreaSwitch.installReleaseMoneyDerivation(host: ReviewedAreaSwitch.productionAPIHost)
-        XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
-        XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
-        XCTAssertTrue(ReleaseMoneyWriteSwitch.blocks("/api/pay/create"))
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.refundEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.blocks("/api/pay/create"))
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.blocks("/api/cart/add"))
         ReviewedAreaSwitch.installReleaseMoneyDerivation(host: nil)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.refundEnabled)
         ReleaseMoneyWriteSwitch.testDerivation = nil
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
     }
@@ -64,8 +76,8 @@ final class ReviewedAreaSwitchTests: XCTestCase {
         let payout = ReviewedAreaSwitch.payout(apiHost: host, testOrDebug: true)
         let writes = ReviewedAreaSwitch.merchantWrites(apiHost: host, testOrDebug: true)
         let password = ReviewedAreaSwitch.passwordLogin(apiHost: host, testOrDebug: true)
-        XCTAssertFalse(money)
-        XCTAssertFalse(payout)
+        XCTAssertTrue(money)
+        XCTAssertTrue(payout)
         XCTAssertFalse(writes)
         XCTAssertFalse(password)
         XCTAssertFalse(BackendErrorCatalog.paymentSucceeded(

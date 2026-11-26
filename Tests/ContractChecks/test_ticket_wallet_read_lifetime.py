@@ -53,6 +53,19 @@ class TicketWalletReadLifetimeContracts(unittest.TestCase):
                 self.assertIn(token, view)
             self.assertNotIn('Task {', view)
             self.assertNotIn('.task(id:', view)
+    def test_refresh_stays_inside_the_current_read_permit(self):
+        for view in self.screens:
+            refresh = view.split('.refreshable', 1)[1][:420]
+            self.assertNotIn('beginPresentation', refresh)
+            self.assertIn('let current = model.presentation', refresh)
+            self.assertIn('model.accepts(current, currentOwner: key)', refresh)
+            self.assertIn('model.refresh(presentation: current, currentOwner: key)', refresh)
+        team = (ROOT / 'App/TicketWalletTeamView.swift').read_text()
+        team_refresh = team.split('.refreshable', 1)[1][:280]
+        self.assertNotIn('appear()', team_refresh)
+        self.assertIn('let current = model.presentation', team_refresh)
+        self.assertIn('model.refreshList(current)', team_refresh)
+
     def test_background_departure_and_key_replacement_retire_old_permits(self):
         for view in self.screens:
             self.assertIn('if phase == .background { refreshOnActive = true; model.endPresentation() }', view)

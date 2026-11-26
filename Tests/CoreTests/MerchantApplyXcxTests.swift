@@ -52,7 +52,7 @@ final class MerchantApplyXcxTests: XCTestCase {
     }
 }
 
-/// Registration create and update are granted by the default approval. Chapter apply stays closed. The offline harness stays off.
+/// Registration create and update, and chapter apply, withdraw, and respond, are granted by the default approval. The offline harness stays off.
 @MainActor final class MerchantApplyWriteGateTests: XCTestCase {
     private struct DeadTransport: HTTPTransport {
         func send(_ request: URLRequest) async throws -> (Data, Int) { throw APIError.notConfigured }
@@ -66,7 +66,8 @@ final class MerchantApplyXcxTests: XCTestCase {
         draft.addressName = "Synthetic shop"; draft.address = "Synthetic street"; draft.activityDesc = "Room for 6"
         XCTAssertTrue(service.permits(.register(topicID: 3, nodeID: 4, draft: draft, cooperateDate: "")))
         XCTAssertTrue(service.permits(.updateRegistration(id: 9, topicID: 3, draft: draft)))
-        XCTAssertFalse(service.permits(.apply(chapterID: 1, message: "")))
-        XCTAssertFalse(service.permits(.withdraw(applicationID: 1)))
+        XCTAssertTrue(service.permits(.apply(chapterID: 1, message: "")))
+        XCTAssertTrue(service.permits(.withdraw(applicationID: 1)))
+        XCTAssertTrue(service.permits(.respondChapterInvitation(applicationID: 12, accepted: true, chapterID: 7, topicID: 70)))
     }
 }

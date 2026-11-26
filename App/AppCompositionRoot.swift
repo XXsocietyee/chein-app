@@ -173,7 +173,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let clubBadgeManagementApproval: @MainActor (RuntimeDependencyContext) -> ClubBadgeManagementApproval?
     let merchantReviewOriginalReadApproval: @MainActor (RuntimeDependencyContext) -> MerchantReviewOriginalReadApproval?
     let deployment: DeploymentState
-    let storage: AppScopedStorageFactory
+    var storage: AppScopedStorageFactory
     let makeTransport: () -> any HTTPTransport
     /// Distinct endpoint permissions, neither inferred from login nor ordinary club writes.
     var clubWelcomeNoteWriteApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
@@ -599,14 +599,14 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
         notePlayerWrites(grantPlayerWrites)
         if grantPlayerWrites {
-            clubOrdinaryAdmissionApproval = { [gates] context in gates.playerWriters(context)?.clubAdmission }
-            nativeFriendApproval = { [gates] context in gates.playerWriters(context)?.friends }
+            clubOrdinaryAdmissionApproval = { [gates] context in gates.playerWriters(context)?.clubAdmission }; nativeFriendApproval = { [gates] context in gates.playerWriters(context)?.friends }
             nativeChannelTextSendApproval = { [gates] context in gates.playerWriters(context)?.channelTextSend }
             nativeChannelTextReceiptApproval = { [gates] context in gates.playerWriters(context)?.channelTextReceipt }
             clubPublicTopicsApproval = { [gates] context, clubID in gates.clubPublicTopics(context, clubID: clubID) }
-            nativeBlacklistApproval = { [gates] context in gates.blacklist(context) }
-            installSocialWriteApprovals(gates)
-            // E2E-20261113b N4: the purchased library follows the TEST money switch (closed on the production host).
+            nativeBlacklistApproval = { [gates] context in gates.blacklist(context) }; installSocialWriteApprovals(gates)
+            clubRoleAssignmentApproval = { MPFirstClubApprovals.roleAssignment($0) }; clubRoleRevocationApproval = { MPFirstClubApprovals.roleRevocation($0) }
+            clubPublicRosterApproval = { MPFirstClubApprovals.roster($0) }; clubWelcomeNoteWriteApproval = { MPFirstClubApprovals.welcomeWrite($0) }
+            clubWelcomeNoteReceiptApproval = { MPFirstClubApprovals.welcomeReceipt($0) }; if self.storage.clubWelcomeNoteOriginalJournalDirectory == nil { self.storage.clubWelcomeNoteOriginalJournalDirectory = MPFirstClubApprovals.welcomeDirectory }
             self.workshopPurchasedReadApproval = { [gates] context in gates.workshopPurchasedRead(context) }
         }
     }
@@ -689,7 +689,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         case .contentDetail:
             guard reviewed.contentDetails == .activityAndTopic else { return .detailReadNotApproved }
             guard let identity else { return .sessionUnavailable }
-            if identity.accountID == nil && identity.role == nil && identity.token == nil { return .signInRequired }
+            if identity.accountID == nil && identity.role == nil && identity.token == nil { return .available }
             guard identity.isSignedInContentViewer else { return .sessionUnavailable }
         }
         return .available
@@ -3532,12 +3532,12 @@ extension KeychainTokenStore: AppTokenStorage {}
                 throw APIError.notConfigured
             }
         } else if let route = SignedInContentDetailReadRoute(url: url, baseURL: api.baseURL) {
-            // Activity info accepts a nil token. Topic info stays a signed-in content viewer.
-            let guestActivity = route == .activity && captured.accountID == nil && captured.role == nil
-                && captured.token == nil && request.value(forHTTPHeaderField: "Authorization") == nil
-                && captured.isPublicTemplateViewer
+            // Anonymous activity and topic info use a nil token.
+            // Favorite, buy, and review stay signed in.
+            let guestRead = captured.isPublicTemplateViewer && captured.accountID == nil
+                && request.value(forHTTPHeaderField: "Authorization") == nil
             guard deployment.contentDetails == .activityAndTopic,
-                  (guestActivity || captured.isSignedInContentViewer), route.accepts(request) else { throw APIError.notConfigured }
+                  (guestRead || captured.isSignedInContentViewer), route.accepts(request) else { throw APIError.notConfigured }
         } else if OfficialPublicEventReadRoute.accepts(request, baseURL: api.baseURL) {
             let selection = officialPublicEventReadSelection
             guard deployment.regional.market == .china, deployment.reads.contains(.officialPublicEventCatalogAndDetail),
@@ -3588,7 +3588,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ReviewedProductionFormMutationRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
-        } else if MPFirstMerchantWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+        } else if MPFirstMerchantWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) || (deployment.playerWritesEnabled && MPFirstClubWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token)) {
             // Owner 2026-11-25 MP-first rule: the merchant writes the MP sends; the server checks the merchant role.
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }

@@ -90,6 +90,8 @@ public enum TemplateAuthoringContract {
         return true
     }
     public static func request(_ draft: TemplateAuthoringDraft, intent: TemplateAuthoringIntent) throws -> TemplateAuthoringRequest {
+        // MP saveDraft toasts and publish uses city-node/template/submit. Neither may ride the personal template pipe.
+        guard draft.authoringFrom != "citynode" else { throw TemplateAuthoringError.invalidDraft }
         guard !draft.validationMethod.isLocalConfigurationOnly, draft.canSave, intent != .publish || draft.publishIssues.isEmpty else { throw TemplateAuthoringError.invalidDraft }
         return .init(path: intent == .saveDraft ? "/api/template/draft" : "/api/template/publish", body: .json(try payload(draft)), mutates: true)
     }
@@ -125,7 +127,25 @@ public enum TemplateAuthoringContract {
         if d.operationScope == "MERCHANT" { p["scope"] = .string("MERCHANT") }
         return p
     }
+    /// MP `INTERACTION_TYPES` (`temp/index.js`). Orthogonal to `validationMethod`. Personal publish does not send it.
+    public enum TemplateCityNodeInteraction: String, CaseIterable, Identifiable, Sendable {
+        case cityStoryCard = "city_story_card"
+        case hiddenMenu = "hidden_menu"
+        case photoSpot = "photo_spot"
+        case qrCheckin = "qr_checkin"
+        public var id: String { rawValue }
+        public var labelKey: String {
+            switch self {
+            case .cityStoryCard: return "templateAuthor.citynode.cityStoryCard"
+            case .hiddenMenu: return "templateAuthor.citynode.hiddenMenu"
+            case .photoSpot: return "templateAuthor.citynode.photoSpot"
+            case .qrCheckin: return "templateAuthor.citynode.qrCheckin"
+            }
+        }
+    }
     /// Mini-program `from=citynode` posts the template body to this path, not `/api/template/publish`.
+    /// The personal author-request receipt still only forwards draft and publish, so `request` refuses `from=citynode`
+    /// instead of sending this path through that pipe (C-T3c).
     public static let cityNodeSubmitPath = "/api/merchant/city-node/template/submit"
     /// `temp/index.js` `toNodeTemplate`: rename the few fields the node entity does not share.
     public static func cityNodeBody(_ payload: [String: TemplateAuthoringJSON], interactionType: String) -> [String: TemplateAuthoringJSON] {

@@ -173,9 +173,10 @@ public struct AccountPublishGapClient {
 /// settings, deregistration, team handle, and the club post feed.
 /// Source: hengyin `chengyinhub-xcx` `25eb6a0c`. A POST with no header is
 /// `application/x-www-form-urlencoded;`. JSON bodies keep object-literal key order.
-/// `moneyEnabled` stays false. This type does not build a pay, withdrawal, or pass request.
+/// `moneyEnabled` follows the payment host switch. This type does not build a pay, withdrawal, or pass request.
+/// The earnings balance read does not depend on that flag.
 public enum AccountPublishMPContract {
-    public static let moneyEnabled = false
+    public static var moneyEnabled: Bool { ReleaseMoneyWriteSwitch.paymentEnabled }
     public static let formContentType = "application/x-www-form-urlencoded;"
     public static let jsonContentType = "application/json"
     public static let userInfoPath = "api/user/info"
@@ -494,7 +495,7 @@ public enum AccountPublishMPContract {
     }
 
     public static func earningsBalance(from body: Data) -> EarningsBalance {
-        guard moneyEnabled == false, let object = payload(body) else { return .invalid }
+        guard let object = payload(body) else { return .invalid }
         return earnings(object["balance"])
     }
 

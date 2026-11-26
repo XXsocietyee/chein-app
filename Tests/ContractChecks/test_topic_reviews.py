@@ -17,7 +17,7 @@ class TopicReviewChecks(unittest.TestCase):
         view = self.read('App/TopicDetailView.swift')
         self.assertEqual(view.count('TopicReviewsContent(reviews: value.reviews)'), 1)
         self.assertLess(view.index('Section("topic.comments")'), view.index('TopicReviewsContent('))
-        self.assertIn('CYPillButton("context.review.title", style: .secondary) { showsReview = true }', view)
+        self.assertIn('CYPillButton("context.review.title", style: .secondary) { asSignedIn { showsReview = true } }', view)
         self.assertIn('ContextualReviewComposer(target: .topic(id)', view)
         self.assertNotIn('if value.comments.isEmpty', view)
         self.assertNotIn('if let rating = value.averageRating', view)
