@@ -288,6 +288,22 @@
           }
         }
       }
+    },
+    "searchMap.unified.header": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topics, activities and posts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题、活动与帖文"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

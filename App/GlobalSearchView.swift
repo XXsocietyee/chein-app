@@ -31,6 +31,8 @@ import SwiftUI
     @State private var emptySearchToast: LocalizedStringKey?
     /// PC-A-3-3: empty Search submit. Nil hides the prompt.
     @State private var emptySearchNotice: LocalizedStringKey?
+    /// R7-PC-A4-1: unified rows are inline, so the topic/activity lanes step aside (pages/search2/result/index.js:95-100).
+    @State private var unifiedReplacesLanes = false
     @State private var categoryRecovery = SearchMapCategoryRecovery()
     @State private var categoryPresentationID = UUID()
     @State private var filterPresentationID = UUID()
@@ -240,6 +242,16 @@ import SwiftUI
         .cyToast(message: $emptySearchNotice)
     }
     private var categoryOwner: SearchMapCategoryRecovery.Owner { .init(reader: reader) }
+    private func showsRow(_ row: GlobalSearchRow) -> Bool {
+        if hidesMerchants && row.kind == .merchant { return false }
+        if let kind = selectedKind { return row.kind == kind }
+        return !(unifiedReplacesLanes && (row.kind == .topic || row.kind == .activity))
+    }
+    /// MP merges unified rows only for a bare keyword: no category, date or price narrowing.
+    private var unifiedKeywordOnly: Bool {
+        filter.categoryID == nil && filter.startDate == nil && filter.endDate == nil
+            && filter.minimumPrice == nil && filter.maximumPrice == nil
+    }
     /// Changes when the list swaps suggestions, loading, a failure or result rows.
     private var listMotionKey: [String] {
         guard let snapshot = retainedResults.snapshot(in: resultContext) else {
@@ -532,7 +544,7 @@ import SwiftUI
                 }
             }
         }
-        let visible = value.rows.filter { !(hidesMerchants && $0.kind == .merchant) && (selectedKind == nil || $0.kind == selectedKind) }
+        let visible = value.rows.filter(showsRow)
         Section {
             // pages/search2/index readiness: a failed/gated player lane beside empty lanes is unknown, not "no results".
             if !loading, GlobalSearchEntryReadiness.phase(configured: reader.isConfigured, loading: loading, issueKey: nil,
@@ -563,7 +575,10 @@ import SwiftUI
                 Text("searchMap.templates").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
             }
         }
-        if !loading { UnifiedSearchEntry(keyword: filter.keyword, destination: destination) }
+        if !loading, selectedKind == nil {
+            UnifiedSearchEntry(keyword: filter.keyword, keywordOnly: unifiedKeywordOnly,
+                               onRows: { unifiedReplacesLanes = $0 }, destination: destination)
+        }
         // Mini-program result footer: "内容已加载完" under results; "刷新搜索结果" also stays on an empty or failed page.
         if !loading {
             Section {

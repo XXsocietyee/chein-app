@@ -265,53 +265,86 @@ extension EnvironmentValues {
     }
 }
 
-/// `pages/search2/result` content leg: signed-in unified topic/activity(/post) search for the submitted keyword.
+/// R7-PC-A4-1: `pages/search2/result` content leg (pages/search2/result/index.js:95-100). Signed in with a keyword and
+/// no other filter, the MP merges `/api/search/unified` rows into the main results and drops its own topic/activity
+/// lanes. Here the rows sit inline in the result list; `onRows` tells the host to hide its duplicate lanes.
 @MainActor struct UnifiedSearchEntry<Destination: View>: View {
     let keyword: String
+    var keywordOnly: Bool = true
+    var onRows: (Bool) -> Void = { _ in }
     let destination: (SearchMapDestination) -> Destination
     @Environment(\.socialRoamCapabilities) private var capabilities
-    @Environment(\.locale) private var locale
+    @State private var items: [MapSearchPlayerService.SearchItem] = []
+    @State private var page = 0
+    @State private var hasMore = false
+    @State private var loading = false
+    @State private var failed = false
+
+    private var text: String { keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var key: String { text + "|" + String(keywordOnly) + "|" + String(capabilities?.accountID ?? 0) }
 
     var body: some View {
-        if let capabilities, !keyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Section {
-                NavigationLink {
-                    UnifiedSearchHost(keyword: keyword, includePosts: capabilities.communityOpen, client: capabilities.client, destination: destination)
-                } label: {
-                    CYListRow(verbatim: PlayerCapabilityCopy.text("搜索主题、活动内容", "Search topics and activities", locale), trailing: .none, card: true) {
-                        CYRowIcon(systemImage: "doc.text.magnifyingglass")
+        Group {
+            if capabilities != nil, keywordOnly, !text.isEmpty, !items.isEmpty || failed {
+                Section {
+                    ForEach(items) { item in
+                        NavigationLink { target(item) } label: {
+                            VStack(alignment: .leading) {
+                                Text(verbatim: item.title).font(.body)
+                                Text(verbatim: (MapSearchPlayerService.typeLabels[item.type] ?? item.type) + " · " + item.detail)
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                            }
+                        }
+                        .accessibilityIdentifier("search.unified.\(item.id)")
                     }
+                    if hasMore {
+                        Button("context.picker.more") { Task { await load(page + 1) } }
+                            .disabled(loading).accessibilityIdentifier("searchMap.unified.more")
+                    }
+                    if failed {
+                        Button("searchMap.retryPage") { Task { await load(max(page, 0) + 1) } }
+                            .accessibilityIdentifier("searchMap.unified.retry")
+                    }
+                } header: {
+                    Text("searchMap.unified.header")
                 }
-                .buttonStyle(.plain)
                 .accessibilityIdentifier("searchMap.unified.open")
             }
         }
-    }
-}
-
-@MainActor private struct UnifiedSearchHost<Destination: View>: View {
-    let keyword: String
-    let includePosts: Bool
-    let client: PlayerCapabilityClient
-    let destination: (SearchMapDestination) -> Destination
-    @State private var opened: Opened?
-
-    private struct Opened: Identifiable, Hashable {
-        let target: SearchMapDestination
-        var id: SearchMapDestination { target }
-    }
-
-    var body: some View {
-        UnifiedSearchResultsView(keyword: keyword, cityCode: "", includePosts: includePosts, client: client) { item in
-            switch item.type {
-            case "topic": opened = Opened(target: .topic(item.itemID))
-            case "activity": opened = Opened(target: .activity(item.itemID))
-            default: break // posts have no search-map destination here
-            }
+        .task(id: key) {
+            items = []; page = 0; hasMore = false; failed = false; onRows(false)
+            guard capabilities != nil, keywordOnly, !text.isEmpty else { return }
+            await load(1)
         }
-        .navigationTitle(Text(verbatim: keyword))
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(item: $opened) { destination($0.target) }
+    }
+
+    @ViewBuilder private func target(_ item: MapSearchPlayerService.SearchItem) -> some View {
+        switch item.type {
+        case "topic": destination(.topic(item.itemID))
+        case "activity": destination(.activity(item.itemID))
+        // MP result post rows open pages/square/detail/index?id= (square detail).
+        default: MPReviewedPageScreen(page: "pages/square/detail/index", query: ["id": String(item.itemID)])
+        }
+    }
+
+    private func load(_ next: Int) async {
+        guard let capabilities, !loading else { return }
+        loading = true; defer { loading = false }
+        let types = capabilities.communityOpen ? ["topic", "activity", "post"] : ["topic", "activity"]
+        do {
+            let result = try await MapSearchPlayerService(client: capabilities.client)
+                .unifiedSearch(keyword: text, types: types, cityCode: "", page: next)
+            guard !Task.isCancelled else { return }
+            var seen = Set(items.map(\.id))
+            items += result.items.filter { seen.insert($0.id).inserted }
+            page = next; hasMore = MapSearchPlayerService.hasMore(result, pageNumber: next); failed = false
+            onRows(!items.isEmpty)
+        } catch PlayerCapabilityFailure.rejected(let code, _) where code == 503 || code == 404 {
+            // Unified search not open: the MP falls back to its own topic/activity lanes.
+            hasMore = false; onRows(false)
+        } catch {
+            failed = !Task.isCancelled && !items.isEmpty; onRows(!items.isEmpty)
+        }
     }
 }
 
