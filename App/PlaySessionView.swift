@@ -42,9 +42,9 @@ struct PlaySessionView: View {
             }
         }
         .privacySensitive()
-        .cyDomainScreen(.game)
-        .cyPushedChrome(domain: .game)
-        .tint(CYColor.gameAccent)
+        .cyDomainScreen(.player)
+        .cyPushedChrome(domain: .player)
+        .tint(Color.accentColor)
         .appNavigationTitle(key: model.visibleSnapshot?.result.mode == 2 ? "playFree.title" : "play.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -60,7 +60,7 @@ struct PlaySessionView: View {
                 else if model.visibleSnapshot?.result.mode == 1 { PlayNodeDetailView(nodeID: nodeID, model: model) }
                 else { Text("playMode.unavailable") }
             }
-            .cyPushedChrome(domain: .game)
+            .cyPushedChrome(domain: .player)
         }
         .task(id: reader.identity) { await model.load() }
         .onChange(of: reader.identity) { _, _ in selectedNodeID = nil; freePackOpen = false; presentedMode = nil }

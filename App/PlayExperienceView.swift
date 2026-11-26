@@ -138,11 +138,10 @@ import MapKit
         }
         .environment(\.questifyCast, castModel?.context)
         .privacySensitive()
-        // P-049: the native r2 flows follow the system Light/Dark setting (player domain, system accent);
-        // the legacy play screens keep the forced-dark game domain.
+        // N-PLAY-DARK: system Light/Dark and the system accent (player domain) for every play mode.
         .cyDomainScreen(screenDomain)
         .cyPushedChrome(domain: screenDomain)
-        .tint(usesNativeR2Domain ? Color.accentColor : CYColor.gameAccent)
+        .tint(Color.accentColor)
         .appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedNode) { id in
@@ -727,13 +726,9 @@ import MapKit
     /// (pause / resume) above the panel, and the unchanged task list in a three-detent panel.
     // MARK: native r2 city orientation (NativeR2Flags.cityOrientation)
 
-    /// P-049: city orientation and free explore run their native r2 screens under the player domain.
-    private var usesNativeR2Domain: Bool {
-        if model.gameplayMode == .cityOrientation { return NativeR2Flags.cityOrientation }
-        if model.gameplayMode == .freeExploration { return NativeR2Flags.freeExplore }
-        return false
-    }
-    private var screenDomain: ThemeDomain { usesNativeR2Domain ? .player : .game }
+    /// N-PLAY-DARK (MP pages/play/index.wxml is a normal light page): the runtime shell, backpack, route map and node
+    /// pages follow the system Light/Dark setting under the player domain. Only the focused kit stage stays dark.
+    private var screenDomain: ThemeDomain { .player }
 
     /// Any other presentation of this screen hides the run sheet first; it comes back when that one closes.
     private var cityRunSheetBlocked: Bool {
