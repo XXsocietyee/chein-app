@@ -2,14 +2,12 @@ import SwiftUI
 
 enum CYPillStyle { case primary, secondary, tertiary }
 
-/// Pill height (design hand-off r1, full-player §2): 44 on pages and sheets, 52 on full-screen moments
-/// (level-up, lobby start, play, result screens).
+/// Kept for call-site compatibility. Since native r2 both sizes render as the system `.large` control.
 enum CYPillSize { case regular, moment }
 
-/// The player kit button (`Player/Button`, design hand-off r1 §2 and PL-10/PL-12), drawn by the system since the
-/// native restyle (native-ios-r1 §3.6): primary = `.borderedProminent` in the monochrome accent (white pill with a black
-/// label on the player stage; black pill on merchant light); secondary = `.bordered`; tertiary = `.borderless`.
-/// One primary per screen (owner rule).
+/// Native r2 (owner, 2026-11-26: "identical to Apple's official ones"): the system button, nothing drawn by us.
+/// primary → `.borderedProminent`, secondary → `.bordered`, tertiary → `.borderless`; `.controlSize(.large)`,
+/// system tint (accent), system label colour, height and shape. One prominent button per screen.
 struct CYPillButton: View {
     private let title: LocalizedStringKey
     private let tableName: String?
@@ -65,96 +63,89 @@ struct CYPillButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: CYSpacing.sm) {
-                if let systemImage { Image(systemName: systemImage) }
-                if let verbatimTitle {
-                    Text(verbatim: verbatimTitle)
-                } else {
-                    Text(title, tableName: tableName)
-                }
-            }
-            .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: fullWidth ? .infinity : nil)
+            labelView
+                .frame(maxWidth: fullWidth ? .infinity : nil)
         }
-        .modifier(CYNativeButtonChrome(style: style, size: compact ? .regular : size))
+        .modifier(CYNativeButtonChrome(style: style, size: size))
+    }
+
+    @ViewBuilder
+    private var labelView: some View {
+        if let systemImage {
+            Label {
+                titleText
+            } icon: {
+                Image(systemName: systemImage)
+            }
+        } else {
+            titleText
+        }
+    }
+
+    @ViewBuilder
+    private var titleText: some View {
+        if let verbatimTitle {
+            Text(verbatim: verbatimTitle)
+        } else {
+            Text(title, tableName: tableName)
+        }
     }
 }
 
-/// Native restyle (native-ios-r1 §3.6): the pill is the system button.
-/// primary → `.borderedProminent`, secondary → `.bordered`, tertiary → `.borderless`, all `.large` + capsule.
-/// The monochrome accent (near-white on the player stage, black on merchant light) is the tint, and the label colour
-/// is set explicitly so a near-white fill never carries a white label (spec §2.2 gotcha). The system draws the
-/// press and disabled states, so there is no second press animation.
+/// Native r2: the system button style only. No tint, foreground, shape or height of our own;
+/// the system draws press, disabled, Dynamic Type and Light/Dark.
 struct CYNativeButtonChrome: ViewModifier {
     let style: CYPillStyle
     var size: CYPillSize = .regular
 
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.isEnabled) private var isEnabled
-
     func body(content: Content) -> some View {
-        let tokens = CYPillButtonStyle.tokens(style: style, isEnabled: isEnabled, in: palette)
         styled(content)
-            .foregroundStyle(tokens.foreground)
-            .controlSize(size == .moment ? .extraLarge : .large)
-            .buttonBorderShape(.capsule)
-            .frame(minHeight: CYSpacing.minTouchTarget)
+            .controlSize(.large)
     }
 
     @ViewBuilder
     private func styled(_ content: Content) -> some View {
         switch style {
         case .primary:
-            content.buttonStyle(.borderedProminent).tint(palette.actionPrimaryBg)
+            content.buttonStyle(.borderedProminent)
         case .secondary:
-            content.buttonStyle(.bordered).tint(palette.textPrimary)
+            content.buttonStyle(.bordered)
         case .tertiary:
-            content.buttonStyle(.borderless).tint(palette.textSecondary)
+            content.buttonStyle(.borderless)
         }
     }
 }
 
+/// `.buttonStyle(CYPillButtonStyle(...))` call sites (also used through `AnyButtonStyle` and the
+/// `ButtonStyle where Self == CYPillButtonStyle` statics, so it stays a `ButtonStyle`). The label is hosted in a
+/// real system button of the matching style (`.borderedProminent` / `.bordered` / `.borderless`, `.large`,
+/// role kept) so the system draws fill, shape, tint, label colour and the disabled state. The host button
+/// takes the tap; the system press dim is mirrored from `isPressed`.
 struct CYPillButtonStyle: ButtonStyle {
     var style: CYPillStyle = .primary
     var fullWidth: Bool = true
-    /// 44pt inline variant for card footers (still the minimum touch target).
+    /// Kept for call-site compatibility; the system `.large` control already meets the touch target.
     var compact: Bool = false
-    /// 44 on pages and sheets, 52 on full-screen moments.
+    /// Kept for call-site compatibility.
     var size: CYPillSize = .regular
 
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.cyPillOnSheet) private var onSheet
-    @QuestifyReduceMotion private var reduceMotion
-    @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
-    @ScaledMetric(relativeTo: .body) private var momentHeight: CGFloat = 52
-
-    /// 44 pt (46 on merchant), scaled with Dynamic Type.
-    private var height: CGFloat { palette.buttonMinHeight * scale }
-
     func makeBody(configuration: Configuration) -> some View {
-        let shape: AnyShape = palette.buttonCornerRadius.map { AnyShape(RoundedRectangle(cornerRadius: $0, style: .continuous)) }
-            ?? AnyShape(Capsule(style: .continuous))
-        configuration.label
-            .font(style == .tertiary ? Self.tertiaryFont : Self.labelFont)
-            .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
-            .foregroundStyle(foreground)
-            .padding(.horizontal, compact ? CYSpacing.xl : CYSpacing.xxl)
-            .padding(.vertical, CYSpacing.sm)
-            .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: size == .moment && !compact ? momentHeight : height)
-            .background(shape.fill(fill))
-            .contentShape(shape)
-            // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
-            .opacity(configuration.isPressed && isEnabled ? 0.7 : 1)
+        Button(role: configuration.role, action: {}) {
+            configuration.label
+                .frame(maxWidth: fullWidth ? .infinity : nil)
+        }
+        .modifier(CYNativeButtonChrome(style: style, size: size))
+        .allowsHitTesting(false)
+        .opacity(configuration.isPressed ? 0.75 : 1)
     }
 
-    /// The system button label (`.headline`, native-ios-r1 §2.1 `button`); follows Dynamic Type.
+    /// The system button label style (`.headline`); follows Dynamic Type.
     static let labelFont: Font = .headline
-    /// Tertiary text button, 15 pt (`.subheadline`, Dynamic Type).
-    static let tertiaryFont: Font = .system(.subheadline, design: .default)
+    /// Tertiary text button (`.subheadline`, Dynamic Type).
+    static let tertiaryFont: Font = .subheadline
 
+    /// Token readback kept for existing token tests and the few non-button callers. The rendered buttons above
+    /// no longer read it: the system draws their colours.
     static func tokens(style: CYPillStyle, isEnabled: Bool, in palette: CYDomainPalette, onSheet: Bool = false) -> (foreground: Color, fill: Color) {
         let fg: Color
         if !isEnabled {
@@ -162,7 +153,6 @@ struct CYPillButtonStyle: ButtonStyle {
         } else {
             switch style {
             case .primary: fg = palette.actionPrimaryFg
-            // Player: white label on a dark pill. Merchant light keeps a dark label on its light grey pill.
             case .secondary: fg = palette.textPrimary
             case .tertiary: fg = palette.isDarkDomain ? palette.textPrimary.opacity(0.7) : palette.textSecondary
             }
@@ -174,7 +164,6 @@ struct CYPillButtonStyle: ButtonStyle {
             if !isEnabled {
                 bg = palette.bgSurfaceSubtle
             } else if palette.isDarkDomain {
-                // `#1C1C1E` disappears on a `#1C1C1E`/glass sheet, so on a sheet the secondary pill steps up to surface-3.
                 bg = onSheet ? palette.bgStrong : palette.bgElevated
             } else {
                 bg = palette.actionSecondaryBg
@@ -183,15 +172,12 @@ struct CYPillButtonStyle: ButtonStyle {
         }
         return (foreground: fg, fill: bg)
     }
-
-    private var foreground: Color { Self.tokens(style: style, isEnabled: isEnabled, in: palette, onSheet: onSheet).foreground }
-    private var fill: Color { Self.tokens(style: style, isEnabled: isEnabled, in: palette, onSheet: onSheet).fill }
 }
 
 private struct CYPillOnSheetKey: EnvironmentKey { static let defaultValue = false }
 
 extension EnvironmentValues {
-    /// True inside `CYResizableSheet`/`CYSheetContainer` content, so the player secondary pill stays visible on the sheet fill.
+    /// Kept for call-site compatibility (set by sheet containers); the system button no longer needs it.
     var cyPillOnSheet: Bool {
         get { self[CYPillOnSheetKey.self] }
         set { self[CYPillOnSheetKey.self] = newValue }
@@ -206,10 +192,8 @@ private struct CYPillButtonPreviewBody: View {
             CYPillButton("Skip for now", style: .tertiary, action: {})
             CYPillButton("Disabled", action: {}).disabled(true)
         }
-        .padding(CYSpacing.pageHorizontal)
+        .padding()
         .frame(maxHeight: .infinity, alignment: .top)
-        .cyDomainPageBackground()
     }
 }
-#Preview("Pill · player dark") { CYPillButtonPreviewBody().themeDomain(.player) }
-#Preview("Pill · merchant light") { CYPillButtonPreviewBody().themeDomain(.merchant) }
+#Preview("Pill") { CYPillButtonPreviewBody() }
