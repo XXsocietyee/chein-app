@@ -314109,6 +314109,23 @@
         }
       }
     },
+    "profile.badges.notUnlocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未解锁"
+          }
+        }
+      }
+    },
     "searchMap.needKeywordOrCategory": {
       "extractionState": "manual",
       "localizations": {
