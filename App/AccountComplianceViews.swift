@@ -624,6 +624,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Button("compliance.revoke", role: .destructive) { performRoamRevoke() }
                     .disabled(model.state.roamCleanup == .complete).accessibilityIdentifier("compliance.revoke")
             }
+        } footer: {
+            // r10 N-16: queued consent writes show as the section footer (system), not a banner row.
             CYScreenOfflineWriteBanner(
                 routes: ["/api/compliance/consents"],
                 session: offlineWriteSession.session
