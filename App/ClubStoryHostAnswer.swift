@@ -59,15 +59,21 @@ struct ClubStoryHostAnswerSheetContent: View {
         List {
             switch phase {
             case .loading:
-                HStack(spacing: CYSpacing.sm) { ProgressView(); Text("club.story.answer.loading") }
+                HStack(spacing: 8) { ProgressView(); Text("club.story.answer.loading").foregroundStyle(.secondary) }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.story.hostAnswer.loading")
             case .failed:
-                CYEmptyState(systemImage: "exclamationmark.triangle", "club.story.answer.failed",
-                             messageIdentifier: "club.story.hostAnswer.failed",
-                             actionTitle: "action.retry", actionIdentifier: "club.story.hostAnswer.retry",
-                             kind: .failure) { Task { await load() } }
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label {
+                        Text("club.story.answer.failed").accessibilityIdentifier("club.story.hostAnswer.failed")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                } actions: {
+                    Button("action.retry") { Task { await load() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("club.story.hostAnswer.retry")
+                }
             case .loaded(let answer):
                 ClubNodeAnswerContent(value: .object([
                     "question": answer.question.map(ClubGovernanceValue.string) ?? .null,
@@ -75,7 +81,6 @@ struct ClubStoryHostAnswerSheetContent: View {
                 ]))
             }
         }
-        .listStyle(.plain)
         .accessibilityIdentifier("club.story.hostAnswer")
         .task(id: "\(topicID).\(nodeID)") { await load() }
     }

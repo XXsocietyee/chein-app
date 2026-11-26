@@ -128,7 +128,6 @@ import SwiftUI
             }
             .environment(\.calendar, ClubSeriesScheduleDraft.calendar)
             .environment(\.timeZone, ClubSeriesScheduleDraft.timeZone)
-            .cyGroupedSurface()
             .navigationTitle("club.schedule.title").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { dismiss() }.accessibilityIdentifier("club.schedule.cancel") }
@@ -725,13 +724,13 @@ struct ClubSeriesOfferWindowField: View {
             TextField("club.gov.field.offerMinutes", text: $minutes)
                 .keyboardType(.numberPad)
                 .accessibilityIdentifier("club.gov.input.offerMinutes")
-            Text(verbatim: "5–1440").cyText(.meta).foregroundStyle(.secondary)
+            Text(verbatim: "5–1440").font(.footnote).foregroundStyle(.secondary)
                 .accessibilityIdentifier("club.schedule.offer.range")
             if let duration = presentation.duration(locale: locale) {
-                Text(verbatim: duration).cyText(.meta).foregroundStyle(.secondary)
+                Text(verbatim: duration).font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("club.schedule.offer.duration")
             } else {
-                Text("club.gov.invalid").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                Text("club.gov.invalid").font(.footnote).foregroundStyle(.red)
                     .accessibilityIdentifier("club.schedule.offer.invalid")
             }
         }

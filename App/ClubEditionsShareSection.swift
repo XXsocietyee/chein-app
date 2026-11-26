@@ -47,23 +47,24 @@ import SwiftUI
     }
 
     private func editionRow(_ row: Edition) -> some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
                 if let name = row.name {
                     Text(verbatim: name).cyText(.body)
                 } else {
                     Text("club.editions.unnamed").cyText(.body)
                 }
                 (dateText(row) + Text(verbatim: " · ") + Text("club.editions.executing"))
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
             if let url = Self.shareURL(topicID: row.topicID, clubID: clubID) {
                 ShareLink(item: url) {
                     Text("club.editions.share")
                 }
-                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                .buttonStyle(.bordered)
+                .controlSize(.small)
                 .accessibilityIdentifier("club.editions.share.\(row.topicID)")
             }
         }
