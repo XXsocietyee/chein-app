@@ -17,8 +17,6 @@ import SwiftUI
     /// Pushed inside a host stack (deep link, topic, participation): no own NavigationStack (PLY-21-9).
     var isPushed = false
     @Environment(\.ticketWalletPendingOrderProvider) private var pendingOrderProvider
-    @Environment(\.ticketWalletCompletionReader) private var completionReader
-    @State private var walletFilter = TicketWalletFilter.all
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletSnapshot>()
     @State private var isVisible = false
@@ -68,18 +66,11 @@ import SwiftUI
                         .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
                         .listRowBackground(Color.clear)
                     }
-                    let shown = filtered(snapshot.tickets)
-                    if !snapshot.tickets.isEmpty && shown.isEmpty {
-                        // Source filter 即将开始 / 已通关 with no match: say so instead of an empty wallet.
-                        Text(LocalizedStringKey(walletFilter.emptyKey), tableName: "MpFresh")
-                            .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                            .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.lg)
-                            .listRowBackground(Color.clear)
-                            .accessibilityIdentifier("ticketWallet.filterEmpty")
-                    }
+                    // R9-MEM-NIT-1: the MP signup wallet has no filter (signup/index.wxml), so every ticket shows.
+                    let shown = snapshot.tickets
                     ticketCarousel(shown)
                     // Source preserves both lanes and row order, including repeated server IDs.
-                    ForEach(Array(snapshot.tickets.enumerated()).filter { shown.contains($0.element) }, id: \.offset) { rowIndex, ticket in
+                    ForEach(Array(shown.enumerated()), id: \.offset) { rowIndex, ticket in
                         if ticket.action == .detail && !ticket.isWalletLocked {
                             NavigationLink {
                                 TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
@@ -291,32 +282,6 @@ import SwiftUI
 }
 
 extension TicketWalletView {
-    /// Source「票夹 ▾」pop-over (全部 / 即将开始 / 已通关, split by server topicCompleted; hengyin 91aab64b4).
-    fileprivate var filterMenu: some View {
-        Menu {
-            Picker(selection: $walletFilter) {
-                ForEach(TicketWalletFilter.allCases, id: \.self) { filter in
-                    Text(LocalizedStringKey(filter.titleKey), tableName: "MpFresh").tag(filter)
-                }
-            } label: { EmptyView() }
-        } label: {
-            HStack(spacing: CYSpacing.xs) {
-                Text(LocalizedStringKey(walletFilter.navKey), tableName: "MpFresh").font(.headline)
-                Image(systemName: "chevron.down").font(.caption.weight(.semibold)).accessibilityHidden(true)
-            }
-            .foregroundStyle(CYColor.textPrimary)
-        }
-        .accessibilityLabel(Text("mpfresh.ticketWallet.filter.a11y \(Text(LocalizedStringKey(walletFilter.titleKey), tableName: "MpFresh"))", tableName: "MpFresh"))
-        .accessibilityIdentifier("ticketWallet.filter")
-    }
-    fileprivate func filtered(_ tickets: [TicketWalletTicket]) -> [TicketWalletTicket] {
-        guard walletFilter != .all, let completionReader else { return tickets }
-        return tickets.filter { ticket in
-            // Unknown completion stays in 全部 only; it is never guessed into either bucket.
-            guard let done = completionReader.topicCompleted(ticket) else { return false }
-            return walletFilter == .completed ? done : !done
-        }
-    }
     /// Glass carousel entry over the openable tickets (detail action only, same destination as the rows below). Two or more tickets;
     /// accessibility Dynamic Type sizes skip it and keep the vertical rows.
     @ViewBuilder fileprivate func ticketCarousel(_ tickets: [TicketWalletTicket]) -> some View {
