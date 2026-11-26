@@ -315706,6 +315706,91 @@
           }
         }
       }
+    },
+    "club.workbench.enterFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open club management"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没能进入俱乐部管理"
+          }
+        }
+      }
+    },
+    "club.workbench.retryEnter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试进入"
+          }
+        }
+      }
+    },
+    "club.enroll.noOwned": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No clubs to manage yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有可管理的俱乐部"
+          }
+        }
+      }
+    },
+    "club.enroll.noOwned.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Become a club owner to see sign-up rosters here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成为俱乐部主理人后，可在这里查看报名名册"
+          }
+        }
+      }
+    },
+    "club.enroll.ownedFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club permissions are unavailable right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部权限数据暂时不可用"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
