@@ -31,7 +31,6 @@ import SwiftUI
         .background(.background)
         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 10, topTrailingRadius: 10, style: .continuous))
         .animation(isDragging ? nil : .snappy, value: detent)
-        .accessibilityIdentifier("roam.mapHome.panel")
     }
 
     /// The sheet grabber: drag between detents; VoiceOver swipes up / down to change the detent.

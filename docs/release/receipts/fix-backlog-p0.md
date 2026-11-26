@@ -13,7 +13,7 @@ Touched contract checks (`test_roam_live_contracts`, `test_roam_paused_accessibi
   (`RoamMapHomePanel`, new file), as in Find My, so the system `TabView` tab bar stays visible.
 - Detents emulated: peek 120 pt / medium (half) / large, from `RoamMapHomeModel.detents`; every existing
   `model.detent = …` call still drives it. Drag indicator (system capsule, `.tertiary`), `.snappy` spring,
-  VoiceOver adjustable action (`roam.mapHome.panel.handle`). The map gets `.safeAreaPadding(.bottom)` up to
+  VoiceOver adjustable action (`roam.mapHome.panel.handle`; no identifier on the panel container so inner ids are not overridden). The map gets `.safeAreaPadding(.bottom)` up to
   medium so the user-location button and compass stay above the panel.
 - `RoamMapHomeSheet`: the 'Tabs' menu (`roam.mapHome.tabs`) and `onSwitchTab` removed.
 - iOS 26 `tabViewBottomAccessory` is not used: deployment target is iOS 17, and an accessory is a mini bar,
