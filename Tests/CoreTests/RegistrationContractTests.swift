@@ -283,4 +283,16 @@ final class RegistrationContractTests: XCTestCase {
         XCTAssertNil(try decode(ActivityTicket.self, #"{"id":3,"name":"亲子票","childCount":1,"childAgeMin":4}"#).childAgeRange)
         XCTAssertNil(try decode(ActivityTicket.self, #"{"id":3,"name":"亲子票","childCount":"x"}"#).childAgeRange)
     }
+
+    /// R7-PC-C2-1: quote `delivery` rows, MP pages/activity/utils/quote-view.js:29-51.
+    func testQuoteDeliveryRowsPortDeliveryRows() throws {
+        let quote = try decode(RegistrationQuote.self, #"{"payAmount":10,"quoteSign":"s","delivery":{"purchaseKind":"3","ticketName":"单人票","minPeople":2,"maxPeople":4,"needAudit":1,"serviceStartAt":1767225600,"beneficiaryKind":"PAYER_SELF","refundRule":"开场前 24 小时可退"}}"#)
+        let rows = try XCTUnwrap(quote.delivery).rows(locale: Locale(identifier: "zh-Hans"))
+        XCTAssertEqual(rows.map(\.id), ["kind", "people", "audit", "window", "beneficiary", "refundRule"])
+        XCTAssertEqual(rows[0].value, "自由探索票")
+        XCTAssertEqual(rows[1].value, "2–4 人")
+        XCTAssertEqual(rows[3].value, "2026.01.01 08:00 起")
+        let mixed = try decode(RegistrationQuote.self, #"{"payAmount":10,"quoteSign":"s","delivery":{"purchaseKind":9,"refundRule":"x"}}"#)
+        XCTAssertEqual(try XCTUnwrap(mixed.delivery).rows(locale: Locale(identifier: "zh-Hans")).map(\.id), ["perTicket"])
+    }
 }

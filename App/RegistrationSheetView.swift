@@ -463,6 +463,8 @@ struct RegistrationSheetView: View {
         case .quoteUnavailable: return copy.t("正在核对价格…", "Checking the price…")
         case .paymentRequired: return copy.t("这笔报名需要付款，当前只开放免费报名", "This sign-up needs payment. Only a free sign-up is open")
         case .intentAlreadySubmitted: return copy.t("已提交报名", "Already submitted")
+        // R7-PC-C2-1: MP baoming.js:1717 toast('请选择儿童年龄').
+        case .childAgeRequired: return copy.t("请选择儿童年龄", "Choose the child's age")
         default: return copy.t("暂时无法继续", "Not available right now")
         }
     }
@@ -595,11 +597,12 @@ struct RegistrationSheetView: View {
     }
     /// R7-PC-C2-1: MP baoming.wxml:155-161 (儿童年龄, sent as `childAge` with quote/create, js:1876),
     /// 206-212 + js:760-764 (商家暂停营业) and js:1871-1876 (通行证 row).
-    /// 包含内容 still waits on the quote `delivery` row shape.
+    /// 包含内容 = quote `delivery` rows (MP baoming.wxml:205-212, pages/activity/utils/quote-view.js:20-71).
     private var registrationGapSections: some View {
         ActivityRegistrationGapSections(
             childAgeRange: flow.selectedTicket?.childAgeRange,
             selectedChildAge: childAgeBinding,
+            deliveryItems: flow.quoteState.quoteValue?.delivery?.rows(locale: locale) ?? [],
             merchantClosed: flow.activity.merchantClosed,
             coveredByPass: flow.quoteState.quoteValue?.coveredByPass == true
         )

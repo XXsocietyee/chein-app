@@ -63,11 +63,13 @@ public struct RegistrationQuote: Decodable, Equatable {
     public let refundableNow: Bool?
     /// R7-PC-C2-1: MP baoming.js:1871-1876 shows the 通行证 row when the quote's `mkt.coveredByPass === true`.
     public let coveredByPass: Bool
+    /// R7-PC-C2-1: quote `delivery` (包含内容), MP pages/activity/utils/quote-view.js:20-71. Nil when absent or malformed.
+    public let delivery: RegistrationQuoteDelivery?
 
     private enum CodingKeys: String, CodingKey {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable, pointsBalance, availablePoints, userPoints
         case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
-        case prioritySignupEnabled, refundDeadline, refundableNow, mkt
+        case prioritySignupEnabled, refundDeadline, refundableNow, mkt, delivery
     }
     private struct Marketing: Decodable {
         let coveredByPass: Bool
@@ -98,6 +100,7 @@ public struct RegistrationQuote: Decodable, Equatable {
             : nil
         refundableNow = (try? c.decodeIfPresent(Bool.self, forKey: .refundableNow)) ?? nil
         coveredByPass = ((try? c.decodeIfPresent(Marketing.self, forKey: .mkt)) ?? nil)?.coveredByPass == true
+        delivery = (try? c.decodeIfPresent(RegistrationQuoteDelivery.self, forKey: .delivery)) ?? nil
         guard pointsUsed >= 0 else { throw APIError.malformedResponse }
     }
 
