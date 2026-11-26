@@ -15,9 +15,7 @@ import SwiftUI
             seed: unitID.isEmpty ? "bundle-redeem" : unitID,
             symbol: coverSymbol
         ) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                stateBody
-            }
+            stateBody
         }
         .cyAnimation(value: model.redeemState)
         .task { await model.loadRedeemResult(unitID: unitID) }
@@ -36,43 +34,46 @@ import SwiftUI
     @ViewBuilder private var stateBody: some View {
         switch model.redeemState {
         case .idle, .loading:
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                CYSkeleton().accessibilityHidden(true)
-                Text(verbatim: catalog("bundle.redeem.loading"))
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+            Section {
+                HStack(spacing: CYSpacing.sm) {
+                    ProgressView()
+                    Text(verbatim: catalog("bundle.redeem.loading"))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         case .unavailable:
-            CYStateLayout(kind: .offline, title: Text(verbatim: catalog("bundle.redeem.unavailable")))
+            ContentUnavailableView(catalog("bundle.redeem.unavailable"), systemImage: "wifi.slash")
+                .listRowBackground(Color.clear)
                 .accessibilityIdentifier("bundleRedeem.unavailable")
         case .failed:
-            CYStateLayout(
-                kind: .failure,
-                title: Text(verbatim: catalog("bundle.redeem.error")),
-                primaryVerbatim: (title: catalog("bundle.redeem.retry"), action: {
+            ContentUnavailableView {
+                Label(catalog("bundle.redeem.error"), systemImage: "exclamationmark.triangle")
+            } actions: {
+                Button {
                     Task { await model.loadRedeemResult(unitID: unitID) }
-                }),
-                primaryStyle: .primary
-            )
-        case .loaded(let presentation, let result):
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                if presentation == .success || presentation == .rejected {
-                    CYResultMark(kind: presentation == .success ? .success : .failure, size: 96)
-                        .frame(maxWidth: .infinity)
-                        .cyRowTransition()
+                } label: {
+                    Text(verbatim: catalog("bundle.redeem.retry"))
                 }
-                CYStatusChip(verbatim: headline(presentation), tone: tone(presentation), systemImage: symbol(presentation))
-                    .accessibilityIdentifier("bundleRedeem.state")
+                .buttonStyle(.borderedProminent)
+            }
+            .listRowBackground(Color.clear)
+        case .loaded(let presentation, let result):
+            Section {
+                Label {
+                    Text(verbatim: headline(presentation))
+                        .font(.headline)
+                } icon: {
+                    Image(systemName: symbol(presentation))
+                        .foregroundStyle(Cloud03Note.tint(tone(presentation)))
+                }
+                .accessibilityIdentifier("bundleRedeem.state")
                 if let name = result.merchantName, !name.isEmpty, presentation == .success {
-                    CYListRow(verbatim: Cloud03Copy.shown(name), trailing: .none, card: true) {
-                        CYRowIcon(systemImage: "storefront")
-                    }
+                    Label(Cloud03Copy.shown(name), systemImage: "storefront")
                 }
                 if let reason = result.reason, !reason.isEmpty, presentation == .rejected || presentation == .review {
                     Text(verbatim: Cloud03Copy.shown(reason))
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

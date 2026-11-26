@@ -119,10 +119,12 @@ extension ProfileLocalCoverOwner {
                         Text(LocalizedStringKey(message)).accessibilityIdentifier("profile.localCover.message")
                     }
                     Button("profile.localCover.edit") { model.open() }
+                        .buttonStyle(.borderless)
                         .disabled(!model.controller.canEdit || scenePhase != .active)
                         .accessibilityIdentifier("profile.localCover.edit")
                     if !model.controller.loaded || model.controller.messageKey == "profile.localCover.changed" {
                         Button("profile.localCover.reload") { model.controller.load() }
+                            .buttonStyle(.borderless)
                             .accessibilityIdentifier("profile.localCover.reload")
                     }
                 }
@@ -167,7 +169,7 @@ extension ProfileLocalCoverOwner {
     private var editor: some View {
         NavigationStack {
             Form {
-                Section { Text("profile.localCover.deviceOnly").cyText(.bodyCompact) }
+                Section { Text("profile.localCover.deviceOnly").font(.subheadline).foregroundStyle(.secondary) }
                 if let crop = model.crop {
                     Section {
                         ProfileLocalCoverCropView(draft: crop, hasError: model.selectionError, confirm: model.acceptCrop, cancel: { model.cancelCrop(id: crop.id) },
@@ -226,7 +228,7 @@ extension ProfileLocalCoverOwner {
             } else { Text("profile.localCover.invalid") }
         } else {
             ZStack {
-                CYColor.bgSurfaceSubtle
+                Color(uiColor: .secondarySystemFill)
                 Label("profile.localCover.default", systemImage: "photo")
             }.aspectRatio(16.0 / 9.0, contentMode: .fit).accessibilityIdentifier("profile.localCover.default")
         }
@@ -246,7 +248,7 @@ extension ProfileLocalCoverOwner {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if hasError {
                 Text("profile.localCover.cropFailed")
-                    .foregroundStyle(CYColor.dangerText)
+                    .foregroundStyle(.red)
                     .accessibilityIdentifier("profile.localCover.cropFailure")
             }
             if let image = UIImage(data: draft.source.jpeg) {

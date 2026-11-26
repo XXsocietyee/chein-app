@@ -159,9 +159,9 @@ import SwiftUI
                 } else {
                     Button { selected = destination } label: {
                         HStack { Label(LocalizedStringKey(destination.title), systemImage: "location.fill").environment(\.settingsTileTint, SettingsTint.green)
-                            Spacer(minLength: 0); Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(.tertiary) }
+                            Spacer(minLength: 0); Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary) }
                     }
-                    .foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(.primary)
                     .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
                 }
             }
@@ -170,14 +170,14 @@ import SwiftUI
                     Label { Text("npcData.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcMessageSquareText) }
                         .environment(\.settingsTileTint, SettingsTint.indigo)
                 }
-                .foregroundStyle(CYColor.textPrimary)
+                .foregroundStyle(.primary)
                 .accessibilityIdentifier("npcData.open")
             }
         } header: { Text("compliance.title") } footer: { Text("settings.privacy.footer") }
         // Destructive row: its own section, red, with the consequence stated underneath.
         Section {
             Button(role: .destructive) { selected = .cancellation } label: {
-                Label { Text("settings.deregister.row").foregroundStyle(CYColor.dangerText) } // MP shezhi.wxml:34 账号注销
+                Label { Text("settings.deregister.row").foregroundStyle(.red) } // MP shezhi.wxml:34 账号注销
                     icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcUserRoundX) }
                     .environment(\.settingsTileTint, SettingsTint.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -249,32 +249,29 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if destination != .marketing {
                 Section {
                     ComplianceHeader(destination: destination, step: model.state.step)
-                        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                        .listRowBackground(Color.clear)
                 }
             }
             if model.state.busy {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYSkeleton()
+                HStack(spacing: 8) {
+                    ProgressView()
                     // B-DR-09-r7: the MP names what is loading (正在核验注销条件) on the deregister page.
                     if destination == .cancellation, model.state.status == nil {
-                        Text("fixr3.deregister.loading").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("fixr3.deregister.loading").font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("compliance.loading")
                     .accessibilityLabel(Text(LocalizedStringKey(destination == .cancellation && model.state.status == nil ? "fixr3.deregister.loading" : "compliance.loading")))
-                    .listRowBackground(Color.clear)
             }
             // B-DR-03: the missing-bound-phone message shows inline under 获取验证码, not twice.
             if let error = model.state.error, error != DeregistrationBoundPhone.missingMessage {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                VStack(alignment: .leading, spacing: 4) {
                     // B-DR-09-r7: a failed condition read is titled 注销条件核验失败, as in the MP.
                     if destination == .cancellation, model.state.status == nil {
-                        Text("fixr3.deregister.readFailed").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        Text("fixr3.deregister.readFailed").font(.headline)
                     }
                     Text(LocalizedStringKey(error), tableName: error == "compliance.impactChanged" ? "AccountDeregistrationPresentation" : nil)
-                        .foregroundStyle(CYColor.dangerText).accessibilityIdentifier("compliance.error")
+                        .foregroundStyle(.red).accessibilityIdentifier("compliance.error")
                 }
             }
             switch destination {
@@ -372,8 +369,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             Section {
                 // B-DR-01: the request id is support detail, folded under 详情.
                 DisclosureGroup {
-                    (Text("c08.display.43", tableName: "AccountDeregistrationPresentation") + Text(verbatim: request)).cyText(.meta).textSelection(.enabled)
-                } label: { Text("compliance.details").cyText(.meta) }
+                    (Text("c08.display.43", tableName: "AccountDeregistrationPresentation") + Text(verbatim: request)).font(.subheadline).textSelection(.enabled)
+                } label: { Text("compliance.details").font(.subheadline) }
                 if let receipt = model.state.originalApplication {
                     Text(receipt.outcome)
                     if receipt.reason == "ACCOUNT_IMPACT_CHANGED_REFRESH_AND_CONFIRM" { Text("c08.display.37", tableName: "AccountDeregistrationPresentation") }
@@ -408,15 +405,14 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             // B-DR-02 (MP BLOCKED card): neutral title, 「请先处理以下事项：」, one row per blocker, and
             // 「我已处理，重新检查」 in place of the generic refresh.
             Section {
-                Text("fixr3.deregister.blocked.lead").cyText(.body).foregroundStyle(CYColor.textPrimary)
+                Text("fixr3.deregister.blocked.lead")
                 ForEach(Array((model.state.status?.blockers ?? []).enumerated()), id: \.offset) { _, blocker in
-                    Label { Text(verbatim: blocker).cyText(.body) } icon: {
-                        Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText)
+                    Label { Text(verbatim: blocker) } icon: {
+                        Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
                     }
                     .accessibilityIdentifier("compliance.blocker")
                 }
                 Button { requestCancellationRead() } label: { Text("fixr3.deregister.blocked.recheck") }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("compliance.blocked.recheck")
             } header: { Text("fixr3.deregister.blocked.title") }
         case .notice:
@@ -426,25 +422,24 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if !model.entryBlockers.isEmpty {
                 // r8 B-DR-04b: blockers from the entry precheck, before the agreement (MP BLOCKED card).
                 Section {
-                    Text("fixr3.deregister.blocked.lead").cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    Text("fixr3.deregister.blocked.lead")
                     ForEach(Array(model.entryBlockers.enumerated()), id: \.offset) { _, blocker in
-                        Label { Text(verbatim: blocker).cyText(.body) } icon: {
-                            Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText).accessibilityHidden(true)
+                        Label { Text(verbatim: blocker) } icon: {
+                            Image(systemName: "exclamationmark.circle").foregroundStyle(.orange).accessibilityHidden(true)
                         }
                         .accessibilityIdentifier("compliance.entryBlocker")
                     }
                     Button { Task { await model.entryPrecheckOnContract() } } label: { Text("fixr3.deregister.blocked.recheck") }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
                         .disabled(model.entryPrecheckLoading)
                         .accessibilityIdentifier("compliance.entryBlocked.recheck")
                 } header: { Text("fixr3.deregister.blocked.title") }
             }
             Section {
                 if let document {
-                    Text(document.title).cyText(.cardTitle)
-                    Text(document.intro).cyText(.body)
+                    Text(document.title).font(.headline)
+                    Text(document.intro)
                     ForEach(Array(document.sections.enumerated()), id: \.offset) { _, section in
-                        Text(section.heading).cyText(.cardTitle); Text(section.body).cyText(.body)
+                        Text(section.heading).font(.headline); Text(section.body)
                     }
                     // Source content stays exact; availability is not release approval.
                     Toggle("fixr3.deregister.agreeNotice", isOn: $agreement)
@@ -474,16 +469,14 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard let intent = model.cancellationIntent() else { return }
                     Task { await model.sendBoundSMSOnContract(intent: intent) }
                 }
-                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .disabled(model.state.busy || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
                 if model.state.error == DeregistrationBoundPhone.missingMessage {
-                    Text(verbatim: DeregistrationBoundPhone.missingMessage).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    Text(verbatim: DeregistrationBoundPhone.missingMessage).font(.subheadline).foregroundStyle(.red)
                         .accessibilityIdentifier("compliance.boundPhoneMissing")
                 } else if let notice = model.state.smsNotice, model.state.smsSent {
-                    Text(verbatim: notice).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: notice).font(.subheadline).foregroundStyle(.secondary)
                         .accessibilityIdentifier("compliance.smsSent")
-                } else if model.state.smsSent { Text("compliance.smsSent").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                } else if model.state.smsSent { Text("compliance.smsSent").font(.subheadline).foregroundStyle(.secondary) }
                 TextField("fixr3.deregister.code", text: $code).textContentType(.oneTimeCode).keyboardType(.numberPad).accessibilityIdentifier("compliance.code")
                 Button("compliance.review") {
                     guard model.cancellationIntent() != nil else { return }
@@ -497,12 +490,9 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             DeregistrationVerificationUnavailableSection(method: model.state.status?.verificationMethod) { requestCancellationRead() }
         case .review:
             Section {
-                Label { Text("compliance.reviewWarning").fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
-                    .cyText(.bodyMedium).accessibilityIdentifier("compliance.reviewWarning")
-                    .padding(CYSpacing.md)
-                    .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
-                Text("c08.display.42", tableName: "AccountDeregistrationPresentation").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Label { Text("compliance.reviewWarning").fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange) }
+                    .accessibilityIdentifier("compliance.reviewWarning")
+                Text("c08.display.42", tableName: "AccountDeregistrationPresentation").font(.subheadline).foregroundStyle(.secondary)
                 if let impact = model.state.status?.impact, impact.confirmable {
                     AccountDeregistrationImpactConfirmation(revision: impact.revision) {
                         guard let intent = model.cancellationIntent() else { return }; code = ""
@@ -525,7 +515,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 .buttonStyle(.borderless)
             }
         case .pending:
-            Text("compliance.pending.submitted").cyText(.cardTitle).accessibilityIdentifier("compliance.pending.submitted")
+            Text("compliance.pending.submitted").font(.headline).accessibilityIdentifier("compliance.pending.submitted")
             pendingCoolingOffCopy.accessibilityIdentifier("compliance.pending")
             Button("compliance.withdrawCancellation", role: .destructive) { cancelIntent = model.cancellationIntent(); cancelReview = cancelIntent != nil }
                 .accessibilityIdentifier("compliance.cancelApplication")
@@ -535,17 +525,24 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         case .completed: Text("compliance.completed", tableName: "AccountDeregistrationPresentation").accessibilityIdentifier("compliance.completed")
         case .freshLogin:
             // B-DR-06: the MP LOGIN_REQUIRED empty state. Close this sheet, then open sign-in.
-            CYEmptyState(systemImage: "person.crop.circle", "fixr3.deregister.signedOut", detail: "compliance.freshLogin",
-                         messageIdentifier: "compliance.freshLogin",
-                         actionTitle: "compliance.signIn", actionIdentifier: "compliance.signIn", action: {
-                             dismiss()
-                             PlayerJourneySignInBridge.shared.request()
-                         })
+            ContentUnavailableView {
+                Label { Text("fixr3.deregister.signedOut").accessibilityIdentifier("compliance.freshLogin") } icon: { Image(systemName: "person.crop.circle") }
+            } description: {
+                Text("compliance.freshLogin")
+            } actions: {
+                Button {
+                    dismiss()
+                    PlayerJourneySignInBridge.shared.request()
+                } label: { Text("compliance.signIn") }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .accessibilityIdentifier("compliance.signIn")
+            }
         case .denied:
-            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark",
-                         "compliance.denied.identity",
-                         detail: "compliance.denied.detail",
-                         messageIdentifier: "compliance.denied")
+            ContentUnavailableView {
+                Label { Text("compliance.denied.identity").accessibilityIdentifier("compliance.denied") } icon: { Image(systemName: "person.crop.circle.badge.exclamationmark") }
+            } description: {
+                Text("compliance.denied.detail")
+            }
         case .unknown: Text("compliance.unknown")
             .accessibilityIdentifier("compliance.unknown")
             .accessibilityLabel(Text("compliance.unknown"))
@@ -560,13 +557,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         Section {
             DisclosureGroup {
                 Text(LocalizedStringKey(model.state.localCancellationConsent.messageKey), tableName: "AccountDeregistrationConsent")
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("cancellationConsent.state")
+                    .font(.subheadline).foregroundStyle(.secondary).accessibilityIdentifier("cancellationConsent.state")
                 if let request = model.state.localCancellationConsent.requestID {
-                    Text("cancellationConsent.request", tableName: "AccountDeregistrationConsent").cyText(.meta)
-                    Text(verbatim: request).cyText(.meta).textSelection(.enabled)
+                    Text("cancellationConsent.request", tableName: "AccountDeregistrationConsent").font(.subheadline)
+                    Text(verbatim: request).font(.subheadline).textSelection(.enabled)
                 }
-                Text("cancellationConsent.scope", tableName: "AccountDeregistrationConsent").cyText(.meta)
-            } label: { Text("cancellationConsent.title", tableName: "AccountDeregistrationConsent").cyText(.meta) }
+                Text("cancellationConsent.scope", tableName: "AccountDeregistrationConsent").font(.subheadline)
+            } label: { Text("cancellationConsent.title", tableName: "AccountDeregistrationConsent").font(.subheadline) }
         }
         .accessibilityElement(children: .combine)
     }
@@ -580,9 +577,9 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     /// Server status codes (PENDING / ELIGIBLE / BLOCKED) read as plain words, as the mini-program titles them.
     @ViewBuilder private func statusMark(_ raw: String) -> some View {
         switch raw.uppercased() {
-        case "PENDING": CYStatusChip("compliance.status.pending", tone: .warning)
-        case "ELIGIBLE": CYStatusChip("compliance.status.eligible", tone: .success)
-        case "BLOCKED": CYStatusChip("compliance.status.blocked", tone: .danger)
+        case "PENDING": Label { Text("compliance.status.pending") } icon: { Image(systemName: "clock").foregroundStyle(.orange) }
+        case "ELIGIBLE": Label { Text("compliance.status.eligible") } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
+        case "BLOCKED": Label { Text("compliance.status.blocked") } icon: { Image(systemName: "xmark.octagon.fill").foregroundStyle(.red) }
         default:
             Text(verbatim: DeregisterIndexPageModel.statusText(raw))
         }
@@ -613,14 +610,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 // B-PV-06: a partial (server revoked, local cleanup pending) or failed withdrawal gets an inline row with 重试.
                 if model.state.roamCleanup == .serverConfirmed || model.state.roamCleanup == .trackingStopped
                     || (model.state.error != nil && model.state.roamCleanup != .complete && model.state.roamConsent != .notAgreed) {
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                        Label { Text("fixr3.privacy.roam.incomplete").cyText(.bodyCompact) } icon: {
-                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText)
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Label { Text("fixr3.privacy.roam.incomplete") } icon: {
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
                         }
-                        Spacer(minLength: CYSpacing.sm)
+                        Spacer(minLength: 8)
                         Button { performRoamRevoke() } label: { Text("fixr3.common.retry") }
                             .buttonStyle(.borderless)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
                             .accessibilityIdentifier("compliance.revoke.retry")
                     }
                     .accessibilityElement(children: .contain)
@@ -677,9 +673,9 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     /// B-MK-06: a non-empty `merchantLogo` replaces the initial tile. `""` keeps the initial.
     @ViewBuilder private func merchantMark(_ row: ComplianceMarketingConsent) -> some View {
         let initial = Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
-            .cyText(.bodyMedium, weight: .bold).foregroundStyle(.white)
+            .font(.body.weight(.bold)).foregroundStyle(.white)
             .frame(width: 36, height: 36)
-            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+            .background(SettingsTint.orange, in: .rect(cornerRadius: 8))
             .accessibilityHidden(true)
         // Only a safe (https) logo URL is fetched; "" or anything else keeps the initial tile.
         if let logo = QuestifyCardArtwork.safeURL(row.merchantLogo) {
@@ -692,7 +688,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 }
             }
             .frame(width: 36, height: 36)
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+            .clipShape(.rect(cornerRadius: 8))
             .accessibilityHidden(true)
         } else {
             initial
@@ -721,28 +717,28 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             }
             ForEach(model.state.marketing) { row in
                 VStack(alignment: .leading, spacing: 0) {
-                    HStack(spacing: CYSpacing.md) {
+                    HStack(spacing: 12) {
                         merchantMark(row)
                         // B-MK-06b: MP mc-name is body-medium, not a headline.
                         Text(row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
-                            .cyText(.bodyMedium).accessibilityAddTraits(.isHeader)
+                            .font(.body).accessibilityAddTraits(.isHeader)
                     }
-                    .padding(.bottom, CYSpacing.sm)
+                    .padding(.bottom, 8)
                     ForEach(ComplianceMarketingChannel.allCases, id: \.rawValue) { channel in
-                        Divider().padding(.vertical, CYSpacing.xs)
+                        Divider().padding(.vertical, 4)
                         Toggle(isOn: Binding(get: { row.value(channel) }, set: { value in
                             guard scenePhase == .active, model.marketingRead() != nil else { return }
                             if let change = model.coordinator.reviewMarketing(row, channel: channel, optedIn: value) { sendMarketing(change) }
                         })) {
                             // B-MK-02: MP rows are the channel name and the switch only.
-                            Text(LocalizedStringKey("compliance.channel." + channel.rawValue)).cyText(.body)
+                            Text(LocalizedStringKey("compliance.channel." + channel.rawValue))
                         }
                         .tint(SettingsTint.green)
                         .disabled(!designModeAllowsToggles && model.coordinator.reviewMarketing(row, channel: channel, optedIn: !row.value(channel)) == nil)
                         .accessibilityIdentifier("compliance.marketing.\(row.id).\(channel.rawValue)")
                     }
                 }
-                .padding(.vertical, CYSpacing.xs)
+                .padding(.vertical, 4)
             }
             Button("compliance.refresh") {
                 guard scenePhase == .active, let intent = model.marketingRead() else { return }
@@ -811,7 +807,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 }.disabled(!agreed || busy).accessibilityIdentifier("compliance.scope.confirm")
             } else { Text("compliance.legalMissing") }
             if busy {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityLabel(Text("compliance.loading"))
             }
             if let errorKey { Text(LocalizedStringKey(errorKey)) }
@@ -844,17 +841,14 @@ extension EnvironmentValues {
 }
 
 
-/// Header for the privacy screens: tinted icon tile, large title, one calm sentence. Deregistration adds a
-/// three-step strip (read the notice, verify, confirm) so the person always knows how far along they are.
+/// Header for the privacy screens: the destination symbol and one calm sentence. Deregistration adds the three-step
+/// progress (read the notice, verify, confirm) as a system `ProgressView` so the person always knows how far along they are.
 struct ComplianceHeader: View {
     let destination: ComplianceDestination
     let step: ComplianceStep
     private var symbol: String {
         switch destination { case .cancellation: return "person.crop.circle.badge.minus"; case .marketing: return "megaphone.fill"; case .roam: return "location.fill" }
     }
-    private var tint: Color { CYColor.textPrimary }
-    /// B-DR-08: progress uses the accent fill with its own foreground (white on `textPrimary` failed in dark mode).
-    private var stepFill: Color { CYColor.actionPrimaryBg }
     private var intro: LocalizedStringKey {
         switch destination {
         case .cancellation: return "compliance.cancellation.intro"
@@ -866,36 +860,22 @@ struct ComplianceHeader: View {
         switch step { case .idle, .notice, .blocked: return 0; case .verify, .verificationUnavailable: return 1; default: return 2 }
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Image(systemName: symbol).cyText(.sectionTitle, weight: .semibold).foregroundStyle(tint)
-                .frame(width: 52, height: 52)
-                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
-                .accessibilityHidden(true)
-            Text(intro).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 12) {
+            Label {
+                Text(intro).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: symbol).foregroundStyle(.tint).accessibilityHidden(true)
+            }
             if destination == .cancellation, ![.completed, .pending, .freshLogin, .unknown].contains(step) {
                 let names = ["compliance.step.1", "compliance.step.2", "compliance.step.3"]
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    HStack(spacing: 0) {
-                        ForEach(0..<3, id: \.self) { i in
-                            if i > 0 { Capsule().fill(i <= stage ? stepFill : CYColor.textPrimary.opacity(0.16)).frame(height: 3) }
-                            ZStack {
-                                Circle().fill(i <= stage ? stepFill : CYColor.textPrimary.opacity(0.12))
-                                if i < stage { Image(systemName: "checkmark").cyText(.micro, weight: .heavy).foregroundStyle(CYColor.textOnAccent) }
-                                else { Text(verbatim: String(i + 1)).cyText(.meta, weight: .bold, monospacedDigit: true).foregroundStyle(i == stage ? CYColor.textOnAccent : CYColor.textSecondary) }
-                            }
-                            .frame(width: 26, height: 26)
-                        }
-                    }
-                    HStack(spacing: CYSpacing.xs) {
-                        Text(verbatim: "\(stage + 1)/3").monospacedDigit().foregroundStyle(CYColor.textSecondary)
-                        Text(LocalizedStringKey(names[stage])).foregroundStyle(CYColor.textPrimary)
-                    }
-                    .cyText(.bodyMedium)
+                ProgressView(value: Double(stage + 1), total: 3) {
+                    Text(LocalizedStringKey(names[stage])).font(.subheadline)
+                } currentValueLabel: {
+                    Text(verbatim: "\(stage + 1)/3").monospacedDigit()
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(LocalizedStringKey(names[stage])))
                 .accessibilityValue(Text(verbatim: "\(stage + 1)/3"))
-                .padding(.top, CYSpacing.xs)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

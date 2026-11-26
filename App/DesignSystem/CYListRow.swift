@@ -45,20 +45,15 @@ enum CYListRowTokens {
     }
 }
 
-/// Button style for interactive `CYListRow` cells: applies `--cy-color-bg-surface-subtle` (`#141416` / `#EEEEEE`)
-/// on press with zero layout bounce.
+/// Button style for interactive `CYListRow` cells (native r2): the label as-is with the system's dim on press,
+/// the same feedback as `.buttonStyle(.plain)`. `cornerRadius` is kept for call sites only.
 struct CYListRowButtonStyle: ButtonStyle {
     var cornerRadius: CGFloat = 0
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         configuration.label
-            .background(
-                shape.fill(configuration.isPressed && isEnabled ? palette.bgSurfaceSubtle : Color.clear)
-            )
-            .contentShape(shape)
+            .contentShape(Rectangle())
+            .opacity(configuration.isPressed ? 0.6 : 1)
     }
 }
 
@@ -141,63 +136,75 @@ struct CYListRow<Leading: View>: View {
         )
     }
 
+    /// Native r2: a system row. `Label` (title + secondary subtitle, leading icon) inside `LabeledContent` when
+    /// there is a trailing value; the disclosure is the system chevron symbol in `.tertiary`. No custom
+    /// heights, fills, dividers or press tracking: inside a `List` the system draws separators and highlight.
+    /// `card: true` keeps the shared card surface (`cyDomainCard`, system grouped secondary background).
     var body: some View {
-        // cyPressTracking is gesture-free (it only reads a CYPressButtonStyle's pressed state), so a List NavigationLink row
-        // keeps its tap; there the system row highlight is the feedback.
         if card {
             row
-                .overlay(alignment: .bottom) { dividerLine }
-                .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
-                .cyPressTracking()
+                .cyDomainCard(padding: CYSpacing.lg)
         } else {
             row
                 .padding(.horizontal, horizontalPad ?? 0)
-                .background(resolvedTokens.background)
-                .overlay(alignment: .bottom) { dividerLine }
-                .cyPressTracking()
         }
     }
 
     private var row: some View {
-        let tokens = resolvedTokens
-        return HStack(spacing: CYSpacing.md) {
-            leading
-                .opacity(tokens.leadingOpacity)
-                .foregroundStyle(tokens.leadingForeground)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                titleText
-                    .cyText(.cardTitle)
-                    .foregroundStyle(tokens.title)
-                    .cyWrapText()
-                if let verbatimMeta {
-                    Text(verbatim: verbatimMeta)
-                        .cyText(.meta)
-                        .foregroundStyle(tokens.meta)
-                } else if let meta {
-                    Text(meta)
-                        .cyText(.meta)
-                        .foregroundStyle(tokens.meta)
+        HStack(spacing: CYSpacing.sm) {
+            LabeledContent {
+                if let trailingValue {
+                    Text(verbatim: trailingValue)
+                        .monospacedDigit()
                 }
-                // Accessibility sizes: the value moves under the text so the title keeps the full row width.
-                if typeSize.isAccessibilitySize, let value = trailingValue { valueText(value) }
+            } label: {
+                labelView
             }
-            .frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
-            .layoutPriority(1)
-            if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
-            trailingView
-                .frame(maxWidth: 160, alignment: .trailing)
+            if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
         }
-        .frame(minHeight: rowMinHeight)
+        .foregroundStyle(tone == .danger ? AnyShapeStyle(Color.red) : AnyShapeStyle(.primary))
+        .opacity(effectiveDisabled ? 0.4 : 1)
         .contentShape(Rectangle())
-        // One VoiceOver stop per row: "title, meta, value". Chevron and icon tile are decorative.
+        // One VoiceOver stop per row: "title, meta, value".
         .accessibilityElement(children: .combine)
     }
 
-    @ViewBuilder private var dividerLine: some View {
-        if showsDivider {
-            Rectangle()
-                .fill(resolvedTokens.divider)
-                .frame(height: 0.5)
+    @ViewBuilder private var labelView: some View {
+        if Leading.self == EmptyView.self {
+            textStack
+        } else {
+            Label {
+                textStack
+            } icon: {
+                leading
+            }
+        }
+    }
+
+    private var textStack: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            titleText
+            if let verbatimMeta {
+                Text(verbatim: verbatimMeta)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else if let meta {
+                Text(meta)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var showsChevron: Bool {
+        switch trailing {
+        case .chevron, .valueChevron: return true
+        default: return false
         }
     }
 
@@ -211,28 +218,6 @@ struct CYListRow<Leading: View>: View {
     @ViewBuilder private var titleText: some View {
         if let verbatimTitle { Text(verbatim: verbatimTitle) } else { Text(title) }
     }
-
-    @ViewBuilder private var trailingView: some View {
-        switch trailing {
-        case .none: EmptyView()
-        case .chevron: chevron
-        case .value(let value): if !typeSize.isAccessibilitySize { valueText(value) }
-        case .valueChevron(let value):
-            HStack(spacing: CYSpacing.xs) { if !typeSize.isAccessibilitySize { valueText(value) }; chevron }
-        }
-    }
-    private func valueText(_ value: String) -> some View {
-        Text(verbatim: value)
-            .cyText(.numericBody)
-            .foregroundStyle(resolvedTokens.value)
-            .cyWrapText(alignment: .trailing)
-    }
-    private var chevron: some View {
-        Image(systemName: "chevron.right")
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(resolvedTokens.chevron)
-            .accessibilityHidden(true)
-    }
 }
 
 extension CYListRow where Leading == EmptyView {
@@ -244,37 +229,26 @@ extension CYListRow where Leading == EmptyView {
     }
 }
 
-/// Rounded-square SF Symbol tile for the leading slot of `CYListRow`.
+/// Leading icon of a `CYListRow` (native r2): the plain SF Symbol a `Label` shows in Settings-style rows,
+/// tinted with the system accent. No tile behind it.
 struct CYRowIcon: View {
     let systemImage: String
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.dynamicTypeSize) private var typeSize
-    private var side: CGFloat { typeSize.isAccessibilitySize ? 56 : 40 }
     var body: some View {
         Image(systemName: systemImage)
-            .font(.body.weight(.semibold))
-            .foregroundStyle(palette.textPrimary)
-            .frame(width: side, height: side)
-            .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.bgRaised))
+            .foregroundStyle(.tint)
             .accessibilityHidden(true)
     }
 }
 
 private struct CYListRowPreviewBody: View {
     var body: some View {
-        VStack(spacing: CYSpacing.md) {
-            CYListRow("Wallet", meta: "Balance and coupons", trailing: .valueChevron("¥128.50"), card: true) {
+        List {
+            CYListRow("Wallet", meta: "Balance and coupons", trailing: .valueChevron("¥128.50")) {
                 CYRowIcon(systemImage: "creditcard")
             }
-            CYListRow("Tickets", meta: "3 active", card: true) { CYRowIcon(systemImage: "ticket") }
-            CYListRow("Orders", trailing: .value("—"), card: true) {
-                CYAvatarView(name: "Orders", size: .md)
-            }
+            CYListRow("Tickets", meta: "3 active") { CYRowIcon(systemImage: "ticket") }
+            CYListRow("Orders", trailing: .value("—"))
         }
-        .padding(CYSpacing.pageHorizontal)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .cyDomainPageBackground()
     }
 }
-#Preview("Row · player dark") { CYListRowPreviewBody().themeDomain(.player) }
-#Preview("Row · merchant light") { CYListRowPreviewBody().themeDomain(.merchant) }
+#Preview("Row") { CYListRowPreviewBody() }

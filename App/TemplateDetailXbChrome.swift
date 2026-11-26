@@ -23,28 +23,27 @@ struct TemplateXbHead<Cover: View>: View {
     var body: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.lg))
-            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.xl))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.lg))
         layout {
+            // Image crop only (App Store-style artwork tile); no card chrome.
             cover()
                 .frame(width: 120, height: 120)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .clipShape(.rect(cornerRadius: CYRadius.lg, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                title.cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
+                title.font(.title2.bold())
                     .lineLimit(2).accessibilityAddTraits(.isHeader)
                 if let publisher {
-                    publisher.cyText(.body).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                    publisher.font(.body).foregroundStyle(.secondary).lineLimit(1)
                         .accessibilityIdentifier("template.xb.publisher")
                 }
                 if official {
-                    Text("discovery.templateDetail.publisher.official").cyText(.meta)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                        .background(CYNight.glassFill, in: Capsule())
-                        .overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                    Label("discovery.templateDetail.publisher.official", systemImage: "checkmark.seal.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.tint)
                 }
                 if let subtitle, !subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(verbatim: subtitle).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: subtitle).font(.footnote).foregroundStyle(.tertiary)
                 }
             }
             Spacer(minLength: 0)
@@ -55,7 +54,7 @@ struct TemplateXbHead<Cover: View>: View {
     }
 }
 
-/// Round share key beside 应用. A parsed path shares its universal link. A path the parsers do not type
+/// Share key beside 应用. A parsed path shares its universal link. A path the parsers do not type
 /// shares the mini-program path text and no host. Both nil hides the key.
 struct TemplateXbShareButton: View {
     let url: URL?
@@ -64,64 +63,51 @@ struct TemplateXbShareButton: View {
     var body: some View {
         if let url {
             ShareLink(item: url) { mark }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .buttonBorderShape(.circle)
                 .accessibilityLabel(Text(label))
                 .accessibilityIdentifier("template.xb.share")
         } else if let copyText, !copyText.isEmpty {
             ShareLink(item: copyText) { mark }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .buttonBorderShape(.circle)
                 .accessibilityLabel(Text(label))
                 .accessibilityIdentifier("template.xb.share")
         }
     }
     private var mark: some View {
-        Image(systemName: "square.and.arrow.up").accessibilityHidden(true).font(.title3).foregroundStyle(CYColor.textPrimary)
-            .frame(width: 52, height: 52)
-            .background(CYNight.ink2, in: Circle())
+        Image(systemName: "square.and.arrow.up").accessibilityHidden(true)
     }
 }
 
-/// Ghost 应用 pill matching the share key (owner V-24: same fill and text colour, only wider).
+/// 应用 label. The caller wraps it in a plain-style Button, so it carries the system bordered fill
+/// (secondary system fill + tint text) rather than any custom colour.
 struct TemplateXbApplyLabel: View {
     var body: some View {
-        Text("templateAuthor.adopt").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .background(CYNight.ink2, in: Capsule())
+        Text("templateAuthor.adopt").font(.body.weight(.semibold)).foregroundStyle(.tint)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(Color(.tertiarySystemFill), in: Capsule())
+            .contentShape(Capsule())
     }
 }
 
 struct TemplateXbTabs: View {
     @Binding var selection: TemplateDetailTab
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Namespace private var underline
     var body: some View {
-        HStack(spacing: CYSpacing.xxl) {
+        Picker(selection: $selection) {
             ForEach(TemplateDetailTab.allCases, id: \.self) { tab in
-                let on = selection == tab
-                Button {
-                    if reduceMotion { selection = tab } else { withAnimation(CYMotion.standard) { selection = tab } }
-                } label: {
-                    VStack(spacing: CYSpacing.sm) {
-                        Text(tab.title).cyText(.cardTitle)
-                            .foregroundStyle(on ? CYColor.textPrimary : CYColor.textTertiary)
-                        ZStack {
-                            Capsule().fill(Color.clear).frame(height: 3)
-                            if on {
-                                Capsule().fill(CYColor.textPrimary).frame(height: 3)
-                                    .matchedGeometryEffect(id: "underline", in: underline)
-                            }
-                        }
-                    }
-                    .fixedSize(horizontal: true, vertical: false)
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(on ? [.isSelected] : [])
-                .accessibilityIdentifier("template.xb.tab.\(tab.rawValue)")
+                Text(tab.title)
+                    .tag(tab)
+                    .accessibilityIdentifier("template.xb.tab.\(tab.rawValue)")
             }
-            Spacer(minLength: 0)
+        } label: {
+            Text("u10.template.tab.details")
         }
+        .pickerStyle(.segmented)
+        .labelsHidden()
         .sensoryFeedback(.selection, trigger: selection)
-        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("template.xb.tabs")
     }
 }
@@ -145,44 +131,44 @@ struct TemplateCapabilityRows: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if rows.isEmpty {
-                // V-11 & #838: the 能力 tab always exists; with no rows it shows CYEmptyState instead of a blank page.
-                CYEmptyState(systemImage: "map", "template.cap.emptyState", messageIdentifier: "template.cap.empty")
-                    .padding(CYSpacing.md)
+                // V-11 & #838: the 能力 tab always exists; with no rows it shows an empty state instead of a blank page.
+                ContentUnavailableView {
+                    Label("template.cap.emptyState", systemImage: "map")
+                }
+                .accessibilityIdentifier("template.cap.empty")
             }
             ForEach(Array(rows.enumerated()), id: \.element.key) { index, row in
-                if index > 0 { Rectangle().fill(CYNight.glassEdgeBottom).frame(height: 1).padding(.leading, CYSpacing.lg) }
+                if index > 0 { Divider() }
                 rowView(row)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityIdentifier("template.cap.rows")
     }
     private func rowView(_ row: TemplateCapabilityRow) -> some View {
         let open = expanded.contains(row.key)
         let visible = row.collapsible && !open ? Array(row.chips.prefix(TemplateCapabilityRow.inlineMax)) : row.chips
         return HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-            Text(row.label).cyText(.bodyCompact).foregroundStyle(CYColor.textTertiary)
+            Text(row.label).font(.subheadline).foregroundStyle(.secondary)
                 .frame(minWidth: 40, alignment: .leading)
             TemplateFlowChips(chips: visible, onAction: onAction)
             Spacer(minLength: 0)
             if row.collapsible {
                 Button { if open { expanded.remove(row.key) } else { expanded.insert(row.key) } } label: {
-                    Group { if open { Text("u10.template.cap.collapse") } else { Text("u10.template.cap.expand") } }
-                        .cyText(.label).foregroundStyle(CYColor.textSecondary)
-                        .frame(minWidth: 44, minHeight: 44)
+                    if open { Text("u10.template.cap.collapse") } else { Text("u10.template.cap.expand") }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
+                .font(.footnote)
                 .accessibilityIdentifier("template.cap.\(row.key).toggle")
             }
         }
-        .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+        .padding(.vertical, CYSpacing.sm)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("template.cap.\(row.key)")
     }
 }
 
-/// Chips that wrap onto further lines.
+/// Chips that wrap onto further lines. A chip with an action is a small bordered button; a plain chip is text.
 private struct TemplateFlowChips: View {
     let chips: [TemplateCapabilityRow.Chip]
     let onAction: (String) -> Void
@@ -191,14 +177,11 @@ private struct TemplateFlowChips: View {
             ForEach(chips, id: \.self) { chip in
                 if let action = chip.action {
                     Button { onAction(action) } label: {
-                        HStack(spacing: CYSpacing.xs) {
-                            Text(verbatim: chip.text)
-                            Image(systemName: "arrow.right").font(.caption.weight(.semibold)).accessibilityHidden(true)
-                        }
-                        .modifier(TemplateChipStyle())
+                        Label(chip.text, systemImage: "arrow.right")
+                            .labelStyle(.titleAndIcon)
                     }
-                    .buttonStyle(.plain)
-                    .frame(minHeight: 44)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                     .accessibilityIdentifier("template.cap.chip.\(action)")
                 } else {
                     Text(verbatim: chip.text).modifier(TemplateChipStyle())
@@ -210,9 +193,7 @@ private struct TemplateFlowChips: View {
 
 struct TemplateChipStyle: ViewModifier {
     func body(content: Content) -> some View {
-        content.cyText(.label).foregroundStyle(CYColor.textPrimary)
-            .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + CYSpacing.xxs)
-            .background(CYNight.ink2, in: Capsule())
+        content.font(.subheadline)
     }
 }
 
@@ -240,7 +221,7 @@ struct TemplateChipFlow: Layout {
     }
 }
 
-/// Section title with a leading glyph, as the mini-program `xb-section-title` (3D icon + label).
+/// Section title with a leading glyph, as the mini-program `xb-section-title` (MP icon art or SF Symbol + label).
 struct TemplateXbSectionTitle: View {
     let title: LocalizedStringKey
     let systemImage: String
@@ -250,9 +231,9 @@ struct TemplateXbSectionTitle: View {
     var body: some View {
         HStack(alignment: art == nil ? .firstTextBaseline : .center, spacing: CYSpacing.sm) {
             if let art { art.resizable().scaledToFit().frame(width: 22, height: 22).accessibilityHidden(true) }
-            else { Image(systemName: systemImage).foregroundStyle(CYNight.lantern).accessibilityHidden(true) }
-            Text(title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-            if let note { note.cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+            else { Image(systemName: systemImage).foregroundStyle(.tint).accessibilityHidden(true) }
+            Text(title)
+            if let note { note.foregroundStyle(.secondary) }
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)

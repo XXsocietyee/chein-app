@@ -9,7 +9,6 @@ import SwiftUI
 
 /// The original real-row identity remains visible. No numeric peer input, block action or conversation creation.
 @MainActor struct NativeFriendRemovalView: View {
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -25,20 +24,15 @@ import SwiftUI
     private var recoverIsPrimary: Bool { flow.pending != nil && flow.review == nil }
     var body: some View {
         Form {
-            Section {
-                CYHeroHeader("friendRemoval.title", tableName: "NativeFriendRemoval")
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-                    .listRowSeparator(.hidden)
-            }
             if let item = flow.presentationItem {
                 Section {
-                    CYListRow(verbatim: item.displayName, trailing: .none) { personArt(item.displayName) }
+                    Label(item.displayName, systemImage: "person.crop.circle")
                         .accessibilityIdentifier("friendRemoval.target")
                 }
             }
             if flow.busy {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityLabel(Text("cy.state.loading"))
                     .accessibilityIdentifier("friendRemoval.loading")
             }
@@ -47,27 +41,27 @@ import SwiftUI
             if flow.pending != nil {
                 Section {
                     notice("friendRemoval.unknown")
-                    removalAction("friendRemoval.recover", style: recoverIsPrimary ? .primary : .secondary, enabled: flow.canRecover, identifier: "friendRemoval.recover") {
+                    removalAction("friendRemoval.recover", prominent: recoverIsPrimary, enabled: flow.canRecover, identifier: "friendRemoval.recover") {
                         perform { await flow.recover() }
                     }
-                    removalAction("friendRemoval.retryOriginal", style: .secondary, enabled: flow.canRetryOriginal, identifier: "friendRemoval.retryOriginal") {
+                    removalAction("friendRemoval.retryOriginal", prominent: false, enabled: flow.canRetryOriginal, identifier: "friendRemoval.retryOriginal") {
                         retryCommand = flow.pendingCommand; confirmingRetry = true
                     }
                 }
             } else if flow.item == nil && flow.result == nil && flow.phase == .ready {
-                CYEmptyState(systemImage: "checkmark.circle", "friendRemoval.noPending", tableName: "NativeFriendRemoval")
+                ContentUnavailableView {
+                    Label { text("friendRemoval.noPending") } icon: { Image(systemName: "checkmark.circle") }
+                }
             }
             if let result = flow.result {
                 Section {
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                        Image(systemName: result.outcome == "APPLIED" ? "checkmark.circle" : "xmark.circle")
-                            .foregroundStyle(result.outcome == "APPLIED" ? palette.success : palette.danger)
-                            .accessibilityHidden(true)
+                    Label {
                         text(result.outcome == "APPLIED" ? "friendRemoval.applied" : "friendRemoval.rejected")
-                            .cyText(.body)
-                            .foregroundStyle(palette.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("friendRemoval.outcome")
+                    } icon: {
+                        Image(systemName: result.outcome == "APPLIED" ? "checkmark.circle" : "xmark.circle")
+                            .foregroundStyle(result.outcome == "APPLIED" ? Color.green : Color.red)
+                            .accessibilityHidden(true)
                     }
                 }
             }
@@ -84,18 +78,15 @@ import SwiftUI
                     Button(role: .destructive) {
                         if flow.review == nil { flow.reviewRemoval() }
                         confirmingRemoval = flow.review != nil
-                    } label: { text("friendRemoval.review").frame(maxWidth: .infinity) }
-                        .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+                    } label: { text("friendRemoval.review") }
                         .disabled(!(flow.canReview || flow.canConfirm))
                         .accessibilityIdentifier("friendRemoval.review")
-                        .listRowBackground(Color.clear)
                 }
             }
         }
         .formStyle(.grouped)
-        .cyText(.body)
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("friendRemoval.title", tableName: "NativeFriendRemoval"))
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("friendRemoval.home")
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
         .task { await flow.load() }
@@ -107,71 +98,47 @@ import SwiftUI
         .onChange(of: flow.isCurrent) { _, current in
             if !current { cancelOperation() }
         }
-        // The sheet only presents the flow's own review; swipe-dismissing keeps the review open while Cancel clears it.
-        .sheet(isPresented: $confirmingRemoval) {
-            CYConfirmSheet(
-                title: localized("d7.friendRemoval.confirmTitle"),
-                message: localized("friendRemoval.impact"),
-                confirmTitle: localized("friendRemoval.confirm"),
-                cancelTitle: localized("friendRemoval.cancel"),
-                isDestructive: true,
-                confirmDisabled: !flow.canConfirm,
-                confirmIdentifier: "friendRemoval.confirm",
-                cancelIdentifier: "friendRemoval.cancel",
-                consequences: [
-                    CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: localized("friendRemoval.impact"))
-                ],
-                onCancel: { flow.cancelReview() }
-            ) {
-                guard let confirmed = flow.review else { return }
+        // The dialog only presents the flow's own review; Cancel clears it.
+        .confirmationDialog(localized("d7.friendRemoval.confirmTitle"), isPresented: $confirmingRemoval, titleVisibility: .visible) {
+            Button(localized("friendRemoval.confirm"), role: .destructive) {
+                guard flow.canConfirm, let confirmed = flow.review else { return }
                 perform { await flow.confirm(confirmed: confirmed) }
             }
-            .cyDomainSheet(detents: [.half, .full])
+            .accessibilityIdentifier("friendRemoval.confirm")
+            Button(localized("friendRemoval.cancel"), role: .cancel) { flow.cancelReview() }
+                .accessibilityIdentifier("friendRemoval.cancel")
+        } message: {
+            Text(verbatim: localized("friendRemoval.impact"))
         }
-        .sheet(isPresented: $confirmingRetry, onDismiss: { retryCommand = nil }) {
-            CYConfirmSheet(
-                title: localized("friendRemoval.retryTitle"),
-                message: localized("friendRemoval.retryImpact"),
-                confirmTitle: localized("friendRemoval.retryConfirm"),
-                cancelTitle: localized("friendRemoval.keepPending"),
-                isDestructive: true,
-                consequences: [
-                    CYConfirmConsequence(systemImage: "arrow.clockwise", text: localized("friendRemoval.retryImpact"))
-                ]
-            ) {
+        .confirmationDialog(localized("friendRemoval.retryTitle"), isPresented: $confirmingRetry, titleVisibility: .visible) {
+            Button(localized("friendRemoval.retryConfirm"), role: .destructive) {
                 guard let confirmed = retryCommand else { return }
                 retryCommand = nil
                 perform { await flow.retryOriginal(confirmed: confirmed) }
             }
-            .cyDomainSheet(detents: [.half, .full])
+            Button(localized("friendRemoval.keepPending"), role: .cancel) { retryCommand = nil }
+        } message: {
+            Text(verbatim: localized("friendRemoval.retryImpact"))
         }
-        .tint(palette.brand)
     }
-    private func removalAction(_ key: String, style: CYPillStyle, enabled: Bool, identifier: String, action: @escaping () -> Void) -> some View {
-        CYPillButton(LocalizedStringKey(key), style: style, tableName: "NativeFriendRemoval", action: action)
+    private func removalAction(_ key: String, prominent: Bool, enabled: Bool, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(LocalizedStringKey(key), tableName: "NativeFriendRemoval")
+                .fontWeight(prominent ? .semibold : .regular)
+        }
             .disabled(!enabled)
             .accessibilityIdentifier(identifier)
-            .listRowBackground(Color.clear)
     }
     private func notice(_ key: String, symbol: String? = nil, identifier: String? = nil) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            if let symbol {
-                Image(systemName: symbol).foregroundStyle(palette.warning).accessibilityHidden(true)
-            }
+        Label {
             text(key)
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundStyle(.secondary)
                 .modifier(CYOptionalAccessibilityIdentifier(identifier: identifier))
+        } icon: {
+            if let symbol {
+                Image(systemName: symbol).foregroundStyle(.orange).accessibilityHidden(true)
+            }
         }
-    }
-    private func personArt(_ seed: String) -> some View {
-        Color.clear
-            .frame(width: 40, height: 40)
-            .overlay { CYCoverArt(seed: seed.isEmpty ? "friend" : seed, symbol: "person.fill", showsDebugLabel: false) }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-            .accessibilityHidden(true)
     }
     private func perform(_ operation: @escaping @MainActor () async -> Void) {
         // A repeated tap must not cancel an already-dispatched original command.

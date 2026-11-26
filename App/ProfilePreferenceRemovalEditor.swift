@@ -21,7 +21,6 @@ import SwiftUI
                             Image(systemName: "tag.slash")
                         }
                     }
-                    .cyCardRow()
                 } else {
                     Section {
                         ForEach(original, id: \.self) { id in

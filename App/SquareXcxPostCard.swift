@@ -14,12 +14,12 @@ struct SquareXcxPostCard: View {
         VStack(alignment: .leading, spacing: 10) {
             head
             if let lifecycle = facts.lifecycle {
-                Text(LocalizedStringKey("square.xcx.lifecycle." + lifecycle.rawValue)).cyText(.meta).foregroundStyle(CYColor.warningText)
+                Text(LocalizedStringKey("square.xcx.lifecycle." + lifecycle.rawValue)).font(.caption).foregroundStyle(.orange)
                     .accessibilityIdentifier("square.card.lifecycle")
             }
             if let contents = post.contents, !contents.isEmpty {
                 Text(verbatim: contents).lineLimit(2)
-                if facts.bodyExpandable { Text("square.xcx.expand").cyText(.meta).foregroundStyle(.tint) }
+                if facts.bodyExpandable { Text("square.xcx.expand").font(.caption).foregroundStyle(.tint) }
             }
             stravaSection
             if facts.isCompletionShare || facts.hasPlayCover { playCard }
@@ -28,7 +28,7 @@ struct SquareXcxPostCard: View {
             }
             if !facts.strip.isEmpty {
                 if showsMedia { NativeMediaGalleryEntry(sources: facts.strip, scope: mediaScope, titleKey: "media.destination.squareImages", compact: true) }
-                if facts.showsCountPill { Text("square.xcx.countPill \(facts.strip.count)").cyText(.caption, monospacedDigit: true).accessibilityIdentifier("square.card.count") }
+                if facts.showsCountPill { Text("square.xcx.countPill \(facts.strip.count)").font(.caption).monospacedDigit().foregroundStyle(.secondary).accessibilityIdentifier("square.card.count") }
             }
             counters
         }.padding(.vertical, 4)
@@ -40,24 +40,22 @@ struct SquareXcxPostCard: View {
             Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    if let name = post.nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name).cyText(.cardTitle).cyWrapText() }
-                    else { Text("square.xcx.defaultName").cyText(.cardTitle).cyWrapText() }
+                    if let name = post.nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name).font(.headline) }
+                    else { Text("square.xcx.defaultName").font(.headline) }
                     if post.verified {
                         // MP: components/cy/post-card/index.wxml:25 (icon_rz.png, .post-card__verified 24rpx)
                         MPAsset.FeatureIcon.iconRz.resizable().scaledToFit().frame(width: 12, height: 12)
                             .accessibilityLabel(Text("square.verified"))
                     }
                     Spacer(minLength: 4)
-                    SquareXcxRelativeTime(createTime: post.createTime, now: now).cyText(.meta).foregroundStyle(.secondary).lineLimit(1).fixedSize()
+                    SquareXcxRelativeTime(createTime: post.createTime, now: now).font(.caption).foregroundStyle(.secondary).lineLimit(1).fixedSize()
                 }
                 HStack(spacing: 6) {
-                    if let club = post.clubName { Text(verbatim: club).cyText(.meta).foregroundStyle(.secondary).lineLimit(1) }
+                    if let club = post.clubName { Text(verbatim: club).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
                     if let badge = post.noticeBadge ?? post.authorBadge {
-                        Text(verbatim: badge).cyText(.caption, weight: .bold).lineLimit(1)
-                            .padding(.horizontal, 8).padding(.vertical, 2).background(.secondary.opacity(0.2), in: Capsule())
+                        Text(verbatim: badge).font(.caption.weight(.semibold)).foregroundStyle(.secondary).lineLimit(1)
                     } else if post.memberLevel > 0 {
-                        Text("square.xcx.level \(post.memberLevel)").cyText(.caption, weight: .bold).lineLimit(1)
-                            .padding(.horizontal, 8).padding(.vertical, 2).background(.secondary.opacity(0.2), in: Capsule())
+                        Text("square.xcx.level \(post.memberLevel)").font(.caption.weight(.semibold)).foregroundStyle(.secondary).lineLimit(1)
                     }
                 }
             }
@@ -65,20 +63,20 @@ struct SquareXcxPostCard: View {
     }
     @ViewBuilder private var playCard: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if post.isTopicTemplate { Text("square.xcx.templateBadge").cyText(.caption, weight: .bold).accessibilityIdentifier("square.card.templateBadge") }
-            if let title = post.referenceTitle { Text(verbatim: title).cyText(.bodyMedium) }
-            else if facts.isCompletionShare { Text("square.xcx.completionFallback").cyText(.bodyMedium) }
+            if post.isTopicTemplate { Text("square.xcx.templateBadge").font(.caption.weight(.semibold)).foregroundStyle(.secondary).accessibilityIdentifier("square.card.templateBadge") }
+            if let title = post.referenceTitle { Text(verbatim: title).font(.subheadline.weight(.medium)) }
+            else if facts.isCompletionShare { Text("square.xcx.completionFallback").font(.subheadline.weight(.medium)) }
             switch facts.playSubtitle {
-            case .completedNodes(let total)?: Text("square.xcx.play.completedNodes \(total)").cyText(.meta)
-            case .progress(let done, let total)?: Text("square.xcx.play.progress \(done) \(total)").cyText(.meta)
-            case .completed?: Text("square.xcx.play.completed").cyText(.meta)
-            case .inProgress?: Text("square.xcx.play.inProgress").cyText(.meta)
+            case .completedNodes(let total)?: Text("square.xcx.play.completedNodes \(total)").font(.caption).foregroundStyle(.secondary)
+            case .progress(let done, let total)?: Text("square.xcx.play.progress \(done) \(total)").font(.caption).foregroundStyle(.secondary)
+            case .completed?: Text("square.xcx.play.completed").font(.caption).foregroundStyle(.secondary)
+            case .inProgress?: Text("square.xcx.play.inProgress").font(.caption).foregroundStyle(.secondary)
             case nil: EmptyView()
             }
             if showsMedia, let cover = facts.playCover {
                 NativeMediaGalleryEntry(sources: [cover], scope: mediaScope, titleKey: "media.destination.squareImages", compact: true)
             }
-        }.padding(10).background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(uiColor: .tertiarySystemFill)))
+        }
             .accessibilityElement(children: .contain).accessibilityIdentifier("square.card.play")
     }
     private var counters: some View {
@@ -94,7 +92,7 @@ struct SquareXcxPostCard: View {
                 .accessibilityLabel(Text("mp.common.share"))
                 .accessibilityIdentifier("square.card.share")
             }
-        }.cyText(.meta, monospacedDigit: true).foregroundStyle(.secondary)
+        }.font(.caption).monospacedDigit().foregroundStyle(.secondary)
     }
 }
 
@@ -129,7 +127,7 @@ struct SquareXcxRelativeTime: View {
         Group {
             if loadedScope == reader.scope, !items.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
+                    HStack(alignment: .top, spacing: 20) {
                         ForEach(items) { item in
                             if let destination {
                                 NavigationLink { destination(item.id) } label: { card(item) }.buttonStyle(.plain)
@@ -153,23 +151,26 @@ struct SquareXcxRelativeTime: View {
     private func card(_ item: SquareUpcomingBannerItem) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text("square.xcx.upcoming.kicker").cyText(.meta, weight: .bold)
+                Text("square.xcx.upcoming.kicker").fontWeight(.semibold).foregroundStyle(.orange)
                 switch item.countdown(now: Date()) {
-                case .days(let n): Text("square.xcx.upcoming.days \(n)").cyText(.meta)
-                case .hours(let n): Text("square.xcx.upcoming.hours \(n)").cyText(.meta)
-                case .minutes(let n): Text("square.xcx.upcoming.minutes \(n)").cyText(.meta)
-                case .soon: Text("square.xcx.upcoming.soon").cyText(.meta)
+                case .days(let n): Text("square.xcx.upcoming.days \(n)")
+                case .hours(let n): Text("square.xcx.upcoming.hours \(n)")
+                case .minutes(let n): Text("square.xcx.upcoming.minutes \(n)")
+                case .soon: Text("square.xcx.upcoming.soon")
                 }
             }
-            Text(verbatim: item.title).cyText(.cardTitle).cyWrapText()
-            if let subtitle = item.subtitle { Text(verbatim: subtitle).cyText(.meta).foregroundStyle(.secondary).lineLimit(1) }
+            .font(.caption)
+            Text(verbatim: item.title).font(.headline).foregroundStyle(.primary)
+            if let subtitle = item.subtitle { Text(verbatim: subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
             HStack(spacing: 4) {
                 ForEach(Array(item.avatars.enumerated()), id: \.offset) { _, _ in Image(systemName: "person.circle.fill").accessibilityHidden(true) }
-                if item.overflow > 0 { Text("square.xcx.upcoming.overflow \(item.overflow)").cyText(.caption) }
-                Text("square.xcx.upcoming.participants").cyText(.caption).foregroundStyle(.secondary)
+                if item.overflow > 0 { Text("square.xcx.upcoming.overflow \(item.overflow)") }
+                Text("square.xcx.upcoming.participants").foregroundStyle(.secondary)
             }
-        }.padding(12).frame(minWidth: 260, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(uiColor: .secondarySystemGroupedBackground)))
+            .font(.caption)
+        }
+        .frame(width: 240, alignment: .leading)
+        .contentShape(Rectangle())
     }
     private func load() async {
         let scope = reader.scope

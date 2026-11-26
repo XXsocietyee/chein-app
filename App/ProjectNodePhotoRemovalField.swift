@@ -85,19 +85,16 @@ import SwiftUI
                 }
             }
         } header: { Text("projectNodePhotos.title", tableName: "ProjectNodePhotoRemoval") }
-        .sheet(isPresented: controller.binding(original)) {
-            if let original {
-                CYConfirmSheet(
-                    title: String(localized: LocalizedStringResource("projectNodePhotos.confirmTitle", table: "ProjectNodePhotoRemoval", locale: locale)),
-                    message: "#\(original.photo.id + 1) · \(original.photo.reference)\n"
-                        + String(localized: LocalizedStringResource("projectNodePhotos.scope", table: "ProjectNodePhotoRemoval", locale: locale)),
-                    confirmTitle: String(localized: LocalizedStringResource("projectNodePhotos.confirm", table: "ProjectNodePhotoRemoval", locale: locale)),
-                    isDestructive: true,
-                    onConfirm: { controller.apply(original) }
-                )
-                .cyDomainSheet(detents: [.half])
-                .themeDomain(.topicEditor)
+        .confirmationDialog(
+            String(localized: LocalizedStringResource("projectNodePhotos.confirmTitle", table: "ProjectNodePhotoRemoval", locale: locale)),
+            isPresented: controller.binding(original), titleVisibility: .visible, presenting: original
+        ) { original in
+            Button(String(localized: LocalizedStringResource("projectNodePhotos.confirm", table: "ProjectNodePhotoRemoval", locale: locale)), role: .destructive) {
+                controller.apply(original)
             }
+        } message: { original in
+            Text(verbatim: "#\(original.photo.id + 1) · \(original.photo.reference)\n"
+                + String(localized: LocalizedStringResource("projectNodePhotos.scope", table: "ProjectNodePhotoRemoval", locale: locale)))
         }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }

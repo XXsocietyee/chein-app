@@ -45,11 +45,11 @@ import SwiftUI
         List {
             if let governanceContext { SquareGovernanceEntryView(context: governanceContext) }
             if let deletion { SquareDeletionStatusView(coordinator: deletion) { Task { await verifyDeletion() } } }
-            if reader.isOfflineExample { Text("square.offlineExample").cyText(.meta) }
+            if reader.isOfflineExample { Text("square.offlineExample").font(.caption).foregroundStyle(.secondary) }
             if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
-            else if loadedKey != key { CYSkeleton() }
+            else if loadedKey != key { ProgressView().frame(maxWidth: .infinity) }
             else {
-                if detailLoading { CYSkeleton() }
+                if detailLoading { ProgressView().frame(maxWidth: .infinity) }
                 if let detailIssue {
                     // C-S3 (MP square/detail index.wxml:12-27): the cause decides the title; a way back is always there.
                     if post == nil {
@@ -76,14 +76,14 @@ import SwiftUI
                                 postActions(post, actions: actions)
                             }
                             if post.memberID == 0 {
-                                Text(verbatim: "—").cyText(.body).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: "—").foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("square.author.unknown")
                             } else if let viewer = actions?.identity.accountID, viewer == post.memberID {
                                 CreativeSquareAuthorDeleteSection(signedIn: reader.isSignedIn, highlightedPostID: post.id, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
                             }
                             // Round 4 flow (MP square/detail goUserInfoClcik): the author's page opens from the avatar menu
                             // (访问个人主页); the MP has no separate 查看作者主页 row.
-                        }.cyMiniCardRow()
+                        }
                     } blockedPlaceholder: {
                         Section {
                             UGCBlockedNoticeBanner(
@@ -91,7 +91,7 @@ import SwiftUI
                                 memberID: post.memberID,
                                 authorName: post.nickname
                             )
-                        }.cyMiniCardRow()
+                        }
                     }
                 }
                 // Detail failure never renders orphan comments without their post context.
@@ -107,7 +107,7 @@ import SwiftUI
                                 commentRow(comment).accessibilityIdentifier("square.comment.\(comment.id)")
                             }
                         }
-                        if commentsLoading { CYSkeleton() }
+                        if commentsLoading { ProgressView().frame(maxWidth: .infinity) }
                         else if comments.items.isEmpty && commentIssue == nil {
                             Text(LocalizedStringKey(SquareDetailPageModel.emptyCommentsTitleKey))
                                 .foregroundStyle(.secondary)
@@ -115,15 +115,16 @@ import SwiftUI
                         }
                         if !commentsLoading && comments.hasMore && commentIssue == nil {
                             // C-S9 (MP onReachBottom): reaching the end loads the next page; the button stays for VoiceOver.
-                            CYPillButton("square.moreComments", style: .secondary) { Task { await loadComments(operation: generation, captured: key) } }.accessibilityIdentifier("square.moreComments")
+                            Button { Task { await loadComments(operation: generation, captured: key) } } label: { Text("square.moreComments").frame(maxWidth: .infinity) }
+                                .buttonStyle(.borderless)
+                                .accessibilityIdentifier("square.moreComments")
                                 .onAppear { Task { await loadComments(operation: generation, captured: key) } }
                         }
-                    }.cyMiniCardRow()
+                    }
                 }
             }
         }
-        // Mini-program `.detail.theme-dark`: ink ground, elevated post card and comment card (radius 16, 12pt apart).
-        .cyMiniListScreen()
+        .listStyle(.insetGrouped)
         .cyPushedChrome(domain: .player)
         .appNavigationTitle("square.detail").navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
@@ -139,14 +140,12 @@ import SwiftUI
                 CYFooterBar {
                     Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
                         Label("square.xcx.commentPlaceholder", systemImage: "text.bubble")
-                            .cyText(.body).foregroundStyle(CYColor.textSecondary)
-                            .padding(.horizontal, CYSpacing.lg)
-                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                            .background(Capsule().fill(CYColor.bgSurfaceSubtle))
-                            .overlay(Capsule().strokeBorder(CYColor.borderSubtle, lineWidth: 1))
-                            .contentShape(Capsule())
-                    }.buttonStyle(.plain).disabled(!post.viewerCanComment).opacity(post.viewerCanComment ? 1 : 0.5)
-                        .accessibilityIdentifier("square.commentBar")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(!post.viewerCanComment)
+                    .accessibilityIdentifier("square.commentBar")
                 }
             }
         }
@@ -173,24 +172,25 @@ import SwiftUI
             }
         }
         .onChange(of: key) { _, _ in shareRoute = nil; showsAuthorProfile = false; blockTarget = nil }
-        .overlay {
-            if let target = blockTarget {
-                CYModal(
-                    title: String(localized: LocalizedStringResource("ugc.safety.block.confirmTitle", table: "UGCSafety", locale: locale)),
-                    message: String(localized: LocalizedStringResource("ugc.safety.block.confirmMessage", table: "UGCSafety", locale: locale)),
-                    cancelTitle: String(localized: LocalizedStringResource("ugc.safety.block.cancel", table: "UGCSafety", locale: locale)),
-                    confirmTitle: String(localized: LocalizedStringResource("ugc.safety.block.confirmButton", table: "UGCSafety", locale: locale)),
-                    isDestructive: true,
-                    onCancel: { blockTarget = nil },
-                    onConfirm: {
-                        let targetToBlock = target
-                        blockTarget = nil
-                        Task {
-                            try? await ugcSafety?.blockUser(memberID: targetToBlock.memberID, authorName: targetToBlock.authorName)
-                        }
-                    }
-                )
+        .alert(
+            Text(verbatim: String(localized: LocalizedStringResource("ugc.safety.block.confirmTitle", table: "UGCSafety", locale: locale))),
+            isPresented: Binding(get: { blockTarget != nil }, set: { if !$0 { blockTarget = nil } }),
+            presenting: blockTarget
+        ) { target in
+            Button(role: .destructive) {
+                let targetToBlock = target
+                blockTarget = nil
+                Task {
+                    try? await ugcSafety?.blockUser(memberID: targetToBlock.memberID, authorName: targetToBlock.authorName)
+                }
+            } label: {
+                Text(verbatim: String(localized: LocalizedStringResource("ugc.safety.block.confirmButton", table: "UGCSafety", locale: locale)))
             }
+            Button(role: .cancel) { blockTarget = nil } label: {
+                Text(verbatim: String(localized: LocalizedStringResource("ugc.safety.block.cancel", table: "UGCSafety", locale: locale)))
+            }
+        } message: { _ in
+            Text(verbatim: String(localized: LocalizedStringResource("ugc.safety.block.confirmMessage", table: "UGCSafety", locale: locale)))
         }
         .sheet(item: $reportTarget) { item in
             NavigationStack { SquareReportView(target: item.target, context: reportContext) }
@@ -203,7 +203,7 @@ import SwiftUI
             if let deletion {
                 SquareDeletionConfirmView(target: item.target, excerpt: SquareDeletionConfirmView.excerpt(post?.contents), coordinator: deletion)
             }
-        }.cySheet() }
+        }.presentationDetents([.medium, .large]) }
         .onChange(of: deletion?.phase) { _, phase in
             // A confirmed comment deletion refreshes the thread; a deleted post leaves no stale body on screen.
             if case .done(let target)? = phase { if case .post = target { post = nil; comments = SquareCommentPagination() } else { Task { await reload() } } }
@@ -281,7 +281,7 @@ import SwiftUI
                         star
                     }
                 }
-                    .tint(post.isBookmarked == 1 ? CYColor.warningText : .primary).accessibilityAddTraits(post.isBookmarked == 1 ? .isSelected : []) // C-S2: saved state shows
+                    .tint(post.isBookmarked == 1 ? .orange : .primary).accessibilityAddTraits(post.isBookmarked == 1 ? .isSelected : []) // C-S2: saved state shows
                     .accessibilityLabel(Text(LocalizedStringKey(post.isBookmarked == 1 ? "square.bookmark.remove" : "square.bookmark.add"))).accessibilityHint(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
             }
             // Mini `act-share` sits right after the other actions (owner 2026-11-09, Threads-style).
@@ -295,7 +295,7 @@ import SwiftUI
             }
             Spacer(minLength: 0)
         }
-        .buttonStyle(.borderless).cyText(.body).labelStyle(.titleAndIcon)
+        .buttonStyle(.borderless).font(.body).labelStyle(.titleAndIcon)
         .frame(minHeight: 44)
     }
     /// Mini `square-share.js`: a publicly shareable post links to its parsed detail URL. Anything else has no public URL.
@@ -375,7 +375,7 @@ import SwiftUI
     @ViewBuilder private func commentRow(_ comment: SquareComment) -> some View {
         if comment.lifecycle == "DELETED" {
             // Source deleted-row placeholder; the removed body is never shown.
-            Text("square.xcx.commentDeleted").cyText(.bodyCompact).foregroundStyle(.secondary)
+            Text("square.xcx.commentDeleted").font(.subheadline).foregroundStyle(.secondary)
                 .padding(.leading, comment.parentID == nil ? 0 : 12)
         } else { liveCommentRow(comment) }
     }
@@ -408,16 +408,16 @@ import SwiftUI
                         commentAuthor(comment)
                     }
                     Spacer(minLength: 8)
-                    if !comment.createTime.isEmpty { SquareXcxRelativeTime(createTime: comment.createTime, now: Date()).cyText(.meta).foregroundStyle(.secondary) }
+                    if !comment.createTime.isEmpty { SquareXcxRelativeTime(createTime: comment.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
                 }
                 if let name = comment.replyName(in: comments.items) {
-                    Text("square.replyingTo \(name)").cyText(.meta).foregroundStyle(.secondary)
+                    Text("square.replyingTo \(name)").font(.caption).foregroundStyle(.secondary)
                 }
                 if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
                 NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 HStack(spacing: 20) {
                     let likeLabel = Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
-                        .cyText(.meta).foregroundStyle(comment.isLiked == 0 ? AnyShapeStyle(.secondary) : AnyShapeStyle(CYColor.dangerText))
+                        .font(.caption).foregroundStyle(comment.isLiked == 0 ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
                     if let actions, actions.identity.accountID != nil {
                         // C-S4 (MP comment row): like and 回复 act inline; the ⋯ menu keeps block / delete.
                         Button { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) } label: { likeLabel }
@@ -428,7 +428,7 @@ import SwiftUI
                             .accessibilityIdentifier("square.comment.like.\(comment.id)")
                         if post?.viewerCanComment == true {
                             Button { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") } label: {
-                                Text("social.reply").cyText(.meta).foregroundStyle(.secondary)
+                                Text("social.reply").font(.caption).foregroundStyle(.secondary)
                             }
                             .buttonStyle(.borderless)
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
@@ -440,7 +440,7 @@ import SwiftUI
                     }
                     // Mini-program comment row keeps 举报 visible beside the like count, not inside the overflow.
                     if let actions, actions.identity.accountID != nil, comment.generation != .unknown {
-                        Button { reportComment(comment) } label: { Text("square.report").cyText(.meta).foregroundStyle(.secondary) }
+                        Button { reportComment(comment) } label: { Text("square.report").font(.caption).foregroundStyle(.secondary) }
                             .buttonStyle(.borderless)
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle()) // C-S5
                             .accessibilityLabel(Text("square.report"))
@@ -479,8 +479,8 @@ import SwiftUI
         else if let post, let target = try? SquareReportTarget(post: post, comment: comment) { reportTarget = .init(target: target) }
     }
     @ViewBuilder private func commentAuthor(_ comment: SquareComment) -> some View {
-        if let nickname = comment.nickname, !nickname.isEmpty { Text(verbatim: nickname).cyText(.bodyMedium) }
-        else { Text("square.unknownAuthor").cyText(.bodyMedium) }
+        if let nickname = comment.nickname, !nickname.isEmpty { Text(verbatim: nickname).font(.subheadline.weight(.semibold)) }
+        else { Text("square.unknownAuthor").font(.subheadline.weight(.semibold)) }
     }
     private struct DeletionRoute: Identifiable { let target: SquareDeletionTarget; var id: SquareDeletionTarget { target } }
     private var deletionBinding: Binding<DeletionRoute?> {
@@ -560,23 +560,24 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: locale.pick("我的广场", "My square posts"))
-                .cyText(.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
+                .font(.headline)
+                .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if !signedIn {
-                Text("cooperation.login").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("cooperation.login").foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             } else {
                 switch phase {
-                case .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
+                case .loading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
                 case .empty:
-                    Text(verbatim: locale.pick("还没有你发布的广场帖", "You have no square posts")).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: locale.pick("还没有你发布的广场帖", "You have no square posts")).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 case .failed:
-                    Text(verbatim: locale.pick("列表没有读出来，请重试", "The list did not load. Try again.")).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                    CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await reload() } }
+                    Text(verbatim: locale.pick("列表没有读出来，请重试", "The list did not load. Try again.")).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Button { Task { await reload() } } label: { Text(verbatim: locale.pick("重试", "Try again")) }
+                        .buttonStyle(.bordered)
                 case .ready:
                     if let highlightedPostID, !ids.contains(highlightedPostID) {
-                        Text(verbatim: locale.pick("这篇已经不在你的列表里", "This post is no longer in your list")).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: locale.pick("这篇已经不在你的列表里", "This post is no longer in your list")).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     ForEach(ids, id: \.self) { id in
                         authorRow(id)
@@ -593,20 +594,16 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
             : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.sm))
         return layout {
             Text(verbatim: "#\(id)")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
+                .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
             if !dynamicTypeSize.isAccessibilitySize {
                 Spacer(minLength: CYSpacing.sm)
             }
-            CYPillButton(
-                verbatim: locale.pick("删除", "Delete"),
-                style: .secondary,
-                fullWidth: dynamicTypeSize.isAccessibilitySize,
-                compact: !dynamicTypeSize.isAccessibilitySize
-            ) {
-                Task { await delete(id) }
+            Button(role: .destructive) { Task { await delete(id) } } label: {
+                Text(verbatim: locale.pick("删除", "Delete"))
             }
+            .buttonStyle(.bordered)
+            .controlSize(dynamicTypeSize.isAccessibilitySize ? .regular : .small)
             .disabled(removing)
         }
     }
@@ -642,9 +639,9 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if post.isTopicTemplate {
-                Text("square.xcx.templateBadge").cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
+                Text("square.xcx.templateBadge").font(.caption.bold()).foregroundStyle(.secondary)
             }
-            if let title = post.referenceTitle { Text(verbatim: title).cyText(.cardTitle).cyWrapText() }
+            if let title = post.referenceTitle { Text(verbatim: title).font(.headline).fixedSize(horizontal: false, vertical: true) }
             if post.isTopicTemplate, let topicID = post.topicID, topicID > 0, TopicTemplateUseFactory.isLive {
                 TopicTemplateUseSection(templateID: topicID, scope: nil, readOnly: false) { copiedDestination?($0) }
             }
@@ -680,29 +677,29 @@ struct SquareDetailIssueView: View {
     }
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                // Round 4 image parity: MP `cy-empty kind="empty"` (社区暂未开放 / 这条帖文暂不可用) draws the two-layer
-                // empty art; 没有找到这条帖文 (missing-param) and 动态加载失败 keep their state glyphs.
-                if kind == .closed || kind == .unavailable {
-                    CYEmptyIllustration(kind: .generic, size: 96).frame(maxWidth: .infinity)
-                    Text(titleKey).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                        .frame(maxWidth: .infinity).multilineTextAlignment(.center)
-                        .accessibilityIdentifier("square.error")
-                } else {
-                    Label(titleKey, systemImage: kind == .failed ? "exclamationmark.circle" : "info.circle")
-                        .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                        .accessibilityIdentifier("square.error")
+            ContentUnavailableView {
+                Label {
+                    Text(titleKey).accessibilityIdentifier("square.error")
+                } icon: {
+                    // Round 4 image parity: MP `cy-empty kind="empty"` (社区暂未开放 / 这条帖文暂不可用) keeps the MP empty
+                    // art; 没有找到这条帖文 (missing-param) and 动态加载失败 keep their state glyphs.
+                    if kind == .closed || kind == .unavailable {
+                        CYEmptyIllustration(kind: .generic, size: 96)
+                    } else {
+                        Image(systemName: kind == .failed ? "exclamationmark.circle" : "info.circle")
+                    }
                 }
+            } description: {
                 if kind == .failed, let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
-                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                    Text(verbatim: message).textSelection(.enabled)
                 }
+            } actions: {
                 if kind == .failed {
-                    Button("square.retry", action: retry).buttonStyle(.cySecondary(fullWidth: true)).accessibilityIdentifier("square.retry")
+                    Button("square.retry", action: retry).buttonStyle(.borderedProminent).accessibilityIdentifier("square.retry")
                 }
-                Button("square.detail.back", action: back).buttonStyle(.cySecondary(fullWidth: true))
+                Button("square.detail.back", action: back).buttonStyle(.bordered)
                     .accessibilityIdentifier("square.detail.back")
             }
-            .padding(.vertical, CYSpacing.sm)
         }
     }
 }

@@ -74,14 +74,14 @@ struct CYGlassLabel: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
     private var size: CGFloat { min(scaled, 60) }
+    /// Native r2: an SF Symbol on a plain system-background circle (no material, stroke or fixed black/white).
     var body: some View {
         Image(systemName: systemImage)
-            .accessibilityHidden(true).font(.system(.body).weight(.semibold))
-            .foregroundStyle(.white)
+            .accessibilityHidden(true)
+            .font(.body.weight(.semibold))
+            .foregroundStyle(.tint)
             .frame(width: size, height: size)
-            .background(Color.black.opacity(reduceTransparency ? 0.94 : 0.62), in: Circle())
-            .background(reduceTransparency ? AnyShapeStyle(Color.black) : AnyShapeStyle(.ultraThinMaterial), in: Circle())
-            .overlay(Circle().strokeBorder(Color.white.opacity(contrast == .increased ? 0.5 : 0.14), lineWidth: contrast == .increased ? 1.5 : 1))
+            .background(Color(uiColor: .systemBackground), in: Circle())
             .contentShape(Circle())
     }
 }
@@ -112,12 +112,12 @@ struct CYGlassCapsule<Content: View>: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
     init(@ViewBuilder content: () -> Content) { self.content = content() }
+    /// Native r2: plain system-background capsule (no material, no stroke).
     var body: some View {
         content
             .padding(.horizontal, CYSpacing.lg)
-            .frame(minHeight: 48)
-            .background(reduceTransparency ? AnyShapeStyle(Color(white: 0.09)) : AnyShapeStyle(.ultraThinMaterial), in: Capsule(style: .continuous))
-            .overlay(Capsule(style: .continuous).strokeBorder(Color.white.opacity(contrast == .increased ? 0.5 : 0.14), lineWidth: contrast == .increased ? 1.5 : 1))
+            .frame(minHeight: 44)
+            .background(Color(uiColor: .systemBackground), in: Capsule())
     }
 }
 

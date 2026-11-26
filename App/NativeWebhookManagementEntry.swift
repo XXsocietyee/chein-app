@@ -284,7 +284,7 @@ enum NativeWebhookSheet: String, Identifiable {
     @ObservedObject var model: NativeWebhookViewModel
     var body: some View {
         if let text = model.issueText {
-            Section { NativeChannelFlowNotice(title:Text(verbatim:text),symbol:"exclamationmark.circle").accessibilityIdentifier("webhook.issue") }
+            Section { Label(text, systemImage: "exclamationmark.circle").foregroundStyle(.orange).accessibilityIdentifier("webhook.issue") }
         }
         if let notice = model.coordinator?.notice {
             Section {
@@ -309,7 +309,7 @@ enum NativeWebhookSheet: String, Identifiable {
                     Section { Text(message).fixedSize(horizontal: false, vertical: true) }
                 }
                 Section {
-                    Button(nativeWebhookLocalized("d7.webhook.confirm.submit")) { Task { await model.confirm(confirmation.id) } }.nativeChannelFlowAction()
+                    Button(nativeWebhookLocalized("d7.webhook.confirm.submit")) { Task { await model.confirm(confirmation.id) } }.buttonStyle(.borderedProminent).controlSize(.large)
                         .disabled(!model.available || model.coordinator?.busy == true)
                         .accessibilityIdentifier("webhook.confirm.submit")
                     Button(nativeWebhookLocalized("d7.webhook.cancel"), role: .cancel) { model.dismissSheet() }
@@ -349,7 +349,7 @@ enum NativeWebhookSheet: String, Identifiable {
                     }
                 }
                 if pending.binding != model.coordinator?.context?.binding {
-                    Section { NativeChannelFlowNotice(title: Text(verbatim: nativeWebhookLocalized("d7.webhook.resume.accessChanged")), symbol: "lock") }
+                    Section { Label(nativeWebhookLocalized("d7.webhook.resume.accessChanged"), systemImage: "lock") }
                 }
                 NativeWebhookStatusSection(model: model)
                 Section {
@@ -357,7 +357,7 @@ enum NativeWebhookSheet: String, Identifiable {
                         model.coordinator?.prepareRecovery(url: pending.redactedFields.contains("url") ? originalURL : nil,
                             avatarURL: pending.redactedFields.contains("avatar_url") ? originalAvatarURL : nil)
                     }
-                    .nativeChannelFlowAction()
+                    .buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(!model.available || model.coordinator?.busy == true || pending.binding != model.coordinator?.context?.binding
                         || (pending.redactedFields.contains("url") && originalURL.isEmpty)
                         || (pending.redactedFields.contains("avatar_url") && originalAvatarURL.isEmpty))

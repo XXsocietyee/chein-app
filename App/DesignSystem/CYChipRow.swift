@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Standalone filter chip (`32pt` capsule pill inside `44pt` hit box; unselected `bgElevated`,
-/// selected `actionPrimaryBg` + `actionPrimaryFg`, zero outer border).
+/// Standalone filter chip (native r2: system bordered capsule button).
 public struct CYFilterChip: View {
     private let titleKey: LocalizedStringKey?
     private let verbatim: String?
@@ -9,9 +8,6 @@ public struct CYFilterChip: View {
     private let count: Int?
     private let isSelected: Bool
     private let action: () -> Void
-
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(
         _ titleKey: LocalizedStringKey,
@@ -53,50 +49,46 @@ public struct CYFilterChip: View {
         return (palette.textSecondary, palette.bgElevated, palette.textTertiary)
     }
 
+    /// Native r2: a system capsule button (`.borderedProminent` when selected, `.bordered` otherwise), the
+    /// filter-chip pattern Apple Maps uses. No colours or heights of our own.
     public var body: some View {
-        let resolved = Self.tokens(isSelected: isSelected, in: palette)
-        Button(action: action) {
-            HStack(spacing: CYSpacing.xs) {
-                if let systemImage {
-                    Image(systemName: systemImage)
-                        .font(CYTypography.caption.weight(.semibold))
-                }
-                if let verbatim {
-                    Text(verbatim: verbatim)
-                } else if let titleKey {
-                    Text(titleKey)
-                }
-                if let count {
-                    Text(verbatim: "\(count)")
-                        .cyText(.micro, monospacedDigit: true)
-                        .foregroundStyle(resolved.countForeground)
+        styled(
+            Button(action: action) {
+                HStack(spacing: CYSpacing.xs) {
+                    if let systemImage {
+                        Image(systemName: systemImage)
+                    }
+                    if let verbatim {
+                        Text(verbatim: verbatim)
+                    } else if let titleKey {
+                        Text(titleKey)
+                    }
+                    if let count {
+                        Text(verbatim: "\(count)")
+                            .monospacedDigit()
+                    }
                 }
             }
-            .font(isSelected ? CYTypography.label.weight(.semibold) : CYTypography.label)
-            .foregroundStyle(resolved.foreground)
-            .padding(.horizontal, CYSpacing.lg)
-            .frame(minHeight: Theme.length("--cy-btn-h-sm"))
-            .background(
-                Capsule(style: .continuous)
-                    .fill(resolved.background)
-            )
-            .frame(minHeight: CYSpacing.minTouchTarget)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+        )
+        .buttonBorderShape(.capsule)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: isSelected)
+    }
+
+    @ViewBuilder private func styled<B: View>(_ button: B) -> some View {
+        if isSelected {
+            button.buttonStyle(.borderedProminent)
+        } else {
+            button.buttonStyle(.bordered)
+        }
     }
 }
 
-/// Horizontal scrollable category/filter chip rail (`32pt` capsule pills, right fade scrim,
-/// selected chip uses solid `actionPrimaryBg` + heavier weight; no perimeter border).
+/// Horizontal scrollable category/filter chip rail (native r2: system capsule buttons, no fade scrim).
 public struct CYChipRow<Item: Identifiable>: View where Item.ID == Int {
     private let allTitle: LocalizedStringKey
     private let items: [Item]
     private let name: (Item) -> String
     @Binding private var selection: Int?
-    @Environment(\.cyPalette) private var palette
 
     public init(allTitle: LocalizedStringKey, items: [Item], selection: Binding<Int?>, name: @escaping (Item) -> String) {
         self.allTitle = allTitle
@@ -120,15 +112,6 @@ public struct CYChipRow<Item: Identifiable>: View where Item.ID == Int {
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.xs)
         }
-        .overlay(alignment: .trailing) {
-            LinearGradient(
-                colors: [palette.bgPage.opacity(0), palette.bgPage],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .frame(width: 24)
-            .allowsHitTesting(false)
-        }
     }
 }
 
@@ -138,13 +121,11 @@ private struct CYChipRowPreviewItem: Identifiable { let id: Int; let name: Strin
 #Preview("CYChipRow dark") {
     CYChipRow(allTitle: "Recommended", items: [CYChipRowPreviewItem(id: 1, name: "Food"), CYChipRowPreviewItem(id: 2, name: "Art")],
               selection: .constant(1)) { $0.name }
-        .background(CYColor.bgPage)
-        .preferredColorScheme(.dark)
+
 }
 
 #Preview("CYChipRow light") {
     CYChipRow(allTitle: "Recommended", items: [CYChipRowPreviewItem(id: 1, name: "Food")], selection: .constant(nil)) { $0.name }
-        .background(CYColor.bgPage)
-        .preferredColorScheme(.light)
+
 }
 #endif

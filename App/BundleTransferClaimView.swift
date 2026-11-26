@@ -8,30 +8,28 @@ import SwiftUI
     @State private var code = ""
     @State private var claimTick = 0
     @Environment(\.locale) private var locale
-    @ScaledMetric(relativeTo: .largeTitle) private var artHeight: CGFloat = 112
     private let table = "BundleCommerce"
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
 
     var body: some View {
-        // Native restyle r1 (spec §3.2): an inset-grouped Form with a system inline title.
+        // Native r2: an inset-grouped Form with a system inline title.
         Form {
-            Section {
-                CYCoverArt(seed: "bundle-claim", symbol: "arrow.left.arrow.right", showsDebugLabel: false)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: artHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
-                    .accessibilityHidden(true)
-            }
-            .cyCardRow()
             switch model.phase {
             case .claimed:
-                Section { claimed }.cyCardRow()
+                Section { claimed }
             case .unavailable:
-                Section { CYEmptyState(systemImage: "wifi.slash", "transfer.unavailable", tableName: table, messageIdentifier: "bundleTransfer.unavailable") }
-                    .cyCardRow()
+                Section {
+                    ContentUnavailableView {
+                        Label {
+                            text("transfer.unavailable").accessibilityIdentifier("bundleTransfer.unavailable")
+                        } icon: {
+                            Image(systemName: "wifi.slash")
+                        }
+                    }
+                }
             default:
                 claimForm
-                Section { phaseNote }.cyCardRow()
+                Section { phaseNote }
             }
         }
         .navigationTitle(Text(verbatim: ChannelCopy.text("领取转赠", "Claim a transfer", locale: locale)))
@@ -47,7 +45,13 @@ import SwiftUI
     }
 
     private var claimed: some View {
-        CYEmptyState(systemImage: "checkmark.circle", "transfer.claim.done", tableName: table, messageIdentifier: "bundleTransfer.claimed")
+        ContentUnavailableView {
+            Label {
+                text("transfer.claim.done").accessibilityIdentifier("bundleTransfer.claimed")
+            } icon: {
+                Image(systemName: "checkmark.circle").foregroundStyle(.green)
+            }
+        }
     }
 
     @ViewBuilder private var claimForm: some View {
@@ -55,41 +59,42 @@ import SwiftUI
             TextField(text: $code) { text("transfer.claim.code") }
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
-                .cyText(.body)
+                .textContentType(.oneTimeCode)
+                .submitLabel(.done)
                 .accessibilityLabel(text("transfer.claim.code"))
         }
         Section {
-            CYPillButton("transfer.claim.action", systemImage: "arrow.down.circle", tableName: table) {
+            Button {
                 let typed = code
                 code = ""
                 claimTick += 1
                 Task { await model.claim(code: typed) }
+            } label: {
+                Label { text("transfer.claim.action") } icon: { Image(systemName: "arrow.down.circle") }
             }
             .disabled(code.isEmpty || model.phase == .claiming)
             .accessibilityLabel(text("transfer.claim.action"))
             .cyHaptic(.impactMedium, trigger: claimTick)
         }
-        .cyCardRow()
     }
 
     @ViewBuilder private var phaseNote: some View {
         switch model.phase {
         case .claiming:
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                CYSkeleton().accessibilityHidden(true)
+            HStack(spacing: CYSpacing.sm) {
+                ProgressView()
                 text("transfer.claiming")
-                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityElement(children: .combine)
         case .codeNotAccepted:
-            CYNoteBanner(text: text("transfer.claim.rejected"), symbol: "exclamationmark.triangle", tone: .danger)
+            Cloud03Note(text: text("transfer.claim.rejected"), symbol: "exclamationmark.triangle", tone: .danger)
                 .accessibilityIdentifier("bundleTransfer.rejected")
         case .outcomeUnknown:
-            CYNoteBanner(text: text("transfer.claim.unknown"), symbol: "questionmark.circle", tone: .warning)
+            Cloud03Note(text: text("transfer.claim.unknown"), symbol: "questionmark.circle", tone: .warning)
         case .failed:
-            CYNoteBanner(text: text("transfer.error"), symbol: "exclamationmark.circle", tone: .danger)
+            Cloud03Note(text: text("transfer.error"), symbol: "exclamationmark.circle", tone: .danger)
         default:
             EmptyView()
         }

@@ -9,9 +9,9 @@ enum BundlePayResultPresentation: Equatable {
     case failed
 }
 
-/// Pay result (docs/release/motion-spec-purchase.md). Player dark, one visible title, one primary action.
-/// Success: ring + checkmark draw-on, soft confetti, `.success` haptic. Failure: cross + one nudge, `.warning`,
-/// server reason verbatim, retry + back. Processing: rotating arc and skeleton rows. All gated on Reduce Motion.
+/// Pay result. Native r2: a system list led by a `ContentUnavailableView`-style result (SF Symbol, title, message),
+/// then detail rows and one prominent action. Success: `.success` haptic. Failure: `.warning`, server reason verbatim,
+/// retry + back. Processing: a system progress row.
 @MainActor struct BundlePayResultView: View {
     let presentation: BundlePayResultPresentation
     let bundleName: String
@@ -25,24 +25,22 @@ enum BundlePayResultPresentation: Equatable {
     var onSecondary: (() -> Void)? = nil
 
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var reduceMotion
     @State private var landed = false
-    @State private var burst = 0
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
-    private var markKind: CYResultMark.Kind {
+    private var markSymbol: String {
         switch presentation {
-        case .processing: return .pending
-        case .success: return .success
-        case .failed: return .failure
+        case .processing: return "clock"
+        case .success: return "checkmark.circle.fill"
+        case .failed: return "xmark.circle.fill"
         }
     }
     private var tint: Color {
         switch presentation {
-        case .processing: return palette.warning
-        case .success: return palette.success
-        case .failed: return palette.danger
+        case .processing: return .orange
+        case .success: return .green
+        case .failed: return .red
         }
     }
     private var title: String {
@@ -74,49 +72,46 @@ enum BundlePayResultPresentation: Equatable {
     }
 
     var body: some View {
-        ZStack {
-            palette.bgPage.ignoresSafeArea()
-            RadialGradient(colors: [tint.opacity(0.28), .clear], center: .init(x: 0.5, y: 0.3), startRadius: 10, endRadius: 340)
-                .ignoresSafeArea()
-                .cyAnimation(value: presentation)
-            ScrollView {
-                VStack(spacing: CYSpacing.xxl) {
-                    Spacer(minLength: CYSpacing.hero)
-                    CYResultMark(kind: markKind, size: 132)
-                        .accessibilityIdentifier("bundle.pay.mark")
-                    VStack(spacing: CYSpacing.sm) {
+        List {
+            Section {
+                ContentUnavailableView {
+                    Label {
                         Text(verbatim: title)
-                            .cyText(.pageTitle)
-                            .foregroundStyle(palette.textPrimary)
-                            .multilineTextAlignment(.center)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("bundle.pay.title")
-                        Text(verbatim: message)
-                            .cyText(.body)
-                            .foregroundStyle(palette.textSecondary)
-                            .multilineTextAlignment(.center)
+                    } icon: {
+                        Image(systemName: markSymbol)
+                            .foregroundStyle(tint)
+                            .contentTransition(.symbolEffect(.replace))
+                            .accessibilityIdentifier("bundle.pay.mark")
                     }
-                    .fixedSize(horizontal: false, vertical: true)
-                    .cyEntrance(delay: reduceMotion ? 0 : 0.3, scale: 1)
-                    details
-                        .cyEntrance(delay: reduceMotion ? 0 : 0.42, scale: 1)
-                    Spacer(minLength: CYSpacing.lg)
-                    VStack(spacing: CYSpacing.sm) {
-                        CYPillButton(verbatim: resolvedPrimary, style: .primary, action: onPrimary)
-                            .accessibilityIdentifier("bundle.pay.primary")
-                        if let resolvedSecondary, let onSecondary {
-                            CYPillButton(verbatim: resolvedSecondary, style: .tertiary, action: onSecondary)
-                                .accessibilityIdentifier("bundle.pay.secondary")
-                        }
-                    }
-                    .cyEntrance(delay: reduceMotion ? 0 : 0.5, scale: 1)
+                } description: {
+                    Text(verbatim: message)
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.bottom, CYSpacing.xxl)
-                .frame(maxWidth: .infinity)
+                .listRowBackground(Color.clear)
             }
-            CYConfettiBurst(trigger: burst, pieces: 26)
+            details
+            Section {
+                Button(action: onPrimary) {
+                    Text(verbatim: resolvedPrimary).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+                .accessibilityIdentifier("bundle.pay.primary")
+                if let resolvedSecondary, let onSecondary {
+                    Button(action: onSecondary) {
+                        Text(verbatim: resolvedSecondary).frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderless)
+                    .controlSize(.large)
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("bundle.pay.secondary")
+                }
+            }
         }
+        .listStyle(.insetGrouped)
         .cyHeroScreen()
         .themeDomain(.player)
         .cyHaptic(.success, trigger: landed) { _, new in new && presentation == .success }
@@ -125,38 +120,34 @@ enum BundlePayResultPresentation: Equatable {
         .onChange(of: presentation) { _, _ in landed = false; land() }
     }
 
-    /// Bundle, amount and order number. Processing shows content-shaped placeholders instead of blanks.
+    /// Bundle, amount and order number. Processing shows a system progress row instead of blanks.
     @ViewBuilder private var details: some View {
         if presentation == .processing {
-            CYSkeleton().accessibilityHidden(true)
+            Section {
+                ProgressView().frame(maxWidth: .infinity)
+            }
         } else {
-            VStack(spacing: 0) {
+            Section {
                 detailRow(copy.t("套餐", "Bundle"), value: bundleName, icon: "shippingbox")
                 if let amountText {
-                    Divider().overlay(palette.borderSubtle).padding(.leading, 52)
                     detailRow(copy.t("金额", "Amount"), value: amountText, icon: "yensign.circle", numeric: true)
                 }
                 if let orderNumber, !orderNumber.isEmpty {
-                    Divider().overlay(palette.borderSubtle).padding(.leading, 52)
                     detailRow(copy.t("订单号", "Order number"), value: orderNumber, icon: "number", numeric: true)
                 }
             }
-            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
         }
     }
 
     private func detailRow(_ title: String, value: String, icon: String, numeric: Bool = false) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-            CYRowIcon(systemImage: icon)
-            Text(verbatim: title).cyText(.body).foregroundStyle(palette.textSecondary)
-            Spacer(minLength: CYSpacing.sm)
+        LabeledContent {
             Text(verbatim: value)
-                .cyText(numeric ? .numericBody : .bodyMedium)
-                .foregroundStyle(palette.textPrimary)
+                .monospacedDigit()
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)
+        } label: {
+            Label(title, systemImage: icon)
         }
-        .padding(.vertical, CYSpacing.sm)
         .accessibilityElement(children: .combine)
     }
 
@@ -167,10 +158,9 @@ enum BundlePayResultPresentation: Equatable {
             return
         }
         Task { @MainActor in
-            // The check finishes stroking at about 0.6 s (ring 0.35 s, stroke 0.4 s after 0.2 s).
+            // A short beat before the result haptic, as before.
             try? await Task.sleep(for: .milliseconds(560))
             landed = true
-            if presentation == .success { burst += 1 }
         }
     }
 }
