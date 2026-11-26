@@ -12,13 +12,13 @@ enum ActivityPresentation {
     }
 }
 
-/// Same card rules as home: cover, title, one date · place line, starting price. Missing values are left out.
+/// Same row rules as home: cover thumbnail, title, one date · place line, starting price. Missing values are left out.
+/// A plain List row (the caller's link draws the system chevron).
 struct ActivityListCard: View {
     let item: ActivitySummary
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
-    @Environment(\.cyPalette) private var palette
 
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     private var title: Text { ActivityPresentation.nonempty(item.name).map { Text(verbatim: $0) } ?? Text("activity.untitled") }
@@ -31,48 +31,63 @@ struct ActivityListCard: View {
     var body: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    cover.aspectRatio(16.0 / 9.0, contentMode: .fit).clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                VStack(alignment: .leading, spacing: 8) {
+                    cover(size: nil)
                     text
                 }
             } else {
-                HStack(alignment: .center, spacing: CYSpacing.md) {
-                    cover.frame(width: 96, height: 96).clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                HStack(alignment: .center, spacing: 12) {
+                    cover(size: 64)
                     text
-                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textSecondary).accessibilityHidden(true)
                 }
             }
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
-        .foregroundStyle(.primary)
         .accessibilityElement(children: .combine)
     }
 
-    private var cover: some View {
-        Color.clear.overlay { E1CoverArt(seed: item.name, symbol: symbol, imageURL: QuestifyCardArtwork.safeURL(item.imageURL)?.absoluteString, debugLabel: false) }
+    @ViewBuilder private func cover(size: CGFloat?) -> some View {
+        if let url = QuestifyCardArtwork.safeURL(item.imageURL) {
+            QuestifyCardArtwork(url: url, height: size ?? 160)
+                .frame(width: size)
+        } else {
+            Image(systemName: symbol)
+                .font(.title2)
+                .foregroundStyle(.tint)
+                .frame(width: size ?? 44, height: size ?? 44)
+                .accessibilityHidden(true)
+        }
     }
 
     private var text: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            title.cyText(.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
+        VStack(alignment: .leading, spacing: 2) {
+            title.font(.headline).foregroundStyle(.primary).lineLimit(2)
             if let metaLine {
-                Label { Text(verbatim: metaLine).lineLimit(2) } icon: { Image(systemName: "calendar") }
-                    .cyText(.meta).foregroundStyle(palette.textSecondary)
+                Text(verbatim: metaLine).lineLimit(2)
+                    .font(.subheadline).foregroundStyle(.secondary)
             }
-            HStack(spacing: CYSpacing.xs) {
-                if let state = E1ActivityState.of(start: item.startDate, end: item.endDate) { state.chip(copy) }
-                priceChip
+            HStack(spacing: 8) {
+                if let state = E1ActivityState.of(start: item.startDate, end: item.endDate) { stateLabel(state) }
+                priceLabel
             }
-            .padding(.top, 2)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    @ViewBuilder private var priceChip: some View {
+    private func stateLabel(_ state: E1ActivityState) -> some View {
+        switch state {
+        case .upcoming: return Label { Text(verbatim: copy.t("即将开始", "Upcoming")) } icon: { Image(systemName: "clock") }
+        case .live: return Label { Text(verbatim: copy.t("进行中", "Happening now")) } icon: { Image(systemName: "dot.radiowaves.left.and.right") }
+        case .ended: return Label { Text(verbatim: copy.t("已结束", "Ended")) } icon: { Image(systemName: "checkmark") }
+        }
+    }
+
+    @ViewBuilder private var priceLabel: some View {
         if let amount = item.minimumAmount, amount >= 0 {
-            if amount == 0 { CYStatusChip(verbatim: copy.t("免费", "Free"), tone: .success) }
+            if amount == 0 { Text(verbatim: copy.t("免费", "Free")).foregroundStyle(.green) }
             else { let p = MoneyDisplay.yuan(amount)  // owner decision 9: ¥12.50
-                CYStatusChip(verbatim: copy.t("\(p) 起", "From \(p)")) }
+                Text(verbatim: copy.t("\(p) 起", "From \(p)")).monospacedDigit() }
         }
     }
 }
@@ -82,18 +97,13 @@ struct ActivityDetailHeader: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        VStack(alignment:.leading,spacing:16) {
+        VStack(alignment:.leading,spacing:12) {
             if let url=QuestifyCardArtwork.safeURL(summary.imageURL) {
                 QuestifyCardArtwork(url:url,height:dynamicTypeSize.isAccessibilitySize ? 180 : 240)
-            } else {
-                // No cover: a clean surface with no text.
-                RoundedRectangle(cornerRadius: 12,style:.continuous)
-                    .fill(Color(uiColor:.tertiarySystemFill))
-                    .frame(height:160)
-                    .accessibilityHidden(true)
             }
+            // No cover: nothing is drawn in its place.
             ActivityName(name:summary.name)
-                .cyText(.display)
+                .font(.title2.bold())
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("activity.detail.name")
             ActivitySummaryMetadata(summary:summary)
@@ -102,7 +112,6 @@ struct ActivityDetailHeader: View {
                 QuestifyMetadataLine(label:"activity.address",value:address,systemImage:"location")
             }
         }
-        .questifyCardSurface()
         // Keep the title's focus frame on its text, not the entire cover/list cell.
         // The decorative cover is hidden; a containing boundary preserves that distinction.
         .accessibilityElement(children: .contain)
@@ -137,60 +146,58 @@ private struct ActivitySummaryMetadata: View {
 struct ActivityTicketCard: View {
     let ticket: ActivityTicket
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
-        VStack(alignment:.leading,spacing:CYSpacing.md) {
+        VStack(alignment:.leading,spacing:6) {
             ViewThatFits(in: .horizontal) {
-                HStack(alignment: .firstTextBaseline) { name; Spacer(minLength: CYSpacing.sm); price }
-                VStack(alignment: .leading, spacing: CYSpacing.xs) { name; price }
+                HStack(alignment: .firstTextBaseline) { name; Spacer(minLength: 8); price }
+                VStack(alignment: .leading, spacing: 4) { name; price }
             }
-            if ticket.isSoldOut {
-                CYStatusChip(verbatim: copy.t("已售罄", "Sold out"), tone: .danger, systemImage: "xmark.circle")
-                    .accessibilityIdentifier("activity.ticket.soldOut.\(ticket.id)")
-            } else if let left = ticket.remainingInventory {
-                CYStatusChip(verbatim: copy.t("剩余 \(left)", "\(left) left"), tone: left <= 10 ? .warning : .success, systemImage: "ticket")
-            } else {
-                CYStatusChip(verbatim: copy.t("余票待确认", "Availability unconfirmed"), systemImage: "questionmark.circle")
-                    .accessibilityIdentifier("activity.ticket.inventoryUnknown.\(ticket.id)")
+            Group {
+                if ticket.isSoldOut {
+                    Label { Text(verbatim: copy.t("已售罄", "Sold out")) } icon: { Image(systemName: "xmark.circle").foregroundStyle(.red) }
+                        .accessibilityIdentifier("activity.ticket.soldOut.\(ticket.id)")
+                } else if let left = ticket.remainingInventory {
+                    Label { Text(verbatim: copy.t("剩余 \(left)", "\(left) left")) } icon: { Image(systemName: "ticket").foregroundStyle(left <= 10 ? Color.orange : Color.green) }
+                } else {
+                    Label { Text(verbatim: copy.t("余票待确认", "Availability unconfirmed")) } icon: { Image(systemName: "questionmark.circle") }
+                        .accessibilityIdentifier("activity.ticket.inventoryUnknown.\(ticket.id)")
+                }
+                // R7-PC-C1-5 (r8, MP utils/ticket-window.js): a session that has started / ended / closed says so on its card.
+                let window = TicketWindowRule.state(for: ticket)
+                if window != .available {
+                    Label { Text(verbatim: window.label) } icon: { Image(systemName: "clock.badge.xmark") }
+                        .accessibilityIdentifier("activity.ticket.window.\(ticket.id)")
+                }
+                // R7-PC-C1-5 (r1 PC-C-1-6): MP 场次时间 from the ticket's own start / end, then 报名截止 and 集合点.
+                if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) {
+                    Label { Text(verbatim: session).monospacedDigit() } icon: { Image(systemName: "clock") }
+                        .accessibilityIdentifier("activity.ticket.session.\(ticket.id)")
+                }
+                if let deadline = ActivityPresentation.nonempty(ticket.signupDeadline) {
+                    Text(verbatim: copy.t("报名截止 \(deadline)", "Sign-up closes \(deadline)"))
+                        .monospacedDigit()
+                        .accessibilityIdentifier("activity.ticket.deadline.\(ticket.id)")
+                }
+                if let meeting = ActivityPresentation.nonempty(ticket.meetingPoint) {
+                    Label { Text(verbatim: meeting) } icon: { Image(systemName: "mappin.and.ellipse") }
+                }
+                if let description=ActivityPresentation.nonempty(ticket.description) {
+                    Text(verbatim:description)
+                        .fixedSize(horizontal:false,vertical:true)
+                }
             }
-            // R7-PC-C1-5 (r8, MP utils/ticket-window.js): a session that has started / ended / closed says so on its card.
-            let window = TicketWindowRule.state(for: ticket)
-            if window != .available {
-                CYStatusChip(verbatim: window.label, tone: .neutral, systemImage: "clock.badge.xmark")
-                    .accessibilityIdentifier("activity.ticket.window.\(ticket.id)")
-            }
-            // R7-PC-C1-5 (r1 PC-C-1-6): MP 场次时间 from the ticket's own start / end, then 报名截止 and 集合点.
-            if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) {
-                Label { Text(verbatim: session).monospacedDigit() } icon: { Image(systemName: "clock") }
-                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
-                    .accessibilityIdentifier("activity.ticket.session.\(ticket.id)")
-            }
-            if let deadline = ActivityPresentation.nonempty(ticket.signupDeadline) {
-                Text(verbatim: copy.t("报名截止 \(deadline)", "Sign-up closes \(deadline)"))
-                    .cyText(.meta).monospacedDigit().foregroundStyle(palette.textSecondary)
-                    .accessibilityIdentifier("activity.ticket.deadline.\(ticket.id)")
-            }
-            if let meeting = ActivityPresentation.nonempty(ticket.meetingPoint) {
-                Label { Text(verbatim: meeting) } icon: { Image(systemName: "mappin.and.ellipse") }
-                    .cyText(.meta).foregroundStyle(palette.textSecondary)
-            }
-            if let description=ActivityPresentation.nonempty(ticket.description) {
-                Text(verbatim:description)
-                    .font(.subheadline)
-                    .foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal:false,vertical:true)
-            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
     }
     private var name: some View {
-        Text(verbatim:ticket.name).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal:false,vertical:true)
+        Text(verbatim:ticket.name).font(.headline).foregroundStyle(.primary).fixedSize(horizontal:false,vertical:true)
     }
     private var price: some View {
         Text(verbatim: ticket.price == 0 ? copy.t("免费", "Free") : (E1Money.yuan(ticket.price, locale: locale) ?? "—"))
-            .cyText(.dataXL, weight: .semibold).monospacedDigit().foregroundStyle(palette.textPrimary)
+            .font(.headline).monospacedDigit().foregroundStyle(.primary)
             .accessibilityIdentifier("activity.ticket.price.\(ticket.id)")
     }
 }

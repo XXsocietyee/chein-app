@@ -92,11 +92,8 @@ import SwiftUI
                 Button(role: .destructive) {
                     showingSheet = true
                 } label: {
-                    CYListRow(verbatim: c.t("取消活动并退款", "Cancel event & refund"), trailing: .none) {
-                        CYRowIcon(systemImage: "xmark.octagon")
-                    }
+                    Label { Text(verbatim: c.t("取消活动并退款", "Cancel event & refund")) } icon: { Image(systemName: "xmark.octagon") }
                 }
-                .buttonStyle(.cyPressable)
                 .disabled(!access.enabled)
                 .accessibilityIdentifier("activity.hostCancel.open")
                 .accessibilityLabel(Text(verbatim: c.t("取消活动并退款", "Cancel event & refund")))
@@ -115,7 +112,8 @@ import SwiftUI
                     showingSheet = false
                     await onCancelled()
                 }
-                .cyDomainSheet(detents: [.half, .full])
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
         }
     }
@@ -142,12 +140,10 @@ import SwiftUI
                 switch model.phase {
                 case .loading:
                     Section {
-                        VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            CYSkeleton()
-                                .accessibilityHidden(true)
+                        HStack(spacing: 12) {
+                            ProgressView()
                             Text(verbatim: c.t("正在核对已付款人数…", "Checking paid attendee count…"))
-                                .cyText(.body)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .accessibilityElement(children: .combine)
@@ -160,71 +156,59 @@ import SwiftUI
                             : c.t("当前无法取消", "Cannot cancel right now")
                         Label {
                             Text(verbatim: shown)
-                                .cyText(.body)
                                 .fixedSize(horizontal: false, vertical: true)
                         } icon: {
-                            Image(systemName: "exclamationmark.triangle.fill")
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
                         }
-                        .foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("activity.hostCancel.blocked")
 
-                        CYPillButton(verbatim: c.t("重新检查", "Check again")) {
+                        Button {
                             Task { await model.loadPreview() }
-                        }
+                        } label: { Text(verbatim: c.t("重新检查", "Check again")) }
                         .accessibilityIdentifier("activity.hostCancel.recheck")
                         .accessibilityLabel(Text(verbatim: c.t("重新检查", "Check again")))
                     }
                 case .unknownCount, .networkError:
                     Section {
-                        VStack(spacing: CYSpacing.md) {
-                            Image(systemName: "exclamationmark.triangle")
-                                .font(.title2)
-                                .foregroundStyle(CYColor.dangerText)
-                                .accessibilityHidden(true)
-                            Text(verbatim: c.t("无法确认已付款人数，请稍后再试",
-                                                "Could not verify paid attendee count. Please try again later."))
-                                .cyText(.body)
-                                .foregroundStyle(CYColor.textPrimary)
-                                .multilineTextAlignment(.center)
-                                .fixedSize(horizontal: false, vertical: true)
+                        ContentUnavailableView {
+                            Label {
+                                Text(verbatim: c.t("无法确认已付款人数，请稍后再试",
+                                                   "Could not verify paid attendee count. Please try again later."))
+                            } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } description: {
                             Text(verbatim: c.t("请检查网络后重新检查", "Check your connection and try again."))
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
-                                .multilineTextAlignment(.center)
-                                .fixedSize(horizontal: false, vertical: true)
-                            CYPillButton(verbatim: c.t("重新检查", "Check again")) {
+                        } actions: {
+                            Button {
                                 Task { await model.loadPreview() }
-                            }
+                            } label: { Text(verbatim: c.t("重新检查", "Check again")) }
+                            .buttonStyle(.bordered)
                             .accessibilityLabel(Text(verbatim: c.t("重新检查", "Check again")))
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, CYSpacing.lg)
                         .accessibilityIdentifier("activity.hostCancel.error")
                     }
                 case .ready(let paidCount):
                     readyContent(paidCount: paidCount)
                 case .cancelled(let serverMsg):
                     Section {
-                        CYStatusChip(verbatim: c.t("活动已取消", "Event cancelled"), tone: .success, systemImage: "checkmark.circle.fill")
+                        Label { Text(verbatim: c.t("活动已取消", "Event cancelled")) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
+                            .font(.headline)
                         Text(verbatim: ActivityHostCancelRules.completionNotice(serverMessage: serverMsg).map { c.tr($0) }
                                 ?? c.t("已提交全额退款，到账时间以微信通知为准",
                                        "Full refund submitted; arrival depends on payment provider notification"))
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("activity.hostCancel.notice")
 
-                        CYPillButton(verbatim: c.t("完成", "Done")) {
+                        Button {
                             Task { await onCompleted() }
-                        }
+                        } label: { Text(verbatim: c.t("完成", "Done")) }
                         .accessibilityIdentifier("activity.hostCancel.done")
                         .accessibilityLabel(Text(verbatim: c.t("完成", "Done")))
                     }
                     .accessibilityIdentifier("activity.hostCancel.cancelled")
                 }
             }
-            .scrollContentBackground(.hidden)
-            .cyDomainPageBackground()
+            .listStyle(.insetGrouped)
             .cyPageTitle(verbatim: c.t("取消活动并退款", "Cancel event & refund"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -238,48 +222,57 @@ import SwiftUI
                 }
             }
             .task { await model.loadPreview() }
-            .overlay {
-                if confirming, PlayAreaPopupCopy.paymentsOpen {
-                    PlayAreaHostCancelModal(paidCount: model.paidPlayers, onConfirm: {
-                        confirming = false
-                        Task { _ = await model.submit() }
-                    }, onCancel: { confirming = false })
+            .alert(Text(verbatim: PlayAreaPopupCopy.text("取消这场活动并退款?", "Cancel this event and refund?", locale: locale)),
+                   isPresented: Binding(get: { confirming && PlayAreaPopupCopy.paymentsOpen }, set: { if !$0 { confirming = false } })) {
+                Button(role: .cancel) { confirming = false } label: {
+                    Text(verbatim: PlayAreaPopupCopy.text("再想想", "Not now", locale: locale))
                 }
+                Button(role: .destructive) {
+                    confirming = false
+                    Task { _ = await model.submit() }
+                } label: {
+                    Text(verbatim: PlayAreaPopupCopy.text("取消并退款", "Cancel and refund", locale: locale))
+                }
+                .accessibilityIdentifier("activity.hostCancel.confirmDialog")
+            } message: {
+                Text(verbatim: confirmMessage)
             }
         }
         .accessibilityIdentifier("activity.hostCancel.sheet")
     }
 
+    /// Same copy as the MP danger-action dialog (`PlayAreaHostCancelModal`).
+    private var confirmMessage: String {
+        let count = model.paidPlayers.map(String.init) ?? "—"
+        return PlayAreaPopupCopy.text(
+            "将给 \(count) 位已付款玩家全额退款,不可撤销。活动同时下架。",
+            count == "—"
+                ? "The paid attendee count is unknown. A refund is not confirmed."
+                : "\(count) paid players get a full refund. This can't be undone, and the event is unlisted.",
+            locale: locale)
+    }
+
     @ViewBuilder
     private func readyContent(paidCount: Int) -> some View {
         Section {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(verbatim: detail.summary.name.isEmpty ? c.t("未命名活动", "Untitled event") : detail.summary.name)
-                    .cyText(.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .font(.headline)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: PlayAreaPopupCopy.paymentsOpen
                     ? c.tr("将给 \(paidCount) 位已付款玩家全额退款,不可撤销。活动同时下架。")
                     : "—")
-                    .cyText(.body)
-                    .foregroundStyle(PlayAreaPopupCopy.paymentsOpen ? CYColor.dangerText : CYColor.textSecondary)
+                    .foregroundStyle(PlayAreaPopupCopy.paymentsOpen ? Color.red : Color.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.vertical, CYSpacing.xs)
             .accessibilityIdentifier("activity.hostCancel.summary")
 
             if PlayAreaPopupCopy.paymentsOpen {
-                CYListRow(verbatim: c.t("已报名玩家将收到取消通知", "Registered attendees will be notified of the cancellation"), trailing: .none) {
-                    CYRowIcon(systemImage: "bell.badge")
-                }
-                CYListRow(verbatim: c.t("已支付订单将原路全额退回", "Paid orders will be refunded in full to the original payment method"), trailing: .none) {
-                    CYRowIcon(systemImage: "arrow.uturn.backward.circle")
-                }
-                CYListRow(verbatim: c.t("活动下架后不可恢复", "The event will be unlisted and cannot be restored"), trailing: .none) {
-                    CYRowIcon(systemImage: "xmark.bin")
-                }
+                Label { Text(verbatim: c.t("已报名玩家将收到取消通知", "Registered attendees will be notified of the cancellation")) } icon: { Image(systemName: "bell.badge") }
+                Label { Text(verbatim: c.t("已支付订单将原路全额退回", "Paid orders will be refunded in full to the original payment method")) } icon: { Image(systemName: "arrow.uturn.backward.circle") }
+                Label { Text(verbatim: c.t("活动下架后不可恢复", "The event will be unlisted and cannot be restored")) } icon: { Image(systemName: "xmark.bin") }
             } else {
-                CYListRow(verbatim: "—", trailing: .none) { CYRowIcon(systemImage: "minus") }
+                Label { Text(verbatim: "—") } icon: { Image(systemName: "minus") }
                     .accessibilityIdentifier("activity.hostCancel.moneyClosed")
             }
         } header: {
@@ -297,37 +290,32 @@ import SwiftUI
             .accessibilityLabel(Text(verbatim: c.t("取消原因", "Cancellation reason")))
             .accessibilityIdentifier("activity.hostCancel.reason")
 
-            let trimmed = ActivityHostCancelRules.trimmedReason(model.reason)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                if trimmed.count > ActivityHostCancelRules.reasonLimit {
-                    Text(verbatim: c.t("取消原因不超过 100 字", "Cancellation reason cannot exceed 100 characters"))
-                        .foregroundStyle(CYColor.dangerText)
-                        .fixedSize(horizontal: false, vertical: true)
-                } else if trimmed.isEmpty {
-                    Text(verbatim: c.t("请填写取消原因", "Please enter a cancellation reason"))
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Text(verbatim: "\(trimmed.count)/\(ActivityHostCancelRules.reasonLimit)")
-                    .cyText(.numericBody)
-                    .monospacedDigit()
-                    .foregroundStyle(trimmed.count > ActivityHostCancelRules.reasonLimit ? CYColor.dangerText : CYColor.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-            .cyText(.meta)
-
             if let err = model.submitError {
                 Label {
                     Text(verbatim: c.tr(err)).fixedSize(horizontal: false, vertical: true)
                 } icon: {
                     Image(systemName: "exclamationmark.circle")
                 }
-                .cyText(.meta)
-                .foregroundStyle(CYColor.dangerText)
+                .foregroundStyle(.red)
                 .accessibilityIdentifier("activity.hostCancel.submitError")
             }
         } header: {
             Text(verbatim: c.t("取消原因", "Cancellation reason"))
+        } footer: {
+            // Validation sits in the section footer, as the system draws it.
+            let trimmed = ActivityHostCancelRules.trimmedReason(model.reason)
+            HStack(alignment: .firstTextBaseline) {
+                if trimmed.count > ActivityHostCancelRules.reasonLimit {
+                    Text(verbatim: c.t("取消原因不超过 100 字", "Cancellation reason cannot exceed 100 characters"))
+                        .foregroundStyle(.red)
+                } else if trimmed.isEmpty {
+                    Text(verbatim: c.t("请填写取消原因", "Please enter a cancellation reason"))
+                }
+                Spacer(minLength: 8)
+                Text(verbatim: "\(trimmed.count)/\(ActivityHostCancelRules.reasonLimit)")
+                    .monospacedDigit()
+                    .foregroundStyle(trimmed.count > ActivityHostCancelRules.reasonLimit ? Color.red : Color.secondary)
+            }
         }
 
         Section {
@@ -336,10 +324,8 @@ import SwiftUI
                 confirming = true
             } label: {
                 Text(verbatim: c.t("确认取消并退款", "Confirm cancel & refund"))
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
             .disabled(!model.canSubmit || !PlayAreaPopupCopy.paymentsOpen)
             .accessibilityIdentifier("activity.hostCancel.confirm")
             .accessibilityLabel(Text(verbatim: c.t("确认取消并退款", "Confirm cancel & refund")))

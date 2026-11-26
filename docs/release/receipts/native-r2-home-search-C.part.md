@@ -1,0 +1,33 @@
+## Group C (activity and official events)
+
+| File | What changed |
+|---|---|
+| App/ActivityBrowserView.swift | Empty, failed and unconfigured states now use `ContentUnavailableView`. Loading is a `ProgressView`. List rows are plain `NavigationLink`s with the system chevron. Removed the hero zoom, stagger, row transition and `cyAnimation`. Pull to refresh uses `.refreshable`. |
+| App/ActivityPresentationComponents.swift | `ActivityListCard` is a plain List row: a 64 pt artwork thumbnail or a tinted SF Symbol, a headline title, secondary meta, and the state and price as text labels. Removed the card chrome and the `CYStatusChip`s. `ActivityTicketCard` uses Labels with tinted symbols and system text styles, with no card chrome. The detail header no longer has a placeholder rectangle or card surface. |
+| App/ActivityDetailView.swift | Missing, failed and club-gate states use `ContentUnavailableView`. Loading is a `ProgressView`. Removed `cyDomainPageBackground`, `scrollContentBackground(.hidden)`, the custom section tabs, the stats bar, the tile buttons (now plain List `Button`+`Label` rows), the card surfaces, the forced-light map and its clip, the chip for the cancelled notice (now a Label tinted red), and the zoom transition into the footer sheet. The play, topic and character rows use `Label`. The review points note is a section footer. Added `.refreshable`. |
+| App/ActivityCoverAuthoringView.swift | Buttons use `.bordered`, `.borderedProminent` and `.borderless`. Removed the palette colours and the clip shapes on the previews. |
+| App/ActivityEditingView.swift | Status is a `Label` with a tinted symbol. Buttons use `.borderedProminent`. Removed the hidden scroll background and the page background. |
+| App/ActivityHostCancelView.swift | Rows use `Label`. Loading is a `ProgressView` row and the error state is a `ContentUnavailableView`. The custom modal is now a system `.alert` with the same MP copy. Validation and the character counter are in the section footer. The confirm button uses the system destructive role. Sheets use `presentationDetents([.medium, .large])`. |
+| App/ActivityPublishingWizardView.swift | The step bar is a `ProgressView` with borderless step buttons (the MP control has no Apple equivalent). The save chip is a `Label`. Back, Cancel, Next and Review use `.bordered`/`.borderedProminent` with `.controlSize(.large)`. The review summary has no card chrome. |
+| App/ActivityTemplateSelectionView.swift | The search field is a plain Form row with no capsule. Template rows use a Settings-style checkmark, with no rounded card or stroke. Buttons are plain Form buttons. |
+| App/ActivityReviewsSection.swift | The summary and reviews are plain List rows. Removed the card surfaces. Stars use `.orange`. |
+| App/OfficialActionViews.swift | The stale state is a `ContentUnavailableView` and the busy state a `ProgressView`. Buttons use `.borderedProminent`/`.bordered`. Removed `cyGroupedSurface`. The safety consent checkbox is a `Toggle`. Sheet detents are `.medium` and `.large`. |
+| App/OfficialEventComponents.swift | `OfficialIssueView` is a `ContentUnavailableView`, and all its action gates are kept. The skeleton slot (`CYLoadSlot`) is replaced by a `ProgressView` overlay. The status chip is the new `OfficialEventStatusLabel`. `OfficialFlowSurface`, `OfficialFlowActionBar` and `OfficialFlowNotice` no longer have custom backgrounds, tint or a forced colour scheme. |
+| App/OfficialEventDetailView.swift | The empty state and the empty task list use `ContentUnavailableView`. The hero header is a plain title. The facts strip is `LabeledContent` rows. Mission status is a `Label`. The CTA uses `.borderedProminent`. Removed the card chrome, palette colours and hidden backgrounds. |
+| App/OfficialEventsBrowserView.swift | The chip filter is a segmented `Picker`. Search is a `.roundedBorder` `TextField`. The empty state is a `ContentUnavailableView` (through a small helper). Removed the hidden scroll background. |
+| App/OfficialOrganizerConsoleView.swift | Loading is a `ProgressView`. Denied and error states use `ContentUnavailableView`. `CYConfirmSheet` is now a `.confirmationDialog`, with the consequences in the message. The preset chips are a menu `Picker` with a "—" row that clears the preset. Action buttons use `.borderedProminent`/`.bordered`. Text uses system semantic colours. |
+| App/OfficialPrivateViews.swift | The inbox empty state is a `ContentUnavailableView`. Status chips are `Label`s or `OfficialEventStatusLabel`. Removed the palette colours and backgrounds. Empty rows are plain secondary text. |
+| App/OfficialRouteViews.swift | Loading, error, offline, empty and not-found states use `ProgressView`/`ContentUnavailableView`. Removed the hero zoom, stagger, pressable style and `cyAnimation`. Pull to refresh uses `.refreshable`. |
+
+### Not converted / notes
+- **ActivityDetailView footer.** Kept `CYFooterBar` and four `CYPillButton`s (sign up / blocked / unavailable / primary), plus `CYListRow("context.review.title")` with `CYRowIcon`. Contract tests check for these exact source strings: `test_global_chrome_domain_contract`, `test_activity_design_structure` and `test_activity_reviews`. Convert them once those tests are updated.
+- **E1ActivityDetailParts.swift.** Kept `E1ActivityHero`, `E1ActivityInfoCard` and the `E1IconHeader` tickets header, because `test_activity_registration_parity_w2_06` and `test_activity_reviews` require them in order. Their file is in no group, so it still draws custom chrome (hero gradient and cards). `QuestifyCardButtonStyle` is also kept on list rows, because `test_activity_design_structure` and `test_official_event_contracts` check for it.
+- **Custom card components in other files.** `OfficialEventCard` (`QuestifyImageEntityCard`) and `OfficialRouteCard` draw their own card surfaces. They stay in clear rows (`questifyCardListRow`) until those files are converted.
+- **Official events search.** It stays an in-page `TextField` (`.roundedBorder`), not `.searchable`. A UI test queries `app.textFields["official.search"]`, and the field hides on the 我的 tab.
+- **MP controls with no Apple equivalent.**
+  - The wizard step bar is now a `ProgressView` with borderless step buttons.
+  - The `oo-chips` preset picker is now a menu `Picker`.
+  - The `cy-tabs` chip filter is now a segmented `Picker`.
+  - The `cy-consent-check` checkbox is now a `Toggle`.
+  - The activity stats bar was dropped. Its facts are already shown in the info card and the meta section.
+- **ActivityFixtureSupport.** The DEBUG fixture banner keeps its yellow background, because it is a test-only marker.
