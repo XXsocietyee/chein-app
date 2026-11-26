@@ -10,8 +10,6 @@ import UniformTypeIdentifiers
     @State private var shownRequestID: NativeWebhookRequestID?
     var body: some View {
         Form {
-            CYHeroHeader(verbatim: nativeWebhookLocalized("d7.webhook.secret.title"))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let credential = model.coordinator?.credential, model.available {
                 Section {
                     NativeChannelFlowNotice(title:Text(verbatim:nativeWebhookLocalized("d7.webhook.secret.once")),message:Text(verbatim:nativeWebhookLocalized("d7.webhook.secret.once.message")),symbol:"key.horizontal")
@@ -37,18 +35,24 @@ import UniformTypeIdentifiers
                     Section { NativeWebhookTimeRow(label: nativeWebhookLocalized("d7.webhook.secret.oldExpires"), time: time) }
                 }
                 Section {
-                    CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.done")) { model.dismissSheet() }.nativeChannelFlowAction()
+                    Button { model.dismissSheet() } label: { Text(verbatim: nativeWebhookLocalized("d7.webhook.done")).frame(maxWidth: .infinity) }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
                         .accessibilityIdentifier("webhook.credential.clear")
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
             } else {
-                CYEmptyState(systemImage: "key.horizontal", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.secret.gone")), detail: LocalizedStringKey(nativeWebhookLocalized("d7.webhook.secret.gone.message")))
-                CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.close"), style: .secondary) { model.dismissSheet() }
+                ContentUnavailableView {
+                    Label(nativeWebhookLocalized("d7.webhook.secret.gone"), systemImage: "key.horizontal")
+                } description: {
+                    Text(verbatim: nativeWebhookLocalized("d7.webhook.secret.gone.message"))
+                } actions: {
+                    Button { model.dismissSheet() } label: { Text(verbatim: nativeWebhookLocalized("d7.webhook.close")) }
+                        .buttonStyle(.bordered).controlSize(.large)
+                }
             }
         }
         .nativeChannelFlowPage()
-        .cyHeroScreen()
+        .navigationTitle(Text(verbatim: nativeWebhookLocalized("d7.webhook.secret.title")))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .onAppear { shownRequestID = model.coordinator?.credential?.requestID }
         .onDisappear {

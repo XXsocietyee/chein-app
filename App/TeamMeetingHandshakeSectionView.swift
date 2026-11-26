@@ -104,8 +104,8 @@ public struct TeamMeetingHandshakeSectionView: View {
                 }
             }
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .handshakeGroupBox()
     }
 
     // MARK: - U05–U07: Team First Meeting Card
@@ -120,9 +120,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                 Spacer()
                 Text(verbatim: card.qrAlwaysOffered && !card.nfcOffered ? "仅动态二维码 · NFC 已禁用" : "核验方式受限")
                     .cyText(.caption, weight: .semibold)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Capsule().fill(CYColor.infoSoft))
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("w16.meeting.handshakeBadge")
             }
 
@@ -183,8 +181,8 @@ public struct TeamMeetingHandshakeSectionView: View {
                 }
             }
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .handshakeGroupBox()
     }
 
     // MARK: - U02 & U04: Friend Multi-Invite Batch Card
@@ -261,8 +259,8 @@ public struct TeamMeetingHandshakeSectionView: View {
                 }
             }
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .handshakeGroupBox()
     }
 
     // MARK: - U04: Revoke-Wins Ledger Badge
@@ -283,13 +281,18 @@ public struct TeamMeetingHandshakeSectionView: View {
             if badge.isRevokeFinal {
                 Text(verbatim: "撤回终态不可逆")
                     .cyText(.caption, weight: .semibold)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Capsule().fill(CYColor.dangerText.opacity(0.15)))
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("w16.revoke.finalBadge")
             }
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .handshakeGroupBox()
+    }
+}
+
+private extension View {
+    /// The system grouped container (GroupBox) instead of a hand-drawn rounded plate.
+    func handshakeGroupBox() -> some View {
+        GroupBox { self }
     }
 }

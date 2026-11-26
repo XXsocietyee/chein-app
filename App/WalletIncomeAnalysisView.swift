@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 import Accessibility
 
 /// Original income-table analysis: at most ten approved 20-row reads, not an atomic snapshot.
@@ -25,30 +26,26 @@ import Accessibility
                 text("login")
                 if let onSignIn {
                     Button(action: onSignIn) { Text("mp.common.signIn") }
-                        .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
+                        .buttonStyle(.borderedProminent).controlSize(.large)
                         .accessibilityIdentifier("wallet.analysis.signIn")
                 }
             }
             else if model.loading {
                 Section {
-                    CYSkeleton()
-                    text("loading").frame(maxWidth: .infinity)
+                    ProgressView { text("loading") }.frame(maxWidth: .infinity)
                 }.accessibilityIdentifier("wallet.analysis.loading")
             }
             else if model.unavailable { text("unavailable") }
             else if model.failed {
                 Label { text("failed") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
-                    .cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                    .font(.headline).fixedSize(horizontal: false, vertical: true)
                 Button { Task { await load() } } label: { text("retry") }
-                    .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
+                    .buttonStyle(.borderedProminent).controlSize(.large)
             } else if let slice = model.displayedResult(for: reader) {
                 content(slice)
-            } else { CYSkeleton(variant: .detail) }
+            } else { ProgressView().frame(maxWidth: .infinity) }
         }
         .listStyle(.insetGrouped)
-        .cyText(.body)
-        .background(Theme.Color.bgPage(in: domain))
-        .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
         .navigationTitle(Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis"))
         .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
@@ -74,10 +71,10 @@ import Accessibility
             if slice.isPartial {
                 Label { readText("partial") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
                 Button { Task { await load() } } label: { text("retry") }
-                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
+                    .buttonStyle(.bordered)
                     .accessibilityIdentifier("wallet.analysis.partial.retry")
             } else if slice.stop == .budget {
-                readText("budget").cyText(.caption).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                readText("budget").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             if dynamicTypeSize.isAccessibilitySize { modePicker.pickerStyle(.menu) }
             else { modePicker.pickerStyle(.segmented) }
@@ -92,32 +89,33 @@ import Accessibility
         }
         if model.pageModel.phase == .unknown || model.pageModel.phase == .empty {
             Text(verbatim: model.pageModel.moneyText)
-                .cyText(.sectionTitle).monospacedDigit()
+                .font(.headline).monospacedDigit()
                 .accessibilityIdentifier("wallet.analysis.page")
         }
         if slice.rows.isEmpty {
             if slice.isPartial { readText("noVerifiedRecords") }
             else {
-                CYEmptyState(systemImage: "chart.bar.xaxis", LocalizedStringKey("wallet.analysis.empty"), tableName: "WalletIncomeAnalysis")
-                text("empty").frame(width: 0, height: 0).clipped().accessibilityHidden(true)
+                ContentUnavailableView {
+                    Label { text("empty") } icon: { Image(systemName: "chart.bar.xaxis") }
+                }
             }
         }
         else if let currency {
             Section {
                 if let current = summary.months.last {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: current.id).cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: current.id).font(.footnote).foregroundStyle(.secondary)
                         if summary.unknownCount > 0, current.count == 0 {
                             monthAmount(current, summary: summary, currency: currency)
-                                .cyText(.dataXL).monospacedDigit()
+                                .font(.largeTitle.bold()).monospacedDigit()
                                 .fixedSize(horizontal: false, vertical: true)
                         } else {
                             // Headline amount rolls when the month figure changes (reload, currency switch).
-                            CYStatNumber(text: WalletIncomeAnalysisPresentation.text(current.amount, currency: currency, locale: locale),
-                                         font: CYTypography.dataXL)
+                            Text(verbatim: WalletIncomeAnalysisPresentation.text(current.amount, currency: currency, locale: locale))
+                                .font(.largeTitle.bold()).monospacedDigit().contentTransition(.numericText())
                         }
-                        if summary.unknownCount > 0 { text("knownSubtotal").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
-                    }.padding(.vertical, CYSpacing.sm)
+                        if summary.unknownCount > 0 { text("knownSubtotal").font(.footnote).foregroundStyle(.secondary) }
+                    }
                 }
                 if !dynamicTypeSize.isAccessibilitySize {
                     // R7-PC-D6-2: VoiceOver reads the month values from the chart itself (Audio Graph + data table),
@@ -136,13 +134,11 @@ import Accessibility
                 Section {
                     if summary.sources.isEmpty { text("noSources") }
                     ForEach(summary.sources) { source in
-                        VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                            LabeledContent { Text(verbatim: WalletIncomeAnalysisPresentation.text(source.amount, currency: currency, locale: locale)).monospacedDigit().cyText(.cardTitle) } label: { text("source." + source.id) }
-                            GeometryReader { geometry in
-                                Capsule().fill(Theme.Color.success(in: domain))
-                                    .frame(width: geometry.size.width * CGFloat(sourceFraction(source, summary: summary)))
-                            }.frame(height: Theme.Space.s1).accessibilityHidden(true)
-                        }.padding(.vertical, Theme.Space.s2).accessibilityElement(children: .combine)
+                        VStack(alignment: .leading, spacing: 6) {
+                            LabeledContent { Text(verbatim: WalletIncomeAnalysisPresentation.text(source.amount, currency: currency, locale: locale)).monospacedDigit() } label: { text("source." + source.id) }
+                            ProgressView(value: sourceFraction(source, summary: summary))
+                                .tint(.green).accessibilityHidden(true)
+                        }.accessibilityElement(children: .combine)
                     }
                 } header: { text("sources") }
             }
@@ -155,31 +151,29 @@ import Accessibility
     }
     private func monthRows(_ summary: WalletIncomeAnalysisPresentation, currency: String) -> some View {
         ForEach(summary.months) { month in
-            VStack(alignment: .leading, spacing: Theme.Space.s1) {
+            VStack(alignment: .leading, spacing: 2) {
                 LabeledContent { monthAmount(month, summary: summary, currency: currency).monospacedDigit() }
                     label: { Text(verbatim: month.id) }
-                if summary.unknownCount > 0, month.count > 0 { text("knownSubtotal").cyText(.label).foregroundStyle(.secondary) }
+                if summary.unknownCount > 0, month.count > 0 { text("knownSubtotal").font(.footnote).foregroundStyle(.secondary) }
             }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
         }
     }
     private func monthChart(_ summary: WalletIncomeAnalysisPresentation) -> some View {
-        HStack(alignment: .bottom, spacing: Theme.Space.s3) {
-            ForEach(summary.months) { month in
-                VStack(spacing: Theme.Space.s2) {
-                    GeometryReader { geometry in
-                        VStack {
-                            Spacer(minLength: 0)
-                            if summary.unknownCount == 0 || month.count > 0 {
-                                RoundedRectangle(cornerRadius: CYRadius.inner)
-                                    .fill(month.id == summary.months.last?.id ? Theme.Color.textPrimary(in: domain) : Theme.Color.bgRaised(in: domain))
-                                    .frame(height: geometry.size.height * CGFloat(summary.fraction(month.amount)))
-                            }
-                        }
-                    }.frame(height: 120)
-                    Text(verbatim: String(month.id.suffix(2))).cyText(.label).foregroundStyle(.secondary)
-                }.frame(maxWidth: .infinity)
+        // Swift Charts bar chart (system); unverified months plot as zero, the current month is tinted.
+        Chart(summary.months) { month in
+            BarMark(x: .value(month.id, month.id),
+                    y: .value(month.id, (summary.unknownCount == 0 || month.count > 0) ? summary.fraction(month.amount) : 0))
+                .foregroundStyle(month.id == summary.months.last?.id ? Color.accentColor : Color.secondary.opacity(0.4))
+        }
+        .chartYAxis(.hidden)
+        .chartXAxis {
+            AxisMarks { value in
+                AxisValueLabel {
+                    Text(verbatim: String((value.as(String.self) ?? "").suffix(2)))
+                }
             }
-        }.padding(.vertical, Theme.Space.s3)
+        }
+        .frame(height: 120)
     }
     private func sourceFraction(_ source: WalletIncomeAnalysisPresentation.Source,
                                 summary: WalletIncomeAnalysisPresentation) -> Double {
@@ -200,18 +194,6 @@ import Accessibility
     }
 }
 
-
-// Feature-local layout; it neither supplies a reader nor alters any value.
-private struct WalletIncomeAnalysisDetailStyle: LabeledContentStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            configuration.label.cyText(.body).foregroundStyle(.secondary)
-            configuration.content.fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-    }
-}
 
 /// R7-PC-D6-2: month income as an accessible chart (categorical x = month, y = amount).
 private struct WalletIncomeMonthChartDescriptor: AXChartDescriptorRepresentable {

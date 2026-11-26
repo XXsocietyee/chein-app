@@ -40,7 +40,7 @@ import UIKit
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             (kind == .caseImage ? Text("profile.currentMedia.savedWork", tableName: "ProfileCurrentMediaUI") : Text("profile.currentMedia.savedQR", tableName: "ProfileCurrentMediaUI"))
-                .cyText(.bodyMedium).fixedSize(horizontal: false, vertical: true)
+                .font(.headline).fixedSize(horizontal: false, vertical: true)
             if let context {
                 ScrollView(.horizontal) {
                     LazyHStack(alignment: .top, spacing: 12) {
@@ -65,7 +65,7 @@ import UIKit
                     .accessibilityIdentifier("profile.currentMedia.unavailable.\(kind.rawValue)")
             }
             Text("profile.currentMedia.savedOnly", tableName: "ProfileCurrentMediaUI")
-                .cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
         .privacySensitive()
         .onChange(of: context?.keys) { _, keys in
@@ -102,9 +102,9 @@ import UIKit
                     .id(context.keys[index])
                 // Keep the action and actual loading/failure/unavailable text in
                 // the combined button label rather than hiding it behind a generic image label.
-                Text("media.destination.openImage").cyText(.meta)
+                Text("media.destination.openImage").font(.footnote).foregroundStyle(.tint)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("\(index + 1) / \(context.sources.count)").monospacedDigit().cyText(.meta)
+                Text("\(index + 1) / \(context.sources.count)").monospacedDigit().font(.footnote).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(width: stacked ? nil : ProfileCurrentMediaPreviewLayout.thumbnailSide)
@@ -334,12 +334,12 @@ import UIKit
     }
     private var previous: some View {
         Button("media.destination.previous") { index = max(0, index - 1) }
-            .frame(minWidth: ProfileCurrentMediaPreviewLayout.minimumAction, minHeight: ProfileCurrentMediaPreviewLayout.minimumAction)
+            .buttonStyle(.bordered).controlSize(.large)
             .fixedSize(horizontal: false, vertical: true).disabled(index == 0).accessibilityIdentifier("profile.currentMedia.previous")
     }
     private var next: some View {
         Button("media.destination.next") { index = min(sources.count - 1, index + 1) }
-            .frame(minWidth: ProfileCurrentMediaPreviewLayout.minimumAction, minHeight: ProfileCurrentMediaPreviewLayout.minimumAction)
+            .buttonStyle(.bordered).controlSize(.large)
             .fixedSize(horizontal: false, vertical: true).disabled(index >= sources.count - 1).accessibilityIdentifier("profile.currentMedia.next")
     }
 }
@@ -379,7 +379,7 @@ struct ProfileCurrentMediaStatusContent: View {
             // Thumbnail is already an Open button: no nested retry action.
             if state == .failed, let retry {
                 Button("action.retry", action: retry)
-                    .frame(minWidth: ProfileCurrentMediaPreviewLayout.minimumAction, minHeight: ProfileCurrentMediaPreviewLayout.minimumAction)
+                    .buttonStyle(.bordered)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier(retryIdentifier)
             }

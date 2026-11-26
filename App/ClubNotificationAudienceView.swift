@@ -136,15 +136,10 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
         // This group is not its own screen: the notify form already owns the one title.
         Group {
             if model.loading || permit == nil {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYSkeleton()
-                    Text("club.loading")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("club.audience.loading")
+                ProgressView { Text("club.loading") }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("club.audience.loading")
             }
             if isCurrent(), let permit, let options = model.accepted(expected, access: access) {
                 // CLB-r7-D-06 (fix-r3-club-b): MP hides 本场 audiences without an activityId (notify/index.js:109-111).
@@ -158,7 +153,6 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                     } label: {
                         audienceRow(option)
                     }
-                    .buttonStyle(.cyPressable)
                     .disabled(!canEdit() || !option.enabled)
                     .accessibilityAddTraits(selection == option.id ? .isSelected : [])
                     .accessibilityIdentifier("club.audience.choice." + option.id)
@@ -169,16 +163,15 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                 // (ClubOpsNetworkFailureClassifier), not the generic governance failure line.
                 Label(LocalizedStringKey(ClubOpsNetworkFailureClassifier.kind(failure) == .network ? "clubR8b.notify.networkFailed" : "clubR8b.notify.unavailable"),
                       systemImage: "exclamationmark.triangle")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.audience.error")
             }
             if isCurrent(), permit != nil, model.failure == .forbidden { ClubOpsNotifyDeniedText() }
             if model.countsUnavailable, isCurrent() {
                 Text("club.audience.countsUnavailable")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.audience.countsUnavailable")
             }
@@ -187,7 +180,6 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                     guard canEdit(), isCurrent(), let permit else { return }
                     Task { await model.load(permit, access: access, isCurrent: isCurrent) }
                 }
-                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
                 .disabled(!canEdit() || model.loading || permit == nil)
                 .accessibilityIdentifier("club.audience.reload")
             }
@@ -195,54 +187,52 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
         .buttonStyle(.borderless)
     }
     private func audienceRow(_ option: ClubNotificationAudienceOption) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            HStack(alignment: .center, spacing: CYSpacing.md) {
-                CYRowIcon(systemImage: Self.symbol(option.id))
-                Text(LocalizedStringKey("club.gov.choice." + option.id))
-                    .cyText(.cardTitle)
-                    .foregroundStyle(option.enabled ? CYColor.textPrimary : CYColor.textTertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: CYSpacing.sm)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center, spacing: 12) {
+                Label {
+                    Text(LocalizedStringKey("club.gov.choice." + option.id))
+                        .foregroundStyle(option.enabled ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: { Image(systemName: Self.symbol(option.id)) }
+                Spacer(minLength: 8)
                 if option.enabled { audienceCount(option) }
                 if selection == option.id {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(CYColor.textPrimary)
+                    Image(systemName: "checkmark")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.tint)
                         .accessibilityHidden(true)
                 }
             }
             if option.needsActivity {
                 Text("club.audience.chooseEvent")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else if !option.enabled {
                 if ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id) {
                     ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.eventDenied")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("club.gov.denied")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
-        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         .contentShape(Rectangle())
     }
     /// A missing count is unknown. A real 0 stays 0 via the existing people string.
     @ViewBuilder private func audienceCount(_ option: ClubNotificationAudienceOption) -> some View {
         if let count = option.count {
             ClubOpsJoinNotifyCopy.people(count)
-                .cyText(.numericBody)
                 .monospacedDigit()
-                .foregroundStyle(CYColor.textSecondary)
+                .foregroundStyle(.secondary)
         } else {
             Text(verbatim: "—")
-                .cyText(.numericBody)
-                .foregroundStyle(CYColor.textTertiary)
+                .foregroundStyle(.tertiary)
                 .accessibilityLabel(Text("club.audience.countsUnavailable"))
         }
     }

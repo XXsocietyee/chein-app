@@ -17,7 +17,8 @@ import SwiftUI
             }
             .sheet(isPresented: $presented) {
                 SettingsPostGovernanceSheet(coordinator: coordinator, access: session.squareGovernanceAccess())
-                    .cyDomainSheet(detents: [.half, .full])
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
@@ -100,16 +101,20 @@ struct PostGovernanceRow: Identifiable, Equatable {
     var body: some View {
         NavigationStack {
             List {
-                Text("mpd.postGov.intro").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg))
-                content
+                Section {
+                    content
+                } header: {
+                    Text("mpd.postGov.intro").textCase(nil)
+                }
                 if let notice {
-                    Text(notice).cyText(.meta).foregroundStyle(CYColor.warningText)
-                        .accessibilityIdentifier("settings.postGov.notice")
-                        .listRowBackground(Color.clear)
+                    Section {
+                        Label { Text(notice) } icon: { Image(systemName: "exclamationmark.triangle") }
+                            .foregroundStyle(.orange)
+                            .accessibilityIdentifier("settings.postGov.notice")
+                    }
                 }
             }
-            .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: editingID)
+            .listStyle(.insetGrouped)
             .navigationTitle(Text("mpd.postGov.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
@@ -126,18 +131,19 @@ struct PostGovernanceRow: Identifiable, Equatable {
     @ViewBuilder private var content: some View {
         switch phase {
         case .loading:
-            CYSkeleton().accessibilityLabel(Text("mpd.common.loading")).accessibilityIdentifier("settings.postGov.loading")
+            ProgressView().frame(maxWidth: .infinity)
+                .accessibilityLabel(Text("mpd.common.loading")).accessibilityIdentifier("settings.postGov.loading")
         case .signedOut:
-            CYEmptyState(systemImage: "person.crop.circle.badge.questionmark", "mpd.postGov.signedOut")
+            ContentUnavailableView("mpd.postGov.signedOut", systemImage: "person.crop.circle.badge.questionmark")
                 .accessibilityIdentifier("settings.postGov.signedOut")
         case .failed:
-            CYEmptyState(systemImage: "wifi.exclamationmark", "mpd.postGov.loadFailed", kind: .failure)
+            ContentUnavailableView("mpd.postGov.loadFailed", systemImage: "wifi.exclamationmark")
                 .accessibilityIdentifier("settings.postGov.error")
             Button("mpd.common.retry") { Task { await reload() } }.accessibilityIdentifier("settings.postGov.retry")
         case .ready:
             let rows = PostGovernanceRow.rows(snapshot?.enforcements ?? [])
             if rows.isEmpty {
-                CYEmptyState(systemImage: "checkmark.shield", "mpd.postGov.empty").accessibilityIdentifier("settings.postGov.empty")
+                ContentUnavailableView("mpd.postGov.empty", systemImage: "checkmark.shield").accessibilityIdentifier("settings.postGov.empty")
             } else {
                 ForEach(rows) { row in rowView(row) }
                 if (snapshot?.enforcements.count ?? 0) >= pages * 30 {
@@ -148,37 +154,37 @@ struct PostGovernanceRow: Identifiable, Equatable {
         }
     }
 
-    private func tone(_ state: PostGovernanceRow.State) -> CYStatusTone {
+    private func tone(_ state: PostGovernanceRow.State) -> Color {
         switch state {
-        case .reversed: return .success
-        case .upheld, .active: return .danger
-        case .appealing: return .warning
-        case .expired, .unknown: return .neutral
+        case .reversed: return .green
+        case .upheld, .active: return .red
+        case .appealing: return .orange
+        case .expired, .unknown: return .secondary
         }
     }
 
     @ViewBuilder private func rowView(_ row: PostGovernanceRow) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline) {
-                Text(LocalizedStringKey("mpd.postGov.type." + row.typeKey)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Spacer(minLength: CYSpacing.sm)
-                CYStatusChip(LocalizedStringKey("mpd.postGov.state." + row.state.rawValue), tone: tone(row.state))
+                Text(LocalizedStringKey("mpd.postGov.type." + row.typeKey)).font(.headline)
+                Spacer(minLength: 8)
+                Text(LocalizedStringKey("mpd.postGov.state." + row.state.rawValue))
+                    .font(.footnote).foregroundStyle(tone(row.state))
             }
             HStack(spacing: 0) {
                 Text(LocalizedStringKey(row.isPost ? "mpd.postGov.target.post" : "mpd.postGov.target.account"))
                 if !row.created.isEmpty { Text(verbatim: " · " + row.created) }
                 if !row.ends.isEmpty { Text(verbatim: " · "); Text("mpd.postGov.until \(row.ends)") }
             }
-            .cyText(.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
+            .font(.footnote).foregroundStyle(.secondary).monospacedDigit()
             if row.state != .expired && row.state != .unknown {
-                Text(LocalizedStringKey("mpd.postGov.note." + row.state.rawValue)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(LocalizedStringKey("mpd.postGov.note." + row.state.rawValue)).font(.subheadline).foregroundStyle(.secondary)
             }
             if !row.decisionReason.isEmpty {
-                Text("mpd.postGov.decision \(row.decisionReason)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("mpd.postGov.decision \(row.decisionReason)").font(.subheadline).foregroundStyle(.secondary)
             }
             if row.canAppeal { appealArea(row) }
         }
-        .padding(.vertical, CYSpacing.xs)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("settings.postGov.row.\(row.id)")
     }
@@ -187,33 +193,30 @@ struct PostGovernanceRow: Identifiable, Equatable {
         let action = SquareGovernanceAction.appeal(enforcementID: row.id, reason: reason.trimmingCharacters(in: .whitespacesAndNewlines))
         if editingID != row.id {
             Button("mpd.postGov.appeal") { reason = ""; notice = nil; editingID = row.id }
-                .cyText(.label).buttonStyle(.borderless)
+                .buttonStyle(.borderless)
                 .accessibilityIdentifier("settings.postGov.appeal.\(row.id)")
         } else {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            VStack(alignment: .leading, spacing: 8) {
                 TextField("mpd.postGov.reasonPlaceholder", text: $reason, axis: .vertical)
                     .lineLimit(3...6).disabled(submitting)
                     .onChange(of: reason) { _, value in if value.count > Self.reasonMax { reason = String(value.prefix(Self.reasonMax)) } }
-                    .padding(CYSpacing.md)
-                    .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+                    .submitLabel(.done)
                     .accessibilityIdentifier("settings.postGov.reason")
                 HStack {
-                    Text(verbatim: "\(reason.count)/\(Self.reasonMax)").cyText(.caption).foregroundStyle(CYColor.textTertiary).monospacedDigit()
                     Spacer()
                     Button("action.cancel") { editingID = nil; reason = "" }.buttonStyle(.borderless).disabled(submitting)
                         .accessibilityIdentifier("settings.postGov.cancel")
                     Button { Task { await submit(action) } } label: {
                         Text(LocalizedStringKey(submitting ? "mpd.postGov.submitting" : "mpd.postGov.submit"))
                     }
-                    .buttonStyle(.borderedProminent).buttonBorderShape(.capsule)
+                    .buttonStyle(.borderedProminent)
                     .disabled(submitting || !coordinator.service.allows(action))
                     .accessibilityIdentifier("settings.postGov.submit")
                 }
                 if !coordinator.service.allows(action) {
-                    Text("mpd.postGov.liveDisabled").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                    Text("mpd.postGov.liveDisabled").font(.footnote).foregroundStyle(.secondary)
                 }
             }
-            .transition(.opacity.combined(with: .move(edge: .top)))
         }
     }
 

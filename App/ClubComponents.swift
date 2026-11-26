@@ -23,90 +23,63 @@ enum ClubMemberCountLocalization {
     }
 }
 
-/// Mini-program club card (P/021, M/003): quiet cover banner, logo, heavy name,
-/// type · city, counts, and one trailing pill. The whole card is the link.
+/// Club list row (native): logo thumbnail, name, type · city, member count, and the viewer's status as secondary text.
+/// The whole row is the link when the caller wraps it in a `NavigationLink`.
 struct ClubRow: View {
     let club: ClubRecord
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var logoSide: CGFloat = 44
     private var subtitle: String {
         [club.style, club.city].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }.joined(separator: " · ")
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack {
-                palette.bgSurfaceSubtle
-                if let url = QuestifyCardArtwork.safeURL(club.cover) {
-                    AsyncImage(url: url) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() } else { glyph }
+        LabeledContent {
+            statusPill
+        } label: {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    ClubName(value: club.name)
+                        .font(.headline)
+                    if !subtitle.isEmpty {
+                        Text(verbatim: subtitle).font(.subheadline).foregroundStyle(.secondary)
                     }
-                } else { glyph }
-            }
-            .frame(height: 112).frame(maxWidth: .infinity).clipped().accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 8) {
-                logo.padding(.top, -34)
-                Group {
-                    if club.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitled") }
-                    else { Text(verbatim: club.name) }
-                }
-                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                if !subtitle.isEmpty {
-                    Text(verbatim: subtitle).font(.subheadline).foregroundStyle(palette.textSecondary)
-                }
-                Label { Text(verbatim: ClubMemberCountLocalization.text(club.memberCount, locale: locale)).monospacedDigit() }
-                    icon: { Image(systemName: "person.2") }
-                    .font(.footnote).foregroundStyle(palette.textTertiary)
-                (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))) {
+                    Text(verbatim: ClubMemberCountLocalization.text(club.memberCount, locale: locale)).monospacedDigit()
+                        .font(.footnote).foregroundStyle(.secondary)
                     if let host = club.leaderName?.trimmingCharacters(in: .whitespacesAndNewlines), !host.isEmpty {
-                        HStack(spacing: 8) {
-                            Text(verbatim: String(host.prefix(1))).cyText(.meta, weight: .bold)
-                                .frame(width: 28, height: 28).background(palette.bgRaised, in: Circle())
-                            Text(verbatim: host).cyText(.bodyMedium).lineLimit(1)
-                        }
-                        .foregroundStyle(palette.textPrimary)
-                        .padding(8).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(palette.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-                    } else { Spacer(minLength: 0) }
-                    statusPill
+                        Label { Text(verbatim: host).lineLimit(1) } icon: { Image(systemName: "person.crop.circle") }
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
                 }
+            } icon: {
+                logo
             }
-            .padding(.horizontal, 16).padding(.bottom, 16)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(palette.cardFill)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 0.5))
         .accessibilityElement(children: .combine)
     }
-    private var glyph: some View {
-        CYIMCoverArt(seed: club.name + String(club.id))
-    }
+    /// The club's logo, else its cover, else a symbol: a small rounded thumbnail like Apple's own list rows.
     @ViewBuilder private var logo: some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
-        ZStack {
-            palette.bgRaised
-            if let url = QuestifyCardArtwork.safeURL(club.logo) {
+        Group {
+            if let url = QuestifyCardArtwork.safeURL(club.logo) ?? QuestifyCardArtwork.safeURL(club.cover) {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() }
-                    else { Image(systemName: "person.3.fill").foregroundStyle(palette.textTertiary) }
+                    else { Image(systemName: "person.3.fill").foregroundStyle(.secondary) }
                 }
-            } else { Image(systemName: "person.3.fill").foregroundStyle(palette.textTertiary) }
+            } else {
+                Image(systemName: "person.3.fill").foregroundStyle(.secondary)
+            }
         }
-        .frame(width: 56, height: 56).clipShape(shape)
-        .overlay(shape.strokeBorder(palette.cardFill, lineWidth: 3))
+        .frame(width: logoSide, height: logoSide)
+        .background(.fill.tertiary)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityHidden(true)
     }
     @ViewBuilder private var statusPill: some View {
         let key: LocalizedStringKey = club.isOwner ? "club.role.creator" : club.isJoined ? "club.membership.joined"
             : club.joinPending ? "club.membership.pending" : "club.action.join"
         let primary = !(club.isOwner || club.isJoined || club.joinPending)
-        Text(key).cyText(.bodyMedium).lineLimit(1)
-            .padding(.horizontal, 16).frame(minHeight: 40)
-            .foregroundStyle(primary ? palette.actionPrimaryFg : palette.textPrimary)
-            .background(primary ? palette.actionPrimaryBg : palette.bgRaised, in: Capsule())
+        Text(key).font(.subheadline).lineLimit(1)
+            .foregroundStyle(primary ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
     }
 }
 
@@ -125,7 +98,11 @@ struct ClubEmptyState: View {
     let hint: LocalizedStringKey
     let identifier: String
     var body: some View {
-        CYEmptyState(systemImage: "person.3", title, detail: hint, messageIdentifier: identifier)
+        ContentUnavailableView {
+            Label { Text(title).accessibilityIdentifier(identifier) } icon: { Image(systemName: "person.3") }
+        } description: {
+            Text(hint)
+        }
     }
 }
 
@@ -285,12 +262,7 @@ struct E3LocationCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack {
-                LinearGradient(colors: [Color(red: 0.13, green: 0.30, blue: 0.27), Color(red: 0.07, green: 0.14, blue: 0.20)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                Path { p in
-                    p.move(to: CGPoint(x: 0, y: 70)); p.addCurve(to: CGPoint(x: 260, y: 30), control1: CGPoint(x: 80, y: 20), control2: CGPoint(x: 160, y: 90))
-                    p.move(to: CGPoint(x: 40, y: 0)); p.addLine(to: CGPoint(x: 120, y: 120))
-                    p.move(to: CGPoint(x: 200, y: 0)); p.addLine(to: CGPoint(x: 170, y: 120))
-                }.stroke(Color.white.opacity(0.14), lineWidth: 6)
+                Rectangle().fill(.fill.tertiary)
                 Image(systemName: "mappin.circle.fill").cyText(.dataXL).foregroundStyle(.white, Color.red)
                     .symbolRenderingMode(.palette)
             }
@@ -364,7 +336,6 @@ struct E3VideoCard: View {
     var body: some View {
         ZStack {
             CYIMCoverArt(seed: seed, systemImage: "film.fill", symbolSize: 44)
-            LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
             Image(systemName: "play.fill").accessibilityLabel(Text(verbatim: "Play")).font(.title3).foregroundStyle(.white)
                 .frame(width: 52, height: 52).background(.black.opacity(0.45), in: Circle())
                 .overlay(Circle().strokeBorder(.white.opacity(0.5), lineWidth: 1))

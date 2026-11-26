@@ -16,9 +16,9 @@ import SwiftUI
     var openExistingType: ((NativeChannelMessageSnapshot) -> Void)?
     @Environment(\.imRecipientPreview) private var recipientPreview
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             if !isCurrent() { unavailable("message.unavailable") }
-            else if snapshot.status == 1 { unavailable("message.recalled", symbol: "arrow.uturn.backward", tone: .warning) }
+            else if snapshot.status == 1 { unavailable("message.recalled", symbol: "arrow.uturn.backward", tone: .orange) }
             else if snapshot.status != 0 { unavailable("message.unavailable") }
             else {
                 if let quote = snapshot.reply { quoteRow(quote) }
@@ -35,8 +35,7 @@ import SwiftUI
                 case .card:
                     if let day = NativeChannelCheckinReminder.day(in: snapshot) {
                         Label { Text("checkin.day \(day)", tableName: "NativeChannelMessage") } icon: { Image(systemName: "calendar.badge.checkmark").accessibilityHidden(true) }
-                            .cyText(.cardTitle)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                         if let checkinCoordinator {
                             openLink("checkin.open") {
@@ -96,8 +95,8 @@ import SwiftUI
                 }
                 if snapshot.editedAt != nil {
                     Label { Text("message.edited", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pencil").accessibilityHidden(true) }
-                        .cyText(.caption)
-                        .foregroundStyle(CYColor.textTertiary)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -109,12 +108,12 @@ import SwiftUI
     }
 
     private var imageBody: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             // Generated art only. No remote fetch: an image request can disclose the reader.
             Color.clear
                 .aspectRatio(16.0 / 10.0, contentMode: .fit)
                 .overlay { CYCoverArt(seed: snapshot.id.rawValue, symbol: "photo") }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             MessagingMessageContent(message: snapshot.message)
         }
     }
@@ -123,8 +122,8 @@ import SwiftUI
         let raw = snapshot.content ?? copy("message.system")
         let shown = raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : raw
         return Text(verbatim: shown)
-            .cyText(.meta)
-            .foregroundStyle(CYColor.textSecondary)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity, alignment: .center)
             .fixedSize(horizontal: false, vertical: true)
@@ -134,29 +133,28 @@ import SwiftUI
         if let content = snapshot.content {
             let shown = content.trimmingCharacters(in: .whitespacesAndNewlines)
             Text(verbatim: shown.isEmpty ? "—" : shown)
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private func kindLine(_ key: String, symbol: String) -> some View {
         Label { Text(LocalizedStringKey(key), tableName: "NativeChannelMessage") } icon: { Image(systemName: symbol).accessibilityHidden(true) }
-            .cyText(.cardTitle)
-            .foregroundStyle(CYColor.textPrimary)
+            .font(.headline)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "NativeChannelMessage"))
     }
 
-    private func unavailable(_ key: String, symbol: String = "eye.slash", tone: CYStatusTone = .neutral) -> some View {
-        CYStatusChip(verbatim: copy(key), tone: tone, systemImage: symbol)
+    private func unavailable(_ key: String, symbol: String = "eye.slash", tone: Color = .secondary) -> some View {
+        Label(copy(key), systemImage: symbol)
+            .font(.subheadline)
+            .foregroundStyle(tone)
             .accessibilityLabel(Text(verbatim: copy(key)))
     }
 
     private func note(_ key: String) -> some View {
         Text(LocalizedStringKey(key), tableName: "NativeChannelMessage")
-            .cyText(.meta)
-            .foregroundStyle(CYColor.textSecondary)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -164,14 +162,14 @@ import SwiftUI
         let shown = quote.summary ?? placeholder(quote.state)
         return Button { if isCurrent(), quote.state == "VISIBLE" { locateOriginal(quote.id) } } label: {
             Text(verbatim: shown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : shown)
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.leading, CYSpacing.md)
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                .padding(.leading, 12)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                 .overlay(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 1, style: .continuous)
-                        .fill(CYColor.borderStrong)
+                    Capsule()
+                        .fill(.tertiary)
                         .frame(width: 2)
                         .accessibilityHidden(true)
                 }
@@ -183,7 +181,9 @@ import SwiftUI
     }
 
     private func openButton(_ action: @escaping () -> Void) -> some View {
-        CYPillButton("type.open", style: .secondary, fullWidth: false, tableName: "NativeChannelMessage", action: action)
+        Button(action: action) { Text("type.open", tableName: "NativeChannelMessage") }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
             .accessibilityLabel(Text("type.open", tableName: "NativeChannelMessage"))
     }
 
@@ -191,7 +191,8 @@ import SwiftUI
         NavigationLink(destination: destination) {
             Text(LocalizedStringKey(key), tableName: "NativeChannelMessage")
         }
-        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
+        .buttonStyle(.bordered)
+        .controlSize(.small)
         .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "NativeChannelMessage"))
         .modifier(NativeChannelBubbleIdentifier(identifier: identifier))
     }
@@ -199,7 +200,7 @@ import SwiftUI
     /// Rich cards keep their own layout. The destination stays lazy. Press feedback respects Reduce Motion.
     private func openCard<Label: View, Destination: View>(@ViewBuilder label: () -> Label, @ViewBuilder destination: () -> Destination) -> some View {
         NavigationLink(destination: destination, label: label)
-            .buttonStyle(.cyPressable)
+            .buttonStyle(.plain)
     }
 
     private var icon: String {

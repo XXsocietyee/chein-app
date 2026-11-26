@@ -27,10 +27,8 @@ import SwiftUI
 
     @ViewBuilder
     private func homeReturnCard(_ homeReturn: HomeReturnRestoreCoordinator) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(verbatim: "私人据点返家恢复（W19）")
-                .cyText(.cardTitle)
-                .accessibilityIdentifier("homeReturn.section.title")
+        GroupBox {
+          VStack(alignment: .leading, spacing: 8) {
 
             labeledRow(
                 label: "当前状态",
@@ -80,14 +78,16 @@ import SwiftUI
             }
 
             Text(verbatim: "说明：仅支持手动触发返家核验，不后台采样位置，私人据点位置已脱敏。")
-                .cyText(.bodyCompact)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("homeReturn.section.privacyNote")
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        } label: {
+            Text(verbatim: "私人据点返家恢复（W19）")
+                .accessibilityIdentifier("homeReturn.section.title")
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("homeReturn.section.card")
     }
@@ -113,9 +113,7 @@ import SwiftUI
                 identifier: "homeReturn.section.failureGuidance"
             )
         }
-        .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("homeReturn.section.failureBox")
     }
@@ -225,10 +223,8 @@ import SwiftUI
 
     @ViewBuilder
     private func cityDeltaCard(_ city: CityActionAndDeltaCoordinator?) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(verbatim: "常驻城市经营与增量同步（W20）")
-                .cyText(.cardTitle)
-                .accessibilityIdentifier("cityDelta.section.title")
+        GroupBox {
+          VStack(alignment: .leading, spacing: 8) {
 
             if let city {
                 cityBoardSummary(city)
@@ -239,14 +235,15 @@ import SwiftUI
                 }
             } else {
                 Text(verbatim: "当前未配置常驻城市棋盘实例")
-                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("cityDelta.section.unconfigured")
             }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        } label: {
+            Text(verbatim: "常驻城市经营与增量同步（W20）")
+                .accessibilityIdentifier("cityDelta.section.title")
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cityDelta.section.card")
     }
@@ -309,9 +306,7 @@ import SwiftUI
                     identifier: "cityDelta.section.quoteConsent"
                 )
             }
-            .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("cityDelta.section.quoteBox")
         }
@@ -350,9 +345,7 @@ import SwiftUI
                 identifier: "cityDelta.section.snapshotStatus"
             )
         }
-        .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cityDelta.section.cursorBox")
     }
@@ -361,7 +354,7 @@ import SwiftUI
     private func cityChallengesSummary(_ city: CityActionAndDeltaCoordinator) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(verbatim: "异步挑战状态")
-                .cyText(.bodyMedium)
+                .font(.subheadline.weight(.semibold))
             ForEach(city.challengeStates.keys.sorted(), id: \.self) { challengeId in
                 if let state = city.challengeStates[challengeId] {
                     labeledRow(
@@ -446,13 +439,11 @@ import SwiftUI
     private func labeledRow(label: String, value: String, identifier: String) -> some View {
         LabeledContent {
             Text(verbatim: value)
-                .cyText(.bodyCompact)
                 .multilineTextAlignment(.trailing)
         } label: {
             Text(verbatim: label)
-                .cyText(.bodyCompact)
-                .foregroundStyle(.secondary)
         }
+        .font(.subheadline)
         .accessibilityIdentifier(identifier)
     }
 }

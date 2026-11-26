@@ -106,16 +106,16 @@ import SwiftUI
     }
     var body: some View {
         List {
-            Text("club.profileChoice.applyHint").cyText(.bodyCompact)
+            Text("club.profileChoice.applyHint").font(.footnote).foregroundStyle(.secondary)
             if draft.kind == .type {
                 ForEach(ClubOperationsCatalog.types, id: \.self) { value in
                     Button { guard isCurrent() else { return }; _ = draft.selectType(value); failed = false } label: {
-                        HStack { Text(LocalizedStringKey("club.ops.value." + value)); Spacer(); if draft.type == value { Image(systemName: "checkmark") } }
+                        HStack { Text(LocalizedStringKey("club.ops.value." + value)).foregroundStyle(Color.primary); Spacer(); if draft.type == value { Image(systemName: "checkmark").foregroundStyle(.tint) } }
                     }.accessibilityAddTraits(draft.type == value ? .isSelected : [])
                 }
                 if !draft.type.isEmpty, !ClubOperationsCatalog.types.contains(draft.type) { Text(verbatim: draft.type).fixedSize(horizontal: false, vertical: true) }
             } else {
-                Text("club.ops.directionsHint").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
+                Text("club.ops.directionsHint").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
                     Toggle(isOn: Binding(get: { draft.directions.contains(value) }, set: { enabled in
                         guard isCurrent(), enabled != draft.directions.contains(value) else { return }
@@ -126,7 +126,6 @@ import SwiftUI
             }
             if failed || !draft.isValid { Text("club.profileChoice.unavailable").accessibilityIdentifier("club.profileChoice.failure") }
         }
-        .cyGroupedSurface()
         .navigationTitle(LocalizedStringKey(draft.kind == .type ? "club.profileChoice.type" : "club.profileChoice.directions")).navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: cancel) }

@@ -30,50 +30,51 @@ public struct ClubGapFEReferenceSettlementSection: View {
     public var body: some View {
         Section {
             if items.isEmpty {
-                CYEmptyState(systemImage: "doc.text", verbatimTitle: FEReferenceSettlementCopy.emptyTitle)
+                ContentUnavailableView(FEReferenceSettlementCopy.emptyTitle, systemImage: "doc.text")
             } else {
                 ForEach(items) { item in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Text(verbatim: item.title)
-                                .cyText(.cardTitle)
-                                .foregroundStyle(CYColor.textPrimary)
+                                .font(.headline)
                             Spacer()
-                            CYStatusChip(verbatim: item.statusText, tone: .neutral)
+                            Text(verbatim: item.statusText)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
                         if let counterpart = item.counterpartName, !counterpart.isEmpty {
                             Text(verbatim: counterpart)
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
                         HStack {
                             Text(verbatim: item.amountText)
-                                .cyText(.body)
-                                .foregroundStyle(CYColor.textPrimary)
+                                .monospacedDigit()
                             Spacer()
                             if role == .payer && allowsMoneyWrite && item.canSettle {
                                 Button(FEReferenceSettlementCopy.markSettled) {
                                     voucherNo = ""
                                     settlingIDs = [item.id]
                                 }
-                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.small)
                             }
                             if role == .merchant && item.canDispute {
                                 Button(FEReferenceSettlementCopy.dispute) {
                                     onDispute(item.id)
                                 }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
                             }
                         }
                     }
-                    .padding(.vertical, CYSpacing.xs)
                 }
             }
         } header: {
-            Text(verbatim: FEReferenceSettlementCopy.sectionTitle).cyText(.sectionTitle)
+            Text(verbatim: FEReferenceSettlementCopy.sectionTitle)
         } footer: {
             if !allowsMoneyWrite {
-                Text(verbatim: FEReferenceSettlementCopy.moneyGateNote).cyText(.meta)
+                Text(verbatim: FEReferenceSettlementCopy.moneyGateNote)
             }
         }
         .alert(

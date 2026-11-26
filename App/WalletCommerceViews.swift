@@ -10,10 +10,10 @@ private struct AppSwitcherPrivacyShieldModifier: ViewModifier {
             .overlay {
                 if scenePhase != .active {
                     ZStack {
-                        CYColor.bgPage.ignoresSafeArea()
+                        Rectangle().fill(.background).ignoresSafeArea()
                         Image(systemName: "lock.fill")
                             .font(.largeTitle)
-                            .foregroundStyle(CYColor.textTertiary)
+                            .foregroundStyle(.secondary)
                     }
                     .accessibilityHidden(true)
                 }
@@ -107,12 +107,13 @@ extension WalletScreen where Value == WithdrawalBalance {
     var deniedKey: String? = nil
     var retry: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? (loginKey ?? "wallet.login")
                 : reader.isConfigured && !unavailable ? failedKey
                 : reader.isConfigured ? (deniedKey ?? "wallet.unavailable") : "wallet.unavailable")).accessibilityIdentifier("wallet.issue")
             if reader.isConfigured && reader.scope != nil && !requiresLogin && !unavailable {
-                CYPillButton("wallet.retry", style: .secondary, fullWidth: false, action: retry)
+                Button("wallet.retry", action: retry)
+                    .buttonStyle(.bordered)
             }
         }
     }
@@ -164,7 +165,7 @@ enum WalletPayoutCapability {
             if visibility.income {
                 Section {
                     if earnings.loading {
-                        CYSkeleton().accessibilityIdentifier("wallet.earnings.loading")
+                        ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("wallet.earnings.loading")
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
                         // PC-D-5-3: MP label 账户收益 (the currency symbol is drawn beside the number).
@@ -180,14 +181,13 @@ enum WalletPayoutCapability {
                             loginKey: "wallet.earnings.signInRequired", deniedKey: "wallet.earnings.denied") { Task { await loadEarnings() } }
                     }
                 }.accessibilityIdentifier("wallet.earnings.overview")
-                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
             }
             quickActions
             if !showsZeroBalanceOnly {
                 if visibility.income { monthIncomeSection }
                 if visibility.assets { assetsSection }
             }
-        }.listStyle(.plain).scrollContentBackground(.hidden)
+        }.listStyle(.insetGrouped)
             .cyPageTitle("wallet.title") // PC-D-5-5
             .cyHideTabBar()
             .task(id: reader.scope) {
@@ -199,7 +199,7 @@ enum WalletPayoutCapability {
                 await loadFunds()
                 await loadMonth()
             }
-            .sheet(isPresented: $showsMore) { moreSheet.cySheet() }
+            .sheet(isPresented: $showsMore) { moreSheet }
             .onDisappear { isVisible = false; earnings.clear(); funds.clear(); monthModel.cancel() }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { earnings.clear(); funds.clear() }
@@ -213,18 +213,19 @@ enum WalletPayoutCapability {
             }
             .appSwitcherPrivacyShield()
     }
-    /// Four circular quick actions: the first available one is the single white primary (withdraw), the last opens More.
+    /// Four quick actions (system bordered buttons, symbol over label): the first available one is the single
+    /// prominent action (withdraw), the last opens More.
     @ViewBuilder private var quickActions: some View {
         let items = quickItems
         if !items.isEmpty {
             Section {
-                HStack(alignment: .top, spacing: CYSpacing.md) {
+                HStack(alignment: .top, spacing: 8) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         item.primary(index == 0)
                     }
                     WalletQuickAction(title: appLocalized("wallet.more", locale: locale), icon: "ellipsis", id: "wallet.more.open") { showsMore = true }
                 }.frame(maxWidth: .infinity)
-            }.listRowBackground(Color.clear).listRowSeparator(.hidden)
+            }
         }
     }
     private var quickItems: [WalletQuickAction] {
@@ -267,47 +268,43 @@ enum WalletPayoutCapability {
             if monthModel.pager.hasLoadedPage, monthModel.pager.loadedScope == reader.scope {
                 if monthRows.isEmpty {
                     Text("wallet.monthIncome.empty")
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .frame(maxWidth: .infinity, minHeight: 96)
-                        .orderCardSurface()
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("wallet.month.empty")
                 } else {
                     VStack(spacing: 0) {
                         ForEach(Array(monthRows.prefix(3).enumerated()), id: \.element.id) { index, row in
-                            if index > 0 { Divider().overlay(CYColor.borderSubtle) }
-                            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-                                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            if index > 0 { Divider() }
+                            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
-                                        .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                                        .fixedSize(horizontal: false, vertical: true)
                                     if let day = WalletIncomeDay.make(row.createTime) {
-                                        WalletIncomeDayText(day: day).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                        WalletIncomeDayText(day: day).font(.subheadline).foregroundStyle(.secondary)
                                     }
                                 }
-                                Spacer(minLength: CYSpacing.sm)
+                                Spacer(minLength: 8)
                                 Text(verbatim: format.signed(row, points: false, income: true) + " " + (row.currency.flatMap { WalletCurrencySymbol.symbol($0) } ?? ""))
-                                    .cyText(.numericBody).foregroundStyle(CYColor.textPrimary).privacySensitive()
-                            }.padding(.vertical, CYSpacing.sm)
+                                    .monospacedDigit().privacySensitive()
+                            }.padding(.vertical, 8)
                         }
-                    }.orderCardSurface().accessibilityIdentifier("wallet.month.rows")
+                    }.accessibilityIdentifier("wallet.month.rows")
                 }
             } else if monthModel.pager.isLoading {
-                CYSkeleton().frame(height: 96)
+                ProgressView().frame(maxWidth: .infinity)
             } else {
-                Text(verbatim: WalletIncomeDetailPageModel.unknownMoney).foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity, minHeight: 96).orderCardSurface()
+                Text(verbatim: WalletIncomeDetailPageModel.unknownMoney).foregroundStyle(.secondary).frame(maxWidth: .infinity)
             }
         } header: {
             HStack(alignment: .firstTextBaseline) {
-                Text("wallet.monthIncome.title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text("wallet.monthIncome.title")
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 NavigationLink { incomeDestination } label: {
-                    HStack(spacing: CYSpacing.xxs) {
-                        Text(verbatim: monthTitle + " ") + Text("wallet.all")
-                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).accessibilityHidden(true)
-                    }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                }.buttonStyle(.plain).accessibilityIdentifier("wallet.month.all")
+                    Text(verbatim: monthTitle + " ") + Text("wallet.all")
+                }.buttonStyle(.borderless).accessibilityIdentifier("wallet.month.all")
             }.textCase(nil)
-        }.listRowBackground(Color.clear).listRowSeparator(.hidden)
+        }
     }
     /// 我的资产: icon rows with trailing amounts (— while unknown), all opening the existing assets screen.
     private var assetsSection: some View {
@@ -318,33 +315,32 @@ enum WalletPayoutCapability {
             NavigationLink { WalletAssetsView(reader: reader) } label: {
                 VStack(spacing: 0) {
                     assetRow("creditcard", "wallet.assets.withdrawableLabel", stages.map { assetAmount($0.withdrawable, $0.currency) })
-                    Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
+                    Divider()
                     assetRow("clock.arrow.circlepath", "wallet.pendingSettlement", stages.map { assetAmount($0.pendingSettlement, $0.currency) })
-                    Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
+                    Divider()
                     assetRow("exclamationmark.bubble", "wallet.assets.disputedLabel", stages.map { assetAmount($0.disputed, $0.currency) })
-                }.orderCardSurface(padding: CYSpacing.md)
-            }.buttonStyle(.plain).questifyHidesLinkIndicator().accessibilityIdentifier("wallet.assets.open")
+                }
+            }.accessibilityIdentifier("wallet.assets.open")
             } else {
                 WalletFundsStagesInline(reader: reader, funds: funds) { Task { await loadFunds() } }
             }
         } header: {
-            Text("wallet.assets").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            Text("wallet.assets")
                 .accessibilityAddTraits(.isHeader).textCase(nil)
         }.accessibilityIdentifier("wallet.earnings.stages.home")
-            .listRowBackground(Color.clear).listRowSeparator(.hidden)
     }
     private func assetAmount(_ amount: WalletAmount, _ currency: String?) -> String {
         guard let symbol = WalletCurrencySymbol.symbol(currency) else { return format.amount(amount, currency: currency) }
         return symbol + WalletNumberLocalization.money(amount.text, locale: locale)
     }
     private func assetRow(_ icon: String, _ title: LocalizedStringKey, _ value: String?) -> some View {
-        HStack(spacing: CYSpacing.md) {
-            CYRowIcon(systemImage: icon)
-            Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            Spacer(minLength: CYSpacing.sm)
-            Text(verbatim: value ?? WalletIncomeDetailPageModel.unknownMoney).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
-                .cyWrapText().privacySensitive()
-        }.padding(.vertical, CYSpacing.sm).frame(minHeight: CYSpacing.minTouchTarget)
+        LabeledContent {
+            Text(verbatim: value ?? WalletIncomeDetailPageModel.unknownMoney)
+                .monospacedDigit().privacySensitive()
+        } label: {
+            Label(title, systemImage: icon)
+        }
+        .padding(.vertical, 8)
     }
     /// 更多: the navigation rows that are not quick actions (destinations and gates unchanged).
     private var moreSheet: some View {
@@ -371,18 +367,16 @@ enum WalletPayoutCapability {
                 // FIN-18-1: one 积分明细 contract on every entry, the MP points-history read (`api/points/list`).
                 if visibility.points { walletRow("wallet.points", icon: "star.circle", id: "wallet.points.open") { WalletLedgerView(reader: reader, kind: .assetPoints) } }
                 if visibility.mall { walletRow("wallet.mall", icon: "bag", id: "wallet.mall.open") { WalletProductsView(reader: reader) } }
-            }.listStyle(.plain).scrollContentBackground(.hidden).listRowBackground(Color.clear)
+            }.listStyle(.insetGrouped)
                 .appNavigationTitle(key: "wallet.title").navigationBarTitleDisplayMode(.inline)
-                .cyDomainPageBackground()
         }
-        .cyDomainSheet(detents: [.half, .full])
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
     private func walletRow<D: View>(_ title: LocalizedStringKey, icon: String, id: String, @ViewBuilder destination: () -> D) -> some View {
         NavigationLink { destination() } label: {
-            CYListRow(title, card: true) { CYRowIcon(systemImage: icon) }
+            Label(title, systemImage: icon)
         }
-        .buttonStyle(.plain).questifyHidesLinkIndicator()
-        .listRowBackground(Color.clear).listRowSeparator(.hidden)
         .accessibilityIdentifier(id)
     }
     private func loadMonth() async {
@@ -406,21 +400,20 @@ enum WalletPayoutCapability {
     var body: some View {
         List {
             Section("wallet.fundStages") {
-                if funds.loading { CYSkeleton().accessibilityIdentifier("wallet.assets.loading") }
+                if funds.loading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("wallet.assets.loading") }
                 else if let value = funds.value, funds.loadedScope == reader.scope {
                     if !value.amountsKnown {
                         Text("wallet.amountsUnknown").accessibilityIdentifier("wallet.assets.unknown")
                     } else {
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text(verbatim: appLocalized("wallet.assets.availableBalanceLabel", locale: locale))
-                                .cyText(.caption, weight: .semibold)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                             Text(verbatim: format.amount(value.withdrawable, currency: value.currency))
                                 .cyText(.data2XL, monospacedDigit: true)
-                                .foregroundStyle(CYColor.textPrimary)
                                 .privacySensitive()
                         }
-                        .padding(.vertical, CYSpacing.xs)
+                        .padding(.vertical, 4)
                         .accessibilityIdentifier("wallet.assets.revolutCard")
                         if value.pendingSettlement.value > 0 { LabeledContent("wallet.pendingSettlement", value: format.amount(value.pendingSettlement, currency: value.currency)) }
                         ForEach(Array(value.complaintPeriod.enumerated()), id: \.offset) { _, item in
@@ -539,7 +532,7 @@ extension EnvironmentValues {
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
                     if income || points {
-                        CYEmptyState(systemImage: "tray", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
+                        ContentUnavailableView(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)), systemImage: "tray")
                             .accessibilityIdentifier("wallet.ledger.empty")
                     } else {
                         Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points))).accessibilityIdentifier("wallet.ledger.empty")
@@ -548,8 +541,8 @@ extension EnvironmentValues {
                 if points || kind == .balance {
                     ForEach(WalletPointsMonthGroup.group(shownRows)) { group in
                         Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
-                            .cyText(.caption, weight: .semibold)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("wallet.ledger.monthGroup.\(group.id)")
                         ForEach(group.rows) { row in ledgerRowButton(row) }
@@ -557,15 +550,15 @@ extension EnvironmentValues {
                 } else {
                     ForEach(WalletIncomeDay.group(filtered)) { group in
                         Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
-                            .cyText(.caption, weight: .semibold)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("wallet.ledger.dateGroup.\(group.id)")
                         ForEach(group.rows) { row in ledgerRowButton(row) }
                     }
                 }
                 // FIN-18-8: 已经到底了 only once the list was paged (more than one page of 20), as MP `paged`.
                 if points && filtered.count > Self.pointsPageSize && !hasLocalMore && !model.pager.hasMore && !model.pager.isLoading && !model.pager.failed {
-                    Text("wallet.points.endOfList").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    Text("wallet.points.endOfList").font(.footnote).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("wallet.ledger.endOfList")
                 }
             }
@@ -581,15 +574,15 @@ extension EnvironmentValues {
                                 deniedKey: income ? "wallet.income.denied" : nil) { Task { await model.load(reader, kind: kind) } }
             }
             if model.pager.isLoading {
-                if income { CYSkeleton().accessibilityLabel(Text("wallet.loading")) }
-                else { CYSkeleton() }
+                if income { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("wallet.loading")) }
+                else { ProgressView().frame(maxWidth: .infinity) }
             }
             else if hasLocalMore && model.pager.hasLoadedPage && reader.isConfigured && reader.scope != nil {
-                Button("wallet.loadMore") { shownCount += Self.pointsPageSize }.frame(minHeight: 44)
+                Button("wallet.loadMore") { shownCount += Self.pointsPageSize }
                     .accessibilityIdentifier("wallet.ledger.loadMore")
             }
             else if model.pager.hasLoadedPage && model.pager.hasMore && !model.pager.failed && reader.isConfigured && reader.scope != nil {
-                Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
+                Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }
                     .accessibilityIdentifier("wallet.ledger.loadMore")
                     // R7-PC-D4-4 (MP income-detail.js:39-42 onReachBottom): the next page loads when the end scrolls in;
                     // the button stays as the fallback.
@@ -648,7 +641,8 @@ extension EnvironmentValues {
                     } }
                     .accessibilityIdentifier("wallet.income.detail")
                 }
-                .cyDomainSheet(detents: [.half, .full])
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
     }
     /// Large balance hero (points or money). Unknown stays an em dash, never zero.
@@ -657,41 +651,40 @@ extension EnvironmentValues {
             let first = model.pager.rows.first
             let value = points ? first?.afterPoints : first?.afterBalance
             let unit = points ? format.pointsUnit(for: value) : (first?.currency ?? "")
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(points ? "wallet.pointsBalance" : "wallet.balanceLedger")
-                    .cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
-                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                    .font(.subheadline).foregroundStyle(.secondary)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(verbatim: value.map { points ? WalletNumberLocalization.text($0.text, locale: locale) : WalletNumberLocalization.money($0.text, locale: locale) } ?? "—")
                         .cyText(.data2XL, monospacedDigit: true)
-                        .cyWrapText()
-                        .foregroundStyle(CYColor.textPrimary)
-                    if value != nil { Text(verbatim: unit).cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary) }
+                        .fixedSize(horizontal: false, vertical: true)
+                    if value != nil { Text(verbatim: unit).font(.headline).foregroundStyle(.secondary) }
                 }
                 .accessibilityElement(children: .combine)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(CYSpacing.xl)
-            .background(LinearGradient(colors: [CYColor.bgElevated, CYColor.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
-            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-            .listRowBackground(Color.clear)
+            .padding(.vertical, 4)
             .accessibilityIdentifier("wallet.ledger.hero")
         }
     }
     @ViewBuilder private func ledgerRowButton(_ row: WalletLedgerRow) -> some View {
         if points {
             // FIN-18-4: MP 积分明细 rows are plain records, with no detail sheet.
-            ledgerRow(row).frame(minHeight: 44).accessibilityElement(children: .combine)
+            ledgerRow(row).accessibilityElement(children: .combine)
                 .accessibilityIdentifier("wallet.ledger.row.\(row.id)")
         } else {
         Button {
             incomeDetail = income ? model.pager.incomeDetail(rowID: row.id, reader: reader)
                                   : model.pager.ledgerTransactionDetail(rowID: row.id, reader: reader)
         } label: {
-            HStack { ledgerRow(row); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true) }
-                .contentShape(Rectangle()).frame(minHeight: 44)
+            HStack {
+                ledgerRow(row)
+                Spacer()
+                Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary).accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .foregroundStyle(.primary)
         .accessibilityIdentifier(income ? "wallet.income.detail.open.\(row.id)" : "wallet.ledger.detail.open.\(row.id)")
         }
     }
@@ -703,34 +696,29 @@ extension EnvironmentValues {
         let isIn = direction.rawValue == "income"
         return layout {
             if !stacked {
-                Image(systemName: isIn ? "arrow.down.left" : "arrow.up.right")
-                    .cyText(.bodyCompact, weight: .semibold)
-                    .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
-                    .frame(width: 36, height: 36)
-                    .background(CYColor.bgRaised, in: Circle())
+                Image(systemName: isIn ? "arrow.down.left.circle.fill" : "arrow.up.right.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(isIn ? Color.green : Color.secondary)
                     .accessibilityHidden(true)
             }
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
                         Text(verbatim: badge)
-                            .cyText(.micro, weight: .bold)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .padding(.horizontal, CYSpacing.xxs + 1)
-                            .padding(.vertical, 2)
-                            .background(CYColor.bgElevated, in: Capsule())
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("wallet.income.badge.\(row.id)")
                     }
                     Text(verbatim: row.changeReason ?? (points ? appLocalized("wallet.points.entryFallback", locale: locale) : appLocalized("wallet.entry", locale: locale)))
                 }
-                if income { Text(LocalizedStringKey(row.incomeEventKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                if income { Text(LocalizedStringKey(row.incomeEventKey)).font(.subheadline).foregroundStyle(.secondary) }
+                if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.footnote).foregroundStyle(.secondary) }
                 else if let date = row.createTime {
                     // FIN-18-6: MP rows.js shortTimeText (10月27日 10:30); the month is already the group title.
                     Text(verbatim: points ? WalletPointsShortTime.text(date, isEnglish: locale.language.languageCode?.identifier == "en") : date)
-                        .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
-                if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(.footnote).foregroundStyle(.secondary) }
             }
             Spacer(minLength: 8)
             VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
@@ -739,28 +727,20 @@ extension EnvironmentValues {
                     if points, row.changePoints != nil { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
                     else if !points { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
-                .cyText(.bodyMedium).monospacedDigit()
-                // FIN-18-8: MP `.is-income` uses the brand colour on 积分明细.
-                .foregroundStyle(isIn ? (points ? CYColor.brand : CYColor.successText) : CYColor.textPrimary)
+                .font(.body.weight(.medium)).monospacedDigit()
+                // FIN-18-8: MP `.is-income` uses the brand colour on 积分明细 (the system accent).
+                .foregroundStyle(isIn ? (points ? Color.accentColor : Color.green) : Color.primary)
                 if !points, let balance = row.afterBalance {
-                    Text(verbatim: format.amount(balance, currency: row.currency)).cyText(.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit()
+                    Text(verbatim: format.amount(balance, currency: row.currency)).font(.footnote).foregroundStyle(.secondary).monospacedDigit()
                 }
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue(Text(LocalizedStringKey("wallet.direction." + direction.rawValue)))
         .accessibilityIdentifier("wallet.ledger.\(row.id)")
-        .modifier(WalletIncomeListCard(enabled: income))
     }
 }
 
-/// Income-detail rows sit on the domain card. Points and balance ledgers keep their existing row.
-private struct WalletIncomeListCard: ViewModifier {
-    let enabled: Bool
-    func body(content: Content) -> some View {
-        if enabled { content.cyDomainCard(padding: CYSpacing.md).themeDomain(.player) } else { content }
-    }
-}
 @MainActor struct WalletIncomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     let reader: WalletCommerceReader
@@ -834,7 +814,7 @@ private struct WalletIncomeListCard: ViewModifier {
         return true
     }
     private var incomeBody: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        VStack(alignment: .leading, spacing: 12) {
             if showsRevenueTabs {
                 Picker("wallet.income", selection: $showsAllocations) {
                     Text("wallet.income.tab.income").tag(false)
@@ -859,15 +839,19 @@ private struct WalletIncomeListCard: ViewModifier {
         switch revenue.state {
         case .ready(let rows): G6RevenueAllocationsView(rows: rows)
         case .error:
-            CYEmptyState(systemImage: "exclamationmark.circle", "g6.revenue.unavailable",
-                         actionTitle: "action.retry", actionIdentifier: "g6.revenue.retry",
-                         action: { Task { await revenue.load(g6) } })
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            ContentUnavailableView {
+                Label("g6.revenue.unavailable", systemImage: "exclamationmark.circle")
+            } actions: {
+                Button("action.retry") { Task { await revenue.load(g6) } }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("g6.revenue.retry")
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         default: EmptyView()
         }
     }
     private var incomeLedger: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        VStack(alignment: .leading, spacing: 12) {
             // PC-D-4-3 (MC-41): 收益明细 is drawn once, by the bar; no second in-content title.
             Picker("wallet.income", selection: $filter) {
                 Text("wallet.all").tag(WalletIncomeFilter.all)
@@ -875,7 +859,11 @@ private struct WalletIncomeListCard: ViewModifier {
                 Text("wallet.brandIncome").tag(WalletIncomeFilter.brand)
             }.pickerStyle(.segmented).padding()
             if financeAccess == nil, showsCooperationFinance {
-                CYPillButton("wallet.clubFinance", style: .secondary, action: onCooperationFinance).frame(minHeight: 44).padding(.horizontal)
+                Button(action: onCooperationFinance) {
+                    Text("wallet.clubFinance").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered).controlSize(.large)
+                .padding(.horizontal)
             }
             WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)
         }
@@ -903,14 +891,14 @@ private struct WalletIncomeListCard: ViewModifier {
             Picker("wallet.sort", selection: $sort) {
                 ForEach(0..<5) { value in Text(LocalizedStringKey("wallet.sort." + String(value))).tag(value) }
             }.onChange(of: sort) { _, _ in scheduleLoad() }
-            if model.loading { CYSkeleton() }
+            if model.loading { ProgressView().frame(maxWidth: .infinity) }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { Text("wallet.empty") }
                 ForEach(page.rows) { item in
                     NavigationLink { WalletProductView(reader: reader, productID: item.id) } label: {
                         VStack(alignment: .leading) {
                             Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale))
-                            Text(format.points(item.price))
+                            Text(format.points(item.price)).font(.subheadline).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine)
                     }
                 }
@@ -977,9 +965,9 @@ private struct WalletIncomeListCard: ViewModifier {
     @StateObject private var model = WalletScreen<WalletProduct>()
     var body: some View {
         List {
-            if model.loading { CYSkeleton() }
+            if model.loading { ProgressView().frame(maxWidth: .infinity) }
             else if let item = model.value, model.loadedScope == reader.scope {
-                Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale)).cyText(.sheetTitle)
+                Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale)).font(.title3.bold())
                 LabeledContent("wallet.price", value: format.points(item.price))
                 LabeledContent("wallet.stock", value: format.count(item.stock))
                 ForEach(item.skuList ?? []) { sku in
@@ -1008,9 +996,9 @@ private struct WalletIncomeListCard: ViewModifier {
     @State private var selected = Set<Int>()
     var body: some View {
         List {
-            if model.loading { CYSkeleton() }
+            if model.loading { ProgressView().frame(maxWidth: .infinity) }
             else if let page = model.value, model.loadedScope == reader.scope {
-                if page.rows.isEmpty { Text("wallet.empty") }
+                if page.rows.isEmpty { ContentUnavailableView("wallet.empty", systemImage: "cart") }
                 ForEach(page.rows) { item in
                     Toggle(isOn: Binding(get: { selected.contains(item.id) }, set: { yes in
                         if yes { selected.insert(item.id) } else { selected.remove(item.id) }
@@ -1043,7 +1031,7 @@ private struct WalletIncomeListCard: ViewModifier {
     @StateObject private var model = WalletScreen<WalletCheckoutPreview>()
     var body: some View {
         List {
-            if model.loading { CYSkeleton() }
+            if model.loading { ProgressView().frame(maxWidth: .infinity) }
             else if let preview = model.value, model.loadedScope == reader.scope {
                 LabeledContent("wallet.productAmount", value: format.points(preview.productAmount))
                 LabeledContent("wallet.deliveryFee", value: format.points(preview.deliveryFee))
@@ -1074,22 +1062,22 @@ private struct WalletIncomeListCard: ViewModifier {
     @State private var showContact = false
     var body: some View {
         List {
-            Text("bank.withdrawal.historyNotice")
-            if model.loading { CYSkeleton() }
+            Label("bank.withdrawal.historyNotice", systemImage: "info.circle")
+            if model.loading { ProgressView().frame(maxWidth: .infinity) }
             else if let page = model.value, model.loadedScope == reader.scope {
-                if page.rows.isEmpty { Text("wallet.withdrawals.emptyTitle").accessibilityIdentifier("wallet.withdrawals.empty") }
+                if page.rows.isEmpty { ContentUnavailableView("wallet.withdrawals.emptyTitle", systemImage: "tray").accessibilityIdentifier("wallet.withdrawals.empty") }
                 ForEach(page.rows) { item in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("wallet.withdrawal.rowTitle").cyText(.cardTitle)
-                        Text(format.amount(item.amount, currency: item.currency))
-                        Text(LocalizedStringKey(item.statusKey))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("wallet.withdrawal.rowTitle").font(.headline)
+                        Text(format.amount(item.amount, currency: item.currency)).monospacedDigit()
+                        Text(LocalizedStringKey(item.statusKey)).font(.subheadline).foregroundStyle(.secondary)
                         if let received = item.receivedAmount {
                             LabeledContent { Text(verbatim: format.amount(received, currency: item.currency)) } label: {
                                 Text("member.wallet.received", tableName: "MemberProfile")
                             }
                         }
-                        if let date = item.createTime { Text(verbatim: date) }
-                        if let account = item.maskedAccount { Text(verbatim: account) }
+                        if let date = item.createTime { Text(verbatim: date).font(.footnote).foregroundStyle(.secondary) }
+                        if let account = item.maskedAccount { Text(verbatim: account).font(.footnote).foregroundStyle(.secondary) }
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.withdrawal.\(item.id)")
                 }
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
@@ -1104,7 +1092,11 @@ private struct WalletIncomeListCard: ViewModifier {
             .onDisappear { model.cancel() }.refreshable { await load() }
             // Uses the inherited, independently reviewed support reader. History access
             // does not supply a contact or authorize support configuration/copying.
-            .sheet(isPresented: $showContact) { WithdrawalSupportContactView().cySheet() }
+            .sheet(isPresented: $showContact) {
+                WithdrawalSupportContactView()
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
             .appSwitcherPrivacyShield()
             .cyDomainScreen(.player)
     }
@@ -1118,7 +1110,7 @@ private struct WalletIncomeListCard: ViewModifier {
     @StateObject private var model = WalletScreen<[WalletPointsTask]>()
     var body: some View {
         List {
-            if model.loading { CYSkeleton().accessibilityIdentifier("wallet.tasks.loading") }
+            if model.loading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("wallet.tasks.loading") }
             else if let rows = model.value, model.loadedScope == reader.scope {
                 // OWN-D-01.a: earn rules, then eventType 14 as 「积分消耗」 (`mp:subpackageMember/components/cy/profile/index.wxml:658-686`).
                 let rules = WalletPointsRules(rows)
@@ -1180,8 +1172,8 @@ enum WalletLoadAnnouncement {
     }
 }
 
-/// Circular quick action: SF Symbol on a disc with a short label underneath.
-/// The primary action is the white disc (one per screen); the rest are dark discs.
+/// Quick action: a system bordered button with the SF Symbol over a short label (the Contacts action-button pattern).
+/// The primary action is `.borderedProminent` (one per screen); the rest are `.bordered`.
 private struct WalletQuickAction: View {
     let title: LocalizedStringKey
     let icon: String
@@ -1197,21 +1189,22 @@ private struct WalletQuickAction: View {
     }
     func primary(_ on: Bool) -> Self { var copy = self; copy.isPrimary = on; return copy }
     private var label: some View {
-        VStack(spacing: CYSpacing.xs) {
-            Image(systemName: icon).font(.title3.weight(.semibold))
-                .foregroundStyle(isPrimary ? CYColor.textOnAccent : CYColor.textPrimary)
-                .frame(width: 56, height: 56)
-                .background(isPrimary ? CYColor.actionPrimaryBg : CYColor.bgElevated, in: Circle()).accessibilityHidden(true)
-            Text(title).cyText(.caption).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
+        VStack(spacing: 4) {
+            Image(systemName: icon).font(.title3).accessibilityHidden(true)
+            Text(title).font(.caption)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }.frame(maxWidth: .infinity)
+    }
+    @ViewBuilder private var control: some View {
+        if let destination { NavigationLink { destination() } label: { label }.questifyHidesLinkIndicator() }
+        else { Button { action?() } label: { label } }
     }
     var body: some View {
         Group {
-            if let destination { NavigationLink { destination() } label: { label }.questifyHidesLinkIndicator() }
-            else { Button { action?() } label: { label } }
+            if isPrimary { control.buttonStyle(.borderedProminent) }
+            else { control.buttonStyle(.bordered) }
         }
-        .buttonStyle(.plain)
         .accessibilityIdentifier(id)
     }
 }
@@ -1237,20 +1230,20 @@ private struct WalletEarningsHero: View {
     let number: String
     let symbol: String?
     var body: some View {
-        VStack(spacing: CYSpacing.sm) {
-            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
+        VStack(spacing: 4) {
+            Text(label).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 if let symbol {
-                    Text(symbol).cyText(.dataXL)
+                    Text(symbol).font(.title.bold())
                 } else {
-                    Text("—").cyText(.meta).foregroundStyle(CYColor.textSecondary).padding(.trailing, CYSpacing.xs)
+                    Text("—").font(.subheadline).foregroundStyle(.secondary).padding(.trailing, 4)
                         .accessibilityLabel(Text(verbatim: ""))
                 }
                 Text(number).cyText(.data2XL, monospacedDigit: true)
             }
-            .foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
+            .multilineTextAlignment(.center)
         }
-        .padding(.vertical, CYSpacing.lg)
+        .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }

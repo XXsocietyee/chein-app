@@ -35,15 +35,18 @@ import SwiftUI
                     ForEach(offeredActions, id: \.self) { action in
                         Button { onOpenAction(action) } label: {
                             HStack {
-                                Text(LocalizedStringKey("club.topic.genericOps.action." + action)).cyText(.body)
+                                Text(LocalizedStringKey("club.topic.genericOps.action." + action))
                                 Spacer(minLength: 0)
-                                Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.tertiary).accessibilityHidden(true)
                             }
+                            .contentShape(Rectangle())
                         }
+                        .foregroundStyle(.primary)
                         .accessibilityIdentifier("club.topic.genericOps.\(action)")
                     }
                 } header: {
-                    Text("club.topic.genericOps.title").cyText(.sectionTitle)
+                    Text("club.topic.genericOps.title")
                 }
             }
         }
@@ -61,8 +64,8 @@ import SwiftUI
         let mode = run["authorityMode"].text.flatMap { ["ONLINE", "MANUAL"].contains($0) ? $0 : nil } ?? "unknown"
         return (Text(LocalizedStringKey("club.topic.genericOps.status." + status)) + Text(verbatim: " · ")
             + Text(LocalizedStringKey("club.topic.genericOps.authority." + mode)))
-            .cyText(.meta)
-            .foregroundStyle(CYColor.textSecondary)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
     }
 
     private func teamsLine(_ teams: [PlayWireValue]) -> some View {
@@ -74,8 +77,8 @@ import SwiftUI
         return parts.enumerated().reduce(Text(verbatim: "")) { partial, item in
             item.offset == 0 ? item.element : partial + Text(verbatim: " · ") + item.element
         }
-        .cyText(.meta)
-        .foregroundStyle(CYColor.textSecondary)
+        .font(.footnote)
+        .foregroundStyle(.secondary)
     }
 }
 
@@ -99,22 +102,22 @@ import SwiftUI
             if let status, status.known {
                 Section {
                     if status.available {
-                        Text("club.topic.planFallback.available").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("club.topic.planFallback.available").font(.footnote).foregroundStyle(.secondary)
                         Button("club.topic.planFallback.fill") { draftError = nil; editing = true }
                             .disabled(busy)
                             .accessibilityIdentifier("club.topic.planFallback.fill")
                     } else if !status.reason.isEmpty {
-                        Text(verbatim: status.reason).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text(verbatim: status.reason).font(.footnote).foregroundStyle(.secondary)
                     }
-                    if let failure { Text(failure).cyText(.meta).foregroundStyle(CYColor.dangerText) }
+                    if let failure { Text(failure).font(.footnote).foregroundStyle(.red) }
                 } header: {
-                    Text("club.topic.planFallback.title").cyText(.sectionTitle)
+                    Text("club.topic.planFallback.title")
                 }
             }
             if let result {
                 Section {
-                    Text(verbatim: result.title).cyText(.body)
-                    Text("club.topic.planFallback.reason \(result.reason)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: result.title)
+                    Text("club.topic.planFallback.reason \(result.reason)").font(.footnote).foregroundStyle(.secondary)
                 }
             }
         }
@@ -126,9 +129,9 @@ import SwiftUI
                         TextField("club.topic.planFallback.placeholder", text: $draft, axis: .vertical)
                             .lineLimit(3...8)
                             .accessibilityIdentifier("club.topic.planFallback.reasonField")
-                        Text(verbatim: "\(draft.count)/500").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                     } footer: {
-                        if let draftError { Text(draftError).foregroundStyle(CYColor.dangerText) }
+                        if let draftError { Text(draftError).foregroundStyle(.red) }
+                        else { Text(verbatim: "\(draft.count)/500").monospacedDigit() }
                     }
                 }
                 .navigationTitle(Text("club.topic.planFallback.title"))

@@ -1,8 +1,7 @@
 import SwiftUI
 
 /// S04 presentation only. All state, identity, journal and navigation ownership stays with callers.
-/// A screen that shows its title in `CYHeroHeader` calls `cyHeroScreen()` itself. This modifier does not
-/// clear a title, so callers that still use the bar keep it.
+/// Screens give their title to the navigation bar; this modifier never clears it. List/Form draw their own grouped background.
 private struct NativeChannelScreenPresentation: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -10,7 +9,6 @@ private struct NativeChannelScreenPresentation: ViewModifier {
         content
             .cyText(.body)
             .environment(\.defaultMinListRowHeight, CYSpacing.minTouchTarget)
-            .cyGroupedSurface()
             .navigationBarTitleDisplayMode(.inline)
             .transaction { transaction in
                 // Kit press springs stay inside the components. Anything else degrades to a cross-fade.
@@ -21,34 +19,29 @@ private struct NativeChannelScreenPresentation: ViewModifier {
     }
 }
 
-/// The style itself supplies the primary colours and button font for the root's theme.
-/// One primary pill per screen; Reduce Motion is handled by `CYPillButtonStyle`.
+/// System prominent button. One primary per screen.
 private struct NativeChannelPrimaryAction: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false))
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(minHeight: CYSpacing.minTouchTarget)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
     }
 }
 
+/// Inline state text as a plain row label: secondary SF Symbol beside the text, no card.
 private struct NativeChannelInlineNotice: ViewModifier {
     let systemImage: String
-    @Environment(\.cyPalette) private var palette
 
     func body(content: Content) -> some View {
-        HStack(alignment: .top, spacing: CYSpacing.sm) {
-            Image(systemName: systemImage)
-                .foregroundStyle(palette.textSecondary)
-                .accessibilityHidden(true)
+        Label {
             content
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
         }
-        .cyText(.body)
-        .foregroundStyle(palette.textPrimary)
-        .padding(CYSpacing.pageHorizontal)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
@@ -66,11 +59,6 @@ struct NativeChannelSectionTitle: View {
 
     var body: some View {
         Text(LocalizedStringKey(key), tableName: tableName)
-            .cyText(.sectionTitle)
-            .foregroundStyle(CYColor.textPrimary)
-            .textCase(nil)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityAddTraits(.isHeader)
     }
 }

@@ -5,22 +5,18 @@ import SwiftUI
     @StateObject private var actions = NativeChannelProgressActionLifetime()
     var body: some View {
         List {
-            Section {
-                CYHeroHeader("d7.channelProgress.historyTitle", tableName: "NativeChannelProgress")
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-            }
             if !model.isCurrent {
-                CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.closed"), tone: .warning, systemImage: "lock")
+                Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.closed"))
+                    .nativeChannelNotice(systemImage: "lock")
                     .accessibilityLabel(Text("d7.channelProgress.closed", tableName: "NativeChannelProgress"))
             }
             if model.busy { NativeChannelProgressHistoryLoading() }
             Section {
-                if let best = model.best { NativeChannelProgressMeCard(row: best).listRowBackground(Color.clear) }
+                if let best = model.best { NativeChannelProgressMeCard(row: best) }
                 else if !model.busy && model.issue("best") == nil {
                     Text(verbatim: "—")
-                        .cyText(.dataXL)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityLabel(Text(verbatim: "—"))
                 }
@@ -29,15 +25,21 @@ import SwiftUI
             Section {
                 if let page = model.recent.page {
                     if !page.visible {
-                        CYEmptyState(systemImage: "eye.slash", "d7.channelProgress.hidden", tableName: "NativeChannelProgress")
+                        ContentUnavailableView {
+                            Label { Text("d7.channelProgress.hidden", tableName: "NativeChannelProgress") } icon: { Image(systemName: "eye.slash") }
+                        }
                     } else {
                         if model.recent.rows.isEmpty {
-                            CYEmptyState(systemImage: "clock", "d7.channelProgress.emptyHistory", tableName: "NativeChannelProgress")
+                            ContentUnavailableView {
+                                Label { Text("d7.channelProgress.emptyHistory", tableName: "NativeChannelProgress") } icon: { Image(systemName: "clock") }
+                            }
                         }
                         ForEach(Array(model.recent.rows.enumerated()), id: \.offset) { _, row in NativeChannelProgressRowView(row: row) }
                         if page.nextCursor != nil {
-                            CYPillButton("more", tableName: "NativeChannelProgress") {
+                            Button {
                                 actions.run { await model.loadMore(history: true) }
+                            } label: {
+                                Text("more", tableName: "NativeChannelProgress")
                             }
                             .disabled(model.busy)
                             .accessibilityLabel(Text("more", tableName: "NativeChannelProgress"))
@@ -47,11 +49,8 @@ import SwiftUI
                 NativeChannelProgressIssueView(model: model, part: "recent")
             } header: { NativeChannelSectionTitle(key: "d7.channelProgress.recent") }
         }
-        .listStyle(.insetGrouped)
-        .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
-        .listSectionSpacing(CYSpacing.xxl)
         .nativeChannelScreen()
-        .cyHeroScreen()
+        .navigationTitle(Text("d7.channelProgress.historyTitle", tableName: "NativeChannelProgress"))
         .privacySensitive()
         .onAppear { actions.activate() }
         .onDisappear { actions.retire() }
@@ -64,9 +63,9 @@ import SwiftUI
 
 private struct NativeChannelProgressHistoryLoading: View {
     var body: some View {
-        CYSkeleton()
+        ProgressView()
+            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("cy.state.loading"))
-            .listRowBackground(Color.clear)
     }
 }

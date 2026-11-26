@@ -28,63 +28,52 @@ import SwiftUI
     private var key: Key { .init(identity: identity, authorization: access.authorizationGeneration, reader: ObjectIdentifier(access), scope: scope) }
     private var accessScope: ClubGovernanceScope { .init(clubID: scope.clubID, activityID: scope.activityID) }
     private var eventScope: ClubGovernanceScope { .init(clubID: scope.clubID, topicID: scope.topicID, activityID: scope.activityID) }
-    private var phaseToken: String {
-        if loading { return "loading" }
-        if failure == .forbidden || (loadedKey == key && model?.permitted == false) { return "denied" }
-        if failure != nil { return "failure" }
-        if loadedKey == key, model != nil { return "ready" }
-        return "idle"
-    }
+    private var isDenied: Bool { failure == .forbidden || (loadedKey == key && model?.permitted == false) }
     var body: some View {
         List {
             // CLB-event-ops-04 (parity r2): a utility page; inline bar title, no hero or decorative art.
-            if loading {
-                CYSkeleton()
-                    .accessibilityIdentifier("clubOpsEvent.loading")
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .e1HeroRow()
-            } else if failure == .forbidden || (loadedKey == key && model?.permitted == false) {
-                denied
-            } else if let failure {
-                VStack(spacing: CYSpacing.md) {
-                    Text(verbatim: ClubOpsNetworkFailureClassifier.eventOpsHubTitle(failure))
-                        .cyText(.cardTitle)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity)
-                        .accessibilityIdentifier("clubOpsEvent.error")
-                    CYPillButton("action.retry", style: .primary) { Task { await load() } }
-                        .accessibilityIdentifier("clubOpsEvent.retry")
-                }
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            } else if loadedKey == key, let model {
+            if !loading, !isDenied, failure == nil, loadedKey == key, let model {
                 ForEach(model.sections, id: \.self) { section in self.section(section, model: model) }
             }
         }
-        .cyGroupedSurface()
+        .overlay {
+            if loading {
+                ProgressView()
+                    .accessibilityIdentifier("clubOpsEvent.loading")
+            } else if isDenied {
+                denied
+            } else if let failed = failure {
+                ContentUnavailableView {
+                    Label {
+                        Text(verbatim: ClubOpsNetworkFailureClassifier.eventOpsHubTitle(failed))
+                            .accessibilityIdentifier("clubOpsEvent.error")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                } actions: {
+                    Button("action.retry") { Task { await load() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("clubOpsEvent.retry")
+                }
+            }
+        }
         .navigationTitle(Text("clubOpsEvent.title", tableName: "ClubOpsEvent"))
         .navigationBarTitleDisplayMode(.inline)
-        .cyAnimation(value: phaseToken)
         .accessibilityIdentifier("clubOpsEvent.root")
         .task(id: key) { await load() }
         .refreshable { await load() }
-        // CLB-event-ops-04 / X8: inherit the workspace's domain (MP event-ops is merchant-light), not a forced dark page.
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
     }
     private var denied: some View {
-        VStack(spacing: CYSpacing.sm) {
-            CYEmptyState(systemImage: "lock", "clubOpsEvent.denied.title", tableName: "ClubOpsEvent", kind: .generic)
+        ContentUnavailableView {
+            Label {
+                Text("clubOpsEvent.denied.title", tableName: "ClubOpsEvent")
+            } icon: {
+                Image(systemName: "lock")
+            }
+        } description: {
             Text("clubOpsEvent.denied.body", tableName: "ClubOpsEvent")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityIdentifier("clubOpsEvent.denied")
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
     }
     @ViewBuilder private func section(_ section: ClubOpsEventSection, model: ClubOpsEventAccess) -> some View {
         switch section {
@@ -97,8 +86,8 @@ import SwiftUI
                     } icon: {
                         Image(systemName: "eye.slash").accessibilityHidden(true)
                     }
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("clubOpsEvent.roster.hidden")
                 }
                 if let occurrenceStatus, ClubOpsEventCancellation.state(occurrenceStatus, activityID: scope.activityID) != nil {
@@ -106,7 +95,7 @@ import SwiftUI
                 }
                 push(.occurrenceStatus, eventScope) {
                     // CLB-event-ops-07: the consequence lives in the confirm only (MP 1121), not on the row.
-                    CYListRow("club.gov.action.cancelOccurrence", trailing: .none) { CYRowIcon(systemImage: "calendar.badge.minus") }
+                    Label("club.gov.action.cancelOccurrence", systemImage: "calendar.badge.minus")
                 }
             } header: { ClubOpsTableHeading("clubOpsEvent.section.occurrence") }
             // CLB-G15 (MP event-ops wxml:39-43): 主持小费 · 暂不可开通 under 本场管理 (collection channel not enabled, so no
@@ -116,9 +105,11 @@ import SwiftUI
             Section {
                 push(.roster, eventScope) {
                     // CLB-event-ops-02 (MP wxml:72): 本场名册 · N 人 once the roster read is in (registered + arrived + noShow).
-                    CYListRow(verbatim: rosterTotal.map { String(localized: LocalizedStringResource("clubOpsEvent.roster.title \($0)", table: "ClubOpsEvent", locale: locale)) }
-                              ?? String(localized: LocalizedStringResource("clubOpsEvent.section.roster", table: "ClubOpsEvent", locale: locale)), trailing: .none) {
-                        CYRowIcon(systemImage: "person.crop.rectangle.stack")
+                    Label {
+                        Text(verbatim: rosterTotal.map { String(localized: LocalizedStringResource("clubOpsEvent.roster.title \($0)", table: "ClubOpsEvent", locale: locale)) }
+                             ?? String(localized: LocalizedStringResource("clubOpsEvent.section.roster", table: "ClubOpsEvent", locale: locale)))
+                    } icon: {
+                        Image(systemName: "person.crop.rectangle.stack")
                     }
                 }
             }
@@ -132,19 +123,26 @@ import SwiftUI
             // Mini-program 日期清单 card: title row + its one-line rule 「仅可修改无报名的未来场次」.
             Section {
                 push(.series, .init(clubID: scope.clubID)) {
-                    CYListRow(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.section.series", table: "ClubOpsEvent", locale: locale)), trailing: .none) {
-                        CYRowIcon(systemImage: "calendar")
+                    Label {
+                        Text("clubOpsEvent.section.series", tableName: "ClubOpsEvent")
+                    } icon: {
+                        Image(systemName: "calendar")
                     }
                 }
             } footer: { ClubOpsTableNote("clubOpsEvent.series.note") }
         case .recurrence:
             Section {
                 push(.eventTopics, .init(clubID: scope.clubID, topicID: scope.topicID)) {
-                    CYListRow(
-                        verbatim: String(localized: LocalizedStringResource("clubOpsEvent.recurrence.add", table: "ClubOpsEvent", locale: locale)),
-                        meta: String(localized: LocalizedStringResource("clubOpsEvent.recurrence.addHint", table: "ClubOpsEvent", locale: locale)),
-                        trailing: .none
-                    ) { CYRowIcon(systemImage: "plus.circle") }
+                    Label {
+                        VStack(alignment: .leading) {
+                            Text("clubOpsEvent.recurrence.add", tableName: "ClubOpsEvent")
+                            Text("clubOpsEvent.recurrence.addHint", tableName: "ClubOpsEvent")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "plus.circle")
+                    }
                 }
             } header: { ClubOpsTableHeading("clubOpsEvent.section.recurrence") } footer: { ClubOpsTableNote("clubOpsEvent.recurrence.note") }
         case .capacity:
@@ -207,27 +205,27 @@ import SwiftUI
 
 /// Mini series row: "{topic} · {单次/每周/自定义日期}" plus collision-only suffix and waitlist meta.
 @MainActor struct ClubOpsEventSeriesRowView: View {
-    @Environment(\.locale) private var locale
     let row: ClubOpsEventSeriesRow
     var body: some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
-            CYRowIcon(systemImage: "calendar")
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
                 title
-                    .cyText(.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let enabled = row.waitlistEnabled {
                     if enabled {
-                        CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.series.waitlistOn", table: "ClubOpsEvent", locale: locale)), tone: .success, systemImage: "person.2")
+                        Label { Text("clubOpsEvent.series.waitlistOn", tableName: "ClubOpsEvent") } icon: { Image(systemName: "person.2") }
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     } else {
-                        CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.series.waitlistOff", table: "ClubOpsEvent", locale: locale)), tone: .neutral, systemImage: "person.2.slash")
+                        Label { Text("clubOpsEvent.series.waitlistOff", tableName: "ClubOpsEvent") } icon: { Image(systemName: "person.2.slash") }
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        } icon: {
+            Image(systemName: "calendar")
         }
-        .frame(minHeight: CYSpacing.minTouchTarget)
         .accessibilityIdentifier("clubOpsEvent.series.row.\(row.id)")
     }
     private var title: Text {
@@ -256,36 +254,37 @@ import SwiftUI
             ClubOpsTableNote("clubOpsEvent.series.note")
                 .task(id: namesKey) { if let namesKey, let loadNames { await loadNames(namesKey) } }
             if empty {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYEmptyState(systemImage: "calendar", "clubOpsEvent.series.empty", tableName: "ClubOpsEvent")
+                ContentUnavailableView {
+                    Label {
+                        Text("clubOpsEvent.series.empty", tableName: "ClubOpsEvent")
+                    } icon: {
+                        Image(systemName: "calendar")
+                    }
+                } description: {
                     Text("clubOpsEvent.series.emptyHint", tableName: "ClubOpsEvent")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity)
                 }
                 .accessibilityIdentifier("clubOpsEvent.series.empty")
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
             }
         }
     }
 }
 
 struct ClubOpsEventOccurrenceBadgeText: View {
-    @Environment(\.locale) private var locale
     let badge: ClubOpsEventOccurrenceBadge
     var body: some View {
         switch badge {
         case .cancelled:
-            ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: CYColor.dangerText)
+            ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: .red)
         case .editable:
-            CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.occurrences.editable", table: "ClubOpsEvent", locale: locale)), tone: .success, systemImage: "pencil.circle")
+            Label { Text("clubOpsEvent.occurrences.editable", tableName: "ClubOpsEvent") } icon: { Image(systemName: "pencil.circle") }
+                .font(.subheadline)
+                .foregroundStyle(.green)
         case .lockReason(let reason):
-            ClubOpsEventStatusLine(verbatim: reason, symbol: "lock", tone: CYColor.warningText)
+            ClubOpsEventStatusLine(verbatim: reason, symbol: "lock", tone: .orange)
         case .locked:
-            CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.occurrences.locked", table: "ClubOpsEvent", locale: locale)), tone: .neutral, systemImage: "lock")
+            Label { Text("clubOpsEvent.occurrences.locked", tableName: "ClubOpsEvent") } icon: { Image(systemName: "lock") }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
     }
 }
@@ -294,8 +293,8 @@ struct ClubOpsEventOccurrenceMetaText: View {
     let meta: ClubOpsEventOccurrenceMeta
     var body: some View {
         metaText
-            .cyText(.meta)
-            .foregroundStyle(CYColor.textSecondary)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
             .monospacedDigit()
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -319,25 +318,23 @@ struct ClubOpsEventOccurrenceMetaText: View {
     var body: some View {
         switch ClubOpsEventCancellation.state(value, activityID: activityID) {
         case .cancelled(let reason)?:
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: CYColor.dangerText)
+            VStack(alignment: .leading, spacing: 4) {
+                ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: .red)
                 if let reason {
                     Text("clubOpsEvent.cancel.reason \(reason)", tableName: "ClubOpsEvent")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }.accessibilityIdentifier("clubOpsEvent.cancel.cancelled")
         case .active?:
             Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent")
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOpsEvent.cancel.active")
         case nil:
             Text("clubOpsEvent.cancel.incomplete", tableName: "ClubOpsEvent")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOpsEvent.cancel.unknownState")
         }
@@ -352,24 +349,24 @@ struct ClubOpsEventOccurrenceMetaText: View {
     var body: some View {
         if !confirmed {
             Text("clubOpsEvent.cancel.incomplete", tableName: "ClubOpsEvent")
-                .cyText(.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
+                .font(.headline)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOpsEvent.cancel.incomplete")
-            CYPillButton("clubOpsEvent.cancel.reread", style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsEvent", action: reread)
+            Button(action: reread) {
+                Label { Text("clubOpsEvent.cancel.reread", tableName: "ClubOpsEvent") } icon: { Image(systemName: "arrow.clockwise") }
+            }
                 .accessibilityIdentifier("clubOpsEvent.cancel.reread")
-                .e1ActionRow()
         }
         ClubOpsEventStatusLine(
             key: "clubOpsEvent.refund." + ClubOpsEventCancellation.refund(receipt).rawValue,
             symbol: "arrow.uturn.backward.circle",
-            tone: CYColor.textPrimary
+            tone: .primary
         )
         .accessibilityIdentifier("clubOpsEvent.cancel.refund")
         ClubOpsEventStatusLine(
             key: "clubOpsEvent.notify." + ClubOpsEventCancellation.notifications(receipt).rawValue,
             symbol: "bell",
-            tone: CYColor.textPrimary
+            tone: .primary
         )
         .accessibilityIdentifier("clubOpsEvent.cancel.notify")
     }
@@ -410,8 +407,7 @@ struct ClubOpsEventSeriesConflictNotice: View {
             } icon: {
                 Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
             }
-            .cyText(.body)
-            .foregroundStyle(CYColor.warningText)
+            .foregroundStyle(.orange)
             .accessibilityIdentifier("clubOpsEvent.series.conflict")
         }
     }
@@ -422,8 +418,6 @@ private struct ClubOpsTableHeading: View {
     init(_ key: String) { self.key = key }
     var body: some View {
         Text(LocalizedStringKey(key), tableName: "ClubOpsEvent")
-            .cyText(.sectionTitle)
-            .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
@@ -435,8 +429,6 @@ private struct ClubOpsTableNote: View {
     init(_ key: String) { self.key = key }
     var body: some View {
         Text(LocalizedStringKey(key), tableName: "ClubOpsEvent")
-            .cyText(.meta)
-            .foregroundStyle(CYColor.textSecondary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -464,7 +456,6 @@ private struct ClubOpsEventStatusLine: View {
         } icon: {
             Image(systemName: symbol).accessibilityHidden(true)
         }
-        .cyText(.body)
         .foregroundStyle(tone)
         .accessibilityElement(children: .combine)
     }

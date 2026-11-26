@@ -200,12 +200,16 @@ private struct WorkshopOwnedValueRow: View {
     let value: String
     @Environment(\.locale) private var locale
     var body: some View {
-        LabeledContent {
-            Text(verbatim: value)
-                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
-        } label: {
+        // Vertical, full-width fact: long verbatim values wrap instead of being squeezed beside the label.
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
             Text(verbatim: workshopLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: value)
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
         .accessibilityElement(children: .combine)
     }
 }

@@ -333,6 +333,7 @@ struct ClubPostImageSectionView: View {
                     } label: {
                         Label("club.community.replaceImage", systemImage: "arrow.triangle.2.circlepath")
                     }
+                    .buttonStyle(.borderless).labelStyle(.iconOnly)
                     .disabled(bridge.isBusy || uploading)
                     .frame(minWidth: 44, minHeight: 44)
                     .accessibilityIdentifier("club.community.replaceImage.\(index)")
@@ -342,8 +343,16 @@ struct ClubPostImageSectionView: View {
                 } label: {
                     Label("club.community.removeImage", systemImage: "xmark.circle")
                 }
+                .buttonStyle(.borderless).labelStyle(.iconOnly)
                 .frame(minWidth: 44, minHeight: 44)
                 .accessibilityIdentifier("club.community.removeImage.\(index)")
+            }
+            .swipeActions {
+                Button(role: .destructive) {
+                    images = bridge.removeUploadedReference(at: index)
+                } label: {
+                    Label("club.community.removeImage", systemImage: "trash")
+                }
             }
         }
 
@@ -367,7 +376,7 @@ struct ClubPostImageSectionView: View {
                 }
                 #endif
                 Text("\(candidate.width)×\(candidate.height)")
-                    .cyText(.meta)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
                 Spacer()
                 if bridge.canSelectImage {
@@ -379,6 +388,7 @@ struct ClubPostImageSectionView: View {
                     } label: {
                         Label("club.community.replaceImage", systemImage: "arrow.triangle.2.circlepath")
                     }
+                    .buttonStyle(.borderless).labelStyle(.iconOnly)
                     .disabled(bridge.isBusy || uploading)
                     .frame(minWidth: 44, minHeight: 44)
                     .accessibilityIdentifier("club.community.replaceLocalImage.\(candidate.id.uuidString)")
@@ -388,8 +398,16 @@ struct ClubPostImageSectionView: View {
                 } label: {
                     Label("club.community.removeImage", systemImage: "xmark.circle")
                 }
+                .buttonStyle(.borderless).labelStyle(.iconOnly)
                 .frame(minWidth: 44, minHeight: 44)
                 .accessibilityIdentifier("club.community.removeLocalImage.\(candidate.id.uuidString)")
+            }
+            .swipeActions {
+                Button(role: .destructive) {
+                    bridge.removeLocalCandidate(id: candidate.id)
+                } label: {
+                    Label("club.community.removeImage", systemImage: "trash")
+                }
             }
         }
 

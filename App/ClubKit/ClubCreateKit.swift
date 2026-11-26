@@ -1,73 +1,74 @@
 import SwiftUI
 
 // MC-01 / MC-10 · wizard kit for the real 创建俱乐部 flow (类型 → 方向 → 资料 → 城市) that lives in
-// ClubOperationsProfileForm. Option cards with a check badge, direction chips, 城市 as a picker row.
+// ClubOperationsProfileForm. Native rows: a checkmark list for single choice, bordered capsules for chips,
+// 城市 as a value row that opens a searchable list.
 
-/// Wizard/Option Card: icon, title, one line; selected = 1.5 pt border + check badge.
+/// Single-choice row (Settings checkmark list): optional icon, title, one line; selected = trailing checkmark.
 struct ClubR1OptionCard: View {
     let title: Text
     var subtitle: String?
     var systemImage: String?
     let isSelected: Bool
     let action: () -> Void
-    @Environment(\.cyPalette) private var palette
-    @QuestifyReduceMotion private var reduceMotion
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: CYSpacing.md) {
+            HStack {
                 if let systemImage {
-                    Image(systemName: systemImage)
-                        .cyText(.cardTitle)
-                        .foregroundStyle(palette.textPrimary)
-                        .frame(width: 40, height: 40)
-                        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgRaised))
+                    Label {
+                        titleStack
+                    } icon: {
+                        Image(systemName: systemImage)
+                    }
+                } else {
+                    titleStack
+                }
+                Spacer(minLength: 8)
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.tint)
                         .accessibilityHidden(true)
                 }
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    title
-                        .cyText(.bodyMedium)
-                        .foregroundStyle(palette.textPrimary)
-                    if let subtitle, !subtitle.isEmpty {
-                        Text(verbatim: subtitle)
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textTertiary)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .cyText(.cardTitle)
-                    .foregroundStyle(isSelected ? palette.textPrimary : palette.textTertiary)
-                    .scaleEffect(isSelected || reduceMotion ? 1 : 0.85)
-                    .accessibilityHidden(true)
             }
-            .padding(CYSpacing.md)
-            .frame(minHeight: 64)
-            .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
-            .overlay {
-                RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
-                    .strokeBorder(isSelected ? palette.textPrimary : palette.borderSubtle, lineWidth: isSelected ? 1.5 : 1)
-            }
-            .contentShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-            .animation(reduceMotion ? nil : .spring(response: 0.22, dampingFraction: 0.7), value: isSelected)
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var titleStack: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            title
+                .foregroundStyle(.primary)
+            if let subtitle, !subtitle.isEmpty {
+                Text(verbatim: subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 
-/// Selectable capsule chip: 36 visual, 44 target. Selected = filled ink, unselected = surface.
+/// Selectable capsule chip: system bordered capsule; selected = prominent.
 struct ClubR1Chip: View {
     let title: Text
     var icon: Image? = nil
     let isSelected: Bool
     let action: () -> Void
-    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .body) private var iconSide: CGFloat = 16
 
     var body: some View {
+        if isSelected {
+            button.buttonStyle(.borderedProminent)
+        } else {
+            button.buttonStyle(.bordered)
+        }
+    }
+
+    private var button: some View {
         Button(action: action) {
-            HStack(spacing: CYSpacing.xs) {
+            HStack(spacing: 4) {
                 // Round 2 MP asset: the MP chip shows the tag-library icon before the label (create wxml:82).
                 if let icon {
                     icon.resizable().renderingMode(.template).scaledToFit()
@@ -75,15 +76,8 @@ struct ClubR1Chip: View {
                 }
                 title
             }
-                .cyText(.bodyMedium)
-                .foregroundStyle(isSelected ? palette.actionPrimaryFg : palette.textPrimary)
-                .padding(.horizontal, CYSpacing.lg)
-                .frame(minHeight: 36)
-                .background(Capsule(style: .continuous).fill(isSelected ? palette.actionPrimaryBg : palette.bgElevated))
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonBorderShape(.capsule)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
@@ -128,15 +122,14 @@ struct ClubR1WrapLayout: Layout {
 /// Inline error under a field (never a disabled primary).
 struct ClubR1FieldError: View {
     let text: String
-    @Environment(\.cyPalette) private var palette
     var body: some View {
         Label {
             Text(verbatim: text)
         } icon: {
             Image(systemName: "exclamationmark.circle.fill")
         }
-        .cyText(.meta)
-        .foregroundStyle(palette.danger)
+        .font(.footnote)
+        .foregroundStyle(.red)
         .accessibilityElement(children: .combine)
     }
 }
@@ -166,26 +159,22 @@ struct ClubCreateCityRow: View {
     var hasError: Bool
     @State private var showsPicker = false
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         Button { showsPicker = true } label: {
-            HStack(spacing: CYSpacing.sm) {
+            HStack {
                 Text(verbatim: clubR1("create.city.label", locale))
-                    .foregroundStyle(palette.textPrimary)
-                Spacer(minLength: CYSpacing.sm)
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 8)
                 Text(verbatim: city.isEmpty ? clubR1("create.city.placeholder", locale) : city)
-                    .foregroundStyle(city.isEmpty ? (hasError ? palette.danger : palette.textPlaceholder) : palette.textSecondary)
+                    .foregroundStyle(city.isEmpty ? (hasError ? AnyShapeStyle(Color.red) : AnyShapeStyle(.tertiary)) : AnyShapeStyle(.secondary))
                 Image(systemName: "chevron.right")
-                    .cyText(.label, weight: .semibold)
-                    .foregroundStyle(palette.textTertiary)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
             }
-            .cyText(.body)
-            .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
         .accessibilityHint(Text(verbatim: clubR1("create.city.hint", locale)))
         .sheet(isPresented: $showsPicker) { Group {
             ClubCreateCityPicker(current: currentCity, selection: city.isEmpty ? nil : city) { picked in
@@ -196,7 +185,7 @@ struct ClubCreateCityRow: View {
     }
 }
 
-/// 选择城市 sheet: search, 当前定位, 热门城市. Commits on tap (pick-one), no 确定.
+/// 选择城市 sheet: searchable list with 当前定位 and 热门城市. Commits on tap (pick-one), no 确定.
 struct ClubCreateCityPicker: View {
     let current: String?
     let selection: String?
@@ -204,39 +193,35 @@ struct ClubCreateCityPicker: View {
     @State private var query = ""
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         let lists = ClubCreateCityCatalog.filtered(current: current, query: query)
-        // Shared resizable sheet (fit → large); it owns the header, the scroll view and the detents.
-        CYResizableSheet(kind: .pickerLong, title: Text(verbatim: clubR1("create.city.sheetTitle", locale))) {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            HStack(spacing: CYSpacing.sm) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(palette.textTertiary)
-                    .accessibilityHidden(true)
-                TextField(text: $query, prompt: Text(verbatim: clubR1("create.city.search", locale))) {
-                    Text(verbatim: clubR1("create.city.search", locale))
+        NavigationStack {
+            List {
+                if let here = lists.current {
+                    Section {
+                        row(here)
+                    } header: {
+                        Text(verbatim: clubR1("create.city.current", locale))
+                    }
                 }
-                .cyText(.body)
+                if !lists.others.isEmpty {
+                    Section {
+                        ForEach(lists.others, id: \.self) { name in row(name) }
+                    } header: {
+                        Text(verbatim: clubR1("create.city.hot", locale))
+                    }
+                }
             }
-            .padding(.horizontal, CYSpacing.md)
-            .frame(minHeight: 36)
-            .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgSurfaceSubtle))
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    if let here = lists.current {
-                        ClubR1Group(header: clubR1("create.city.current", locale)) { row(here) }
-                    }
-                    if !lists.others.isEmpty {
-                        ClubR1Group(header: clubR1("create.city.hot", locale)) {
-                            ForEach(lists.others, id: \.self) { name in
-                                row(name)
-                                if name != lists.others.last { Divider().padding(.leading, CYSpacing.lg) }
-                            }
-                        }
-                    }
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always),
+                        prompt: Text(verbatim: clubR1("create.city.search", locale)))
+            .navigationTitle(Text(verbatim: clubR1("create.city.sheetTitle", locale)))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.cancel") { dismiss() }
                 }
-        }
+            }
         }
     }
 
@@ -245,9 +230,19 @@ struct ClubCreateCityPicker: View {
             onPick(name)
             dismiss()
         } label: {
-            ClubR1Row(title: name) { ClubR1AccessoryView(accessory: name == selection ? .check : .none) }
+            HStack {
+                Text(verbatim: name)
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 8)
+                if name == selection {
+                    Image(systemName: "checkmark")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.tint)
+                        .accessibilityHidden(true)
+                }
+            }
+            .contentShape(Rectangle())
         }
-        .buttonStyle(CYListRowButtonStyle())
         .accessibilityAddTraits(name == selection ? .isSelected : [])
     }
 }
