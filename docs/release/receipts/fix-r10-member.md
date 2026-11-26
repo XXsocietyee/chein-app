@@ -62,3 +62,31 @@ Base note: the audit read `82bcf2c2d`. Between that commit and this base, `fix/r
 - **MONEY-GOV-1:** the fix-r10 brief says money is ON in Release (owner, 11-26), which answers the audit's go-live blocker.
 - **Not a queue row (MKT-5-3, platform-pass order cancel / confirm / refund-apply):** this stays TEST-only. A platform pass is digital content, which falls under virtual goods, and virtual goods stay off. While payment is on, `PassOrderRefusedWrites` shows the gated note and 已拒绝 on tap; it does not send. A product decision is needed if the owner wants these sent.
 - No merchant-only rows in this slice.
+
+## Round 2 (2026-11-26): member §4 done; B-topic P2 rows
+
+Round 2 re-checked member.md §4 on the new base (`origin/ui/combined-r7` @ `05caead53`, merged first). Every row is still closed as listed above, so the lane moved on to the P2 rows of `player-content-groups/B-topic.md` §4. `fix-r10-content-a.md` covers only P0 and P1, so all 19 P2 rows were open to this lane. Several had already landed on the base through `fix/r9-player-content`. Nothing was compiled.
+
+| id | status | SHA | app file:line | note |
+|---|---|---|---|---|
+| R7-PC-B2-5 | partly (on base) | (r9 enum copy) | `App/MerchantContentViews.swift` `MerchantContentEnumCopy` | The MP enum words for termsMode and registration status are already in. The host recruit stats (nodeFilled / nodeTotal / pendingCount) are still separate `LabeledContent` rows. The MP source is not in this container, so the designed layout was not copied. |
+| R7-PC-B1-13 | fixed on base (picker) | 4cc1461c6 | `App/TopicDetailView.swift:25,390`; `App/TopicSessionSelectionView.swift` `preferredTicketName` | The tapped ticket is preselected in the picker, which is what the row asks for. The activity page hand-off still takes only an activity id. |
+| R8-PC-B6-1 | fixed | 084adf846 | `App/NativeEntryLandingView.swift:60-67`; deleted `App/PublicCatalogViews.swift`, `Tests/AppUnitTests/PublicCatalogViewsTests.swift` | MP `catalog/index.js:1-10` is a redirect stub. `/catalog?id=` now opens the topic page and `/catalog` goes home. `ContentLandingScreen` moved to `App/ContentLandingScreen.swift`. `PublicCatalogHostWiring` and `installPublicCatalogHost` were removed. The Core `PublicCatalogHost` / link parser stay, because Core tests pin them. |
+| R9-PC-BN-3 | fixed on base | e6e9e8f5e | `App/ContextualReviewComposer.swift:29` | `@ScaledMetric` star size |
+| R9-PC-BN-4 | fixed on base | a1824d03d | `App/TopicDetailView.swift:~505` | The card is a real `Button`. |
+| R10-PC-B-N1 | fixed on base | — | `App/TopicDetailView.swift` | 0 `CYOptionSheet` / `CYModal` / `CYField` / `CYPrimaryButtonStyle` |
+| R10-PC-B-N2 | fixed | 152978ee4 | `App/TopicDetailView.swift:275-278, 857-866` | With no image storage, the hero is the plain header row, not `CYDesignedCover`. The refused state is a `ContentUnavailableView` with an `actions:` `.bordered` 返回. The beta badge was already tinted `Text`. `test_topic_session_selection.py` was updated. |
+| R10-PC-B-N3 | fixed | 152978ee4 (+ base) | same | The last `CYPillButton` (refused 返回) is gone. `scrollContentBackground(.hidden)` / `bgPage` were already gone. |
+| R10-PC-B-N4 | fixed on base | — | `App/TopicXcxSections.swift:27-62` | The tabs are a segmented `Picker`. The pinned copy on `.bar` keeps the MP sticky tabs. |
+| R10-PC-B-N5 | fixed | a64d9f6bf (+ base) | `App/TopicXcxSections.swift:222-252` | The lineup is one list row per member, as a `NavigationLink` when it opens (it was a horizontal card strip). Chips and the stat bar were already plain. `CYAvatarView` is a plain image. |
+| R10-PC-B-N6 | fixed | 120e4cfe7 | `App/TopicXcxSections.swift:319-385, 391-412` | The bar is a `Divider` plus content on `.background(.bar)` inside the host's `.safeAreaInset(edge: .bottom)`, with no `CYFooterBar`. `TopicBarHeroSource` / `TopicBarHeroDestination` are pass-throughs (no `cyHeroSource` morph or corner clip). `TopicBarRecede` was already a pass-through. The chrome contract test was updated. |
+| R10-PC-B-N7 | fixed | 120e4cfe7 (+ base) | `App/TopicXcxSections.swift:~625` | The stop image uses `.clipped()`, with no corner clip. The night-palette chip and the drawn circle were already gone; the number is an SF Symbol. |
+| R10-PC-B-N8 | partly | 7e630d97f | `App/MPGap/PlayerContent/TopicRouteMapAndTeamsSection.swift:58-80` | Pins are `Marker(monogram:)`, tinted green when done, selected through `Map(selection:)` and then `onSelectPin`. The map has no clip. **Open:** the team and merchant blocks still sit inside one `VStack` row. Splitting them into list rows means changing the host section in `TopicXcxSections.swift:559`. |
+| R10-PC-B-N9 | blocked (device pass) | — | `App/MerchantContentViews.swift:107` | See the note below. |
+| R10-PC-B-N10 | blocked (device pass) | — | `App/MerchantContentViews.swift:285-305, 514-531` | `CYEmptyState` → `ContentUnavailableView` is already on base. The row style stays until N9 lands; without a `List` the links would become bare text. |
+| R10-PC-B-N11 | fixed on base | b1e2db839 | `App/MerchantContentViews.swift:215, 609` | `.confirmationDialog`; `.borderedProminent` |
+| R10-PC-B-N12 | fixed on base | 81e15fa3d | `App/MPGap/PlayerContent/PlayerContentRound4Views.swift:118-130` | |
+| R10-PC-B-N13 | fixed on base | — | `App/PublisherLifecycleViews.swift:56-66, 99, 165` | `ContentUnavailableView`, `.bordered` / `.borderedProminent` |
+| R10-PC-B-N14 | fixed on base | — | `App/PublisherLifecycleViews.swift:399-405` | `ProgressView`, `.bordered`, no fixed `minHeight` |
+
+**N9/N10 note:** I tried this and reverted it. Turning `MerchantContentDocumentView` into a `List` makes each record (`MerchantContentRows`) and the project block (`MerchantContentProjectView`) one row that holds several `NavigationLink`s and `Button`s. In a SwiftUI `List`, one tap on such a row fires every link in it. Doing this safely means splitting each action into its own row. That needs a simulator check, and there is none in the cloud.
