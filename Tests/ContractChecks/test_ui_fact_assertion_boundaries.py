@@ -19,7 +19,8 @@ class UIFactAssertionBoundaryChecks(unittest.TestCase):
  def test_saved_message_is_revealed_then_checked_exactly_not_replaced_by_generic_status(self):
   s=(ROOT/'Tests/AppUITests/TemplateAuthoringFlowTests.swift').read_text()
   body=s.split('func testLocalSaveHasExplicitDeviceOnlyResult()',1)[1].split('    func test',1)[0]
-  self.assertIn('tap("templateAuthor.saveLocal", in: app)',body)
+  # r10 C-T5: 保存到此设备 is in the ⋯ menu (MP temp/index.wxml:1492-1494).
+  self.assertIn('tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app)',body)
   self.assertIn('matching(identifier: "templateAuthor.status")',body)
   self.assertIn('revealFixtureElement(status, in: app, maximumSwipes: 50, requiresHittable: false)',body)
   self.assertIn('XCTAssertEqual(query.count, 1)',body)

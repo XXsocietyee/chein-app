@@ -119,7 +119,7 @@ import XCTest
         XCTAssertTrue(app.navigationBars["Story timeline"].waitForExistence(timeout: 5))
     }
     private func saveAndRestore(_ app: XCUIApplication) {
-        tap("templateAuthor.saveLocal", in: app)
+        tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app)
         let status = app.staticTexts["templateAuthor.status"]
         reveal(status, in: app, hittable: false); XCTAssertEqual(status.label, localSaved)
         tap("templateAuthor.fixture.reopen", in: app)

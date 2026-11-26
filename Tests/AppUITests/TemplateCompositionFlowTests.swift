@@ -54,7 +54,7 @@ import XCTest
     func testLocalSaveReopenRetainsIndependentToggleChange() {
         let app = launch(); tap("creatorComposition.open", app); tap("templateAuthor.game.coin", app)
         disableCoin(app); back(app); back(app)
-        tap("templateAuthor.saveLocal", app); tap("templateAuthor.fixture.reopen", app); tap("templateAuthor.restore", app)
+        tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app); tap("templateAuthor.fixture.reopen", app); tap("templateAuthor.restore", app)
         tap("creatorComposition.open", app); tap("templateAuthor.game.coin", app)
         XCTAssertEqual(app.switches["creatorComposition.enabled.coin"].value as? String, "0"); back(app)
         tap("templateAuthor.game.dice", app); XCTAssertEqual(app.switches["creatorComposition.enabled.dice"].value as? String, "1")

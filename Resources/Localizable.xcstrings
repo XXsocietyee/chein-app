@@ -324599,6 +324599,23 @@
           }
         }
       }
+    },
+    "fixr10.ap.moreActions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More actions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多操作"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

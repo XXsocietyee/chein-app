@@ -189,7 +189,7 @@ import XCTest
         XCTAssertFalse(app.staticTexts["templateAuthor.preference.preview"].exists)
         XCTAssertFalse(app.staticTexts["templateAuthor.preference.field.$.dimensions[0]"].exists)
         assertSource(current, in: app, towardTop: true)
-        tap("templateAuthor.saveLocal", in: app)
+        tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app)
         let saved = app.staticTexts["templateAuthor.status"]
         reveal(saved, in: app, requiresHittable: false)
         XCTAssertEqual(saved.label, "Saved securely on this device for this account.")
