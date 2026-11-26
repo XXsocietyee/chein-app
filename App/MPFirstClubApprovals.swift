@@ -94,7 +94,10 @@ enum MPFirstClubWriteRoute {
         "api/club/event-ops/attendance/correct", "api/club/topic-setting/save",
         "api/club/event-notification/preview", "api/club/event-notification/status",
         "api/club/crm/customers/detail", "api/club/event-ops/topics", "api/club/event-ops/series/detail",
-        "api/club/event-ops/roster", "api/club/topic-setting/detail", "api/club/access/me", "api/club/members"
+        "api/club/event-ops/roster", "api/club/topic-setting/detail", "api/club/access/me", "api/club/members",
+        // CLB-r10-join-requests-01 (MP pages/club/join-requests/index.js:170): ClubManagementService's list read and
+        // 通过 / 拒绝 (ClubJoinRequestsPageReady.routes). No other firewall branch admitted them in Release China.
+        "api/club/join-requests", "api/club/join-request/approve", "api/club/join-request/reject"
     ]
     /// CLB-r10-badges-01: badge reads, create and grant (all `POST` JSON, ClubBadgeManagementRoute).
     static let badgePaths: Set<String> = ClubBadgeManagementRoute.paths
@@ -129,11 +132,15 @@ enum MPFirstClubWriteRoute {
               moneyKeys.isDisjoint(with: object.keys) else { return false }
         // Badge paths (incl. the api/club/detail + api/club/members review reads) only on the badge route's exact bodies.
         if badgePaths.contains(relative) { return ClubBadgeManagementRoute(request: request, baseURL: baseURL) != nil }
-        if let shape = readShapes[relative] { return shape.admits(object) }
+        if let shape = readShapes[relative] {
+            if let reason = object["reviewReason"], !(reason is String) { return false }
+            return shape.admits(object)
+        }
         return true
     }
 
-    /// Exact bodies for the review reads on this firewall (ClubGovernanceRead.fields): every `ids` key is a
+    /// Exact bodies for the review reads (ClubGovernanceRead.fields) and the join-request review writes
+    /// (ClubManagementService.perform) on this firewall: every `ids` key is a
     /// positive integer, `optional` keys may be added, and no other key passes.
     struct ReadShape {
         let ids: Set<String>
@@ -159,7 +166,10 @@ enum MPFirstClubWriteRoute {
         "api/club/event-ops/topics": .init(ids: ["clubId"]),
         "api/club/event-ops/series/detail": .init(ids: ["clubId", "seriesId"]),
         "api/club/event-ops/roster": .init(ids: ["clubId", "activityId"]),
-        "api/club/topic-setting/detail": .init(ids: ["clubId", "topicId"])
+        "api/club/topic-setting/detail": .init(ids: ["clubId", "topicId"]),
+        "api/club/join-requests": .init(ids: ["clubId"]),
+        "api/club/join-request/approve": .init(ids: ["clubId", "memberId"]),
+        "api/club/join-request/reject": .init(ids: ["clubId", "memberId"], optional: ["reviewReason"])
     ]
     static func positive(_ value: Any?) -> Bool {
         guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return false }

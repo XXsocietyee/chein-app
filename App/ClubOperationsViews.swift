@@ -543,7 +543,8 @@ struct ClubOperationsWorkspaceView: View {
             case .rejected(let failure):
                 if target == .create {
                     // CLB-r8-create-01 (fix-r8-club): MP create wxml:134-135 创建没有完成 + the reason + 重试. A taken
-                    // name already sends the wizard back to the name step, so it carries no retry here.
+                    // name carries no retry here: its fix is 去改名称, which the user taps to go back to the name step
+                    // (CLB-r10-create-01; no auto-jump, see the createNameTaken onChange).
                     Text("clubR8b.create.failed").font(.headline).foregroundStyle(.red)
                         .accessibilityIdentifier("club.ops.create.failed")
                     Text(verbatim: failure.message ?? appLocalized("clubR8b.create.failedHint", locale: locale))
@@ -796,7 +797,8 @@ struct ClubOperationsWorkspaceView: View {
         if case .outcomeUnknown = state { return true }
         return false
     }
-    /// Create rejection that names a taken club name. The wizard returns to the name step; the lock stays if the result is unknown.
+    /// Create rejection that names a taken club name. The name field shows the message and 去改名称 takes the user back to
+    /// the name step on tap (no auto-jump); the lock stays if the result is unknown.
     private var createNameTakenMessage: String? {
         guard target == .create, case .rejected(let failure) = state, ClubNameCheck.isTakenMessage(failure.message) else { return nil }
         return failure.message

@@ -42,6 +42,20 @@ import XCTest
         }
     }
 
+    /// CLB-r10-join-requests-01: the join-request list read and 通过 / 拒绝 pass on ClubManagementService's exact bodies.
+    func testAdmitsJoinRequestReviewOnItsExactBody() {
+        for (path, body) in [("api/club/join-requests", #"{"clubId":3}"#), ("api/club/join-request/approve", #"{"clubId":3,"memberId":8}"#),
+                             ("api/club/join-request/reject", #"{"clubId":3,"memberId":8}"#),
+                             ("api/club/join-request/reject", #"{"clubId":3,"memberId":8,"reviewReason":"名额已满"}"#)] {
+            XCTAssertTrue(MPFirstClubWriteRoute.accepts(json(path, body: body), baseURL: base, token: token), "\(path) \(body)")
+        }
+        for (path, body) in [("api/club/join-request/approve", #"{"clubId":3,"memberId":8,"reviewReason":"x"}"#),
+                             ("api/club/join-request/approve", #"{"clubId":3}"#), ("api/club/join-request/reject", #"{"clubId":3,"memberId":8,"reviewReason":1}"#),
+                             ("api/club/join-request/approve", #"{"clubId":3,"memberId":8,"amount":1}"#), ("api/club/join-requests", #"{"clubId":3,"page":1}"#)] {
+            XCTAssertFalse(MPFirstClubWriteRoute.accepts(json(path, body: body), baseURL: base, token: token), "\(path) \(body)")
+        }
+    }
+
     func testAdmitsMultipartChapterWritesAndTopicReadOnly() throws {
         for path in ["api/topic/chapter/recruit", "api/topic/chapter/finish", "api/topic/info-to-user"] {
             let form = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: ["chapterId": "12", "scope": ""], token: token)
