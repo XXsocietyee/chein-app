@@ -134,7 +134,8 @@ import SwiftUI
                             .accessibilityIdentifier("club.topic.planFallback.reasonField")
                     } footer: {
                         if let draftError { Text(draftError).foregroundStyle(.red) }
-                        else { Text(verbatim: "\(draft.count)/500").monospacedDigit() }
+                        // CLB-r10-nat-topic-detail-07: the length rule, not an n/500 counter (MP topic-detail director 收尾原因 1–500 字).
+                        else { Text("club.topic.planFallback.reasonRequired") }
                     }
                 }
                 .navigationTitle(Text("club.topic.planFallback.title"))
