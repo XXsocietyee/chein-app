@@ -99,7 +99,10 @@ class ChapterAtmosphereContracts(unittest.TestCase):
             self.assertEqual(set(entry['localizations']), {'en', 'zh-Hans'})
             for value in entry['localizations'].values():
                 self.assertTrue(value['stringUnit']['value'].strip())
-        for token in ['checkmark.circle.fill', '.isSelected', '.accessibilityValue(', '.fixedSize(horizontal: false, vertical: true)']:
+        # native r2: the swatch card's checkmark.circle.fill/circle pair became a trailing system checkmark shown
+        # only on the selected row, so selection is still marked by a symbol, not colour alone.
+        self.assertIn('if selected == preset {\n                            Image(systemName: "checkmark")', host)
+        for token in ['.isSelected', '.accessibilityValue(', '.fixedSize(horizontal: false, vertical: true)']:
             self.assertIn(token, host)
 
     def test_source_swatches_have_readable_foreground_contrast(self):

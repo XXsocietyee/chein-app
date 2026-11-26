@@ -136,7 +136,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                             Text(verbatim: issue.message)
                         }
                     }
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                 }
             }
             if account != nil && draftStore != nil {
@@ -533,7 +533,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             if !message.isEmpty {
                 Section {
                     Text(LocalizedStringKey(message))
-                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? Color.red : Color.secondary)
+                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? CYColor.dangerText : Color.secondary)
                         .accessibilityIdentifier("publishModes.message")
                 }
             }
@@ -610,7 +610,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     @ViewBuilder private func fieldError(_ field: String) -> some View {
         if wizardBlock == field {
             Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: field))
-                .font(.footnote).foregroundStyle(.red)
+                .font(.footnote).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("publishModes.activity.wizard.validation")
         }
     }
@@ -1074,7 +1074,7 @@ struct ActivityPublishingTimeRangeDraft {
                         .accessibilityIdentifier("publishModes.activity.timeRange.date")
                 } footer: {
                     if failure || (editingEnd && draft.end <= draft.start) {
-                        Text("publishModes.timeRange.invalid").foregroundStyle(.red)
+                        Text("publishModes.timeRange.invalid").foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("publishModes.activity.timeRange.invalid")
                     }
                 }
@@ -1176,7 +1176,7 @@ struct ActivityPublishingTimeRangeDraft {
         NavigationStack {
             List {
                 if busy { ProgressView().frame(maxWidth: .infinity) }
-                if failed || provider == nil { Text("publishModes.mapUnavailable").foregroundStyle(.red) }
+                if failed || provider == nil { Text("publishModes.mapUnavailable").foregroundStyle(CYColor.dangerText) }
                 if let selected {
                     Map(initialPosition: .region(.init(center: .init(latitude: selected.latitude, longitude: selected.longitude), span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))) {
                         Marker(selected.name, coordinate: .init(latitude: selected.latitude, longitude: selected.longitude))

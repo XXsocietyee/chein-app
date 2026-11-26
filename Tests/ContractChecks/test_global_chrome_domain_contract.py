@@ -171,12 +171,16 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             "App/InvoiceLaunchApplyView.swift",
             "App/InvoiceLaunchTitleEditor.swift",
             "App/ProfileEditView.swift",
-            "App/ProjectEditView.swift",
             "App/MerchantCityNodeCreateView.swift",
             "App/SquareDetailView.swift",
             "App/QuestifyMotionComponents.swift",
         ):
             self.assertIn("CYFooterBar", read_swift(rel), f"{rel} must use CYFooterBar for its pinned footer action bar.")
+        # native r2: the project editor's pinned action bar is now the system bottom toolbar (same actions/ids).
+        editor = read_swift("App/ProjectEditView.swift")
+        bar = editor[editor.index("ToolbarItemGroup(placement: .bottomBar)"):]
+        for ident in ("projectEdit.saveLocal", "projectEdit.saveCloudDraft", "projectEdit.submitServerDraft", "projectEdit.review"):
+            self.assertIn(f'.accessibilityIdentifier("{ident}")', bar)
 
     def test_sheets_use_player_sheet_glass_and_no_cynight_chrome(self):
         # Native restyle (native-ios-r1 §3.4): sheets use the system corners and background in the role

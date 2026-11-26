@@ -463,7 +463,7 @@ import SwiftUI
                             Button("contextPublish.mode.choose") { modeReview.open() }
                                 .disabled(!model.fullEdit || model.coordinator.session == nil || model.draft.owner == .merchant).accessibilityIdentifier("contextPublish.mode.open")
                         }
-                        if modeCopyFailed { Text("contextPublish.mode.failed").foregroundStyle(.red) }
+                        if modeCopyFailed { Text("contextPublish.mode.failed").foregroundStyle(CYColor.dangerText) }
                     }
                 }
                 if model.hasRestore {
@@ -546,10 +546,10 @@ import SwiftUI
                         ForEach(issueRows) { row in
                             if let capture = row.capture {
                                 Button { focusedField = nil; issueNavigation.open(capture) } label: {
-                                    Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(.red)
+                                    Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText)
                                 }.accessibilityIdentifier("projectEdit.issue." + row.issue.id)
                             } else {
-                                Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(.red)
+                                Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText)
                                     .accessibilityIdentifier("projectEdit.issue." + row.issue.id)
                             }
                         }
@@ -973,7 +973,7 @@ import SwiftUI
                 if blocked {
                     Image(systemName: "exclamationmark.circle.fill")
                         .font(.footnote)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityLabel(OpsR3Text.text("editor.chapter.blocked"))
                 }
                 Spacer(minLength: CYSpacing.xs)
@@ -1010,10 +1010,10 @@ import SwiftUI
     }
     @ViewBuilder private func chapterStatus(hasStory: Bool, missingPlaces: Int, gameplayCount: Int, nodeCount: Int) -> some View {
         Label(LocalizedStringKey(hasStory ? "projectEdit.chip.storyDone" : "projectEdit.chip.storyMissing"), systemImage: hasStory ? "checkmark" : "text.badge.plus")
-            .foregroundStyle(hasStory ? Color.green : Color.orange)
+            .foregroundStyle(hasStory ? CYColor.successText : CYColor.warningText)
         if missingPlaces > 0 {
             Label("projectEdit.chip.placesMissing \(missingPlaces)", systemImage: "mappin.slash")
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
         }
         if nodeCount > 0 {
             Label("projectEdit.chip.gameplay \(gameplayCount) \(nodeCount)", systemImage: "gamecontroller")
@@ -1163,7 +1163,7 @@ struct ProjectEditReferenceField: View {
                     // Invalid text clears selection; review must not silently send old IDs.
                     selection = invalid ? [] : ids
                 }
-            if invalid { Text("projectEdit.validation.categories").font(.footnote).foregroundStyle(.red) }
+            if invalid { Text("projectEdit.validation.categories").font(.footnote).foregroundStyle(CYColor.dangerText) }
             if let categoryModel { ProjectCategoryPickerEntry(model: categoryModel) }
         }.onAppear { text = selection.map(String.init).joined(separator: ",") }
             .onChange(of: selection) { _, value in if !focused { text = value.map(String.init).joined(separator: ",") } }

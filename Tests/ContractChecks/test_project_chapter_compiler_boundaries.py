@@ -24,7 +24,8 @@ class ProjectEditChapterCompilerBoundaries(unittest.TestCase):
         for token in ['let nodeCount = chapter.nodes.count',
                       r'let nodeCountLabel: Text = Text("projectEdit.nodeCount") + Text(verbatim: ": \(nodeCount)")',
                       'ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")',
-                      'Text("projectEdit.nodeCountValue \\(nodeCount)").foregroundStyle(.secondary)',
+                      # native r2: the capsule chip became plain footnote text; the localized count and label stay.
+                      'Text("projectEdit.nodeCountValue \\(nodeCount)")\n                    .font(.footnote)\n                    .foregroundStyle(.secondary)',
                       '.accessibilityLabel(nodeCountLabel)']:
             self.assertIn(token, self.label)
         self.assertNotIn('String(localized:', self.label)

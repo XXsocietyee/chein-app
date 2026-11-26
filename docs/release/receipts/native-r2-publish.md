@@ -72,4 +72,13 @@ These were kept unchanged:
 
 ## Contract checks
 - `Tests/ContractChecks/test_template_sample_browser.py`: the ordering assertion now pins `.navigationTitle("templateSamples.open")` instead of the removed `.cyGroupedSurface()`.
-- Contract-check status after the follow-up fixes is listed below.
+- Full suite: `python3 -m unittest discover -s Tests/ContractChecks -p 'test_*.py'`. Run on origin/ui/combined-r7 and on this branch, it gives **0 new FAIL/ERROR** (221 pre-existing failures on the base, unchanged).
+- **App fixes for real regressions the checks caught:**
+  - status colours went back to the semantic tokens (`CYColor.dangerText` / `successText` / `warningText`) in PublishingModesViews and ProjectEditView;
+  - the Workshop owned and purchased fact rows are vertical full-width again, so long values aren't truncated;
+  - the atmosphere preset labels wrap again.
+- **About 22 source-pinning tests:** they pinned the removed CY component text. They now pin the native replacement with the same key, action closure and identifier. Each change is tagged `# native r2`.
+- **Whole-file and slice hashes** (`test_activity_publishing_wizard`, `test_workshop_protected_text_lifecycle`): re-pinned after checking that the diff changes presentation only.
+- **`test_design_system_component_contracts`:** the raw-colour allowlist gained 5 files that use UIKit semantic system colours (`systemGroupedBackground`, `secondarySystemFill`, …), not raw RGB or hex.
+- **Not touched:** `test_template_preference_draft.test_remote_allowlist_matches_existing_serializer_fields` already fails on the base and is outside this lane, so it was left alone.
+- **Side effect:** running the suite rewrites `Resources/StoreCharacter.xcstrings`, on the base too. That file is not committed.
