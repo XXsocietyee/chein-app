@@ -220,7 +220,10 @@ public struct ClubOperationsSession: Equatable {
     public var profileDrafts: ClubProfileLocalDraftContext? { profileDraftProvider() }
     public var identity: ClubReadIdentity? { currentSession()?.identity }
     public var isConfigured: Bool { service != nil }
-    public var writeAvailability: ClubOperationsWriteAvailability { approvalProvider() != nil && journal != nil ? .approved : .unverified }
+    public var writeAvailability: ClubOperationsWriteAvailability {
+        let approval = approvalProvider()
+        return approval != nil && journal != nil ? .approved : .unverified
+    }
     public init(service: ClubOperationsService?, currentSession: @escaping () -> ClubOperationsSession?, approval: OperationEndpointApproval? = nil, approvalSource: (() -> OperationEndpointApproval?)? = nil, journal: (any OperationPendingJournal)? = nil, profileMedia: ClubProfileMediaService? = nil, welcomeNote: ClubWelcomeNoteService? = nil, welcomeNoteRevision: @escaping () -> UInt64 = { 0 }, profileDrafts: @escaping () -> ClubProfileLocalDraftContext? = { nil }, onUnauthorized: @escaping (ClubOperationsSession) -> Void = { _ in }) {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
         self.approvalProvider = approvalSource ?? { approval }
