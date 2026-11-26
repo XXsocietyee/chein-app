@@ -13,7 +13,7 @@
 | id | status | SHA | app file:line | note |
 |---|---|---|---|---|
 | R9-PC-C1-2 | fixed | 579750de3 (tip) | App/ActivityDetailView.swift:711-745 | Host footer is 取消活动并退款. Money is on in Release now (`ReviewedAreaSwitch.openMoney`), so `activityHostCancelAccess` is non-nil whenever a host is installed and the live button shows; the disabled variant remains only for a missing host |
-| R7-PC-C2-1 | partly | d582e632f | App/RegistrationSheetView.swift:141-145; Core/ActivityDetail.swift (`merchantClosed`); Core/RegistrationContracts.swift (`coveredByPass`) | 商家暂停营业 banner (MP baoming.js:760-764) and 通行证 row from quote `mkt.coveredByPass` (js:1871-1876) are mounted. **Open:** 儿童年龄 picker needs `childAge` on quote/create (`RegistrationQuoteRequest` / `RegistrationCreateIntent`, money path, signed quote) and ticket `childCount/childAgeMin/childAgeMax`; 包含内容 needs the quote `delivery` row shape. Not changed blind without the MP source |
+| R7-PC-C2-1 | partly | d582e632f, af0db705a | App/RegistrationSheetView.swift (`registrationGapSections`, `childAgeBinding`); Core/ActivityDetail.swift (`childCount`, `childAgeRange`); Core/RegistrationContracts.swift (`childAge`); Core/RegistrationUIFlow.swift (`setChildAge`) | 商家暂停营业 banner (MP baoming.js:760-764), 通行证 row from quote `mkt.coveredByPass` (js:1871-1876), and (round 2) the 儿童年龄 picker: ticket `childCount > 0` + `childAgeMin/childAgeMax` (lenient Int/text) → Picker; the pick is sent as `childAge` on quote and create (omitted when nil), cleared on ticket change, re-quotes on change. Optional (not required before submit) because the MP validation is not visible here. CoreTests pin decode + body. **Open:** 包含内容 needs the quote `delivery` row shape (MP source not reachable) |
 | R9-PC-C2-1 | fixed | 4478e3472 (tip) | App/RegistrationSheetView.swift:642+ (`hostReservationSection`) | 主持预约 section |
 | R7-PC-C1-6 | fixed | 11b55e20a (+ ef6471025 tip) | Core/ContextualReviews.swift:23-27; App/ContextualReviewComposer.swift:23-24, 66-72 | ≤9 photos + `img_arr` were in; Core cap now the MP 300 (UTF-16, `maximumContents`), composer clips whole characters to it. CoreTests pin 300 valid / 301 invalid |
 | R10-PC-C6-1 | fixed | 695cd746c (tip) | App/GlobalSearchLinksAndTemplates.swift (`PlayerContentOfficialReader.recoverBroadcast`); Core/PlayerContentMPContract.swift:415-430 | POST `/api/official/broadcast/{id}/recover` restored in the production reader (Core contract builds the request). `OfficialEventReading`'s default still throws, only for readers that do not override |
@@ -92,7 +92,16 @@ Since the r10 audit the native-r2 sweeps on the tip rebuilt the shared wrappers 
 | R10-PC-D-N19 | partly | tip | avatar `Circle` clips (:267, 563, 594) remain; `CYListRow`, states and page background gone |
 | R10-PC-D-N20 | blocked (design paused) | — | App/MessageActionComposer.swift:184-216 morphing send button (blur), field background; :291 receipt bubble |
 
+## Round 2 (2026-11-26)
+
+- Merged `origin/ui/combined-r7` (05caead53) first, then again before push.
+- Closed the 儿童年龄 half of R7-PC-C2-1 (af0db705a). Still open in this slice: 包含内容 (R7-PC-C2-1), R9-PC-D4-1 主办分润 segment (UIKit `WalletEarningsAccessibleTabs` + 3 pinned tests, needs a simulator), and the native rows marked blocked (design paused).
+- C-N16 (`emptyRow`) and D-N16 (outbox `ScrollView`) re-read: both follow the MP layout on purpose (cy-empty title row in a list section; outbox strip scrolls). Left as is.
+- account-publish §4 P2 rows not fixed by acct-a/acct-b: A3-10 (partly — 更换背景 in the profile editor needs the local-cover owner plumbed through 6 `ProfileEditView` call sites; acct-b's open row, not taken to avoid a collision), C-F16-r7 (simulator: 45 XCUITest refs pin `textFields`), B-SZ-10 (needs the MP shezhi.wxml order; `add_repo hengyin/chengyinhub-xcx` denied again this round), B-AG-04 (owner). None taken.
+
 ## Contract pins changed (intentional)
+
+- `Tests/ContractChecks/test_activity_registration_parity_w2_06.py` — ticket CodingKeys now end in `cmsRegistrationList,childCount,childAgeMin,childAgeMax` (R7-PC-C2-1, MP baoming.wxml:155-161).
 
 - `Tests/ContractChecks/test_activity_registration_parity_w2_06.py` — ticket CodingKeys now end in `cmsRegistrationList` (R7-PC-C1-5).
 - `Tests/ContractChecks/test_social_account_contracts.py` — social key count 124 → 125 (`social.article.image`, R9-PC-D3-1).
@@ -114,4 +123,5 @@ Since the r10 audit the native-r2 sweeps on the tip rebuilt the shared wrappers 
 
 - `ActivityTicket` gained `registrants: [TopicRegistrant]`; `ActivityDetail` gained `merchantClosed: Bool`; `RegistrationQuote` gained `coveredByPass: Bool`. All three types only have `init(from:)` (no other initialisers found by grep).
 - `OfficialActionSheet.init` and `IMConversationControlsView.init` gained defaulted parameters (`onBusyChange:`, `focus:`); existing call sites are unchanged.
+- Round 2: `ActivityTicket` gained `childCount: Int?` and `childAgeRange: ActivityChildAgeRange?` (Core/MPGap type, same module). `RegistrationQuoteRequest.init` gained a defaulted `childAge:` (last parameter); `RegistrationUIFlow` gained `childAge` + `setChildAge(_:)`.
 - `ContextualReviewComposer.maximumContents` now reads `ContextualReviewDraft.maximumContents` (public static in Core).
