@@ -13,6 +13,17 @@ import SwiftUI
     private var groups: [(String, [SocialInvitedMember])] {
         (model.timeline(reader)?.months ?? []).map { ($0.id, $0.members) }
     }
+    /// FIN-20-6: MP `myinvite` `onShareAppMessage` (`/pages/index/index?inviter=`).
+    /// The account is already on this screen. Nil hides the toolbar share; no host is invented.
+    var personalInviteLink: MemberInviteShareLink? {
+        guard let accountID = reader.identity.accountID else { return nil }
+        return MemberInviteShareLink(userID: String(accountID))
+    }
+    /// https when one verified origin exists; otherwise the mini-program path.
+    var personalInviteShareText: String? {
+        guard let link = personalInviteLink else { return nil }
+        return link.httpsURL()?.absoluteString ?? link.path
+    }
     var body: some View {
         let binding = model.bind(reader)
         let permit = model.permit(reader)
@@ -71,6 +82,17 @@ import SwiftUI
             .environment(\.inviteHistoryIssueFullPage, model.pagination.members.isEmpty)
             .environment(\.inviteHistorySignIn, onSignIn)
             .cyPageTitle("social.invites.title").cyPushedChrome(domain: .player).privacySensitive()
+            .toolbar {
+                if let item = personalInviteShareText {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        ShareLink(item: item, subject: Text("profile.inviteHistory.shareTitle")) {
+                            Label("mp.common.share", systemImage: "square.and.arrow.up")
+                        }
+                        .privacySensitive()
+                        .accessibilityIdentifier("social.invites.share")
+                    }
+                }
+            }
             .onAppear { model.appear(reader) }
             .onChange(of: binding) { _, _ in model.replaceReader(reader) }
             .refreshable { await model.refresh(reader, permit: permit) }

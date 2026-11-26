@@ -314040,6 +314040,23 @@
           }
         }
       }
+    },
+    "profile.inviteHistory.shareTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾Hub"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾Hub"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
