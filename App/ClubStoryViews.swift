@@ -210,7 +210,9 @@ struct ClubStoryChapterHeader: View {
                 .font(.headline)
                 .fixedSize(horizontal: false, vertical: true)
                 if let address = stop.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    ClubGapStoryMapAddressRow(stop: ClubStoryStopLocation(name: stop.name ?? "", address: address))
+                    // CLB-topic-story-04 (MP topic-story wxml:41, js:77-78): the address opens the map at the node's coordinates.
+                    ClubGapStoryMapAddressRow(stop: ClubStoryStopLocation(name: stop.name ?? "", address: address,
+                                                                          latitude: stop.latitude, longitude: stop.longitude))
                 } else {
                     Label {
                         Text("club.story.addressUnavailable")

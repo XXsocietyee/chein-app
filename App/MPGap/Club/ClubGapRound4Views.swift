@@ -132,7 +132,7 @@ public struct ClubGapStoryMapAddressRow: View {
                     Text(verbatim: stop.address)
                         .foregroundStyle(.primary)
                     if stop.hasCoordinates {
-                        Text(verbatim: stop.mapActionTitle)
+                        Text("club.story.openInMaps")
                             .font(.subheadline)
                             .foregroundStyle(.tint)
                     }
