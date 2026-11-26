@@ -13,23 +13,24 @@ import SwiftUI
     init(host: ClubBadgeHost) { _model = StateObject(wrappedValue: ClubBadgeHostModel(host: host)) }
     var body: some View {
         let _ = model.revision
+        // CLB-r9-native-06: a system inset-grouped List (was a custom ScrollView); failures are ContentUnavailableView.
         List {
-            Group {
-                // CLB-badges-01 (parity r2): the page-type title is the inline bar title, not a hero in the content.
-                if let flow = model.flow, flow.isCurrent {
-                    badgeContent(flow)
-                } else if model.working {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("loading", tableName: "ClubBadge"))
-                } else {
-                    Text("listError", tableName: "ClubBadge")
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+            // CLB-badges-01 (parity r2): the page-type title is the inline bar title, not a hero in the content.
+            if let flow = model.flow, flow.isCurrent {
+                badgeContent(flow)
+            } else if model.working {
+                ProgressView { Text("loading", tableName: "ClubBadge") }
+                    .frame(maxWidth: .infinity)
+            } else {
+                ContentUnavailableView {
+                    Label { Text("listError", tableName: "ClubBadge") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button("action.reload") { model.perform { await $0.refresh() } }
+                        .buttonStyle(.bordered)
                 }
             }
-            .disabled(model.working)
         }
+        .disabled(model.working)
         .privacySensitive()
         .navigationTitle(Text("title", tableName: "ClubBadge"))
         .navigationBarTitleDisplayMode(.inline)
@@ -285,10 +286,14 @@ import SwiftUI
         case .needsReview where lastWasCreate:
             // MP badges js:264,282: 勋章没有创建成功, or the server's own sentence when it gave one.
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("clubR8b.badges.createFailed")
-                    .font(.body.weight(.semibold))
+                // CLB-r8-badges-02 (MP badges wxml:56): title 勋章没有创建; the line under it is the server's sentence,
+                // else 勋章没有创建成功.
+                Text("clubR8b.badges.createFailedTitle")
+                    .font(.headline)
                 if let message = model.flow?.operationMessage, !message.isEmpty {
                     Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary)
+                } else {
+                    Text("clubR8b.badges.createFailed").font(.subheadline).foregroundStyle(.secondary)
                 }
             }
             .fixedSize(horizontal: false, vertical: true)

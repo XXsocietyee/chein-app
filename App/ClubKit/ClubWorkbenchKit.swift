@@ -185,13 +185,15 @@ struct ClubWorkbenchTile: View {
 }
 
 /// Club/Header second half (MC-22, `204:24899` Member / Manager): 邀请朋友加入 as the header's full-width secondary.
-/// Clubs have no invite link or invite API, so it shares the same text invitation as 成员 › 邀请成员 (OpsR3 copy).
+/// CLB-detail-30 (MP detail js:3509-3545 onShareAppMessage): the invite carries the same club link as 分享
+/// (`ClubShareURL`) with the MP invitation as its message; without an id it falls back to the text invitation.
 struct ClubHeaderInviteButton: View {
     let clubName: String
+    var clubID: Int? = nil
     @Environment(\.locale) private var locale
 
     var body: some View {
-        ShareLink(item: String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)) {
+        ClubInviteShareLink(clubID: clubID, clubName: clubName) {
             Label { ClubR4Text.text("r4club.header.invite") } icon: { Image(systemName: "person.badge.plus") }
                 .frame(maxWidth: .infinity)
         }
@@ -199,6 +201,24 @@ struct ClubHeaderInviteButton: View {
         .controlSize(.large)
         .accessibilityHint(OpsR3Text.text("r3club.invite.hint"))
         .accessibilityIdentifier("club.detail.inviteFriends")
+    }
+}
+
+/// CLB-detail-30: one share for every club invite: the club link plus the MP invitation, or the invitation alone.
+struct ClubInviteShareLink<LabelContent: View>: View {
+    let clubID: Int?
+    let clubName: String
+    @ViewBuilder let label: () -> LabelContent
+    @Environment(\.locale) private var locale
+
+    private var message: String { String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName) }
+
+    var body: some View {
+        if let url = ClubShareURL.club(clubID) {
+            ShareLink(item: url, message: Text(verbatim: message), label: label)
+        } else {
+            ShareLink(item: message, label: label)
+        }
     }
 }
 

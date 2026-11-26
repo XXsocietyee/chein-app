@@ -25,6 +25,8 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     @State private var reportReadGeneration: UInt64 = 0
     @State private var reportRefreshRevision: UInt64 = 0
     @State private var reportSourceActive = true
+    /// CLB-r7-A-07 (MP detail js:2451-2454): `canGovernMembers` = club:member:manage held as CLUB_OWNER or CLUB_CO_OWNER.
+    @State private var canGovernMembers = false
     private var reportContext: ClubGovernanceReadContext {
         .init(operation: .members, scope: .init(clubID: id), identity: reader.clubIdentity,
               viewerRevision: governance?.viewerRevision ?? 0, authorizationGeneration: governance?.access.authorizationGeneration,
@@ -39,6 +41,21 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     }
     var onSignIn: (() -> Void)? = nil
     var body: some View {
+        content
+            .task(id: "\(id)|\(governance?.viewerRevision ?? 0)|\(reader.clubIdentity.accountID ?? 0)") { await loadGovernGrant() }
+    }
+
+    /// CLB-r7-A-07: access/me decides 临时封禁 for a co-owner; a failed or foreign read keeps the owner-only rule.
+    private func loadGovernGrant() async {
+        canGovernMembers = false
+        guard let governance, governance.access.isConfigured, governance.access.identity == reader.clubIdentity,
+              let snapshot = try? await governance.access.read(.access, scope: .init(clubID: id), options: [:]),
+              !Task.isCancelled, snapshot.scope.clubID == id, let permissions = snapshot.permissions else { return }
+        canGovernMembers = permissions.permissions.contains("club:member:manage")
+            && (permissions.roleCodes.contains("CLUB_OWNER") || permissions.roleCodes.contains("CLUB_CO_OWNER"))
+    }
+
+    @ViewBuilder private var content: some View {
         // The reader re-fetches detail before members, rather than inheriting the previous page's gate.
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.members", requiresSignIn: true, refreshRevision: reportRefreshRevision,
                        onSignIn: onSignIn, load: {
@@ -84,7 +101,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                         // Figma 223:3698: 邀请成员 is the first row. Clubs have no invite link yet, so it shares a
                         // text invitation (club name + how to find it in the app) through the system share sheet.
                         if directory.club.isOwner || directory.club.viewerIsAdmin {
-                            ClubMemberInviteRow(clubName: directory.club.name)
+                            ClubMemberInviteRow(clubName: directory.club.name, clubID: directory.club.id)
                         }
                         ForEach(Array(directory.members.enumerated()), id: \.offset) { _, member in
                             memberLine(member, directory: directory)
@@ -203,7 +220,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             // Organiser actions open the member's governance page, where each command is confirmed.
             let canGovern = directory.club.canGovern && matchesGovernance(reader.clubIdentity) && member.memberId > 0
             ClubMemberActionMenu(actions: ClubMemberAction.menu(canGovern: canGovern, targetIsOwner: member.isOwner, targetIsAdmin: member.isAdmin,
-                                                               canTempBan: directory.club.isOwner),
+                                                               canTempBan: directory.club.isOwner || canGovernMembers),
                                  memberName: target.displayName,
                                  reportIdentifier: "club.memberReport.open.\(member.memberId)") { action in
                 if action == .report {
@@ -298,12 +315,13 @@ enum ClubJoinDateDisplay {
 }
 
 /// 邀请成员 (Figma 223:3698): a row with a plus disc that opens the system share sheet with a text invitation.
+/// CLB-detail-30: the invite carries the club link (same as 分享) and the MP invitation; a plain system row.
 struct ClubMemberInviteRow: View {
     let clubName: String
-    @Environment(\.locale) private var locale
+    var clubID: Int? = nil
 
     var body: some View {
-        ShareLink(item: String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)) {
+        ClubInviteShareLink(clubID: clubID, clubName: clubName) {
             Label {
                 OpsR3Text.text("r3club.invite.title")
             } icon: {

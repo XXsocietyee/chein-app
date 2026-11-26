@@ -2,6 +2,8 @@ import SwiftUI
 
 /// MP `pages/club/detail` 管理 quick action (CLB-G02): 扫码核销 for the owner, an admin, or
 /// `club:activity:manage`. `scan=1` starts the camera once the page has loaded.
+/// - CLB-detail-35: 出示二维码 for the owner, an admin or `club:event:checkin` (MP wxml:375-380, js:1078-1101).
+/// - CLB-G06: 设置 for every 管理 viewer (MP wxml:390-394, `onSettings` js:3571-3575).
 @MainActor struct ClubManageQuickActions: View {
     let canScan: Bool
     let canGovern: Bool
@@ -9,6 +11,10 @@ import SwiftUI
     var autoStartScan = false
     let submitScan: ((_ raw: String, _ canGovern: Bool, _ canManageActivities: Bool) async throws -> Bool)?
     var onConsumeAutoStart: () -> Void = {}
+    /// CLB-G06: 设置 opens the 俱乐部设置 sheet. Nil hides it.
+    var onSettings: (() -> Void)? = nil
+    /// CLB-detail-35: 出示二维码. Nil hides it.
+    var onGroupCode: (() -> Void)? = nil
 
     @State private var scanning = false
     @State private var busy = false
@@ -20,19 +26,34 @@ import SwiftUI
     private var scanOffered: Bool { canScan && submitScan != nil }
 
     var body: some View {
-        if scanOffered {
+        if scanOffered || onSettings != nil || onGroupCode != nil {
             Section {
-                Button {
-                    scanning = true
-                } label: {
-                    Label("club.quick.scan", systemImage: "qrcode.viewfinder")
+                if scanOffered {
+                    Button {
+                        scanning = true
+                    } label: {
+                        Label("club.quick.scan", systemImage: "qrcode.viewfinder")
+                    }
+                    .disabled(busy)
+                    .accessibilityLabel(Text("club.quick.scan.a11y"))
+                    .accessibilityIdentifier("club.quick.scan")
                 }
-                .disabled(busy)
-                .accessibilityLabel(Text("club.quick.scan.a11y"))
-                .accessibilityIdentifier("club.quick.scan")
+                if let onGroupCode {
+                    Button(action: onGroupCode) {
+                        Label("club.quick.groupCode", systemImage: "qrcode")
+                    }
+                    .accessibilityIdentifier("club.quick.groupCode")
+                }
+                if let onSettings {
+                    Button(action: onSettings) {
+                        Label("club.quick.settings", systemImage: "gearshape")
+                    }
+                    .accessibilityLabel(Text("clubR8.settings.open"))
+                    .accessibilityIdentifier("club.quick.settings")
+                }
             }
             .task {
-                guard autoStartScan else { return }
+                guard autoStartScan, scanOffered else { return }
                 scanning = true
                 onConsumeAutoStart()
             }

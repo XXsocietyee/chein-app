@@ -182,7 +182,16 @@ struct ClubOperationsWorkspaceView: View {
     }
     var body: some View {
         Form {
-            if loading { ProgressView().accessibilityIdentifier("club.ops.loading") }
+            // CLB-r9-create-01 (MP create wxml:12-15): the create check reads 正在确认创建资格 while it runs.
+            if loading {
+                if target == .create {
+                    ProgressView { Text("club.ops.create.checking") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("club.ops.loading")
+                } else {
+                    ProgressView().accessibilityIdentifier("club.ops.loading")
+                }
+            }
             // CLB-create-03 (MP create wxml:16-28): guest → 登录; a failed check → 重新检查.
             if identity == nil {
                 // Round 4 copy (MP create wxml:20): the create page says 登录后创建俱乐部.
@@ -247,6 +256,16 @@ struct ClubOperationsWorkspaceView: View {
                 } label: { Image(systemName: "xmark") }
                 .accessibilityLabel(Text("club.ops.close"))
                 .accessibilityIdentifier("club.ops.close")
+            }
+            // CLB-r9-create-03 (MP create wxml:6-8): 「n / 4」 at the bar's trailing end while a wizard step shows.
+            if target == .create, let step = createStepBar.step, (1...4).contains(step) {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Text(verbatim: "\(step) / 4")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel(Text(verbatim: ClubPlayerCopy.progressLabel(step, locale: locale)))
+                        .accessibilityIdentifier("club.create.stepCount")
+                }
             }
         }
         .interactiveDismissDisabled(dirty || state.locksForm)
