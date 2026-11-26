@@ -109,8 +109,10 @@ import QuestifyCore
             content
         }
         .listStyle(.insetGrouped)
-        .cyDomainScreen(.game)
-        .cyPushedChrome(domain: .game)
+        // N-ORIENT (r10): MP subpackageMember/orient-score is a normal member page, not a game stage;
+        // the score list follows system Light/Dark under the player domain (same rule as N-PLAY-DARK).
+        .cyDomainScreen(.player)
+        .cyPushedChrome(domain: .player)
         .cyPageTitle("orientScore.title")
         .toolbar {
             // Mini-program 「选择其他对局」: only when this player has more than one round here.
@@ -442,8 +444,8 @@ import QuestifyCore
         } else {
             CYEmptyState(systemImage: "tray", "orientScore.empty.title", detail: "orientScore.empty.detail",
                          messageIdentifier: "orientScore.empty")
-                .cyDomainScreen(.game)
-                .cyPushedChrome(domain: .game)
+                .cyDomainScreen(.player)
+                .cyPushedChrome(domain: .player)
                 .cyPageTitle("orientScore.title")
         }
     }
