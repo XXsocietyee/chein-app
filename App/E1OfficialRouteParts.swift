@@ -53,6 +53,8 @@ struct OfficialRouteDetailContent: View {
     let chinese: Bool
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// Stops whose `imgUrl` failed to load. The title stays; the tile is not shown again.
+    @State private var hiddenNodeImages: Set<String> = []
     private var route: OfficialRoute { detail.route }
 
     var body: some View {
@@ -111,6 +113,10 @@ struct OfficialRouteDetailContent: View {
             }
             .padding(.bottom, last ? 0 : CYSpacing.lg)
             Spacer(minLength: 0)
+            // MP `orr-node__img` sits on the trailing side (the map glyph already scales with `.title3`).
+            if !hiddenNodeImages.contains(node.id), let thumbURL = OfficialRouteNodeThumb.url(from: node.imageURL) {
+                OfficialRouteNodeThumb(url: thumbURL) { hideNodeImage(node.id) }
+            }
             if node.latitude != nil {
                 Image(systemName: "arrow.up.right.circle").font(.title3).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
             }
@@ -123,5 +129,36 @@ struct OfficialRouteDetailContent: View {
             body.accessibilityElement(children: .combine)
                 .accessibilityLabel(Text("officialRoute.detail.node \(node.order) \(node.name)"))
         }
+    }
+
+    private func hideNodeImage(_ id: String) {
+        hiddenNodeImages.insert(id)
+    }
+}
+
+/// MP `orr-node__img` is 112rpx (56pt) on the trailing side of the stop title.
+/// The map glyph on that side already scales with `.title3`, so the tile does too.
+/// A blank `imgUrl` or a failed load drops the tile; the stop title stays.
+private struct OfficialRouteNodeThumb: View {
+    let url: URL
+    let onFailure: () -> Void
+    @ScaledMetric(relativeTo: .title3) private var side: CGFloat = 56
+
+    var body: some View {
+        PlayerFeedRemoteImage(url: url, maxPixel: 168, placeholder: {
+            Color.clear
+        }, failure: {
+            Color.clear.onAppear(perform: onFailure)
+        })
+        .frame(width: side, height: side)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .accessibilityHidden(true)
+    }
+
+    /// Same https gate as `E1CoverArt`: anything else is not a remote image this page can show.
+    static func url(from imageURL: String) -> URL? {
+        let raw = imageURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = URL(string: raw), url.scheme?.lowercased() == "https" else { return nil }
+        return url
     }
 }

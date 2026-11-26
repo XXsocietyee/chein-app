@@ -8,10 +8,10 @@ import UIKit
     private let reader = Marker()
     private let key = GrowthCenterLoadKey(scope: UUID(), query: .init())
     private let presentation = UUID()
-    private func board(empty: Bool = true) throws -> GrowthLeaderboard {
+    private func board(empty: Bool = true, me: String = "{}") throws -> GrowthLeaderboard {
         let list = empty ? "[]" : #"[{"memberId":7,"rank":1,"score":4}]"#
         return try JSONDecoder().decode(GrowthLeaderboard.self,
-            from: Data("{\"metric\":\"point\",\"period\":\"total\",\"list\":\(list),\"me\":{}}".utf8))
+            from: Data("{\"metric\":\"point\",\"period\":\"total\",\"list\":\(list),\"me\":\(me)}".utf8))
     }
     private func selection(empty: Bool = true) throws -> GrowthLeaderboardExploreSelection {
         .init(readerID: ObjectIdentifier(reader), key: key, board: try board(empty: empty), presentationID: presentation)
@@ -38,6 +38,14 @@ import UIKit
     func testNonemptyResultsCannotOfferEmptyStateNavigation() throws {
         XCTAssertFalse(accepts(try selection(empty: false), board: try board(empty: false)))
         XCTAssertFalse(accepts(try selection(), board: try board(empty: false)))
+    }
+    func testViewerRowOnAnEmptyListIsNotTheEmptyState() throws {
+        for me in [#"{"rank":8,"memberId":7,"score":1}"#, #"{"rank":0,"score":0}"#] {
+            let ranked = try board(me: me)
+            let value = GrowthLeaderboardExploreSelection(readerID: ObjectIdentifier(reader), key: key,
+                board: ranked, presentationID: presentation)
+            XCTAssertFalse(accepts(value, board: ranked))
+        }
     }
     func testReaderScopeMetricAndPeriodReplacementRejectOldCallback() throws {
         let value = try selection(), board = try board(), other = Marker()

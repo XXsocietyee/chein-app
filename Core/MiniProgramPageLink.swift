@@ -121,12 +121,16 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/publish/temp/index"] = Rule(allowed: ["id", "scope", "from"], required: [], ids: ["id"])
         pages["pages/publish/activity/index"] = Rule(allowed: ["id", "scope"], required: [], ids: ["id"])
         pages["pages/publish/template-intro/index"] = Rule(allowed: ["scope"], required: [], ids: [])
+        // R8-MEM-26-1: mytemplate stays the template author's 我的 page. `id` and `scope`
+        // are kept; the link does not open 我发布的 or drop the query.
+        pages["subpackageMember/mytemplate/mytemplate"] = Rule(allowed: ["id", "scope"], required: [], ids: ["id"])
         pages["pages/team/detail/index"] = Rule(allowed: ["teamId"], required: [], ids: ["teamId"])
         // Only the manual-code form; `?code=` invitations keep the team-invitation parser (NativeNavigationCompletion).
         pages["pages/team/join/index"] = Rule(allowed: ["entry"], required: ["entry"], ids: [])
         // F14c retired catalog: optional id opens the topic, a bare path opens home. `via=session` is the club-session entry.
         pages["pages/topic/catalog/index"] = optionalID
-        pages["pages/topic/index/index"] = Rule(allowed: ["id", "via"], required: ["id"], ids: ["id"])
+        // CLB-detail-11: 带票分享 lands here with the club that shared the edition.
+        pages["pages/topic/index/index"] = Rule(allowed: ["id", "via", "sourceClubId", "clubCode"], required: ["id"], ids: ["id", "sourceClubId"])
         return pages
     }()
 
@@ -271,6 +275,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/publish/temp/index": ["scope": ["MERCHANT", "my"], "from": ["fabu", "citynode"]],
         "pages/publish/activity/index": ["scope": ["MERCHANT"]],
         "pages/publish/template-intro/index": ["scope": ["MERCHANT"]],
+        "subpackageMember/mytemplate/mytemplate": ["scope": ["MERCHANT"]],
         "pages/team/join/index": ["entry": ["code"]],
         "pages/merchant/ledger/order-detail/index": ["recordType": ["redemption", "activity_ticket", "session_fee"]],
         "pages/coop/list/index": ["scope": ["MERCHANT"]],
@@ -281,17 +286,11 @@ public struct MiniProgramPageLink: Equatable, Sendable {
     ]
 
     public init?(path: String, query: [String: String]) {
-        var page = path.hasPrefix("/") ? String(path.dropFirst()) : path
-        var incoming = query
-        // R8-MEM-26-1: MP removed mytemplate from app.json. Open 我的发布 and drop the query.
-        if page == "subpackageMember/mytemplate/mytemplate" {
-            page = "pages/activity/official-mine/index"
-            incoming = [:]
-        }
+        let page = path.hasPrefix("/") ? String(path.dropFirst()) : path
         guard let rule = Self.reviewedPages[page] else { return nil }
         // Empty values are absent (the mini-program reads `options.x || ''`).
-        let present = incoming.filter { !$0.value.isEmpty }
-        guard Set(incoming.keys).isSubset(of: rule.allowed), rule.required.isSubset(of: Set(present.keys)) else { return nil }
+        let present = query.filter { !$0.value.isEmpty }
+        guard Set(query.keys).isSubset(of: rule.allowed), rule.required.isSubset(of: Set(present.keys)) else { return nil }
         for (key, value) in present {
             guard value.utf16.count <= 512, value.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }) else { return nil }
             if rule.ids.contains(key), Self.positiveID(value) == nil { return nil }

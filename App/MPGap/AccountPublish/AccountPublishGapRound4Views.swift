@@ -156,11 +156,13 @@ public struct ProjectEditGapChapterExtrasSection: View {
 }
 
 /// `C-T3` (r9): mounted in `TemplateAuthoringView` beside `TemplateAuthoringCompletionFields`.
-/// MP pages/publish/temp/index.wxml:108-118 (参与方式 → 扫完回复, r5-editor.js:259 `toggleScanReply`),
-/// :1056-1060 (状态不好时松一点, index.js:1185-1199 `_writeRelax` / `toggleRelax` / `onRelaxPick`)
-/// and :1068-1074 (可触发的结果). Every row writes `model.draft.advanced` through the Core setters, so the
-/// values ride the normal template save / publish payload.
-/// citynode 玩法形态 has no Core `from=citynode` editor flag yet; it stays a separate Core row (see receipt).
+/// MP pages/publish/temp/index.wxml:108-118 (参与方式 → 扫完回复, r5-editor.js `toggleScanReply`),
+/// :973-975 (状态不好时松一点, index.js `_writeRelax` / `toggleRelax` / `onRelaxPick`)
+/// and :986 (可触发的结果, `node-outcome-contract.js`, not `outcomeRules`).
+/// 状态不好时松一点 writes through `setLowHPRelax`. 扫完回复 writes through `setScanReplyEnabled`.
+/// citynode 玩法形态 has `TemplateAuthoringContract.TemplateCityNodeInteraction` and `authoringFrom`,
+/// but the personal author-request pipe cannot post `/api/merchant/city-node/template/submit` (C-T3c).
+/// The picker stays off this screen so a city-node draft is not saved as a personal template.
 @MainActor struct TemplateAuthoringGapRound4Section: View {
     @ObservedObject var model: TemplateAuthoringModel
 
@@ -177,8 +179,6 @@ public struct ProjectEditGapChapterExtrasSection: View {
     }
     private var scanKind: String { model.draft.advanced.value["scan"]?.object?["kind"]?.string ?? "TEXT" }
     private var relaxConfiguration: TemplateLowHPPresetConfiguration { TemplateLowHPPresetConfiguration(model.draft.advanced) }
-    private var outcomeRows: [TemplateR5Authoring.Row] { TemplateR5Authoring.rows(model.draft.advanced) }
-
     private var scanReplyBinding: Binding<Bool> {
         Binding(get: { scanReplyOn }, set: { on in
             guard model.canEdit else { return }
@@ -208,17 +208,32 @@ public struct ProjectEditGapChapterExtrasSection: View {
         Binding(get: { relaxConfiguration.selectedID }, set: { applyRelax($0) })
     }
     private func applyRelax(_ selection: String) {
-        guard model.canEdit, let next = relaxConfiguration.applying(selection) else { return }
+        guard model.canEdit, relaxConfiguration.isSupported else { return }
         var draft = model.draft
-        draft.advanced = next
+        if selection.isEmpty {
+            // setLowHPRelax only writes a row. Off removes that editor variant and leaves other rules.
+            guard let next = relaxConfiguration.applying("") else { return }
+            draft.advanced = next
+        } else if let option = relaxConfiguration.options.first(where: { $0.id == selection }) {
+            draft.advanced.setLowHPRelax(path: option.field.rawValue, delta: option.operation)
+            guard draft.advanced.rootCreatorIssues.isEmpty else { return }
+        } else { return }
         model.draft = draft
         model.changed()
     }
-    private func outcomeTitle(_ row: TemplateR5Authoring.Row) -> String {
-        switch row.title {
-        case "pass": return appLocalized("fixr9.ap.template.outcome.pass", locale: Locale.current)
-        case "fail": return appLocalized("fixr9.ap.template.outcome.fail", locale: Locale.current)
-        default: return row.title
+    private var triggerableOutcomes: TemplateTriggerableOutcomes.Result { TemplateTriggerableOutcomes.extract(model.draft) }
+    @ViewBuilder private func outcomeLabel(_ label: TemplateTriggerableOutcomes.Label) -> some View {
+        switch label {
+        case .authored(let text):
+            Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textSecondary)
+        case .completed:
+            Text("templateAuthor.outcome.completed").cyText(.body).foregroundStyle(CYColor.textSecondary)
+        case .d20Success:
+            Text("templateAuthor.outcome.d20Success").cyText(.body).foregroundStyle(CYColor.textSecondary)
+        case .d20Failure:
+            Text("templateAuthor.outcome.d20Failure").cyText(.body).foregroundStyle(CYColor.textSecondary)
+        case .unnamed:
+            Text("templateAuthor.outcome.unnamed").cyText(.body).foregroundStyle(CYColor.textSecondary)
         }
     }
 
@@ -251,11 +266,18 @@ public struct ProjectEditGapChapterExtrasSection: View {
                     }
                 }
             }
-            if !outcomeRows.isEmpty && !model.draft.advanced.enabled("album") {
+            if !model.draft.advanced.enabled("album") {
                 Section {
-                    ForEach(outcomeRows) { row in
-                        Text(verbatim: outcomeTitle(row))
-                            .foregroundStyle(CYColor.textSecondary)
+                    ForEach(triggerableOutcomes.items) { item in
+                        outcomeLabel(item.label)
+                    }
+                    ForEach(triggerableOutcomes.issues) { issue in
+                        switch issue.code {
+                        case .invalidCode:
+                            Text("templateAuthor.outcome.invalidCode").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        case .duplicateCode:
+                            Text("templateAuthor.outcome.duplicateCode").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        }
                     }
                 } header: {
                     Text("fixr9.ap.template.outcomes")

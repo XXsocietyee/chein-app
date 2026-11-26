@@ -292,73 +292,137 @@ struct MerchantSafetyRatingSheet: View {
     }
 }
 
-/// BL-52 text-only report appeal: form → confirm → result. Only RESOLVED/CLOSED reports offer it.
-/// The same reason reuses the same request ID; an unknown result is retried with that ID.
-/// PLY-29-4: MP report-detail wxml:55-93 runs the appeal in one sheet (form → confirm → busy → ok / fail / unknown),
-/// sent through `CommunityTrustPlayerService.appeal` (`community-trust/reports/appeal`).
+/// One appeal attempt on the report detail. The detail view keeps this across a reload that
+/// temporarily drops `flow.detail`, so an unconfirmed send is not replaced by a new id.
+struct ReportAppealRetention: Equatable {
+    var reason = ""
+    var requestID = ""
+    var lockedReason = ""
+    var phase: ReportAppealSheetPhase = .form
+    var showsSheet = false
+    var result: String?
+}
+
+/// BL-52 text-only report appeal: fill in the reason, confirm, then the result.
+/// The request id is written before the first send. A failed or unconfirmed retry sends that same id.
+/// PLY-29-4 uses `CommunityTrustPlayerService.appeal` (`community-trust/reports/appeal`).
 struct ReportAppealSection: View {
     let reportID: Int
     let client: PlayerCapabilityClient
     let stageLabel: (String) -> String?
     let readBack: () -> Void
+    var retention: Binding<ReportAppealRetention>? = nil
     @Environment(\.locale) private var locale
-    @State private var reason = ""
-    @State private var requestID = ""
-    @State private var requestReason = ""
-    @State private var phase: ReportAppealSheetPhase = .form
-    @State private var showsSheet = false
-    @State private var result: String?
+    @State private var owned = ReportAppealRetention()
+
+    private var draft: Binding<ReportAppealRetention> { retention ?? $owned }
 
     var body: some View {
+        let value = draft.wrappedValue
         Section {
-            if let result {
-                Label { if result.isEmpty { Text("report.appeal.submitted") } else { Text(verbatim: result) } } icon: { Image(systemName: "checkmark.circle") }
+            if let result = value.result, !result.isEmpty {
+                Label { Text(verbatim: result) } icon: { Image(systemName: "checkmark.circle") }
                     .accessibilityIdentifier("report.appeal.receipt")
             } else {
                 Button(PlayerCapabilityCopy.text("提交申诉", "Submit appeal", locale)) {
-                    if phase != .busy { phase = .form }
-                    showsSheet = true
+                    var next = draft.wrappedValue
+                    if next.phase != .busy, next.requestID.isEmpty { next.phase = .form }
+                    next.showsSheet = true
+                    draft.wrappedValue = next
                 }
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("report.appeal.open")
             }
         } header: { Text(verbatim: PlayerCapabilityCopy.text("申诉", "Appeal", locale)) }
-        .sheet(isPresented: $showsSheet) {
-            ReportAppealSheetView(phase: phase, reason: $reason,
-                onToConfirm: { if validReason != nil { phase = .confirm } },
-                onBackToForm: { phase = .form },
+        .sheet(isPresented: showsSheet) {
+            ReportAppealSheetView(phase: draft.wrappedValue.phase, reason: reasonText,
+                onToConfirm: {
+                    var next = draft.wrappedValue
+                    let text = next.reason.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !text.isEmpty, text.count <= CommunityTrustPlayerService.appealMax else { return }
+                    next.phase = .confirm
+                    draft.wrappedValue = next
+                },
+                onBackToForm: {
+                    var next = draft.wrappedValue
+                    next.phase = .form
+                    draft.wrappedValue = next
+                },
                 onSubmit: { Task { await submit() } },
-                onClose: { if phase != .busy { showsSheet = false } })
-            .interactiveDismissDisabled(phase == .busy)
+                onClose: {
+                    var next = draft.wrappedValue
+                    if next.phase != .busy {
+                        next.showsSheet = false
+                        draft.wrappedValue = next
+                    }
+                })
+            .interactiveDismissDisabled(draft.wrappedValue.phase == .busy)
             .accessibilityIdentifier("report.appeal.sheet")
         }
     }
 
-    private var validReason: String? {
-        let text = reason.trimmingCharacters(in: .whitespacesAndNewlines)
-        return text.isEmpty || text.count > CommunityTrustPlayerService.appealMax ? nil : text
+    private var showsSheet: Binding<Bool> {
+        Binding(get: { draft.wrappedValue.showsSheet }, set: { shown in
+            var next = draft.wrappedValue
+            if next.phase == .busy, !shown { return }
+            next.showsSheet = shown
+            draft.wrappedValue = next
+        })
+    }
+
+    private var reasonText: Binding<String> {
+        Binding(get: { draft.wrappedValue.reason }, set: { text in
+            var next = draft.wrappedValue
+            guard next.requestID.isEmpty else { return }
+            next.reason = text
+            draft.wrappedValue = next
+        })
     }
 
     private func submit() async {
-        guard phase != .busy, let text = validReason else { return }
-        if requestID.isEmpty || requestReason != text {
-            requestID = CommunityTrustPlayerService.appealKey(reportID: reportID); requestReason = text
-        }
-        phase = .busy
+        var next = draft.wrappedValue
+        guard next.phase != .busy,
+              let send = CommunityTrustPlayerService.appealSubmission(
+                existingRequestID: next.requestID, lockedReason: next.lockedReason, reason: next.reason, reportID: reportID)
+        else { return }
+        next.requestID = send.requestID
+        next.lockedReason = send.reason
+        next.phase = .busy
+        next.result = nil
+        draft.wrappedValue = next
+        let sentID = send.requestID
         do {
             let receipt = try await CommunityTrustPlayerService(client: client)
-                .appeal(reportID: reportID, reason: text, requestID: requestID, stageLabel: stageLabel)
-            result = receipt
-            phase = .ok(receiptText: receipt)
+                .appeal(reportID: reportID, reason: send.reason, requestID: sentID, stageLabel: stageLabel)
+            guard !receipt.isEmpty else {
+                markUnconfirmed(sentID)
+                return
+            }
+            var done = draft.wrappedValue
+            guard done.requestID == sentID else { return }
+            done.result = receipt
+            done.phase = .ok(receiptText: receipt)
+            draft.wrappedValue = done
             readBack()
         } catch PlayerCapabilityFailure.outcomeUnknown {
-            // The same request ID is retried from the sheet; the read-back may already show the appeal.
-            phase = .unknown
-            readBack()
+            markUnconfirmed(sentID)
         } catch {
-            // PLY-29-6: catalog copy instead of raw Chinese literals.
-            phase = .fail(message: PlayerCapabilityCopy.failure(error, fallback: appLocalized("report.appeal.failed", locale: locale)))
+            var failed = draft.wrappedValue
+            guard failed.requestID == sentID else { return }
+            failed.result = nil
+            failed.phase = .fail(message: PlayerCapabilityCopy.failure(error, fallback: appLocalized("report.appeal.failed", locale: locale)))
+            draft.wrappedValue = failed
         }
+    }
+
+    /// Unknown and transport failure stay unconfirmed. The id written before the send is left in place.
+    private func markUnconfirmed(_ sentID: String) {
+        var next = draft.wrappedValue
+        guard next.requestID == sentID else { return }
+        next.result = nil
+        next.phase = .unknown
+        draft.wrappedValue = next
+        readBack()
     }
 }
 

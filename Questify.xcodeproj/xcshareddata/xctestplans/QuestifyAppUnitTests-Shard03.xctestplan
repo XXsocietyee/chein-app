@@ -184,6 +184,7 @@
         "LocalizationPluralAndFormatterConsistencySectionViewTests",
         "LocationShareAndSideQuestViewTests",
         "MPFirstCMAGrantTests",
+        "MPFirstCoopWritesTests",
         "MPFirstMerchantWriteRouteTests",
         "MPParityDeepLinkRouteTests",
         "MPParityPassBindingTests",

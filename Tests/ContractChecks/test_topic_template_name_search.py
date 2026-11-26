@@ -17,21 +17,30 @@ class TopicTemplateNameSearchContracts(unittest.TestCase):
         for forbidden in ['subtitle', 'localizedCaseInsensitiveContains', 'URLSession', 'token', 'sorted(', 'Set<', 'previewOnly ==']:
             self.assertNotIn(forbidden, search)
 
-    def test_name_filter_precedes_category_priority_and_game_state_stays_independent(self):
+    def test_one_capsule_opens_global_search_without_a_local_field_or_post(self):
         view = (ROOT / 'App/DiscoveryTemplateBrowserView.swift').read_text()
-        shelf = view.split('@ViewBuilder private var topicShelf:', 1)[1].split('@ViewBuilder private var gameShelf:', 1)[0]
-        self.assertIn('let named = appliedTopicSearch.filter(catalog)', shelf)
-        self.assertIn('let shown = SearchDiscoveryFilterParity.topics(named, matching: tags.selection)', shelf)
-        self.assertIn('if rows.isEmpty', shelf)
-        self.assertIn('if named.isEmpty || shown.isEmpty', shelf)
-        self.assertNotIn('appliedKeyword =', shelf)
-        self.assertNotIn('pack =', shelf)
-        apply = view.split('private func applyTopicSearch()', 1)[1].split('private func applySearch()', 1)[0]
-        self.assertNotIn('load', apply.lower())
-        query = view.split('private struct Query:', 1)[1].split('init(reader:', 1)[0]
-        self.assertNotIn('topicKeyword', query)
-        self.assertNotIn('appliedTopicSearch', query)
-        self.assertIn('let requestedKeyword = appliedKeyword', view)
+        self.assertIn('Text("discovery.searchAll")', view)
+        self.assertEqual(view.count('SessionGlobalSearchView()'), 2)
+        self.assertIn('.environment(\\.globalTemplateSearch, .session(session))', view)
+        self.assertIn('searchDestination _:', view)
+        self.assertNotIn('searchDestination()', view)
+        self.assertNotIn('_ = searchDestination', view)
+        self.assertNotIn('TextField(', view)
+        self.assertNotIn('DiscoveryTopicTemplateNameSearch', view)
+        self.assertNotIn('discovery.topicNameSearch', view)
+        self.assertNotIn('Text("discovery.search"', view)
+        self.assertIn('shelfChipRow(SearchDiscoveryFilterParity.topicTags', view)
+        self.assertIn('shelfChipRow(SearchDiscoveryFilterParity.gameTags', view)
+        self.assertIn('let shown = SearchDiscoveryFilterParity.topics(catalog, matching: tags.selection)', view)
+        self.assertIn('AppCompositionRoot(deployment: .unconfigured)', view)
+        entrance = view.split('@ViewBuilder private var templateShelfSearch:', 1)[1].split('private func filterChip', 1)[0]
+        for forbidden in ['URLSession', 'httpMethod', 'POST', 'discoveryPlayTemplates']:
+            self.assertNotIn(forbidden, entrance)
+        self.assertNotIn('requestedKeyword', view)
+        self.assertIn('discoveryPlayTemplates(keyword: "", packType: .single)', view)
+        search = (ROOT / 'App/GlobalSearchView.swift').read_text()
+        self.assertIn('guard filter.canSearch else', search)
+        self.assertIn('emptySearchNotice = LocalizedStringKey("searchMap.needKeywordOrCategory")', search)
 
     def test_unchanged_request_authority_and_stateful_detail_identity_are_preserved(self):
         view = (ROOT / 'App/DiscoveryTemplateBrowserView.swift').read_text()
@@ -51,12 +60,10 @@ class TopicTemplateNameSearchContracts(unittest.TestCase):
         self.assertIn('authoringFactory(selected.source)', (ROOT / 'App/DiscoveryTemplateDetailView.swift').read_text())
         self.assertNotIn('authoringFactory(', view.split('private func topicSection', 1)[1].split('private func gameSection', 1)[0])
 
-    def test_bilingual_scope_and_authored_behavior_inventory(self):
+    def test_search_all_copy_and_authored_behavior_inventory(self):
         catalog = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']
-        for key in ['discovery.topicNameSearch', 'discovery.topicNameSearchScope', 'discovery.clearTopicNameSearch']:
-            for lang in ['en', 'zh-Hans']:
-                self.assertEqual(catalog[key]['localizations'][lang]['stringUnit']['state'], 'translated')
-        self.assertIn('loaded here', catalog['discovery.topicNameSearchScope']['localizations']['en']['stringUnit']['value'])
+        for lang in ['en', 'zh-Hans']:
+            self.assertEqual(catalog['discovery.searchAll']['localizations'][lang]['stringUnit']['state'], 'translated')
         core = (ROOT / 'Tests/CoreTests/DiscoveryContractTests.swift').read_text()
         for name in ['TrimsAndUsesCaseInsensitiveNameSubstring', 'IgnoresSubtitleAndUnrelatedFields',
                      'PreservesSourceOrderCategoryPriorityAndPreviewFlags', 'IsLiteralWithoutAccentOrWidthFolding',
@@ -66,7 +73,14 @@ class TopicTemplateNameSearchContracts(unittest.TestCase):
         self.assertIn('func testLocalTopicNameSearchUsesReloadedCatalogWithoutChangingWireShape', app)
         self.assertIn('func testLocalTopicNameSearchCannotRestoreSupersededCatalogResults', app)
         ui = ROOT / 'Tests/AppUITests/TopicTemplateNameSearchFlowTests.swift'
-        self.assertEqual(ui.read_text().count('    func test'), 3)
+        text = ui.read_text()
+        self.assertEqual(text.count('    func test'), 3)
+        self.assertNotIn('discovery.topicNameSearch', text)
+        self.assertNotIn('"discovery.search"', text)
+        self.assertIn('discovery.globalSearch', text)
+        self.assertIn('searchMap.keyword', text)
+        self.assertIn('--uitesting-max-text', text)
+        self.assertIn('dynamicTypeSize: "accessibility5"', text)
         self.assertIn(str(ui.relative_to(ROOT)), (ROOT / 'Questify.xcodeproj/project.pbxproj').read_text())
 
 

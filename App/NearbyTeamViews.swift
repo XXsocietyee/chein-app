@@ -97,10 +97,21 @@ import SwiftUI
             .toolbar {
                 // Native restyle (native-ios-r1 §3.1): refresh is pull-to-refresh only (`.refreshable` above calls the same refresh()).
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
-                if tab == 1, let joinCodeDestination {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink { joinCodeDestination() } label: { Label("gap.team.joinCode", systemImage: "number") }
-                            .accessibilityIdentifier("nearby.mine.joinCode")
+                if tab == 1 {
+                    // MP my-teams nav: 加入码 opens the existing join entry; 地图 opens the existing team map.
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        if let joinCodeDestination {
+                            NavigationLink { joinCodeDestination() } label: { Label("gap.team.joinCode", systemImage: "number") }
+                                .accessibilityIdentifier("nearby.mine.joinCode")
+                        }
+                        Button {
+                            radius = NearbyTeamPresentation.recruitingRadius
+                            viewMode = .map
+                            tab = 0
+                        } label: {
+                            Label("nearby.mine.map", systemImage: "map").labelStyle(.titleAndIcon)
+                        }
+                        .accessibilityIdentifier("nearby.mine.map")
                     }
                 }
             }
@@ -477,7 +488,9 @@ import SwiftUI
             let rows = NearbyTeamBridge.myRows(joined: joinedTeamsStatus.isLoaded ? joinedTeams : [], applications: coordinator.myApplications)
             let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
             let mineReady = !model.running && !mine.loading && coordinator.authenticated && coordinator.hasLoadedMine && coordinator.messageKey == nil && joinedTeamsStatus.isLoaded && !mine.failed
-            if !rows.isEmpty && mineReady {
+            // MP my-teams: a row of four zeros repeats the empty state, so the counts stay hidden.
+            let everyStatIsZero = NearbyMyTeamGroup.Kind.statsOrder.allSatisfy { NearbyMyTeamGroup.count($0, in: groups) == 0 }
+            if !everyStatIsZero && mineReady {
                 HStack(spacing: 8) {
                     ForEach(NearbyMyTeamGroup.Kind.statsOrder, id: \.self) { kind in
                         VStack(spacing: 2) {

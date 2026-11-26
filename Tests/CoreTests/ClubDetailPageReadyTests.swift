@@ -29,6 +29,18 @@ final class ClubDetailPageReadyTests: XCTestCase {
         return content
     }
 
+    func testMissingHostCityAndLevelUsePendingCopy() {
+        let known = ClubDetailOverviewFactsGrid(leaderName: " 阿青 ", level: 4, city: " 杭州 ")
+        XCTAssertEqual(known.items.map(\.label), ["主理人", "等级", "所在城市"])
+        XCTAssertEqual(known.items.map(\.value), ["阿青", "L4", "杭州"])
+
+        let missing = ClubDetailOverviewFactsGrid(leaderName: " ", level: 0, city: nil)
+        XCTAssertEqual(missing.items.map(\.value), ["待补充", "待定", "待补充"])
+        XCTAssertEqual(ClubDetailOverviewFactsGrid(leaderName: nil, level: 6, city: "").items.map(\.value), ["待补充", "待定", "待补充"])
+        XCTAssertEqual(ClubDetailPageModel.countText(nil), dash)
+        XCTAssertEqual(ClubDetailPageModel.levelText(0), dash)
+    }
+
     func testUnknownMarkIsAnEmDashAndNotZero() {
         XCTAssertEqual(dash.unicodeScalars.map(\.value), [0x2014])
         XCTAssertNotEqual(dash, "0")

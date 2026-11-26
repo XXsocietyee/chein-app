@@ -5,7 +5,7 @@ import SwiftUI
 
 /// cursor/core-club hand-off (CLB-detail-30): club and post shares carry the MP page path from `ClubShareLink`
 /// (`/pages/club/detail/index?id=…[&postId=…]`) as an in-app `chein://mp/…` link, which `MiniProgramPageLink`
-/// already routes back to the club page. Registration attribution (CLB-detail-11) stays an owner decision.
+/// already routes back to the club page. Edition 带票分享 uses the same scheme with `sourceClubId` and `clubCode`.
 enum ClubShareURL {
     static func url(_ link: ClubShareLink?) -> URL? {
         guard let link else { return nil }

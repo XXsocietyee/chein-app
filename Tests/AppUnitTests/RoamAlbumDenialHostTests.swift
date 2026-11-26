@@ -11,19 +11,13 @@ import UIKit
         for result in [(403, 200), (200, 403)] {
             let r = try AlbumDenialHostRig(), host = UIHostingController(rootView: AnyView(Text("Preparing test")))
             let window = mount(host); defer { close(window) }
+            r.wire.continuationStatus = result.0; r.wire.continuationCode = result.1; r.wire.continuationFailures = 1
             host.rootView = album(r)
-            try await waitFor("The real metadata album shows page one") {
-                r.wire.pages == [1] && self.find("roam.experience.album.more", in: window) != nil
-            }
-            XCTAssertNotNil(find("roam.experience.album.stamp", in: window))
-            XCTAssertNotNil(find("roam.experience.album.total", in: window))
-            r.wire.status = result.0; r.wire.code = result.1
-            try await tap("roam.experience.album.more", in: window)
-            try await waitFor("Permission refusal must replace private rows") {
-                self.find("roam.experience.album.denied", in: window) != nil
+            try await waitFor("The last tile's next page is refused") {
+                r.wire.pages == [1, 2] && self.find("roam.experience.album.denied", in: window) != nil
             }
             for id in ["roam.experience.album.stamp", "roam.experience.album.total", "roam.experience.album.more",
-                       "roam.experience.album.empty", "roam.experience.retry"] {
+                       "roam.experience.album.empty", "roam.experience.retry", "roam.experience.album.continuationRetry"] {
                 XCTAssertNil(find(id, in: window), id)
             }
             XCTAssertEqual(r.wire.pages, [1, 2]); XCTAssertTrue(r.reader.isConfigured)
@@ -35,18 +29,17 @@ import UIKit
     func test503KeepsConfirmedMetadataAndOriginalRetryReadsSamePage() async throws {
         let r = try AlbumDenialHostRig(), host = UIHostingController(rootView: AnyView(Text("Preparing test")))
         let window = mount(host); defer { close(window) }
+        r.wire.continuationStatus = 503; r.wire.continuationCode = 403; r.wire.continuationFailures = 1
         host.rootView = album(r)
-        try await waitFor("Initial page") { self.find("roam.experience.album.more", in: window) != nil }
-        r.wire.status = 503; r.wire.code = 403
-        try await tap("roam.experience.album.more", in: window)
-        try await waitFor("Transient error retains the retry control") { self.find("roam.experience.retry", in: window) != nil }
+        try await waitFor("A failed next page keeps the stamps and the continuation copy") {
+            r.wire.pages == [1, 2] && self.find("roam.experience.album.continuationRetry", in: window) != nil
+        }
         XCTAssertNotNil(find("roam.experience.album.stamp", in: window))
         XCTAssertNotNil(find("roam.experience.album.total", in: window))
         XCTAssertNil(find("roam.experience.album.denied", in: window))
-        r.wire.status = 200; r.wire.code = 200
-        try await tap("roam.experience.retry", in: window)
+        try await tap("roam.experience.album.continuationRetry", in: window)
         try await waitFor("Same continuation succeeds") {
-            r.wire.pages == [1, 2, 2] && self.find("roam.experience.retry", in: window) == nil
+            r.wire.pages == [1, 2, 2] && self.find("roam.experience.album.continuationRetry", in: window) == nil
         }
         XCTAssertNotNil(find("roam.experience.album.stamp", in: window))
         XCTAssertNil(find("roam.experience.album.more", in: window))
@@ -55,19 +48,18 @@ import UIKit
     func testLeavingAndReopeningAfter403StartsFreshMetadataAtPageOne() async throws {
         let r = try AlbumDenialHostRig(), host = UIHostingController(rootView: AnyView(Text("Preparing test")))
         let window = mount(host); defer { close(window) }
+        r.wire.continuationStatus = 403; r.wire.continuationFailures = 1
         host.rootView = album(r)
-        try await waitFor("Original page") { self.find("roam.experience.album.more", in: window) != nil }
-        r.wire.status = 403
-        try await tap("roam.experience.album.more", in: window)
-        try await waitFor("Denied page") { self.find("roam.experience.album.denied", in: window) != nil }
+        try await waitFor("Denied page") {
+            r.wire.pages == [1, 2] && self.find("roam.experience.album.denied", in: window) != nil
+        }
         host.rootView = AnyView(Text("The album was closed")); host.view.layoutIfNeeded()
         try await waitFor("Original album removed") { self.find("roam.experience.album", in: window) == nil }
-        r.wire.status = 200; r.wire.replacement = true
+        r.wire.continuationFailures = 0; r.wire.continuationStatus = 200; r.wire.replacement = true
         host.rootView = album(r); host.view.layoutIfNeeded()
-        try await waitFor("Reopened original screen reads new first page") {
-            r.wire.pages == [1, 2, 1] && self.find("roam.experience.album.more", in: window) != nil
+        try await waitFor("Reopened original screen reads a new first page, then the last tile continues") {
+            r.wire.pages == [1, 2, 1, 2] && self.find("roam.experience.album.stamp", in: window) != nil
         }
-        XCTAssertNotNil(find("roam.experience.album.stamp", in: window))
         XCTAssertNil(find("roam.experience.album.denied", in: window))
         XCTAssertNil(findLabel("Original metadata", in: window))
         XCTAssertNotNil(findLabel("Replacement metadata", in: window))
@@ -146,15 +138,21 @@ import UIKit
     static let base = URL(string: "https://example.test/album-denial-host")!
     var pages: [Int] = []
     var status = 200, code = 200
+    var continuationStatus = 200, continuationCode = 200, continuationFailures = 0
     var replacement = false
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         let route = try XCTUnwrap(RoamAlbumMetadataReadRoute(request: request, baseURL: Self.base))
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-album-host")
+        XCTAssertEqual(route.pageSize, StampAlbumIndexPageModel.sourcePageSize)
         pages.append(route.page)
+        if route.page > 1, continuationFailures > 0 {
+            continuationFailures -= 1
+            return (Data("{\"code\":\(continuationCode)}".utf8), continuationStatus)
+        }
         if status != 200 || code != 200 { return (Data("{\"code\":\(code)}".utf8), status) }
         let body: [String: Any] = ["code": 200, "data": ["list": [["id": route.page + (replacement ? 100 : 0),
             "checkState": 0, "caption": replacement ? "Replacement metadata" : "Original metadata"]],
-            "total": 40, "pageNum": route.page, "pageSize": route.pageSize]]
+            "total": StampAlbumIndexPageModel.sourcePageSize * 2, "pageNum": route.page, "pageSize": route.pageSize]]
         return (try JSONSerialization.data(withJSONObject: body), 200)
     }
 }

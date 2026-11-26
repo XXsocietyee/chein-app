@@ -2,7 +2,7 @@ import SwiftUI
 
 /// fix-r8-club: reads behind the compiled `ClubGap*` views mounted on the club page.
 /// - CLB-detail-09 / CLB-r7-A-04: 管理中的项目 with 活动导演台 and 场次工具 (MP detail wxml:452-475, js:2988-3031, 1110-1220).
-/// - CLB-G04: 可对接的活动 + 我的合作 on 管理 (MP js:3780-3847). Read only: the app has no submitting pool-apply write yet.
+/// - CLB-G04: 可对接的活动 + 我的合作 + 申请带队 on 管理 (MP js:3780-3847).
 /// - CLB-G08: the overview member avatar strip (MP wxml:265-280).
 /// Each read is keyed; a newer key (club, account, tab) drops the older result.
 @MainActor final class ClubDetailR8MountModel: ObservableObject {
@@ -14,6 +14,9 @@ import SwiftUI
     @Published private(set) var topicTotal: Int?
     /// CLB-r7-A-06: 「N 人」 beside 查看客户, or 暂时读不到 when the count read fails (MP js:3591-3601).
     @Published private(set) var customerCountText: String?
+    @Published private(set) var coopApplyPendingTopicID: Int?
+    @Published var coopApplyNoticeKey: String?
+    @Published var coopApplyServerNotice: String?
     private var settingsCountsFor: Int?
     private var projectsKey: String?
     private var poolKey: String?
@@ -127,8 +130,30 @@ import SwiftUI
                      isTaken: ["taken", "cooped", "converted"].contains(row.state ?? ""),
                      merchantNick: row.merchantNick, subtitle: row.subtitle,
                      deadlineText: deadline.map { appLocalized("cooperation.expires", locale: locale) + " " + $0 },
-                     // The app's pool application ends at a request preview; 申请带队 stays hidden until it submits.
-                     canApply: false, applyID: row.applyId)
+                     canApply: ClubCoopPoolApplyClient.canApply(state: row.state), applyID: row.applyId)
+    }
+
+    /// One 申请带队 at a time. Success and an unknown result both re-read the pool.
+    func applyCoopPool(topicID: Int, clubID: Int, message: String, session: AppSession, key: String, locale: Locale) async {
+        guard coopApplyPendingTopicID == nil, let submit = session.clubCoopPoolApply else { return }
+        coopApplyPendingTopicID = topicID
+        coopApplyNoticeKey = nil
+        coopApplyServerNotice = nil
+        defer { coopApplyPendingTopicID = nil }
+        do {
+            try await submit(topicID, clubID, message)
+            coopApplyNoticeKey = "club.coopPool.applied"
+            await loadCoopPool(key: key, reader: session.cooperationReader, locale: locale, force: true)
+        } catch let refusal as MPGapServerRefusal {
+            if let text = refusal.message, !text.isEmpty { coopApplyServerNotice = text } else { coopApplyNoticeKey = "club.coopPool.applyFailed" }
+        } catch is CancellationError {
+            return
+        } catch is APIError {
+            coopApplyNoticeKey = "club.coopPool.applyFailed"
+        } catch {
+            coopApplyNoticeKey = "club.coopPool.applyUnknown"
+            await loadCoopPool(key: key, reader: session.cooperationReader, locale: locale, force: true)
+        }
     }
 
     func loadMemberAvatars<Reader: ClubReading>(key: String, clubID: Int, reader: Reader) async {
@@ -186,15 +211,26 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     let session: AppSession
     @ObservedObject var model: ClubDetailR8MountModel
     let reloadKey: String
+    let clubID: Int
     let open: (ClubDetailR8Route) -> Void
     @Environment(\.locale) private var locale
     var body: some View {
         ClubGapCoopPoolSection(
             state: model.coopPool,
+            pendingTopicID: model.coopApplyPendingTopicID,
             onRetry: { Task { await model.loadCoopPool(key: reloadKey, reader: session.cooperationReader, locale: locale, force: true) } },
-            onApply: { _, _, _ in },
+            onApply: { topicID, _, message in
+                Task { await model.applyCoopPool(topicID: topicID, clubID: clubID, message: message, session: session, key: reloadKey, locale: locale) }
+            },
             onOpenApplication: { _ in open(.myCoop) },
             onOpenMyCoop: { open(.myCoop) })
+        if let key = model.coopApplyNoticeKey {
+            Section { Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                .accessibilityIdentifier("club.coopPool.notice")
+        } else if let notice = model.coopApplyServerNotice {
+            Section { Text(verbatim: notice).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                .accessibilityIdentifier("club.coopPool.notice")
+        }
     }
 }
 
@@ -464,7 +500,8 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
         }
     }
     @ViewBuilder private var choiceSheet: some View {
-        if let choice, current(choice) {
+        // Bind under another name: the closures below reset the @State `choice`, and shadowing it crashes swift-frontend.
+        if let pending = choice, current(pending) {
             CYOptionSheet(
                 title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.open", table: "ClubPublicRoster", locale: locale)),
                 items: [

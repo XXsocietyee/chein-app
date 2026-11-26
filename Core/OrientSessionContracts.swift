@@ -132,6 +132,29 @@ public struct OrientSessionRank: Decodable, Equatable {
     }
 }
 
+/// One `recoveries[]` row (`orient-score-view.js` `normalize`). Status is only 待处理 or 已记录核对意见.
+public struct OrientScoreRecoveryRecord: Decodable, Equatable, Sendable {
+    public let id: Int
+    public let sessionID: Int
+    public let kind: String
+    public let status: Int
+    public let note: String
+    public let referenceID: Int?
+    public static let kinds = ["SYNC", "SETTLE", "APPEAL", "DISPUTE"]
+    private enum CodingKeys: String, CodingKey { case id, sessionId, kind, status, resolutionNote, referenceId }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.orientInt(.id)
+        sessionID = try c.orientInt(.sessionId)
+        kind = try c.decode(String.self, forKey: .kind)
+        status = try c.orientInt(.status)
+        note = try c.decodeIfPresent(String.self, forKey: .resolutionNote) ?? ""
+        referenceID = try c.orientOptionalInt(.referenceId)
+        guard id > 0, sessionID > 0, Self.kinds.contains(kind), status == 0 || status == 1,
+              referenceID == nil || referenceID! > 0 else { throw APIError.malformedResponse }
+    }
+}
+
 /// Dates and extra fields are kept as server facts. No local score or reward calculation.
 public struct OrientSessionScore: Decodable, Equatable {
     public let sessionID: Int
@@ -149,6 +172,8 @@ public struct OrientSessionScore: Decodable, Equatable {
     public let disputeWindowDeadline: String?
     /// Server `pendingReviewCount` (fix-r9 PLY-25-2 thin hook). Nil when absent or not an exact integer.
     public let pendingReviewCount: Int?
+    /// Server `recoveries`. Absent or null is an empty list. A present row that is not a review record fails the score.
+    public let recoveries: [OrientScoreRecoveryRecord]
     /// MP `orient-score-view.js:97`: `!data.settlement && data.status !== 3`.
     public var canSync: Bool { settlement == nil && status != 3 }
     /// MP `orient-score-view.js:97`: ended, not settled, and no task still in review.
@@ -161,11 +186,12 @@ public struct OrientSessionScore: Decodable, Equatable {
     }
     private enum CodingKeys: String, CodingKey {
         case sessionId, topicId, activityId, status, totalCenti, byDimension, timeline, settlement, appeals, disputes
-        case disputeWindowDeadline, pendingReviewCount
+        case disputeWindowDeadline, pendingReviewCount, recoveries
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         pendingReviewCount = (try? c.decodeIfPresent(OrientSessionJSON.self, forKey: .pendingReviewCount))?.exactInteger
+        recoveries = try Self.recoveryRecords(c)
         sessionID = try c.orientInt(.sessionId)
         scope = try .init(topicID: c.orientInt(.topicId), activityID: c.orientInt(.activityId), productType: 1)
         status = try c.orientInt(.status); totalCenti = try c.orientInt(.totalCenti)
@@ -186,9 +212,18 @@ public struct OrientSessionScore: Decodable, Equatable {
         guard sessionID > 0, (0...3).contains(status), settlement == nil || settlement?.sessionID == sessionID,
               ["TASK", "PUZZLE", "BONUS", "PENALTY", "ADJUSTMENT"].allSatisfy({ byDimension[$0] != nil }),
               appealRecords.allSatisfy({ $0.sessionID == sessionID }), disputeRecords.allSatisfy({ $0.sessionID == sessionID }),
+              recoveries.allSatisfy({ $0.sessionID == sessionID }),
               Set(appealRecords.map(\.id)).count == appealRecords.count,
-              Set(disputeRecords.map(\.id)).count == disputeRecords.count
+              Set(disputeRecords.map(\.id)).count == disputeRecords.count,
+              Set(recoveries.map(\.id)).count == recoveries.count
         else { throw APIError.malformedResponse }
+    }
+
+    /// MP `normalize`: a missing or null `recoveries` list is empty. Anything else must be an array of review rows.
+    private static func recoveryRecords(_ c: KeyedDecodingContainer<CodingKeys>) throws -> [OrientScoreRecoveryRecord] {
+        let key = CodingKeys.recoveries
+        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return [] }
+        return try c.decode([OrientScoreRecoveryRecord].self, forKey: key)
     }
 
     /// A number is an epoch (milliseconds when it is at least 10^10). Any other present string is shown as given.

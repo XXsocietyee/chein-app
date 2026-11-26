@@ -2,32 +2,33 @@ import SwiftUI
 
 /// Parity X1: the cooperation review page (`CoopFlowRequestPreview`) used to end on a disabled 暂不可提交.
 /// Same construction as `WP06ComplaintWrite`: a per-operation `CoopFlowService` approval, the existing fresh-evidence
-/// coordinator and an in-process lock. It opens only where `ReviewedAreaSwitch.merchantWrites` is open (TEST/DEBUG
-/// hosts, and on the China production host when MP-first gates are on). Money routes stay on `ReleaseMoneyWriteSwitch`.
+/// coordinator and an in-process lock. Non-money writes open on the China market (`MPFirstCoopWrites`).
+/// Deposit paths stay on `ReleaseMoneyWriteSwitch`. Cancelling an accepted cooperation stays on the TEST host.
 @MainActor struct CoopFlowPreviewWriteFactory {
-    let make: (CoopFlowMutation) -> CoopFlowCoordinator?
+    let make: (CoopFlowMutation, Bool) -> CoopFlowCoordinator?
     /// Parity perks P0: an executor for unprotected template writes (perk-template/save, perk-template/delete),
-    /// nil where merchant writes are closed so the perks page stays read-only there.
+    /// nil where those writes are closed so the perks page stays read-only there.
     var executor: () -> (any CoopFlowExecuting)? = { nil }
-    /// MC7-30-6: station-topic accept (`acceptSupplyStation`), nil where merchant writes are closed. Same gate and the
-    /// same per-operation `.handle` approval as the generic accept; production stays closed.
+    /// Station-topic accept (`acceptSupplyStation`). Same per-operation `.handle` approval as the generic accept.
     var stationAccept: () -> ((_ inviteID: Int, _ reason: String?, _ stationID: Int) async throws -> CoopFlowJSON)? = { nil }
+
+    func coordinator(for operation: CoopFlowMutation, cancelsAcceptedCooperation: Bool = false) -> CoopFlowCoordinator? {
+        make(operation, cancelsAcceptedCooperation)
+    }
 
     static func live(_ session: AppSession) -> CoopFlowPreviewWriteFactory {
         var factory = coordinators(session)
         factory.executor = { [weak session] in
-            guard let session, let api = session.regionalConfiguration?.apiConfiguration else { return nil }
-            let host = api.baseURL.host ?? ""
-            let productionChina = MPFirstMerchantApprovals.enabled && host == "www.chengyinhub.com"
-            guard ReviewedAreaSwitch.merchantWrites(apiHost: host) || productionChina else { return nil }
+            guard let session, let api = session.regionalConfiguration?.apiConfiguration,
+                  MPFirstCoopWrites.admitsUnprotectedWrites(market: session.regionalConfiguration?.market, host: api.baseURL.host) else { return nil }
             return CoopFlowDormantExecutor(service: CoopFlowService(configuration: api, transport: session.runtimeHTTPTransport,
                                                                     dormantWritesEnabled: true))
         }
         factory.stationAccept = { [weak session] in
             guard let session, let api = session.regionalConfiguration?.apiConfiguration,
-                  let flowSession = session.cooperationFlowReader.session,
-                  ReviewedAreaSwitch.merchantWrites(apiHost: api.baseURL.host),
-                  !ReleaseMoneyWriteSwitch.blocks("/" + CoopSupplyStationAccept.path) else { return nil }
+                  let flowSession = session.cooperationFlowReader.session else { return nil }
+            let probe = CoopFlowMutation.handle(inviteID: 1, action: .accept, reason: nil)
+            guard MPFirstCoopWrites.admits(probe, market: session.regionalConfiguration?.market, host: api.baseURL.host) else { return nil }
             let transport = session.runtimeHTTPTransport
             return { inviteID, reason, stationID in
                 let protected = CoopFlowProtectedOperation(.handle(inviteID: inviteID, action: .accept, reason: reason))
@@ -40,11 +41,11 @@ import SwiftUI
         return factory
     }
     private static func coordinators(_ session: AppSession) -> CoopFlowPreviewWriteFactory {
-        CoopFlowPreviewWriteFactory { [weak session] operation in
+        CoopFlowPreviewWriteFactory { [weak session] operation, cancelsAcceptedCooperation in
             guard let session, let api = session.regionalConfiguration?.apiConfiguration,
                   session.cooperationFlowReader.session != nil,
-                  ReviewedAreaSwitch.merchantWrites(apiHost: api.baseURL.host),
-                  !ReleaseMoneyWriteSwitch.blocks("/" + operation.path) else { return nil }
+                  MPFirstCoopWrites.admits(operation, market: session.regionalConfiguration?.market, host: api.baseURL.host,
+                                           cancelsAcceptedCooperation: cancelsAcceptedCooperation) else { return nil }
             let endpoint = api.baseURL
             let protected = CoopFlowProtectedOperation(operation)
             let service = CoopFlowService(configuration: api, transport: session.runtimeHTTPTransport, dormantWritesEnabled: true,
@@ -58,7 +59,12 @@ import SwiftUI
                     return CoopFlowEvidence(baseline: .null, permitted: false)
                 }),
                 executor: executor, locks: CoopFlowPreviewMemoryLocks.shared,
-                enabled: { ReviewedAreaSwitch.merchantWrites(apiHost: endpoint.host) && executor.permitsDispatch(operation) })
+                enabled: { [weak session] in
+                    guard let session, let api = session.regionalConfiguration?.apiConfiguration else { return false }
+                    return MPFirstCoopWrites.admits(operation, market: session.regionalConfiguration?.market, host: api.baseURL.host,
+                                                    cancelsAcceptedCooperation: cancelsAcceptedCooperation)
+                        && executor.permitsDispatch(operation)
+                })
         }
     }
 }

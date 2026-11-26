@@ -186,13 +186,21 @@ extension RootTabSwitch {
     private func growthHeader(_ key: LocalizedStringKey) -> some View {
         Text(key).cyText(.sectionTitle).textCase(nil).foregroundStyle(palette.textPrimary).padding(.top, 8)
     }
-    /// GROWTH-8 (MP growthcenter index.js:513 `footprintEmpty`): when every read succeeded and every figure is 0,
-    /// 我的足迹 is left out instead of a column of zeros. A failed read keeps the section (its issue row explains it).
+    /// GROWTH-8 (MP growthcenter index.js:513 `footprintEmpty`): 我的足迹 is left out only when every
+    /// shown count is a real zero. A missing count stays unknown (`—`), never a stand-in zero, so it cannot
+    /// be why the block disappears. A failed read keeps the section (its issue row explains it).
     static func footprintEmpty(_ overview: GrowthCenterOverview) -> Bool {
-        guard let center = overview.center.value, let progress = overview.progress.value, overview.completed.value != nil else { return false }
-        let figures: [Double] = [Double(center.experience ?? 0), Double(center.badges.count),
-                                 Double(overview.completedTopicCount ?? 0), progress.totalMileage ?? 0]
-        return figures.allSatisfy { !$0.isFinite || $0 == 0 }
+        guard let center = overview.center.value, let progress = overview.progress.value,
+              let topics = overview.completedTopicCount else { return false }
+        let shown: [Double?] = [
+            GrowthCenterFormatting.nonnegative(center.experience).map { Double($0) },
+            Double(center.badges.count),
+            Double(topics),
+            GrowthCenterFormatting.mileage(progress.totalMileage),
+        ]
+        let counts = shown.compactMap { $0 }
+        guard counts.count == shown.count else { return false }
+        return counts.allSatisfy { $0 == 0 }
     }
     @ViewBuilder private func footprint(_ overview: GrowthCenterOverview) -> some View {
         // 我的足迹 in the mini-program order: 探索值, 徽章 (枚), 完成主题 (个), 累计距离 (km); level sits in the header.

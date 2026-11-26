@@ -260,7 +260,7 @@ final class ZzZzZzCov4ClubContractPinTests: XCTestCase {
 
     /// Pay, refund execution, payout, withdrawal, paid orders, quote, registration create,
     /// and pricing confirm throw before a request exists. This test sends nothing.
-    func testPayRefundPayoutWithdrawalPaidOrdersQuoteCreateAndPricingConfirmSendNothing() throws {
+    func testPayRefundPayoutWithdrawalPaidOrdersQuoteCreateAndPricingConfirmSendNothing() async throws {
         let previous = ReleaseMoneyWriteSwitch.testDerivation
         ReleaseMoneyWriteSwitch.testDerivation = nil
         defer { ReleaseMoneyWriteSwitch.testDerivation = previous }
@@ -294,10 +294,16 @@ final class ZzZzZzCov4ClubContractPinTests: XCTestCase {
         }
         let wire = Cov4ClubIdleTransport()
         let pass = PlatformPass(configuration: try APIConfiguration(baseURL: base), transport: wire)
-        XCTAssertThrowsError(try pass.quote(productID: "9", token: "synthetic")) { error in
+        do {
+            _ = try await pass.quote(productID: "9", token: "synthetic")
+            XCTFail("quote")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")) { error in
+        do {
+            _ = try await pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")
+            XCTFail("pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertThrowsError(try pass.refundApplyPassOrder(orderNo: "NO1", reason: "不想要了", token: "synthetic")) { error in

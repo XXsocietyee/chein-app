@@ -39,7 +39,10 @@ import SwiftUI
         if scenario == .pageFailure && page > 1 { throw APIError.httpStatus(503) }
         if scenario == .empty { return try decode(RoamAlbumPage.self, "{\"list\":[],\"total\":0,\"pageNum\":\(page),\"pageSize\":\(pageSize)}") }
         var json = RoamExperienceSyntheticFixtures.album
-        if scenario == .pageFailure { json = json.replacingOccurrences(of: "\"total\":3", with: "\"total\":21") }
+        json = json.replacingOccurrences(of: "\"pageNum\":1", with: "\"pageNum\":\(page)")
+        json = json.replacingOccurrences(of: "\"pageSize\":20", with: "\"pageSize\":\(pageSize)")
+        // One row past this page, so the last tile still has a next page to ask for.
+        if scenario == .pageFailure { json = json.replacingOccurrences(of: "\"total\":3", with: "\"total\":\(pageSize + 1)") }
         return try decode(RoamAlbumPage.self, json)
     }
     func tilePage(afterID: Int, limit: Int) async throws -> RoamTileMemoryPage {

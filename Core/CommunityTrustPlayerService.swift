@@ -194,6 +194,24 @@ public struct CommunityTrustPlayerService {
         PlayerCapabilityClient.requestKey("rpa-\(reportID)-")
     }
 
+    /// Picks the body for one appeal attempt. The id is written before the first send.
+    /// A later attempt keeps that id and the reason it was first sent with, even when the editor text changed.
+    public static func appealSubmission(existingRequestID: String, lockedReason: String, reason: String, reportID: Int) -> (requestID: String, reason: String)? {
+        guard reportID > 0 else { return nil }
+        let text = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        if existingRequestID.isEmpty {
+            guard !text.isEmpty, text.count <= appealMax else { return nil }
+            let id = appealKey(reportID: reportID)
+            guard (8...96).contains(id.count) else { return nil }
+            return (id, text)
+        }
+        guard (8...96).contains(existingRequestID.count) else { return nil }
+        let locked = lockedReason.trimmingCharacters(in: .whitespacesAndNewlines)
+        let payload = locked.isEmpty ? text : locked
+        guard !payload.isEmpty, payload.count <= appealMax else { return nil }
+        return (existingRequestID, payload)
+    }
+
     func appealRequest(reportID: Int, reason: String, requestID: String) throws -> URLRequest {
         let text = reason.trimmingCharacters(in: .whitespacesAndNewlines)
         guard reportID > 0, !text.isEmpty, text.count <= Self.appealMax, (8...96).contains(requestID.count) else {
@@ -204,12 +222,15 @@ public struct CommunityTrustPlayerService {
         ])
     }
 
-    /// `appealReceiptText`: 「举报编号 N · 当前阶段：X」, empty when the receipt is not this report's.
+    /// Confirmed receipt 「举报编号 N · 当前阶段：X」.
+    /// A write that does not identify this report stays unconfirmed (`outcomeUnknown`), the same as a dropped response.
     public func appeal(reportID: Int, reason: String, requestID: String,
                        stageLabel: (String) -> String?) async throws -> String {
         let raw = try await client.write(try appealRequest(reportID: reportID, reason: reason, requestID: requestID))
         guard PlayerCapabilityClient.positiveID(raw["reportId"]) == reportID,
-              let stage = raw["stage"].string, let label = stageLabel(stage) else { return "" }
+              let stage = raw["stage"].string, let label = stageLabel(stage) else {
+            throw PlayerCapabilityFailure.outcomeUnknown
+        }
         return "举报编号 \(reportID) · 当前阶段：\(label)"
     }
 }

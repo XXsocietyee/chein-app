@@ -172,7 +172,7 @@ final class MiniProgramContractPinTests: XCTestCase {
         XCTAssertTrue(transport.requests.isEmpty)
     }
 
-    func testPlatformPassPayStaysUnsent() throws {
+    func testPlatformPassPayStaysUnsent() async throws {
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
         XCTAssertEqual(PlatformPass.passOrderPayPath, "api/platform-pass/orders/{}/pay")
@@ -182,7 +182,10 @@ final class MiniProgramContractPinTests: XCTestCase {
         let client = PlatformPass(
             configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!),
             transport: transport)
-        XCTAssertThrowsError(try client.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")) { error in
+        do {
+            _ = try await client.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")
+            XCTFail("pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)

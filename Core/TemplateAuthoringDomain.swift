@@ -147,6 +147,11 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
     public var audioDuration: Int?
     /// MP `formData.scope`. Only `MERCHANT` is written on draft and publish. A player omits it.
     public var operationScope: String?
+    /// MP `temp/index.js` `from`. Only `citynode` changes the editor. It is not a personal template field.
+    public var authoringFrom: String?
+    /// MP `interactionType` (`cms_member_template.interaction_type`). `payload` never sends it.
+    /// `TemplateAuthoringContract.cityNodeBody` is the only writer, and only for a future city-node submit.
+    public var interactionType: String?
     public init(title: String = "") { self.title = title; self.medalStyle = "glow" }
     public var canSave: Bool { !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var publishIssues: [String] {
@@ -177,6 +182,7 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
             need(blank(medalImg) == blank(medalName), "medal")
         }
         if voiceEnabled { need(!blank(audioUrl), "audio") }
+        if authoringFrom == "citynode" { need(TemplateAuthoringContract.TemplateCityNodeInteraction(rawValue: interactionType ?? "") != nil, "citynodeInteraction") }
         if finishEnabled { result += advanced.issues }
         if let issue = storyProjectionIssue { result.append(issue) }
         var unique: [String] = []; for key in result where !unique.contains(key) { unique.append(key) }; return unique
@@ -310,5 +316,84 @@ public struct TemplateAuthoringPageReadiness: Equatable {
             else if try c.decodeNil(forKey: .data) { data = .null }
             else { data = try c.decode(TemplateAuthoringJSON.self, forKey: .data) }
         }
+    }
+}
+
+/// MP `pages/publish/utils/publish/node-outcome-contract.js` `extract`.
+/// This is the temp editor's 可触发的结果 list (`temp/index.wxml` outcomePreview), not `outcomeRules`.
+public enum TemplateTriggerableOutcomes {
+    public enum Label: Equatable, Sendable {
+        case authored(String)
+        case completed, d20Success, d20Failure, unnamed
+    }
+    public struct Item: Equatable, Identifiable, Sendable {
+        public let triggerType: String
+        public let code: String
+        public let label: Label
+        public let source: String
+        public let sourceKey: String
+        public let id: String
+    }
+    public struct Issue: Equatable, Identifiable, Sendable {
+        public enum Code: String, Sendable { case invalidCode = "INVALID_CODE", duplicateCode = "DUPLICATE_CODE" }
+        public let code: Code
+        public let source: String
+        public let sourceKey: String
+        public var id: String { code.rawValue + ":" + source + ":" + sourceKey }
+        public var labelKey: String {
+            switch code {
+            case .invalidCode: return "templateAuthor.outcome.invalidCode"
+            case .duplicateCode: return "templateAuthor.outcome.duplicateCode"
+            }
+        }
+    }
+    public struct Result: Equatable, Sendable {
+        public var items: [Item]
+        public var issues: [Issue]
+    }
+    public static func extract(_ draft: TemplateAuthoringDraft) -> Result {
+        var items: [Item] = []
+        func append(_ trigger: String, _ code: String, _ label: Label, _ source: String, _ sourceKey: String) {
+            items.append(.init(triggerType: trigger, code: code, label: label, source: source, sourceKey: sourceKey, id: "\(items.count):\(source):\(sourceKey)"))
+        }
+        if draft.validationMethod == .preference, let results = jsonObject(draft.preferenceJson)?["results"]?.object {
+            for code in results.keys.sorted() {
+                let title = results[code]?.object?["title"]?.string
+                append("PREFERENCE_RESULT", code, .authored(nonempty(title) ?? code), "preference", code)
+            }
+        }
+        let advanced = draft.advanced.value
+        if let branch = advanced["branch"]?.object, branch["enabled"]?.bool == true {
+            for raw in branch["steps"]?.array ?? [] {
+                guard let step = raw.object, step["terminal"]?.bool == true else { continue }
+                let code = step["outcomeCode"]?.string ?? ""
+                let authored = nonempty(step["outcomeLabel"]?.string) ?? nonempty(step["title"]?.string) ?? nonempty(code)
+                append("ADVANCED_RESULT", code, authored.map(Label.authored) ?? .unnamed, "advanced", step["id"]?.string ?? "")
+            }
+        }
+        if items.isEmpty, let dice = advanced["diceRoll"]?.object, dice["enabled"]?.bool == true, dice["mode"]?.string == "d20" {
+            append("ADVANCED_RESULT", "D20_SUCCESS", .d20Success, "advanced", "D20_SUCCESS")
+            append("ADVANCED_RESULT", "D20_FAILURE", .d20Failure, "advanced", "D20_FAILURE")
+        }
+        if items.isEmpty { append("CHOICE", "COMPLETED", .completed, "default", "COMPLETED") }
+        var seen = Set<String>()
+        var issues: [Issue] = []
+        for item in items {
+            if item.code.range(of: #"^[A-Za-z0-9_-]{1,64}$"#, options: .regularExpression) == nil {
+                issues.append(.init(code: .invalidCode, source: item.source, sourceKey: item.sourceKey))
+            } else if !seen.insert(item.code).inserted {
+                issues.append(.init(code: .duplicateCode, source: item.source, sourceKey: item.sourceKey))
+            }
+        }
+        return .init(items: items, issues: issues)
+    }
+    private static func nonempty(_ text: String?) -> String? {
+        guard let text, !text.isEmpty else { return nil }
+        return text
+    }
+    private static func jsonObject(_ raw: String?) -> [String: TemplateAuthoringJSON]? {
+        guard let raw, let data = raw.data(using: .utf8),
+              let value = try? JSONDecoder().decode(TemplateAuthoringJSON.self, from: data) else { return nil }
+        return value.object
     }
 }

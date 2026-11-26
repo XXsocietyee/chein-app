@@ -52,6 +52,30 @@ class ParticipationParityChecks(unittest.TestCase):
         self.assertIn('detail.sourceCanCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress"', detail)
         self.assertIn('if detail.showsContactService() {', detail)
         self.assertIn('order.refundable == true', self.core)
+        # 需修改 shows 去修改 and hides 取消参与 / 联系客服. Cancel and 开始游戏 stay on their existing paths.
+        contracts = read('Core/PlayerJourneyContracts.swift')
+        self.assertIn('needsModification = raw["displayStatus"].text == "需修改"', contracts)
+        self.assertIn('guard !needsModification else { return false }', self.core)
+        self.assertIn('!sourceCanCancel(now: now) && !needsModification', self.core)
+        bottom = detail.split('.safeAreaInset(edge: .bottom)', 1)[1].split('.navigationDestination(item: $merchantApplyID)', 1)[0]
+        self.assertIn('Button("playerJourney.start", systemImage: "play.fill") { open(.play(target)) }', bottom)
+        self.assertIn('Button("playerJourney.start", systemImage: "ticket") { open(.ticketWallet) }', bottom)
+        modify = bottom.split('if detail.needsModification {', 1)[1]
+        self.assertEqual(bottom.count('if detail.needsModification {'), 1)
+        self.assertIn('Button("participation.editMerchantApply") {', modify)
+        self.assertIn('guard id > 0 else { return }', modify)
+        self.assertIn('merchantApplyID = id', modify)
+        self.assertNotIn('POST', modify)
+        self.assertNotIn('open(.play', modify)
+        self.assertNotIn('open(.ticketWallet)', modify)
+        destination = detail.split('.navigationDestination(item: $merchantApplyID)', 1)[1].split('.task(id: reader.scope)', 1)[0]
+        self.assertIn('MPReviewedPageScreen(page: "pages/topic/merchantapply/index", query: ["mode": "1", "id": String(registrationID)])', destination)
+        self.assertNotIn('公告', detail)
+        self.assertNotIn('open-type', detail)
+        self.assertNotIn('playerJourney.modifyNeedsReview', detail)
+        catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']['participation.editMerchantApply']
+        self.assertEqual(set(catalog['localizations']), {'en', 'zh-Hans'})
+        self.assertEqual(catalog['localizations']['zh-Hans']['stringUnit']['value'], '去修改')
 
     def test_detail_header_stats_and_fixed_rules(self):
         detail = self.journey.split('@MainActor struct ParticipationDetailView: View {', 1)[1].split('@MainActor struct CompletedPlayHistoryView', 1)[0]

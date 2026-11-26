@@ -195,15 +195,17 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
 }
 
 /// Attach to the whole stack: pushing details, authors or chapters must not retire it.
+/// Inactive is a navigation transition or a cover. Only a real background drops the detail.
 @MainActor struct ProfileSettingsFavoritesLifecycle: ViewModifier {
     @ObservedObject var session: AppSession
     let owner: ProfileSettingsFavoritesOwner
     @Environment(\.scenePhase) private var scenePhase
+    static func keepsPage(_ phase: ScenePhase) -> Bool { phase != .background }
     func body(content: Content) -> some View {
         content
-            .onAppear { owner.appear(current: .current(session), foreground: scenePhase == .active) }
+            .onAppear { owner.appear(current: .current(session), foreground: Self.keepsPage(scenePhase)) }
             .onChange(of: ProfileSettingsFavoritesAccess.current(session)?.key) { _, _ in owner.synchronize(.current(session)) }
-            .onChange(of: scenePhase) { _, phase in owner.setForeground(phase == .active) }
+            .onChange(of: scenePhase) { _, phase in owner.setForeground(Self.keepsPage(phase)) }
             .onDisappear { owner.retire() }
     }
 }
