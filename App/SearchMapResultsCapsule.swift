@@ -10,7 +10,7 @@ struct SearchMapResultsCapsuleView: View {
             if state.opensSheet { open() } else if state == .failed { retry() }
         } label: {
             HStack(spacing: 8) {
-                if state == .loading { ProgressView().tint(CYColor.resultSpinner).accessibilityHidden(true) }
+                if state == .loading { ProgressView().accessibilityHidden(true) }
                 switch state {
                 case .results(let total, let listOnly) where listOnly == total:
                     // Mini-program: nothing mappable here, the rows still open in the list.
@@ -22,10 +22,9 @@ struct SearchMapResultsCapsuleView: View {
                 default:
                     Text(LocalizedStringKey(state.key))
                 }
-            }.cyText(.bodyMedium).fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 16).padding(.vertical, 10).frame(minHeight: 44)
-                .background(CYColor.bgGlass, in: Capsule())
-        }.buttonStyle(.plain).disabled(state == .loading || state == .empty)
+            }.fixedSize(horizontal: false, vertical: true)
+        }.buttonStyle(.bordered).buttonBorderShape(.capsule).controlSize(.large)
+            .disabled(state == .loading || state == .empty)
             .accessibilityIdentifier("searchMap.w208.capsule")
     }
 }
@@ -48,44 +47,42 @@ struct SearchMapAllResultsSheet: View {
                 LazyVStack(alignment: .leading, spacing: 12) {
                     if refreshing {
                         ProgressView("searchMap.w208.sheet.refreshingActivities")
-                        Text("searchMap.w208.sheet.refreshingNodes").cyText(.bodyCompact).foregroundStyle(.secondary)
+                        Text("searchMap.w208.sheet.refreshingNodes").font(.subheadline).foregroundStyle(.secondary)
                     }
                     if refreshFailed {
                         VStack(alignment: .leading, spacing: 6) {
-                            Label("searchMap.w208.sheet.refreshFailed", systemImage: "exclamationmark.circle").cyText(.cardTitle)
-                            Text("searchMap.w208.sheet.refreshFailed.detail").cyText(.bodyCompact).foregroundStyle(.secondary)
-                            Button("mapRefresh.retry", action: retry).frame(minHeight: 44)
+                            Label("searchMap.w208.sheet.refreshFailed", systemImage: "exclamationmark.circle").font(.headline)
+                            Text("searchMap.w208.sheet.refreshFailed.detail").font(.subheadline).foregroundStyle(.secondary)
+                            Button("mapRefresh.retry", action: retry).buttonStyle(.bordered)
                         }.accessibilityIdentifier("searchMap.w208.sheet.refreshFailed")
                     }
                     if loading {
-                        ForEach(0..<3, id: \.self) { _ in
-                            RoundedRectangle(cornerRadius: 20).fill(.secondary.opacity(0.1)).frame(height: 96).accessibilityHidden(true)
-                        }
+                        ProgressView().frame(maxWidth: .infinity).padding(.vertical)
                     } else if failed && rows.isEmpty {
-                        CYErrorStateView(
-                            systemImage: "exclamationmark.triangle",
-                            title: "searchMap.w208.sheet.failed",
-                            message: "searchMap.w208.sheet.failed.detail",
-                            retryTitle: "searchMap.retry",
-                            onRetry: retry
-                        )
+                        ContentUnavailableView {
+                            Label("searchMap.w208.sheet.failed", systemImage: "exclamationmark.triangle")
+                        } description: {
+                            Text("searchMap.w208.sheet.failed.detail")
+                        } actions: {
+                            Button("searchMap.retry", action: retry).buttonStyle(.bordered)
+                        }
                         .accessibilityIdentifier("searchMap.w208.sheet.failed")
                     } else if rows.isEmpty {
-                        CYEmptyStateView(
-                            systemImage: "mappin.slash",
-                            title: "searchMap.w208.capsule.empty",
-                            description: "searchMap.w208.sheet.emptyHint"
-                        )
+                        ContentUnavailableView {
+                            Label("searchMap.w208.capsule.empty", systemImage: "mappin.slash")
+                        } description: {
+                            Text("searchMap.w208.sheet.emptyHint")
+                        }
                         .accessibilityIdentifier("searchMap.w208.sheet.empty")
                     }
                     let listOnly = rows.filter { !$0.hasValidCoordinates }.count
                     if listOnly > 0 {
-                        Text("searchMap.w208.sheet.listOnlyTip \(listOnly)").cyText(.bodyCompact).foregroundStyle(.secondary)
+                        Text("searchMap.w208.sheet.listOnlyTip \(listOnly)").font(.subheadline).foregroundStyle(.secondary)
                             .accessibilityIdentifier("searchMap.w208.sheet.listOnlyTip")
                     }
                     ForEach(rows) { row in
                         Button { open(row) } label: { SearchMapActivityCard(item: row, offline: offline) }
-                            .buttonStyle(QuestifyCardButtonStyle())
+                            .buttonStyle(.plain)
                             // R7-PC-A5-5: MP result-card address opens the place in the map app.
                             .modifier(HomeFeedOpenPlaceInMaps(url: SearchMapPlaceLink.url(for: row), openURL: openURL))
                             .accessibilityIdentifier("searchMap.w208.sheet.activity.\(row.id)")
@@ -93,7 +90,7 @@ struct SearchMapAllResultsSheet: View {
                         if let placeURL = SearchMapPlaceLink.url(for: row) {
                             Link(destination: placeURL) {
                                 Label("accountCollection.coupon.openInMaps", systemImage: "map")
-                                    .cyText(.label).frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                             }
                             .accessibilityIdentifier("searchMap.w208.sheet.openInMaps.\(row.id)")
                         }

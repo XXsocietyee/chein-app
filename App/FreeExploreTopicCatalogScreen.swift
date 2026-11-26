@@ -19,8 +19,15 @@ import SwiftUI
     @State private var openingTopic = false
 
     var body: some View {
-        content
-            .cyPageTitle("bundle.receipt.title")
+        Group {
+            if NativeR2Flags.freeExplore {
+                NativeFreeExploreBundleDetailView(state: nativeState, onSignIn: onSignIn,
+                                                  onReload: { Task { await load() } },
+                                                  onStart: { openingTopic = true })
+            } else {
+                content.cyPageTitle("bundle.receipt.title")
+            }
+        }
             .task(id: reloadKey) { await load() }
             .navigationDestination(isPresented: $openingTopic) {
                 SessionTopicDetailView(id: topicID, session: session)
@@ -31,6 +38,16 @@ import SwiftUI
     private var reloadKey: String {
         guard let context = session.currentRuntimeDependencyContext else { return "signedOut" }
         return "\(context.session.accountID)|\(context.session.epoch)|\(topicID)"
+    }
+
+    /// Native r2: the same phase, drawn by `NativeFreeExploreBundleDetailView`.
+    private var nativeState: NativeFreeExploreBundleState {
+        switch phase {
+        case .loading: return .loading
+        case .signedOut: return .signedOut
+        case .failed(let ledgerOff, let message): return .failed(ledgerOff: ledgerOff, message: message)
+        case .ready(let catalog): return .ready(catalog)
+        }
     }
 
     @ViewBuilder private var content: some View {

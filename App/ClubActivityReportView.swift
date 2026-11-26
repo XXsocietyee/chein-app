@@ -95,141 +95,132 @@ import SwiftUI
     let coordinator: ClubGovernanceCoordinator
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.cyPalette) private var palette
     var body: some View {
         Group {
             if !flow.isCurrent { changedScreen }
             else if let target = flow.target { targetScreen(target) }
             else { choiceScreen }
         }
-        .cyDomainPageBackground()
+        .navigationTitle(Text("club.activityReport.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .task { await flow.load() }
         .onChange(of: flow.isCurrent) { _, current in if !current { close() } }
         .onChange(of: scenePhase) { _, phase in if phase != .active { close() } }
         .onDisappear { flow.close(); coordinator.cancelReview() }
         .accessibilityIdentifier("club.activityReport.flow")
-        .cyDomainScreen(.player)
+        .themeDomain(.player)
     }
     private var changedScreen: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                CYHeroHeader("club.activityReport.title")
-                Text("club.gov.changed")
-                    .cyText(.body)
-                    .foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
+        ContentUnavailableView {
+            Label("club.gov.changed", systemImage: "arrow.triangle.2.circlepath")
         }
     }
     private func targetScreen(_ target: ClubActivityReportTarget) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                CYHeroHeader("club.activityReport.title")
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text("club.activityReport.target")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
-                    choiceTitle(target.choice.name)
-                        .cyText(.cardTitle)
-                        .foregroundStyle(palette.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let when = schedule(target.choice.startDate, target.choice.startTime) {
-                        Text(verbatim: when)
-                            .cyText(.bodyCompact)
-                            .foregroundStyle(palette.textSecondary)
-                            .monospacedDigit()
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Text("club.activityReport.platformHint")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textTertiary)
+            // The chosen activity, shown once above the system report form.
+            VStack(alignment: .leading, spacing: 4) {
+                Text("club.activityReport.target")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                choiceTitle(target.choice.name)
+                    .font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let when = schedule(target.choice.startDate, target.choice.startTime) {
+                    Text(verbatim: when)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
-                .accessibilityElement(children: .combine)
+                Text("club.activityReport.platformHint")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.top, CYSpacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .accessibilityElement(children: .combine)
             ClubGovernanceCommandForm(route: .init(operation: .report, scope: target.scope,
                 seed: target.seed.merging(ClubGovernanceReportPort.displayName(target.choice.name).map { ["targetName": ClubGovernanceValue.string($0)] } ?? [:]) { current, _ in current }),
                 identity: target.source.context.identity, access: flow.access, coordinator: coordinator,
                 validateTarget: { try await flow.validate(target) })
                 .id(target.id)
         }
-        .cyHeroScreen()
     }
     private var choiceScreen: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                CYHeroHeader("club.activityReport.title", subtitle: "club.activityReport.chooseHint")
-                if flow.loading && flow.choices.isEmpty && flow.failure == nil {
-                    CYSkeleton().accessibilityLabel(Text("club.loading"))
+        List {
+            if flow.loading && flow.choices.isEmpty && flow.failure == nil {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel(Text("club.loading"))
+            }
+            if let failure = flow.failure {
+                Section {
+                    ContentUnavailableView {
+                        Label(LocalizedStringKey(failure.localizationKey), systemImage: "exclamationmark.triangle")
+                    } actions: {
+                        Button("club.activityReport.retry") { Task { await flow.load() } }
+                            .buttonStyle(.borderedProminent)
+                    }
                 }
-                if let failure = flow.failure {
-                    CYEmptyState(
-                        systemImage: "exclamationmark.triangle",
-                        LocalizedStringKey(failure.localizationKey),
-                        actionTitle: "club.activityReport.retry",
-                        actionStyle: .primary,
-                        kind: .failure
-                    ) { Task { await flow.load() } }
+            }
+            if !flow.loading && flow.failure == nil && flow.choices.isEmpty {
+                Section {
+                    ContentUnavailableView {
+                        Label("club.activityReport.empty", systemImage: "flag")
+                    } actions: {
+                        Button("club.activityReport.retry") { Task { await flow.load() } }
+                            .buttonStyle(.borderedProminent)
+                    }
                 }
-                if !flow.loading && flow.failure == nil && flow.choices.isEmpty {
-                    CYEmptyState(
-                        systemImage: "flag",
-                        "club.activityReport.empty",
-                        actionTitle: "club.activityReport.retry",
-                        actionStyle: .primary
-                    ) { Task { await flow.load() } }
-                }
-                ForEach(flow.choices) { choice in
-                    Button { Task { await flow.select(choice) } } label: { choiceRow(choice) }
-                        .buttonStyle(.cyPressable)
-                        .disabled(flow.loading)
-                        .accessibilityIdentifier("club.activityReport.choose.\(choice.id)")
-                }
-                if flow.failure == nil && (!flow.choices.isEmpty || flow.loading) {
-                    CYPillButton("club.activityReport.retry", style: .secondary) { Task { await flow.load() } }
+            }
+            if !flow.choices.isEmpty {
+                Section {
+                    ForEach(flow.choices) { choice in
+                        Button { Task { await flow.select(choice) } } label: { choiceRow(choice) }
+                            .disabled(flow.loading)
+                            .accessibilityIdentifier("club.activityReport.choose.\(choice.id)")
+                    }
+                } header: { Text("club.activityReport.chooseHint") }
+            }
+            if flow.failure == nil && (!flow.choices.isEmpty || flow.loading) {
+                Section {
+                    Button("club.activityReport.retry") { Task { await flow.load() } }
                         .disabled(flow.loading)
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } } }
     }
     private func choiceRow(_ choice: ClubActivityReportChoice) -> some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
-            CYRowIcon(systemImage: "flag")
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                choiceTitle(choice.name)
-                    .cyText(.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let when = schedule(choice.startDate, choice.startTime) {
-                    Text(verbatim: when)
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textTertiary)
-                        .monospacedDigit()
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                LabeledContent("club.gov.field.activityId") {
-                    Text(verbatim: String(choice.id)).monospacedDigit()
-                }
-                .cyText(.meta)
-                .foregroundStyle(palette.textSecondary)
-            }
-            Spacer(minLength: CYSpacing.sm)
+        LabeledContent {
             Image(systemName: "chevron.right")
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(palette.textTertiary)
+                .foregroundStyle(.tertiary)
                 .accessibilityHidden(true)
+        } label: {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    choiceTitle(choice.name)
+                        .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let when = schedule(choice.startDate, choice.startTime) {
+                        Text(verbatim: when)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    HStack(spacing: 4) {
+                        Text("club.gov.field.activityId")
+                        Text(verbatim: String(choice.id)).monospacedDigit()
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                }
+            } icon: { Image(systemName: "flag") }
         }
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
     }
     @ViewBuilder private func choiceTitle(_ name: String?) -> some View {

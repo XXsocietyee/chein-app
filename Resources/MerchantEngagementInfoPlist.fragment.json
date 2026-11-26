@@ -4,13 +4,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Use the camera to scan QR codes or take aftercare evidence photos when you choose."
+          "value": "Use the camera only when you choose to scan a QR code, take a photo for a play task, a city stamp, a post or your profile, or view an augmented-reality scene. Merchants also use it to photograph aftercare evidence. Nothing is captured in the background."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当你主动选择时，使用相机扫描二维码或拍摄售后凭证照片。"
+          "value": "仅在你主动选择时使用相机：扫描二维码，为玩法任务、城市印章、动态或个人资料拍照，或查看 AR 场景；商家也会用它拍摄售后凭证照片。相机不会在后台拍摄。"
         }
       }
     }

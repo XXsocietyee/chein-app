@@ -163,7 +163,8 @@ struct MessagingHistoryView: View {
                     // This is the one primary action on the closed screen. Retry stays secondary.
                     if issue.titleKey == "messaging.closed" {
                         Button("im.chat.returnToList") { dismissHistory() }
-                            .buttonStyle(.cyPrimary)
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
                             .accessibilityIdentifier("im.chat.returnToList")
                     }
                 }
@@ -181,18 +182,18 @@ struct MessagingHistoryView: View {
         .safeAreaInset(edge:.bottom) {
             if replyPolicy.isSystemNotice, currentHistoryReady {
                 Label("im.reply.systemNotice", systemImage: "info.circle")
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote).foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
-                    .background(CYColor.bgElevated)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+                    .background(.bar)
                     .accessibilityIdentifier("im.reply.systemNotice")
             } else if let block = replyBlock, block != .systemNotice, currentHistoryReady {
                 Label(LocalizedStringKey(block == .blockedByMe ? "im.chat.blockedByMe" : "im.chat.peerUnavailable"),
                       systemImage: "hand.raised")
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote).foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
-                    .background(CYColor.bgElevated)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+                    .background(.bar)
                     .accessibilityIdentifier("im.chat.replyBlocked")
             } else if replyPolicy.permitsReply, let sender {
                 MessageActionComposer(coordinator: sender, identity: reader.identity,
@@ -250,21 +251,23 @@ struct MessagingHistoryView: View {
                         // R7-PC-D9-4 (MP im/chat/index.wxml:68): the counterparty's avatar, generated art as fallback.
                         IMRemoteAvatar(url: conversation?.kind == .system || conversation?.kind == .group ? nil : IMRemoteAvatar<EmptyView>.url(conversation?.counterparty?.avatar)) {
                             if conversation?.kind == .system || conversation?.kind == .group {
-                                CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
+                                Image(systemName: conversation?.kind == .group ? "person.3.fill" : "person.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .background(.quaternary)
+                                    .accessibilityHidden(true)
                             } else {
                                 MPAsset.AvatarDefault.dProfile.resizable().scaledToFill() // MP `/images/d_profile.png`
                             }
                         }
                             .frame(width: 28, height: 28).clipShape(Circle())
                         if !dynamicTypeSize.isAccessibilitySize {
-                            MessagingConversationName(conversation: conversation).cyText(.cardTitle).cyWrapText()
+                            MessagingConversationName(conversation: conversation).font(.headline).cyWrapText()
                         }
                     }
                     .accessibilityElement(children: .combine)
-                    // The tapped row's avatar and name settle into the bar while the system push slides the inbox
-                    // title into the Back button (standard push, so the edge-swipe back stays native).
-                    .cyHeroTitleRise()
-                } else { Text("messaging.history.title").cyText(.cardTitle) }
+                } else { Text("messaging.history.title").font(.headline) }
             }
         }
         .sheet(item: $safety) { presentation in
@@ -277,7 +280,6 @@ struct MessagingHistoryView: View {
             }
         }
         .themeDomain(.player)
-        .cyDomainPageBackground()
         .onChange(of: reader.identity) { _, _ in showingPollComposer = false; safety = nil }
         .refreshable { if issue?.isTerminal != true { await refreshInPlace() } }
         .onAppear { sendFlight.namespace = reduceMotion ? nil : sendFlightSpace }
@@ -296,8 +298,8 @@ struct MessagingHistoryView: View {
                 // Mini-program chat-hero: the conversation name sits large under the bar.
                 if conversation != nil {
                     MessagingConversationName(conversation: conversation)
-                        .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                        .cyWrapText().padding(.bottom, CYSpacing.xs)
+                        .font(.title3.weight(.semibold)).foregroundStyle(.primary)
+                        .cyWrapText().padding(.bottom, 4)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("messaging.history.hero")
                 }
@@ -306,25 +308,36 @@ struct MessagingHistoryView: View {
                         ChatHistoryLoading(labelKey: "messaging.loadingEarlier", identifier: "messaging.history.loadingEarlier", fills: false)
                     } else {
                         if let earlierIssue {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text("messaging.earlierFailed").cyText(.sectionTitle)
-                                if let message = earlierIssue.message { Text(verbatim: message) }
-                                else { Text(LocalizedStringKey(earlierIssue.detailKey)) }
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("messaging.earlierFailed").font(.headline)
+                                if let message = earlierIssue.message { Text(verbatim: message).font(.subheadline) }
+                                else { Text(LocalizedStringKey(earlierIssue.detailKey)).font(.subheadline) }
                             }
-                            .foregroundStyle(CYColor.textSecondary)
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("messaging.history.earlierError")
                         }
                         Button { Task { await loadEarlier() } } label: {
-                            CYListRow(
-                                LocalizedStringKey(earlierIssue == nil ? "messaging.earlier" : "messaging.retry"),
-                                meta: earlierIssue.map { LocalizedStringKey($0.detailKey) },
-                                trailing: earlierTrailing,
-                                card: false
-                            ) {
-                                CYRowIcon(systemImage: "clock.arrow.circlepath")
+                            HStack(alignment: .firstTextBaseline) {
+                                Label {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(LocalizedStringKey(earlierIssue == nil ? "messaging.earlier" : "messaging.retry"))
+                                        if let earlierIssue {
+                                            Text(LocalizedStringKey(earlierIssue.detailKey))
+                                                .font(.subheadline).foregroundStyle(.secondary)
+                                        }
+                                    }
+                                } icon: {
+                                    Image(systemName: "clock.arrow.circlepath")
+                                }
+                                Spacer(minLength: 8)
+                                if let earlierValue {
+                                    Text(verbatim: earlierValue).font(.subheadline).foregroundStyle(.secondary)
+                                }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.borderless)
                         .accessibilityIdentifier("messaging.history.earlier")
                     }
                 }
@@ -345,7 +358,7 @@ struct MessagingHistoryView: View {
                         VStack(spacing: CYSpacing.sm) {
                             // Time is grouped: one divider per burst, not a stamp on every bubble.
                             if let divider = dividers[message.id] {
-                                IMChatDividerLabel(divider: divider).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                IMChatDividerLabel(divider: divider).font(.caption).foregroundStyle(.secondary)
                                     .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
                             }
                             NavigationLink {
@@ -505,12 +518,12 @@ struct MessagingHistoryView: View {
         return "messaging.history.emptyHint"
     }
     /// A missing earlier failure message is unknown, so the row shows an em dash.
-    private var earlierTrailing: CYListRowTrailing {
-        guard let earlierIssue else { return .none }
+    private var earlierValue: String? {
+        guard let earlierIssue else { return nil }
         if let message = earlierIssue.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return .value(message)
+            return message
         }
-        return .value(ChatDisplay.unknown)
+        return ChatDisplay.unknown
     }
     private func rowTitle(_ message: MessagingMessage, accountID: Int) -> LocalizedStringKey {
         if !message.isPayloadVisible {
@@ -543,23 +556,24 @@ private struct MessagingBubble: View {
     /// Mini-program system notice: full-width card (icon, title, body, time) instead of a narrow bubble.
     private var noticeCard: some View {
         HStack(alignment: .top, spacing: Theme.Space.s3) {
-            Image(systemName: "bell.fill").font(.body).foregroundStyle(CYColor.textSecondary)
-                .frame(width: 36, height: 36).background(Circle().fill(CYColor.bgElevated)).accessibilityHidden(true)
+            Image(systemName: "bell.fill").font(.body).foregroundStyle(.secondary)
+                .frame(width: 36, height: 36).background(.quaternary, in: Circle()).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Theme.Space.s1) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text("messaging.system").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text("messaging.system").font(.headline).foregroundStyle(.primary)
                     Spacer(minLength: 4)
                     let stamp = ChatDisplay.stamp(message.createdAt)
-                    Text(verbatim: stamp).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: stamp).font(.caption).foregroundStyle(.secondary)
                 }
-                MessagingMessageContent(message: message).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                MessagingMessageContent(message: message).foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
                 IMRecipientPreviewRow(message: message, input: recipientPreview)
             }
         }
-        .padding(CYSpacing.md)
+        .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.bgElevated.opacity(0.6), in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        // Messages-style notice: system grouped fill in the system bubble shape (no tinted card).
+        .background(.quaternary, in: .rect(cornerRadius: 18, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("messaging.openDetail"))
     }
@@ -605,7 +619,6 @@ private struct MessagingBubble: View {
     var createPoll: (() -> Void)? = nil
     let present: () -> Void
     @Environment(\.locale) private var locale
-    @State private var showMoreSheet = false
     @State private var pendingSelection: Choice?
     @State private var peerReportClosed = false
     @State private var peerReportMemberID = 0
@@ -634,10 +647,23 @@ private struct MessagingBubble: View {
         let menu = IMSafetyMenu(conversation: conversation, blockedByMe: blockedByMe)
         let items = menu.items.filter(granted)
         if !items.isEmpty || createPoll != nil || offersPeerReport {
-            Button {
-                showMoreSheet = true
+            // System toolbar `Menu` (Messages / Mail pattern) instead of a drawn option sheet. A choice runs after the menu closes.
+            Menu {
+                ForEach(buildOptionItems(from: items)) { item in
+                    Button(role: item.isDanger ? .destructive : nil) {
+                        pendingSelection = item.id
+                        performPendingSelection()
+                    } label: {
+                        if let systemImage = item.systemImage {
+                            Label(item.title, systemImage: systemImage)
+                        } else {
+                            Text(verbatim: item.title)
+                        }
+                    }
+                    .accessibilityIdentifier(item.identifier ?? ("im.chat.more" + ".item"))
+                }
             } label: {
-                Label("im.chat.more", systemImage: "ellipsis")
+                Label("im.chat.more", systemImage: "ellipsis.circle")
             }
             .accessibilityLabel(Text("im.chat.more"))
             .accessibilityIdentifier("im.chat.more")
@@ -646,21 +672,8 @@ private struct MessagingBubble: View {
             }
             .sheet(isPresented: $showPeerReport) {
                 CommunityMemberReportSheet(memberID: peerReportMemberID)
-                    .cyDomainSheet(detents: [.half, .full])
-            }
-            .sheet(isPresented: $showMoreSheet, onDismiss: performPendingSelection) {
-                CYOptionSheet(
-                    title: appLocalized("im.chat.more", locale: locale),
-                    items: buildOptionItems(from: items),
-                    onSelect: { choice in
-                        pendingSelection = choice
-                        showMoreSheet = false
-                    },
-                    onClose: {
-                        showMoreSheet = false
-                    }
-                )
-                .cyDomainSheet(detents: [.half, .full])
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
@@ -785,13 +798,10 @@ private struct ChatHistoryLoading: View {
         }
     }
     private var row: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text(labelKey).cyText(.meta)
-            CYSkeleton().accessibilityHidden(true)
-        }
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, alignment: .top)
-        .accessibilityIdentifier(identifier)
+        ProgressView(labelKey)
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .top)
+            .accessibilityIdentifier(identifier)
     }
 }
 
@@ -799,12 +809,10 @@ private struct ChatHistoryLoading: View {
 private struct ChatHistoryEmpty: View {
     let hint: LocalizedStringKey
     var body: some View {
-        VStack(spacing: CYSpacing.sm) {
-            CYEmptyState(systemImage: "tray", "messaging.history.empty")
+        ContentUnavailableView {
+            Label("messaging.history.empty", systemImage: "tray")
+        } description: {
             Text(hint)
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textTertiary)
-                .multilineTextAlignment(.center)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("messaging.history.empty")
@@ -815,12 +823,10 @@ private struct ChatHistoryEmpty: View {
 /// The "load earlier" row above stays the way forward; nothing is shown as zero.
 private struct ChatHistoryUnknown: View {
     var body: some View {
-        VStack(spacing: CYSpacing.sm) {
-            CYEmptyState(systemImage: "questionmark.bubble", "im.chat.unknown.title")
+        ContentUnavailableView {
+            Label("im.chat.unknown.title", systemImage: "questionmark.bubble")
+        } description: {
             Text("im.chat.unknown.hint")
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textTertiary)
-                .multilineTextAlignment(.center)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(IMChatSessionPage.unknownAccessibilityIdentifier)
@@ -833,22 +839,19 @@ private struct ChatHistoryStatus: View {
     let identifier: String
     let retry: () -> Void
     var body: some View {
-        VStack(spacing: CYSpacing.md) {
-            CYEmptyState(systemImage: issue.canRetry ? "exclamationmark.triangle" : "lock", LocalizedStringKey(issue.titleKey))
+        ContentUnavailableView {
+            Label(LocalizedStringKey(issue.titleKey), systemImage: issue.canRetry ? "exclamationmark.triangle" : "lock")
+        } description: {
             if let message = issue.message {
                 Text(verbatim: message)
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .multilineTextAlignment(.center)
             } else {
                 Text(LocalizedStringKey(issue.detailKey))
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .multilineTextAlignment(.center)
             }
+        } actions: {
             if issue.canRetry {
                 Button("messaging.retry", action: retry)
-                    .buttonStyle(.cySecondary(fullWidth: true))
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                     .accessibilityIdentifier(identifier + ".retry")
             }
         }
@@ -857,7 +860,7 @@ private struct ChatHistoryStatus: View {
     }
 }
 
-/// Same safety owner calls as the shared review sheet. The reviewing step is a `CYConfirmSheet`.
+/// Same safety owner calls as the shared review sheet. The reviewing step is the native `MemberConfirmSheet`.
 @MainActor private struct ChatSafetySheet: View {
     @StateObject private var model: IMSafetyModel
     let onSettled: (IMSafetyAction) -> Void
@@ -907,7 +910,7 @@ private struct ChatHistoryStatus: View {
                 text: appLocalized(String.LocalizationValue(key), locale: locale)
             )
         }
-        return CYConfirmSheet(
+        return MemberConfirmSheet(
             title: appLocalized(String.LocalizationValue(copy.titleKey), locale: locale),
             message: confirmationMessage(copy),
             confirmTitle: appLocalized(String.LocalizationValue(copy.confirmKey), locale: locale),
@@ -926,7 +929,6 @@ private struct ChatHistoryStatus: View {
     private var statusForm: some View {
         NavigationStack {
             Form { statusContent }
-                .cyGroupedSurface()
                 .navigationTitle(Text("im.safety.title"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {

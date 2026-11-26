@@ -440,11 +440,10 @@ private struct CYUnlockCelebration: ViewModifier {
 private struct CYAlbumCardModifier: ViewModifier {
     @Environment(\.cyPalette) private var palette
     let padding: CGFloat
+    /// Native r2: the shared card surface (system grouped secondary background, one card radius, no stroke or shadow).
     func body(content: Content) -> some View {
         content
-            .padding(padding)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
+            .cyCardSurface(padding: padding)
     }
 }
 

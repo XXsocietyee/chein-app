@@ -93,11 +93,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 if !discoveryScope.isMerchantViewer, let operations = management?.operations, !Self.atCreationLimit(page) {
                     Section {
                         let prompt = Text("club.tab.createPrompt")
-                            .cyText(.bodyMedium)
-                            .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         let create = ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
-                            .buttonStyle(.questifyPrimary)
+                            .buttonStyle(.borderedProminent)
                             .controlSize(.regular)
                         if typeSize.isAccessibilitySize {
                             VStack(alignment: .leading, spacing: CYSpacing.sm) { prompt; create }
@@ -132,14 +130,16 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     if let governance = management?.governance {
                         ClubGovernanceHomeEntries(feedContext: .init(viewerRevision: management?.viewerRevision ?? governance.viewerRevision,
                             readerIdentity: ObjectIdentifier(reader), destination: { id in
-                                AnyView(ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, publicRoster: publicRoster))
+                                // CLB-detail-34: the feed opens the same full club page as the list rows (:187).
+                                AnyView(ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator,
+                                                       management: management, community: community, publicRoster: publicRoster))
                             }), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
                     }
                     NavigationLink {
                         ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
                             .cyPushedChrome()
                     } label: {
-                        CYListRow("club.directory", trailing: .chevron) { CYRowIcon(systemImage: "magnifyingglass") }
+                        Label("club.directory", systemImage: "magnifyingglass")
                     }
                         .accessibilityIdentifier("club.openDirectory")
                     if !discoveryScope.isMerchantViewer {
@@ -147,39 +147,31 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                             ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
                                 .cyPushedChrome()
                         } label: {
-                            CYListRow("club.owned", trailing: .chevron) { CYRowIcon(systemImage: "person.crop.circle") }
+                            Label("club.owned", systemImage: "person.crop.circle")
                         }
                             .accessibilityIdentifier("club.openOwned")
                     }
                 }
                 Section {
-                    CYSectionHeader("club.events")
                     if home.events.isEmpty {
-                        CYEmptyState(systemImage: "flag.checkered", "club.emptyEvents", messageIdentifier: "club.home.events.empty")
-                            .modifier(ClubNightGlass())
-                    }
-                    ForEach(Array(home.events.enumerated()), id: \.offset) { index, event in
-                        Group {
-                            if let topicDestination, event.id > 0 {
-                                NavigationLink { topicDestination(event.id) } label: { eventRow(event, page: page) }
-                                    .accessibilityIdentifier("club.event.\(event.id)")
-                            } else if let onTopicDestination {
-                                Button { onTopicDestination(event.id) } label: { eventRow(event, page: page) }
-                                    .buttonStyle(.cyPressable)
-                                    .accessibilityIdentifier("club.event.\(event.id)")
-                            } else { eventRow(event, page: page) }
+                        ContentUnavailableView {
+                            Label { Text("club.emptyEvents").accessibilityIdentifier("club.home.events.empty") } icon: { Image(systemName: "flag.checkered") }
                         }
-                        .modifier(ClubNightGlass())
-                        .modifier(ClubRowReveal(index: index))
                     }
+                    ForEach(Array(home.events.enumerated()), id: \.offset) { _, event in
+                        if let topicDestination, event.id > 0 {
+                            NavigationLink { topicDestination(event.id) } label: { eventRow(event, page: page) }
+                                .accessibilityIdentifier("club.event.\(event.id)")
+                        } else if let onTopicDestination {
+                            Button { onTopicDestination(event.id) } label: { eventRow(event, page: page) }
+                                .foregroundStyle(.primary)
+                                .accessibilityIdentifier("club.event.\(event.id)")
+                        } else { eventRow(event, page: page) }
+                    }
+                } header: {
+                    Text("club.events")
                 }
             }
-            .listStyle(.plain)
-            // Ground and text must come from the same palette. `cyGroupedSurface` painted the scheme-adaptive page colour
-            // while hero/row text read the domain palette, so a host whose system scheme differed from its domain
-            // drew white titles on light grey.
-            .scrollContentBackground(.hidden)
-            .cyDomainPageBackground()
         }
         }
         }
@@ -218,30 +210,30 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     }
     private var playerEmpty: some View {
         let keys = ClubTabPresentation.emptyKeys(merchant: false)
-        return CYEmptyState(systemImage: "person.3", LocalizedStringKey(keys.title), messageIdentifier: "clubTab.empty")
-            .modifier(ClubNightGlass())
+        return ContentUnavailableView {
+            Label { Text(LocalizedStringKey(keys.title)).accessibilityIdentifier("clubTab.empty") } icon: { Image(systemName: "person.3") }
+        }
     }
     /// Merchant-only status above the list. Ready state becomes the list's section header instead.
     @ViewBuilder private var localityStatus: some View {
         switch locality.phase(in: discoveryScope) {
         case .idle, .loading:
             Section {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("club.locality.loading"))
                     .accessibilityIdentifier("club.home.locality.loading")
             }
         case .unavailable:
             Section {
-                CYEmptyState(
-                    systemImage: "wifi.slash",
-                    "club.locality.unavailable",
-                    messageIdentifier: "club.home.locality.unavailable",
-                    actionTitle: "action.retry",
-                    actionIdentifier: "club.home.locality.retry",
-                    kind: .offline
-                ) { Task { await loadLocality() } }
-                .modifier(ClubNightGlass())
+                ContentUnavailableView {
+                    Label { Text("club.locality.unavailable").accessibilityIdentifier("club.home.locality.unavailable") } icon: { Image(systemName: "wifi.slash") }
+                } actions: {
+                    Button("action.retry") { Task { await loadLocality() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("club.home.locality.retry")
+                }
             }
         case .ready:
             EmptyView()
@@ -250,19 +242,17 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     private func merchantNearbySection(_ rows: [ClubRecord], page: ClubTabPageModel?) -> some View {
         Section {
             if rows.isEmpty {
-                CYEmptyState(
-                    systemImage: "mappin.and.ellipse",
-                    LocalizedStringKey(locality.phase(in: discoveryScope) == .ready ? "club.tab.empty.merchant" : "club.emptyNearby"),
-                    messageIdentifier: "club.home.nearby.empty",
-                    kind: locality.phase(in: discoveryScope) == .ready ? nil : .offline
-                )
-                .modifier(ClubNightGlass())
+                ContentUnavailableView {
+                    Label {
+                        Text(LocalizedStringKey(locality.phase(in: discoveryScope) == .ready ? "club.tab.empty.merchant" : "club.emptyNearby"))
+                            .accessibilityIdentifier("club.home.nearby.empty")
+                    } icon: { Image(systemName: "mappin.and.ellipse") }
+                }
             }
             clubRows(rows, identifier: "club.home.nearby", section: .nearby, page: page)
         } header: {
             if locality.phase(in: discoveryScope) == .ready {
                 Text("club.locality.ready")
-                    .cyText(.sectionTitle)
                     .accessibilityIdentifier("club.home.locality.ready")
             }
         }
@@ -280,7 +270,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     }
     @ViewBuilder private func clubRows(_ rows: [ClubRecord], identifier: String,
                                        section: ClubTabPresentation.Section, page: ClubTabPageModel?) -> some View {
-        ForEach(Array(rows.enumerated()), id: \.offset) { index, club in
+        ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
             let inline = inlineJoin[club.id]
             // Keep the Join / Apply pill mounted while the request is in flight. The card moves the avatar into its
             // own strip and then settles the pill; swapping in `.none` would drop the control and jump the footer.
@@ -300,39 +290,88 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 }
             }()
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                if section == .nearby {
-                    CYClubPhotoCard(name: club.name, place: clubPlace(club), coverURL: QuestifyCardArtwork.safeURL(club.cover),
-                                    memberCount: club.sourceMemberCount, seed: "\(club.id)", prominent: index == 0,
-                                    action: action, morph: morph, onOpen: { openedClubID = club.id }, onJoin: { joinInline(club, action: action) },
-                                    identifier: identifier + ".\(club.id)")
-                        .cyHeroSource(club.id, in: hero)
-                } else {
-                    CYClubRowCard(name: club.name, logoURL: QuestifyCardArtwork.safeURL(club.logo), memberCount: club.sourceMemberCount,
-                                  seed: "\(club.id)", action: action, morph: morph, onOpen: { openedClubID = club.id },
-                                  identifier: identifier + ".\(club.id)",
-                                  tags: AnyView(ClubTabTagLine(club: club, section: section,
-                                                               topicCount: page?.rows.first { $0.id == club.id && $0.section == section }?.topicCount)))
-                        .cyHeroSource(club.id, in: hero)
+                HStack(spacing: CYSpacing.md) {
+                    Button { openedClubID = club.id } label: {
+                        clubRowLabel(club, section: section, page: page)
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.primary)
+                    .accessibilityIdentifier(identifier + ".\(club.id)")
+                    .cyHeroSource(club.id, in: hero)
+                    Spacer(minLength: 0)
+                    clubRowTrailing(club, action: action, morph: morph, section: section, identifier: identifier + ".\(club.id)")
                 }
                 if inline == .working {
-                    ProgressView("club.action.working").cyText(.meta).accessibilityIdentifier("club.home.join.working.\(club.id)")
+                    ProgressView("club.action.working").font(.footnote).accessibilityIdentifier("club.home.join.working.\(club.id)")
                 } else if case .notice(let key)? = inline {
-                    Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(LocalizedStringKey(key)).font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.home.join.notice.\(club.id)")
                 }
                 CYScreenOfflineWriteBanner(
                     routes: ["/api/club/join"],
                     session: offlineWriteSession.session
                 )
-                if section == .nearby {
-                    // Nearby photo cards have no card surface around their footer; their chips stay under it.
-                    ClubTabTagLine(club: club, section: section, topicCount: nil)
+            }
+        }
+    }
+    /// Native club row: a small logo (cover for nearby clubs), the name, place and member count, and the club's tags.
+    private func clubRowLabel(_ club: ClubRecord, section: ClubTabPresentation.Section, page: ClubTabPageModel?) -> some View {
+        let imageURL = section == .nearby ? QuestifyCardArtwork.safeURL(club.cover) ?? QuestifyCardArtwork.safeURL(club.logo)
+            : QuestifyCardArtwork.safeURL(club.logo)
+        let topicCount: ClubTabPageModel.Count? = section == .nearby ? nil
+            : page?.rows.first(where: { $0.id == club.id && $0.section == section })?.topicCount
+        return Label {
+            VStack(alignment: .leading, spacing: 2) {
+                ClubName(value: club.name)
+                    .font(.headline)
+                    .multilineTextAlignment(.leading)
+                if section == .nearby, let place = clubPlace(club) {
+                    Text(verbatim: place).font(.subheadline).foregroundStyle(.secondary)
+                }
+                if let count = club.sourceMemberCount {
+                    Text(verbatim: ClubMemberCountLocalization.text(count, locale: locale))
+                        .font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
+                }
+                ClubTabTagLine(club: club, section: section, topicCount: topicCount)
+            }
+        } icon: {
+            ZStack {
+                Image(systemName: "person.3.fill").foregroundStyle(.secondary)
+                if let imageURL {
+                    PlayerFeedRemoteImage(url: imageURL, maxPixel: 168, placeholder: { Color.clear }, failure: { Color.clear })
                 }
             }
-            .modifier(ClubRowReveal(index: index))
-            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
+            .frame(width: 48, height: 48)
+            .background(.fill.tertiary)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .accessibilityHidden(true)
+        }
+    }
+    /// Join / Apply for nearby clubs runs the inline join; a "your clubs" row's pill opens the detail, as the card did.
+    @ViewBuilder private func clubRowTrailing(_ club: ClubRecord, action: CYClubCardAction, morph: CYMorphState,
+                                              section: ClubTabPresentation.Section, identifier: String) -> some View {
+        switch action {
+        case .join, .apply:
+            if morph == .working {
+                ProgressView()
+            } else {
+                Button {
+                    if section == .nearby { joinInline(club, action: action) } else { openedClubID = club.id }
+                } label: {
+                    action == .join ? Text("club.action.join") : Text("club.action.apply")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .accessibilityIdentifier(section == .nearby ? identifier + ".join" : "club.card." + (action == .join ? "join" : "apply"))
+            }
+        case .pending:
+            Label("club.membership.pending", systemImage: "clock")
+                .labelStyle(.titleAndIcon).font(.subheadline).foregroundStyle(.orange)
+        case .joined:
+            Label("club.membership.joined", systemImage: "checkmark")
+                .labelStyle(.titleAndIcon).font(.subheadline).foregroundStyle(.secondary)
+        case .owner, .none:
+            EmptyView()
         }
     }
     /// Join in place: one tap from the list. Anything the coordinator cannot do from here falls back to the detail.
@@ -377,20 +416,17 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     private func eventRow(_ event: ClubHomeEvent, page: ClubTabPageModel?) -> some View {
         let title = event.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let signups = page?.events.first { $0.id == event.id }?.signupCount
-        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Group {
-                if title.isEmpty {
-                    CYListRow("club.untitledEvent", trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
-                } else {
-                    CYListRow(verbatim: title, trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
+        return Label {
+            VStack(alignment: .leading, spacing: 2) {
+                if title.isEmpty { Text("club.untitledEvent") } else { Text(verbatim: title) }
+                if let signups {
+                    Text("club.tab.eventSignups \(signups.text)")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("club.event.signups.\(event.id)")
                 }
             }
-            .accessibilityElement(children: .combine)
-            if let signups {
-                Text("club.tab.eventSignups \(signups.text)")
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    .accessibilityIdentifier("club.event.signups.\(event.id)")
-            }
+        } icon: {
+            Image(systemName: "flag.checkered")
         }
     }
     /// Home facts plus the Core page model over the raw body. A reader without a raw body (capability off) yields no
@@ -402,38 +438,5 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         let merchant = discoveryScope.isMerchantViewer
         let page = try await PlayerFeedJSON.perform { raw.map { ClubTabPageModel.project(homeBody: $0, merchant: merchant) } }
         return ClubTabLoaded(home: home, page: page.flatMap { $0.phase == .ready || $0.phase == .empty ? $0 : nil })
-    }
-}
-
-/// Flat elevated plate for list chrome (events, empty, offline). No perimeter stroke. Join cards keep their own face.
-private struct ClubNightGlass: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .padding(CYSpacing.sm)
-            .background {
-                RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
-                    .fill(CYColor.bgElevated)
-            }
-    }
-}
-
-/// Rows rise in order. Reduce Motion shows them in place.
-private struct ClubRowReveal: ViewModifier {
-    let index: Int
-    @QuestifyReduceMotion private var reduceMotion
-    @State private var shown = false
-
-    func body(content: Content) -> some View {
-        content
-            .opacity(shown ? 1 : 0)
-            .offset(y: shown || reduceMotion ? 0 : 12)
-            .onAppear {
-                guard !shown else { return }
-                if reduceMotion {
-                    shown = true
-                } else {
-                    withAnimation(CYMotion.entrance.delay(Double(min(index, 7)) * 0.04)) { shown = true }
-                }
-            }
     }
 }

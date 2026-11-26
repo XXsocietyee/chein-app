@@ -16,20 +16,14 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
     var body: some View {
         let ticket = screenGeneration
         Form {
-            Section {
-                CYHeroHeader(verbatim: model.scope?.isAccountDefault == true ? c("accountDefault.title") : NativeChannelNotificationPresentation.localized("notification.channel.title", locale: locale))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.lg, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
-            }
             NativeChannelNotificationStatusSection(model: model, perform: { perform($0, expected: ticket) })
             Section { NativeChannelUnreadSummaryContent(model: model) }
             if let row = model.preference {
                 NativeChannelNotificationEditor(model: model, preference: row,
                     perform: { perform($0, expected: ticket) }).id(row.version)
             } else if model.isBusy {
-                CYSkeleton()
-                    .listRowBackground(Color.clear)
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("d7.channelNotify.state.loading", tableName: "NativeChannelNotification"))
             }
@@ -38,9 +32,8 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
             }
         }
         .formStyle(.grouped)
+        .navigationTitle(Text(verbatim: model.scope?.isAccountDefault == true ? c("accountDefault.title") : NativeChannelNotificationPresentation.localized("notification.channel.title", locale: locale)))
         .nativeChannelScreen()
-        .cyGroupedSurface()
-        .cyHeroScreen()
         .accessibilityIdentifier("notification.conversation.screen")
         .refreshable { await pullToRefresh(expected: ticket) }
         .onAppear { visible = true; reopen() }
@@ -95,21 +88,23 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
     var body: some View {
         Section {
             if !model.isCurrent && !model.isBusy {
-                CYEmptyState(systemImage: "lock", "d7.channelNotify.state.accessClosed", tableName: "NativeChannelNotification")
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label { Text("d7.channelNotify.state.accessClosed", tableName: "NativeChannelNotification") } icon: { Image(systemName: "lock") }
+                }
             } else if let text = NativeChannelNotificationCopy.state(model.state, locale: locale) {
                 Text(verbatim: text).nativeChannelNotice(systemImage: "bell").accessibilityIdentifier("notification.request.status")
             }
             if model.directory == nil && !model.isBusy && model.state == .ready {
-                CYEmptyState(systemImage: "bell", "d7.channelNotify.empty", tableName: "NativeChannelNotification")
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label { Text("d7.channelNotify.empty", tableName: "NativeChannelNotification") } icon: { Image(systemName: "bell") }
+                }
             }
             if model.pendingRequestID != nil {
-                CYPillButton(verbatim: c("recovery.check"), style: .secondary) { run { await $0.checkReceipt() } }
+                Button(c("recovery.check")) { run { await $0.checkReceipt() } }
                     .disabled(!model.canCheckReceipt)
                     .accessibilityIdentifier("notification.receipt.check")
                     .accessibilityLabel(Text(verbatim: c("recovery.check")))
-                CYPillButton(verbatim: c("recovery.retry"), style: .tertiary) { retryConfirmation = true }
+                Button(c("recovery.retry")) { retryConfirmation = true }
                     .disabled(!model.canCheckReceipt)
                     .accessibilityIdentifier("notification.receipt.retry")
                     .accessibilityLabel(Text(verbatim: c("recovery.retry")))
@@ -120,16 +115,9 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
             }
             if model.unreadIssue { Text(c("unreadIssue")) }
         }
-        .sheet(isPresented: $retryConfirmation) {
-            CYConfirmSheet(
-                title: c("recovery.confirm"),
-                message: "",
-                confirmTitle: c("recovery.checkAndRetry"),
-                cancelTitle: c("cancel")
-            ) {
-                run { await $0.retryOriginal() }
-            }
-            .cyDomainSheet(detents: [.peek, .half])
+        .confirmationDialog(c("recovery.confirm"), isPresented: $retryConfirmation, titleVisibility: .visible) {
+            Button(c("recovery.checkAndRetry")) { run { await $0.retryOriginal() } }
+            Button(c("cancel"), role: .cancel) {}
         }
         .onDisappear { retryConfirmation = false }
         .onChange(of: model.isCurrent) { _, current in if !current { retryConfirmation = false } }
@@ -148,8 +136,10 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
         let title = NativeChannelNotificationCopy.text("permission.title", locale: locale)
         let value = permission.snapshot.map { NativeChannelNotificationCopy.authorization($0.authorization, locale: locale) } ?? "—"
         NavigationLink { NativeNotificationPermissionNudgeView(model: permission) } label: {
-            CYListRow(verbatim: title.isEmpty ? "—" : title, trailing: .value(value.isEmpty ? "—" : value)) {
-                CYRowIcon(systemImage: "bell.badge")
+            LabeledContent {
+                Text(verbatim: value.isEmpty ? "—" : value)
+            } label: {
+                Label(title.isEmpty ? "—" : title, systemImage: "bell.badge")
             }
         }
         .accessibilityLabel(Text(verbatim: title.isEmpty ? "—" : title))
@@ -250,7 +240,7 @@ enum NativeChannelNotificationCopy {
                 .disabled(!model.canMute)
                 .accessibilityIdentifier("notification.mute.choose")
                 if preference.effective.permanentMuted == true && !preference.permanentMuted {
-                    Text(verbatim: c("editor.parentPermanent")).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: c("editor.parentPermanent")).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
@@ -277,29 +267,21 @@ enum NativeChannelNotificationCopy {
         Section {
             if let localIssue {
                 Label { Text(verbatim: c(localIssue)) } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.dangerText)
+                    .foregroundStyle(.red)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .combine)
             }
-            CYPillButton(verbatim: c("editor.save")) { prepareSave() }
+            Button(c("editor.save")) { prepareSave() }
                 .disabled(!model.canSave)
                 .accessibilityIdentifier("notification.save")
                 .accessibilityLabel(Text(verbatim: c("editor.save")))
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
         }
-        .sheet(isPresented: $saveConfirmation) {
-            CYConfirmSheet(
-                title: c("editor.confirmSave"),
-                message: "",
-                confirmTitle: c("save"),
-                cancelTitle: c("cancel")
-            ) {
+        .confirmationDialog(c("editor.confirmSave"), isPresented: $saveConfirmation, titleVisibility: .visible) {
+            Button(c("save")) {
                 let intent = draft, version = preference.version
                 perform { await $0.save(intent, expectedVersion: version) }
             }
-            .cyDomainSheet(detents: [.peek, .half])
+            Button(c("cancel"), role: .cancel) {}
         }
     }
     private func mute(_ minutes: Int) { perform { await $0.mute(minutes: minutes) } }
@@ -325,9 +307,6 @@ private struct ChannelNotifyHeading: View {
     let title: String
     var body: some View {
         Text(verbatim: title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : title)
-            .cyText(.sectionTitle)
-            .foregroundStyle(CYColor.textPrimary)
-            .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
     }

@@ -152,20 +152,10 @@ private struct CYLookCardModifier: ViewModifier {
             content
                 .padding(padding)
                 .foregroundStyle(colors.ink.swiftUIColor)
-                .background {
-                    if look.usesGlass {
-                        shape.fill(.ultraThinMaterial)
-                            .overlay(shape.fill(LinearGradient(colors: [colors.ink.swiftUIColor.opacity(0.16), colors.ink.swiftUIColor.opacity(0.05), colors.ink.swiftUIColor.opacity(0.10)],
-                                                               startPoint: .topLeading, endPoint: .bottomTrailing)))
-                    } else {
-                        shape.fill((pop ? colors.pop : colors.card).swiftUIColor)
-                    }
-                }
-                .overlay(shape.strokeBorder(colors.ink.swiftUIColor.opacity(look.usesGlass ? 0.34 : 0.2), lineWidth: 0.5))
-                .shadow(color: .black.opacity(pop ? 0.45 : 0), radius: pop ? 24 : 0, y: pop ? 12 : 0)
+                // Native r2: no glass, gradient or shadow; the look's own card colour (creator theme content).
+                .background((pop ? colors.pop : colors.card).swiftUIColor, in: shape)
         } else {
-            content.padding(padding)
-                .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            content.cyCardSurface(padding: padding)
         }
     }
 }

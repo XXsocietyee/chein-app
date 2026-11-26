@@ -3,7 +3,6 @@ import SwiftUI
 @MainActor
 struct ProfileBadgesView: View {
     let reader: any ProfileReading
-    @State private var stagger = CYStaggerGate()
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", load: { try await reader.profileBadges() }) { wall in
             if wall.isEmpty {
@@ -12,8 +11,12 @@ struct ProfileBadgesView: View {
                 List {
                     if wall.isPartial {
                         Section {
-                            CYStatusChip("profile.badges.partial", tone: .warning, systemImage: "exclamationmark.triangle")
-                                .accessibilityIdentifier("profile.badges.partial")
+                            Label {
+                                Text("profile.badges.partial")
+                            } icon: {
+                                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                            }
+                            .accessibilityIdentifier("profile.badges.partial")
                             if let message = wall.medalFailureMessage, !message.isEmpty { Text(verbatim: message) }
                             Text("profile.badges.partialHint").foregroundStyle(.secondary)
                         }
@@ -22,7 +25,6 @@ struct ProfileBadgesView: View {
                         Section("profile.badges.identities") {
                             ForEach(Array(wall.identities.enumerated()), id: \.offset) { index, badge in
                                 badgeLink(.identity(badge), identifier: "profile.badge.identity.\(index)")
-                                    .cyStaggeredAppear(index: index, gate: stagger)
                             }
                         }
                     }
@@ -33,7 +35,6 @@ struct ProfileBadgesView: View {
                             Section("profile.badges.medals") {
                                 ForEach(Array(city.enumerated()), id: \.offset) { index, badge in
                                     badgeLink(.medal(badge), identifier: "profile.badge.medal.\(index)")
-                                        .cyStaggeredAppear(index: index, gate: stagger)
                                 }
                             }
                         }
@@ -41,7 +42,6 @@ struct ProfileBadgesView: View {
                             Section("profile.badges.achievements") {
                                 ForEach(Array(achievements.enumerated()), id: \.offset) { index, badge in
                                     badgeLink(.medal(badge), identifier: "profile.badge.achievement.\(index)")
-                                        .cyStaggeredAppear(index: index, gate: stagger)
                                 }
                             }
                         }
@@ -50,19 +50,18 @@ struct ProfileBadgesView: View {
             }
         }
         .appNavigationTitle("profile.badges.title").navigationBarTitleDisplayMode(.inline)
-        .cyDomainScreen(.player)
+        .themeDomain(.player)
     }
     private func badgeLink(_ badge: ProfileBadgeSelection, identifier: String) -> some View {
         NavigationLink { ProfileBadgeDetailView(badge: badge) } label: {
-            HStack(alignment: .center, spacing: 12) {
-                ProfileBadgeMedal(badge: badge, size: 44)
-                VStack(alignment: .leading, spacing: 5) {
-                    ProfileBadgeTitle(badge: badge).cyText(.cardTitle)
-                    CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
-                                 tone: badge.isLocked ? .neutral : .success,
-                                 systemImage: badge.isLocked ? "lock" : "checkmark.seal")
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    ProfileBadgeTitle(badge: badge)
+                    ProfileBadgeStatus(badge: badge)
                 }
-            }.padding(.vertical, 5)
+            } icon: {
+                ProfileBadgeMedal(badge: badge, size: 36)
+            }
         }.accessibilityIdentifier(identifier)
     }
 }
@@ -98,24 +97,14 @@ enum ProfileBadgeSelection {
 
 struct ProfileBadgeDetailView: View {
     let badge: ProfileBadgeSelection
-    @State private var revealed = false
-    @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         List {
             Section {
-                VStack(spacing: 16) {
-                    ProfileBadgeMedal(badge: badge, size: 168)
-                        .scaleEffect(revealed || reduceMotion ? 1 : 0.82)
-                        .opacity(revealed ? 1 : 0)
-                        .onAppear {
-                            if reduceMotion { revealed = true }
-                            else { withAnimation(CYMotion.entrance) { revealed = true } }
-                        }
-                    ProfileBadgeTitle(badge: badge).cyText(.sheetTitle)
-                    CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
-                                 tone: badge.isLocked ? .neutral : .success,
-                                 systemImage: badge.isLocked ? "lock" : "checkmark.seal")
-                }.frame(maxWidth: .infinity).padding(.vertical, 12)
+                VStack(spacing: 12) {
+                    ProfileBadgeMedal(badge: badge, size: 96)
+                    ProfileBadgeTitle(badge: badge).font(.title2.weight(.semibold))
+                    ProfileBadgeStatus(badge: badge)
+                }.frame(maxWidth: .infinity).padding(.vertical, 8)
             }
             Section("profile.badges.details") {
                 LabeledContent("profile.badges.family") { Text(badge.familyKey) }
@@ -133,7 +122,7 @@ struct ProfileBadgeDetailView: View {
         }
         .appNavigationTitle("profile.badges.detail")
         .navigationBarTitleDisplayMode(.inline)
-        .cyDomainScreen(.player)
+        .themeDomain(.player)
     }
 }
 
@@ -145,11 +134,39 @@ private struct ProfileBadgeTitle: View {
     }
 }
 
+/// Locked / unlocked as a tinted SF Symbol label (colour is never the only signal: the text says it).
+private struct ProfileBadgeStatus: View {
+    let badge: ProfileBadgeSelection
+    var body: some View {
+        Label {
+            Text(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked")
+        } icon: {
+            Image(systemName: badge.isLocked ? "lock.fill" : "checkmark.seal.fill")
+                .foregroundStyle(badge.isLocked ? Color.secondary : Color.green)
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+    }
+}
+
+/// SF Symbol medal (Fitness Awards style): no crafted foil art. Identity badges, city medals and achievements
+/// each keep their own symbol; locked badges are drawn in the secondary colour.
 private struct ProfileBadgeMedal: View {
     let badge: ProfileBadgeSelection
     let size: CGFloat
+    private var symbol: String {
+        switch badge {
+        case .identity: return "person.crop.circle.badge.checkmark"
+        case .medal(let value): return value.isAchievement ? "trophy.fill" : "medal.fill"
+        }
+    }
     var body: some View {
-        CYCraftedMedal(kind: CYBadgeKind(seed: badge.seed), seed: badge.seed, size: size, foilStrength: badge.foilStrength)
+        Image(systemName: symbol)
+            .resizable()
+            .scaledToFit()
+            .symbolRenderingMode(.hierarchical)
+            .foregroundStyle(badge.isLocked ? Color.secondary : Color.accentColor)
+            .frame(width: size, height: size)
             .accessibilityHidden(true)
     }
 }

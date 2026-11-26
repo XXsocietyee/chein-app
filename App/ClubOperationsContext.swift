@@ -29,9 +29,10 @@ extension EnvironmentValues {
                 ClubOperationsWorkspaceView(target: .create, identity: identity, access: context.operations.access,
                                             coordinator: context.operations.coordinator, hostApplication: context.governance)
             } label: {
-                Text(titleKey)
+                Text(titleKey).frame(maxWidth: .infinity)
             }
-            .buttonStyle(CYPillButtonStyle(style: .primary))
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .accessibilityIdentifier("club.host.done.create")
         }
     }

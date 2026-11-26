@@ -70,14 +70,13 @@ public extension View {
     /// Player-dark list screen in the mini-program rhythm: page background, elevated grouped cards,
     /// 12pt between cards. Uses only system List behaviour (no custom chrome).
     func cyMiniListScreen() -> some View {
+        // Native r2: the system grouped list background and section spacing.
         self
-            .scrollContentBackground(.hidden)
-            .background(CYColor.bgPage.ignoresSafeArea())
-            .listSectionSpacing(CYSpacing.md)
     }
 
     /// Elevated card background for a List row/section (mini `.inv` / `.card`: bg-card, radius 16).
     func cyMiniCardRow() -> some View {
-        listRowBackground(CYColor.bgElevated)
+        // Native r2: the system grouped cell background.
+        listRowBackground(Color(uiColor: .secondarySystemGroupedBackground))
     }
 }

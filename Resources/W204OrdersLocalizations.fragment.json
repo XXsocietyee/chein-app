@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account can’t view orders"
+            "value": "Your current role can’t view orders"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看订单"
+            "value": "当前身份不能查看订单"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Orders didn’t load"
+            "value": "Orders failed to load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "订单暂时没有加载出来"
+            "value": "订单加载失败"
           }
         }
       }

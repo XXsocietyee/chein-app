@@ -10,55 +10,39 @@ struct ClubOperationsReviewView: View {
     var body: some View {
         Form {
             Section {
-                CYHeroHeader("club.ops.review")
-            }
-            .listRowInsets(Self.gutterInsets)
-            .listRowBackground(Color.clear)
-            Section {
                 if let club = review.snapshot.profile?.club {
                     LabeledContent("club.ops.club") { ClubName(value: club.name) }
                         .accessibilityIdentifier("club.ops.reviewSheet")
                 } else {
                     Text("club.ops.newClub")
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .font(.headline)
                         .accessibilityIdentifier("club.ops.reviewSheet")
                 }
             }
             details
             Section {
                 if canSubmit {
-                    if isExample {
-                        Text("club.ops.fixtureOnly")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
                     Button {
                         submitted = true
                         onConfirm()
                     } label: {
                         Text(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive"))
-                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(CYPillButtonStyle(style: .primary))
                     .disabled(submitted)
                     .accessibilityIdentifier("club.ops.confirm")
                     .cyHaptic(.impactMedium, trigger: submitted) { old, new in !old && new }
                 } else {
                     Text("club.ops.writeGated")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .foregroundStyle(.secondary)
+                }
+            } footer: {
+                if canSubmit, isExample {
+                    Text("club.ops.fixtureOnly")
                 }
             }
-            .listRowInsets(Self.gutterInsets)
-            .listRowBackground(canSubmit && !isExample ? Color.clear : nil)
         }
-        .scrollContentBackground(.hidden)
-        .cyDomainPageBackground()
-        .cyHeroScreen()
+        .navigationTitle(Text("club.ops.review"))
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("club.ops.cancel", action: onCancel)
@@ -68,7 +52,6 @@ struct ClubOperationsReviewView: View {
         }
         .cyDomainScreen(.player)
     }
-    private static let gutterInsets = EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
     @ViewBuilder private var details: some View {
         switch review.command {
         case .create(let draft): profile(draft, original: nil)
@@ -78,22 +61,17 @@ struct ClubOperationsReviewView: View {
                 LabeledContent("club.ops.current") { Text(previous ? "club.ops.enabled" : "club.ops.disabled") }
                 LabeledContent("club.ops.requested") { Text(enabled ? "club.ops.enabled" : "club.ops.disabled") }
                 Text(LocalizedStringKey("club.ops.settingConsequences." + setting.rawValue))
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         case .memberRole(let id, let admin, _):
             Section("club.ops.memberRoles") {
                 let name = review.snapshot.members.first { $0.id == id }?.trimmedNickname ?? "—"
-                LabeledContent("club.ops.member") { Text(verbatim: name.isEmpty ? "—" : name).cyText(.cardTitle) }
+                LabeledContent("club.ops.member") { Text(verbatim: name.isEmpty ? "—" : name) }
                 Text(admin ? "club.ops.makeAdmin" : "club.ops.removeAdmin")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
                 Text("club.ops.roleConsequences")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -104,7 +82,7 @@ struct ClubOperationsReviewView: View {
             row("description", draft.description); row("keywords", draft.keywords); row("style", draft.style)
             LabeledContent("club.ops.directions") {
                 if draft.activityPrefs.isEmpty {
-                    Text(verbatim: "—").foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: "—").foregroundStyle(.secondary)
                 } else {
                     VStack(alignment: .trailing) { ForEach(draft.activityPrefs, id: \.self) { canonical($0) } }
                 }
@@ -124,7 +102,7 @@ struct ClubOperationsReviewView: View {
     }
     @ViewBuilder private func canonical(_ value: String) -> some View {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty { Text(verbatim: "—").foregroundStyle(CYColor.textSecondary) }
+        if trimmed.isEmpty { Text(verbatim: "—").foregroundStyle(.secondary) }
         else if ClubOperationsCatalog.types.contains(trimmed) || ClubOperationsCatalog.directions.contains(trimmed) { Text(LocalizedStringKey("club.ops.value." + trimmed)) }
         else { Text(verbatim: trimmed) }
     }
@@ -133,10 +111,8 @@ struct ClubOperationsReviewView: View {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return LabeledContent(LocalizedStringKey("club.ops." + key)) {
             Text(verbatim: trimmed.isEmpty ? "—" : trimmed)
-                .font(numeric ? CYTypography.numericBody : CYTypography.body)
-                .foregroundStyle(CYColor.textPrimary)
+                .font(numeric ? Font.body.monospacedDigit() : .body)
                 .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

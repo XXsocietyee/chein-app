@@ -33,18 +33,17 @@ public struct ClubGapCoopPoolSection: View {
             Button(action: onOpenMyCoop) {
                 HStack {
                     Text(verbatim: ClubCoopPoolCopy.myCoopTitle)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .foregroundStyle(.primary)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
                 }
             }
             content
         } header: {
             Text(verbatim: ClubCoopPoolCopy.sectionTitle)
-                .cyText(.sectionTitle)
         }
         .sheet(item: $applyingItem) { item in
             NavigationStack {
@@ -52,13 +51,12 @@ public struct ClubGapCoopPoolSection: View {
                     Section {
                         TextField(ClubCoopPoolCopy.applyPlaceholder, text: $applyMessage, axis: .vertical)
                             .lineLimit(3...6)
-                            .cyText(.body)
                     }
                 }
                 .cyPageTitle(verbatim: ClubCoopPoolCopy.applyModalTitle(topicName: item.name))
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("取消") { applyingItem = nil }
+                        Button("common.cancel") { applyingItem = nil }
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button(ClubCoopPoolCopy.submitApply) {
@@ -77,44 +75,42 @@ public struct ClubGapCoopPoolSection: View {
     private var content: some View {
         switch state {
         case .idle, .loading:
-            HStack {
-                Spacer()
-                ProgressView()
-                Spacer()
-            }
-            .padding(.vertical, CYSpacing.md)
+            ProgressView()
+                .frame(maxWidth: .infinity)
         case .permission(let reason):
-            CYEmptyState(systemImage: "lock", verbatimTitle: "暂不能看可对接的活动", verbatimSubtitle: reason)
+            ContentUnavailableView("暂不能看可对接的活动", systemImage: "lock", description: Text(verbatim: reason))
         case .error(let reason):
-            CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: ClubCoopPoolCopy.loadFailed, verbatimSubtitle: reason, action: onRetry)
+            // The former empty state took `onRetry` without an action title, so it drew no button; pull to refresh retries.
+            ContentUnavailableView(ClubCoopPoolCopy.loadFailed, systemImage: "exclamationmark.triangle", description: Text(verbatim: reason))
         case .ready(let items):
             if items.isEmpty {
-                CYEmptyState(systemImage: "tray", verbatimTitle: ClubCoopPoolCopy.emptyTitle)
+                ContentUnavailableView(ClubCoopPoolCopy.emptyTitle, systemImage: "tray")
             } else {
                 ForEach(items) { item in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: item.name)
-                                .cyText(.cardTitle)
-                                .foregroundStyle(CYColor.textPrimary)
+                                .font(.headline)
                             Spacer()
-                            CYStatusChip(verbatim: item.stateText, tone: item.isTaken ? .neutral : .info)
+                            Text(verbatim: item.stateText)
+                                .font(.subheadline)
+                                .foregroundStyle(item.isTaken ? Color.secondary : Color.accentColor)
                         }
                         if let nick = item.merchantNick, !nick.isEmpty {
                             Text(verbatim: "\(nick) 发布")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
                         if let subtitle = item.subtitle, !subtitle.isEmpty {
                             Text(verbatim: subtitle)
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
                         HStack {
                             if let deadline = item.deadlineText, !deadline.isEmpty {
                                 Text(verbatim: deadline)
-                                    .cyText(.meta)
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
                             }
                             Spacer()
                             if item.canApply {
@@ -123,17 +119,18 @@ public struct ClubGapCoopPoolSection: View {
                                     applyMessage = ""
                                     applyingItem = item
                                 }
-                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.small)
                                 .disabled(isBusy)
                             } else if let applyID = item.applyID {
                                 Button(ClubCoopPoolCopy.viewApplicationButton) {
                                     onOpenApplication(applyID)
                                 }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
                             }
                         }
                     }
-                    .padding(.vertical, CYSpacing.xs)
                     .opacity(item.isTaken ? 0.65 : 1.0)
                 }
             }
@@ -147,17 +144,25 @@ public struct ClubGapMemberAvatarStrip: View {
         public let id: String
         public let name: String
         public let url: URL?
+        /// CLB-r9-detail-01: the member to open; nil or 0 keeps the tap on 查看全部成员.
+        public let memberID: Int?
+        /// MP `buildMemberStrip`: 主理人 for the owner, 管理员 for role 1, else none.
+        public let roleKey: String?
 
-        public init(id: String, name: String, url: URL?) {
+        public init(id: String, name: String, url: URL?, memberID: Int? = nil, roleKey: String? = nil) {
             self.id = id
             self.name = name
             self.url = url
+            self.memberID = memberID
+            self.roleKey = roleKey
         }
     }
 
     public let avatars: [AvatarItem]
     public let totalCount: Int
     public let onTapAll: () -> Void
+    /// CLB-r9-detail-01 (MP detail wxml:266-277 `goMemberProfile`): nil sends every tap to 查看全部成员.
+    public var onTapMember: ((Int) -> Void)? = nil
 
     public init(avatars: [AvatarItem], totalCount: Int, onTapAll: @escaping () -> Void) {
         self.avatars = avatars
@@ -165,34 +170,58 @@ public struct ClubGapMemberAvatarStrip: View {
         self.onTapAll = onTapAll
     }
 
+    /// CLB-r9-detail-01: the per-member tap.
+    public func memberTap(_ action: ((Int) -> Void)?) -> Self {
+        var copy = self
+        copy.onTapMember = action
+        return copy
+    }
+
+    /// MP `buildMemberStrip` (detail js:375-388): four members with name and role under each, then a 「+N」 slot.
     public var body: some View {
-        Button(action: onTapAll) {
-            HStack(spacing: CYSpacing.sm) {
-                ForEach(Array(avatars.prefix(4))) { item in
-                    CYAvatarView(url: item.url, name: item.name, size: .sm)
+        HStack(alignment: .top) {
+            ForEach(Array(avatars.prefix(4))) { item in
+                Button {
+                    if let memberID = item.memberID, memberID > 0, let onTapMember { onTapMember(memberID) } else { onTapAll() }
+                } label: {
+                    VStack {
+                        CYAvatarView(url: item.url, name: item.name, size: .sm)
+                        Text(verbatim: item.name.isEmpty ? "—" : item.name)
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        if let roleKey = item.roleKey {
+                            Text(LocalizedStringKey(roleKey))
+                                .font(.caption)
+                                .foregroundStyle(.tint)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                let overflow = max(0, totalCount - min(avatars.count, 4))
-                if overflow > 0 {
-                    Text(verbatim: "+\(overflow)")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .padding(.horizontal, CYSpacing.sm)
-                        .padding(.vertical, CYSpacing.xs)
-                        .background(Capsule().fill(CYColor.bgSurfaceSubtle))
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("club.detail.memberStrip.\(item.id)")
             }
-            .contentShape(Rectangle())
+            let overflow = max(0, totalCount - min(avatars.count, 4))
+            if overflow > 0 {
+                Button(action: onTapAll) {
+                    VStack {
+                        Image(systemName: "person.3")
+                            .imageScale(.large)
+                            .foregroundStyle(.secondary)
+                        Text(verbatim: "+\(overflow)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(Text("club.strip.all \(totalCount)"))
+                .accessibilityIdentifier("club.detail.memberStrip.more")
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("查看全部 \(totalCount) 位成员")
     }
 }
 
-/// Mount hook for `ClubDetailView` — `CLB-G06` (俱乐部设置 sheet) & `CLB-G19` (改为转让主理人).
 public struct ClubGapSettingsSheet: View {
     public let clubName: String
     public let canGovern: Bool
@@ -230,45 +259,44 @@ public struct ClubGapSettingsSheet: View {
             List {
                 if onCustomers != nil || onEnroll != nil || onEventOps != nil || onRoles != nil {
                     Section {
-                        settingsRow("查看客户", onCustomers, count: customerCountText)
-                        settingsRow("报名名册", onEnroll, count: (topicCount ?? 0) > 0 ? "\(topicCount ?? 0) 个团" : nil)
-                        settingsRow("活动运营", onEventOps)
-                        settingsRow("角色与权限", onRoles, count: delegatedRoleCount > 0 ? "\(delegatedRoleCount) 已委派" : nil)
+                        // CLB-r9-detail-03 (MP detail wxml:690-797): catalog keys, counts as the trailing value.
+                        settingsRow("club.settings.customers", onCustomers, count: customerCountText.map { Text(verbatim: $0) })
+                        settingsRow("club.settings.enroll", onEnroll, count: topicCountText)
+                        settingsRow("club.settings.eventOps", onEventOps)
+                        settingsRow("club.settings.roles", onRoles, count: delegatedRoleCount > 0 ? Text("club.settings.delegated \(delegatedRoleCount)") : nil)
                     } header: {
-                        Text(verbatim: "客户与项目").cyText(.sectionTitle)
+                        Text("club.settings.customersSection")
                     }
                 }
                 if canGovern {
                     Section {
-                        Button("编辑俱乐部资料") {
+                        Button("club.settings.editClub") {
                             dismiss()
                             onEditClub()
                         }
-                        .cyText(.body)
                     }
                     Section {
-                        Button("改为转让主理人") {
+                        Button("club.settings.transferOwner") {
                             dismiss()
                             onTransferOwner()
                         }
-                        .cyText(.body)
-                        Button("解散俱乐部", role: .destructive) {
+                        Button("club.settings.dissolve", role: .destructive) {
                             dismiss()
                             onDissolveClub()
                         }
-                        .cyText(.body)
                     } header: {
-                        Text(verbatim: "危险操作").cyText(.sectionTitle)
+                        Text("club.settings.danger")
                     } footer: {
-                        Text(verbatim: "成员将失去俱乐部与群聊入口，已报名不会自动退款。").cyText(.meta)
+                        Text("club.settings.dissolveFooter")
                     }
                 }
             }
-            .cyPageTitle(verbatim: "俱乐部设置")
+            .navigationTitle(Text("club.settings.title"))
+            .navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier("club.settings.sheet")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") { dismiss() }
+                    Button("common.close") { dismiss() }
                 }
             }
         }
@@ -288,21 +316,23 @@ public struct ClubGapSettingsSheet: View {
         return copy
     }
 
-    @ViewBuilder private func settingsRow(_ title: String, _ action: (() -> Void)?, count: String? = nil) -> some View {
+    /// 「N 个团」 beside 报名名册; nil or 0 hides it.
+    private var topicCountText: Text? {
+        guard let topicCount, topicCount > 0 else { return nil }
+        return Text("club.settings.topicCount \(topicCount)")
+    }
+
+    @ViewBuilder private func settingsRow(_ title: LocalizedStringKey, _ action: (() -> Void)?, count: Text? = nil) -> some View {
         if let action {
             Button {
                 dismiss()
                 action()
             } label: {
-                HStack {
-                    Text(verbatim: title).cyText(.body).foregroundStyle(CYColor.textPrimary)
-                    Spacer()
-                    if let count { Text(verbatim: count).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                    Image(systemName: "chevron.right").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityHidden(true)
+                LabeledContent {
+                    if let count { count }
+                } label: {
+                    Text(title).foregroundStyle(.primary)
                 }
-                .frame(minHeight: CYSpacing.minTouchTarget)
-                .contentShape(Rectangle())
             }
         }
     }

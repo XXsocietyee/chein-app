@@ -40,7 +40,7 @@ enum CYPassCardPick {
         NavigationStack {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(uiColor: .systemGroupedBackground))
+                .background(CYColor.bgPage)
                 .navigationTitle(Text(verbatim: c.t("票夹", "Ticket wallet"))) // mini-program signup page title
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -239,7 +239,7 @@ enum CYPassCardPick {
         }
         .onPreferenceChange(TicketPassTopHeightKey.self) { topHeight = $0 }
         .frame(maxWidth: .infinity)
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .background(CYColor.bgSurface)
         .clipShape(shape, style: FillStyle(eoFill: true))
         .opacity(state.isRetired ? 0.74 : 1)
         .cyBrightnessBoost(ticket.status == .ready)
@@ -255,14 +255,14 @@ enum CYPassCardPick {
                 // R8-MEM-21-3: the MP `wImg` cover, else the shipped route illustration (`cover-route.svg`); no generated art.
                 if let url = ticket.walletHTTPSCoverURL {
                     AsyncImage(url: url) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() } else { Color(uiColor: .tertiarySystemFill) }
+                        if let image = phase.image { image.resizable().scaledToFill() } else { Rectangle().fill(.quaternary) }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
                     .accessibilityHidden(true)
                 } else {
                     ZStack {
-                        Color(uiColor: .tertiarySystemFill)
+                        Rectangle().fill(.quaternary)
                         MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(12)
                             .opacity(0.5)
                             .accessibilityHidden(true)

@@ -73,7 +73,7 @@ struct ClubStoryEmptyState: View {
     var body: some View {
         // Mini-program cy-empty: title only; the explanatory detail line is no longer shown.
         let _ = detail
-        CYEmptyState(systemImage: "map", title)
+        ContentUnavailableView(title, systemImage: "map")
     }
 }
 struct ClubStoryChapterTitle: View {
@@ -81,8 +81,6 @@ struct ClubStoryChapterTitle: View {
     @Environment(\.locale) private var locale
     var body: some View {
         Text(verbatim: ClubStoryChapterText.title(chapter, locale: locale))
-            .cyText(.cardTitle)
-            .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("club.gov.fact.title")
     }
@@ -123,12 +121,11 @@ struct ClubStoryChapterHeader: View {
     let chapter: ClubStoryChapter
     @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 2) {
             ClubStoryChapterTitle(chapter: chapter)
             Text(verbatim: ClubStoryChapterText.meta(chapter, locale: locale))
-                .cyText(.label).foregroundStyle(CYColor.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
-        }.textCase(nil)
+        }
     }
 }
 @MainActor struct ClubStoryCover: View {
@@ -139,7 +136,7 @@ struct ClubStoryChapterHeader: View {
         Color.clear
             .aspectRatio(16.0 / 10.0, contentMode: .fit)
             .overlay { media }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .accessibilityHidden(true)
     }
     @ViewBuilder private var media: some View {
@@ -147,101 +144,104 @@ struct ClubStoryChapterHeader: View {
             NativeMediaImage(raw: raw, reader: imageReader ?? RetainedPublicImageReader(), zoomable: false)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            // Generated cover art stands in for a missing photo so the card stays image-led.
-            CYCoverArt(seed: seed, symbol: "map.fill")
+            // A plain system tile with the map glyph stands in for a missing photo (`seed` kept for callers).
+            let _ = seed
+            ZStack {
+                Color(uiColor: .secondarySystemFill)
+                Image(systemName: "map.fill").foregroundStyle(.secondary)
+            }
         }
     }
 }
-/// CLB-topic-story-08 (MP topic-story wxml:28-52, wxss:37-133): compact timeline stop. A numbered dot on the left, then
-/// one raised card with a 117×80 thumbnail beside 时间 / 站名 / 地址. The estimated walk sits above as one tertiary line.
+/// CLB-topic-story-08 (MP topic-story wxml:28-52): one list row per stop. The numbered symbol on the left, then a
+/// thumbnail beside 时间 / 站名 / 地址. The estimated walk sits above as one secondary line.
 /// CLB-topic-story-04: the address is the mounted `ClubGapStoryMapAddressRow` (opens Maps once Core supplies coordinates).
 @MainActor struct ClubStoryStopCard: View {
+    /// CLB-r9-native-05: sequence dot, pin and thumbnail follow Dynamic Type.
+    @ScaledMetric(relativeTo: .body) private var seqSide: CGFloat = 28
+    @ScaledMetric(relativeTo: .body) private var pinSide: CGFloat = 16
+    @ScaledMetric(relativeTo: .body) private var thumbWidth: CGFloat = 117
+    @ScaledMetric(relativeTo: .body) private var thumbHeight: CGFloat = 80
     let stop: ClubStoryStop
     let imageReader: (any RetainedPublicImageReading)?
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             if let minutes = stop.estimatedWalkingMinutes {
                 Label {
                     Text("club.story.walkMinutes \(minutes)")
                 } icon: {
                     Image(systemName: "figure.walk").accessibilityHidden(true)
                 }
-                .cyText(.micro).foregroundStyle(CYColor.textTertiary)
-                .padding(.leading, 28 + CYSpacing.md)
+                .font(.caption).foregroundStyle(.secondary)
+                .padding(.leading, seqSide + 12)
                 .accessibilityElement(children: .combine)
                 .accessibilityHint(Text("topic.itinerary.estimateNotice"))
                 .accessibilityIdentifier("club.story.walk.\(stop.id)")
             }
-            HStack(alignment: .top, spacing: CYSpacing.md) {
-                Text(verbatim: String(stop.sequence))
-                    .cyText(.label).foregroundStyle(CYColor.textPrimary)
-                    .frame(width: 28, height: 28)
-                    .background(Circle().fill(CYColor.bgRaised))
-                    .overlay(Circle().strokeBorder(CYColor.borderStrong, lineWidth: 1))
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: (0...50).contains(stop.sequence) ? "\(stop.sequence).circle.fill" : "circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.tint)
+                    .frame(width: seqSide)
                     .accessibilityLabel(Text("club.story.stop \(stop.sequence)"))
                 card
             }
         }
-        .padding(.vertical, CYSpacing.xs)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("club.story.stop.\(stop.id)")
     }
     private var card: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
-            : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 12))
         return layout {
             thumbnail
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: 2) {
                 Group {
                     if let time = stop.businessTime { Text(verbatim: time) } else { Text("club.story.hoursUnavailable") }
                 }
-                .cyText(.caption).foregroundStyle(CYColor.textPrimary)
+                .font(.caption).foregroundStyle(.secondary)
                 Group {
                     if let name = stop.name { Text(verbatim: name) } else { Text("club.story.unnamedStop") }
                 }
-                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .font(.headline)
                 .fixedSize(horizontal: false, vertical: true)
                 if let address = stop.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     ClubGapStoryMapAddressRow(stop: ClubStoryStopLocation(name: stop.name ?? "", address: address))
-                        .frame(minHeight: CYSpacing.minTouchTarget)
                 } else {
                     Label {
                         Text("club.story.addressUnavailable")
                     } icon: {
-                        MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true)
+                        MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: pinSide, height: pinSide).accessibilityHidden(true)
                     }
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(.subheadline).foregroundStyle(.secondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(CYSpacing.md)
-        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
     }
     @ViewBuilder private var thumbnail: some View {
         Group {
             if let raw = stop.imgUrl {
                 NativeMediaImage(raw: raw, reader: imageReader ?? RetainedPublicImageReader(), zoomable: false)
             } else {
-                // MP stop-card__cover--empty: a plain tile with the image glyph, labelled 「站名 暂无图片」.
+                // MP stop-card__cover--empty: a plain tile with the image glyph.
                 ZStack {
-                    CYColor.bgSurfaceStrong
-                    Image(systemName: "photo").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                    Color(uiColor: .secondarySystemFill)
+                    Image(systemName: "photo").foregroundStyle(.secondary).accessibilityHidden(true)
                 }
             }
         }
-        .frame(width: 117, height: 80)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .frame(width: thumbWidth, height: thumbHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityHidden(true)
     }
 }
-/// CLB-topic-story-09 (MP topic-story wxml:89-110, wxss:226-300): an image-led play card. The cover fills the card under a
-/// bottom scrim; the method badge sits top-left, the order top-right, and the title with one meta line
-/// 「第 N 站 节点 · 人数 · 分钟 · 难度」 reads on the scrim. Actions stay below the card (GV playContent).
+/// CLB-topic-story-09 (MP topic-story wxml:89-110): one list row per play: the cover thumbnail beside the method
+/// label, the title and one meta line 「第 N 站 节点 · 人数 · 分钟 · 难度」, the order trailing. Actions stay below (GV playContent).
 @MainActor struct ClubStoryGameplayCard: View {
     let play: ClubStoryGameplay
     let imageReader: (any RetainedPublicImageReading)?
@@ -249,35 +249,30 @@ struct ClubStoryChapterHeader: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            HStack(alignment: .top, spacing: CYSpacing.sm) {
+        HStack(alignment: .top, spacing: 12) {
+            cover
+            VStack(alignment: .leading, spacing: 4) {
                 chipRow
-                Spacer(minLength: CYSpacing.sm)
-                Text(verbatim: String(order ?? play.sequence))
-                    .cyText(.label)
-                    .frame(minWidth: 26, minHeight: 26)
-                    .background(Circle().fill(CYColor.bgOverlay))
-                    .accessibilityHidden(true)
-            }
-            Spacer(minLength: CYSpacing.xl)
-            Group {
-                if let title = play.title { Text(verbatim: title) }
-                else { Text("discovery.untitledPlay") }
-            }
-            .cyText(.sheetTitle)
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("club.gov.fact.title")
-            Text(verbatim: metaLine)
-                .cyText(.label)
+                Group {
+                    if let title = play.title { Text(verbatim: title) }
+                    else { Text("discovery.untitledPlay") }
+                }
+                .font(.headline)
                 .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("club.story.play.\(play.id)")
+                .accessibilityIdentifier("club.gov.fact.title")
+                Text(verbatim: metaLine)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("club.story.play.\(play.id)")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Text(verbatim: String(order ?? play.sequence))
+                .font(.subheadline)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
         }
-        .foregroundStyle(.white)
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, minHeight: 248, alignment: .leading)
-        .background { cover }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-        .environment(\.colorScheme, .dark)
         .accessibilityElement(children: .combine)
     }
     /// MP `joinMeta(['第 N 站 ' + node, players, duration + ' 分钟', '难度' + difficulty])`.
@@ -292,39 +287,40 @@ struct ClubStoryChapterHeader: View {
             .joined(separator: " · ")
     }
     private var cover: some View {
-        ZStack {
+        Group {
             if let raw = play.imgUrl {
                 NativeMediaImage(raw: raw, reader: imageReader ?? RetainedPublicImageReader(), zoomable: false)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                CYCoverArt(seed: play.title ?? String(play.id), symbol: "map.fill")
+                ZStack {
+                    Color(uiColor: .secondarySystemFill)
+                    Image(systemName: "map.fill").foregroundStyle(.secondary)
+                }
             }
-            // MP play-card__scrim: clear → 55% → 92% black so the title stays legible on any photo.
-            LinearGradient(stops: [.init(color: .black.opacity(0), location: 0),
-                                   .init(color: .black.opacity(0.55), location: 0.55),
-                                   .init(color: .black.opacity(0.92), location: 1)],
-                           startPoint: .top, endPoint: .bottom)
         }
+        .frame(width: 80, height: 80)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityHidden(true)
     }
     private var chipRow: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
-            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.sm))
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
         return layout {
             methodChip
             if !play.isAnswerable {
-                CYStatusChip("club.story.noAnswer", tone: .warning, systemImage: "questionmark.circle")
+                Label("club.story.noAnswer", systemImage: "questionmark.circle").foregroundStyle(.orange)
             }
         }
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
     @ViewBuilder private var methodChip: some View {
         if let code = play.validationMethod, let method = TemplateAuthoringMethod(rawValue: code) {
-            CYStatusChip(LocalizedStringKey(method.labelKey), tone: .neutral, systemImage: "checkmark.seal")
+            Label(LocalizedStringKey(method.labelKey), systemImage: "checkmark.seal")
         } else if let label = play.validationMethodLabel {
-            CYStatusChip(verbatim: label, tone: .neutral, systemImage: "checkmark.seal")
+            Label { Text(verbatim: label) } icon: { Image(systemName: "checkmark.seal") }
         } else {
-            CYStatusChip("club.story.play", tone: .neutral, systemImage: "gamecontroller")
+            Label("club.story.play", systemImage: "gamecontroller")
         }
     }
 }

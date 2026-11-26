@@ -71,18 +71,20 @@ struct ProfileOrdersView: View {
         }) { loaded in
             let orders = displayedOrders(loaded)
             if orders.isEmpty {
-                VStack(spacing: 12) {
-                    CYEmptyState(systemImage: "tray", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
+                ContentUnavailableView {
+                    Label("profile.orders.sourceEmpty", systemImage: "tray")
+                } actions: {
                     if let discoverRoutes {
                         Button("profile.orderParity.discover") { discoverRoutes() }
-                            .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
+                            .buttonStyle(.borderedProminent).controlSize(.large)
                             .accessibilityIdentifier("profile.orders.discover")
                     } else if rootTabSwitch.isAvailable {
                         Button("profile.orderParity.discover") { rootTabSwitch(.home) }
-                            .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
+                            .buttonStyle(.borderedProminent).controlSize(.large)
                             .accessibilityIdentifier("profile.orders.discover")
                     }
                 }
+                .accessibilityIdentifier("profile.orders.empty")
             } else {
                 // Local time may move an already-loaded order between categories.
                 // No timer-triggered read or financial action is performed here.
@@ -100,15 +102,11 @@ struct ProfileOrdersView: View {
                                 NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader, orderSupport: orderSupport, lookedUpOrderID: lookedUpOrderID, onOpenedOrder: { [owner = filterOwner] in lookupOpenedOrder($0, expectedOwner: owner) }) } label: {
                                     ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date), statusKey: order.historyTagKey(now: clock.date))
                                 }
-                                .buttonStyle(QuestifyCardButtonStyle())
-                                .questifyHidesLinkIndicator()
                                 .accessibilityIdentifier("profile.order.\(order.id)")
                                 // R7-MEM-16-1: MP order-history card 取消订单 / 取消报名 (index.wxml:84-90) as the native
                                 // swipe action and context menu; it opens the reviewed cancel flow (MP confirm + 处理中).
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) { cardExitButton(order) }
                                 .contextMenu { cardExitButton(order) }
-                                .padding(.horizontal, CYSpacing.pageHorizontal)
-                                .questifyCardListRow()
                             }
                             if historyMore {
                                 Group {
@@ -122,13 +120,11 @@ struct ProfileOrdersView: View {
                                         Color.clear.frame(height: 1).onAppear { loadNextHistoryPage() }
                                     }
                                 }
-                                .listRowBackground(Color.clear)
                                 .accessibilityIdentifier("profile.orders.more")
                             }
                         }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
+                    .listStyle(.insetGrouped)
                 }
             }
         }
@@ -272,16 +268,16 @@ private struct ProfileOrderRow: View {
     var body: some View {
         // Source V3-22 card: cover | mode tag + state / name / time / place, then the 实付款 (待付款) line and its action.
         // The order number lives on the detail page only.
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        VStack(alignment: .leading, spacing: 10) {
             content
             if let explanation = UnknownPaymentState.explanation(payment: order.paymentStatus, registration: order.registrationStatus) {
-                Text(verbatim: explanation).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: explanation).font(.subheadline).foregroundStyle(.secondary)
                     .accessibilityIdentifier("profile.orders.history.unknownPayment")
             }
-            Divider().overlay(CYColor.borderSubtle)
+            Divider()
             footer
         }
-        .orderCardSurface()
+        .padding(.vertical, 4)
     }
     private var stateChip: some View {
         OrderStatusChip(title: LocalizedStringKey(statusKey),
@@ -289,16 +285,16 @@ private struct ProfileOrderRow: View {
                         emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress)
     }
     private var content: some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
+        HStack(alignment: .top, spacing: 12) {
             if !typeSize.isAccessibilitySize {
                 OrderCoverTile(systemImage: order.sourceMode == .freeExplore ? "figure.walk" : "map",
-                               url: QuestifyCardArtwork.safeURL(order.coverURL), seed: order.title ?? "")
+                               url: QuestifyCardArtwork.safeURL(order.coverURL), size: 60, seed: order.title ?? "")
             }
-            VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
+            VStack(alignment: .leading, spacing: 6) {
                 // Source moh-head: mode tag on the left, order state on the right.
                 ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) { modeTag; Spacer(minLength: CYSpacing.xs); stateChip }
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) { modeTag; stateChip }
+                    HStack(alignment: .firstTextBaseline, spacing: 8) { modeTag; Spacer(minLength: 4); stateChip }
+                    VStack(alignment: .leading, spacing: 4) { modeTag; stateChip }
                 }
                 Group {
                     if let title = order.title, !title.isEmpty { Text(verbatim: title) }
@@ -306,7 +302,7 @@ private struct ProfileOrderRow: View {
                     else if order.title == nil { Text(verbatim: c.t("已下架", "No longer available")) }
                     else { Text("profile.orders.untitled") }
                 }
-                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .font(.headline).foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
                 // Source row shows the owner's MM.dd HH:mm range; otherwise keep the literal date.
                 if let range = ProfileOrderTimeRangeText.text(start: order.startDate, end: order.endDate) {
@@ -337,36 +333,36 @@ private struct ProfileOrderRow: View {
         switch order.sourceMode {
         case .cityOrienteering?:
             // HANDOFF-R1 MC-35 / §2 Status: blue is not used for status or tags.
-            Text("profile.orders.mode.city").cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
+            Text("profile.orders.mode.city").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
         case .freeExplore?:
-            Text("profile.orders.mode.free").cyText(.caption, weight: .bold).foregroundStyle(CYColor.successText)
+            Text("profile.orders.mode.free").font(.caption.weight(.semibold)).foregroundStyle(.green)
         case nil: EmptyView()
         }
     }
     private func meta(_ text: Text, _ symbol: String) -> some View {
-        Label { text.fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: symbol).frame(width: 16).accessibilityHidden(true) }
-            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        Label { text.fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: symbol).accessibilityHidden(true) }
+            .font(.subheadline).foregroundStyle(.secondary)
     }
     /// MP order card icons (`d_orderIcon.png` time, `d_orderIcon2.png` address), drawn as shipped.
     private func meta(_ text: Text, mp icon: Image) -> some View {
         Label { text.fixedSize(horizontal: false, vertical: true) } icon: {
             icon.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true)
         }
-        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        .font(.subheadline).foregroundStyle(.secondary)
     }
     private var footer: some View {
-        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
-                                                  : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+                                                  : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
         return layout {
             // Source 实付款 ¥x; an unknown amount shows "—", never a currency caveat.
-            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
                 // Source: 待付款 while registrationStatus == 1, otherwise 实付款.
-                Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").font(.subheadline).foregroundStyle(.secondary)
                 Text(verbatim: order.actualPaidAmount.map(ProfileOrderYuan.text) ?? "—")
-                    .cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
+                    .font(.title3.weight(.semibold)).monospacedDigit().foregroundStyle(.primary)
                     .cyWrapText()
             }
-            if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
+            if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
             // Visual label only: the whole card is the NavigationLink, so there is a single control.
             // Source shows 查看详情 for pending/registered orders, 查看退款详情 for refunds, and nothing on closed orders.
             // 立即支付 / 取消订单 stay on the detail page behind the payment gate.
@@ -504,7 +500,7 @@ struct ProfileOrderDetailView: View {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
                             if let key = order.selfServiceExitKey {
-                                Label(LocalizedStringKey(key), systemImage: "xmark.circle").foregroundStyle(CYColor.dangerText)
+                                Label(LocalizedStringKey(key), systemImage: "xmark.circle").foregroundStyle(.red)
                             } else {
                                 Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
                             }
@@ -525,7 +521,7 @@ struct ProfileOrderDetailView: View {
                         Label("profile.orderP2.contactSupport", systemImage: "message")
                     }.accessibilityIdentifier("profile.order.detail.support")
                     if order.selfServiceExitKey != nil, lifecycleCoordinator?.hasReviewedWriter != true {
-                        Text("profile.orderExit.viaSupport").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("profile.orderExit.viaSupport").font(.footnote).foregroundStyle(.secondary)
                             .accessibilityIdentifier("profile.order.detail.exitViaSupport")
                     }
                 }
@@ -598,10 +594,10 @@ struct ProfileOrderDetailView: View {
                   let target, target.matches(origin: reader, tickets: tickets) else { return }
             ticketTarget = target
         } label: { Label("orderTicketEntry.open", systemImage: "ticket") }
-            .frame(minHeight: 44).disabled(target == nil || !ticketEntryVisible)
+            .disabled(target == nil || !ticketEntryVisible)
             .accessibilityIdentifier("orderTicketEntry.open")
         Text(target == nil ? "orderTicketEntry.unavailable" : "orderTicketEntry.freshRead")
-            .cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     }
     private func retireTicketEntry() { ticketTarget = nil; ticketPresentationID = UUID() }
 }
@@ -612,13 +608,13 @@ struct ProfileOrderTicketScheduleRows: View {
     var body: some View {
         let schedule = ProfileOrderSchedulePresentation(order)
         if schedule.isTicket {
-            Text("profileTicketSchedule.title").cyText(.bodyMedium)
+            Text("profileTicketSchedule.title").font(.body.weight(.medium))
                 .accessibilityIdentifier("profile.order.ticketSchedule")
             ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start)
             ProfileOrderTicketTimeRow(label: "profile.orders.end", value: schedule.end)
         } else {
             if schedule.start != .absent || schedule.end != .absent {
-                Text("profileTicketSchedule.ownerTimes").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("profileTicketSchedule.ownerTimes").font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("profile.order.ownerSchedule")
             }
             if schedule.start != .absent { ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start) }
@@ -653,7 +649,7 @@ struct ProfileOrderTicketTimeRow: View {
             } else if case .source(let raw) = value {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(verbatim: raw).textSelection(.enabled)
-                    Text("profileTicketSchedule.unparsed").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("profileTicketSchedule.unparsed").font(.footnote).foregroundStyle(.secondary)
                 }.fixedSize(horizontal: false, vertical: true)
             } else { Text("profile.orders.unknown") }
         }
@@ -682,21 +678,24 @@ private struct ProfileOrderHeroSection: View {
     }
     var body: some View {
         Section {
-            HStack(alignment: .top, spacing: CYSpacing.md) {
+            HStack(alignment: .top, spacing: 12) {
             OrderCoverTile(url: QuestifyCardArtwork.safeURL(order.coverURL), size: 72, fallback: MPAsset.EmptyState.iconTicketEmpty)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: 4) {
                 // Unknown money is an em dash, never ¥0.
                 Text(verbatim: order.actualPaidAmount.map(ProfileOrderYuan.text) ?? "—")
-                    .cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    .font(.largeTitle.weight(.bold)).monospacedDigit().foregroundStyle(.primary)
                 if let title {
-                    Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: title).font(.headline).foregroundStyle(.primary)
                         .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                 }
-                if let statusText { CYStatusChip(verbatim: statusText) } else { CYStatusChip(stateKey) }
+                Group {
+                    if let statusText { Text(verbatim: statusText) } else { Text(stateKey) }
+                }
+                .font(.footnote).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.vertical, CYSpacing.xs)
+            .padding(.vertical, 4)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("profile.order.detail.hero")
         }
@@ -741,17 +740,17 @@ private struct ProfileOrderStateNoticeSection: View {
         // Evaluated on render like the source detail; the card never triggers a read.
         if let notice = order.stateNotice() {
             Section {
-                // FIN-17-7: design tokens and the shared status chip instead of raw fonts and a hand-made capsule.
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                // Native r2: system text styles; the state tag is secondary text, not a capsule.
+                VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(LocalizedStringKey(notice.titleKey)).cyText(.cardTitle)
+                        Text(LocalizedStringKey(notice.titleKey)).font(.headline)
                             .accessibilityIdentifier("profile.order.detail.stateTitle")
-                        Spacer(minLength: CYSpacing.sm)
-                        CYStatusChip(LocalizedStringKey(notice.tagKey))
+                        Spacer(minLength: 8)
+                        Text(LocalizedStringKey(notice.tagKey)).font(.footnote).foregroundStyle(.secondary)
                             .accessibilityIdentifier("profile.order.detail.stateTag")
                     }
-                    if let hint = notice.hint { Text(verbatim: hint).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                }.padding(.vertical, CYSpacing.xs).accessibilityElement(children: .contain)
+                    if let hint = notice.hint { Text(verbatim: hint).font(.subheadline).foregroundStyle(.secondary) }
+                }.accessibilityElement(children: .contain)
             }
         }
     }
@@ -764,16 +763,16 @@ private struct ProfileOrderRefundPolicyText: View {
     @Environment(\.locale) private var locale
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 4) {
             if let deadline = order.refundDeadlineDisplay?.trimmingCharacters(in: .whitespacesAndNewlines), !deadline.isEmpty {
-                Text(verbatim: deadline).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: deadline).foregroundStyle(.primary)
             } else {
                 Text(verbatim: c.t("支付成功后将按订单退款截止时间判断是否可原路退款。", "After payment, the order’s refund deadline decides whether it can be refunded to the original method."))
-                    .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(.primary)
             }
             if order.isSourceFreeOrder {
                 Text(verbatim: c.t("本单未收取费用。如需咨询报名安排，请联系客服。", "This order was free. For questions about your booking, contact support."))
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote).foregroundStyle(.secondary)
             }
         }
         .fixedSize(horizontal: false, vertical: true)
@@ -804,8 +803,8 @@ private struct ProfileOrderAmountLabel: View {
     let amount: Decimal?
     var body: some View {
         if let amount {
-            Text(verbatim: ProfileOrderYuan.text(amount)).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
-        } else { Text("activity.priceUnknown").foregroundStyle(CYColor.textSecondary) }
+            Text(verbatim: ProfileOrderYuan.text(amount)).monospacedDigit().foregroundStyle(.primary)
+        } else { Text("activity.priceUnknown").foregroundStyle(.secondary) }
     }
 }
 

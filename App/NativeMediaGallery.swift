@@ -89,9 +89,9 @@ import UIKit
                                 nextButton
                             }
                         }
-                    }.padding().cyText(.body)
+                    }.padding()
                 }
-            }.background(CYColor.bgPage)
+            }
                 .appNavigationTitle(key: titleKey).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() }.accessibilityIdentifier("media.gallery.close") } }
         }

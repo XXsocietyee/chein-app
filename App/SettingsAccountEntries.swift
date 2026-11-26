@@ -74,7 +74,8 @@ import SwiftUI
             ClubOperationsWorkspaceView(target: .create, identity: session.clubIdentity, access: operations.access,
                                         coordinator: operations.coordinator, hostApplication: session.clubManagementContext.governance)
         } else {
-            CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
+            ContentUnavailableView("mp.route.unavailable", systemImage: "tray")
+                .accessibilityIdentifier("mp.route.unavailable")
         }
     }
 }
@@ -96,22 +97,22 @@ import SwiftUI
                     confirms = confirmation != nil
                 } label: {
                     Label { Text("settings.signOut") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLogout) }
-                        .frame(maxWidth: .infinity).foregroundStyle(CYColor.textPrimary)
+                        .foregroundStyle(.red)
                 }
                     .disabled(working)
                     .accessibilityIdentifier("settings.signOut")
                 // B-SZ-02: the server did not confirm; the account stays signed in and the row retries.
                 if failed {
-                    Text("settings.signOut.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    Text("settings.signOut.failed").font(.footnote).foregroundStyle(.red)
                         .accessibilityIdentifier("settings.signOut.failed")
                 }
             }
             .sheet(isPresented: $confirms) {
                 if let expected = confirmation {
-                    CYConfirmSheet(title: appLocalized("auth.signOutConfirm", locale: locale),
-                                   message: appLocalized("settings.signOut.message", locale: locale),
-                                   confirmTitle: appLocalized("auth.signOut", locale: locale),
-                                   isDestructive: true, confirmIdentifier: "settings.signOut.confirm") {
+                    MemberConfirmSheet(title: appLocalized("auth.signOutConfirm", locale: locale),
+                                       message: appLocalized("settings.signOut.message", locale: locale),
+                                       confirmTitle: appLocalized("auth.signOut", locale: locale),
+                                       isDestructive: true, confirmIdentifier: "settings.signOut.confirm") {
                         confirmation = nil; confirms = false
                         working = true; failed = false
                         Task {

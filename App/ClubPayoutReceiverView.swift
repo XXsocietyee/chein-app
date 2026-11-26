@@ -38,43 +38,31 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             if !PayoutReceiverBridge.payoutOpen(session) { PayoutAreaClosedNote() }
             content
         }
-        // CLB-payout-receiver-03 (fix-r3-club-b): the domain screen paints the page; no second background.
-        .scrollContentBackground(.hidden)
         .navigationTitle(Text("payoutReceiver.title", tableName: "PayoutReceiver")).navigationBarTitleDisplayMode(.inline)
         .refreshable { await load() }
         .task { await load() }
-        .sheet(isPresented: $confirmingBind) {
-            CYConfirmSheet(
-                title: String(localized: LocalizedStringResource("payoutReceiver.bind.confirmTitle", table: "PayoutReceiver", locale: locale)),
-                message: String(localized: LocalizedStringResource("payoutReceiver.bind.consent", table: "PayoutReceiver", locale: locale)),
-                confirmTitle: String(localized: LocalizedStringResource("payoutReceiver.bind", table: "PayoutReceiver", locale: locale)),
-                cancelTitle: appLocalized("action.cancel", locale: locale),
-                isDestructive: false,
-                confirmIdentifier: "payoutReceiver.bind.confirm",
-                onCancel: { confirmingBind = false },
-                onConfirm: {
-                    confirmingBind = false
-                    Task { await bind() }
-                }
-            )
-            .cyDomainSheet(detents: [.peek, .half])
+        .alert(String(localized: LocalizedStringResource("payoutReceiver.bind.confirmTitle", table: "PayoutReceiver", locale: locale)),
+               isPresented: $confirmingBind) {
+            Button(String(localized: LocalizedStringResource("payoutReceiver.bind", table: "PayoutReceiver", locale: locale))) {
+                confirmingBind = false
+                Task { await bind() }
+            }
+            .accessibilityIdentifier("payoutReceiver.bind.confirm")
+            Button(appLocalized("action.cancel", locale: locale), role: .cancel) { confirmingBind = false }
+        } message: {
+            Text(verbatim: String(localized: LocalizedStringResource("payoutReceiver.bind.consent", table: "PayoutReceiver", locale: locale)))
         }
-        .sheet(isPresented: $confirmingUnbind) {
-            CYConfirmSheet(
-                // CLB-payout-receiver-02 (fix-r3-club-b): MP danger-actions `club.personal-receiver.unbind` copy.
-                title: String(localized: LocalizedStringResource("clubR3b.payout.unbindTitle", locale: locale)),
-                message: String(localized: LocalizedStringResource("clubR3b.payout.unbindDetail", locale: locale)),
-                confirmTitle: String(localized: LocalizedStringResource("payoutReceiver.unbind", table: "PayoutReceiver", locale: locale)),
-                cancelTitle: appLocalized("action.cancel", locale: locale),
-                isDestructive: true,
-                confirmIdentifier: "payoutReceiver.unbind.confirm",
-                onCancel: { confirmingUnbind = false },
-                onConfirm: {
-                    confirmingUnbind = false
-                    Task { await unbind() }
-                }
-            )
-            .cyDomainSheet(detents: [.peek, .half])
+        // CLB-payout-receiver-02 (fix-r3-club-b): MP danger-actions `club.personal-receiver.unbind` copy.
+        .confirmationDialog(String(localized: LocalizedStringResource("clubR3b.payout.unbindTitle", locale: locale)),
+                            isPresented: $confirmingUnbind, titleVisibility: .visible) {
+            Button(String(localized: LocalizedStringResource("payoutReceiver.unbind", table: "PayoutReceiver", locale: locale)), role: .destructive) {
+                confirmingUnbind = false
+                Task { await unbind() }
+            }
+            .accessibilityIdentifier("payoutReceiver.unbind.confirm")
+            Button(appLocalized("action.cancel", locale: locale), role: .cancel) { confirmingUnbind = false }
+        } message: {
+            Text(verbatim: String(localized: LocalizedStringResource("clubR3b.payout.unbindDetail", locale: locale)))
         }
         .appSwitcherPrivacyShield()
         .cyDomainScreen(.player)
@@ -83,7 +71,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     @ViewBuilder private var content: some View {
         switch state {
         case .loading:
-            Section { CYLoadingStateView(rows: 2) }.accessibilityIdentifier("payoutReceiver.loading")
+            Section { ProgressView().frame(maxWidth: .infinity) }.accessibilityIdentifier("payoutReceiver.loading")
         case .empty:
             // CLB-r7-D-04 (fix-r3-club-b): MP 还没有自己的俱乐部 offers 创建俱乐部.
             Section {
@@ -93,24 +81,31 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             }
         case .failed where missingClub:
             Section {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "clubR3b.payout.clubMissing", messageIdentifier: "payoutReceiver.clubMissing",
-                             actionTitle: "clubR3b.checkin.back", actionStyle: .primary, kind: .failure) { dismiss() }
+                ContentUnavailableView {
+                    Label { Text("clubR3b.payout.clubMissing").accessibilityIdentifier("payoutReceiver.clubMissing") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button { dismiss() } label: { Text("clubR3b.checkin.back") }
+                        .buttonStyle(.borderedProminent)
+                }
             }
         case .failed(let issue):
+            // CLB-r9-native-03: the read failure is a system ContentUnavailableView (title, the reason, 重新加载).
             Section {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text("payoutReceiver.loadFailed", tableName: "PayoutReceiver").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                ContentUnavailableView {
+                    Label { Text("payoutReceiver.loadFailed", tableName: "PayoutReceiver") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } description: {
                     PayoutReceiverIssueText(issue: issue, fallbackKey: "payoutReceiver.statusUnavailable")
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
+                } actions: {
+                    Button { Task { await load() } } label: { Text("payoutReceiver.reload", tableName: "PayoutReceiver") }
+                        .buttonStyle(.bordered)
                         .accessibilityIdentifier("payoutReceiver.reload")
                 }
             }
         case .ready(let status):
             Section {
                 LabeledContent {
-                    CYStatusChip(verbatim: payoutText(status.stateKey, locale),
-                                 tone: tone(status.tone))
+                    Text(verbatim: payoutText(status.stateKey, locale))
+                        .foregroundStyle(tone(status.tone))
                 } label: { Text("payoutReceiver.row.state", tableName: "PayoutReceiver") }
                     .accessibilityIdentifier("payoutReceiver.state." + status.pageState.rawValue)
                 if status.paused {
@@ -125,27 +120,26 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             }
             if PayoutReceiverBridge.payoutOpen(session) { Section {
                 if let key = status.bindKey {
-                    CYPillButton(LocalizedStringKey(key), style: .primary, tableName: "PayoutReceiver") { if !busy { confirmingBind = true } }
+                    Button { if !busy { confirmingBind = true } } label: { Text(LocalizedStringKey(key), tableName: "PayoutReceiver") }
                         .disabled(busy).accessibilityIdentifier("payoutReceiver.bind")
                 }
                 if status.pageState != .unbound, status.canUnbind {
-                    CYPillButton("payoutReceiver.unbind", style: .secondary, tableName: "PayoutReceiver") { if !busy { confirmingUnbind = true } }
+                    Button(role: .destructive) { if !busy { confirmingUnbind = true } } label: { Text("payoutReceiver.unbind", tableName: "PayoutReceiver") }
                         .disabled(busy).accessibilityIdentifier("payoutReceiver.unbind")
                 }
                 if busy { ProgressView() }
-                if bound { CYStatusChip(verbatim: payoutText("payoutReceiver.bound", locale), tone: .success, systemImage: "checkmark") }
+                if bound { Label(payoutText("payoutReceiver.bound", locale), systemImage: "checkmark").foregroundStyle(.green) }
                 if let notice {
                     PayoutReceiverIssueText(issue: notice, fallbackKey: noticeFromUnbind ? "payoutReceiver.unbindFailed" : "payoutReceiver.bindFailed")
-                        .cyText(.meta).foregroundStyle(CYColor.warningText)
+                        .font(.footnote).foregroundStyle(.orange)
                         .accessibilityIdentifier("payoutReceiver.notice")
                 }
-            }
-            .listRowBackground(Color.clear) }
+            } }
         }
     }
 
-    private func tone(_ raw: String) -> CYStatusTone {
-        switch raw { case "success": return .success; case "warning": return .warning; default: return .neutral }
+    private func tone(_ raw: String) -> Color {
+        switch raw { case "success": return .green; case "warning": return .orange; default: return .secondary }
     }
 
     private func load() async {
@@ -206,13 +200,18 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 PayoutAreaClosedNote()
             } else {
                 switch state {
-                case .loading: Section { CYLoadingStateView(rows: 3) }
+                case .loading: Section { ProgressView().frame(maxWidth: .infinity) }
                 case .empty:
                     Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver"), messageIdentifier: "clubSettlement.mine.empty") }
                 case .failed(let issue):
                     Section {
-                        PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable")
-                        CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
+                        // CLB-r9-native-03: system failure state with 重新加载.
+                        ContentUnavailableView {
+                            Label { PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } actions: {
+                            Button { Task { await load() } } label: { Text("payoutReceiver.reload", tableName: "PayoutReceiver") }
+                                .buttonStyle(.bordered)
+                        }
                     }
                 case .ready(let clubs):
                     Section {
@@ -224,8 +223,6 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 }
             }
         }
-        // CLB-payout-receiver-03 (fix-r3-club-b): the domain screen paints the page; no second background.
-        .scrollContentBackground(.hidden)
         .navigationTitle(Text("clubSettlement.title", tableName: "PayoutReceiver"))
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await load() }
@@ -272,19 +269,22 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 PayoutAreaClosedNote()
             } else {
                 switch state {
-                case .loading: Section { CYLoadingStateView(rows: 3) }
+                case .loading: Section { ProgressView().frame(maxWidth: .infinity) }
                 case .empty: Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver")) }
                 case .failed(let issue):
                     Section {
-                        PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable")
-                        CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
+                        // CLB-r9-native-03: system failure state with 重新加载.
+                        ContentUnavailableView {
+                            Label { PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } actions: {
+                            Button { Task { await load() } } label: { Text("payoutReceiver.reload", tableName: "PayoutReceiver") }
+                                .buttonStyle(.bordered)
+                        }
                     }
                 case .ready(let summary): ready(summary)
                 }
             }
         }
-        // CLB-payout-receiver-03 (fix-r3-club-b): the domain screen paints the page; no second background.
-        .scrollContentBackground(.hidden)
         .navigationTitle(Text("clubSettlement.title", tableName: "PayoutReceiver"))
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await load() }
@@ -308,18 +308,19 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             Section {
                 // CLB-settlement-07 (fix-r3-club-b), MC-29: the same card as 管理 → 结算: an unverified total is "—"
                 // (VoiceOver: 金额待核验) and the unverified count is a warning chip.
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text("clubSettlement.settled", tableName: "PayoutReceiver").cyText(.label).foregroundStyle(CYColor.textSecondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("clubSettlement.settled", tableName: "PayoutReceiver").font(.subheadline).foregroundStyle(.secondary)
                     if let amount = summary.settledAmountText {
-                        Text(verbatim: ClubMoneyText.display(amount)).cyText(.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: ClubMoneyText.display(amount)).font(.largeTitle.weight(.semibold)).monospacedDigit()
                     } else {
-                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).cyText(.data2XL).monospacedDigit()
-                            .foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).font(.largeTitle.weight(.semibold)).monospacedDigit()
                             .accessibilityLabel(Text("clubSettlement.amountUnverified", tableName: "PayoutReceiver"))
                     }
                     if summary.unverifiedSettledCount > 0 {
-                        CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubSettlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "PayoutReceiver", locale: locale)),
-                                     tone: .warning, systemImage: "questionmark.circle")
+                        Label(String(localized: LocalizedStringResource("clubSettlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "PayoutReceiver", locale: locale)),
+                              systemImage: "questionmark.circle")
+                            .font(.subheadline)
+                            .foregroundStyle(.orange)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -338,20 +339,21 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                                                  recordID: String(row.id > 0 ? row.id : row.topicID), personal: summary.personal,
                                                  recordKey: row.id > 0 ? "id" : "topicId")
                     } label: {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text(verbatim: row.name).cyText(.cardTitle)
+                            Text(verbatim: row.name).font(.headline)
                             Spacer()
                             if let amount = row.amountText { Text(verbatim: ClubMoneyText.display(amount)).monospacedDigit() }
                             else { Text("clubSettlement.chip.unverified", tableName: "PayoutReceiver") }
                         }
-                        Text("clubSettlement.original \(ClubMoneyText.display(row.originalAmountText))", tableName: "PayoutReceiver").cyText(.meta)
-                        Text("clubSettlement.adjustment \(ClubMoneyText.display(row.executedAdjustmentText))", tableName: "PayoutReceiver").cyText(.meta)
-                        Text("clubSettlement.net \(ClubMoneyText.display(row.netAmountText))", tableName: "PayoutReceiver").cyText(.meta)
-                        Text(verbatim: row.arrivedText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        if row.showsPaidText { Text(verbatim: row.paidText).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                        CYStatusChip(verbatim: payoutText(row.chipKey, locale),
-                                     tone: row.status == "settled" && row.amountText != nil ? .success : .neutral)
+                        Text("clubSettlement.original \(ClubMoneyText.display(row.originalAmountText))", tableName: "PayoutReceiver").font(.subheadline)
+                        Text("clubSettlement.adjustment \(ClubMoneyText.display(row.executedAdjustmentText))", tableName: "PayoutReceiver").font(.subheadline)
+                        Text("clubSettlement.net \(ClubMoneyText.display(row.netAmountText))", tableName: "PayoutReceiver").font(.subheadline)
+                        Text(verbatim: row.arrivedText).font(.subheadline).foregroundStyle(.secondary)
+                        if row.showsPaidText { Text(verbatim: row.paidText).font(.subheadline).foregroundStyle(.secondary) }
+                        Text(verbatim: payoutText(row.chipKey, locale))
+                            .font(.subheadline)
+                            .foregroundStyle(row.status == "settled" && row.amountText != nil ? Color.green : Color.secondary)
                     }
                     }
                     .accessibilityElement(children: .combine)
@@ -366,7 +368,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 .disabled(!fundsAvailability.allowsWithdraw)
                 .accessibilityIdentifier("clubSettlement.withdrawSupport")
         } footer: {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: 4) {
                 if fundsAvailability == .zero && complaintWaiting {
                     // MP wxml:48 客诉期结束后可提现.
                     Text("clubSettlement.withdraw.complaintWaiting").accessibilityIdentifier("clubSettlement.withdraw.complaintWaiting")
@@ -397,16 +399,16 @@ struct ClubSettlementSessionsSection: View {
         if !sessions.isEmpty {
             Section {
                 ForEach(sessions) { row in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        HStack { Text(verbatim: row.name).cyText(.cardTitle); Spacer(); Text(verbatim: row.netText).monospacedDigit() }
-                        Text(verbatim: row.dateText).cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                        if let gross = row.grossText { Text("clubSettlement.gross \(gross)", tableName: "PayoutReceiver").cyText(.meta) }
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack { Text(verbatim: row.name).font(.headline); Spacer(); Text(verbatim: row.netText).monospacedDigit() }
+                        Text(verbatim: row.dateText).font(.subheadline).foregroundStyle(.secondary)
+                        if let gross = row.grossText { Text("clubSettlement.gross \(gross)", tableName: "PayoutReceiver").font(.subheadline) }
                         if let fee = row.feeText {
-                            if let rate = row.feeRateText { Text("clubSettlement.feeWithRate \(rate) \(fee)", tableName: "PayoutReceiver").cyText(.meta) }
-                            else { Text("clubSettlement.fee \(fee)", tableName: "PayoutReceiver").cyText(.meta) }
+                            if let rate = row.feeRateText { Text("clubSettlement.feeWithRate \(rate) \(fee)", tableName: "PayoutReceiver").font(.subheadline) }
+                            else { Text("clubSettlement.fee \(fee)", tableName: "PayoutReceiver").font(.subheadline) }
                         }
-                        if let merchantFee = row.merchantFeeText { Text("clubSettlement.merchantFee \(merchantFee)", tableName: "PayoutReceiver").cyText(.meta) }
-                        Text(verbatim: row.payeeText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        if let merchantFee = row.merchantFeeText { Text("clubSettlement.merchantFee \(merchantFee)", tableName: "PayoutReceiver").font(.subheadline) }
+                        Text(verbatim: row.payeeText).font(.subheadline).foregroundStyle(.secondary)
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("clubSettlement.session.\(row.activityID)")
@@ -452,10 +454,10 @@ struct ClubPayoutReceiverLink: View {
             } else {
                 Section {
                     switch state {
-                    case .loading, .empty: CYLoadingStateView(rows: 1)
+                    case .loading, .empty: ProgressView().frame(maxWidth: .infinity)
                     case .failed:
                         HStack {
-                            Text("directLedger.failed", tableName: "PayoutReceiver").foregroundStyle(CYColor.textSecondary)
+                            Text("directLedger.failed", tableName: "PayoutReceiver").foregroundStyle(.secondary)
                             Spacer()
                             Button { Task { await load() } } label: { Text("payoutReceiver.retry", tableName: "PayoutReceiver") }
                                 .accessibilityIdentifier("directLedger.retry")
@@ -475,30 +477,30 @@ struct ClubPayoutReceiverLink: View {
     }
 
     @ViewBuilder private func rows(_ ledger: ClubDirectLedger) -> some View {
-        HStack(spacing: CYSpacing.md) {
+        HStack(spacing: 12) {
             stat("directLedger.stat.open", ledger.openCents)
             stat("directLedger.stat.settled", ledger.settledCents)
             stat("directLedger.stat.refundDue", ledger.refundDueCents)
         }
         if ledger.rows.isEmpty {
-            Text("directLedger.empty", tableName: "PayoutReceiver").foregroundStyle(CYColor.textSecondary)
+            Text("directLedger.empty", tableName: "PayoutReceiver").foregroundStyle(.secondary)
         }
         ForEach(ledger.rows) { row in
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("directLedger.redemption \(String(row.redemptionID))", tableName: "PayoutReceiver").cyText(.cardTitle)
-                    HStack(spacing: CYSpacing.xs) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("directLedger.redemption \(String(row.redemptionID))", tableName: "PayoutReceiver").font(.headline)
+                    HStack(spacing: 4) {
                         Text(verbatim: row.timeText)
                         Text(verbatim: "·")
                         Text(LocalizedStringKey(row.statusKey), tableName: "PayoutReceiver")
-                    }.cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                    if let claim = row.claimNumber { Text("directLedger.claim \(claim)", tableName: "PayoutReceiver").cyText(.meta) }
-                    if let voucher = row.voucher { Text("directLedger.voucher \(voucher)", tableName: "PayoutReceiver").cyText(.meta) }
+                    }.font(.subheadline).foregroundStyle(.secondary)
+                    if let claim = row.claimNumber { Text("directLedger.claim \(claim)", tableName: "PayoutReceiver").font(.subheadline) }
+                    if let voucher = row.voucher { Text("directLedger.voucher \(voucher)", tableName: "PayoutReceiver").font(.subheadline) }
                 }
                 Spacer()
                 Text(verbatim: ClubDirectLedger.amountText(row.amountCents)).monospacedDigit()
                     .strikethrough(row.status == "VOID")
-                    .foregroundStyle(row.status == "VOID" ? CYColor.textTertiary : CYColor.textPrimary)
+                    .foregroundStyle(row.status == "VOID" ? Color.secondary : Color.primary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("directLedger.row.\(row.id)")
@@ -509,9 +511,9 @@ struct ClubPayoutReceiverLink: View {
     }
 
     private func stat(_ key: String, _ cents: Int) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(LocalizedStringKey(key), tableName: "PayoutReceiver").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            Text(verbatim: ClubDirectLedger.amountText(cents)).cyText(.cardTitle).monospacedDigit()
+        VStack(alignment: .leading, spacing: 4) {
+            Text(LocalizedStringKey(key), tableName: "PayoutReceiver").font(.subheadline).foregroundStyle(.secondary)
+            Text(verbatim: ClubDirectLedger.amountText(cents)).font(.headline).monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -536,14 +538,14 @@ struct ClubPayoutReceiverLink: View {
         switch audience {
         case .club:
             NavigationLink { ClubSettlementMineView() } label: {
-                CYListRow(verbatim: payoutText("clubSettlement.title", locale), trailing: .none) { CYRowIcon(systemImage: "yensign.circle") }
+                Label(payoutText("clubSettlement.title", locale), systemImage: "yensign.circle")
             }.accessibilityIdentifier("account.clubSettlementMine")
             NavigationLink { ClubPayoutReceiverView(clubID: nil, mine: true) } label: {
-                CYListRow(verbatim: payoutText("payoutReceiver.title", locale), trailing: .none) { CYRowIcon(systemImage: "person.crop.circle.badge.checkmark") }
+                Label(payoutText("payoutReceiver.title", locale), systemImage: "person.crop.circle.badge.checkmark")
             }.accessibilityIdentifier("account.payoutReceiver")
         case .merchant:
             NavigationLink { MerchantPayoutAccountView() } label: {
-                CYListRow(verbatim: payoutText("payoutAccount.title", locale), trailing: .none) { CYRowIcon(systemImage: "building.columns") }
+                Label(payoutText("payoutAccount.title", locale), systemImage: "building.columns")
             }.accessibilityIdentifier("account.merchantPayoutAccount")
         }
     }

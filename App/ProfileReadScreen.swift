@@ -40,9 +40,12 @@ struct ProfileReadScreen<Value, Content: View>: View {
     /// Configured, signed in and the first read is in flight.
     private var isShowingLoad: Bool { reader.identity != nil && reader.isConfigured && isLoading }
     var body: some View {
-        CYLoadSlot(isLoading: isShowingLoad, label: LocalizedStringKey(issueCopy?.loadingKey ?? "profile.loading"),
-                   identifier: accessibilityPrefix + ".loading", announces: true) {
-            readBody
+        Group {
+            if isShowingLoad {
+                loadingView(label: LocalizedStringKey(issueCopy?.loadingKey ?? "profile.loading"))
+            } else {
+                readBody
+            }
         }
         .refreshable { await loadOwner.run { await reload(keepingValue: true) } }
         .toolbar {
@@ -63,28 +66,50 @@ struct ProfileReadScreen<Value, Content: View>: View {
         }
         .cyToast(message: $refreshToast, tone: .warning)
     }
+    private func loadingView(label: LocalizedStringKey) -> some View {
+        ProgressView(label)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityIdentifier(accessibilityPrefix + ".loading")
+    }
     @ViewBuilder private var readBody: some View {
         ZStack {
             if reader.identity == nil {
-                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", LocalizedStringKey(issueCopy?.signInTitleKey ?? "profile.signInRequired"), detail: LocalizedStringKey(issueCopy?.signInDetailKey ?? "auth.expired"), messageIdentifier: accessibilityPrefix + ".signIn",
-                             actionTitle: signIn == nil ? nil : "auth.signIn", actionIdentifier: signIn == nil ? nil : accessibilityPrefix + ".signIn.action",
-                             action: signIn)
+                ContentUnavailableView {
+                    Label(LocalizedStringKey(issueCopy?.signInTitleKey ?? "profile.signInRequired"), systemImage: "person.crop.circle.badge.exclamationmark")
+                } description: {
+                    Text(LocalizedStringKey(issueCopy?.signInDetailKey ?? "auth.expired"))
+                } actions: {
+                    if let signIn {
+                        Button("auth.signIn", action: signIn)
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .accessibilityIdentifier(accessibilityPrefix + ".signIn.action")
+                    }
+                }
+                .accessibilityIdentifier(accessibilityPrefix + ".signIn")
             } else if !reader.isConfigured {
-                CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", messageIdentifier: accessibilityPrefix + ".unavailable")
+                ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                    .accessibilityIdentifier(accessibilityPrefix + ".unavailable")
             } else if isLoading {
                 Color.clear
             } else if let issue {
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    LocalizedStringKey(issue.titleKey),
-                    detail: issue.message == nil && !issue.detailKey.isEmpty ? LocalizedStringKey(issue.detailKey) : nil,
-                    detailVerbatim: issue.message,
-                    messageIdentifier: accessibilityPrefix + ".error",
-                    actionTitle: issue.canRetry ? "action.retry" : nil,
-                    actionIdentifier: issue.canRetry ? accessibilityPrefix + ".retry" : nil,
-                    kind: .failure,
-                    action: issue.canRetry ? { loadOwner.start { await reload() } } : nil
-                )
+                ContentUnavailableView {
+                    Label(LocalizedStringKey(issue.titleKey), systemImage: "exclamationmark.triangle")
+                } description: {
+                    if let message = issue.message {
+                        Text(verbatim: message)
+                    } else if !issue.detailKey.isEmpty {
+                        Text(LocalizedStringKey(issue.detailKey))
+                    }
+                } actions: {
+                    if issue.canRetry {
+                        Button("action.retry") { loadOwner.start { await reload() } }
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
+                            .accessibilityIdentifier(accessibilityPrefix + ".retry")
+                    }
+                }
+                .accessibilityIdentifier(accessibilityPrefix + ".error")
             } else if let value {
                 content(value)
             }
@@ -177,7 +202,8 @@ struct ProfileEmptyState: View {
     let symbol: String
     let identifier: String
     var body: some View {
-        CYEmptyState(systemImage: symbol, title, messageIdentifier: identifier)
+        ContentUnavailableView(title, systemImage: symbol)
+            .accessibilityIdentifier(identifier)
         // `hint` is kept for callers; the spec allows no helper captions under empty states.
     }
 }

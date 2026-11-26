@@ -21,7 +21,6 @@ extension EnvironmentValues {
     let mediaScope: UUID
     let imageReader: any RetainedPublicImageReading
     var openClub: (() -> Void)? = nil
-    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 48
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
@@ -32,26 +31,20 @@ extension EnvironmentValues {
                         if let nickname = post.nickname { Text(verbatim: nickname) }
                         else { Text("square.unknownAuthor") }
                     }
-                    .cyText(.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .font(.headline)
                     // Keep the post anchor on a leaf, so time and source-club
                     // controls retain their independently addressable IDs.
                     .accessibilityIdentifier("club.feed.post.\(post.id)")
                     if let time = post.createTime {
                         Text(verbatim: time)
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textTertiary)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("club.feed.time.\(post.id)")
                     }
                 }
             }
             if let content = post.content {
                 Text(verbatim: content)
-                    .cyText(.body)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
             }
             if !post.images.isEmpty {
@@ -60,18 +53,13 @@ extension EnvironmentValues {
             }
             if let openClub {
                 Button(action: openClub) { sourceClub }
-                    .buttonStyle(CYPressScaleStyle())
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.primary)
                     .accessibilityIdentifier("club.feed.source.\(post.id)")
             } else if post.clubName != nil { sourceClub }
         }
-        .padding(CYSpacing.lg)
+        .padding(.vertical, CYSpacing.xs)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
-        .fixedSize(horizontal: false, vertical: true)
-        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
         .id(mediaScope)
     }
     @ViewBuilder private var avatar: some View {
@@ -90,20 +78,18 @@ extension EnvironmentValues {
     private var sourceClub: some View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: "person.3")
-                .foregroundStyle(palette.textSecondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             Group {
                 if let name = post.clubName { Text(verbatim: name) }
                 else { Text("club.detail") }
             }
-            .cyText(.bodyCompact)
-            .foregroundStyle(palette.textPrimary)
-            .fixedSize(horizontal: false, vertical: true)
+            .font(.subheadline)
             Spacer(minLength: CYSpacing.sm)
             if openClub != nil {
                 Image(systemName: "chevron.right")
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(palette.textTertiary)
+                    .foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
             }
         }

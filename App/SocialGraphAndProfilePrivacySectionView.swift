@@ -165,6 +165,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
     }
 
     public var body: some View {
+        GroupBox {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -179,24 +180,16 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                 Spacer()
                 Text(verbatim: snapshot.isAllReady ? "全部就绪" : "存在告警")
                     .cyText(.meta, weight: .semibold)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule().fill(
-                            snapshot.isAllReady
-                                ? CYColor.successSoft
-                                : CYColor.warningSoft
-                        )
-                    )
+                    .foregroundStyle(snapshot.isAllReady ? .green : .orange)
                     .accessibilityIdentifier("socialProfileParity.header.badge")
             }
 
             ForEach(snapshot.rows) { row in
+                Divider()
                 rowView(row)
             }
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: CYRadius.card).fill(Color.secondary.opacity(0.08)))
+        }
         .accessibilityIdentifier("socialProfileParity.section")
     }
 
@@ -238,8 +231,6 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                 .accessibilityIdentifier("socialProfileParity.row.\(row.id).action")
             }
         }
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: CYRadius.inner).fill(Color.secondary.opacity(0.06)))
         .accessibilityIdentifier("socialProfileParity.row.\(row.id)")
     }
 }

@@ -227,7 +227,7 @@ import SwiftUI
                 Section("projectEdit.nodes") {
                     if chapter.wrappedValue.nodes.isEmpty {
                         Label("projectEdit.nodes.empty", systemImage: "mappin.slash")
-                            .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("projectEdit.nodes.empty")
                     }
                     ForEach(chapter.wrappedValue.nodes) { node in
@@ -254,7 +254,7 @@ import SwiftUI
                     }
                     Button("projectEdit.addNode", systemImage: "plus", action: addNode).disabled(pendingGap != nil || chapter.wrappedValue.preserved["opening"] == .bool(true) || chapter.wrappedValue.preserved["ending"]?.object != nil || (model.draft.product == .city && !chapter.wrappedValue.hasRealStory) || (chapter.wrappedValue.blocks?.count ?? 0) >= 200)
                         .accessibilityIdentifier("projectEdit.addNode")
-                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").cyText(.meta).foregroundStyle(CYColor.dangerText) }
+                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").font(.footnote).foregroundStyle(.red) }
                 }.id("project-issue-anchor-nodes")
                 if let key = model.coordinator.messageKey {
                     Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectStoryAudio.localStatus") }
@@ -460,9 +460,9 @@ import SwiftUI
                 // C-F2 (MP ruling 2026-08-11): the place comes from the place picker only; coordinates are never typed.
                 LabeledContent("projectEdit.nodePlace") {
                     if node.longitude.isEmpty || node.latitude.isEmpty {
-                        Text("projectEdit.nodePlace.unset").foregroundStyle(CYColor.dangerText)
+                        Text("projectEdit.nodePlace.unset").foregroundStyle(.red)
                     } else {
-                        Text("projectEdit.nodePlace.set").foregroundStyle(CYColor.textSecondary)
+                        Text("projectEdit.nodePlace.set").foregroundStyle(.secondary)
                     }
                 }
                 .accessibilityIdentifier("projectEdit.nodePlace").id("project-issue-anchor-coordinates")
@@ -564,13 +564,14 @@ struct ProjectEditReviewView: View {
                 if !localSaveConfirmed { Section { Text("projectPrepared.localSaveUnconfirmed").accessibilityIdentifier("projectPrepared.localSaveUnconfirmed") } }
                 Section {
                     Button {
-                        withAnimation(.easeInOut(duration: CYMotion.Duration.quick)) { showsAll.toggle() }
+                        withAnimation { showsAll.toggle() }
                     } label: {
                         HStack {
                             OpsR3Text.text(showsAll ? "publish.preview.hideAll" : "publish.preview.showAll")
-                            Spacer(minLength: CYSpacing.sm)
+                            Spacer(minLength: 8)
                             Image(systemName: "chevron.down")
-                                .cyText(.meta, weight: .semibold)
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.secondary)
                                 .rotationEffect(.degrees(showsAll ? 180 : 0))
                                 .accessibilityHidden(true)
                         }
@@ -655,13 +656,20 @@ struct ProjectEditReviewView: View {
                 .questifyBottomAction {
                     if canSubmit {
                         if confirmation.intent == .ordinary || canSimulate {
-                            // In place (xrefs-1 B.0, C1's CYResultButton): the capsule becomes spinner + 正在提交 while the
-                            // request runs; the result sheet that follows is the done state.
-                            CYResultButton(verbatim: appLocalized(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive", locale: locale),
-                                           loading: OpsR3Text.string("publish.preview.sending", locale: locale),
-                                           done: OpsR3Text.string("publish.preview.sent", locale: locale),
-                                           phase: busy ? .loading : .idle, action: confirm)
-                                .identifier("projectEdit.confirmSimulation")
+                            // In place (xrefs-1 B.0): the button shows a system spinner + 正在提交 while the request runs;
+                            // the result sheet that follows is the done state.
+                            Button(action: confirm) {
+                                if busy {
+                                    Label { Text(verbatim: OpsR3Text.string("publish.preview.sending", locale: locale)) } icon: { ProgressView() }
+                                        .frame(maxWidth: .infinity)
+                                } else {
+                                    Text(verbatim: appLocalized(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive", locale: locale))
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .disabled(busy)
+                            .accessibilityIdentifier("projectEdit.confirmSimulation")
                         } else {
                             Button(action: confirm) {
                                 Text(LocalizedStringKey(ProjectCloudDraftReceiptPresentation.intentKey(confirmation.intent)), tableName: "ProjectCloudDraftReceipt")
@@ -681,35 +689,33 @@ struct ProjectEditReviewView: View {
 /// Publish preview header (Figma 249:16472): cover, name, and what goes out — chapters, stops, ticket types.
 struct ProjectPublishPreviewSummary: View {
     let draft: ProjectEditDraft
-    private var palette: CYDomainPalette { CYDomainPalette(.topicEditor) }
     @ScaledMetric(relativeTo: .body) private var cover: CGFloat = 64
 
     var body: some View {
         Section {
-            HStack(spacing: CYSpacing.md) {
+            HStack(spacing: 12) {
                 CYCachedAsyncImage(draft.imgUrl.isEmpty ? nil : draft.imgUrl, role: .cover)
                     .frame(width: cover, height: cover)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .clipShape(.rect(cornerRadius: 8, style: .continuous)) // image crop only
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 4) {
                     Group {
                         if draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { OpsR3Text.text("editor.topic.untitled") }
                         else { Text(verbatim: draft.name) }
                     }
-                    .cyText(.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
+                    .font(.headline).foregroundStyle(.primary).lineLimit(2)
                     Text("publish.preview.counts \(draft.chapters.count) \(draft.chapters.reduce(0) { $0 + $1.nodes.count }) \(draft.tickets.count)", tableName: OpsR3Text.table)
-                        .cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textSecondary)
+                        .font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                     Text(LocalizedStringKey(draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
-                        .cyText(.meta).foregroundStyle(palette.textTertiary)
+                        .font(.subheadline).foregroundStyle(.tertiary)
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.vertical, CYSpacing.xs)
             .accessibilityElement(children: .combine)
             Label {
                 OpsR3Text.text("publish.preview.checksPassed")
             } icon: {
-                Image(systemName: "checkmark.circle.fill").foregroundStyle(palette.success)
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
             }
             .accessibilityIdentifier("projectEdit.review.checks")
         }

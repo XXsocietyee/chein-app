@@ -66,9 +66,8 @@ import ImageIO
                     Button { clear() } label: {
                         Text("preview.clear", tableName: "NativeChannelAttachmentPreview")
                             .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .contentShape(Rectangle())
-                    }.cyText(.button).buttonStyle(.borderless).accessibilityIdentifier("attachmentPreview.clear")
+                            .frame(maxWidth: .infinity)
+                    }.buttonStyle(.bordered).controlSize(.large).accessibilityIdentifier("attachmentPreview.clear")
                 }
             }.cyText(.body).padding()
         }.nativeChannelScreen().privacySensitive()

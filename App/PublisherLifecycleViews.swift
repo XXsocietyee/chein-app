@@ -48,18 +48,23 @@ import SwiftUI
         Form {
             switch screen {
             case .empty:
-                CYEmptyState(systemImage: "link", "publisherPricing.missingTopic", detail: "publisherPricing.missingTopicDetail",
-                             messageIdentifier: "publisher.pricing.empty")
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label("publisherPricing.missingTopic", systemImage: "link")
+                } description: { Text("publisherPricing.missingTopicDetail") }
+                    .accessibilityIdentifier("publisher.pricing.empty")
             case .error(let failure):
-                CYEmptyState(systemImage: "exclamationmark.triangle",
-                             LocalizedStringKey(failure == .incomplete ? "publisherPricing.incomplete" : "publisherPricing.loadFailed"),
-                             messageIdentifier: "publisher.pricing.error", actionTitle: "topic.retry",
-                             actionIdentifier: "publisher.pricing.retry", action: { beginLoad() })
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label(LocalizedStringKey(failure == .incomplete ? "publisherPricing.incomplete" : "publisherPricing.loadFailed"), systemImage: "exclamationmark.triangle")
+                        .accessibilityIdentifier("publisher.pricing.error")
+                } actions: {
+                    Button { beginLoad() } label: { Text("topic.retry") }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .accessibilityIdentifier("publisher.pricing.retry")
+                }
             case .ready(let ready) where ready.refreshFailed:
                 Label("publisherPricing.stalePreview", systemImage: "clock.arrow.circlepath")
-                    .cyText(.meta).foregroundStyle(CYColor.warningText).accessibilityIdentifier("publisher.pricing.stale")
+                    .font(.footnote).foregroundStyle(.orange).accessibilityIdentifier("publisher.pricing.stale")
             default:
                 EmptyView()
             }
@@ -79,24 +84,24 @@ import SwiftUI
                     pricingField(text("publisherPricing.totalLeadCostForThisGroup"), value: $cost, keyboard: .decimalPad)
                     pricingField(text("publisherPricing.groupSize"), value: $team, keyboard: .numberPad)
                     if (Int(team) ?? 0) <= 0 {
-                        Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).font(.footnote).foregroundStyle(.red)
                     }
                 }
             }
             }
             Section {
-                CYPillButton(verbatim: subtype == .guided ? text("publisherPricing.recalculateFloor") : text("publisherPricing.refreshMinimumPrice"), style: .secondary) { beginLoad() }
-                    .listRowBackground(Color.clear).disabled(busy).accessibilityIdentifier("publisher.preview")
-                if busy { Text(text("publisherPricing.checkingTheLatestPricing")).cyText(.meta) }
+                Button { beginLoad() } label: { Text(verbatim: subtype == .guided ? text("publisherPricing.recalculateFloor") : text("publisherPricing.refreshMinimumPrice")) }
+                    .buttonStyle(.bordered).controlSize(.large)
+                    .disabled(busy).accessibilityIdentifier("publisher.preview")
+                if busy { Text(text("publisherPricing.checkingTheLatestPricing")).font(.footnote).foregroundStyle(.secondary) }
             }
             if let preview, resultSession == client.session {
                 Section(text("publisherPricing.costFloor")) {
                     // Floor reads TopicPricingXcx money text: two decimals, em dash when unknown, literal 0 stays 0.00.
-                    Text(verbatim: "¥" + TopicPricingXcx.moneyText(decimal: preview.minimum)).cyText(.dataXL).monospacedDigit()
-                        .foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: "¥" + TopicPricingXcx.moneyText(decimal: preview.minimum)).font(.largeTitle.bold()).monospacedDigit()
                         .contentTransition(.numericText()).accessibilityIdentifier("publisher.floor")
-                    Text("publisherPricing.floorIncludes").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    Text("publisherPricing.marginNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("publisherPricing.floorIncludes").font(.footnote).foregroundStyle(.secondary)
+                    Text("publisherPricing.marginNote").font(.footnote).foregroundStyle(.secondary)
                 }
                 Section(text("publisherPricing.yourFinalPrice")) {
                     TextField(text("publisherPricing.finalPrice"), text: $price).keyboardType(.decimalPad).accessibilityIdentifier("publisher.finalPrice")
@@ -109,15 +114,15 @@ import SwiftUI
                     HStack {
                         Text(verbatim: text("publisherPricing.floorShort") + " ¥" + TopicPricingXcx.moneyText(decimal: preview.minimum))
                         Spacer(); Text(verbatim: "¥\(maximum)")
-                    }.cyText(.meta)
+                    }.font(.footnote).foregroundStyle(.secondary)
                     if let reference = preview.reference, let count = preview.sampleSize, count > 0 {
                         let area = preview.referenceLabel ?? text("publisherPricing.local")
                         let average = TopicPricingXcx.twoDecimals(NSDecimalNumber(decimal: reference).stringValue) ?? "—"
-                        Text("publisherPricing.reference \(area) \(average) \(count)").cyText(.meta)
-                    } else { Text(text("publisherPricing.notEnoughSamplesNoReferencePrice")).cyText(.meta) }
+                        Text("publisherPricing.reference \(area) \(average) \(count)").font(.footnote)
+                    } else { Text(text("publisherPricing.notEnoughSamplesNoReferencePrice")).font(.footnote) }
                     switch TopicPricingXcx.delta(price: Decimal(string: price) ?? preview.minimum, reference: preview.reference, sampleSize: preview.sampleSize) {
-                    case .above(let percent)?: Text("publisherPricing.aboveReference \(percent)").cyText(.meta).foregroundStyle(CYColor.warningText)
-                    case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    case .above(let percent)?: Text("publisherPricing.aboveReference \(percent)").font(.footnote).foregroundStyle(.orange)
+                    case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).font(.footnote).foregroundStyle(.secondary)
                     case nil: EmptyView()
                     }
                 }
@@ -132,10 +137,10 @@ import SwiftUI
                                     PublisherPartnerView(topicID: topicID, row: row, client: client)
                                 }
                             } label: {
-                                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                    if let name = partnerNames[row.id] { Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary) }
-                                    else { Text(row.type == "club" ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary) }
-                                    Text(verbatim: termsText(row)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    if let name = partnerNames[row.id] { Text(verbatim: name) }
+                                    else { Text(row.type == "club" ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")) }
+                                    Text(verbatim: termsText(row)).font(.subheadline).foregroundStyle(.secondary)
                                 }
                             }
                         }
@@ -145,15 +150,16 @@ import SwiftUI
                 }
                 Section {
                     if preview.canConfirm == false {
-                        Text("publisherPricing.phaseBlockedDetail").cyText(.meta).foregroundStyle(CYColor.warningText)
+                        Text("publisherPricing.phaseBlockedDetail").font(.footnote).foregroundStyle(.orange)
                             .accessibilityIdentifier("publisher.phaseBlocked")
                     }
                     if showsConfirm {
-                        CYPillButton(verbatim: text("publisherPricing.confirmFinalPriceAndSubmitFor")) { beginPrepare() }
-                            .listRowBackground(Color.clear).disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
+                        Button { beginPrepare() } label: { Text(verbatim: text("publisherPricing.confirmFinalPriceAndSubmitFor")).frame(maxWidth: .infinity) }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
                     } else {
                         // R7-PC-B4-1 (owner decision pending): the page is read-only without the pricing grant — say so.
-                        Text("publisherPricing.confirmNotOpen").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("publisherPricing.confirmNotOpen").font(.footnote).foregroundStyle(.secondary)
                             .accessibilityIdentifier("publisher.confirmNotOpen")
                     }
                 }
@@ -169,7 +175,6 @@ import SwiftUI
             if !message.isEmpty, resultSession == client.session { Text(message).accessibilityIdentifier("publisher.message") }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .cyToast(verbatimMessage: $successToast, tone: .success)
         .alert(Text("publisherPricing.confirmedTitle"), isPresented: Binding(
             get: { paymentQualificationNote != nil }, set: { if !$0 { paymentQualificationNote = nil } })) {
@@ -226,11 +231,12 @@ import SwiftUI
         visible && phase == .active && generation == stamp && client.session == session && coordinator.currentSession == session && formKey == key
     }
     private func pricingField(_ label: String, value: Binding<String>, keyboard: UIKeyboardType) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: label).cyText(.label).foregroundStyle(CYColor.textSecondary)
+        LabeledContent {
             TextField(text: value, prompt: Text(verbatim: "0")) { Text(verbatim: label) }
-                .keyboardType(keyboard).cyText(.numericBody)
-        }
+                .keyboardType(keyboard)
+                .multilineTextAlignment(.trailing)
+                .monospacedDigit()
+        } label: { Text(verbatim: label) }
     }
     private func beginLoad() {
         guard visible, phase == .active, !busy, let session = client.session,
@@ -329,31 +335,31 @@ import SwiftUI
             if topicID <= 0 || row.partnerID <= 0 || !["club", "merchant"].contains(row.type) {
                 // Source invalid-link state.
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(text("publisherPricing.thisPartnerLinkIsNoLonger")).cyText(.cardTitle).accessibilityAddTraits(.isHeader)
-                    Text(text("publisherPricing.goBackAndOpenItAgain")).cyText(.bodyCompact)
+                    Text(text("publisherPricing.thisPartnerLinkIsNoLonger")).font(.headline).accessibilityAddTraits(.isHeader)
+                    Text(text("publisherPricing.goBackAndOpenItAgain")).foregroundStyle(.secondary)
                 }.accessibilityIdentifier("publisher.partner.invalid")
             } else {
                 Section {
                     // pages/topic/pricing/partner/index phase (TopicPricingXcx.partnerPreviewPhase).
                     let scopedResult = resultKey == readKey ? result : nil
                     switch TopicPricingXcx.partnerPreviewPhase(loading: loading, inspection: scopedResult, failed: resultKey == readKey && failed) {
-                    case .loading: CYSkeleton()
+                    case .loading: ProgressView().frame(maxWidth: .infinity)
                     case .error:
                         Label("publisherPricing.loadFailed", systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("publisher.partner.error")
+                            .foregroundStyle(.secondary).accessibilityIdentifier("publisher.partner.error")
                         // PC-B-5-1: the error state offers recovery (MP 重新加载), not a dead end.
                         Button { Task { await load(readKey) } } label: { Text("topic.retry") }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary)).frame(minHeight: 44)
+                            .buttonStyle(.bordered).controlSize(.large)
                             .accessibilityIdentifier("publisher.partner.retry")
                     case .unknown:
-                        Text(verbatim: TopicPricingXcx.unknownMoney).foregroundStyle(CYColor.textSecondary)
+                        Text(verbatim: TopicPricingXcx.unknownMoney).foregroundStyle(.secondary)
                             .accessibilityIdentifier("publisher.partner.unknown")
                     case .empty(let inspection), .ready(let inspection):
                         let profile = inspection.profile.object ?? [:]
-                        Text(profile["name"]?.text ?? "—").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                        if let description = profile["description"]?.text, !description.isEmpty { Text(description).foregroundStyle(CYColor.textSecondary) }
+                        Text(profile["name"]?.text ?? "—").font(.headline)
+                        if let description = profile["description"]?.text, !description.isEmpty { Text(description).foregroundStyle(.secondary) }
                         let rows = profileRows(profile)
-                        if rows.isEmpty { Text(text("publisherPricing.noProfileYet")).foregroundStyle(CYColor.textSecondary) }
+                        if rows.isEmpty { Text(text("publisherPricing.noProfileYet")).foregroundStyle(.secondary) }
                         ForEach(rows, id: \.0) { key, value in
                             // R7-PC-B5-2: MP address row opens the place in the map app.
                             if key == text("publisherPricing.address"), let url = HomeFeedMapsLink.url(for: value) {
@@ -383,7 +389,7 @@ import SwiftUI
                         LabeledContent(text("publisherPricing.locked"), value: text("publisherPricing.whenSalesOpen"))
                         Text(terms.mode == 1 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement")
                              : terms.mode == 2 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement44")
-                             : text("publisherPricing.theLineupFreezesWhenSalesOpen")).cyText(.meta)
+                             : text("publisherPricing.theLineupFreezesWhenSalesOpen")).font(.footnote).foregroundStyle(.secondary)
                     } header: { Text(text("publisherPricing.partnershipTerms")) } footer: {
                         Text("publisherPricing.partnerLocked")
                     }
@@ -392,7 +398,6 @@ import SwiftUI
             if resultKey == readKey, !message.isEmpty { Text(message) }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .accessibilityIdentifier("publisher.partner")
         // PC-B-5-3: title once, inline by the bar.
         .cyPageTitle(verbatim: isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant"))
@@ -467,11 +472,11 @@ import SwiftUI
     private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
     var body: some View {
         Form {
-            CYHeroHeader(verbatim: zh ? "取消并退款" : "Cancel and refund")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Text(zh ? "主办方取消并退款，无法撤销。原因将展示给玩家。" : "Organizer cancellation and refunds are irreversible. The reason is shown to players.")
             TextField(zh ? "取消原因" : "Cancellation reason", text: $reason, axis: .vertical).accessibilityIdentifier("publisher.cancelReason")
-            CYPillButton(verbatim: zh ? "查看退款影响" : "Preview refund impact", style: .secondary) { beginPrepare() }.disabled(busy || reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("publisher.refundPreview")
+            Button { beginPrepare() } label: { Text(verbatim: zh ? "查看退款影响" : "Preview refund impact") }
+                .buttonStyle(.bordered).controlSize(.large)
+                .disabled(busy || reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("publisher.refundPreview")
             if let review, review.session == coordinator.currentSession, review.action == currentAction, let count = review.paidPlayers {
                 Text(zh ? "将给 \(count) 位已付款玩家全额退款。" : "Full refunds will be issued to \(count) paid players.").accessibilityIdentifier("publisher.paidPlayers")
                 Text(resource.kind == .topic ? (zh ? "主题停售，名下场次一并取消；已核销票不自动退款。" : "Topic sales stop and its sessions are cancelled; redeemed tickets are not automatically refunded.") : (zh ? "活动下架，玩家无法报名或进入。" : "The activity is removed from sale; players cannot register or enter."))
@@ -479,7 +484,9 @@ import SwiftUI
                 Button(zh ? "确认取消并退款" : "Confirm cancellation and refunds", role: .destructive) { beginConfirm(review) }.disabled(busy).accessibilityIdentifier("publisher.confirmRefund")
             }
             if messageSession == coordinator.currentSession { Text(message) }
-        }.cyHeroScreen()
+        }
+        .navigationTitle(Text(verbatim: zh ? "取消并退款" : "Cancel and refund"))
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear { visible = true }
         .onChange(of: reason) { _, _ in clear() }
         .onChange(of: resource) { _, _ in clear() }

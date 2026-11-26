@@ -18,20 +18,22 @@ struct ClubTabTagLine: View {
     }
     private func chipLayout(tags: (labels: [String], freeToJoin: Bool), level: (key: String?, fallback: String?)) -> some View {
         let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
-            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.xs))
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
         return layout {
-            if let key = level.key { CYStatusChip(LocalizedStringKey(key), tone: .neutral, systemImage: "star") }
-            else if let fallback = level.fallback { CYStatusChip(verbatim: fallback, tone: .neutral, systemImage: "star") }
+            if let key = level.key { Label(LocalizedStringKey(key), systemImage: "star") }
+            else if let fallback = level.fallback { Label(fallback, systemImage: "star") }
             ForEach(tags.labels.prefix(3), id: \.self) { label in
-                CYStatusChip(verbatim: label)
+                Text(verbatim: label)
             }
-            if tags.freeToJoin { CYStatusChip("club.tab.freeToJoin", tone: .success, systemImage: "person.badge.plus") }
+            if tags.freeToJoin { Label("club.tab.freeToJoin", systemImage: "person.badge.plus") }
             if let topicCount {
                 let label: LocalizedStringKey = "club.tab.topicCount \(topicCount.text)"
-                CYStatusChip(label, systemImage: "text.bubble")
+                Label(label, systemImage: "text.bubble")
             }
         }
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
     }
 }
 
@@ -42,8 +44,10 @@ struct ClubLeaderQuotaLine: View {
     var body: some View {
         switch leader.quota {
         case .over(let owned, let limit):
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                CYStatusTag(verbatim: clubR1("quota.overTag", locale), state: .warning)
+            VStack(alignment: .leading, spacing: 4) {
+                Label(clubR1("quota.overTag", locale), systemImage: "exclamationmark.triangle.fill")
+                    .font(.subheadline)
+                    .foregroundStyle(.orange)
                 line(String(format: clubR1("quota.over", locale), owned, limit))
             }
         case .full(let owned):
@@ -52,12 +56,12 @@ struct ClubLeaderQuotaLine: View {
             line(String(format: clubR1("quota.within", locale), owned, remaining))
         case .unknown:
             Text("club.tab.leaderQuota \(leader.ownedCount.text) \(leader.maxOwned.text)")
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline).foregroundStyle(.secondary)
         }
     }
     private func line(_ text: String) -> some View {
         Text(verbatim: text)
-            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            .font(.subheadline).foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
@@ -67,8 +71,13 @@ struct ClubTabEmptyState: View {
     var body: some View {
         // Mini-program cy-empty shows only the title here; the create action sits in the row above.
         let keys = ClubTabPresentation.emptyKeys(merchant: merchant)
-        CYEmptyState(systemImage: "person.3", LocalizedStringKey(keys.title))
-            .accessibilityIdentifier("clubTab.empty")
+        ContentUnavailableView {
+            Label {
+                Text(LocalizedStringKey(keys.title)).accessibilityIdentifier("clubTab.empty")
+            } icon: {
+                Image(systemName: "person.3")
+            }
+        }
     }
 }
 

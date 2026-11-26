@@ -50,7 +50,6 @@ import SwiftUI
         .sheet(item: $selected) { target in
             ClubPostReferenceDestination(target: target, identity: identity, topics: topics, model: model)
                 .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
-                .cyDomainPageBackground()
         }
         .onChange(of: context) { _, _ in selected = nil }
         .onChange(of: post) { _, _ in selected = nil }
@@ -63,27 +62,35 @@ import SwiftUI
         return trimmed.isEmpty ? "—" : trimmed
     }
     private var referenceLabel: some View {
-        CYListRow(verbatim: referenceTitle, trailing: .chevron) {
+        HStack(spacing: 12) {
             referenceThumb
+            Text(verbatim: referenceTitle)
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
         }
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: referenceTitle))
     }
     private var referenceThumb: some View {
-        let seed = referenceTitle == "—" ? "club-post-\(post.id)" : referenceTitle
-        return ClubCloud14Thumb(seed: seed, symbol: "doc.text.magnifyingglass", imageURL: ClubCloud14HTTPS.url(post.sportCover))
+        ClubCloud14Thumb(symbol: "doc.text.magnifyingglass", imageURL: ClubCloud14HTTPS.url(post.sportCover))
     }
 }
 
-/// Leading art for a linked topic. Decorative: the row title is the accessible name.
+/// Leading thumbnail for a linked topic: the topic cover, or an SF Symbol on a system fill. Decorative.
 private struct ClubCloud14Thumb: View {
-    let seed: String
-    var symbol: String? = nil
+    var symbol: String
     var imageURL: URL? = nil
     var body: some View {
-        Color.clear
+        Rectangle().fill(.quaternary)
             .overlay {
-                CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false)
+                Image(systemName: symbol).foregroundStyle(.secondary)
                 if let imageURL {
                     PlayerFeedRemoteImage(url: imageURL, maxPixel: 168, placeholder: { Color.clear }, failure: { Color.clear })
                 }

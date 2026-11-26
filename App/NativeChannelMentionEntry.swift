@@ -44,7 +44,7 @@ import SwiftUI
                     }
                 }
                 Section {
-                    if rejected { Text("d7.channelMention.rejected").foregroundStyle(CYColor.dangerText) }
+                    if rejected { Text("d7.channelMention.rejected").foregroundStyle(.red) }
                     Button("d7.channelMention.apply") {
                         let orderedMembers=members.sorted { $0.rawValue < $1.rawValue },orderedRoles=roles.sorted { $0.rawValue < $1.rawValue }
                         if canApply() && apply(orderedMembers,orderedRoles,everyone) { dismiss() } else { rejected=true }
@@ -59,7 +59,6 @@ import SwiftUI
             }
         }
         .nativeChannelScreen()
-        .cyGroupedSurface()
         .navigationTitle(Text("d7.channelMention.title")).navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("d7.channelMention.cancel") { dismiss() } } }
         .onAppear { members=Set(original?.memberIDs ?? []);roles=Set(original?.roleIDs ?? []);everyone=original?.mentionEveryone ?? false }

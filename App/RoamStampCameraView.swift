@@ -40,6 +40,14 @@ import UIKit
     /// capability switches are off; the album list path exists only with an album reader.
     private var pageContract: StampCameraPageContract { StampCameraPageContract(hasAlbumReader: album != nil) }
     var body: some View {
+        if NativeR2Flags.freeExplore {
+            NativeStampCaptureView(coordinator: coordinator, cameraEnabled: cameraEnabled, album: album,
+                                   exchange: exchange, showsCaption: showsCaption)
+        } else {
+            legacyBody
+        }
+    }
+    @ViewBuilder private var legacyBody: some View {
         let _ = revision
         Form {
             Section {

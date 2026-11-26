@@ -14,52 +14,55 @@ private struct ActivityListDestination: Hashable { let id: Int }
     @State private var path: [ActivityListDestination] = []
     @State private var readerChange: UInt64 = 0
     @State private var loads = SignedInContentDetailLoadOwner()
-    @Namespace private var hero
-    @State private var stagger = CYStaggerGate()
     private var identity: ActivityListReadIdentity { _ = readerChange; return ActivityListReadIdentity(reader) }
     var body: some View {
         NavigationStack(path: $path) {
             ZStack {
                 if !reader.activityListIsConfigured {
-                    CYEmptyState(systemImage: "network.slash", "activity.unavailable",
-                        detail: LocalizedStringKey(reader.activityListUnavailableMessageKey ?? "auth.notConfigured"), kind: .offline)
+                    ContentUnavailableView {
+                        Label { Text("activity.unavailable") } icon: { Image(systemName: "network.slash") }
+                    } description: {
+                        Text(LocalizedStringKey(reader.activityListUnavailableMessageKey ?? "auth.notConfigured"))
+                    }
                 } else if model.identity != identity || (model.isLoading && model.items.isEmpty) {
-                    ScrollView { CYLoadingStateView(rows: 3).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading"))
-                        .transition(.opacity)
+                    ProgressView().accessibilityLabel(Text("activity.loading"))
                 } else if model.failed && model.items.isEmpty {
-                    CYEmptyState(systemImage: "wifi.exclamationmark", "activity.loadFailed", messageIdentifier: "activity.list.error",
-                                 actionTitle: "action.retry", actionIdentifier: "activity.list.retry", kind: .failure) {
-                        loads.start { await model.load(reader: reader, reset: true, keyword: query) }
+                    ContentUnavailableView {
+                        Label { Text("activity.loadFailed").accessibilityIdentifier("activity.list.error") } icon: { Image(systemName: "wifi.exclamationmark") }
+                    } actions: {
+                        Button {
+                            loads.start { await model.load(reader: reader, reset: true, keyword: query) }
+                        } label: { Text("action.retry") }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("activity.list.retry")
                     }
                 } else if model.items.isEmpty {
-                    CYEmptyState(systemImage: "map", "activity.empty", detail: "activity.emptyHint", messageIdentifier: "activity.list.empty")
+                    ContentUnavailableView {
+                        Label { Text("activity.empty").accessibilityIdentifier("activity.list.empty") } icon: { Image(systemName: "map") }
+                    } description: {
+                        Text("activity.emptyHint")
+                    }
                 } else {
                     List {
-                        ForEach(Array(model.items.enumerated()), id: \.element.id) { index, item in
+                        ForEach(model.items, id: \.id) { item in
                             NavigationLink(value: ActivityListDestination(id: item.id)) {
-                                ActivityListCard(item:item).cyHeroSource(item.id, in: hero).cyStaggeredAppear(index: index, gate: stagger)
+                                ActivityListCard(item:item)
                             }
-                                .cyRowTransition()
                                 .buttonStyle(QuestifyCardButtonStyle())
-                                .questifyHidesLinkIndicator()
-                                .questifyCardListRow()
                                 .accessibilityIdentifier("activity.row.\(item.id)")
                         }
                         if model.hasMore || model.failed {
                             Button(model.failed ? LocalizedStringKey("action.retry") : LocalizedStringKey("activity.loadMore")) {
                                 loads.start { await model.load(reader: reader, reset: false, keyword: query) }
-                            }.frame(minHeight:44).disabled(model.isLoading).accessibilityIdentifier("activity.list.loadMore")
+                            }.disabled(model.isLoading).accessibilityIdentifier("activity.list.loadMore")
                         }
                         if model.isLoading { ProgressView().accessibilityLabel(Text("activity.loading")) }
                     }
                     .listStyle(.insetGrouped)
-                    .listSectionSpacing(20)
-                    .cyAnimation(value: model.items.map(\.id))
-                    .cyRefreshable { await loads.run { await model.load(reader: reader, reset: true, keyword: query) } }
+                    .refreshable { await loads.run { await model.load(reader: reader, reset: true, keyword: query) } }
                     .accessibilityIdentifier("activity.list.content")
                 }
             }
-            .cyAnimation(.easeInOut(duration: CYMotion.Duration.standard), value: model.items.isEmpty)
             .appNavigationTitle("activity.browse")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text:$query,placement:.navigationBarDrawer(displayMode:.always),prompt:"activity.search")
@@ -78,7 +81,6 @@ private struct ActivityListDestination: Hashable { let id: Int }
             .navigationDestination(for: ActivityListDestination.self) { destination in
                 ActivityDetailView(id:destination.id,reader:reader,playReaderForActivity:playReaderForActivity,
                     registrationEnabled:registrationEnabled,peopleProfile:peopleProfile)
-                    .cyHeroDestination(destination.id, in: hero)
             }
         }
         .onReceive(reader.activityPresentationChanges) { readerChange &+= 1 }

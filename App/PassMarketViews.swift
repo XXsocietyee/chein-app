@@ -796,7 +796,7 @@ struct PassUnlockStepsView: View {
     var body: some View {
         let step = steps[min(index, steps.count - 1)]
         ZStack {
-            Color(uiColor: .systemBackground).ignoresSafeArea()
+            Rectangle().fill(.background).ignoresSafeArea()
             VStack(spacing: 24) {
                 PassTicketHero(face: face)
                 VStack(spacing: 8) {

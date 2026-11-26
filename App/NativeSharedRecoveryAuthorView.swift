@@ -77,11 +77,11 @@ import SwiftUI
                         Text(saved.actKeys(index).isEmpty ? "原规则：不限定幕" : "原限用幕：" + saved.actKeys(index).joined(separator:", "))
                     }
                     Text(saved.noEffectPolicy == "true" ? "原规则：无效果仍消耗次数。" : "原规则：无效果不消耗次数。")
-                    Text("这是编辑器本次读取的原基线，不是下方尚未保存的编辑副本，也不代表旧局已更新。").cyText(.meta)
+                    Text("这是编辑器本次读取的原基线，不是下方尚未保存的编辑副本，也不代表旧局已更新。").font(.footnote).foregroundStyle(.secondary)
                 }
             }
             if editor == nil {
-                CYPillButton(verbatim: "编辑当前共享玩法的恢复定义", style: .secondary) { open() }.disabled(!available)
+                Button { open() } label: { Text(verbatim: "编辑当前共享玩法的恢复定义") }.disabled(!available)
             } else if let draft = editor, let editorID = capture?.id {
                 let editRevision = bufferRevision
                 Group {
@@ -94,16 +94,16 @@ import SwiftUI
                     }
                     if draft.recoveries.isEmpty { Text("当前没有恢复方式；不会自动添加默认休息。") }
                     ForEach(Array(draft.recoveries.enumerated()),id:\.offset) { index,_ in recoveryRow(index,draft:draft) }
-                    CYPillButton(verbatim: "添加空白恢复方式", style: .secondary) { mutate(editorID, revision: editRevision) { $0.appendBlank() } }.disabled(draft.recoveries.count >= 20)
+                    Button { mutate(editorID, revision: editRevision) { $0.appendBlank() } } label: { Label { Text(verbatim: "添加空白恢复方式") } icon: { Image(systemName: "plus.circle") } }.disabled(draft.recoveries.count >= 20)
                     ForEach(Array(draft.issues.enumerated()),id:\.offset) { _,issue in NativeAuthorNotice(text: Text(issue), tone: .attention) }
-                    CYPillButton(verbatim: "预览原恢复定义修改", style: .secondary) { preview(editorID, revision: editRevision) }.disabled(!draft.issues.isEmpty)
+                    Button { preview(editorID, revision: editRevision) } label: { Text(verbatim: "预览原恢复定义修改") }.disabled(!draft.issues.isEmpty)
                     if let review {
                         Text(review.value.text ?? "").font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                        CYPillButton(verbatim: saveUnconfirmed ? "重试保存原完整项目草稿" : "确认保存原完整项目草稿") { apply(review) }
+                        Button { apply(review) } label: { Text(verbatim: saveUnconfirmed ? "重试保存原完整项目草稿" : "确认保存原完整项目草稿") }
                     }
                     Text("随后使用原项目保存、同请求结果恢复及发布。保存后的原项目重载显示读取基线；新共享局按发布快照提供恢复方式，旧局和已保存动作不被追改。").nativeAuthorSupportingCopy()
                 }.disabled(!current)
-                CYPillButton(verbatim: "关闭恢复定义编辑副本", style: .tertiary) { close(editorID) }
+                Button(role: .cancel) { close(editorID) } label: { Text(verbatim: "关闭恢复定义编辑副本") }
             }
             if let message { NativeAuthorNotice(text: Text(message)) }
         }
@@ -114,8 +114,8 @@ import SwiftUI
     }
     @ViewBuilder private func recoveryRow(_ index: Int, draft: NativeSharedRecoveryAuthorDraft) -> some View {
         let editorID = capture?.id, editRevision = bufferRevision
-        VStack(alignment:.leading,spacing:8) {
-            Text("恢复方式 \(index + 1)").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+        Group {
+            Text("恢复方式 \(index + 1)").font(.headline).accessibilityAddTraits(.isHeader)
             TextField("明确填写原恢复标识",text:binding(index,"recoveryKey")).textInputAutocapitalization(.never).autocorrectionDisabled()
             Picker("原恢复种类",selection:binding(index,"kind")) {
                 Text("请选择，不预设").tag(""); Text("休整 REST").tag("REST"); Text("救助 RESCUE").tag("RESCUE")
