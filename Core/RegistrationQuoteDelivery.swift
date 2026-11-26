@@ -94,6 +94,39 @@ public struct RegistrationQuoteDelivery: Decodable, Equatable {
     }
 }
 
+/// R11-PC-C-2: one `marketingAdjustments` row (quote-view.js:93-101). Amount is shown as its absolute value.
+public struct RegistrationMarketingAdjustment: Equatable, Identifiable {
+    public let id: String
+    public let label: String
+    public let amount: Decimal
+}
+
+/// R11-PC-C-2: `marketingAdjustments[]` wire row (quote-view.js:93-101). Lenient; never fails the quote.
+struct RegistrationMarketingAdjustmentWire: Decodable {
+    let kind: String?
+    let code: String?
+    let label: String?
+    let amount: Decimal?
+    private enum CodingKeys: String, CodingKey { case kind, code, label, amount }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        kind = RegistrationLenient.string(c, .kind)
+        code = RegistrationLenient.string(c, .code) ?? RegistrationLenient.int(c, .code).map(String.init)
+        label = RegistrationLenient.string(c, .label)
+        amount = RegistrationLenient.decimal(c, .amount)
+    }
+}
+
+/// R11-PC-C-2: `completeRewardCoupon` name from `couponName`, `name` or `title` (quote-view.js:117-122).
+struct RegistrationRewardCouponWire: Decodable {
+    let name: String?
+    private enum CodingKeys: String, CodingKey { case couponName, name, title }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        name = RegistrationLenient.string(c, .couponName) ?? RegistrationLenient.string(c, .name) ?? RegistrationLenient.string(c, .title)
+    }
+}
+
 /// Lenient field readers shared by the quote extras. Never throw.
 enum RegistrationLenient {
     static func int<K: CodingKey>(_ c: KeyedDecodingContainer<K>, _ key: K) -> Int? {

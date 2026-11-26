@@ -144,7 +144,10 @@ struct RegistrationSheetView: View {
                         activitySection
                         registrationGapSections
                         ticketSection
-                        if flow.selectedTicket != nil { G6PromotionCatalogSection(activityID: flow.activity.summary.id) }
+                        if flow.selectedTicket != nil {
+                            G6PromotionCatalogSection(activityID: flow.activity.summary.id,
+                                                      rewardCouponName: flow.quoteState.quoteValue?.completeRewardCouponName)
+                        }
                         quoteSection
                         CouponUsabilitySection(phase: couponPhase, onRetry: { Task { await reloadCoupons() } })
                         RegistrationPaymentReadinessSection(price: flow.selectedTicket?.price, onResult: { paymentReadiness = $0 })
@@ -791,6 +794,21 @@ struct RegistrationSheetView: View {
                         LabeledContent("registrationParity.clubBenefit") { Text(LocalizedStringKey(note)) }
                             .accessibilityIdentifier("registration.fees.clubBenefit")
                     }
+                    // R11-PC-C-2: §17.6 promotion rows (MP baoming.wxml:174-183, pages/activity/utils/quote-view.js:90-110):
+                    // 原价 struck through only when it differs from the ticket price, then one deduction per server label.
+                    if quote.showsMarketingAdjustments {
+                        if let list = quote.listAmount, list != flow.selectedTicket?.price,
+                           let text = RegistrationUIMoney.display(list, locale: locale, currencyCode: RegistrationUIMoney.yuanCurrencyCode) {
+                            LabeledContent("registration.marketing.listAmount") {
+                                Text(verbatim: text).strikethrough().monospacedDigit().foregroundStyle(.secondary)
+                            }
+                            .accessibilityIdentifier("registration.fees.listAmount")
+                        }
+                        ForEach(quote.marketingAdjustments) { adjustment in
+                            RegistrationAmountRow(key: "registration.fees.adjustment", amount: adjustment.amount, deduction: true,
+                                                  currencyCode: RegistrationUIMoney.yuanCurrencyCode, verbatimLabel: adjustment.label)
+                        }
+                    }
                     if Self.positive(quote.couponDeductYuan) {
                         RegistrationAmountRow(key: "registration.form.couponDiscount", amount: quote.couponDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     }
@@ -904,6 +922,8 @@ private struct RegistrationAmountRow: View {
     let amount: Decimal?
     var deduction = false
     var currencyCode: String? = nil
+    /// R11-PC-C-2: server promotion label shown verbatim (MP baoming.wxml:179).
+    var verbatimLabel: String? = nil
     var body: some View {
         LabeledContent {
             if let amount, amount > .zero, !PlayAreaPopupCopy.paymentsOpen {
@@ -915,7 +935,9 @@ private struct RegistrationAmountRow: View {
                     if currencyCode == nil { Text("registration.form.currencyUnknown").cyText(.meta).foregroundStyle(.primary) }
                 }
             } else { Text(verbatim: "—").foregroundStyle(Color.primary).accessibilityIdentifier(key + ".amount") }
-        } label: { Text(LocalizedStringKey(key)) }
+        } label: {
+            if let verbatimLabel { Text(verbatim: verbatimLabel) } else { Text(LocalizedStringKey(key)) }
+        }
     }
 }
 

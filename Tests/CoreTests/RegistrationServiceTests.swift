@@ -126,7 +126,9 @@ final class RegistrationServiceTests: XCTestCase {
         let body = try jsonBody(request)
         XCTAssertEqual(Set(body.keys), Set([
             "ownerType", "ownerId", "ticketId", "isUsePoint", "realName", "phone", "email",
-            "participateDate", "payChannel", "requestId", "quoteSign", "waitlistOfferId", "waitlistOfferToken"
+            "participateDate", "payChannel", "requestId", "quoteSign", "waitlistOfferId", "waitlistOfferToken",
+            // R11-PC-C-2: MP baoming.js:1459 always sends `marketingSign` (null without a promotion).
+            "marketingSign"
         ]))
         XCTAssertEqual(body["ownerType"] as? Int, 2)
         XCTAssertEqual(body["ownerId"] as? Int, 7)
@@ -151,7 +153,8 @@ final class RegistrationServiceTests: XCTestCase {
         let transport = RegistrationFixtureTransport(createJSON)
         _ = try await service(transport).create(intent(appPay: false, includeOptionalFields: false), token: "fixture-raw-token")
         let body = try jsonBody(XCTUnwrap(transport.requests.first))
-        XCTAssertEqual(Set(body.keys), Set(["ownerType", "ownerId", "isUsePoint", "realName", "phone", "quoteSign", "requestId"]))
+        // R11-PC-C-2: `marketingSign` is always present (null), MP baoming.js:1459.
+        XCTAssertEqual(Set(body.keys), Set(["ownerType", "ownerId", "isUsePoint", "realName", "phone", "quoteSign", "requestId", "marketingSign"]))
         XCTAssertEqual(body["isUsePoint"] as? Int, 0)
     }
 
