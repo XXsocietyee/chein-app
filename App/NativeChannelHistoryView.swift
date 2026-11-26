@@ -226,7 +226,7 @@ import SwiftUI
         if message.isPayloadVisible, message.type == 1, let text = message.content,
            !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             Button {
-                UIPasteboard.general.string = text
+                LocalPasteboard.copy(text)
             } label: { Label("channel.message.copy", systemImage: "doc.on.doc") }
         }
         Button { openDetails(message.id) } label: { Label("channel.message.details", systemImage: "info.circle") }

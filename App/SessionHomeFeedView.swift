@@ -285,7 +285,7 @@ import SwiftUI
         if search.isPresented {
             SessionGlobalSearchView(searchSession: search, onSignIn: { search.isPresented = false; onSignIn?() })
                 .environment(\.globalTemplateSearch, .session(session))
-                .background(Color(uiColor: .systemGroupedBackground))
+                .cyGroupedBackground()
                 .transition(.opacity)
                 .id(session.searchMapReader.scope)
         }

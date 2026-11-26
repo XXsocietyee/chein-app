@@ -9,6 +9,11 @@ public extension View {
         self
     }
 
+    /// System grouped background (Light/Dark) behind an overlay that sits on a grouped page.
+    func cyGroupedBackground() -> some View {
+        background(Color(uiColor: .systemGroupedBackground))
+    }
+
     /// Long-form document ground (agreement / privacy text): page background, no list chrome.
     func cyDocumentSurface() -> some View {
         background(Color(uiColor: .systemBackground).ignoresSafeArea())

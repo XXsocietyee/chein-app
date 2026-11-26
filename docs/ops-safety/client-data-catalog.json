@@ -888,6 +888,15 @@
       "purpose": "Mention only: no Keychain/UserDefaults writes in this coordinator",
       "retention": "n/a (no store)",
       "deletion": "n/a"
+    },
+    {
+      "file": "Core/QuestLiveActivityContent.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "App Group shared defaults: next-stop snapshot (topic, stop name, distance) read by the Live Activity / widget extension",
+      "retention": "until QuestNextStopSnapshot.lifetime passes or the play context is cleared",
+      "deletion": "cleared on run end / play context clear; removed with the app"
     }
   ]
 }

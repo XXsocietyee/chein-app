@@ -99,17 +99,17 @@ class Pkg19LoginDeletionChain(unittest.TestCase):
 
     def test_sign_out_entry_requires_confirmation(self):
         entry = src('App/SettingsAccountEntries.swift')
-        # native-r2: the confirmation is MemberConfirmSheet presented with .cySheet (was CYConfirmSheet).
-        self.assertIn('.cySheet(isPresented: $confirms) {', entry)
-        self.assertIn('MemberConfirmSheet(title: appLocalized("auth.signOutConfirm", locale: locale)', entry)
-        self.assertIn('isDestructive: true, confirmIdentifier: "settings.signOut.confirm"', entry)
-        self.assertIn('if session.account != nil {', entry)
+        # G-047: the confirmation is the system sign-out action sheet (memberSignOutConfirmation), bound to the
+        # snapshot captured on tap.
+        self.assertIn('.memberSignOutConfirmation(isPresented: $confirms, presenting: confirmation,', entry)
+        self.assertIn('confirmIdentifier: "settings.signOut.confirm") { expected in', entry)
+        self.assertIn('if let accountID = session.account?.id {', entry)
         # The row only opens the confirmation; logout runs solely from the confirm action.
         row = entry.split('confirmation = session.signOutConfirmation(accountID: accountID)', 1)[1].split('} label:', 1)[0]
         self.assertNotIn('logout', row)
         self.assertEqual(entry.count('session.logout('), 1)
-        confirm = entry.split('confirmIdentifier: "settings.signOut.confirm") {', 1)[1]
-        self.assertIn('await session.logout(matching: expected)', confirm.split('.presentationDetents', 1)[0])
+        confirm = entry.split('confirmIdentifier: "settings.signOut.confirm") { expected in', 1)[1]
+        self.assertIn('await session.logout(matching: expected)', confirm.split('.onChange', 1)[0])
 
     def test_no_new_endpoint_literals_in_auth_or_compliance_ui(self):
         for path in ['App/AccountComplianceViews.swift', 'App/AuthChannelView.swift', 'Core/AuthChannelCoordinator.swift',
