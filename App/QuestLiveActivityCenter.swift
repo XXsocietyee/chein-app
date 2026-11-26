@@ -1,5 +1,6 @@
 import ActivityKit
 import Foundation
+import WidgetKit
 #if canImport(QuestifyCore)
 import QuestifyCore
 #endif
@@ -8,6 +9,7 @@ import QuestifyCore
 /// from `QuestLiveActivityUpdate`s published by `RoamLiveSessionController` and `PlayExperienceCoordinator`,
 /// plus (native r2 M4, `nativeR2.island`) the story-audio activity and the orientation / explore play context.
 /// Local only (no push token). A refused request (Live Activities off, system limit) leaves the in-app flow unchanged.
+/// Design P1 L9: the play stop also feeds the next-stop widget (`QuestWidgetStore`, dormant without the App Group).
 @MainActor final class QuestLiveActivityCenter: QuestLiveActivityPublishing {
     static let shared = QuestLiveActivityCenter()
     private struct Running {
@@ -19,6 +21,8 @@ import QuestifyCore
     /// Native r2 M4: what the visible play screen knows and Core mapping does not (flow, distance to the next stop).
     private var playContext: (mode: QuestLiveActivityMode, nextDistanceMeters: Int?)?
     private static let storyKey = "story.audio"
+    /// Last next-stop values handed to the widget; the widget reloads only when what it shows changes.
+    private var lastNextStop: QuestNextStopSnapshot?
     private init() {}
 
     // MARK: Native r2 M4 (Dynamic Island regions)
@@ -77,6 +81,22 @@ import QuestifyCore
         running[.play] = current
         let activity = current.activity
         Task { await activity.update(ActivityContent(state: decorated, staleDate: nil)) }
+        publishNextStop(title: activity.attributes.title, content: decorated)
+    }
+
+    // MARK: Next-stop widget (design P1 L9, P-016 / G-089)
+
+    private func publishNextStop(title: String?, content: QuestLiveActivityContent) {
+        guard let snapshot = QuestNextStopSnapshot(title: title, content: content, now: Date()),
+              !snapshot.showsSame(as: lastNextStop) else { return }
+        lastNextStop = snapshot
+        if QuestWidgetStore.write(snapshot) { WidgetCenter.shared.reloadTimelines(ofKind: QuestWidgetStore.nextStopKind) }
+    }
+
+    /// A finished run leaves the widget on its passport entry.
+    private func clearNextStop() {
+        lastNextStop = nil
+        if QuestWidgetStore.write(nil) { WidgetCenter.shared.reloadTimelines(ofKind: QuestWidgetStore.nextStopKind) }
     }
 
     func publish(_ update: QuestLiveActivityUpdate) {
@@ -102,8 +122,11 @@ import QuestifyCore
             running[descriptor.kind] = current
             let activity = current.activity
             Task { await activity.update(ActivityContent(state: content, staleDate: nil)) }
+            if descriptor.kind == .play { publishNextStop(title: descriptor.title, content: content) }
             return
         }
+        // The widget follows the run even when Live Activities are off or refused.
+        if descriptor.kind == .play { publishNextStop(title: descriptor.title, content: content) }
         if running[descriptor.kind] != nil { end(kind: descriptor.kind, key: nil, last: nil) }
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
         let attributes = QuestLiveActivityAttributes(kind: descriptor.kind, title: descriptor.title)
@@ -114,6 +137,7 @@ import QuestifyCore
     }
 
     private func end(kind: QuestLiveActivityKind, key: String?, last: QuestLiveActivityContent?) {
+        if kind == .play, last != nil { clearNextStop() }
         guard let current = running[kind], key == nil || key == current.key else { return }
         running[kind] = nil
         let activity = current.activity
