@@ -29,10 +29,14 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
         self.assertNotIn("0x0F172B", palette)
         self.assertNotIn("0x0F172A", palette)
 
+        # N-PLAY-DARK (r10, MP pages/play/index.wxml is a normal page): the runtime shell, session fallback and
+        # route map follow the system appearance under the player domain; only the focused kit stage stays .game.
+        for rel in ("App/PlayExperienceView.swift", "App/PlaySessionView.swift", "App/PlayRouteMapView.swift"):
+            src = read_swift(rel)
+            self.assertNotRegex(src, r"cyDomainScreen\(\.game\)|cyPushedChrome\(domain: \.game\)|CYColor\.gameAccent", rel)
+            self.assertNotIn(".themeDomain(.player)", src)
+        self.assertIn("private var screenDomain: ThemeDomain { .player }", read_swift("App/PlayExperienceView.swift"))
         for rel in (
-            "App/PlayExperienceView.swift",
-            "App/PlaySessionView.swift",
-            "App/PlayRouteMapView.swift",
             "App/PlayKitTimedChallengeView.swift",
             "App/PlayKitSensorChallengeView.swift",
             "App/CityOnsiteTaskView.swift",
@@ -41,14 +45,6 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             "App/PlayKitScreen.swift",
         ):
             src = read_swift(rel)
-            if rel == "App/PlayExperienceView.swift":
-                # P-049 (design P1 L4): legacy play stays on .game; the native r2 city orientation /
-                # free explore screens follow the system appearance under the player domain.
-                self.assertIn("private var screenDomain: ThemeDomain { usesNativeR2Domain ? .player : .game }", src)
-                self.assertIn(".cyDomainScreen(screenDomain)", src)
-                self.assertIn("if model.gameplayMode == .cityOrientation { return NativeR2Flags.cityOrientation }", src)
-                self.assertNotIn(".themeDomain(.player)", src)
-                continue
             self.assertRegex(
                 src,
                 r"cyDomainScreen\(\.game\)|cyPushedChrome\(domain: \.game\)",

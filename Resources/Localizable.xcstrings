@@ -157466,7 +157466,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方路线"
+            "value": "官方线路"
           }
         }
       }
@@ -157483,7 +157483,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条路线没加载出来。检查网络后再试一次。"
+            "value": "这条线路没加载出来。检查网络后再试一次。"
           }
         }
       }
@@ -157500,7 +157500,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条路线还没有节点"
+            "value": "这条线路还没有节点"
           }
         }
       }
@@ -157568,7 +157568,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条路线不存在或已下架"
+            "value": "这条线路不存在或已下架"
           }
         }
       }
@@ -157602,7 +157602,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "路线详情"
+            "value": "线路详情"
           }
         }
       }
@@ -157636,7 +157636,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方路线"
+            "value": "官方线路"
           }
         }
       }
@@ -157653,7 +157653,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "城市官方推荐路线"
+            "value": "城市官方推荐线路"
           }
         }
       }
@@ -157670,7 +157670,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有上架的官方路线"
+            "value": "还没有上架的官方线路"
           }
         }
       }
@@ -157687,7 +157687,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "路线没加载出来。检查网络后再试一次。"
+            "value": "线路没加载出来。检查网络后再试一次。"
           }
         }
       }
@@ -157704,7 +157704,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看路线 %@"
+            "value": "查看线路 %@"
           }
         }
       }
@@ -157772,7 +157772,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "分享路线"
+            "value": "分享线路"
           }
         }
       }
@@ -157840,7 +157840,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方路线"
+            "value": "官方线路"
           }
         }
       }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// `OCARDS-3` / `OCARDS-4`: Object card 3-column category icon sheet and sheet-based rename
+/// `OCARDS-3` / `OCARDS-4`: Object card category sheet (system list rows) and sheet-based rename
 /// (64-char limit + inline error). Mounted from `ObjectCardsView` (filter) and `ObjectCardRenameButton` (rename).
 /// Native structure: system inline title, one cancellation item (owner native-iOS rule).
 public struct ObjectCardCategorySheetView: View {
@@ -12,8 +12,6 @@ public struct ObjectCardCategorySheetView: View {
     var icon: ((String) -> Image?)? = nil
     /// Tile accessibility identifier (the host keeps its existing `objects.category.<key>` ids for UI tests).
     var tileIdentifier: (String) -> String = { "objects.categorySheet.\($0.isEmpty ? "all" : $0)" }
-
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: CYSpacing.sm), count: 3)
 
     public init(
         categories: [ObjectCardCategoryOption],
@@ -36,40 +34,32 @@ public struct ObjectCardCategorySheetView: View {
 
     public var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: CYSpacing.sm) {
-                    ForEach(categories) { category in
-                        let isSelected = category.id == selectedID
-                        Button {
-                            onSelect(category.id)
-                            onClose()
-                        } label: {
-                            VStack(spacing: CYSpacing.xs) {
-                                if let image = icon?(category.id) {
-                                    image.resizable().scaledToFit().frame(width: 40, height: 40).accessibilityHidden(true)
-                                } else {
-                                    Image(systemName: category.systemImage).cyText(.sectionTitle).accessibilityHidden(true)
-                                }
-                                Text(category.title)
-                                    .cyText(.label)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
+            // OCARDS-3b: system rows (MP category icon + name + checkmark) instead of the custom tile grid.
+            List(categories) { category in
+                let isSelected = category.id == selectedID
+                Button {
+                    onSelect(category.id)
+                    onClose()
+                } label: {
+                    HStack {
+                        Label {
+                            Text(verbatim: category.title)
+                        } icon: {
+                            if let image = icon?(category.id) {
+                                image.resizable().scaledToFit()
+                            } else {
+                                Image(systemName: category.systemImage)
                             }
-                            .frame(maxWidth: .infinity, minHeight: 80)
-                            .padding(CYSpacing.xs)
-                            .foregroundStyle(isSelected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
-                            .background(isSelected ? CYColor.actionPrimaryBg : CYColor.bgSurface)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                            .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         }
-                        .buttonStyle(.plain)
-                        // MP aria-label / aria-selected.
-                        .accessibilityLabel(Text(verbatim: category.title))
-                        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
-                        .accessibilityIdentifier(tileIdentifier(category.id))
+                        Spacer()
+                        if isSelected { Image(systemName: "checkmark").foregroundStyle(.tint).accessibilityHidden(true) }
                     }
                 }
-                .padding(CYSpacing.md)
+                .foregroundStyle(.primary)
+                // MP aria-label / aria-selected.
+                .accessibilityLabel(Text(verbatim: category.title))
+                .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+                .accessibilityIdentifier(tileIdentifier(category.id))
             }
             .navigationTitle(Text("objects.category"))
             .navigationBarTitleDisplayMode(.inline)

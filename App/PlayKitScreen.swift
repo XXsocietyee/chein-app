@@ -84,16 +84,13 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
         .safeAreaInset(edge: .bottom) {
             if presentation == .sheet, !usesNativeGame, let item = review { reviewPanel(item) }
         }
-        .cyModalConfirm(
-            isPresented: leaveReview,
-            title: appLocalized("playkit.discardQuestion", locale: .current),
-            message: appLocalized("playkit.discardBoundary", locale: .current),
-            cancelTitle: appLocalized("playkit.keepEditing", locale: .current),
-            confirmTitle: appLocalized("playkit.discard", locale: .current),
-            isDestructive: true,
-            onCancel: { leaveReview = false },
-            onConfirm: { leaveReview = false; clearTransient(); dismiss() }
-        )
+        // N-KIT-DARK: system confirmation dialog for discarding an unsaved answer.
+        .confirmationDialog(Text("playkit.discardQuestion"), isPresented: $leaveReview, titleVisibility: .visible) {
+            Button("playkit.discard", role: .destructive) { leaveReview = false; clearTransient(); dismiss() }
+            Button("playkit.keepEditing", role: .cancel) { leaveReview = false }
+        } message: {
+            Text("playkit.discardBoundary")
+        }
         .onAppear {
             loadInitial()
             PlayStageAnalytics.track(analytics, .stageEnter, nodeID: model.state?.nodeID, kit: kind.rawValue)
@@ -407,8 +404,8 @@ private struct PlayKitScreenChrome: ViewModifier {
             // A sheet has no back: 关闭 is its exit (with the unsaved-answer review when dirty).
             content.navigationTitle(Text(LocalizedStringKey("playkit.kind." + kind.rawValue)))
                 .navigationBarTitleDisplayMode(.inline)
-                .cyDomainScreen(.game)
-                .tint(CYColor.gameAccent)
+                .cyDomainScreen(domain)
+                .tint(tint)
                 .cyHideTabBar(true)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.close", action: close).accessibilityIdentifier("playkit.close") } }
         } else {
@@ -416,11 +413,16 @@ private struct PlayKitScreenChrome: ViewModifier {
             content.navigationTitle(Text(LocalizedStringKey("playkit.kind." + kind.rawValue)))
                 .navigationBarTitleDisplayMode(.inline)
                 .cyGuardedBack(when: dirty, onBack: close)
-                .cyDomainScreen(.game)
-                .tint(CYColor.gameAccent)
+                .cyDomainScreen(domain)
+                .tint(tint)
                 .cyHideTabBar(true)
         }
     }
+    /// N-KIT-DARK (MP pages/playkit/components/*): only the focused stage (`isFocusedStage`) stays on the dark game
+    /// domain; form kits (profile, note, photoCheck, dailySign, diyName, steps, timeWindow, branch, estimate, predict,
+    /// pricePair, compare, …) follow the system Light/Dark setting with the system accent.
+    private var domain: ThemeDomain { kind.isFocusedStage ? .game : .player }
+    private var tint: Color { kind.isFocusedStage ? CYColor.gameAccent : Color.accentColor }
 }
 
 /// Actual story-flow body: no nested ScrollView, List, navigation container or chrome.

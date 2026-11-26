@@ -581,8 +581,8 @@ struct JourneySeatsView: View {
             }
         }
         .cyPushedChrome(domain: .player)
-        // The eyebrow on the page says 开局大厅; the bar stays clear (Figma `204:15032`).
-        .navigationTitle(Text(verbatim: ""))
+        // JSEAT-8: MP subpackageJourney/pages/seats/index.wxml:3-4 — the bar title is 开局大厅.
+        .navigationTitle(Text("mp.seats.title"))
         .navigationBarTitleDisplayMode(.inline)
         .overlay {
             if let target = cancelTarget {
@@ -598,16 +598,12 @@ struct JourneySeatsView: View {
     private func ready(_ content: JourneySeatsContent) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                // verify-r1 3.3 / skill-r2 hand-off `204:15032`: eyebrow 开局大厅, the topic as a 28 pt title, a cover strip.
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("mp.seats.title").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    if let name = content.headName {
-                        Text(verbatim: name).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
-                    }
+                // JSEAT-8: 开局大厅 is the navigation title; no eyebrow or large in-content title. The topic name stays as a headline.
+                if let name = content.headName {
+                    Text(verbatim: name).font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
                 }
-                .accessibilityElement(children: .combine)
                 // The cover strip only when the read has a cover: a grey stand-in block would be a placeholder.
                 if content.headCoverURL != nil {
                     CYCachedAsyncImage(content.headCoverURL, role: .cover)

@@ -63,6 +63,11 @@ import MapKit
     @State private var chapterFilter: Int?
     @State private var showChapterPicker = false
     @State private var showEmergencyHelp = false
+    /// PLAY-6a: MP 游玩工具 preferences sheet (pages/play/index.wxml 游玩工具).
+    @State private var showPlayTools = false
+    @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
+    @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
+    @AppStorage(PlayReducedMotionPreference.storageKey) private var playReducedMotion = false
     @State private var titleCardTopic: Int?
     /// Cast for this run. Nil until a nodes read carries cast. Capabilities stay empty.
     @State private var castModel: CastCoordinator?
@@ -133,11 +138,10 @@ import MapKit
         }
         .environment(\.questifyCast, castModel?.context)
         .privacySensitive()
-        // P-049: the native r2 flows follow the system Light/Dark setting (player domain, system accent);
-        // the legacy play screens keep the forced-dark game domain.
+        // N-PLAY-DARK: system Light/Dark and the system accent (player domain) for every play mode.
         .cyDomainScreen(screenDomain)
         .cyPushedChrome(domain: screenDomain)
-        .tint(usesNativeR2Domain ? Color.accentColor : CYColor.gameAccent)
+        .tint(Color.accentColor)
         .appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedNode) { id in
@@ -197,6 +201,7 @@ import MapKit
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
+        .sheet(isPresented: $showPlayTools) { playToolsSheet }
         .cySheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
@@ -678,8 +683,27 @@ import MapKit
                 // 游玩工具: 切换章节 when the route has more than one chapter (also after the run is done), 紧急求助 always.
                 PlayToolsMenu(showsChapters: (model.snapshot?.result.chapters.count ?? 0) > 1, showsEmergency: model.snapshot != nil,
                               openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true },
-                              openScanArrival: hudStop == nil ? nil : { if let id = hudStop?.node.id { selectedNode = id } })
+                              openScanArrival: hudStop == nil ? nil : { if let id = hudStop?.node.id { selectedNode = id } },
+                              openPreferences: openPlayTools)
             }
+    }
+    private func openPlayTools() { showPlayTools = true }
+    /// PLAY-6a: lead actions already sit in `PlayLeadSection` on the page, so the sheet carries stats + preferences.
+    private var playToolsSheet: some View {
+        PlayToolsAndLeadSheetView(
+            chapterCount: model.snapshot?.result.chapters.count ?? 0,
+            completedCount: doneChapterIDs.count,
+            bgmEnabled: $playBGMOn,
+            narrationAutoplay: $playNarrationOn,
+            reduceMotionOverride: playReducedMotionBinding,
+            onClose: { showPlayTools = false },
+            showsContentRows: false
+        )
+    }
+    /// `utils/motion-preference.js`: writes the primary and the legacy key.
+    private var playReducedMotionBinding: Binding<Bool> {
+        Binding(get: { _ = playReducedMotion; return PlayReducedMotionPreference.isEnabled(in: .standard) },
+                set: { on in PlayReducedMotionPreference.set(on, in: .standard); playReducedMotion = on })
     }
     private var playChannelScope: InGameChannelScope? {
         if let teamID = model.snapshot?.result.teamID, teamID > 0 {
@@ -702,13 +726,9 @@ import MapKit
     /// (pause / resume) above the panel, and the unchanged task list in a three-detent panel.
     // MARK: native r2 city orientation (NativeR2Flags.cityOrientation)
 
-    /// P-049: city orientation and free explore run their native r2 screens under the player domain.
-    private var usesNativeR2Domain: Bool {
-        if model.gameplayMode == .cityOrientation { return NativeR2Flags.cityOrientation }
-        if model.gameplayMode == .freeExploration { return NativeR2Flags.freeExplore }
-        return false
-    }
-    private var screenDomain: ThemeDomain { usesNativeR2Domain ? .player : .game }
+    /// N-PLAY-DARK (MP pages/play/index.wxml is a normal light page): the runtime shell, backpack, route map and node
+    /// pages follow the system Light/Dark setting under the player domain. Only the focused kit stage stays dark.
+    private var screenDomain: ThemeDomain { .player }
 
     /// Any other presentation of this screen hides the run sheet first; it comes back when that one closes.
     private var cityRunSheetBlocked: Bool {

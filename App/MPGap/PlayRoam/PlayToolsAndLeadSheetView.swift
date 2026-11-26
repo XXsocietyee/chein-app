@@ -23,6 +23,8 @@ public struct PlayToolsAndLeadSheetView: View {
     public var onOpenRewards: () -> Void = {}
     public var onOpenEntryCode: () -> Void = {}
     public var onClose: () -> Void = {}
+    /// PLAY-6a: false hides 内容 (cast / evidence / rewards / entry code) when the host has no destinations for them.
+    public var showsContentRows: Bool = true
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -43,7 +45,8 @@ public struct PlayToolsAndLeadSheetView: View {
         onOpenEvidenceCards: @escaping () -> Void = {},
         onOpenRewards: @escaping () -> Void = {},
         onOpenEntryCode: @escaping () -> Void = {},
-        onClose: @escaping () -> Void = {}
+        onClose: @escaping () -> Void = {},
+        showsContentRows: Bool = true
     ) {
         self.lead = lead
         self.evidenceCount = evidenceCount
@@ -64,75 +67,92 @@ public struct PlayToolsAndLeadSheetView: View {
         self.onOpenRewards = onOpenRewards
         self.onOpenEntryCode = onOpenEntryCode
         self.onClose = onClose
+        self.showsContentRows = showsContentRows
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            CYSheetHeader(title: Text("playTools.title"), style: .player, onClose: onClose)
-            List {
-                if lead.exists && lead.isLeader {
-                    Section("playTools.lead.section") {
-                        Button("playTools.lead.scanMemberTicket", action: onVerifyMemberTicket)
-                        Button("playTools.lead.showGroupCode", action: onShowGroupCode)
-                        if !lead.isDirectorRun {
-                            Button("playTools.lead.unlockNext", action: onUnlockNextChapter)
-                        }
-                        ForEach(lead.skipRequests) { req in
-                            Button {
-                                onReleaseStation(req)
-                            } label: {
-                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    Text("playTools.lead.releaseStation")
-                                        .cyText(.body)
-                                    Text("\(req.nickname) · \(req.nodeName)")
-                                        .cyText(.meta)
-                                        .foregroundStyle(CYColor.textSecondary)
-                                }
-                            }
-                        }
-                        Button("playTools.lead.settle", action: onLeadSettle)
-                    }
-                }
-
-                Section("playTools.content.section") {
-                    Button("playTools.cast", action: onOpenCast)
-                    if evidenceCount > 0 {
-                        Button {
-                            onOpenEvidenceCards()
-                        } label: {
-                            LabeledContent("playTools.evidence", value: "\(evidenceCount) 张")
-                        }
-                    }
-                    Button("playTools.rewards", action: onOpenRewards)
-                    Button("playTools.entryCode", action: onOpenEntryCode)
-                }
-
+        NavigationStack {
+            Form {
+                leadSection
+                contentSection
                 if !thoughts.isEmpty {
                     Section("playTools.thoughts.section") {
                         ForEach(thoughts) { item in
                             LabeledContent(item.name, value: item.statusText)
-                                .cyText(.bodyCompact)
                         }
                     }
                 }
-
-                Section("playTools.stats.section") {
-                    LabeledContent("playTools.stats.chapters", value: "\(chapterCount)")
-                        .cyText(.numericBody, monospacedDigit: true)
-                    LabeledContent("playTools.stats.completed", value: "\(completedCount)")
-                        .cyText(.numericBody, monospacedDigit: true)
-                    LabeledContent("playTools.stats.remainingGames", value: "\(remainingGamesCount)")
-                        .cyText(.numericBody, monospacedDigit: true)
+                if chapterCount > 0 {
+                    Section("playTools.stats.section") {
+                        LabeledContent("playTools.stats.chapters") { Text(verbatim: "\(chapterCount)").monospacedDigit() }
+                        LabeledContent("playTools.stats.completed") { Text(verbatim: "\(completedCount)").monospacedDigit() }
+                        if remainingGamesCount > 0 {
+                            LabeledContent("playTools.stats.remainingGames") { Text(verbatim: "\(remainingGamesCount)").monospacedDigit() }
+                        }
+                    }
                 }
-
+                // MP pages/play/index.wxml 游玩工具 sheet: 背景音乐 / 到站自动播放 / 减少动态效果.
                 Section("playTools.preferences.section") {
                     Toggle("playTools.pref.bgm", isOn: $bgmEnabled)
+                        .accessibilityIdentifier("playTools.pref.bgm")
                     Toggle("playTools.pref.narration", isOn: $narrationAutoplay)
+                        .accessibilityIdentifier("playTools.pref.narration")
                     Toggle("playTools.pref.reduceMotion", isOn: $reduceMotionOverride)
+                        .accessibilityIdentifier("playTools.pref.reduceMotion")
                 }
             }
-            .listStyle(.insetGrouped)
+            .navigationTitle(Text("playTools.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.done", action: onClose)
+                }
+            }
         }
         .presentationDetents([.medium, .large])
+        .accessibilityIdentifier("playTools.sheet")
+    }
+
+    @ViewBuilder private var leadSection: some View {
+        if lead.exists && lead.isLeader {
+            Section("playTools.lead.section") {
+                Button("playTools.lead.scanMemberTicket", action: onVerifyMemberTicket)
+                Button("playTools.lead.showGroupCode", action: onShowGroupCode)
+                if !lead.isDirectorRun {
+                    Button("playTools.lead.unlockNext", action: onUnlockNextChapter)
+                }
+                ForEach(lead.skipRequests) { req in
+                    Button {
+                        onReleaseStation(req)
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text("playTools.lead.releaseStation")
+                            Text(verbatim: "\(req.nickname) · \(req.nodeName)")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                Button("playTools.lead.settle", action: onLeadSettle)
+            }
+        }
+    }
+
+    /// Content rows show only when the host wires them (a no-op default would be a dead button).
+    @ViewBuilder private var contentSection: some View {
+        if showsContentRows {
+            Section("playTools.content.section") {
+                Button("playTools.cast", action: onOpenCast)
+                if evidenceCount > 0 {
+                    Button {
+                        onOpenEvidenceCards()
+                    } label: {
+                        LabeledContent("playTools.evidence") { Text(verbatim: "\(evidenceCount)").monospacedDigit() }
+                    }
+                }
+                Button("playTools.rewards", action: onOpenRewards)
+                Button("playTools.entryCode", action: onOpenEntryCode)
+            }
+        }
     }
 }
