@@ -1,0 +1,113 @@
+// 可复用路线地图组件:给 topicId 自取主题章节,渲染节点 marker + 橙色 polyline。
+// 与主题详情复用同一分章投影；只有明确验证的供应商几何可画为道路。
+const toast = require('../../../../utils/toast.js');
+const routePreview = require('../../utils/topic-route-preview.js');
+const { lightMapStyle, mapStyleFor, routeMapKind, routeMapLines } = require('../../../../utils/map-style.js');
+const LIGHT_MAP_STYLE = lightMapStyle();
+const app = getApp();
+
+Component({
+  lifetimes: {
+    detached() { this._routeDetached = true; this._routeReadEpoch = (this._routeReadEpoch || 0) + 1; }
+  },
+  properties: {
+    topicId: {
+      type: null,
+      value: '',
+      observer(v) {
+        if (v && Number(v) > 0) this.loadRoute(v);
+      }
+    },
+    // 谁在看:默认 preview(广场发布 / 活动选择里的预览截图,white);玩家展示时传 preview=false,按主题发布时的外观取底图
+    preview: { type: Boolean, value: true },
+    // 主题 look_json,只在 preview=false 时用
+    look: { type: null, value: '' },
+    // 地图高度(如 '400rpx' / '300px')
+    height: {
+      type: String,
+      value: '400rpx'
+    }
+  },
+
+  data: {
+    mapSubkey: LIGHT_MAP_STYLE.subkey,
+    mapLayerStyle: LIGHT_MAP_STYLE.layerStyle,
+    routeReady: false,
+    routeIsRoad: false,
+    routeSourceText: '',
+    mapLatitude: 0,
+    mapLongitude: 0,
+    routeMarkers: [],
+    routePolyline: [],
+    routeIncludePoints: []
+  },
+
+  methods: {
+    loadRoute(topicId) {
+      if (this._routeDetached) return;
+      const that = this;
+      const epoch = this._routeReadEpoch = (this._routeReadEpoch || 0) + 1;
+      const session = app.getSession(), revision = session.getRevision();
+      const current = () => !that._routeDetached && that._routeReadEpoch === epoch
+        && app.getSession() === session && session.getRevision() === revision;
+      that.setData(routePreview.build([]));
+      app.sendRequest({
+        hideLoading: true,
+        url: '/api/topic/info-to-user',
+        method: 'POST',
+        data: { id: topicId },
+        success(res) {
+          if (!current()) return;
+          if (res.code == '200' && res.data && String(res.data.id) === String(topicId) && res.data.chaptersList) {
+            // layer-style 不能热改:地图在 routeReady 之后才挂出,样式先于它写进 data
+            const style = mapStyleFor(routeMapKind(that.data.look || res.data.lookJson, that.data.preview));
+            that.setData({ mapSubkey: style.subkey, mapLayerStyle: style.layerStyle });
+            that._routeLook = that.data.look || res.data.lookJson;
+            that.buildRouteMap(res.data.chaptersList);
+          } else {
+            that.setData(routePreview.build([]));
+            that.triggerEvent('empty');
+          }
+        },
+        fail() {
+          if (!current()) return;
+          that.setData(routePreview.build([]));
+          that.triggerEvent('empty');
+        }
+      });
+    },
+
+    // 拍平章节节点 → marker + polyline(贴路线优先,否则节点直连)
+    buildRouteMap(chaptersList) {
+      const view = routePreview.build(chaptersList);
+      // 2026-11-22 owner:玩家看到的路线跟主题配色(预览仍是原来的墨线)
+      view.routePolyline = routeMapLines(view.routePolyline, this._routeLook, this.data.preview);
+      this.setData(view, () => this.triggerEvent(view.routeReady ? 'ready' : 'empty'));
+
+    },
+
+    // 截取当前路线地图为临时图片(发布静态预览图用),返回 Promise<tempImagePath>
+    snapshotRoute() {
+      const that = this;
+      return new Promise(function (resolve, reject) {
+        if (!that.data.routeReady) {
+          reject('route not ready');
+          return;
+        }
+        const ctx = wx.createMapContext('rmMap', that);
+        ctx.takeSnapshot({
+          success: function (res) { resolve(res.tempImagePath); },
+          fail: function (e) { reject(e); }
+        });
+      });
+    },
+
+    onNodeTap(e) {
+      const markerId = (e.detail && e.detail.markerId !== undefined) ? e.detail.markerId : e.markerId;
+      const m = (this.data.routeMarkers || [])[markerId];
+      if (m && m.callout && m.callout.content) {
+        toast(m.callout.content);
+      }
+    }
+  }
+});
