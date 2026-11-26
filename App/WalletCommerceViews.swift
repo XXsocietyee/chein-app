@@ -230,11 +230,9 @@ enum WalletPayoutCapability {
     }
     private var quickItems: [WalletQuickAction] {
         var out: [WalletQuickAction] = []
-        if WalletPayoutCapability.isOn, visibility.withdrawalRecords, showsWithdrawalSupport {
-            out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open", destination: { AnyView(WithdrawalSupportLandingView(reader: reader)) }))
-        } else if visibility.withdrawalRecords {
-            // R7-PC-D5-1 MP-first: with payout off the MP 提现 only opens the platform CS popup, no write
-            // (subpackageA/pages/assetcenter/earnings/index.js:61-76).
+        if visibility.withdrawalRecords {
+            // R11-PC-D-1 / R9-PC-D5-1 MP-first: 提现 always runs the 暂无提现权限 gate, then the platform CS popup, whether
+            // payout is on or off. MP removed the bank form (PG-033; subpackageA/pages/assetcenter/earnings/index.js:61-76).
             if showsWithdrawalSupport {
                 out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open", destination: { AnyView(WalletWithdrawPermissionGate()) }))
             }
@@ -429,7 +427,8 @@ enum WalletPayoutCapability {
                 } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin, unavailable: funds.unavailable) { Task { await load() } } }
             }
             Section {
-                if WalletPayoutCapability.isOn { NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }.accessibilityIdentifier("wallet.assets.withdraw") }
+                // R11-PC-D-1: same 暂无提现权限 gate + CS popup as the quick row (MP earnings/index.js:61-76).
+                if WalletPayoutCapability.isOn { NavigationLink("withdrawal.support.title") { WalletWithdrawPermissionGate() }.accessibilityIdentifier("wallet.assets.withdraw") }
                 NavigationLink("wallet.balanceLedger") { WalletLedgerView(reader: reader, kind: .balance) }
                     .accessibilityIdentifier("wallet.assets.balanceLedger")
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
