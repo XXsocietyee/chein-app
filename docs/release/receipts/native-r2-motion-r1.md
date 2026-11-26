@@ -25,7 +25,7 @@ Brief: `docs/briefs/native-r2-motion-r1.md` (design/handoff-r2), M1–M3. Branch
 ## M1 Route draw-on + rolling counters
 - **Finish replay entry:** a "回放路线" row under the route thumbnail (CityOrientationFinishSummaryView.swift:72, :140). It shows only when there is at least one walked leg.
 - **Replay view** (NativeR2RouteReplay.swift):
-  - Draw-on: dashed preview of upcoming legs, and a solid tinted line trimmed to the head (:134-141).
+  - Draw-on: dashed preview of upcoming legs, and a solid tinted line trimmed to the head (:135-142).
   - Camera follows the head with `MapCamera` + `withAnimation(.smooth)` (:115) and ends on the finish (:106-109).
   - Top `.regularMaterial` card (12 pt `RoundedRectangle`): time and distance, `.monospacedDigit()` + numericText rolling as legs complete (:161-184).
   - Finish `Annotation` with `NativeR2ArrivalMark` (:147).
