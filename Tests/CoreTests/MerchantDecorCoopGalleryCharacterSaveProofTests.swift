@@ -111,8 +111,14 @@ private final class DecorProofTransport: HTTPTransport {
     }
 
     func testGalleryWithoutApprovedRouteSendsNoWrite() async throws {
+        // 4d89b402f (owner, merchant-coop non-money writes on): decor/save is admitted for any approval bound to this
+        // base URL, namespace and account. An approval issued for another account approves no route here: no write.
         let transport = DecorProofTransport()
-        let (reader, _) = try reader(transport, paths: ["api/merchant/coop-profile/save"])
+        let config = try APIConfiguration(baseURL: URL(string: "https://example.test/prod-api")!)
+        let session = try MerchantOperationsSession(accountID: 7, epoch: 1, token: "synthetic-token", storageNamespace: "decor-proof")
+        let foreign = try OperationEndpointApproval(baseURL: config.baseURL, namespace: session.storageNamespace, accountID: 8, paths: ["api/merchant/decor/save"])
+        let reader = MerchantOperationsSessionReader(service: MerchantOperationsService(configuration: config, transport: transport),
+                                                     currentSession: { session }, approval: foreign, journal: DecorProofJournal())
         let owner = MerchantOperationsCoordinator(reader: reader, destination: .gallery)
         await owner.load()
         guard case .gallery(var value) = owner.draft else { return XCTFail("Expected gallery draft") }
