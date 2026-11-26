@@ -470,6 +470,8 @@ private struct ParticipationCoverPlaceholder: View {
     @State private var issue: ParticipationLoadIssue?
     @State private var loading = false
     @State private var generation = UUID()
+    /// Participation id for the existing merchantapply editor. Nil until 去修改 is tapped with an id.
+    @State private var merchantApplyID: Int?
     var body: some View {
         List {
             if loading { ProgressView("playerJourney.parity.detailLoading") }
@@ -549,10 +551,6 @@ private struct ParticipationCoverPlaceholder: View {
                     NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycle).id(lifecycle.scope) } label: {
                         Label(detail.sourceCanCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress", systemImage: "list.bullet.rectangle")
                     }.accessibilityIdentifier("playerJourney.orderLifecycle")
-                    if detail.needsModification {
-                        // Player registration IDs cannot address the separate merchant-registration table.
-                        Text("playerJourney.modifyNeedsReview").foregroundStyle(.secondary)
-                    }
                     if detail.showsContactService() {
                         NavigationLink { ParticipationSupportView() } label: {
                             Label("participationSupport.title", systemImage: "message")
@@ -562,23 +560,38 @@ private struct ParticipationCoverPlaceholder: View {
             }
         }.cyGroupedSurface().cyPageTitle("playerJourney.detail")
         // Source mycanyuinfo: 开始游戏 is the one filled action, pinned to the bottom of the page.
+        // 去修改 sits with it only when displayStatus is 需修改 (needModify). That state already hides 取消参与 and 联系客服.
         .safeAreaInset(edge: .bottom) {
             if let detail {
-                Group {
-                    if let target = detail.record.playEntry {
-                        Button("playerJourney.start", systemImage: "play.fill") { open(.play(target)) }
-                            .accessibilityIdentifier("playerJourney.start")
-                    } else {
-                        Button("playerJourney.start", systemImage: "ticket") { open(.ticketWallet) }
-                            .accessibilityIdentifier("playerJourney.start.ticketWallet")
+                VStack(spacing: CYSpacing.sm) {
+                    Group {
+                        if let target = detail.record.playEntry {
+                            Button("playerJourney.start", systemImage: "play.fill") { open(.play(target)) }
+                                .accessibilityIdentifier("playerJourney.start")
+                        } else {
+                            Button("playerJourney.start", systemImage: "ticket") { open(.ticketWallet) }
+                                .accessibilityIdentifier("playerJourney.start.ticketWallet")
+                        }
+                    }
+                    .buttonStyle(.cyPrimary).controlSize(.large).frame(maxWidth: .infinity)
+                    if detail.needsModification {
+                        Button("participation.editMerchantApply") {
+                            guard id > 0 else { return }
+                            merchantApplyID = id
+                        }
+                        .buttonStyle(.cySecondary(fullWidth: true))
+                        .accessibilityIdentifier("playerJourney.modify")
                     }
                 }
-                .buttonStyle(.cyPrimary).controlSize(.large).frame(maxWidth: .infinity)
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
                 .background(.bar)
             }
         }
-        .task(id: reader.scope) { detail = nil; await load() }
+        .navigationDestination(item: $merchantApplyID) { registrationID in
+            // Source goModify: /pages/topic/merchantapply/index?mode=1&id= . This screen is already that editor.
+            MPReviewedPageScreen(page: "pages/topic/merchantapply/index", query: ["mode": "1", "id": String(registrationID)])
+        }
+        .task(id: reader.scope) { detail = nil; merchantApplyID = nil; await load() }
         // R7-MEM-23-1: silent probe per topic; a failed read hides the row (MP `settle(null)`).
         .task(id: detail?.topicID) {
             characterEntry = nil
