@@ -28,6 +28,7 @@
 | R9-PC-C1-1 | fixed | c22e01bc5 (tip) | App/MPGap/PlayerContent/PlayerContentRound2Views.swift (`ActivityCancelledStateView`) | |
 | R7-PC-C1-5 | fixed | 48b65bc1a | Core/ActivityDetail.swift (`ActivityTicket.registrants`); App/ActivityPresentationComponents.swift (ticket card, `activity.ticket.registrants.<id>`) | MP index.wxml:89-96 lineup from `cmsRegistrationList` |
 | R7-PC-C4-4 | fixed | c6a8f1a83 | App/PlayerGapViews.swift (`OfficialSignupCommandSection.run`) | after an APPLIED signup, `NativeNotificationPermissionAdapter.requestFromUserAction()` (only while undetermined) — MP official-detail/index.js:604-610 |
+| R9-PC-C3-1 | fixed | 4dbde728d (before r9) | Core/OfficialEventContracts.swift:245 (`tabTitleKey` → `official.tab.mine`); App/OfficialEventsBrowserView.swift:158 | audit marks it fixed (r9 false positive); re-checked on this base |
 | R7-PC-C3-3 | fixed | 0d781059d (tip) | `official.bucket.upcoming` | 即将上线 |
 | R7-PC-C4-5 | fixed | b3c239088 (tip) | `official.detail` | 活动详情 |
 | R9-PC-C4-1 | fixed | ec64ed4ef (tip) | App/OfficialEventDetailView.swift | |
@@ -99,6 +100,15 @@ Since the r10 audit the native-r2 sweeps on the tip rebuilt the shared wrappers 
 - Closed the 儿童年龄 half of R7-PC-C2-1 (af0db705a). Still open in this slice: 包含内容 (R7-PC-C2-1), R9-PC-D4-1 主办分润 segment (UIKit `WalletEarningsAccessibleTabs` + 3 pinned tests, needs a simulator), and the native rows marked blocked (design paused).
 - C-N16 (`emptyRow`) and D-N16 (outbox `ScrollView`) re-read: both follow the MP layout on purpose (cy-empty title row in a list section; outbox strip scrolls). Left as is.
 - account-publish §4 P2 rows not fixed by acct-a/acct-b: A3-10 (partly — 更换背景 in the profile editor needs the local-cover owner plumbed through 6 `ProfileEditView` call sites; acct-b's open row, not taken to avoid a collision), C-F16-r7 (simulator: 45 XCUITest refs pin `textFields`), B-SZ-10 (needs the MP shezhi.wxml order; `add_repo hengyin/chengyinhub-xcx` denied again this round), B-AG-04 (owner). None taken.
+
+## Round 3 (2026-11-26)
+
+- Merged `origin/ui/combined-r7` (ae477be47) first. No new code this round. Gates: `check_scaffold.py` PASS (5192 Swift files, 19566 keys), `check_a11y_lint.py` PASS 0 new, `contract_ratchet.py --check` 192 failing, baseline 192, new 0.
+- Cross-checked every row id in C-activity.md / D-subpackages.md against this receipt. One row was missing: R9-PC-C3-1. The audit already marks it fixed, so it is now listed in the P2 table.
+- R7-PC-C2-1 包含内容 is still partly done. `docs/release/zip-diff-ios.md:59` (U07-01) says the quote `delivery` object is PROPOSED (v3.5 ch. 11, waiting on the backend). The order-side `OrderDeliveryFacts` (Core/WP09AfterSaleFacts.swift:121) exists, but its `purchaseKind` is a String there and an Int on orders, and the MP 票种类型 label map (e.g. 场次票) is not visible here. Drawing the rows would mean guessing, so they wait on the backend field or the MP source.
+- R9-PC-D4-1 still needs a simulator run plus a coordinated change to the pinned tests. The native rows marked blocked (design paused) stay blocked.
+- account-publish §4 P2: the acct-a/acct-b receipts on origin (fc7818766 / a95fdbbc1) leave A3-10 partly done, C-F16-r7 blocked (simulator), B-SZ-10 blocked (MP source) and B-AG-04 waiting on the owner. All other P2 rows are fixed. None of the four can be taken from this lane.
+- **Lane state: no open row can be fixed from the cloud.** Each remaining row needs the owner, a simulator, the MP repo or a backend field.
 
 ## Contract pins changed (intentional)
 
