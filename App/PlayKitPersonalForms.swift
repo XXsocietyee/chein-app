@@ -386,7 +386,7 @@ extension PlayKitScreen {
 /// N-KIT-FORMS: `.borderedProminent` for the current step's button, `.bordered` otherwise.
 struct PlayKitStepButtonStyle: ViewModifier {
     let prominent: Bool
-    func body(content: Content) -> some View {
+    @ViewBuilder func body(content: Content) -> some View {
         if prominent { content.buttonStyle(.borderedProminent).controlSize(.large) } else { content.buttonStyle(.bordered).controlSize(.large) }
     }
 }
