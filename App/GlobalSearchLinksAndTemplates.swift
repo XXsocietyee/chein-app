@@ -411,6 +411,8 @@ enum PlayerContentMPAppWire {
     var isOfflineExample: Bool { inner.isOfflineExample }
     var scope: UUID { inner.scope }
     func detail(id: Int) async throws -> OfficialEvent { try await inner.detail(id: id) }
+    /// ROAM-r11-2: forwards the guest-readable roam list (MP scene-roam-task-list/index.js:62-66).
+    func activeForRoam() async throws -> [OfficialEvent] { try await inner.activeForRoam() }
     func partyInbox() async throws -> [OfficialPartyInvite] { try await inner.partyInbox() }
     func myPublished() async throws -> OfficialPublished { try await inner.myPublished() }
     func broadcastStats(id: Int) async throws -> OfficialBroadcastStats { try await inner.broadcastStats(id: id) }
