@@ -335,6 +335,8 @@ struct DiscoveryTopicTemplatePreview: View {
     /// Round 4 flow (MP topic-use-flow.js `openDraft`): with no host override the copied draft pushes the topic
     /// editor (`pages/publish/fabu/index?id=&scope=`) through the shared editor destination.
     @Environment(\.topicEditorDestination) private var editorDestination
+    /// Summary cards stay on the system text styles. Accessibility sizes stack them instead of squeezing the row.
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var copiedDraft: CopiedTopicDraft?
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var tab: TemplateDetailTab = .details
@@ -521,7 +523,10 @@ struct DiscoveryTopicTemplatePreview: View {
             if !free {
                 HStack(alignment: .top) {
                     topicStat(Text(verbatim: String(item.chapters.count)), label: "discovery.templateDetail.stat.chapters")
-                    topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+                    // MP `fmtSec`: 0 rounded minutes is `''`, and an empty string is not a card.
+                    if Self.fmtSecMinutes(item.totalTime) > 0 {
+                        topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+                    }
                 }
             }
             TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
@@ -584,6 +589,10 @@ struct DiscoveryTopicTemplatePreview: View {
                 .accessibilityIdentifier("discovery.topicDetail.coverCredit")
         }
     }
+    /// MP `fmtSec`: `Math.round(seconds / 60)`. `0` is `''` and is not drawn.
+    private static func fmtSecMinutes(_ seconds: Int?) -> Int {
+        Int((Double(max(0, seconds ?? 0)) / 60).rounded())
+    }
     private func topicStat<V: View>(_ value: V, label: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
             value.cyText(.numericBody).foregroundStyle(palette.textPrimary)
@@ -592,34 +601,57 @@ struct DiscoveryTopicTemplatePreview: View {
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }
-    /// 能力: MP `buildSummary` (topic-detail index.js) — 模式 / 时间 / 章节 / 站点, then each stop.
+    /// `buildSummary` facts, in source order. A missing list or a 0-minute duration stays out.
+    @ViewBuilder private func summaryFacts(
+        _ item: PublicTopicTemplateDetail, free: Bool, showChapters: Bool, chapters: Int, stops: [NumberedStop]
+    ) -> some View {
+        if free {
+            topicStat(Text("u10.template.summary.free"), label: "projectEdit.mode")
+                .accessibilityIdentifier("discovery.topicDetail.summary.mode")
+        } else {
+            topicStat(Text("u10.template.summary.city"), label: "projectEdit.mode")
+                .accessibilityIdentifier("discovery.topicDetail.summary.mode")
+        }
+        if free {
+            topicStat(Text("u10.template.summary.multiDay"), label: "activityPublishing.review.time")
+                .accessibilityIdentifier("discovery.topicDetail.summary.time")
+        }
+        if showChapters {
+            topicStat(Text(verbatim: String(chapters)), label: "discovery.templateDetail.stat.chapters")
+                .accessibilityIdentifier("discovery.topicDetail.summary.chapters")
+        }
+        if !stops.isEmpty {
+            topicStat(Text(verbatim: String(stops.count)), label: "discovery.publicStations")
+                .accessibilityIdentifier("discovery.topicDetail.summary.stops")
+        }
+        if item.games.count > 0 {
+            topicStat(Text(verbatim: String(item.games.count)), label: "discovery.templateDetail.stat.games")
+                .accessibilityIdentifier("discovery.topicDetail.summary.games")
+        }
+        if Self.fmtSecMinutes(item.totalTime) > 0 {
+            topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+                .accessibilityIdentifier("discovery.topicDetail.summary.totalTime")
+        }
+    }
+    /// 能力: MP `buildSummary` (topic-detail index.js) — 模式 / 时间 / 章节 / 站点 / 玩法 / 总时长, then each stop.
     /// A missing fact is left off the row. 时间 is only 可以跨天 on free exploration. Chapter count is
-    /// omitted when free exploration already counts one stop per chapter. 节点 / 玩法 / 总时长 are not this row.
+    /// omitted when free exploration already counts one stop per chapter. 总时长 follows `fmtSec`: a rounded
+    /// minute count of 0 is not a card, and a positive count keeps the existing duration text. No 里程 card.
     @ViewBuilder private func topicCapabilities(_ item: PublicTopicTemplateDetail) -> some View {
         let free = item.mode == "FREE_EXPLORE"
         let stops = Self.numberedStops(item.chapters, freeExplore: free)
         let chapters = item.chapters.count
         let showChapters = chapters > 0 && !(free && chapters == stops.count)
         Section {
-            HStack(alignment: .top) {
-                if free {
-                    topicStat(Text("u10.template.summary.free"), label: "projectEdit.mode")
-                        .accessibilityIdentifier("discovery.topicDetail.summary.mode")
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        summaryFacts(item, free: free, showChapters: showChapters, chapters: chapters, stops: stops)
+                    }
                 } else {
-                    topicStat(Text("u10.template.summary.city"), label: "projectEdit.mode")
-                        .accessibilityIdentifier("discovery.topicDetail.summary.mode")
-                }
-                if free {
-                    topicStat(Text("u10.template.summary.multiDay"), label: "activityPublishing.review.time")
-                        .accessibilityIdentifier("discovery.topicDetail.summary.time")
-                }
-                if showChapters {
-                    topicStat(Text(verbatim: String(chapters)), label: "discovery.templateDetail.stat.chapters")
-                        .accessibilityIdentifier("discovery.topicDetail.summary.chapters")
-                }
-                if !stops.isEmpty {
-                    topicStat(Text(verbatim: String(stops.count)), label: "discovery.publicStations")
-                        .accessibilityIdentifier("discovery.topicDetail.summary.stops")
+                    HStack(alignment: .top) {
+                        summaryFacts(item, free: free, showChapters: showChapters, chapters: chapters, stops: stops)
+                    }
                 }
             }
             .accessibilityIdentifier("discovery.topicDetail.stats")
