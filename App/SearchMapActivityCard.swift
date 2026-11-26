@@ -30,7 +30,7 @@ struct SearchMapActivityCard: View {
     private func timestamp(_ time: SearchMapActivityTime, label: LocalizedStringKey) -> some View {
         Label {
             VStack(alignment: .leading, spacing: 2) {
-                Text(label).cyText(.meta)
+                Text(label).font(.footnote).foregroundStyle(.secondary)
                 if let text = time.display(phoneTimeZone: phoneTimeZone) { Text(verbatim: text) }
                 else { Text("mapActivity.timeUnknown") }
             }
