@@ -50,8 +50,10 @@ import SwiftUI
             .onAppear {
                 if arrival == nil { arrival = PlayArrivalService(runtime: model, location: arrivalLocation) }
                 if selectedStore == nil { showsSheet = true }
+                // Native r2 M4: Dynamic Island shows the session as free explore (next stop from the same snapshot).
+                QuestLiveActivityCenter.shared.setPlayContext(mode: .explore, nextDistanceMeters: nil)
             }
-            .onDisappear { showsSheet = false; arrival?.cancel() }
+            .onDisappear { showsSheet = false; arrival?.cancel(); QuestLiveActivityCenter.shared.clearPlayContext() }
             .onChange(of: selectedStore) { _, id in
                 // Back from a store page: the card returns to the first open store (the visited one may be done now).
                 if id == nil { focusedStore = nil; showsSheet = true }

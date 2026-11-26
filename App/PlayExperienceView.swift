@@ -1111,6 +1111,8 @@ import MapKit
                 )
             }
             .cyToast(verbatimMessage: $nodeToastMessage)
+            // Native r2 M4: a revealed hint (story or game stop) also shows as a hint island; "下一条提示" reopens the ladder.
+            .islandHints(helpEnabled ? help : nil) { showHelpPanel = true }
             .onChange(of: answer) { _, _ in refusal = nil }
             // A new read (advanced step accepted, stop done, run resynced) replaces the reason from the last tap.
             .onChange(of: model.reviewRefusal(nodeID: nodeID)) { _, _ in refusal = nil }

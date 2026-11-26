@@ -81,6 +81,7 @@ struct CYHeroBanner: View {
                 Image(systemName: "photo")
                     .font(.title)
                     .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
             }
     }
 }

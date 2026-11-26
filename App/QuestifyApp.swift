@@ -158,6 +158,7 @@ struct QuestifyApp: App {
             }
             .modifier(AppLanguageEnvironment(stored: storedLanguage))
             .tint(CYColor.brand)
+            .islandRoot()
             #if DEBUG
             .modifier(FixtureThemeDomainModifier(isFixture: sessionContainer.session == nil))
             #endif

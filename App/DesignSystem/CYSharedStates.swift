@@ -267,6 +267,9 @@ public struct CYToastPill: View {
     }
 }
 
+/// Native r2 M4: with `nativeR2.island` on, every `cyToast` is a thin shim over `IslandCenter` (a `.status`
+/// island at the top). The binding is handed to the island and cleared, exactly as the bottom pill cleared it.
+/// Flag off: the bottom pill below, unchanged.
 private struct CYToastModifier: ViewModifier {
     @Binding var message: LocalizedStringKey?
     let tone: CYToastTone
@@ -276,7 +279,19 @@ private struct CYToastModifier: ViewModifier {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    func body(content: Content) -> some View {
+    @ViewBuilder func body(content: Content) -> some View {
+        if IslandCenter.isEnabled {
+            content.onChange(of: message, initial: true) { _, next in
+                guard let next else { return }
+                CYToastIslandBridge.post(.localized(next), tone: tone, undoTitle: undoTitle, duration: duration, onUndo: onUndo)
+                message = nil
+            }
+        } else {
+            pill(content: content)
+        }
+    }
+
+    private func pill(content: Content) -> some View {
         content.overlay(alignment: .bottom) {
             if let message {
                 CYToastPill(message, tone: tone, undoTitle: undoTitle, onUndo: onUndo.map { action in
@@ -314,7 +329,19 @@ private struct CYToastVerbatimModifier: ViewModifier {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    func body(content: Content) -> some View {
+    @ViewBuilder func body(content: Content) -> some View {
+        if IslandCenter.isEnabled {
+            content.onChange(of: message, initial: true) { _, next in
+                guard let next else { return }
+                CYToastIslandBridge.post(.verbatim(next), tone: tone, undoTitle: undoTitle, duration: duration, onUndo: onUndo)
+                message = nil
+            }
+        } else {
+            pill(content: content)
+        }
+    }
+
+    private func pill(content: Content) -> some View {
         content.overlay(alignment: .bottom) {
             if let message {
                 CYToastPill(verbatim: message, tone: tone, undoTitle: undoTitle, onUndo: onUndo.map { action in
