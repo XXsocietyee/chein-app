@@ -70,6 +70,8 @@ import MapKit
     @State private var castCover = false
     @State private var showingCastRoster = false
     @State private var runTeamPool: TeamPoolHintModel?
+    /// Native r2 route page: the chapter whose reader is pushed (Continue or a chapter row).
+    @State private var nr2ReaderChapter: Int?
     @Environment(\.playThemePresentationReader) private var themeReader
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.mpParity) private var mpParity
@@ -123,6 +125,9 @@ import MapKit
                 .cyPushedChrome(domain: .game)
         }
         .onChange(of: selectedNode) { _, id in if id == nil { hintNode = nil } }
+        .navigationDestination(item: $nr2ReaderChapter) { chapterID in
+            nr2ReaderDestination(chapterID)
+        }
         .navigationDestination(isPresented: $showBackpack) {
             backpackDestination.cyPushedChrome(domain: .game)
         }
@@ -277,7 +282,8 @@ import MapKit
         titleCardTopic = topicID
     }
     @ViewBuilder private var titleCardOverlay: some View {
-        if let topicID = titleCardTopic, let snapshot = model.snapshot, snapshot.result.topicID == topicID {
+        // Native r2: the title card is the first section of the route page, not a full-screen overlay.
+        if !NativeR2Flags.storyFlow, let topicID = titleCardTopic, let snapshot = model.snapshot, snapshot.result.topicID == topicID {
             PlayThemeTitleCard(title: snapshot.result.topicName ?? "", line: PlayThemeIntro.line(snapshot.result.topicDescription),
                                modeKey: model.gameplayMode == .freeExploration ? "playFree.title" : "mpd.mode.cityOrientation",
                                aiGenerated: themeFacts?.aiGenerated == true, coverURL: themeFacts?.coverURL) {
@@ -338,6 +344,14 @@ import MapKit
     }
     private var orientationList: some View {
         List {
+            if NativeR2Flags.storyFlow, model.hasCurrentMediaSnapshot, let snapshot = model.snapshot, !model.chapterStories.isEmpty {
+                NR2StoryRouteSections(snapshot: snapshot, coverURL: themeFacts?.coverURL,
+                                      aiGenerated: themeFacts?.aiGenerated == true,
+                                      cast: castModel?.config?.cast ?? [],
+                                      readableChapterIDs: nr2ReadableChapters(snapshot),
+                                      openChapter: { nr2ReaderChapter = $0 },
+                                      openCast: castModel?.config == nil ? nil : { showingCastRoster = true })
+            }
             // Template 6 order: (1) Current goal + location/arrival + 6-state status + primary CTA FIRST,
             // (2) Progress & runtime header, (3) Ordered stops (`CYRouteNodeRow`) & recovery/records.
             if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
@@ -473,7 +487,7 @@ import MapKit
                         if snapshot.availability == .completed { narrativeLink(.ending) }
                     }
                 }
-                if let snapshot = model.snapshot, model.hasCurrentMediaSnapshot {
+                if !NativeR2Flags.storyFlow, let snapshot = model.snapshot, model.hasCurrentMediaSnapshot {
                     Section("chapterStory.title") {
                         ForEach(snapshot.result.chapters) { chapter in
                             if let node = snapshot.visibleNodes.first(where: { $0.chapterID == chapter.id && !snapshot.isLocked($0) }),
@@ -737,6 +751,28 @@ import MapKit
             .controlSize(.large).frame(maxWidth: 280).padding(.horizontal, CYSpacing.lg)
         }
     }
+    /// Chapters the native route page can open: a story document and a stop that is not locked (same rule as r1's list).
+    private func nr2ReadableChapters(_ snapshot: PlaySnapshot) -> Set<Int> {
+        Set(snapshot.result.chapters.compactMap { chapter in
+            guard model.chapterStories[chapter.id] != nil,
+                  snapshot.visibleNodes.contains(where: { $0.chapterID == chapter.id && !snapshot.isLocked($0) }) else { return nil }
+            return chapter.id
+        })
+    }
+    /// The same `ChapterStoryView` the r1 chapter link pushed, for the chapter's first unlocked stop.
+    @ViewBuilder private func nr2ReaderDestination(_ chapterID: Int) -> some View {
+        if let snapshot = model.snapshot,
+           let node = snapshot.visibleNodes.first(where: { $0.chapterID == chapterID && !snapshot.isLocked($0) }) {
+            ChapterStoryView(chapterID: chapterID, nodeID: node.id, model: model,
+                advancedModel: advancedModel, journeyModel: journeyModel, deviceModel: deviceModel, mediaScope: mediaScope,
+                makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
+                castModel: castModel, nodeDestination: { AnyView(nodeDestination($0)) })
+        } else {
+            ContentUnavailableView("play.nr2.reader.locked", systemImage: "lock",
+                                   description: Text("play.nr2.reader.locked.detail"))
+                .accessibilityIdentifier("chapterStory.lockedStop")
+        }
+    }
     @ViewBuilder private func freeStoreDestination(_ id: Int) -> some View {
         if model.gameplayMode == .freeExploration {
             FreeExplorationStoreView(nodeID: id, model: model, device: deviceModel?(id), shopNPC: shopNPCModel?(id), mediaScope: mediaScope,
@@ -892,6 +928,8 @@ import MapKit
     @State private var nodeToastMessage: String?
     /// This screen's own submission settled as done (the button shows 已完成 in place).
     @State private var justSubmitted = false
+    /// Native r2: the stage result shown in place as a medium sheet after this screen's own submission.
+    @State private var nr2Result: NR2StageResultTarget?
     /// The server's reason when this screen's answer was not accepted, shown above the button.
     @State private var rejectionText: String?
     /// 「我已到达」 on the existing completion channel. One when-in-use fix; no continuous roam.
@@ -1070,6 +1108,7 @@ import MapKit
                     // In place (xrefs-1 C2 / owner continuity pass): the submit button morphs to Done and the task card
                     // above updates where it is; no full-screen verdict for an ordinary stop.
                     justSubmitted = true
+                    if NativeR2Flags.storyFlow { nr2Result = NR2StageResultTarget(nodeID: nodeID) }
                 } else if new == .pending || new == .failed, case .rejected(_, let message)? = model.issue {
                     UIKitHapticsDriver.ensureInstalled()
                     HapticsService.shared.play(.wrongAnswer)
@@ -1086,6 +1125,9 @@ import MapKit
                 }
             }
             .cyPlayVerdict($verdict)
+            .sheet(item: $nr2Result) { target in
+                NR2StageResultSheet(model: model, nodeID: target.nodeID, openNode: openNode)
+            }
             .modifier(JourneyCheckReviewPresentation(model: journey))
             // The optional check initially renders no rows, so its probe belongs to this stable host.
             .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {

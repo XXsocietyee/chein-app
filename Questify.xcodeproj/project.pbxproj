@@ -10795,6 +10795,46 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FABCEFB4B294DBD3FFD196ED";
 		};
+		"BDC6CD51FA235EE09E370A32" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/NativeR2Flags.swift";
+			"sourceTree" = "<group>";
+		};
+		"A084FAC08BD3FF990F58B005" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "BDC6CD51FA235EE09E370A32";
+		};
+		"C8DD6A179F17ABA4A58F601F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Story/NR2StageResultSheet.swift";
+			"sourceTree" = "<group>";
+		};
+		"D98BE47412DFF3797C8859EA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C8DD6A179F17ABA4A58F601F";
+		};
+		"0A444BAD61C3F7342226F7E5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Story/NR2StoryReaderParts.swift";
+			"sourceTree" = "<group>";
+		};
+		"85F033F4AD08EC34928ABCE9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0A444BAD61C3F7342226F7E5";
+		};
+		"976B8D1AEBFA480899054C8B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Story/NR2StoryRouteSections.swift";
+			"sourceTree" = "<group>";
+		};
+		"A031214DB88CEF5C6DDF99CB" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "976B8D1AEBFA480899054C8B";
+		};
 		"A5316E1A4FB27D678BF2F83D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -43013,6 +43053,10 @@
 				"689461CCAFD3020D26140D70",
 				"72A08032098E549642A67C65",
 				"FABCEFB4B294DBD3FFD196ED",
+				"BDC6CD51FA235EE09E370A32",
+				"C8DD6A179F17ABA4A58F601F",
+				"0A444BAD61C3F7342226F7E5",
+				"976B8D1AEBFA480899054C8B",
 				"A5316E1A4FB27D678BF2F83D",
 				"7F8C1C1E521704422D161288",
 				"69947A92192A5150B3DFF1CF",
@@ -48388,6 +48432,10 @@
 				"EB976E99D93A2EEFCF838707",
 				"775A9C4564EF84DFF96D7731",
 				"A85668FB109326CBF51DB01F",
+				"A084FAC08BD3FF990F58B005",
+				"D98BE47412DFF3797C8859EA",
+				"85F033F4AD08EC34928ABCE9",
+				"A031214DB88CEF5C6DDF99CB",
 				"A0205E36AD20F9B390C5FAC6",
 				"71BB3EB413E2963E15FFB3CC",
 				"FCC527F2744C4902CD1E8DD1",

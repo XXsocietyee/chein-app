@@ -239,6 +239,30 @@ struct PlayHUDBar<Team: View>: View {
     @ViewBuilder var team: () -> Team
 
     var body: some View {
+        if NativeR2Flags.storyFlow { nativeBar } else { r1Bar }
+    }
+    /// Native r2: the same three actions as system bordered buttons (the play stage stays on its dark domain).
+    private var nativeBar: some View {
+        HStack(spacing: CYSpacing.md) {
+            Button(action: onHint) { Label("playHUD.hint", systemImage: "lightbulb").frame(maxWidth: .infinity) }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .accessibilityIdentifier("playHUD.hint")
+            team()
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
+                .controlSize(.large)
+            if let onBackpack {
+                Button(action: onBackpack) { Image(systemName: "bag") }
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.circle)
+                    .controlSize(.large)
+                    .accessibilityLabel(Text("playHUD.backpack"))
+                    .accessibilityIdentifier("playHUD.backpack")
+            }
+        }
+    }
+    private var r1Bar: some View {
         HStack(spacing: CYSpacing.md) {
             CYPillButton("playHUD.hint", style: .secondary, systemImage: "lightbulb", action: onHint)
                 .accessibilityIdentifier("playHUD.hint")
