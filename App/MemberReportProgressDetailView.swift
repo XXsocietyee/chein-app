@@ -12,6 +12,8 @@ import SwiftUI
     @State private var flow: MemberReportProgressCoordinator?
     @State private var owner: MemberReportProgressPresentation?
     @State private var visible = false
+    /// Survives the detail reload that clears `flow.detail`. An unconfirmed appeal keeps the id written before the first send.
+    @State private var appealRetention = ReportAppealRetention()
     private var gutter: EdgeInsets {
         EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
     }
@@ -58,10 +60,14 @@ import SwiftUI
                     .accessibilityIdentifier("report.detail.head")
                     .listRowInsets(gutter)
                     .listRowBackground(Color.clear)
-                    if CommunityTrustPlayerService.appealableStages.contains(record.stage), let client = session.playerCapabilityClient() {
-                        ReportAppealSection(reportID: Int(original.id), client: client,
-                                            stageLabel: { CommunityTrustPlayerService.stageLabels[$0] }, readBack: { load(readIntent()) })
-                    }
+                }
+                if keepsAppeal(flow), let client = session.playerCapabilityClient() {
+                    ReportAppealSection(reportID: Int(original.id), client: client,
+                                        stageLabel: { CommunityTrustPlayerService.stageLabels[$0] },
+                                        readBack: { load(readIntent()) },
+                                        retention: $appealRetention)
+                }
+                if let record = flow.detail {
                     if record.stageKey == "APPEALED" {
                         memberReportProgressText("report.appealed.note")
                             .cyText(.meta)
@@ -184,6 +190,15 @@ import SwiftUI
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    /// Appeal stays mounted while a reload clears `detail`, so the id written before the send is not dropped.
+    /// `APPEALED` on the following read is the case moving on; any other unread or still-open stage keeps the attempt.
+    private func keepsAppeal(_ flow: MemberReportProgressCoordinator) -> Bool {
+        if !appealRetention.requestID.isEmpty, appealRetention.result == nil {
+            return flow.detail?.stage != "APPEALED"
+        }
+        guard let stage = flow.detail?.stage else { return false }
+        return CommunityTrustPlayerService.appealableStages.contains(stage)
+    }
     private func copy(_ key: String) -> String {
         String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "MemberReportProgress", locale: locale))
     }
