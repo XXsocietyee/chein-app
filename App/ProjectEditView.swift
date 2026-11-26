@@ -1043,8 +1043,9 @@ import SwiftUI
                 TextField("projectEdit.subtitle", text: $model.draft.subtitle).accessibilityIdentifier("projectEdit.subtitle")
                 TextField("projectEdit.description", text: $model.draft.description, axis: .vertical).lineLimit(3...8)
                     .accessibilityIdentifier("projectEdit.description").id("project-issue-anchor-description")
-                ProjectEditReferenceField(title: "projectEdit.cover", value: $model.draft.imgUrl, identifier: "projectEdit.cover").id("project-issue-anchor-cover")
-                ProjectEditReferenceField(title: "projectEdit.gallery", value: $model.draft.imgArr, identifier: "projectEdit.gallery")
+                // r10 C-F8b / N-18: MP topic-detail-sheet chooseMedia (photo library + uploadOSS), not typed URLs.
+                ProjectEditTopicImageField(kind: .cover, title: "projectEdit.cover", value: $model.draft.imgUrl, identifier: "projectEdit.cover").id("project-issue-anchor-cover")
+                ProjectEditTopicImageField(kind: .gallery, title: "projectEdit.gallery", value: $model.draft.imgArr, identifier: "projectEdit.gallery")
                 ProjectEditCategoryField(selection: $model.draft.categoryIDs).categoryEditing(model).id("project-issue-anchor-categories")
                 ProjectThoughtDefinitionsEntry(model: model)
             }.disabled(!model.canEdit)
