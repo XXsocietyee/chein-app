@@ -57,12 +57,12 @@ import SwiftUI
                 if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
                 if model.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
                 if let error = model.error, !model.pagination.members.isEmpty {
-                    // MP myinvite wxml:63 `没加载出来 · 重试`, where 加载更多 sits.
-                    inviteHistoryIssue(error, permit: permit)
+                    // MP myinvite: the failure copy stays where 加载更多 sits; the button below is that same entry.
+                    ProfileInviteHistoryIssueView(error: error)
                 }
                 if model.pagination.continuationInvalid { CYStatusChip("social.invites.continuationInvalid", tone: .danger, systemImage: "exclamationmark.triangle") }
-                if model.pagination.hasMore && !model.loading && model.error == nil {
-                    CYPillButton("wallet.loadMore", style: .secondary) { model.start(reader, permit: permit, reset: false) }.accessibilityIdentifier("social.invites.more")
+                if !model.loading && model.pagination.hasMore && (model.error == nil || !model.pagination.members.isEmpty) {
+                    samePageEntry(permit: permit, failed: model.error != nil)
                 }
             }
         }
@@ -77,9 +77,15 @@ import SwiftUI
             .onDisappear { model.suspend() }
             .accessibilityIdentifier("social.invites")
     }
-    /// Retry stays on this page's issue view. Reset only when no row is loaded.
+    /// Empty-list failure retries this issue entry (no rows → reset, which is still page 1).
     private func inviteHistoryIssue(_ error: Error, permit: SocialInviteHistoryModel.LoadPermit?) -> some View {
         ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) }
+    }
+    /// Next-page failure keeps the 加载更多 entry and reads that same page again.
+    private func samePageEntry(permit: SocialInviteHistoryModel.LoadPermit?, failed: Bool) -> some View {
+        let title: LocalizedStringKey = failed ? "action.retry" : "wallet.loadMore"
+        return CYPillButton(title, style: .secondary) { model.start(reader, permit: permit, reset: false) }
+            .accessibilityIdentifier("social.invites.more")
     }
     private var latestEarn: (SocialInvitedMember, SocialInviteReward)? {
         guard let rewards = model.scan?.rewards, !rewards.isEmpty else { return nil }
@@ -236,6 +242,7 @@ import SwiftUI
             guard !Task.isCancelled, owns(reader, permit: permit, request: request) else { return }
             let kind = ProfileInviteHistoryIssueKind(error)
             if kind == .signIn || kind == .denied { pagination = SocialInvitePagination(); scan = nil }
+            // Ordinary failures leave nextPage on this request, so both retries read that same entry.
             self.error = error
         }
     }
