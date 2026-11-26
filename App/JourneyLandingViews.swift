@@ -1023,9 +1023,8 @@ struct JourneyPromoView: View {
                 if let held = content.heldOrders {
                     LabeledContent { Text("mp.promo.heldCount \(held)") } label: { Text("mp.promo.held") }
                 }
-            } footer: {
-                MPGatedNote(text: Text("mp.gate.payout"), identifier: "journeyPromo.payoutOff")
             }
+            // JPROMO-r11-1: no payout footer; the MP promo page has none (subpackageJourney/pages/promo/index.wxml:6-13).
         }
         if !content.campaigns.isEmpty {
             Section("mp.promo.deals") {
