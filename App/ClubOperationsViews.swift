@@ -1276,7 +1276,12 @@ private struct ClubOperationsProfileForm: View {
                 Text(verbatim: createNameError).font(.footnote).foregroundStyle(.red)
                     .accessibilityIdentifier("club.player.create.nameError")
             }
-        } footer: { counterLabel("description", draft.description) }
+        } footer: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("club.ops.nameRequired")
+                counterLabel("description", draft.description)
+            }
+        }
     }
     @ViewBuilder private var createCitySection: some View {
         Section {
@@ -1378,7 +1383,7 @@ private struct ClubOperationsProfileForm: View {
     }
     /// Mini-program cy-scene-club-edit order: 基础信息 → 俱乐部介绍 → 定位 → 会员经营配置.
     @ViewBuilder private var editSections: some View {
-        Section("club.ops.basics") {
+        Section {
             // cy-scene-club-edit admin-note: administrators may only edit display information.
             if !isOwner { Text("club.ops.adminNote").cyText(.meta).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
             // Round 4 copy (MP scene-club-edit wxml:50-72): the edit page has its own labels and placeholders
@@ -1387,7 +1392,7 @@ private struct ClubOperationsProfileForm: View {
             field("city", text: $draft.city, editCopy: true)
             field("keywords", text: $draft.keywords, editCopy: true)
             field("style", text: $draft.style, editCopy: true)
-        }
+        } header: { Text("club.ops.basics") } footer: { Text("club.ops.requiredFooter") }
         Section {
             field("description", text: $draft.description, axis: .vertical, editCopy: true)
         } header: { Text("club.ops.introduction") } footer: { counterLabel("description", draft.description) }
@@ -1458,10 +1463,9 @@ private struct ClubOperationsProfileForm: View {
                 .accessibilityIdentifier("club.ops.counter." + key)
         }
     }
-    /// CLB-create-05 / CLB-edit-04 (parity r2): a persistent label (with * on required fields) above the field, and
-    /// the mini-program placeholder as the prompt, so the label does not vanish once typed.
+    /// CLB-create-05 / CLB-edit-04 (parity r2): a persistent label on the field, and the mini-program placeholder as
+    /// the prompt, so the label does not vanish once typed.
     private static let placeholderKeys: Set<String> = ["name", "description", "city", "keywords", "style"]
-    private static let requiredKeys: Set<String> = ["name", "city"]
     private func field(_ key: String, label: String? = nil, text: Binding<String>, axis: Axis = .horizontal,
                        focus: FocusState<Bool>.Binding? = nil, editCopy: Bool = false) -> some View {
         let labelKey = LocalizedStringKey(label ?? ((editCopy ? "club.ops.edit.label." : "club.ops.") + key))
@@ -1471,18 +1475,27 @@ private struct ClubOperationsProfileForm: View {
                               axis: axis)
             .accessibilityLabel(Text(labelKey))
             .accessibilityIdentifier("club.ops.field." + key)
-        return VStack(alignment: .leading, spacing: 4) {
-            // The edit page's 俱乐部介绍 is the section header (MP sec-label), so its field carries no second label.
-            if !(editCopy && key == "description") {
-                HStack(spacing: 2) {
-                    Text(labelKey)
-                    if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true) }
+        // CLB-r10-nat-create-05: one-line fields are system-labelled rows (label leading, field trailing); the MP `*`
+        // became the Section footer's required note (club.ops.requiredFooter / club.ops.nameRequired).
+        return Group {
+            if axis == .horizontal {
+                LabeledContent {
+                    if let focus { input.focused(focus) } else { input }
+                } label: {
+                    Text(labelKey).accessibilityHidden(true)
                 }
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    // The edit page's 俱乐部介绍 is the section header (MP sec-label), so its field carries no second label.
+                    if !(editCopy && key == "description") {
+                        Text(labelKey)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                    }
+                    if let focus { input.focused(focus) } else { input }
+                }
             }
-            if let focus { input.focused(focus) } else { input }
         }
     }
 }

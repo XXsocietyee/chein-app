@@ -28104,6 +28104,40 @@
         }
       }
     },
+    "club.ops.requiredFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name and city are required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称和城市为必填"
+          }
+        }
+      }
+    },
+    "club.ops.nameRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A club name is required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部名称为必填"
+          }
+        }
+      }
+    },
     "club.ops.create.needName": {
       "extractionState": "manual",
       "localizations": {
