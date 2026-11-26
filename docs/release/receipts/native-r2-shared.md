@@ -102,4 +102,12 @@ the views no longer read them.
   `.fontWeight(_:)`, `.background(_:in:)`, `Color(uiColor:)` with `.secondarySystemGroupedBackground` / `.systemBackground` /
   `.secondarySystemBackground` / `.secondarySystemFill` / `.separator`.
 - No new string keys: all copy reuses existing keys or verbatim strings already in the files.
-- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`): see the section below.
+- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`, all 6073 tests): the base
+  `origin/ui/combined-r7` already has 220 failing/erroring tests. I diffed this branch against that baseline.
+  - It caught two regressions, both fixed: the purple-restraint contract (`Color.purple` → `Color.indigo` for `.rare`)
+    and `test_sheets_use_player_sheet_glass…` (CYConfirmSheet must reference `CYColor.sheetGlass`; it now backs the
+    pinned button bar with it, and it resolves to the system `systemBackground`).
+  - `test_w2_19_aiNPC.test_catalog_matches_used_keys_and_source_copy` failed in the full run but passed in the
+    baseline full run. Run on its own, that module fails the same way (3 failures) on both base and this branch, so
+    it depends on test order. It checks `storeCharacter.*` keys in files this lane didn't touch.
+  - No other differences from the baseline.
