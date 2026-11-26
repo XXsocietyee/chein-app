@@ -12,7 +12,8 @@ class PaidInstallLifecycleSourceContracts(unittest.TestCase):
     # f9ca1f424 snapshot import), so they only ever failed. The behavioural markers below are the contract.
 
     def test_paid_install_follows_the_money_switch(self):
-        """Owner rule 2026-11-13: workshop paid is ON for TEST/DEBUG hosts and closed on the production host."""
+        """Owner 2026-11-25 (139e06853): money is ON in Release and DEBUG/TEST whenever an API host is installed,
+        production included; a missing host stays off. Virtual goods (StoreKit) stay off until products exist."""
         binding = self.text('App/WorkshopPaidInstallSessionBinding.swift')
         self.assertIn('guard ReviewedAreaSwitch.moneyPayments(apiHost: context.baseURL.host) else { invalidate(); return nil }', binding)
         commerce = self.text('App/WorkshopCommerceComposition.swift')
@@ -20,7 +21,15 @@ class PaidInstallLifecycleSourceContracts(unittest.TestCase):
         self.assertIn('enableApprovedStoreKit && !readOnly && payments', commerce)
         switch = self.text('App/ReviewedAreaSwitch.swift')
         self.assertIn('static let productionAPIHost = "www.chengyinhub.com"', switch)
-        self.assertIn('static func moneyPayments(host: String?) -> Bool { open(host: host) }', switch)
+        self.assertIn('static func moneyPayments(apiHost: String?, testOrDebug: Bool = compiledTestOrDebug) -> Bool {\n        openMoney(apiHost: apiHost, testOrDebug: testOrDebug)', switch)
+        self.assertIn('static func moneyPayments(host: String?) -> Bool { areaOpen(host) }', switch)
+        money = switch.split('private static func openMoney(apiHost: String?, testOrDebug _: Bool) -> Bool {', 1)[1].split('\n    }', 1)[0]
+        self.assertEqual(money.strip(), 'normalizedHost(apiHost) != nil')  # host required: no host, no money
+        self.assertIn('case .virtualGoods: return false', switch)
+        app = self.text('App/AppSession.swift')
+        self.assertIn('enableApprovedStoreKit: ReleaseMoneyWriteSwitch.virtualGoodsEnabled && !readOnly', app)
+        # Merchant writes and password login still use the production-closed opener below.
+        self.assertIn('static func merchantWrites(host: String?) -> Bool { open(host: host) }', switch)
         opener = switch.split('static func open(host: String?) -> Bool {', 1)[1].split('\n    }', 1)[0]
         self.assertIn('!isProduction(normalizedHost) else { return false }', opener)
         production = switch.split('private static func isProduction(_ host: String) -> Bool {', 1)[1].split('\n    }', 1)[0]
