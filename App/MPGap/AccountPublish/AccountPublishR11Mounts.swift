@@ -41,10 +41,6 @@ import PhotosUI
                 Text("fixr10.ap.image.signIn").font(.footnote).foregroundStyle(.secondary)
             }
         }
-        .onChange(of: pick) { _, item in
-            guard let item else { return }
-            Task { await upload(item) }
-        }
     }
 
     private var picker: some View {
@@ -57,6 +53,11 @@ import PhotosUI
         }
         .disabled(!isEnabled || uploader == nil)
         .accessibilityIdentifier(identifier)
+        // On the one picker row, not the `Group` (a Group modifier would repeat on every row it holds).
+        .onChange(of: pick) { _, item in
+            guard let item else { return }
+            Task { await upload(item) }
+        }
     }
 
     private var thumbnail: some View {
