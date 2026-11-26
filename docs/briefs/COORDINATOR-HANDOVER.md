@@ -141,6 +141,8 @@ The finish line: every MP feature works in the app the way it does in the MP (no
 
 Owner 2026-11-25: money is on for payment, refund, payout, and withdrawal on `www.chengyinhub.com`, including Release. Virtual goods and password login stay off. TestFlight is authorized and not uploaded yet. Merged r10 worktrees were removed; the data volume then had about 9.9Gi free.
 
+Integration tip is `ui/combined-r7` `8acdaf59d` (fast-forward of `cursor/r11-core-pins` `8acdaf59ddb578d2b441c2817cd47add87084fe1`). The extra route mark is `POST /api/orient/scoring/session/{}/recovery`. Ticket expiry waits for a manual retry. Platform-pass order reads stay admitted; pay stays refused. No CHECK was started.
+
 | Lane | Branch | Base | Status | SHA | Notes |
 |---|---|---|---|---|---|
 | r9-play-roam | `cursor/r9-play-roam` | `d9115273d` | merged | `92b6bf4f5267` | ROAM-7. Already inside `dd3622219`. PR 1302 merged by `liboyang42-cpu`. |
