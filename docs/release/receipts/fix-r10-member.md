@@ -92,3 +92,14 @@ Round 2 re-checked member.md §4 on the new base (`origin/ui/combined-r7` @ `05c
 **N9/N10 note:** I tried this and reverted it. Turning `MerchantContentDocumentView` into a `List` makes each record (`MerchantContentRows`) and the project block (`MerchantContentProjectView`) one row that holds several `NavigationLink`s and `Button`s. In a SwiftUI `List`, one tap on such a row fires every link in it. Doing this safely means splitting each action into its own row. That needs a simulator check, and there is none in the cloud.
 
 Gates at the round 2 push: `check_scaffold.py` PASS structural checks (5190 Swift files, 19496 bilingual keys). `check_a11y_lint.py` PASS (0 new). `contract_ratchet.py --check`: 192 failing, baseline 192, **new 0**. No new strings.
+
+## Round 3 (2026-11-26): merge reconciliation; lane done
+
+I merged `origin/ui/combined-r7` (merge `6744d692a`). Content-a's B-topic fixes had already landed there and overlapped this lane's round 2 commits, which caused 7 conflicting files: `App/TopicDetailView.swift`, `App/TopicXcxSections.swift`, `App/MPGap/PlayerContent/TopicRouteMapAndTeamsSection.swift`, `App/NativeEntryLandingView.swift`, `Tests/AppUnitTests/PlayerJourneyProductionTests.swift`, `Tests/ContractChecks/test_topic_session_selection.py` and `Tests/ContractChecks/test_global_chrome_domain_contract.py`. Each one was resolved to the combined-r7 (content-a) version, so a single implementation remains. Here is what each conflicted row now resolves to:
+- R10-PC-B-N2/N3/N5/N6/N8: content-a's equivalent hunks. The lineup is a `LabeledContent` row. The bar is the `.bar` material in the bottom inset. The pins are `Marker(monogram:)`. `onSelectMerchant` is optional, so a card is read-only when it has no opener.
+- R8-PC-B6-1: content-a's `27c7d351d` removed the `.publicCatalog` intent from `Core/NativeEntryRouting.swift` completely, so the redirect case added by this lane's `084adf846` was dropped. `App/ContentLandingScreen.swift` is the only copy.
+- R7-PC-B2-5 and R10-PC-B-N9/N10 are now **merchant release**, the same as `fix-r10-content-a.md`. `MerchantContentViews` is merchant-center only, and the merchant center is gated off in Release.
+
+**Status:** every member.md §4 row (P0/P1/P2) is closed. Content-a's round 2 receipt covers every B-topic P2 row, so nothing is left for this lane. The open B-topic row, R7-PC-B4-3 (fee-rate key), is a P1 row owned by content-a.
+
+Gates at this push: `check_scaffold.py` PASS (5192 Swift files, 19566 bilingual keys). `check_a11y_lint.py` PASS (0 new). `merge_localization_fragments.py --check-member` MATCH (6). `contract_ratchet.py --check`: 192 failing, baseline 192, **new 0**. Nothing was compiled.
