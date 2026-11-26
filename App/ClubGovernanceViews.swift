@@ -222,6 +222,8 @@ struct ClubGovernanceReadView: View {
     @State private var directorEndConfirm = false
     /// CLB-G13b: 更多 → 结束活动 opens the confirm once the half sheet has gone.
     @State private var directorEndAfterSheet = false
+    /// CLB-r9-topic-detail-02: a 更多 row's route, pushed once the half sheet has gone.
+    @State private var topicMoreAfterSheet: ClubTopicMoreRoute?
     /// CLB-topic-detail-10: 定向广播 opens the director page, which owns the broadcast composer.
     @State private var opensDirectorBroadcast = false
     @Environment(\.clubTopicDirectorHost) private var directorHost
@@ -1642,23 +1644,7 @@ struct ClubGovernanceReadView: View {
                 guard expected == readContext, !Task.isCancelled else { return }
                 topicStats = read
             }
-            // CLB-G12 (MP topic-detail wxml:426-500 「更多」): 编辑主题内容 (fabu ?id), 确认终价 while pricing (lifecycle 2,
-            // MP setting.canManage → the organiser's canDirect here; the pricing page re-checks), 承接审核 when the stats
-            // grant canReviewChapterApplications (merchantinfo ?scope=CLUB). Each opens the reviewed MP route.
-            .toolbar {
-                if let topicID = scope.topicID, scope.clubID != nil, canDirect || stats["canReviewChapterApplications"] == .bool(true) {
-                    ToolbarItem(placement: .primaryAction) {
-                        ClubGapTopicMoreMenu(
-                            canEditContent: canDirect,
-                            canConfirmFinalPrice: canDirect && value["lifecycle"].int == 2,
-                            canReviewUndertake: stats["canReviewChapterApplications"] == .bool(true),
-                            onEditContent: { topicMoreRoute = .init(page: "pages/publish/fabu/index", query: ["id": String(topicID)]) },
-                            onConfirmFinalPrice: { topicMoreRoute = .init(page: "pages/topic/pricing/index", query: ["topicId": String(topicID), "club": "1"]) },
-                            onReviewUndertake: { topicMoreRoute = .init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB"]) })
-                        .accessibilityIdentifier("club.topic.more")
-                    }
-                }
-            }
+            // CLB-G12 rows (编辑主题内容 / 确认终价 / 承接审核) live in the 更多 sheet (CLB-r9-topic-detail-02: one 更多 entry).
             .navigationDestination(item: $topicMoreRoute) { route in MPReviewedPageScreen(page: route.page, query: route.query) }
             // CLB-topic-detail-05 (MP wxml:63-80): 商家 · 报名参与者 · 团码 · 更多 as round actions that open half sheets.
             // 商家 goes to the merchantinfo recruit layer when the stats grant canReviewChapterApplications (MP ROUND4).
@@ -1682,6 +1668,7 @@ struct ClubGovernanceReadView: View {
             }
             .sheet(item: $topicQuickSheet, onDismiss: {
                 if directorEndAfterSheet { directorEndAfterSheet = false; directorEndConfirm = true }
+                if let route = topicMoreAfterSheet { topicMoreAfterSheet = nil; topicMoreRoute = route }
             }) { sheet in
                 NavigationStack {
                     Group {
@@ -1693,6 +1680,28 @@ struct ClubGovernanceReadView: View {
                         case .more:
                             List {
                                 Section { link(.topicStats); link(.topicSettings); enrollmentLink(focusTopicID: scope.topicID) }
+                                // CLB-r9-topic-detail-02 / CLB-G12 (MP topic-detail wxml:426-500): one 更多; 编辑主题内容 (fabu ?id),
+                                // 确认终价 while pricing (lifecycle 2, organiser's canDirect), 承接审核 with canReviewChapterApplications.
+                                if let topicID = scope.topicID, scope.clubID != nil, canDirect || stats["canReviewChapterApplications"] == .bool(true) {
+                                    Section {
+                                        if canDirect {
+                                            Button("club.director.editTopic") {
+                                                openAfterMoreSheet(.init(page: "pages/publish/fabu/index", query: ["id": String(topicID)]))
+                                            }
+                                        }
+                                        if canDirect, value["lifecycle"].int == 2 {
+                                            Button("club.director.confirmFinalPrice") {
+                                                openAfterMoreSheet(.init(page: "pages/topic/pricing/index", query: ["topicId": String(topicID), "club": "1"]))
+                                            }
+                                        }
+                                        if stats["canReviewChapterApplications"] == .bool(true) {
+                                            Button("club.director.reviewUndertake") {
+                                                openAfterMoreSheet(.init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB"]))
+                                            }
+                                        }
+                                    }
+                                    .accessibilityIdentifier("club.topic.more")
+                                }
                                 // CLB-G13b (MP wxml:436-442): 结束活动 for a self-run session the director has taken over.
                                 if ClubTopicDetailPort.stateKey(value) == .selfrun, directorActive {
                                     Section {
@@ -2048,6 +2057,10 @@ struct ClubGovernanceReadView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+    private func openAfterMoreSheet(_ route: ClubTopicMoreRoute) {
+        topicMoreAfterSheet = route
+        topicQuickSheet = nil
     }
     /// CLB-G13b: the director coordinator for this page's `activityId`, when the host is mounted.
     private var directorModel: PlayDirectorCoordinator? {
