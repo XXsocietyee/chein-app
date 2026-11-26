@@ -326297,6 +326297,40 @@
           }
         }
       }
+    },
+    "club.coopPool.permissionTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available activities are not visible to you yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不能看可对接的活动"
+          }
+        }
+      }
+    },
+    "club.coopPool.publishedBy %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posted by %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 发布"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

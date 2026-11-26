@@ -78,7 +78,7 @@ public struct ClubGapCoopPoolSection: View {
             ProgressView()
                 .frame(maxWidth: .infinity)
         case .permission(let reason):
-            ContentUnavailableView("暂不能看可对接的活动", systemImage: "lock", description: Text(verbatim: reason))
+            ContentUnavailableView("club.coopPool.permissionTitle", systemImage: "lock", description: Text(verbatim: reason))
         case .error(let reason):
             // The former empty state took `onRetry` without an action title, so it drew no button; pull to refresh retries.
             ContentUnavailableView(ClubCoopPoolCopy.loadFailed, systemImage: "exclamationmark.triangle", description: Text(verbatim: reason))
@@ -97,7 +97,7 @@ public struct ClubGapCoopPoolSection: View {
                                 .foregroundStyle(item.isTaken ? Color.secondary : Color.accentColor)
                         }
                         if let nick = item.merchantNick, !nick.isEmpty {
-                            Text(verbatim: "\(nick) 发布")
+                            Text("club.coopPool.publishedBy \(nick)")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
