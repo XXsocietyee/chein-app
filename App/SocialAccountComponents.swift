@@ -69,6 +69,7 @@ struct SocialReadPresentationKey: Hashable {
     @State private var generation = 0
     @State private var loadedKey: SocialReadPresentationKey?
     @State private var loads = SignedInContentDetailLoadOwner()
+    @State private var presentChildren = 0
     private var key: SocialReadPresentationKey {
         .init(reader: reader, request: requestKey, requiresSignIn: requiresSignIn)
     }
@@ -84,7 +85,18 @@ struct SocialReadPresentationKey: Hashable {
             else if let value { content(value) }
         }
         .task(id: key) { await loads.run { await reload() } }
-        .onDisappear { loads.cancel(); generation += 1; busy = false }
+        // Inside a List the Group's modifiers sit on each child, so a refresh that swaps the rows for the skeleton
+        // fires the rows' onDisappear while the skeleton is already reading; cancelling there left the section blank
+        // after pull-to-refresh (guide 玩法文档). Cancel only once no child of this screen is on screen.
+        .onAppear { presentChildren += 1 }
+        .onDisappear {
+            presentChildren -= 1
+            Task { @MainActor in
+                await Task.yield()
+                guard presentChildren <= 0 else { return }
+                loads.cancel(); generation += 1; busy = false
+            }
+        }
     }
     /// Inside a List the Group's modifiers sit on each child, so a child swap (skeleton → content) re-runs the
     /// `.task(id:)`; reloading an answered key flipped back to the skeleton, whose disappearance cancelled the read

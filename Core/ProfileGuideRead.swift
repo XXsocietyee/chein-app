@@ -25,12 +25,20 @@ public enum ProfileGuideReadRoute: Equatable {
     public static let listPath = "api/common/infomation_list"
     public static let detailPath = "api/common/infomation_detail"
     public static let paths: Set<String> = [listPath, detailPath]
+    /// The mini-program's first information page (`pageNum` 1, `app.getPageSize()` 10).
+    public static let listPageFields: [String: String] = ["pageNum": "1", "pageSize": "10"]
     public var path: String { switch self { case .list: return Self.listPath; case .detail: return Self.detailPath } }
     public init?(request: URLRequest, baseURL: URL) {
         if request.url?.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent(Self.listPath).absoluteString.utf8) == true,
            request.httpMethod == "POST", request.httpBody == nil, request.httpBodyStream == nil,
            request.value(forHTTPHeaderField: "Content-Type") == nil,
            request.value(forHTTPHeaderField: "Accept") == "application/json" { self = .list; return }
+        // 252af5c46 (MP contract): `SocialAccountService.informationList` sends the mini-program's first page
+        // (`subpackageA/pages/infomation/infomation.js`: pageNum 1, pageSize 10). Only that exact form is a list.
+        if let (_, fields) = ProfileFavoritesRequestContract.fields(request, baseURL: baseURL, paths: [Self.listPath]) {
+            guard fields == Self.listPageFields else { return nil }
+            self = .list; return
+        }
         guard let (_, fields) = ProfileFavoritesRequestContract.fields(request, baseURL: baseURL, paths: [Self.detailPath]),
               Set(fields.keys) == ["id"], let id = ProfileFavoritesRequestContract.positive(fields["id"]) else { return nil }
         self = .detail(id)
