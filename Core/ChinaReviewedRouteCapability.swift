@@ -16,8 +16,8 @@ public enum ChinaReviewedRouteMark: String, Equatable, Sendable {
 }
 
 /// P2 play-runtime gates. Story lock stays off. Visit-config follows the mini-program.
-/// They live outside `marks` and `wiredPatterns` so this package does not change `callSiteCount` (995) or
-/// `wiredPatternCount` (679). Other packages add their own rows later.
+/// They live outside `marks` and `wiredPatterns` so this package does not change `callSiteCount` (996) or
+/// `wiredPatternCount` (680). Other packages add their own rows later.
 public enum PlayRuntimePortRouteGate {
     /// Missing `storyLocked` counts as locked only after this is turned on.
     public static let storyLockMissingCountsAsLocked = false

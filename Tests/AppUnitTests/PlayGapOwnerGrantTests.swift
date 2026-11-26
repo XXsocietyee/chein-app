@@ -16,7 +16,7 @@ final class PlayGapOwnerGrantTests: XCTestCase {
 
     func testGrantDoesNotRaiseTheContractBaseline() {
         XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 12)  // 2026-11-13 backend-final-gaps: only the 12 backend-closed workshop stubs stay missing (each row says why)
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 679)
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 680)
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/native/home"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/native/home/return/restore"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/npc/chat/delete"))
