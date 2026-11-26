@@ -31,13 +31,8 @@ import SwiftUI
             VStack(spacing: 12) {
                 VStack(spacing: 8) {
                     // Source order: search (hidden on "mine"), chip tabs, then the summary row.
-                    if bucket.isSearchable {
-                        // An in-page system field (not `.searchable`): it hides on 我的 like the MP search bar.
-                        TextField("official.search", text: $keyword)
-                            .textFieldStyle(.roundedBorder).submitLabel(.search)
-                            .autocorrectionDisabled()
-                            .accessibilityIdentifier("official.search")
-                    }
+                    // R10-PC-C-N10: the search is the system `.searchable` bar (applied below only while
+                    // `bucket.isSearchable`), hidden on 我的 like the MP cy-search (pages/activity/list/index.wxml).
                     // Source `cy-tabs variant="chip"` filter tabs: the Apple control is a segmented Picker.
                     Picker(selection: $bucket) {
                         ForEach(OfficialEventBucket.allCases) { value in
@@ -57,6 +52,7 @@ import SwiftUI
                     eventList(rows)
                 }
             }
+            .modifier(OfficialEventsSearchModifier(enabled: bucket.isSearchable, keyword: $keyword))
             .cyPageTitle("official.title") // X2: pushed page, inline title
             .cyHideTabBar()
             .toolbar {
@@ -149,5 +145,20 @@ import SwiftUI
             guard !Task.isCancelled, reader.scope == captured else { return }
             canPublish = allowed; publisherScope = captured
         } catch { /* A failed capability check does not break public discovery or expose publishing. */ }
+    }
+}
+
+/// R10-PC-C-N10: `.searchable` only when the tab is searchable (MP hides the search bar on 我的).
+private struct OfficialEventsSearchModifier: ViewModifier {
+    let enabled: Bool
+    @Binding var keyword: String
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("official.search"))
+                .autocorrectionDisabled()
+        } else {
+            content
+        }
     }
 }

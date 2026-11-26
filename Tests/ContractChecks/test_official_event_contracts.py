@@ -39,8 +39,9 @@ class OfficialSourceChecks(unittest.TestCase):
         # Source pages/activity/list hides cy-search on tab 3 ("我的"); the hidden keyword
         # must not filter the private list, while the shared query keeps mine search for roam.
         browser = read("App/OfficialEventsBrowserView.swift")
-        self.assertIn('TextField("official.search", text: $keyword)', browser)
-        self.assertIn('if bucket.isSearchable {', browser)
+        # R10-PC-C-N10: system `.searchable`, applied only while the tab is searchable (MP pages/activity/list/index.wxml).
+        self.assertIn('.searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("official.search"))', browser)
+        self.assertIn('OfficialEventsSearchModifier(enabled: bucket.isSearchable, keyword: $keyword)', browser)
         self.assertNotIn('if !privateList {', browser)
         self.assertIn('private var query: OfficialEventBrowseQuery { .sourceList(bucket: bucket, keyword: keyword) }', browser)
         self.assertIn('let visible = page.visible', browser)
@@ -183,7 +184,11 @@ class OfficialSourceChecks(unittest.TestCase):
         ids = [item["id"] for item in spec["accessibilityIdentifiers"]]
         browser = read("App/OfficialEventsBrowserView.swift")
         components = read("App/OfficialEventComponents.swift")
-        for identifier in ("official.search", "official.filter", "official.publishedLink", "official.inboxLink", "officialList.summary"):
+        # R10-PC-C-N10: official.search is now the system search bar (`.searchable`), which takes no identifier;
+        # the UI test finds it as `app.searchFields.firstMatch`.
+        self.assertIn("official.search", ids)
+        self.assertIn('prompt: Text("official.search")', browser)
+        for identifier in ("official.filter", "official.publishedLink", "official.inboxLink", "officialList.summary"):
             self.assertIn(identifier, ids)
             self.assertIn('accessibilityIdentifier("%s")' % identifier, browser)
         for identifier in ("official.issue", "official.signIn", "official.retry"):
