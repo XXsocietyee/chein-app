@@ -220,34 +220,36 @@ struct TopicXcxLineup: View {
     }
 
     var body: some View {
-        // Mini-program `lineup-row` (avatar / name / role). R10-PC-B-N5: one list row per member in the lineup
-        // section, a system NavigationLink row when it opens (no horizontal card strip).
+        // Mini-program `lineup-row` (one entry per partner). R10-PC-B-N5: each partner is one list row in the section
+        // (avatar, name, 俱乐部/商家 as the trailing value); a row that opens is a `NavigationLink` row.
         ForEach(Array(members.enumerated()), id: \.offset) { _, member in
-                    UGCBlockedFilterContainer(authorName: member.name) {
-                        let card = HStack(spacing: CYSpacing.md) {
-                            CYAvatarView(name: member.name, size: .md)
-                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                Text(verbatim: member.name).foregroundStyle(.primary)
-                                Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(.footnote).foregroundStyle(.secondary)
-                            }
-                        }
-                        Group {
-                            if opens(member) {
-                                NavigationLink { destination(member) } label: { card }
-                                    .accessibilityIdentifier("topic.lineup.\(member.kind == .club ? "club" : "merchant").\(member.targetID)")
-                            } else {
-                                card
-                            }
-                        }
-                        .accessibilityElement(children: .combine)
-                        .contextMenu {
-                            UGCReviewSafetyFooter(
-                                target: lineupReportTarget,
-                                subjectTitle: member.name,
-                                authorName: member.name
-                            )
-                        }
+            UGCBlockedFilterContainer(authorName: member.name) {
+                let row = LabeledContent {
+                    Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant")
+                } label: {
+                    HStack(spacing: CYSpacing.sm) {
+                        CYAvatarView(name: member.name, size: .xs)
+                            .accessibilityHidden(true)
+                        Text(verbatim: member.name).foregroundStyle(.primary)
                     }
+                }
+                Group {
+                    if opens(member) {
+                        NavigationLink { destination(member) } label: { row }
+                            .accessibilityIdentifier("topic.lineup.\(member.kind == .club ? "club" : "merchant").\(member.targetID)")
+                    } else {
+                        row
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .contextMenu {
+                    UGCReviewSafetyFooter(
+                        target: lineupReportTarget,
+                        subjectTitle: member.name,
+                        authorName: member.name
+                    )
+                }
+            }
         }
     }
 }
@@ -313,10 +315,17 @@ struct TopicXcxActionBar: View {
         .accessibilityElement(children: .contain)
     }
 
-    // R10-PC-B-N6: a system bottom bar (the host's `.safeAreaInset(edge: .bottom)`) on the `.bar` material; no CYFooterBar.
+    /// R10-PC-B-N6: a system bottom bar. The host places it in `.safeAreaInset(edge: .bottom)`; the bar is the `.bar`
+    /// material (no CYFooterBar chrome), price on the left, one `.borderedProminent` primary on the right.
     var body: some View {
-        VStack(spacing: 0) {
-            Divider()
+        barContent
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.md)
+            .frame(maxWidth: .infinity)
+            .background(.bar)
+    }
+
+    private var barContent: some View {
             VStack(spacing: 6) {
                 if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.subheadline).foregroundStyle(.orange) }
                 HStack(alignment: .center, spacing: CYSpacing.md) {
@@ -373,11 +382,6 @@ struct TopicXcxActionBar: View {
                 .controlSize(.large)
                 .accessibilityIdentifier("topic.actionBar")
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.md)
-        }
-        .frame(maxWidth: .infinity)
-        .background(.bar)
     }
 }
 
@@ -385,7 +389,8 @@ struct TopicXcxActionBar: View {
 /// 立即报名 and 查看场次 both open the session sheet but never show together (sign-up vs self-play states), so one id is unique.
 enum TopicBarSheet: Hashable { case sessions, selfPlay, tickets, pricing }
 
-/// R10-PC-B-N6: pass-through. The custom hero morph (and its corner clip) is gone; the system sheet slide is the only motion.
+/// R10-PC-B-N6: the custom zoom source (and its `CYRadius` clip) is gone; the system sheet presentation is the only motion.
+/// Kept as a pass-through so the bar's call sites stay unchanged.
 private struct TopicBarHeroSource: ViewModifier {
     let sheet: TopicBarSheet
     let namespace: Namespace.ID?
@@ -393,13 +398,11 @@ private struct TopicBarHeroSource: ViewModifier {
     func body(content: Content) -> some View { content }
 }
 
-/// The sheet's side of the pair: `cyHeroDestination` only when the bar opened this sheet (`origin`). Other openers of the
-/// same sheet (paywall 解锁, contact save) keep the plain slide-up, so a sheet never zooms out of a button it did not come from.
+/// R10-PC-B-N6: pass-through partner of `TopicBarHeroSource` (no source, so no zoom destination either).
 struct TopicBarHeroDestination: ViewModifier {
     let sheet: TopicBarSheet
     let origin: TopicBarSheet?
     let namespace: Namespace.ID
-    // R10-PC-B-N6: pass-through, paired with `TopicBarHeroSource` (no hero morph).
     func body(content: Content) -> some View { content }
 }
 
@@ -506,7 +509,15 @@ struct TopicXcxRouteSection: View {
     /// progress) (pages/topic/index/index.js:765-780).
     @Environment(\.topicRouteGapService) private var makeGapService
     @State private var routeProgress: (done: Int, total: Int) = (0, 0)
+    /// R7-PC-B1-6: MP index.js:665-669 free-explore merchant cards from `/api/free-explore/bundle/catalog` (productType 2 only).
+    @State private var merchantCards: [TopicFreeExploreMerchantCard] = []
     let topic: TopicDetail
+    private func loadMerchantCards() async {
+        guard topic.productType == 2, let service = makeGapService?() else { merchantCards = []; return }
+        let cards = TopicFreeExploreMerchantCard.cards(fromCatalog: await service.fetchFreeExploreCatalog(topicID: topic.id).data)
+        guard !Task.isCancelled else { return }
+        merchantCards = cards
+    }
     private func loadRouteProgress() async {
         guard topic.isSignUp, let service = makeGapService?() else { routeProgress = (0, 0); return }
         guard let data = await service.fetchTopicRouteNodes(topicID: topic.id).data,
@@ -552,8 +563,9 @@ struct TopicXcxRouteSection: View {
         Section {
             // Flow gap PC-B-1-5: the route map. Progress / teams need a play read, so they stay off on the detail.
             let pins = Self.mapPins(topic)
-            if !pins.isEmpty {
+            if !pins.isEmpty || !merchantCards.isEmpty {
                 TopicRouteMapAndTeamsSection(pins: pins, completedCount: routeProgress.done, totalCount: routeProgress.total, isFreeExplore: topic.productType == 2,
+                                             merchantCards: merchantCards,
                                              onSelectPin: { pin in
                                                  let node = topic.chapters.flatMap(\.nodes).first { $0.name == pin.name && $0.latitude == pin.latitude && $0.longitude == pin.longitude }
                                                  if let node, let url = TopicStopMapsLink.url(for: node) { openURL(url) }
@@ -567,6 +579,7 @@ struct TopicXcxRouteSection: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.primary)
                 .accessibilityIdentifier("topic.route.note")
+                .task(id: topic.id) { await loadMerchantCards() }
             // R7-PC-B1-18, MP pages/topic/utils/topic-motion.js routeNote: the gift count is in the sentence.
             Text(verbatim: routeNoteText)
                 .font(.footnote).foregroundStyle(.secondary)
@@ -620,7 +633,7 @@ struct TopicXcxRouteSection: View {
                             if let image = stop.node.images.first, let url = QuestifyCardArtwork.safeURL(image) {
                                 PlayerFeedRemoteImage(url: url, maxPixel: 160, placeholder: { Color.secondary.opacity(0.15) }, failure: { Color.secondary.opacity(0.15) })
                                     .frame(width: 56, height: 56)
-                                    // R10-PC-B-N7: no custom corner clip; only keep the image inside its frame.
+                                    // R10-PC-B-N7: plain image bounds, no custom corner clip.
                                     .clipped()
                                     .accessibilityHidden(true)
                             }

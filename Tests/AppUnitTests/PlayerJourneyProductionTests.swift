@@ -26,8 +26,6 @@ import XCTest
         XCTAssertNotNil(bindings.journeySettle)
         XCTAssertNotNil(bindings.journeyPromo)
         XCTAssertNil(bindings.passGift)
-        // R8-PC-B6-1: the app catalog screens are deleted (MP catalog is a redirect stub); the Core host stays read-only.
-        _ = host
         XCTAssertFalse(PublicCatalogHost.moneyEnabled)
         XCTAssertFalse(MPCommerceGate.purchasesEnabled)
         XCTAssertFalse(MPCommerceGate.claimsEnabled)

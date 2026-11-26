@@ -1,15 +1,26 @@
 import SwiftUI
 
 /// CLB-G13a: 通用玩法现场运营 inside the topic director block.
-/// Reads shared-run control and opens the director page for each offered action.
+/// Reads shared-run control. Each offered action opens its own form sheet (`ClubTopicGenericOpsSheet`, MP
+/// topic-detail index.wxml:212-236), 工作人员指导完成 included (answer form). 开始离线记录 is a confirm, then
+/// `shared/export/anchor` (MP director.js openGenericOps → startOfflineRecord / _reconcileOfflineAnchor).
+/// Rows are disabled while the director write is locked (MP wxml:204-209 `writeLocked`).
 @MainActor struct ClubTopicGenericOpsSection: View {
     let activityID: Int
     let revision: Int
+    var writeLocked: Bool = false
     let onOpenAction: (String) -> Void
-    /// CLB-G13a (MP topic-detail wxml:204-236): rows are disabled while a director write is in flight or unknown.
-    var writeLocked = false
+    var onSubmitted: () -> Void = {}
     @Environment(\.playerGapService) private var service
     @State private var control: PlayWireValue?
+    @State private var editing: ClubTopicGenericOpsSelection?
+    @State private var reloadToken = 0
+    @State private var confirmingAnchor = false
+    @State private var anchoring = false
+    /// The authority epoch an anchor write was sent for, until a control read shows that anchor (MP `_offlineAnchorPending`).
+    @State private var pendingAnchorEpoch: Int?
+    @State private var anchorMessage: LocalizedStringKey?
+    @State private var anchorServerMessage: String?
 
     static let actionOrder = ["ACT_UNLOCK", "ARRIVAL_CONFIRM", "ARRIVAL_REVOKE", "RUN_PAUSE", "RUN_RESUME", "RUN_INTERRUPT",
                               "RUN_CANCEL", "MANUAL_BEGIN", "STAFF_MANUAL_SIGN", "MANUAL_IMPORT", "MANUAL_REVIEW",
@@ -35,31 +46,104 @@ import SwiftUI
                         teamsLine(teams)
                     }
                     ForEach(offeredActions, id: \.self) { action in
-                        Button { onOpenAction(action) } label: {
-                            HStack {
-                                Text(LocalizedStringKey("club.topic.genericOps.action." + action))
-                                Spacer(minLength: 0)
-                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.tertiary).accessibilityHidden(true)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .foregroundStyle(.primary)
-                        .disabled(writeLocked)
+                        // CLB-r10-nat-topic-detail-07: a system button row (each action opens a sheet or a confirm,
+                        // not a pushed page), so no hand-drawn chevron.
+                        Button(LocalizedStringKey("club.topic.genericOps.action." + action)) { open(action) }
+                        .disabled(writeLocked || anchoring)
                         .accessibilityIdentifier("club.topic.genericOps.\(action)")
                     }
                 } header: {
                     Text("club.topic.genericOps.title")
+                } footer: {
+                    anchorFooter
                 }
             }
         }
-        .task(id: "\(activityID):\(revision)") {
+        .task(id: "\(activityID):\(revision):\(reloadToken)") {
             guard let service, case let .ready(data) = await service.sharedControl(activityID: activityID) else {
                 control = nil
                 return
             }
             control = data
         }
+        .sheet(item: $editing) { selection in
+            sheet(selection)
+        }
+        .confirmationDialog("parityB.shared.offlineStart", isPresented: $confirmingAnchor, titleVisibility: .visible) {
+            Button("parityB.shared.offlineConfirm") { Task { await startOfflineRecord() } }
+            Button("parityB.shared.offlineLater", role: .cancel) {}
+        } message: {
+            Text("parityB.shared.offlineBody")
+        }
+    }
+
+    @ViewBuilder private var anchorFooter: some View {
+        if anchoring {
+            Text("parityB.shared.anchoring")
+        } else if let anchorMessage {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(anchorMessage)
+                if let anchorServerMessage { Text(verbatim: anchorServerMessage) }
+            }
+        }
+    }
+
+    /// MP director.js startOfflineRecord: one anchor for the current epoch. A `GAME_*` refusal proves nothing started;
+    /// any other reply is settled only by a fresh control read that carries an anchor for the same epoch.
+    private func startOfflineRecord() async {
+        guard !writeLocked, !anchoring, let service, let control, control["offlineAnchorAvailable"].bool == true,
+              let epoch = control["run"]["authorityEpoch"].integer else { return }
+        anchoring = true
+        anchorServerMessage = nil
+        pendingAnchorEpoch = epoch
+        let result = await service.anchorSharedRun(activityID: activityID)
+        if case .refused(let message) = result {
+            pendingAnchorEpoch = nil
+            anchorMessage = "parityB.shared.notStarted"
+            anchorServerMessage = message
+        } else {
+            await reconcileAnchor()
+        }
+        anchoring = false
+        reloadToken &+= 1
+    }
+
+    /// MP `_reconcileOfflineAnchor`.
+    private func reconcileAnchor() async {
+        guard let service, let epoch = pendingAnchorEpoch else { return }
+        if case let .ready(data) = await service.sharedControl(activityID: activityID),
+           data["offlineAnchor"]["epoch"].integer == epoch, (data["offlineAnchor"]["at"].integer ?? 0) >= 1 {
+            pendingAnchorEpoch = nil
+            anchorMessage = "parityB.shared.anchored"
+            control = data
+        } else {
+            anchorMessage = "parityB.shared.anchorUnknown"
+        }
+    }
+
+    /// MP director.js openGenericOps: nothing while locked or before control loads.
+    private func open(_ action: String) {
+        guard !writeLocked, !anchoring, control != nil else { return }
+        if action == "OFFLINE_ANCHOR" {
+            // An unknown anchor write is re-checked, never sent twice (MP _reconcileOfflineAnchor).
+            if pendingAnchorEpoch != nil { Task { await reconcileAnchor() } } else { confirmingAnchor = true }
+        } else if PlaySharedRunOps.formActions.contains(action) {
+            editing = ClubTopicGenericOpsSelection(action: action)
+        } else {
+            onOpenAction(action)
+        }
+    }
+
+    @ViewBuilder private func sheet(_ selection: ClubTopicGenericOpsSelection) -> some View {
+        if let snapshot = control {
+            ClubTopicGenericOpsSheet(activityID: activityID, action: selection.action, control: snapshot,
+                                     writeLocked: writeLocked, onSubmitted: submitted)
+        }
+    }
+
+    private func submitted() {
+        reloadToken &+= 1
+        onSubmitted()
     }
 
     private func statusLine(_ run: PlayWireValue) -> some View {
@@ -134,7 +218,8 @@ import SwiftUI
                             .accessibilityIdentifier("club.topic.planFallback.reasonField")
                     } footer: {
                         if let draftError { Text(draftError).foregroundStyle(.red) }
-                        else { Text(verbatim: "\(draft.count)/500").monospacedDigit() }
+                        // CLB-r10-nat-topic-detail-07: the length rule in the footer, no n/500 counter.
+                        else { Text("club.topic.planFallback.lengthRule") }
                     }
                 }
                 .navigationTitle(Text("club.topic.planFallback.title"))

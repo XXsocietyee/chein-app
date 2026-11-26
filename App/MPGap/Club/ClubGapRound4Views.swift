@@ -219,8 +219,9 @@ public struct ClubGapFEReferenceRangeBar: View {
 
     public var body: some View {
         Section {
-            TextField(ClubRound4Copy.rangeStartPlaceholder, text: $range.fromDate)
-            TextField(ClubRound4Copy.rangeEndPlaceholder, text: $range.toDate)
+            // CLB-r10-nat-detail-12: system date pickers (MP `picker mode="date"`), not typed date strings.
+            dateRow(ClubRound4Copy.rangeStartPlaceholder, text: $range.fromDate)
+            dateRow(ClubRound4Copy.rangeEndPlaceholder, text: $range.toDate)
             HStack(spacing: 8) {
                 if range.isActive {
                     Button(ClubRound4Copy.rangeClear) { range.clear() }
@@ -233,6 +234,21 @@ public struct ClubGapFEReferenceRangeBar: View {
                     .controlSize(.small)
                     .disabled(isExporting)
             }
+        }
+    }
+}
+
+extension ClubGapFEReferenceRangeBar {
+    /// An unset bound reads 未设置 and a tap sets it to today; a set bound is a compact `DatePicker`.
+    @ViewBuilder fileprivate func dateRow(_ title: String, text: Binding<String>) -> some View {
+        if let date = FEReferenceRangeFilter.date(text.wrappedValue) {
+            DatePicker(title, selection: Binding(get: { date }, set: { text.wrappedValue = FEReferenceRangeFilter.text($0) }),
+                       displayedComponents: .date)
+        } else {
+            Button { text.wrappedValue = FEReferenceRangeFilter.text(Date()) } label: {
+                LabeledContent(title) { Text(verbatim: ClubRound4Copy.rangeUnset) }
+            }
+            .foregroundStyle(Color.primary)
         }
     }
 }

@@ -75,7 +75,6 @@ RAW_COLOR_ALLOWLIST: dict[str, int] = {
     "App/ClubChannelMessagingView.swift": 3,  # tertiarySystemFill selected row, systemGray5 avatar discs
     "App/ClubCheckinRailView.swift": 2,  # tertiaryLabel unreached stop, tertiarySystemFill rail
     "App/ClubGovernanceViews.swift": 2,  # secondarySystemFill image placeholders
-    "App/ClubKit/ClubMemberActionKit.swift": 1,  # secondarySystemGroupedBackground action bar
     "App/ClubMemberReportView.swift": 1,  # systemGroupedBackground canvas
     "App/ClubStoryViews.swift": 3,  # secondarySystemFill image placeholders
     "App/NativeChannelTextComposer.swift": 2,  # systemBackground field + separator border

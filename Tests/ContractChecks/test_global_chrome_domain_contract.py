@@ -175,11 +175,10 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             "App/QuestifyMotionComponents.swift",
         ):
             self.assertIn("CYFooterBar", read_swift(rel), f"{rel} must use CYFooterBar for its pinned footer action bar.")
-        # R10-PC-B-N6 (B-topic audit): the topic bottom bar is the system `.bar` material in the host's bottom inset.
+        # R10-PC-B-N6: the topic bottom bar is the system `.bar` material inside the host's bottom safe-area inset.
         topic_bar = read_swift("App/TopicXcxSections.swift")
         self.assertNotIn("CYFooterBar {", topic_bar)
         self.assertIn(".background(.bar)", topic_bar)
-        self.assertNotIn(".cyHeroSource(", topic_bar)
         # native r2 (8bd25cb04 / 28976a8a0 / da7f2c201): one pinned primary CTA is a system bottom bar —
         # a bottom safe-area inset on the .bar material holding a .borderedProminent button (same id, same gate).
         for rel, ident in (

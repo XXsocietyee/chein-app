@@ -140,10 +140,7 @@ struct RegistrationSheetView: View {
                         } else {
                         participantSection
                         activitySection
-                        // R7-PC-C2-1: MP baoming.wxml:206-212 + js:760-764, 1871-1876 — 商家暂停营业 banner and the 通行证 row.
-                        // 儿童年龄 and 包含内容 wait on the quote/create `childAge` field and the quote `delivery` rows (Core).
-                        ActivityRegistrationGapSections(merchantClosed: flow.activity.merchantClosed,
-                                                        coveredByPass: flow.quoteState.quoteValue?.coveredByPass == true)
+                        registrationGapSections
                         ticketSection
                         if flow.selectedTicket != nil { G6PromotionCatalogSection(activityID: flow.activity.summary.id) }
                         quoteSection
@@ -590,6 +587,26 @@ struct RegistrationSheetView: View {
         } header: { E1IconHeader(systemImage: "person.crop.circle", title: CoreLoopCopy(locale: locale).t("参与人信息", "Participant")) }
         .disabled(!flow.canEdit)
     }
+    /// R7-PC-C2-1: MP baoming.wxml:155-161 (儿童年龄, sent as `childAge` with quote/create, js:1876),
+    /// 206-212 + js:760-764 (商家暂停营业) and js:1871-1876 (通行证 row).
+    /// 包含内容 still waits on the quote `delivery` row shape.
+    private var registrationGapSections: some View {
+        ActivityRegistrationGapSections(
+            childAgeRange: flow.selectedTicket?.childAgeRange,
+            selectedChildAge: childAgeBinding,
+            merchantClosed: flow.activity.merchantClosed,
+            coveredByPass: flow.quoteState.quoteValue?.coveredByPass == true
+        )
+        .disabled(!flow.canEdit)
+    }
+
+    private var childAgeBinding: Binding<Int?> {
+        Binding(
+            get: { flow.childAge },
+            set: { if flow.setChildAge($0) { Task { await flow.requestQuote() } } }
+        )
+    }
+
     private var ticketSection: some View {
         Section {
             if flow.activity.tickets.isEmpty {

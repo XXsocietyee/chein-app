@@ -263,4 +263,24 @@ final class RegistrationContractTests: XCTestCase {
         }
         XCTAssertThrowsError(try decode(RegistrationQuoteResponse.self, #"{"code":200}"#))
     }
+
+    /// R7-PC-C2-1: MP baoming.wxml:155-161 / js:1876 — 儿童年龄 rides on quote and create only when picked.
+    func testChildAgeIsSentOnQuoteAndCreateOnlyWhenPicked() throws {
+        let picked = try RegistrationQuoteRequest(ownerID: 7, ticketID: 11, childAge: 6)
+        XCTAssertEqual(try body(picked)["childAge"] as? Int, 6)
+        XCTAssertNil(try body(RegistrationQuoteRequest(ownerID: 7, ticketID: 11))["childAge"])
+        XCTAssertThrowsError(try RegistrationQuoteRequest(ownerID: 7, ticketID: 11, childAge: -1))
+        let create = try RegistrationCreateIntent(selection: picked, quote: quote(),
+                                                  realName: "Test Participant", phone: "fixture-phone")
+        XCTAssertEqual(try body(create)["childAge"] as? Int, 6)
+        XCTAssertNil(try body(intent())["childAge"])
+    }
+
+    func testTicketChildAgeRangeNeedsAChildAndBothBounds() throws {
+        let ticket = try decode(ActivityTicket.self, #"{"id":3,"name":"亲子票","childCount":1,"childAgeMin":"4","childAgeMax":8}"#)
+        XCTAssertEqual(ticket.childAgeRange?.options, [4, 5, 6, 7, 8])
+        XCTAssertNil(try decode(ActivityTicket.self, #"{"id":3,"name":"成人票","childCount":0,"childAgeMin":4,"childAgeMax":8}"#).childAgeRange)
+        XCTAssertNil(try decode(ActivityTicket.self, #"{"id":3,"name":"亲子票","childCount":1,"childAgeMin":4}"#).childAgeRange)
+        XCTAssertNil(try decode(ActivityTicket.self, #"{"id":3,"name":"亲子票","childCount":"x"}"#).childAgeRange)
+    }
 }

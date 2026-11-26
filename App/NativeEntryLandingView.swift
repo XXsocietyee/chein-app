@@ -57,14 +57,6 @@ import SwiftUI
                         PublicMerchantHomeView(target: target, context: session.publicMerchantHomeContext).id(session.sessionRevision)
                     case .content(let target):
                         AuditedContentEntry(target: target, session: session, goHome: goHome)
-                    case .publicCatalog(let link):
-                        // R8-PC-B6-1: MP pages/topic/catalog/index.js:1-10 is a redirect stub (topic id → topic page,
-                        // else home). The custom catalog screens are deleted; the link redirects the same way.
-                        if let topicID = link.fields["id"], !topicID.isEmpty {
-                            SessionTopicDetailView(id: topicID, session: session)
-                        } else {
-                            Color.clear.onAppear { session.dismissNativeEntry(); goHome() }
-                        }
                     case .miniProgramPage(let link):
                         MPParityPageEntry(link: link, session: session, goHome: goHome)
                     case .merchantInvitation(let route):

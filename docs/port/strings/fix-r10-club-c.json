@@ -17,6 +17,40 @@
           }
         }
       }
+    },
+    "club.detail.factPending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To be added"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待补充"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.recurrence.topic": {
+      "comment": "table ClubOpsEvent",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择主题"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

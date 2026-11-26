@@ -1248,6 +1248,22 @@
           }
         }
       }
+    },
+    "clubOpsEvent.recurrence.topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择主题"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
