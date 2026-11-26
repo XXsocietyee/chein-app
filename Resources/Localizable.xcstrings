@@ -147198,6 +147198,23 @@
         }
       }
     },
+    "nearby.mine.map": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图"
+          }
+        }
+      }
+    },
     "nearby.mine.signIn": {
       "extractionState": "manual",
       "localizations": {
