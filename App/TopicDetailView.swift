@@ -22,6 +22,8 @@ struct TopicDetailView: View {
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
+    /// R7-PC-B1-13: MP `sessionPreferName` (pages/topic/index/index.js:1319-1321): the tapped session row's ticket name.
+    @State private var sessionPreferName: String?
     /// Continuity r1 (6): which bar button opened the self-play / tickets / pricing sheet now up; nil for every other opener.
     /// Cleared on dismiss. The session sheet has no other opener, so it always zooms from the bar.
     @State private var barSheetOrigin: TopicBarSheet?
@@ -388,7 +390,11 @@ struct TopicDetailView: View {
                 if value.tickets.isEmpty { Text("topic.noTickets") }
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
                     // R7-PC-B1-13 (MP index.wxml:227 `bindtap="bmClick"`): a session row opens the in-page session picker.
-                    Button { if !showingSessionSelection { showingSessionSelection = true } } label: {
+                    Button {
+                        guard !showingSessionSelection else { return }
+                        sessionPreferName = ticket.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                        showingSessionSelection = true
+                    } label: {
                     // Mini-program `sess`: name / time / meeting point / refund on the left, price and seats left on the right.
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         // Grouped session card: one element. The visible rows stay in source order.
@@ -587,8 +593,9 @@ struct TopicDetailView: View {
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
                               heroNamespace: barHero)
         }
-        .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
-            TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
+        .sheet(isPresented: $showingSessionSelection, onDismiss: { sessionPreferName = nil; loads.start { await load() } }) {
+            TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination,
+                                      preferredTicketName: sessionPreferName)
                 .modifier(TopicBarHeroDestination(sheet: .sessions, origin: .sessions, namespace: barHero)) // only the bar opens it
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
