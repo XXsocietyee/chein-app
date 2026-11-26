@@ -369,19 +369,33 @@ import SwiftUI
         .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md).background(.bar)
     }
     @ViewBuilder private func primaryButton(_ node: PlayStoreDayNode) -> some View {
-        switch PlayStoreDayPrimaryAction.resolve(node, receipt: model.receipt, arriveRetry: model.arriveRetry) {
-        case .confirmPending: primary(L("playStoreDay.cta.confirmPending"), disabled: false) { Task { await model.retryProofReadback() } }
-        case .arrive: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.arrive"), disabled: model.busy) { arriveHere() }
-        case .relocate: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.relocate"), disabled: model.busy) { arriveHere() }
-        case .scanUnlock: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scanUnlock"), disabled: model.busy) { model.prepareScan() }
-        case .scan: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scan"), disabled: model.busy) { model.prepareScan() }
-        case .photo: primary(L(model.busy ? "playStoreDay.cta.photoBusy" : "playStoreDay.cta.photo"), disabled: model.busy) { model.preparePhoto() }
-        case .verify where node.redeemBlockedNotice != nil:
-            // PLAYM-2: daily quota used up / not started yet: the server line, no code (MP .mp-cta__main.is-dead).
-            primary(node.redeemBlockedNotice ?? "", disabled: true) {}
-        case .verify: primary(L(model.consentBusy ? "playStoreDay.cta.verifyBusy" : "playStoreDay.cta.verify"), disabled: model.consentBusy) { model.openVerifyCode() }
-        case .redeemed: primary(L("playStoreDay.cta.redeemed"), disabled: true) {}
+        let action = PlayStoreDayPrimaryAction.resolve(node, receipt: model.receipt, arriveRetry: model.arriveRetry)
+        // pages/play/merchant: after 我已到店, redeemBlockedText is aria-role=status
+        // (.mp-cta__main.is-dead). It replaces 出示核销码 and is not a control.
+        if let notice = node.redeemBlockedNotice, action == .photo || action == .scan || action == .verify {
+            perkBlockedStatus(notice)
+        } else {
+            switch action {
+            case .confirmPending: primary(L("playStoreDay.cta.confirmPending"), disabled: false) { Task { await model.retryProofReadback() } }
+            case .arrive: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.arrive"), disabled: model.busy) { arriveHere() }
+            case .relocate: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.relocate"), disabled: model.busy) { arriveHere() }
+            case .scanUnlock: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scanUnlock"), disabled: model.busy) { model.prepareScan() }
+            case .scan: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scan"), disabled: model.busy) { model.prepareScan() }
+            case .photo: primary(L(model.busy ? "playStoreDay.cta.photoBusy" : "playStoreDay.cta.photo"), disabled: model.busy) { model.preparePhoto() }
+            case .verify: primary(L(model.consentBusy ? "playStoreDay.cta.verifyBusy" : "playStoreDay.cta.verify"), disabled: model.consentBusy) { model.openVerifyCode() }
+            case .redeemed: primary(L("playStoreDay.cta.redeemed"), disabled: true) {}
+            }
         }
+    }
+    /// Dead status row. The sentence is the server's; tapping it must not open a code or send a write.
+    private func perkBlockedStatus(_ text: String) -> some View {
+        Text(verbatim: text)
+            .font(.body)
+            .foregroundStyle(CYColor.textSecondary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .center)
+            .accessibilityAddTraits(.isStaticText)
+            .accessibilityIdentifier("storeDayPage.perk.blocked")
     }
     /// MP `arriveHere`: purpose prompt once, then one foreground GCJ-02 fix handed to /api/play/arrive.
     private func arriveHere() {
