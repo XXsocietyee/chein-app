@@ -25,6 +25,8 @@ import SwiftUI
     /// Round 4 copy (MP topic/index.wxml:438/448): the topic sheet is 评价路线 with 请输入您的评价内容...
     private var isTopic: Bool { if case .topic = target { return true } else { return false } }
     @ScaledMetric(relativeTo: .body) private var photoSide: CGFloat = 72
+    /// R9-PC-BN-3 / R9-PC-CN-3: the MP star size follows Dynamic Type.
+    @ScaledMetric(relativeTo: .title2) private var starSide: CGFloat = 32
     private func uploadPhotos(_ items: [PhotosPickerItem]) {
         guard !items.isEmpty else { return }
         guard let imageUploader, !uploadingPhotos else { photoItems = []; return }
@@ -49,7 +51,7 @@ import SwiftUI
                             (star <= draft.rating ? MPAsset.FeatureIcon.iconStar2 : MPAsset.FeatureIcon.iconStar1)
                                 .resizable().scaledToFit()
                                 .accessibilityHidden(true)
-                                .frame(width: 32, height: 32)
+                                .frame(width: starSide, height: starSide)
                                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         }
                         .buttonStyle(.plain)
