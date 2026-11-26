@@ -95,20 +95,22 @@ struct JourneyModeTilesView: View {
                 }
             }
             if showsRules, let tile = activeTile, !tile.rules.isEmpty {
-                MPCard {
-                    ForEach(Array(tile.rules.enumerated()), id: \.element.id) { index, rule in
-                        if index > 0 { MPDivider() }
-                        HStack(spacing: CYSpacing.md) {
-                            Circle().fill(rule.on ? CYNight.lantern : CYColor.textTertiary).frame(width: 8, height: 8).accessibilityHidden(true)
-                            Text(rule.title).cyText(.body).foregroundStyle(CYColor.textSecondary)
-                            Spacer()
-                            Group {
+                // N-JOURNEY-1 (r10): system GroupBox + LabeledContent rule rows (MP subpackageJourney/pages/landing rules).
+                GroupBox {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        ForEach(tile.rules) { rule in
+                            LabeledContent {
                                 if let scope = rule.scope { Text(scope.label) } else { Text(verbatim: MPText.orDash(rule.teamText)) }
+                            } label: {
+                                Label {
+                                    Text(rule.title)
+                                } icon: {
+                                    Image(systemName: rule.on ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(rule.on ? Color.accentColor : Color.secondary)
+                                }
                             }
-                            .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                            .accessibilityElement(children: .combine)
                         }
-                        .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
-                        .accessibilityElement(children: .combine)
                     }
                 }
                 .id(tile.key)
@@ -310,7 +312,8 @@ struct JourneyLandingView: View {
                 ready(content)
             }
         }
-        .background { MPNightGround(glow: phase.isReady) }
+        // N-JOURNEY-1 (r10): the system grouped page, no lantern glow (MP subpackageJourney/pages/landing).
+        .background { MPNightGround() }
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -324,17 +327,21 @@ struct JourneyLandingView: View {
                 if let name = content.inviter?.name { Text(verbatim: name).cyText(.label).foregroundStyle(CYColor.textSecondary) }
                 if let title = content.title {
                     // JLAND-9: a long route name wraps to two centred lines instead of overflowing the pill.
-                    Text(verbatim: title).cyText(.label).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: title).font(.headline).foregroundStyle(CYColor.textPrimary)
                         .multilineTextAlignment(.center).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 }
                 if !content.tiles.isEmpty {
                     JourneyModeTilesView(tiles: content.tiles, active: Binding(get: { content.activeMode }, set: { if let key = $0 { onSelectMode(key) } }))
                 }
                 if !content.facts.isEmpty {
-                    MPRows(items: content.facts) { fact in MPRow(title: Text(fact.title), value: fact.valueText, strong: true) }
-                        .cyStaggerAppear(1)
+                    // N-JOURNEY-1 (r10): system GroupBox + LabeledContent rows instead of MPCard/MPRow.
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: CYSpacing.md) {
+                            ForEach(content.facts) { fact in
+                                LabeledContent { fact.valueText.monospacedDigit() } label: { Text(fact.title) }
+                            }
+                        }
+                    }
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -945,15 +952,12 @@ struct JourneyPromoView: View {
                 CYErrorState("mp.promo.error", retryTitle: "mp.common.reload", onRetry: onRetry).frame(maxHeight: .infinity)
                     .accessibilityIdentifier("journeyPromo.error")
             case .ready(let content):
-                ScrollView {
-                    VStack(alignment: .leading, spacing: CYSpacing.lg) { ready(content) }
-                        .padding(.horizontal, CYSpacing.pageHorizontal)
-                        .padding(.vertical, CYSpacing.lg)
-                }
-                .refreshable { onRetry() }
+                // N-JOURNEY-1 (r10): an inset-grouped List; each MP card is a Section (MP subpackageJourney/pages/promo).
+                List { ready(content) }
+                    .listStyle(.insetGrouped)
+                    .refreshable { onRetry() }
             }
         }
-        .background { MPNightGround() }
         .cyPageTitle("mp.promo.title")
         .cyDomainScreen(.player)
     }
@@ -965,34 +969,46 @@ struct JourneyPromoView: View {
 
     @ViewBuilder private func ready(_ content: JourneyPromoContent) -> some View {
         if !content.buckets.isEmpty || content.heldOrders != nil {
-            MPCard {
-                ForEach(Array(content.buckets.enumerated()), id: \.element.id) { index, bucket in
-                    if index > 0 { MPDivider() }
-                    MPRow(title: Text(bucket.title), sub: bucket.count.map { Text("mp.promo.count \($0)") },
-                          value: bucket.amountText.map { Text(verbatim: $0) } ?? (bucket.multiCurrency ? Text("mp.promo.multiCurrency") : Text(verbatim: MPText.unknown)),
-                          strong: true)
+            Section {
+                ForEach(content.buckets) { bucket in
+                    LabeledContent {
+                        (bucket.amountText.map { Text(verbatim: $0) } ?? (bucket.multiCurrency ? Text("mp.promo.multiCurrency") : Text(verbatim: MPText.unknown)))
+                            .monospacedDigit()
+                    } label: {
+                        Text(bucket.title)
+                        if let count = bucket.count { Text("mp.promo.count \(count)") }
+                    }
                 }
                 if let held = content.heldOrders {
-                    if !content.buckets.isEmpty { MPDivider() }
-                    MPRow(title: Text("mp.promo.held"), value: Text("mp.promo.heldCount \(held)"))
+                    LabeledContent { Text("mp.promo.heldCount \(held)") } label: { Text("mp.promo.held") }
                 }
+            } footer: {
+                MPGatedNote(text: Text("mp.gate.payout"), identifier: "journeyPromo.payoutOff")
             }
-            MPGatedNote(text: Text("mp.gate.payout"), identifier: "journeyPromo.payoutOff")
         }
         if !content.campaigns.isEmpty {
-            MPSectionHeader(title: "mp.promo.deals")
-            MPRows(items: content.campaigns) { campaign in
-                MPRow(title: campaign.title.map { Text(verbatim: $0) } ?? Text("mp.promo.topic"),
-                      sub: Text("mp.promo.deal.line \(Self.countOrUnknown(campaign.attributed)) \(Self.countOrUnknown(campaign.paid))")
-                        + (campaign.refunded.flatMap { $0 > 0 ? $0 : nil }.map { Text(verbatim: " · ") + Text("mp.promo.deal.refunded \($0)") } ?? Text(verbatim: "")))
+            Section("mp.promo.deals") {
+                ForEach(content.campaigns) { campaign in
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        campaign.title.map { Text(verbatim: $0) } ?? Text("mp.promo.topic")
+                        (Text("mp.promo.deal.line \(Self.countOrUnknown(campaign.attributed)) \(Self.countOrUnknown(campaign.paid))")
+                            + (campaign.refunded.flatMap { $0 > 0 ? $0 : nil }.map { Text(verbatim: " · ") + Text("mp.promo.deal.refunded \($0)") } ?? Text(verbatim: "")))
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
             }
         }
         if !content.links.isEmpty {
-            MPSectionHeader(title: "mp.promo.links")
-            MPRows(items: content.links) { link in
-                MPRow(title: link.title.map { Text(verbatim: $0) } ?? Text("mp.promo.topic"),
-                      sub: link.expiresText.map { Text("mp.promo.link.expires \($0)") },
-                      value: (link.active ? Text("mp.promo.link.active") : Text("mp.promo.link.inactive")))
+            Section("mp.promo.links") {
+                ForEach(content.links) { link in
+                    LabeledContent {
+                        link.active ? Text("mp.promo.link.active") : Text("mp.promo.link.inactive")
+                    } label: {
+                        link.title.map { Text(verbatim: $0) } ?? Text("mp.promo.topic")
+                        if let expires = link.expiresText { Text("mp.promo.link.expires \(expires)") }
+                    }
+                }
             }
         }
         if !content.hasRecords {
