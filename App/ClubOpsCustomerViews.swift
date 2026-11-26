@@ -475,10 +475,16 @@ struct ClubOpsCustomerTagRemarkEditor: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         let draft = ClubOpsCustomerTagRemarkDraft(tagsText: tagsText)
-        if !draft.tags.isEmpty {
-            ClubOpsTagFlow(tags: draft.tags) { index in
-                var next = draft; next.remove(at: index); tagsText = next.tagsText; issue = nil
-            }
+        // CLB-customer-detail-04 (MP customer-detail/index.wxml:83-118): each tag is a plain row; swipe to delete
+        // (the MP chip's ×). The add field submits on Return; the remark is a multi-line field; 保存 sits on the form.
+        ForEach(Array(draft.tags.enumerated()), id: \.offset) { index, tag in
+            Label { Text(verbatim: tag.isEmpty ? "—" : tag) } icon: { Image(systemName: "tag").accessibilityHidden(true) }
+                .accessibilityIdentifier("clubOps.customer.tag.\(index)")
+        }
+        .onDelete { offsets in
+            var next = ClubOpsCustomerTagRemarkDraft(tagsText: tagsText)
+            for index in offsets.sorted(by: >) { next.remove(at: index) }
+            tagsText = next.tagsText; issue = nil
         }
         let composer = typeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
