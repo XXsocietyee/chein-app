@@ -133,6 +133,7 @@ enum MPFirstClubWriteRoute {
 
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
         if acceptsOwnerRefund(request, baseURL: baseURL, token: token) { return true }
+        if acceptsClubScan(request, baseURL: baseURL, token: token) { return true }
         guard let token, AuthRequestBuilder.isValidToken(token),
               request.httpMethod == "POST", request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
@@ -186,6 +187,34 @@ enum MPFirstClubWriteRoute {
         let id = String(text.dropFirst(prefix.count).dropLast(suffix.count))
         guard id.count <= 16, id.allSatisfy(\.isASCII), id.allSatisfy(\.isNumber), let value = Int(id) else { return false }
         return value > 0
+    }
+
+    /// CLB-r11-detail-04: club 扫码核销. MP pages/club/detail/index.js:971-1010 (`onClubScan` → `resolveVerificationScan`
+    /// → `submitClubScan`) posts these redemption bodies (ClubScanRoute.resolve). Not money: each redeems a code only.
+    static let clubScanPaths: [String: Set<String>] = [
+        "api/verify/groupcode/redeem": ["code"],
+        "api/registration/scan_dynamic_code": ["code"],
+        "api/coupon/verification": ["code"],
+        "api/registration/scan_qr_code": ["type", "code"]
+    ]
+    static func acceptsClubScan(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let url = request.url, url.fragment == nil, url.user == nil, url.password == nil, url.query == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false), parts.query == nil,
+              let relative = MPFirstMerchantWriteRoute.relativePath(parts.path, base: baseURL.path),
+              let keys = clubScanPaths[relative],
+              let body = request.httpBody, body.count < 20_000,
+              let object = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any],
+              Set(object.keys) == keys,
+              (object["code"] as? String)?.isEmpty == false else { return false }
+        if keys.contains("type") {
+            guard let type = object["type"] as? String, ["activity", "topic"].contains(type) else { return false }
+        }
+        return true
     }
 
     /// Exact bodies for the review reads (ClubGovernanceRead.fields) and the join-request review writes
