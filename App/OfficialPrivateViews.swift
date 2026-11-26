@@ -172,15 +172,21 @@ import SwiftUI
     let reader: any OfficialEventReading
     var onLogin: (() -> Void)? = nil
     @State private var reload = 0
+    @Environment(\.locale) private var locale
     var body: some View {
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "stats.\(id).\(reload)", onLogin: onLogin, load: { try await reader.broadcastStats(id: id) }) { stats in
             List {
-                if let line = stats.summaryLine {
-                    Text(verbatim: line).accessibilityIdentifier("official.broadcast.summary")
+                if let line = stats.presentedSummaryLine(locale: locale) {
+                    Text(verbatim: line).cyText(.body).accessibilityIdentifier("official.broadcast.summary")
+                } else if stats.canRecoverInapp {
+                    Text(verbatim: OfficialReadCopy.recoverableDelivery(locale: locale))
+                        .cyText(.bodyCompact)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("official.broadcast." + "recoverable")
                 }
                 // R7-PC-C6-3: only the stats the page can name; an unknown key is never printed raw.
                 let known = stats.rows.filter { OfficialBroadcastStatsText.knownIDs.contains($0.id) }
-                if known.isEmpty && stats.summaryLine == nil { Text("official.emptyStats") }
+                if known.isEmpty && stats.presentedSummaryLine(locale: locale) == nil && !stats.canRecoverInapp { Text("official.emptyStats") }
                 ForEach(known) { row in
                     LabeledContent {
                         switch row.value {
@@ -235,6 +241,7 @@ private extension Decimal {
     private enum Phase: Equatable { case idle, loading, loaded(OfficialBroadcastStats), failed(String?) }
     @State private var phase: Phase = .idle
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Button { load() } label: {
@@ -245,16 +252,22 @@ private extension Decimal {
                     case .loading:
                         Text("official.published.statsLoading").cyText(.caption).foregroundStyle(palette.textSecondary)
                     case .loaded(let stats):
-                        if let line = stats.summaryLine {
+                        if let line = stats.presentedSummaryLine(locale: locale) {
                             Text(verbatim: line).cyText(.caption).foregroundStyle(palette.textSecondary)
                                 .accessibilityIdentifier("official.broadcast.summary")
                         } else if let counts = OfficialBroadcastStatsText.counts(stats) {
                             Text("official.published.statsLine \(counts.reached) \(counts.clicked)").cyText(.caption).monospacedDigit()
                                 .foregroundStyle(palette.textSecondary)
+                        } else if stats.canRecoverInapp {
+                            Text(verbatim: OfficialReadCopy.recoverableDelivery(locale: locale))
+                                .cyText(.caption)
+                                .foregroundStyle(palette.textSecondary)
+                                .accessibilityIdentifier("official.broadcast." + "recoverable")
                         }
-                    case .failed(let line):
-                        if let line { Text(verbatim: line).cyText(.caption).foregroundStyle(CYColor.dangerText) }
-                        else { Text("official.published.statsFailed").cyText(.caption).foregroundStyle(CYColor.dangerText) }
+                    case .failed(let note):
+                        Text(verbatim: OfficialBroadcastStats.failureLine(serverMessage: note, locale: locale))
+                            .cyText(.caption)
+                            .foregroundStyle(CYColor.dangerText)
                     }
                 }
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
@@ -277,11 +290,11 @@ private extension Decimal {
                 guard reader.scope == scope else { phase = .idle; return }
                 if stats.summaryLine != nil || OfficialBroadcastStatsText.counts(stats) != nil || stats.canRecoverInapp {
                     phase = .loaded(stats)
-                } else { phase = .failed(OfficialBroadcastStats.failureLine(serverMessage: nil)) }
+                } else { phase = .failed(nil) }
             } catch is CancellationError {
                 phase = .idle
             } catch {
-                phase = reader.scope == scope ? .failed(OfficialBroadcastStats.failureLine(serverMessage: OfficialBroadcastStats.serverNote(error))) : .idle
+                phase = reader.scope == scope ? .failed(OfficialBroadcastStats.serverNote(error)) : .idle
             }
         }
     }

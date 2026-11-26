@@ -120,8 +120,7 @@ enum OfficialDetailID {
                     }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(OfficialDetailID.overview)
                 }
                 if let board = event.leaderboard {
-                    OfficialEventLeaderboardSection(rows: board.rows, chipText: board.chipText, myRank: board.myRank, isFinal: board.isFinal)
-                        .accessibilityIdentifier("official.leaderboard")
+                    OfficialEventLeaderboardRead(board: board)
                 }
                 if !presentation.cards.isEmpty {
                     Section("official.detailParity.cardsHeading") {
@@ -152,7 +151,7 @@ enum OfficialDetailID {
                         }
                         if presentation.missions.isEmpty { CYEmptyState(systemImage: "checklist", "official.detailParity.tasks.empty") }
                         if topicNameFailed {
-                            Text("official.w206.detail.topicName.failed").font(.subheadline).foregroundStyle(.secondary)
+                            Text("official.w206.detail.topicName.failed").cyText(.bodyCompact).foregroundStyle(.secondary)
                                 .accessibilityIdentifier(OfficialDetailID.topicNameError)
                         }
                         ForEach(presentation.missions, id: \.index) { mission in
@@ -215,6 +214,20 @@ enum OfficialDetailID {
                             Text("official.detailParity.rewardFootnote.settlement")
                         }.cyText(.bodyCompact).foregroundStyle(.secondary)
                             .accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.rewardFootnote)
+                    }
+                }
+                if let notice = event.safetyNoticeTitle, event.signed != true {
+                    Section {
+                        Text(verbatim: notice)
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                            .accessibilityIdentifier(OfficialDetailID.leaf("safetyNotice"))
+                    } header: {
+                        Text(verbatim: OfficialReadCopy.safetyNoticeHeading(locale: locale))
+                            .cyText(.meta)
+                            .foregroundStyle(CYColor.textSecondary)
                     }
                 }
                 Section("official.participation") {
@@ -370,13 +383,31 @@ struct OfficialDetailTextView: View {
         }
     }
 }
+/// Read of an enabled leaderboard, including the source empty line when the server sent no rows.
+struct OfficialEventLeaderboardRead: View {
+    let board: OfficialEventLeaderboard
+    @Environment(\.locale) private var locale
+    var body: some View {
+        if board.isEmptyBoard {
+            Section("official.leaderboard.title") {
+                Text(verbatim: OfficialReadCopy.emptyLeaderboard(locale: locale))
+                    .cyText(.bodyCompact)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("official.leaderboard" + "." + "empty")
+            }
+        } else {
+            OfficialEventLeaderboardSection(rows: board.presentedRows(locale: locale), chipText: board.presentedChip(locale: locale), myRank: board.myRank, isFinal: board.isFinal)
+                .accessibilityIdentifier("official.leaderboard")
+        }
+    }
+}
 struct OfficialDetailMissionRow: View {
     let mission: OfficialDetailMission
     var topicName: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             OfficialDetailTextView(value: mission.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
+            if let topicName { Text("official.w206.detail.boundTopic \(topicName)").cyText(.bodyCompact) }
             OfficialDetailTextView(value: mission.description).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
             CYStatusChip(LocalizedStringKey(mission.action.key), tone: mission.action == .verified ? .success : .neutral, systemImage: symbol)
         }.accessibilityElement(children: .combine)
