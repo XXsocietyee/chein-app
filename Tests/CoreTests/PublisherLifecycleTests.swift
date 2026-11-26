@@ -59,6 +59,20 @@ private actor LifecycleFakeHTTP: HTTPTransport {
         XCTAssertThrowsError(try PublisherPricingPreview(.object(["priceMin": .string("0")])))
         XCTAssertEqual(try PublisherPricingPreview(.object(["priceMin": .number(0)])).minimum, 0)
     }
+    /// R7-PC-B4-3: MP pages/topic/pricing/index.wxml:45-86 lists one final per ticket.
+    func testPreviewTicketsDecodeTolerantlyAndDropInvalidRows() throws {
+        let preview = try PublisherPricingPreview(.object(["priceMin": .number(10), "tickets": .array([
+            .object(["ticketId": .number(3), "ticketName": .string("成人"), "price": .number(18)]),
+            .object(["id": .string("4"), "name": .string("儿童")]),
+            .object(["ticketId": .number(3), "ticketName": .string("dup")]),
+            .object(["ticketId": .number(0)]),
+        ])]))
+        XCTAssertEqual(preview.tickets.map(\.id), [3, 4])
+        XCTAssertEqual(preview.tickets.first?.name, "成人")
+        XCTAssertEqual(preview.tickets.first?.price, 18)
+        XCTAssertNil(preview.tickets.last?.price)
+        XCTAssertTrue(try PublisherPricingPreview(.object(["priceMin": .number(0)])).tickets.isEmpty)
+    }
     func testPricingExactPreviewAndConfirmBodies() async throws {
         let transport = LifecycleFakeHTTP([floor, floor, "{\"code\":200,\"msg\":\"accepted\"}"])
         let client = try setup(transport); let owner = coordinator(client)

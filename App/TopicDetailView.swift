@@ -135,7 +135,8 @@ struct TopicDetailView: View {
         .cySheet(isPresented: $showingSelfPlay, onDismiss: { barSheetOrigin = nil }) {
             Group {
                 if let detail {
-                    if let selfPlayDestination { selfPlayDestination(detail) }
+                    // R8-PC-B1-1: a paid order with the payment switch off shows the unavailable state before the name/phone form.
+                    if let selfPlayDestination, PlayerContentMPContract.selfPlayCreateOpen(price: detail.selfPlayPrice) { selfPlayDestination(detail) }
                     else { TopicSelfPlayUnavailableSheet(topic: detail) }
                 }
             }

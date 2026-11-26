@@ -113,8 +113,10 @@ public struct RuntimeDependencyContext: Equatable {
               readsEnabled: accepted?.journeyReads == true, asksEnabled: accepted?.journeyAsks == true)
     }
     public var publisherGrants: PublisherLifecycleGrants {
-        // Pricing mutations, refunds, and creator applications stay off.
+        // Refunds and creator applications stay off.
         // Graduation and ownership follow the mini-program form writes whenever a session matched.
+        // R7-PC-B4-1: pricing confirm saves the final price and waits for sale review
+        // (MP pages/topic/pricing/index.js:419-460). It is not a payment, so it is granted with the session.
         let reads = accepted?.publisherReads == true ? accepted?.endpoints : nil
         let ownership = accepted.flatMap { config -> OperationEndpointApproval? in
             var paths = config.endpoints.paths
@@ -126,7 +128,17 @@ public struct RuntimeDependencyContext: Equatable {
                 paths: paths
             )
         }
-        return PublisherLifecycleGrants(reads: reads, ownership: ownership, graduation: ownership)
+        let pricing = accepted.flatMap { config -> OperationEndpointApproval? in
+            var paths = config.endpoints.paths
+            paths.insert("api/topic/pricing/confirm")
+            return try? OperationEndpointApproval(
+                baseURL: config.endpoints.baseURL,
+                namespace: config.endpoints.namespace,
+                accountID: config.endpoints.accountID,
+                paths: paths
+            )
+        }
+        return PublisherLifecycleGrants(reads: reads, pricing: pricing, ownership: ownership, graduation: ownership)
     }
     public var allowsNearbyLocation: Bool {
         accepted?.nearbyLocation == true && accepted?.endpoints.paths.contains("api/merchant/nearby") == true

@@ -382,7 +382,8 @@ final class PlayerContentMPContractTests: XCTestCase {
     }
 
     func testPricingConfirmStaysOff() {
-        XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertNil(PublisherLifecycleGrants.dormant.pricing)
         XCTAssertFalse(TopicPricingXcx.showsConfirm(
             baseURL: URL(string: "https://example.com"), playerFirstEntry: false, pricingGrantPresent: false))
@@ -391,12 +392,23 @@ final class PlayerContentMPContractTests: XCTestCase {
         XCTAssertEqual(method, "POST")
         XCTAssertEqual(PlayerContentMPContract.pricingConfirmPath, "api/topic/pricing/confirm")
         XCTAssertEqual(fields, ["topicId", "scope", "guidedPrice", "ticketPrices", "leadCost", "teamSize", "selfPrice"])
-        XCTAssertThrowsError(try PlayerContentMPContract.pricingConfirm(
+        XCTAssertNoThrow(try PlayerContentMPContract.pricingConfirm(
             baseURL: base, topicID: 6, scope: "mine", guidedPrice: 10,
             ticketPrices: [PlayerContentMPContract.TicketPrice(ticketID: 2, price: 3)],
-            leadCost: nil, teamSize: 4, selfPrice: nil)) { error in
-            XCTAssertEqual(error as? PlayerContentMPContract.Refusal, .pricingGrantDisabled)
-        }
+            leadCost: nil, teamSize: 4, selfPrice: nil))
+    }
+
+    /// R8-PC-B1-1: MP pages/topic/index/index.js:1469. A ¥0 self-play order always sends; a paid one follows the payment switch.
+    func testSelfPlayCreateOpensFreeOrdersAndPaidFollowsMoney() {
+        let prior = ReleaseMoneyWriteSwitch.testDerivation
+        defer { ReleaseMoneyWriteSwitch.testDerivation = prior }
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        XCTAssertTrue(PlayerContentMPContract.selfPlayCreateOpen(price: 0))
+        XCTAssertFalse(PlayerContentMPContract.selfPlayCreateOpen(price: 12))
+        XCTAssertFalse(PlayerContentMPContract.selfPlayCreateOpen(price: nil))
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .payment }
+        XCTAssertTrue(PlayerContentMPContract.selfPlayCreateOpen(price: 12))
+        XCTAssertFalse(PlayerContentMPContract.selfPlayCreateOpen(price: -1))
     }
 
     private func body(_ request: URLRequest) -> String {
