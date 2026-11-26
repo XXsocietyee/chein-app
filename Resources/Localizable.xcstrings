@@ -314040,6 +314040,23 @@
           }
         }
       }
+    },
+    "account.section.safety": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account and safety"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号与安全"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
