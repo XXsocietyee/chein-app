@@ -102,17 +102,9 @@ extension View {
 
 private struct CYNightCardDepth: ViewModifier {
     let radius: CGFloat
+    /// Native r2: no glass edge or depth shadows. Shows the content as is.
     func body(content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         content
-            .overlay {
-                shape.strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom],
-                                                  startPoint: .top, endPoint: .bottom), lineWidth: 1)
-                    .allowsHitTesting(false)
-            }
-            // Ink shadow grounds the card on light pages; the indigo under-glow lifts it off the ink ground at night.
-            .shadow(color: CYNight.ink0.opacity(0.35), radius: 14, y: 8)
-            .shadow(color: CYNight.indigo.opacity(0.30), radius: 28, y: 14)
     }
 }
 
