@@ -179,9 +179,6 @@ enum OfficialDetailID {
                         if let intro = presentation.intro { Text(verbatim: intro).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(OfficialDetailID.overview)
                 }
-                if let board = event.leaderboard {
-                    OfficialEventLeaderboardRead(board: board)
-                }
                 if !presentation.cards.isEmpty {
                     Section("official.detailParity.cardsHeading") {
                         ForEach(presentation.cards, id: \.index) { card in
@@ -235,6 +232,10 @@ enum OfficialDetailID {
                             if let key = presentation.eligibilityKey { Text(LocalizedStringKey(key)) }
                         }.accessibilityIdentifier(OfficialDetailID.tasks)
                     }
+                }
+                // R9-PC-C4-1: MP 赛事榜单 follows 我的活动任务 (pages/activity/official-detail/index.wxml:143-153).
+                if let board = event.leaderboard {
+                    OfficialEventLeaderboardRead(board: board)
                 }
                 rewardsAndCollective(event: event, presentation: presentation)
                 if !event.rewards.isEmpty {

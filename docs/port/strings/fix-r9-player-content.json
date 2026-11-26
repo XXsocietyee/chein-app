@@ -437,6 +437,38 @@
           }
         }
       }
+    },
+    "official.leaderboard.provisional": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provisionally #%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂列第 %@ 名"
+          }
+        }
+      }
+    },
+    "official.leaderboard.final": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "#%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %@ 名"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
