@@ -104,11 +104,11 @@ import QuestifyCore
     }
 
     var body: some View {
-        ScrollView {
+        // NAT-10 (native-r2): an inset-grouped List; each MP card is a Section.
+        List {
             content
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
         }
+        .listStyle(.insetGrouped)
         .cyDomainScreen(.game)
         .cyPushedChrome(domain: .game)
         .cyPageTitle("orientScore.title")
@@ -140,8 +140,9 @@ import QuestifyCore
     @ViewBuilder private var content: some View {
         switch model.page.phase {
         case .loading?, nil:
-            CYLoadingState("orientScore.loading", messageIdentifier: "orientScore.loading")
+            ProgressView { Text("orientScore.loading") }
                 .frame(maxWidth: .infinity, minHeight: 240)
+                .accessibilityIdentifier("orientScore.loading")
         case .empty?:
             if let rounds = model.choices, !rounds.isEmpty {
                 OrientScoreRoundChooser(rounds: rounds) { id in Task { await model.choose(id) } }
@@ -196,7 +197,7 @@ import QuestifyCore
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+        Group {
             totalCard
             dimensionsCard
             if let settlement { OrientScoreSettlementPendingCard(model: settlement) }
@@ -214,90 +215,77 @@ import QuestifyCore
     }
 
     private var totalCard: some View {
-        CYCard(variant: .elevated) {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        Section {
+            VStack(alignment: .leading, spacing: 4) {
                 // Round 4: MP head line 「本局计分 · {phase}」 (orient-score wxml:20); no session id (PG-090).
-                Text("orientScore.titlePhase \(summary.phase)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("orientScore.titlePhase \(summary.phase)").font(.footnote).foregroundStyle(.secondary)
                 Text(verbatim: facts?.totalText ?? summary.total)
-                    .cyText(.data2XL)
+                    .font(.largeTitle.weight(.bold)).monospacedDigit()
                     .contentTransition(.numericText())
-                    .foregroundStyle(CYColor.textPrimary)
                     .accessibilityLabel(summary.totalAccessibility)
                 Text("orientScore.precision")
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote).foregroundStyle(.secondary)
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("orientScore.total")
         }
-        .accessibilityIdentifier("orientScore.total")
     }
 
     private var dimensionsCard: some View {
-        CYCard {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("orientScore.breakdown").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                ForEach(summary.dimensions) { row in
-                    HStack {
-                        Text(row.label).cyText(.bodyMedium)
-                        Spacer(minLength: CYSpacing.md)
-                        Text(row.value).cyText(.bodyMedium, monospacedDigit: true)
-                    }
-                    .foregroundStyle(CYColor.textPrimary)
-                    .frame(minHeight: 44)
-                    .accessibilityElement(children: .combine)
+        Section("orientScore.breakdown") {
+            ForEach(summary.dimensions) { row in
+                LabeledContent {
+                    Text(row.value).monospacedDigit()
+                } label: {
+                    Text(row.label)
                 }
+                .accessibilityElement(children: .combine)
             }
         }
     }
 
     private var settlementCard: some View {
-        CYCard {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("orientScore.settlement").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+        Section("orientScore.settlement") {
+            VStack(alignment: .leading, spacing: 4) {
                 switch facts?.settlement {
                 case .settled(let total, let points, let xp)?:
-                    Text("orientScore.settled \(total)").cyText(.bodyMedium)
-                    Text("orientScore.rewards \(points) \(xp)").cyText(.bodyCompact)
+                    Text("orientScore.settled \(total)").font(.body.weight(.medium))
+                    Text("orientScore.rewards \(points) \(xp)").font(.subheadline)
                 case .unknown?:
-                    Text(verbatim: OrientScorePage.unknownDisplay).cyText(.bodyMedium)
+                    Text(verbatim: OrientScorePage.unknownDisplay).font(.body.weight(.medium))
                 case .absent?:
                     EmptyView()
                 case nil:
                     if let settlement = summary.settlement {
-                        Text("orientScore.settled \(settlement.total)").cyText(.bodyMedium)
-                        Text("orientScore.rewards \(String(settlement.points)) \(String(settlement.xp))").cyText(.bodyCompact)
+                        Text("orientScore.settled \(settlement.total)").font(.body.weight(.medium))
+                        Text("orientScore.rewards \(String(settlement.points)) \(String(settlement.xp))").font(.subheadline)
                     }
                 }
-                Text(summary.settlementNotice).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(summary.settlementNotice).font(.footnote).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let settlement { OrientScoreSettlementActions(model: settlement) }
             }
-            .foregroundStyle(CYColor.textPrimary)
         }
     }
 
     /// MP `score.recoveries`: 历史操作人工核对. Shown only when the server sent rows.
     private var recoveriesCard: some View {
-        CYCard {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("orientScore.recoveries.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                ForEach(summary.recoveries) { row in
-                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        (Text(LocalizedStringKey(recoveryKind(row.kind)))
-                            + Text(verbatim: " · ")
-                            + Text(LocalizedStringKey(row.status == 0 ? "orientScore.recoveries.pending" : "orientScore.recoveries.noted")))
-                            .cyText(.bodyMedium)
-                            .foregroundStyle(CYColor.textPrimary)
-                        if !row.note.isEmpty {
-                            Text("orientScore.recoveries.note \(row.note)")
-                                .cyText(.bodyCompact)
-                                .foregroundStyle(CYColor.textSecondary)
-                        }
+        Section("orientScore.recoveries.title") {
+            ForEach(summary.recoveries) { row in
+                VStack(alignment: .leading, spacing: 2) {
+                    (Text(LocalizedStringKey(recoveryKind(row.kind)))
+                        + Text(verbatim: " · ")
+                        + Text(LocalizedStringKey(row.status == 0 ? "orientScore.recoveries.pending" : "orientScore.recoveries.noted")))
+                    if !row.note.isEmpty {
+                        Text("orientScore.recoveries.note \(row.note)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityElement(children: .combine)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("orientScore.recoveries")
             }
         }
-        .accessibilityIdentifier("orientScore.recoveries")
     }
 
     private func recoveryKind(_ kind: String) -> String {
@@ -312,20 +300,15 @@ import QuestifyCore
 
     /// MP orient-score wxml:52-64 本场榜单: 看本场榜单 (榜单加载中 while reading), the retry line on failure.
     private var boardCard: some View {
-        CYCard {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("orientScore.board.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Button { Task { await loadBoard() } } label: {
-                    Text(LocalizedStringKey(boardLoading ? "orientScore.board.loading" : "orientScore.board.open"))
-                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                }
-                .buttonStyle(.cySecondary(fullWidth: true))
-                .disabled(boardLoading)
-                .accessibilityIdentifier("orientScore.board.open")
-                if boardFailed {
-                    Text("orientScore.board.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
-                        .accessibilityIdentifier("orientScore.board.failed")
-                }
+        Section("orientScore.board.title") {
+            Button { Task { await loadBoard() } } label: {
+                Text(LocalizedStringKey(boardLoading ? "orientScore.board.loading" : "orientScore.board.open"))
+            }
+            .disabled(boardLoading)
+            .accessibilityIdentifier("orientScore.board.open")
+            if boardFailed {
+                Text("orientScore.board.failed").font(.footnote).foregroundStyle(.red)
+                    .accessibilityIdentifier("orientScore.board.failed")
             }
         }
         .sheet(item: $board) { content in
@@ -351,34 +334,29 @@ import QuestifyCore
     }
 
     private var timelineCard: some View {
-        CYCard {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("orientScore.timeline").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                if summary.timeline.isEmpty {
-                    Text("orientScore.timeline.empty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                }
-                ForEach(summary.timeline) { row in
-                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        HStack {
-                            Text(row.dimension).cyText(.bodyMedium)
-                            Spacer(minLength: CYSpacing.md)
-                            Text(row.delta).cyText(.bodyMedium, monospacedDigit: true)
-                        }
-                        Text("orientScore.running \(runningText(row))").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        if !row.reason.isEmpty { Text(row.reason).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
-                        // Round 4: MP shows 已撤销 (orient-score wxml:72), never the reversed entry id (PG-090).
-                        if row.reversesEntryID != nil {
-                            Text("orientScore.reversed").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                        }
-                        if row.appealPending {
-                            Text("orientScore.appealPending").cyText(.meta).foregroundStyle(CYColor.warningText)
-                        }
+        Section("orientScore.timeline") {
+            if summary.timeline.isEmpty {
+                Text("orientScore.timeline.empty").foregroundStyle(.secondary)
+            }
+            ForEach(summary.timeline) { row in
+                VStack(alignment: .leading, spacing: 2) {
+                    LabeledContent {
+                        Text(row.delta).monospacedDigit()
+                    } label: {
+                        Text(row.dimension)
                     }
-                    .foregroundStyle(CYColor.textPrimary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(verbatim: row.accessibilitySummary) + (row.appealPending ? Text("orientScore.appealPending.spoken") : Text(verbatim: "")))
+                    Text("orientScore.running \(runningText(row))").font(.footnote).foregroundStyle(.secondary)
+                    if !row.reason.isEmpty { Text(row.reason).font(.footnote).foregroundStyle(.secondary) }
+                    // Round 4: MP shows 已撤销 (orient-score wxml:72), never the reversed entry id (PG-090).
+                    if row.reversesEntryID != nil {
+                        Text("orientScore.reversed").font(.footnote).foregroundStyle(.secondary)
+                    }
+                    if row.appealPending {
+                        Text("orientScore.appealPending").font(.footnote).foregroundStyle(.orange)
+                    }
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(verbatim: row.accessibilitySummary) + (row.appealPending ? Text("orientScore.appealPending.spoken") : Text(verbatim: "")))
             }
         }
     }
@@ -390,23 +368,22 @@ import QuestifyCore
     }
 
     private func reviewsCard(title: LocalizedStringKey, emptyText: LocalizedStringKey, rows: [OrientScoreReviewRow]) -> some View {
-        CYCard {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                if rows.isEmpty {
-                    Text(emptyText).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                }
-                ForEach(rows) { row in
-                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        Text(row.statusText).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                        Text(row.reason).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                        if let note = row.note {
-                            Text("orientScore.resolution \(note)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                        }
-                    }
-                    .accessibilityElement(children: .combine)
-                }
+        Section {
+            if rows.isEmpty {
+                Text(emptyText).foregroundStyle(.secondary)
             }
+            ForEach(rows) { row in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(row.statusText).font(.body.weight(.medium))
+                    Text(row.reason).font(.subheadline).foregroundStyle(.secondary)
+                    if let note = row.note {
+                        Text("orientScore.resolution \(note)").font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+            }
+        } header: {
+            Text(title)
         }
     }
 }
@@ -419,24 +396,21 @@ import QuestifyCore
     let onChoose: (Int) -> Void
 
     var body: some View {
-        CYCard {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("orientScore.choose.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                ForEach(rounds, id: \.sessionID) { round in
-                    HStack(alignment: .center, spacing: CYSpacing.md) {
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(phaseKey(round.phase)).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                            if let started = round.startedAt {
-                                Text(Date(timeIntervalSince1970: TimeInterval(started) / 1000), format: .dateTime.month().day().hour().minute())
-                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            }
+        Section("orientScore.choose.title") {
+            ForEach(rounds, id: \.sessionID) { round in
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(phaseKey(round.phase))
+                        if let started = round.startedAt {
+                            Text(Date(timeIntervalSince1970: TimeInterval(started) / 1000), format: .dateTime.month().day().hour().minute())
+                                .font(.footnote).foregroundStyle(.secondary)
                         }
-                        .accessibilityElement(children: .combine)
-                        Spacer(minLength: CYSpacing.sm)
-                        CYPillButton("orientScore.choose.view", style: .secondary, fullWidth: false, compact: true) { onChoose(round.sessionID) }
-                            .accessibilityIdentifier("orientScore.choose.\(round.sessionID)")
                     }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityElement(children: .combine)
+                    Spacer(minLength: 8)
+                    Button("orientScore.choose.view") { onChoose(round.sessionID) }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("orientScore.choose.\(round.sessionID)")
                 }
             }
         }
@@ -487,7 +461,7 @@ import QuestifyCore
                     .environment(\.orientScoreSession, session)
             } label: {
                 // PLY-25-7: one entry label, mini-program 「定向成绩」.
-                CYListRow("orientScore.entry", trailing: .none) { CYRowIcon(systemImage: "list.number") }
+                Label("orientScore.entry", systemImage: "list.number")
             }
             .accessibilityIdentifier("activity.openOrientScore")
         }

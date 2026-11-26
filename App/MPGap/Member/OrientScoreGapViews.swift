@@ -176,7 +176,7 @@ public struct OrientScoreSettlementGapSection: View {
                     Button { confirmSync = true } label: {
                         Text("orientScore.syncTasks").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.cySecondary(fullWidth: true))
+                    .buttonStyle(.bordered)
                     .disabled(busy)
                     .accessibilityIdentifier("orientScore.sync")
                     .confirmationDialog("orientScore.sync.confirmTitle", isPresented: $confirmSync, titleVisibility: .visible) {
@@ -195,7 +195,7 @@ public struct OrientScoreSettlementGapSection: View {
                     Button { confirmSettle = true } label: {
                         Text("orientScore.settleRun").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.cyPrimary)
+                    .buttonStyle(.borderedProminent)
                     .disabled(busy)
                     .accessibilityIdentifier("orientScore.settle")
                     .confirmationDialog("orientScore.settle.confirmTitle", isPresented: $confirmSettle, titleVisibility: .visible) {
