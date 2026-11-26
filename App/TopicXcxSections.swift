@@ -220,35 +220,34 @@ struct TopicXcxLineup: View {
     }
 
     var body: some View {
-        // Mini-program `lineup-row`: horizontal scroll of avatar / name / role cards.
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .top, spacing: CYSpacing.md) {
-                ForEach(Array(members.enumerated()), id: \.offset) { _, member in
-                    UGCBlockedFilterContainer(authorName: member.name) {
-                        let card = VStack(spacing: CYSpacing.xs) {
-                            CYAvatarView(name: member.name, size: .lg)
-                            Text(verbatim: member.name).font(.subheadline).foregroundStyle(.primary).cyWrapText(alignment: .center)
-                            Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(.caption).foregroundStyle(.secondary)
-                        }
-                        .frame(width: 88)
-                        Group {
-                            if opens(member) {
-                                NavigationLink { destination(member) } label: { card }
-                                    .buttonStyle(.plain)
-                                    .accessibilityIdentifier("topic.lineup.\(member.kind == .club ? "club" : "merchant").\(member.targetID)")
-                            } else {
-                                card
-                            }
-                        }
-                        .accessibilityElement(children: .combine)
-                        .contextMenu {
-                            UGCReviewSafetyFooter(
-                                target: lineupReportTarget,
-                                subjectTitle: member.name,
-                                authorName: member.name
-                            )
-                        }
+        // Mini-program `lineup-row` (one entry per partner). R10-PC-B-N5: each partner is one list row in the section
+        // (avatar, name, 俱乐部/商家 as the trailing value); a row that opens is a `NavigationLink` row.
+        ForEach(Array(members.enumerated()), id: \.offset) { _, member in
+            UGCBlockedFilterContainer(authorName: member.name) {
+                let row = LabeledContent {
+                    Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant")
+                } label: {
+                    HStack(spacing: CYSpacing.sm) {
+                        CYAvatarView(name: member.name, size: .xs)
+                            .accessibilityHidden(true)
+                        Text(verbatim: member.name).foregroundStyle(.primary)
                     }
+                }
+                Group {
+                    if opens(member) {
+                        NavigationLink { destination(member) } label: { row }
+                            .accessibilityIdentifier("topic.lineup.\(member.kind == .club ? "club" : "merchant").\(member.targetID)")
+                    } else {
+                        row
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .contextMenu {
+                    UGCReviewSafetyFooter(
+                        target: lineupReportTarget,
+                        subjectTitle: member.name,
+                        authorName: member.name
+                    )
                 }
             }
         }
