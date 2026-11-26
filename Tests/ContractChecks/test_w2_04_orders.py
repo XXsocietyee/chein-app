@@ -73,9 +73,9 @@ class W204OrderParityChecks(unittest.TestCase):
             self.assertEqual(catalog.get(key), entry, key)
         zh = {k: v['localizations']['zh-Hans']['stringUnit']['value'] for k, v in fragment.items()}
         self.assertEqual(zh['profile.orderParity.chip.refunding'], '退款中')
-        self.assertEqual(zh['profile.orderParity.error.title'], '订单暂时没有加载出来')
+        self.assertEqual(zh['profile.orderParity.error.title'], '订单加载失败')  # R7-MEM-16-3 MP copy (4c2d9284a)
         self.assertEqual(zh['profile.orderParity.signIn.title'], '登录后查看订单')
-        self.assertEqual(zh['profile.orderParity.forbidden.title'], '当前账号无法查看订单')
+        self.assertEqual(zh['profile.orderParity.forbidden.title'], '当前身份不能查看订单')  # R7-MEM-16-3
         self.assertEqual(zh['profile.orderParity.notice.free'], '免费报名成功')
 
     def test_native_tests_exist(self):
@@ -107,9 +107,16 @@ class W204OrderParityChecks(unittest.TestCase):
         self.assertLess(sections.index('profile.orderParity.section.registrant'), sections.index('profile.orderParity.section.voucher'))
         self.assertIn('if order.showsSourcePaymentInfo {', sections)
         self.assertIn('var showsSourcePaymentInfo: Bool { paymentStatus == 2 }', timeline)
+        # 71ac8de83/c9dd60b21: the file also holds ProfileOrderConsentSection, which runs the existing marketing GET
+        # (list only). The source sections stay presentation-only; the consent section never writes.
+        source_sections, consent = sections.split('struct ProfileOrderConsentSection: View {', 1)
         for forbidden in ['Task {', 'await ', 'transport', 'URLSession', 'Button(']:
-            self.assertNotIn(forbidden, sections)
+            self.assertNotIn(forbidden, source_sections)
             self.assertNotIn(forbidden, timeline)
+        self.assertEqual(consent.count('await '), 2)
+        self.assertIn('let rows = (try? await pair.0.marketing(session: pair.1)) ?? []', consent)
+        for forbidden in ['setMarketing', '.consent(', 'recoverMarketing', 'transport', 'URLSession', 'Button(', 'Toggle(']:
+            self.assertNotIn(forbidden, consent)
 
     def test_detail_facts_are_lenient_and_single_mount(self):
         profile = read('Core/ProfileContracts.swift')

@@ -119,3 +119,16 @@ Left out, because the code does not use them:
 | 系统启动时间的其他原因 | `8FFB.1`、`3D61.1`。没有 `mach_absolute_time`，错误报告中也不含启动时间。 |
 
 `Vendor/GLTFKit2/GLTFKit2/PrivacyInfo.xcprivacy` 仍关闭追踪，收集数据与访问 API 数组均为空。本说明不修改该文件。
+
+## Lane T addendum (2026-11-26) · 补充
+
+`Resources/PrivacyInfo.xcprivacy` now declares four more collected types, each linked, not tracking, App Functionality only. Evidence is pinned in `Tests/ContractChecks/test_privacy_manifest_contract.py`. The tables above predate these rows; use this list in App Store Connect.
+
+| Apple type | Evidence |
+|---|---|
+| Search History / 搜索历史 | Search terms go to `api/search/unified` (`Core/MPGap/PlayerContent/PlayerContentRound2Service.swift`), `api/im/search`, `api/map/place-search` with the session. |
+| Gameplay Content / 游戏内容 | Play runs and endings saved to `api/play/run-session/save` (`Core/PlayRuntimeGap.swift`) and `api/play/ending`. |
+| Customer Support / 客户支持 | Play feedback `/api/play/feedback/submit` (`Core/JourneyLoopSource.swift`) and profile complaints. |
+| Other Data Types / 其他数据类型 | Resident ID number (`idCard`) for China real-name publisher registration (`Core/PublisherIdentityRegistration.swift`). |
+
+Required-reason APIs are unchanged and re-verified against source: User Defaults `CA92.1`; File Timestamp `C617.1` (own container: `App/IMVoiceDevice.swift`, `App/MerchantNPCVoiceDevice.swift`, the `Core/*Journal.swift` `attributesOfItem` checks) and `3B52.1` (user-picked documents); System Boot Time `35F9.1` (`ProcessInfo.processInfo.systemUptime` for in-app elapsed time). No disk-space or active-keyboard API. The Live Activity extension uses none of these APIs.

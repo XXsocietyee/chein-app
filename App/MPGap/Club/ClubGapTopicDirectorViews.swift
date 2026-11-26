@@ -23,55 +23,47 @@ public struct ClubGapTopicDirectorEmbeddedSection: View {
         self.onToggleLeaderboardVisibility = onToggleLeaderboardVisibility
     }
 
+    /// CLB-r9-native-02: catalog keys instead of the Core Chinese literals; system buttons and sections.
     public var body: some View {
         Group {
             if summary.hasUnknownWrite {
                 Section {
-                    Label {
-                        Text(verbatim: summary.unknownWriteLabel ?? ClubTopicDirectorCopy.unknownWriteTitle)
-                    } icon: {
-                        Image(systemName: "questionmark.circle")
-                            .foregroundStyle(.orange)
+                    if let label = summary.unknownWriteLabel {
+                        Text(verbatim: label)
+                    } else {
+                        Text("club.director.unknownWrite")
                     }
-                    Button(ClubTopicDirectorCopy.confirmResult, action: onConfirmUnknownWrite)
-                    Button(ClubTopicDirectorCopy.retryOriginalAction, action: onRetryUnknownWrite)
+                    HStack {
+                        Button("club.director.confirmResult", action: onConfirmUnknownWrite)
+                            .buttonStyle(.bordered)
+                        Button("club.director.retryOriginal", action: onRetryUnknownWrite)
+                            .buttonStyle(.borderedProminent)
+                    }
                 }
             }
 
-            Section {
-                LabeledContent("站点准备", value: "\(summary.readyStations) / \(summary.totalStations)")
-                LabeledContent("进行中队伍", value: "\(summary.activeTeams)")
-            } header: {
-                Text(verbatim: ClubTopicDirectorCopy.prepOverviewTitle)
-            } footer: {
-                if let caption = summary.caption, !caption.isEmpty {
-                    Text(verbatim: caption)
-                }
-            }
-
+            // CLB-G13c: 准备总览 moved to `ClubTopicDirectorReadySection` (preparing only, MP wxml:244-261).
             Section {
                 ForEach(ClubTopicDirectorToolKind.allCases) { tool in
                     Button {
                         onOpenTool(tool)
                     } label: {
-                        Label(tool.title, systemImage: tool.systemImage)
+                        Label(LocalizedStringKey("club.director.tool." + tool.rawValue), systemImage: tool.systemImage)
                     }
                 }
             } header: {
-                Text(verbatim: ClubTopicDirectorCopy.directorToolsTitle)
+                Text("club.director.tools")
             }
 
             Section {
                 Button {
                     onToggleLeaderboardVisibility()
                 } label: {
-                    Label(
-                        summary.leaderboardHidden ? ClubTopicDirectorCopy.showLeaderboard : ClubTopicDirectorCopy.hideLeaderboard,
-                        systemImage: summary.leaderboardHidden ? "eye" : "eye.slash"
-                    )
+                    Label(summary.leaderboardHidden ? LocalizedStringKey("club.director.showLeaderboard") : LocalizedStringKey("club.director.hideLeaderboard"),
+                          systemImage: summary.leaderboardHidden ? "eye" : "eye.slash")
                 }
             } header: {
-                Text(verbatim: ClubTopicDirectorCopy.leaderboardTitle)
+                Text("club.director.leaderboard")
             }
         }
     }
@@ -104,15 +96,15 @@ public struct ClubGapTopicMoreMenu: View {
     }
 
     public var body: some View {
-        Menu(ClubTopicDirectorCopy.moreMenuTitle) {
+        Menu("club.director.more") {
             if canEditContent {
-                Button(ClubTopicDirectorCopy.editTopicContent, action: onEditContent)
+                Button("club.director.editTopic", action: onEditContent)
             }
             if canConfirmFinalPrice {
-                Button(ClubTopicDirectorCopy.confirmFinalPrice, action: onConfirmFinalPrice)
+                Button("club.director.confirmFinalPrice", action: onConfirmFinalPrice)
             }
             if canReviewUndertake {
-                Button(ClubTopicDirectorCopy.reviewUndertake, action: onReviewUndertake)
+                Button("club.director.reviewUndertake", action: onReviewUndertake)
             }
         }
     }

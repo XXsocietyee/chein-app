@@ -28,8 +28,11 @@ class RuntimeDependencyWiringTests(unittest.TestCase):
         self.assertIn('PublisherLifecycleGrants(reads:', core)
         # MP-first (owner 2026-11-25, R7-PC-B4-1 / R7-PC-B1-2): pricing confirm (price-config save), ownership and graduation
         # are MP writes and now ride the publisher grant. Refunds (money) and creator applications stay absent.
-        self.assertIn('PublisherLifecycleGrants(reads: endpoints, pricing: endpoints, ownership: endpoints, graduation: endpoints)', core)
-        for mutation in ['cancellationRefunds:', 'creatorApplication:']:
+        # r8 (4851569b4, RuntimeDependencyTests pin): reads ride publisherReads; ownership and graduation carry the two MP
+        # form paths; the pricing grant is not issued here (stricter than R7-PC-B4-1).
+        self.assertIn('return PublisherLifecycleGrants(reads: reads, ownership: ownership, graduation: ownership)', core)
+        self.assertIn('paths.formUnion(["api/topic/beta/graduate", "api/topic/transfer-to-club"])', core)
+        for mutation in ['pricing:', 'cancellationRefunds:', 'creatorApplication:']:
             self.assertNotIn(mutation, core)
     def test_factories_mount_production_clients_instead_of_fixtures(self):
         app = self.read('App/AppSession.swift')
@@ -91,6 +94,6 @@ class RuntimeDependencyWiringTests(unittest.TestCase):
         for key, value in fragment.items():
             self.assertEqual(set(value['localizations']), {'en', 'zh-Hans'}); self.assertEqual(actual[key], value)
         self.assertEqual(self.read('Tests/CoreTests/RuntimeDependencyTests.swift').count('func test'), 8)
-        self.assertEqual(self.read('Tests/CoreTests/NearbyMerchantCoordinatorTests.swift').count('func test'), 18)
+        self.assertEqual(self.read('Tests/CoreTests/NearbyMerchantCoordinatorTests.swift').count('func test'), 19)
         self.assertEqual(self.read('Tests/AppUnitTests/RuntimeDependencyAppTests.swift').count('func test'), 17)
 if __name__ == '__main__': unittest.main()

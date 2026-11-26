@@ -234,6 +234,15 @@ struct ClubGovernanceReadView: View {
     @State private var topicMoreRoute: ClubTopicMoreRoute?
     /// CLB-topic-detail-05: the half sheet a topic round action opened.
     @State private var topicQuickSheet: ClubTopicQuickSheet?
+    /// CLB-G13b (MP topic-detail wxml:340-345 `cy-club-director-end-confirm`): 结束这场活动？
+    @State private var directorEndConfirm = false
+    /// CLB-G13b: 更多 → 结束活动 opens the confirm once the half sheet has gone.
+    @State private var directorEndAfterSheet = false
+    /// CLB-r9-topic-detail-02: a 更多 row's route, pushed once the half sheet has gone.
+    @State private var topicMoreAfterSheet: ClubTopicMoreRoute?
+    /// CLB-topic-detail-10: 定向广播 opens the director page, which owns the broadcast composer.
+    @State private var opensDirectorBroadcast = false
+    @Environment(\.clubTopicDirectorHost) private var directorHost
     /// CLB-r7-C-03 (MP roles/index.js:266-272): a failed reread after a role action keeps the list and toasts.
     @State private var roleRereadToast: LocalizedStringKey?
     @State private var feedMediaScope = UUID()
@@ -771,6 +780,16 @@ struct ClubGovernanceReadView: View {
         .modifier(ClubCustomerKeywordSearch(enabled: operation == .customers, text: customerKeywordBinding,
                                             submit: { loadCustomersNow() }))
         .safeAreaInset(edge: .bottom) { topicPrimaryFooter }
+        // CLB-G13b (MP wxml:340-345): centred confirm with 再想想 / 结束活动, then FINISH.
+        .alert(Text("club.topic.directorEnd.title"), isPresented: $directorEndConfirm) {
+            Button("club.topic.directorEnd.cancel", role: .cancel) {}
+            Button("club.topic.primary.running", role: .destructive) { sendDirector(.finish) }
+        } message: {
+            Text("club.topic.directorEnd.message")
+        }
+        .navigationDestination(isPresented: $opensDirectorBroadcast) {
+            if let activityID = scope.activityID, let directorHost { directorHost.destination(activityID) }
+        }
         .sheet(isPresented: $sessionPickerVisible) { topicSessionPicker }
         .navigationDestination(item: $pickedSession) { target in
             ClubOpsEventView(scope: target, identity: identity, access: access, coordinator: coordinator)
@@ -1643,23 +1662,7 @@ struct ClubGovernanceReadView: View {
                 guard expected == readContext, !Task.isCancelled else { return }
                 topicStats = read
             }
-            // CLB-G12 (MP topic-detail wxml:426-500 「更多」): 编辑主题内容 (fabu ?id), 确认终价 while pricing (lifecycle 2,
-            // MP setting.canManage → the organiser's canDirect here; the pricing page re-checks), 承接审核 when the stats
-            // grant canReviewChapterApplications (merchantinfo ?scope=CLUB). Each opens the reviewed MP route.
-            .toolbar {
-                if let topicID = scope.topicID, scope.clubID != nil, canDirect || stats["canReviewChapterApplications"] == .bool(true) {
-                    ToolbarItem(placement: .primaryAction) {
-                        ClubGapTopicMoreMenu(
-                            canEditContent: canDirect,
-                            canConfirmFinalPrice: canDirect && value["lifecycle"].int == 2,
-                            canReviewUndertake: stats["canReviewChapterApplications"] == .bool(true),
-                            onEditContent: { topicMoreRoute = .init(page: "pages/publish/fabu/index", query: ["id": String(topicID)]) },
-                            onConfirmFinalPrice: { topicMoreRoute = .init(page: "pages/topic/pricing/index", query: ["topicId": String(topicID), "club": "1"]) },
-                            onReviewUndertake: { topicMoreRoute = .init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB"]) })
-                        .accessibilityIdentifier("club.topic.more")
-                    }
-                }
-            }
+            // CLB-G12 rows (编辑主题内容 / 确认终价 / 承接审核) live in the 更多 sheet (CLB-r9-topic-detail-02: one 更多 entry).
             .navigationDestination(item: $topicMoreRoute) { route in MPReviewedPageScreen(page: route.page, query: route.query) }
             // CLB-topic-detail-05 (MP wxml:63-80): 商家 · 报名参与者 · 团码 · 更多 as round actions that open half sheets.
             // 商家 goes to the merchantinfo recruit layer when the stats grant canReviewChapterApplications (MP ROUND4).
@@ -1681,7 +1684,10 @@ struct ClubGovernanceReadView: View {
                     .init(id: "more", titleKey: "club.topic.quick.more", systemImage: "ellipsis") { topicQuickSheet = .more },
                 ])
             }
-            .sheet(item: $topicQuickSheet) { sheet in
+            .sheet(item: $topicQuickSheet, onDismiss: {
+                if directorEndAfterSheet { directorEndAfterSheet = false; directorEndConfirm = true }
+                if let route = topicMoreAfterSheet { topicMoreAfterSheet = nil; topicMoreRoute = route }
+            }) { sheet in
                 NavigationStack {
                     Group {
                         switch sheet {
@@ -1690,8 +1696,53 @@ struct ClubGovernanceReadView: View {
                         case .customers:
                             ClubGovernanceReadView(operation: .topicCustomers, scope: scope, identity: identity, access: access, coordinator: coordinator)
                         case .more:
-                            List { Section { link(.topicStats); link(.topicSettings); enrollmentLink(focusTopicID: scope.topicID) } }
-                                .cyPageTitle("club.topic.quick.more")
+                            List {
+                                Section { link(.topicStats); link(.topicSettings); enrollmentLink(focusTopicID: scope.topicID) }
+                                // CLB-topic-detail-05 (MP wxml:454-470): 场次管理 for canManageSessions, then 退出与暂停规则.
+                                Section {
+                                    if stats["canManageSessions"] == .bool(true), scope.clubID != nil {
+                                        NavigationLink {
+                                            ClubOpsEventView(scope: .init(clubID: scope.clubID, topicID: scope.topicID), identity: identity, access: access, coordinator: coordinator)
+                                        } label: { Label("club.topic.more.sessions", systemImage: "calendar") }
+                                            .accessibilityIdentifier("club.topic.more.sessions")
+                                    }
+                                    NavigationLink { ClubOperatingRulesView() } label: { Label("club.topic.more.rules", systemImage: "list.bullet.rectangle") }
+                                        .accessibilityIdentifier("club.topic.more.rules")
+                                }
+                                // CLB-r9-topic-detail-02 / CLB-G12 (MP topic-detail wxml:426-500): one 更多; 编辑主题内容 (fabu ?id),
+                                // 确认终价 while pricing (lifecycle 2, organiser's canDirect), 承接审核 with canReviewChapterApplications.
+                                if let topicID = scope.topicID, scope.clubID != nil, canDirect || stats["canReviewChapterApplications"] == .bool(true) {
+                                    Section {
+                                        if canDirect {
+                                            Button("club.director.editTopic") {
+                                                openAfterMoreSheet(.init(page: "pages/publish/fabu/index", query: ["id": String(topicID)]))
+                                            }
+                                        }
+                                        if canDirect, value["lifecycle"].int == 2 {
+                                            Button("club.director.confirmFinalPrice") {
+                                                openAfterMoreSheet(.init(page: "pages/topic/pricing/index", query: ["topicId": String(topicID), "club": "1"]))
+                                            }
+                                        }
+                                        if stats["canReviewChapterApplications"] == .bool(true) {
+                                            Button("club.director.reviewUndertake") {
+                                                openAfterMoreSheet(.init(page: "pages/topic/merchantinfo/merchantinfo", query: ["topicId": String(topicID), "scope": "CLUB"]))
+                                            }
+                                        }
+                                    }
+                                    .accessibilityIdentifier("club.topic.more")
+                                }
+                                // CLB-G13b (MP wxml:436-442): 结束活动 for a self-run session the director has taken over.
+                                if ClubTopicDetailPort.stateKey(value) == .selfrun, directorActive {
+                                    Section {
+                                        Button("club.topic.primary.running", role: .destructive) {
+                                            directorEndAfterSheet = true
+                                            topicQuickSheet = nil
+                                        }
+                                        .accessibilityIdentifier("club.topic.more.endSession")
+                                    }
+                                }
+                            }
+                            .cyPageTitle("club.topic.quick.more")
                         }
                     }
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { topicQuickSheet = nil } } }
@@ -1702,7 +1753,8 @@ struct ClubGovernanceReadView: View {
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
             if ClubTopicDetailPort.showsVerify(topicDisplay, canViewVerify: stats["canViewVerify"].bool) {
                 ClubTopicVerifySummarySection(metrics: ClubTopicDetailPort.verifyMetrics(
-                    pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int))
+                    pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int),
+                    ledger: topicLedger)
             }
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
                 Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
@@ -1769,7 +1821,7 @@ struct ClubGovernanceReadView: View {
                 }, presentation: terminalPresentation)
             // CLB-G13 (MP topic-detail wxml:160-500): with an activityId the topic detail carries the director block
             // (K8 banner, 准备总览, director tools, 排行榜), only where topic-manage-stats grants canDirect.
-            if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID) }
+            if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID, topicID: scope.topicID) }
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
             // CLB-topic-detail-02: the phase primary is the pinned footer (`topicPrimaryFooter`), not the last row.
         } else if operation == .audienceCounts {
@@ -1923,6 +1975,28 @@ struct ClubGovernanceReadView: View {
                     ClubTopicCustomerRow(row: row, sessionTime: session["timeText"].string)
                 }
             } }
+            // CLB-topic-detail-10 (MP topic-detail wxml:609-625, js:1094-1100): 定向广播 under the participants when the
+            // director runs this session; the projection offers BROADCAST or the row is dimmed with the reason.
+            if operation == .topicCustomers, let projection = sessionDirector?.projection {
+                Section {
+                    if projection.availableActions.contains(PlayDirectorAction.broadcast.rawValue) {
+                        Button { opensDirectorBroadcast = true } label: {
+                            Label("club.topic.broadcast", systemImage: "megaphone")
+                        }
+                        .accessibilityIdentifier("club.topic.broadcast")
+                    } else {
+                        VStack(alignment: .leading) {
+                            Text("club.topic.broadcast")
+                            Text("club.topic.broadcast.disabled \(appLocalized(String.LocalizationValue(stringLiteral: Self.sessionStatusKey(projection.status)), locale: locale))")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .foregroundStyle(.secondary)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("club.topic.broadcast.disabled")
+                    }
+                }
+            }
             if operation == .checkin, let clubID = scope.clubID, let registrationID = scope.registrationID,
                let target = try? ClubOwnerRefundTarget(clubID: clubID, registrationID: registrationID) {
                 let checkinPage = ClubCheckinDetailPage.bind(clientCapabilityPresent: access.isConfigured, loading: loading, failure: failure, value: value)
@@ -2008,9 +2082,47 @@ struct ClubGovernanceReadView: View {
         }
         .presentationDetents([.medium, .large])
     }
+    /// CLB-topic-detail-05 (MP `goLedger` js:870-873): 台账 / 核销记录 open the club's 报名名册 focused on this topic.
+    private var topicLedger: AnyView? {
+        guard let clubID = scope.clubID, let topicID = scope.topicID else { return nil }
+        return AnyView(ClubEnrollmentView(clubID: clubID, focusTopicID: topicID, identity: identity, access: access, coordinator: coordinator))
+    }
+    private func openAfterMoreSheet(_ route: ClubTopicMoreRoute) {
+        topicMoreAfterSheet = route
+        topicQuickSheet = nil
+    }
+    /// CLB-G13b: the director coordinator for this page's `activityId`, when the host is mounted.
+    private var directorModel: PlayDirectorCoordinator? {
+        guard operation == .topicOverview else { return nil }
+        return sessionDirector
+    }
+    /// CLB-topic-detail-10: the same retained coordinator, read from the 报名参与者 sheet too.
+    private var sessionDirector: PlayDirectorCoordinator? {
+        guard let activityID = scope.activityID, let directorHost else { return nil }
+        return directorHost.coordinator(activityID)
+    }
+    /// MP director.js `statusText`: session status → its label key (unknown codes → 状态待确认).
+    static func sessionStatusKey(_ status: String) -> String {
+        let code = status.uppercased()
+        let known: Set<String> = ["NOT_PREPARED", "DRAFT", "PREPARING", "READY", "RUNNING", "FINISHED", "CANCELLED"]
+        return "club.director.sessionStatus." + (known.contains(code) ? code : "unknown")
+    }
+    /// MP `_directorActivityId` (topic-detail js:587-592): the page was opened on one session and the director runs it.
+    private var directorActive: Bool { directorModel != nil }
+    /// MP `onPrepareSession` / `onStartSession` / `onFinishSession` (director.js:1431-1438): one command at the
+    /// projection's revision; the projection refuses what the server does not offer (当前不能结束活动).
+    private func sendDirector(_ action: PlayDirectorAction) {
+        guard let model = directorModel, let projection = model.projection,
+              let command = try? PlayDirectorCommand(activityID: model.activityID, nodeID: nil,
+                                                     expectedRevision: projection.revision, action: action, payload: [:]) else { return }
+        Task {
+            await model.submit(command)
+            await load()
+        }
+    }
     private func topicPrimaryPlan(state: ClubTopicDetailPort.State, stats: ClubGovernanceValue, sessions: [ClubGovernanceValue]) -> ClubTopicDetailPort.Primary {
         let single = sessions.count == 1 ? sessions[0]["id"].int : nil
-        return ClubTopicDetailPort.primary(state: state, directorActive: false, canDirect: stats["canDirect"] == .bool(true),
+        return ClubTopicDetailPort.primary(state: state, directorActive: directorActive, canDirect: stats["canDirect"] == .bool(true),
             canManageSessions: stats["canManageSessions"] == .bool(true), hasClub: scope.clubID != nil,
             sessionCount: sessions.count, singleSessionHasValidID: single != nil)
     }
@@ -2044,7 +2156,26 @@ struct ClubGovernanceReadView: View {
                             Text(LocalizedStringKey(phase.primaryKey)).frame(maxWidth: .infinity)
                         }.accessibilityIdentifier("club.topic.primary")
                     }
-                case .confirmed, .preparing, .running, .selfrun:
+                case .confirmed, .preparing, .running:
+                    if directorActive, let model = directorModel {
+                        // CLB-G13b (MP onPrimary js:880-897): 开始准备 → PREPARE, 开始活动 → START, 结束活动 → the confirm.
+                        Button(LocalizedStringKey(phase.primaryKey)) {
+                            if phase == .running { directorEndConfirm = true } else { sendDirector(phase == .confirmed ? .prepare : .start) }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .disabled(model.phase != "ready")
+                        .accessibilityIdentifier("club.topic.primary")
+                    } else if let sessionScope {
+                        NavigationLink { ClubGovernanceEventView(scope: sessionScope, identity: identity, access: access, coordinator: coordinator) } label: {
+                            Text(LocalizedStringKey(phase.primaryKey))
+                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    } else {
+                        NavigationLink { ClubOpsEventView(scope: opsScope, identity: identity, access: access, coordinator: coordinator) } label: {
+                            Text(LocalizedStringKey(phase.primaryKey))
+                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    }
+                case .selfrun:
                     if let sessionScope {
                         NavigationLink { ClubGovernanceEventView(scope: sessionScope, identity: identity, access: access, coordinator: coordinator) } label: {
                             Text(LocalizedStringKey(phase.primaryKey)).frame(maxWidth: .infinity)
@@ -2261,7 +2392,8 @@ struct ClubGovernanceEventView: View {
                         .accessibilityIdentifier("club.story.aigc")
                 }
                 if presentation.chapters.isEmpty {
-                    ClubStoryEmptyState(title: "club.story.noChapters", detail: "club.story.noRoute")
+                    // CLB-topic-story-06 (MP topic-story wxml:56): no chapters reads 暂无路线.
+                    ClubStoryEmptyState(title: "club.story.noRoute", detail: "club.story.noChapters")
                 } else if tab == .route {
                     ForEach(presentation.chapters) { chapter in
                         Section {

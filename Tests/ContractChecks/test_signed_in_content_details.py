@@ -41,8 +41,9 @@ class SignedInContentDetailContracts(unittest.TestCase):
 
     def test_server_gate_and_response_identity_are_preserved(self):
         activity = (ROOT / "Core/ActivityService.swift").read_text()
-        self.assertIn("if case .allowed(let detail) = response.access, detail.summary.id != id", activity)
-        self.assertIn("return response.access", activity)
+        # The envelope's access is unwrapped first (data:null is 活动不存在); the id identity check is unchanged.
+        self.assertIn("guard let access = envelope.access else { throw ActivityDetailFailure.notFound }", activity)
+        self.assertIn("if case .allowed(let detail) = access, detail.summary.id != id { throw APIError.malformedResponse }\n        return access", activity)
         topic = (ROOT / "Core/TopicContracts.swift").read_text()
         self.assertIn("public let activities: [TopicActivitySummary]?", topic)
         self.assertIn('decodeIfPresent([TopicActivitySummary].self, forKey: TopicKey("activityList"))', topic)
