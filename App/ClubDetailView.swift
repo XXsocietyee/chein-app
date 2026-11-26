@@ -706,10 +706,9 @@ private struct ClubDetailHeader: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 160  // CLB-detail-37: MP cover-wrap 160
 
-    private static func known(_ value: String?) -> String? {
-        let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return text.isEmpty || text == ClubDetailPageModel.unknownMark ? nil : text
-    }
+    private static func known(_ value: String?) -> String? { ClubDetailHeaderFact.known(value) }
+    /// CLB-detail-42 (MP detail header): a missing 主理人 or 城市 reads 待补充 instead of dropping the line.
+    private var pendingText: String { appLocalized(String.LocalizationValue(ClubDetailHeaderFact.pendingKey), locale: locale) }
     private var typeText: String? { Self.known(content?.typeText ?? club.clubType ?? club.clubTypes) }
     private var leaderText: String? { Self.known(content?.leaderText ?? club.leaderName) }
     private var cityText: String? { Self.known(content?.cityText ?? club.city ?? club.address) }
@@ -754,20 +753,7 @@ private struct ClubDetailHeader: View {
                     }
                     Spacer(minLength: 0)
                 }
-                if leaderText != nil || cityText != nil {
-                    HStack(spacing: 4) {
-                        if let leaderText {
-                            Text(verbatim: appLocalized("club.leader", locale: locale) + " " + leaderText)
-                                .accessibilityIdentifier("club.detail.fact.leader")
-                        }
-                        if leaderText != nil, cityText != nil { Text(verbatim: "·").accessibilityHidden(true) }
-                        if let cityText { Text(verbatim: cityText).accessibilityIdentifier("club.detail.fact.city") }
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("club.detail.factsGrid")
-                }
+                factsLine
                 statusTags
                 // MC-22 Member / Manager header: 邀请朋友加入 is the header's one full-width action (the visitor's 加入
                 // stays in the action panel right under the header).
@@ -781,6 +767,19 @@ private struct ClubDetailHeader: View {
             .padding(.bottom, CYSpacing.md)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var factsLine: some View {
+        HStack(spacing: 4) {
+            Text(verbatim: appLocalized("club.leader", locale: locale) + " " + (leaderText ?? pendingText))
+                .accessibilityIdentifier("club.detail.fact.leader")
+            Text(verbatim: "·").accessibilityHidden(true)
+            Text(verbatim: cityText ?? pendingText).accessibilityIdentifier("club.detail.fact.city")
+        }
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("club.detail.factsGrid")
     }
 
     /// The viewer's relation to the club: role tags are neutral; pending is amber, a declined request red with its reason.
