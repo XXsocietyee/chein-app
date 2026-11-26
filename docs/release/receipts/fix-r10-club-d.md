@@ -26,7 +26,7 @@ Several rows were already landed on `ui/combined-r7` by fix-r9 lanes before the 
 
 - `python3 tools/check_scaffold.py`: PASS structural checks.
 - `python3 -B tools/check_a11y_lint.py`: PASS (0 new).
-- `python3 -B tools/contract_ratchet.py --check`: see push note below.
+- `python3 -B tools/contract_ratchet.py --check`: 193 failing vs baseline 192, **new 1, not from this lane**: `test_social_article_content…test_renderer_is_wired_only_to_existing_scoped_article_contents` expects the old `SocialReadScreen` `.onDisappear { loads.cancel(); generation += 1; busy = false }`, which base commit 03732e2df on `ui/combined-r7` rewrote. This lane touches no social files; the coordinator/owner of 03732e2df should update that pin.
 - `Tests/ContractChecks/test_club_group_code_page_ready.py`: OK.
 
 Not run: Xcode build / simulator (no compiler in the cloud). Coordinator: please build-check the badges `.confirmationDialog(presenting:)` and the `ToolbarItem` with an `if` body.
