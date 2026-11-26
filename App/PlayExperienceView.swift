@@ -88,7 +88,15 @@ import MapKit
     var body: some View {
         Group {
             if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
-                FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) }, rewardCollectionDestination: rewardCollectionDestination, castConfig: castModel?.config, castEnding: model.castPayload)
+                if NativeR2Flags.freeExplore {
+                    NativeFreeExploreMapView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) },
+                                             rewardCollectionDestination: rewardCollectionDestination,
+                                             castConfig: castModel?.config, castEnding: model.castPayload,
+                                             makeExternalMaps: makeExternalMaps, mediaScope: mediaScope,
+                                             arrivalLocation: RuntimeNativeLocationProvider(enabled: true))
+                } else {
+                    FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) }, rewardCollectionDestination: rewardCollectionDestination, castConfig: castModel?.config, castEnding: model.castPayload)
+                }
             } else if model.gameplayMode == .cityOrientation {
                 orientationContent.cyThemeLook(themeFacts?.look)
             } else if model.snapshot == nil {
