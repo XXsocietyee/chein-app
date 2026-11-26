@@ -166,20 +166,44 @@ import SwiftUI
                 .disabled(!model.canReserve || unitID == nil || offerID == nil)
                 if !model.canReserve { text("disabled").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
-            // MKT-7-3: every unit with its MP status (`{chapter} · {statusText}`), not only the bookable ones.
+            // MKT-7-3: every unit with its MP status (`{chapter} · {statusText}`), chapter content, and 有效期至.
             if !bundle.units.isEmpty {
                 CYInfoCard(title: Text("freeBundle.units.title"), symbol: "square.stack.3d.up") {
                     ForEach(Array(bundle.units.enumerated()), id: \.element.id) { index, unit in
-                        HStack(spacing: CYSpacing.xs) {
-                            Text(verbatim: chapterName(unit.chapterId) ?? appLocalized("freeBundle.unit.fallback \(index + 1)", locale: locale))
-                            Text(verbatim: "·")
-                            Self.statusText(unit.status)
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            HStack(spacing: CYSpacing.xs) {
+                                Text(verbatim: chapterName(unit.chapterId) ?? appLocalized("freeBundle.unit.fallback \(index + 1)", locale: locale))
+                                Text(verbatim: "·")
+                                Self.statusText(unit.status)
+                            }
+                            .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .accessibilityElement(children: .combine)
+                            let content = bundle.chapterContent(chapterID: unit.chapterId).trimmingCharacters(in: .whitespacesAndNewlines)
+                            if !content.isEmpty {
+                                Text(verbatim: content)
+                                    .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .accessibilityIdentifier("freeBundle.unit.content.\(unit.id.text)")
+                            }
+                            if let validTo = unit.validTo?.trimmingCharacters(in: .whitespacesAndNewlines), !validTo.isEmpty {
+                                Text("unit.validTo \(validTo)", tableName: table)
+                                    .cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textSecondary)
+                                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                                    .accessibilityIdentifier("freeBundle.unit.validTo.\(unit.id.text)")
+                            }
                         }
-                        .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("freeBundle.unit.\(unit.id.text)")
                     }
+                }
+            }
+            // MKT-7-3: refund hold is a status card. It does not start a refund.
+            if let hold = bundle.refundHold, let title = Self.refundHoldTitle(hold.state) {
+                CYInfoCard {
+                    title
+                        .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        .accessibilityIdentifier("freeBundle.refundHold")
                 }
             }
             // MKT-7-6: the order card always shows (order number, 实付金额); an empty list reads 暂无预约记录.
@@ -193,13 +217,39 @@ import SwiftUI
                         .accessibilityIdentifier("freeBundle.reservations.empty")
                 }
                 ForEach(bundle.reservations, id: \.id) { reservation in
-                    // MKT-7-3: MP reservation `statusText` (待使用 / 已取消 / …), never the raw enum.
-                    CYListRow(verbatim: Self.statusString(reservation.status), meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        // MP `{shopName || chapterName || 预约} · {statusText}`.
+                        CYListRow(verbatim: "\(reservationHeading(reservation, bundle: bundle)) · \(Self.statusString(reservation.status))", meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
+                            .accessibilityIdentifier("freeBundle.reservation.\(reservation.id.text)")
+                        // BOOKED only. The labels are the MP copy; this round does not send a cancel.
+                        if reservation.canCancel {
+                            Text("reservation.cancel", tableName: table)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                                .accessibilityIdentifier("freeBundle.reservation.canCancel.\(reservation.id.text)")
+                            Text("reservation.monthlyWaiver", tableName: table)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                                .accessibilityIdentifier("freeBundle.reservation.waiver.\(reservation.id.text)")
+                        }
+                    }
                 }
                 if let number = order.registrationNo { Text(verbatim: number).cyText(.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled) }
                 LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
                     .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("freeBundle.paidAmount")
+            }
+            if bundle.exitCases.contains(where: { Self.exitCaseTitle($0.decision) != nil }) {
+                CYInfoCard(title: Text("exitCases.title", tableName: table)) {
+                    ForEach(bundle.exitCases, id: \.id) { item in
+                        if let line = Self.exitCaseTitle(item.decision) {
+                            line
+                                .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                                .accessibilityIdentifier("freeBundle.exitCase.\(item.id.text)")
+                        }
+                    }
+                }
             }
         } else if model.order != nil { text("legacy").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
         if let catalog = model.catalog {
@@ -226,6 +276,44 @@ import SwiftUI
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
+        }
+    }
+
+    /// MP reservation title: shop name, otherwise the chapter, otherwise 预约.
+    private func reservationHeading(_ reservation: FreeExploreLaunchReservation, bundle: FreeExploreLaunchOrder.Bundle) -> String {
+        let chapter = bundle.chapters.first { $0.chapterId == reservation.chapterId }?.name
+        return Self.reservationHeading(shopName: bundle.shopName(offerID: reservation.offerId), chapterName: chapter, locale: locale)
+    }
+
+    static func reservationHeading(shopName: String, chapterName: String?, locale: Locale) -> String {
+        let shop = shopName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !shop.isEmpty { return shop }
+        let chapter = chapterName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !chapter.isEmpty { return chapter }
+        return String(localized: LocalizedStringResource("reservation.untitled", table: "FreeExploreBundleLaunch", locale: locale))
+    }
+
+    /// MP `refundHold.text`. An unknown state stays off the card. Nothing here sends a refund.
+    static func refundHoldTitle(_ state: String) -> Text? {
+        switch state {
+        case "PREPARED": return Text("refundHold.PREPARED", tableName: "FreeExploreBundleLaunch")
+        case "BOUND": return Text("refundHold.BOUND", tableName: "FreeExploreBundleLaunch")
+        case "APPROVED": return Text("refundHold.APPROVED", tableName: "FreeExploreBundleLaunch")
+        case "SUCCEEDED": return Text("refundHold.SUCCEEDED", tableName: "FreeExploreBundleLaunch")
+        case "ZERO_CASH_COMPLETED": return Text("refundHold.ZERO_CASH_COMPLETED", tableName: "FreeExploreBundleLaunch")
+        case "REJECTED_HELD": return Text("refundHold.REJECTED_HELD", tableName: "FreeExploreBundleLaunch")
+        case "MANUAL_REVIEW_HELD": return Text("refundHold.MANUAL_REVIEW_HELD", tableName: "FreeExploreBundleLaunch")
+        case "RECONCILIATION_REQUIRED": return Text("refundHold.RECONCILIATION_REQUIRED", tableName: "FreeExploreBundleLaunch")
+        default: return nil
+        }
+    }
+
+    /// MP exit-case line. Unknown decisions stay off the 售后记录 card. Nothing here sends a refund.
+    static func exitCaseTitle(_ decision: String) -> Text? {
+        switch decision {
+        case "SWAP_CONSENTED": return Text("exitCase.SWAP_CONSENTED", tableName: "FreeExploreBundleLaunch")
+        case "REFUND_UNFULFILLED": return Text("exitCase.REFUND_UNFULFILLED", tableName: "FreeExploreBundleLaunch")
+        default: return nil
         }
     }
 
