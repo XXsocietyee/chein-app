@@ -28,7 +28,37 @@ reachable (`add_repo` → no access), so CLB-G13a stays **partly / blocked** as 
 | Older P2 rows | already landed | — | gate-04, detail-42, r9-detail-01/03, r7-A-07, r9-native-02/05/07, G13d, topic-detail-05, r9-topic-detail-01/02, topic-story-06, r9-topic-story-01, event-ops-05, r8-governance-01, r9-create-01/03, enroll-08, r9-enroll-01, r9-edit-01, r8-badges-02, workbench-03, r9-payout-receiver-02 carry row-id comments in code from fix-r8/r9 (checked the r9-create-01, topic-story-06, r7-A-07, native-07 lines). Not re-done. |
 | CLB-r9-event-ops-01, r9-create-02, r9-create-04 | **not done** | — | Same reasons as fix-r9-club-a: create-04 reverses owner MC-10 (needs an owner call); create-02 and event-ops-01 need the host-status hand-over / series-create return machinery. |
 
+## Round 3 (2026-11-26)
+
+Merged `origin/ui/combined-r7` @ ae477be47 (one comment-only conflict in App/ClubOperationsViews.swift, took the tip's
+wording). Re-checked the coordinator items on the tip: `ClubMPFirstGovernance.governance` is typed
+(Core/ClubGovernanceProduction.swift:32), AppCompositionRoot assigns via `self.clubBadgeManagementApproval` (:609), and
+`MPFirstClubWriteRoute` admits `api/club/detail` only as `{"id": positive}` and `api/club/members` only as
+`{"clubId": positive}` through `ClubBadgeManagementRoute` (Core/ClubBadgeManagementModels.swift:112, 125), with every other
+read on the route held to its `ReadShape` (App/MPFirstClubApprovals.swift:139-179). No change needed. CLB-G13a stays
+**partly / blocked** (MP topic-detail director source still not reachable).
+
+P2 rows not claimed by club-a/c/d receipts:
+
+| Row | Status | SHA | App file:line |
+|---|---|---|---|
+| CLB-r10-nat-settlement-05 | **fixed** | 377be9f17 | App/ClubOwnerFundsView.swift:231-245, 278-286: CYBalanceHeroLocal / CYMoneyRowLocal and their preview deleted; one `moneyRow` `LabeledContent` (monospaced) for 可提现 / 待结算 / 投诉期 / 争议; no numericText motion. |
+| CLB-r10-nat-checkin-02 | **fixed** | a9a540084 | App/ClubOwnerRefundPanel.swift:30-58: `.cyText` → system `.headline` / `.subheadline`. The review sheet was already `NavigationStack { List }` with toolbar 取消 / destructive 确认. Refund dispatch unchanged (money-gated by the coordinator). |
+| CLB-r10-nat-join-requests-01 | **fixed** | 497afb251 | App/ClubManagementView.swift:312-317: row 通过 is `.borderedProminent` `.small` (拒绝 stays `.bordered`; swipe kept). Rows, empty/sign-in states and loading were already system. |
+| CLB-r10-nat-checkin-01 | **fixed** | d24ab1c1c | App/ClubCheckinRailView.swift:155-160: no-cover placeholder is `Image(systemName: "photo")` in the same footprint. Full-page states were already `ContentUnavailableView`. |
+| CLB-r9-native-01 | already closed | 1ae8bd9d8 (club-c) | App/ClubTopicDetail+Port.swift:26-36 (no `minimumScaleFactor`). |
+| CLB-r9-native-03 | already closed | — | App/ClubOpsEventView.swift:57-69 and ClubPayoutReceiverView:84-99 use `ContentUnavailableView` + 重新加载. |
+| CLB-r9-native-06 | already closed | — | App/ClubBadgeManagementView.swift:16-31 (List + ContentUnavailableView + 重新加载). |
+| CLB-r9-native-04 | dropped | — | Audit marks it superseded (system font + secondary is already native). |
+| CLB-r10-nat-settlement-01 | **held** | — | Remaining item is `.cyDomainScreen(.player)` (App/ClubPayoutReceiverView.swift:68, 238, 300). Removing it changes the page ground and tint, which the owner's no-theme-change rule forbids this round. Loading/failure are already system. |
+
+Still open for any lane: nat-topic-story-02..05, nat-event-ops-*, nat-shared-*, nat-governance-*, nat-roles-*, nat-apply-*,
+nat-create-*, nat-enroll-*, nat-edit-*, nat-notify-*, nat-settlement-02/03/04/06, nat-payout-receiver-*, nat-customer*,
+nat-group-code-02/03, nat-workbench-*, topic-story-08, event-ops-09, r10-detail-01/02 (Core).
+
 ## Gates (last run before push)
+
+- Round 3: check_scaffold PASS, a11y lint PASS (0 new); contract ratchet see below.
 
 - Round 2 (after merging combined-r7 @ 05caead53): check_scaffold PASS, a11y lint PASS (0 new), appsession ratchet PASS, contract ratchet `192 failing, baseline 192, new 0`. Not compiled (no Xcode in the cloud); merge conflict in App/MPFirstClubApprovals.swift resolved to this lane's ReadShape/badge-route check, which covers the coordinator's members `{clubId}` rule (60488e930).
 
