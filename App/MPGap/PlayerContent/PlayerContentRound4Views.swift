@@ -18,6 +18,7 @@ public struct MerchantApplyPickerGapView: View {
 
     @State private var showMapPicker = false
     @State private var pickerItems: [PhotosPickerItem] = []
+    @ScaledMetric(relativeTo: .body) private var thumbWidth: CGFloat = 80
     /// R9-PC-B3-1: MP `uploadPic` → `app.chooseImage(cb, 9 - cur.length)` uploads, then appends to `picUrl` (≤9)
     /// (pages/topic/merchantapply/index.js:501-509).
     @Environment(\.playerContentImageUploader) private var imageUploader
@@ -114,23 +115,19 @@ public struct MerchantApplyPickerGapView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                if !uploadedPicURLs.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: CYSpacing.sm) {
-                            ForEach(Array(uploadedPicURLs.enumerated()), id: \.offset) { idx, urlStr in
-                                ZStack(alignment: .topTrailing) {
-                                    CYCachedAsyncImage(urlStr, role: .shelf)
-                                        .frame(width: 120, height: 72)
-                                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                                    Button {
-                                        uploadedPicURLs.remove(at: idx)
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .cyText(.meta)
-                                    }
-                                    .accessibilityLabel(Text("删除场地照片 \(idx + 1)"))
-                                }
-                            }
+                // R10-PC-B-N12: one list row per photo (system image, no custom clip); swipe to delete.
+                ForEach(Array(uploadedPicURLs.enumerated()), id: \.offset) { idx, urlStr in
+                    HStack {
+                        CYCachedAsyncImage(urlStr, role: .shelf)
+                            .frame(width: thumbWidth, height: thumbWidth * 0.6)
+                            .clipped()
+                            .accessibilityHidden(true)
+                        Text("merchantApply.pic.item \(idx + 1)")
+                            .foregroundStyle(.secondary)
+                    }
+                    .swipeActions {
+                        Button(role: .destructive) { uploadedPicURLs.remove(at: idx) } label: {
+                            Label("merchantApply.pic.delete", systemImage: "trash")
                         }
                     }
                 }
