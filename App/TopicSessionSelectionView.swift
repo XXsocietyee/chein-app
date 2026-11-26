@@ -14,6 +14,8 @@ struct TopicSessionSelectionView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    /// R7-PC-B1-13: MP pages/topic/index/index.js:1312-1351 goes from a picked session straight to baoming (checkout).
+    @Environment(\.topicSessionRegistrationDestination) private var registrationDestination
     @State private var flow = TopicSessionSelectionFlow()
     @State private var path: [Int] = []
 
@@ -82,7 +84,9 @@ struct TopicSessionSelectionView: View {
                 }
             }
             .navigationDestination(for: Int.self) { activityID in
-                if let activityDestination {
+                if let registrationDestination {
+                    registrationDestination(activityID, preferredTicketName)
+                } else if let activityDestination {
                     activityDestination(activityID)
                 } else {
                     Text("topic.sessionSelection.destinationUnavailable")
@@ -110,5 +114,15 @@ struct TopicSessionSelectionView: View {
             if let start = activity.startDate { LabeledContent("topic.start", value: start) }
             if let end = activity.endDate { LabeledContent("topic.end", value: end) }
         }
+    }
+}
+
+private struct TopicSessionRegistrationDestinationKey: EnvironmentKey { static let defaultValue: ((Int, String?) -> AnyView)? = nil }
+extension EnvironmentValues {
+    /// R7-PC-B1-13: activity id + preferred ticket name → the activity detail with the registration sheet open
+    /// (same as the `pages/activity/baoming/baoming` route). Nil falls back to the plain activity destination.
+    var topicSessionRegistrationDestination: ((Int, String?) -> AnyView)? {
+        get { self[TopicSessionRegistrationDestinationKey.self] }
+        set { self[TopicSessionRegistrationDestinationKey.self] = newValue }
     }
 }

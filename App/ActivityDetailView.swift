@@ -16,18 +16,22 @@ struct ActivityDetailView: View {
     var opensRegistrationOnLoad = false
     /// MP `baoming?ticketId=` (R7-PC-C2-3): preselect this ticket in the auto-opened sheet.
     var registrationTicketID: Int? = nil
+    /// R7-PC-B1-13: a topic session pick names the ticket (MP pages/topic/index/index.js:1312-1351 `preferredTicketName`);
+    /// it is resolved inside the loaded activity by name when no id is given.
+    var registrationTicketName: String? = nil
     var body: some View {
         if let session = reader as? AppSession {
             SessionActivityDetailView(id: id, session: session,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
                 hostCancelAccess: hostCancelAccess, opensRegistrationOnLoad: opensRegistrationOnLoad,
-                registrationTicketID: registrationTicketID)
+                registrationTicketID: registrationTicketID, registrationTicketName: registrationTicketName)
         } else {
             ActivityDetailContentView(id: id, reader: reader,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
                 peopleProfile: peopleProfile, requiredClubDestination: requiredClubDestination,
                 hostCancelAccess: hostCancelAccess, startsWithMoreInfoOpen: startsWithMoreInfoOpen,
-                opensRegistrationOnLoad: opensRegistrationOnLoad, registrationTicketID: registrationTicketID)
+                opensRegistrationOnLoad: opensRegistrationOnLoad, registrationTicketID: registrationTicketID,
+                registrationTicketName: registrationTicketName)
         }
     }
 }
@@ -40,6 +44,7 @@ struct ActivityDetailView: View {
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var opensRegistrationOnLoad = false
     var registrationTicketID: Int? = nil
+    var registrationTicketName: String? = nil
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     /// R8-PC-C1-1: without a tab switch (a pushed deep link) the guest 立即报名 presents sign-in instead of doing nothing.
     @State private var showsGuestLogin = false
@@ -80,6 +85,7 @@ struct ActivityDetailView: View {
             hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess,
             opensRegistrationOnLoad: guestSignIn == nil && opensRegistrationOnLoad,
             registrationTicketID: registrationTicketID,
+            registrationTicketName: registrationTicketName,
             guestSignIn: guestSignIn,
             viewerAccountID: session.account?.id)
             .environment(\.inGameChannelHost, session.inGameChannelHost)
@@ -105,6 +111,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     var startsWithMoreInfoOpen = false
     var opensRegistrationOnLoad = false
     var registrationTicketID: Int? = nil
+    var registrationTicketName: String? = nil
     /// Guest 立即报名. Nil for a signed-in reader, which opens the registration sheet instead.
     var guestSignIn: (() -> Void)? = nil
     /// R9-PC-C1-2: signed-in viewer, so the host still sees 取消活动并退款 (disabled) while refunds are money-off.
@@ -281,7 +288,10 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         }
         .cySheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
             Group {
-            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
+            if let access,case .allowed(let detail)=access {
+                SessionRegistrationSheet(activity:detail)
+                    .environment(\.registrationPreselectedTicketID, registrationTicketID ?? Self.ticketID(named: registrationTicketName, in: detail))
+            }
             }
             .environment(\.registrationPreselectedTicketID, registrationTicketID)
             .themeDomain(.player)
@@ -868,5 +878,14 @@ private struct ActivityActionRows: View {
             }
             .accessibilityIdentifier("activity.tile.review")
         }
+    }
+}
+
+extension ActivityDetailContentView {
+    /// R7-PC-B1-13: the first ticket whose trimmed name equals the topic-page pick (MP index.js:629-639 matches by name).
+    static func ticketID(named name: String?, in detail: ActivityDetail) -> Int? {
+        let wanted = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !wanted.isEmpty else { return nil }
+        return detail.tickets.first { $0.name.trimmingCharacters(in: .whitespacesAndNewlines) == wanted }?.id
     }
 }
