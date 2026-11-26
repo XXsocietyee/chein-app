@@ -77,6 +77,43 @@ public struct ClubDetailTabPolicy: Equatable, Sendable {
     }
 }
 
+/// Mini-program `pages/club/detail` 3-up overview facts grid: 主理人 / 等级 / 所在城市.
+/// A missing host or city is 待补充. A level outside 1...5 is 待定. Unknown counts stay on
+/// `ClubDetailPageModel.unknownMark` and are not rewritten here.
+public struct ClubDetailOverviewFactsGrid: Equatable, Sendable {
+    public enum Field: String, CaseIterable, Identifiable, Sendable {
+        case leader, level, city
+        public var id: String { rawValue }
+        public var label: String {
+            switch self {
+            case .leader: return "主理人"
+            case .level: return "等级"
+            case .city: return "所在城市"
+            }
+        }
+    }
+    public struct Item: Equatable, Identifiable, Sendable {
+        public let field: Field
+        public let label: String
+        public let value: String
+        public var id: String { field.rawValue }
+    }
+    public let items: [Item]
+    public init(leaderName: String?, level: Int, city: String?) {
+        let normalizedLeader = leaderName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let normalizedCity = city?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let levelText = (1...5).contains(level) ? "L\(level)" : "待定"
+        items = [
+            Item(field: .leader, label: Field.leader.label, value: normalizedLeader.isEmpty ? "待补充" : normalizedLeader),
+            Item(field: .level, label: Field.level.label, value: levelText),
+            Item(field: .city, label: Field.city.label, value: normalizedCity.isEmpty ? "待补充" : normalizedCity),
+        ]
+    }
+    public init(club: ClubRecord) {
+        self.init(leaderName: club.leaderName, level: club.level, city: club.city)
+    }
+}
+
 /// Page projection for `pages/club/detail/index`. It reads a payload the existing
 /// `POST api/club/detail` contract already returns, plus an optional `/api/club/access/me`
 /// grant. It does not open a route, send a request, or mark a missing path live.
