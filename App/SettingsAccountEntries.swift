@@ -109,21 +109,16 @@ import SwiftUI
                         .accessibilityIdentifier("settings.signOut.failed")
                 }
             }
-            .cySheet(isPresented: $confirms) {
-                if let expected = confirmation {
-                    MemberConfirmSheet(title: appLocalized("auth.signOutConfirm", locale: locale),
-                                       message: appLocalized("settings.signOut.message", locale: locale),
-                                       confirmTitle: appLocalized("auth.signOut", locale: locale),
-                                       isDestructive: true, confirmIdentifier: "settings.signOut.confirm") {
-                        confirmation = nil; confirms = false
-                        working = true; failed = false
-                        Task {
-                            let done = await session.logout(matching: expected)
-                            working = false
-                            if done { onSignedOut() } else if session.account != nil { failed = true }
-                        }
-                    }
-                    .presentationDetents([.medium])
+            // G-047: the system sign-out action sheet (Settings › Sign Out), bound to the snapshot captured on tap.
+            .memberSignOutConfirmation(isPresented: $confirms, presenting: confirmation,
+                                       message: "settings.signOut.message",
+                                       confirmIdentifier: "settings.signOut.confirm") { expected in
+                confirmation = nil; confirms = false
+                working = true; failed = false
+                Task {
+                    let done = await session.logout(matching: expected)
+                    working = false
+                    if done { onSignedOut() } else if session.account != nil { failed = true }
                 }
             }
             .onChange(of: confirms) { _, visible in if !visible { confirmation = nil } }

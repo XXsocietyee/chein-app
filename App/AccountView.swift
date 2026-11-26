@@ -282,14 +282,11 @@ import SwiftUI
                     .cySheet(detents: [.large])
             }
             .cySheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).themeDomain(.player).cySheet(detents: [.large]) }
-            .cySheet(isPresented: $confirmsLogout) {
-                if let expected = logoutConfirmation {
-                    MemberSignOutConfirmSheet(confirmIdentifier: "auth.signOut.confirm") {
-                        logoutConfirmation = nil; confirmsLogout = false
-                        Task { _ = await session.logout(matching: expected) }
-                    }
-                    .themeDomain(.player)
-                }
+            // G-047: the system sign-out action sheet, bound to the snapshot captured when 退出登录 was tapped.
+            .memberSignOutConfirmation(isPresented: $confirmsLogout, presenting: logoutConfirmation,
+                                       confirmIdentifier: "auth.signOut.confirm") { expected in
+                logoutConfirmation = nil; confirmsLogout = false
+                Task { _ = await session.logout(matching: expected) }
             }
             .onChange(of: confirmsLogout) { _, visible in if !visible { logoutConfirmation = nil } }
         }

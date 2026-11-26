@@ -22,6 +22,9 @@ struct ProfileOrdersView: View {
     /// MP 登录 on the signed-out state. Nil keeps the state without a button.
     var onSignIn: (() -> Void)? = nil
     @State private var filterSelection = ProfileOrderFilterSelection()
+    /// G-052: local search text; matches only rows already read, never sends a request.
+    @State private var orderQuery = ""
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var orderEntry: SupportLookupEntry?
     @State private var lookedUpOrderID: Int64?
     /// Pages after the first `orderHistory` page. The first page stays on `ProfileReadScreen`.
@@ -71,6 +74,10 @@ struct ProfileOrdersView: View {
         }) { loaded in
             let orders = displayedOrders(loaded)
             if orders.isEmpty {
+                // G-052: an empty List keeps ProfileReadScreen's pull-to-refresh on the empty state too.
+                List {}
+                .listStyle(.insetGrouped)
+                .overlay {
                 ContentUnavailableView {
                     Label("profile.orders.sourceEmpty", systemImage: "tray")
                 } actions: {
@@ -85,6 +92,7 @@ struct ProfileOrdersView: View {
                     }
                 }
                 .accessibilityIdentifier("profile.orders.empty")
+                }
             } else {
                 // Local time may move an already-loaded order between categories.
                 // No timer-triggered read or financial action is performed here.
@@ -92,13 +100,19 @@ struct ProfileOrdersView: View {
                     let owner = filterOwner
                     let filter = filterSelection.value(for: owner)
                     let visible = filter.orders(in: orders, now: clock.date)
+                    // G-052: local search over the rows already on screen (no request); filter first, then search.
+                    let matches = ProfileOrderSearch.matches(visible, query: orderQuery)
                     List {
                         ProfileOrderFilterSection(selection: Binding(
                             get: { filterSelection.value(for: filterOwner) },
                             set: { filterSelection.choose($0, rendered: owner, current: filterOwner) }),
                             isEmpty: visible.isEmpty)
+                        if !visible.isEmpty, matches.isEmpty {
+                            ContentUnavailableView.search(text: orderQuery)
+                                .accessibilityIdentifier("profile.orders.search.empty")
+                        }
                         Section {
-                            ForEach(visible) { order in
+                            ForEach(matches) { order in
                                 NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader, orderSupport: orderSupport, lookedUpOrderID: lookedUpOrderID, onOpenedOrder: { [owner = filterOwner] in lookupOpenedOrder($0, expectedOwner: owner) }) } label: {
                                     ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date), statusKey: order.historyTagKey(now: clock.date))
                                 }
@@ -108,7 +122,7 @@ struct ProfileOrdersView: View {
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) { cardExitButton(order) }
                                 .contextMenu { cardExitButton(order) }
                             }
-                            if historyMore {
+                            if historyMore, ProfileOrderSearch.isIdle(orderQuery) {
                                 Group {
                                     if historyLoading {
                                         ProgressView().accessibilityLabel(Text("profile.loading"))
@@ -125,6 +139,10 @@ struct ProfileOrdersView: View {
                         }
                     }
                     .listStyle(.insetGrouped)
+                    .animation(reduceMotion ? nil : .default, value: matches.map(\.id))
+                    .searchable(text: $orderQuery, placement: .navigationBarDrawer(displayMode: .automatic),
+                                prompt: Text("profile.orders.search.prompt"))
+                    .accessibilityIdentifier("profile.orders.list")
                 }
             }
         }
@@ -147,7 +165,7 @@ struct ProfileOrdersView: View {
         .cyPushedChrome(domain: .player)
         .onAppear { appearOrderSupport() }
         .onChange(of: filterOwner) { _, _ in
-            filterSelection.retire(); orderEntry = nil; lookedUpOrderID = nil
+            filterSelection.retire(); orderEntry = nil; lookedUpOrderID = nil; orderQuery = ""
         }
         .onChange(of: filterOwner) { _, _ in
             appendedOrders = []; nextHistoryPage = 2; historyMore = false; historyLoading = false; historyPageFailed = false; historyGeneration += 1
@@ -250,6 +268,23 @@ extension OwnedOrderSessionReader: ProfileOrderPageReading {}
 /// R7-MEM-16-1: sheet item for the card cancel action.
 private struct ProfileOrderCardExit: Identifiable {
     let id: Int
+}
+
+/// G-052: case- and diacritic-insensitive match on the order's own text facts (title, registration and order number,
+/// place, ticket, organizer). Pure; the list stays in server order.
+enum ProfileOrderSearch {
+    static func isIdle(_ query: String) -> Bool {
+        query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    static func matches(_ orders: [ProfileOrder], query: String) -> [ProfileOrder] {
+        let needle = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !needle.isEmpty else { return orders }
+        return orders.filter { order in
+            let fields: [String?] = [order.title, order.registrationNo, order.orderNum.map { String($0) },
+                                     order.addressName, order.ticketName, order.organizerName]
+            return fields.contains { $0?.localizedStandardContains(needle) == true }
+        }
+    }
 }
 
 private struct ProfileOrderRow: View {

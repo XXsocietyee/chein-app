@@ -7,7 +7,8 @@ enum MemberAreaPopupFixtures {
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
         case "member-popup-sign-out":
-            return player(MemberSignOutConfirmSheet(confirmIdentifier: "fixture.signOut.confirm") {})
+            return player(Color.clear.memberSignOutConfirmation(isPresented: .constant(true), presenting: true,
+                                                                  confirmIdentifier: "fixture.signOut.confirm") { _ in })
         case "member-popup-deregister-cancel":
             return player(MemberDeregistrationCancelConfirmSheet {})
         case "member-popup-deregister-submit":
