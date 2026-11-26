@@ -130,9 +130,16 @@ public struct TopicMerchant: Decodable, Equatable {
     public let imageURL: String?
     /// Shop gift from `mmsMerchant.derivativeBenefits`. Blank stays nil. This is display, not a claim.
     public let derivativeBenefits: String?
+    /// R7-PC-B1-6 (MP pages/topic/utils/topic-motion.js:178-200): `mmsMerchant.id` (0 when absent), `slogan`, `coverImage`.
+    public let merchantID: Int
+    public let slogan: String?
+    public let coverImage: String?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
         let merchant = try? c.nestedContainer(keyedBy: TopicKey.self, forKey: TopicKey("mmsMerchant"))
+        merchantID = merchant?.int("id") ?? 0
+        slogan = merchant?.text("slogan").flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        coverImage = merchant?.text("coverImage").flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
         memberID = c.int("memberId") ?? 0
         name = merchant?.text("name") ?? c.text("name") ?? ""
         businessTime = merchant?.text("businessTime") ?? c.text("businessTime")

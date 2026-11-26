@@ -326127,6 +326127,23 @@
           }
         }
       }
+    },
+    "topicXcx.merchantsCount %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld shops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 家"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

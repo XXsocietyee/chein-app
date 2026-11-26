@@ -512,11 +512,24 @@ struct TopicXcxRouteSection: View {
     /// R7-PC-B1-6: MP index.js:665-669 free-explore merchant cards from `/api/free-explore/bundle/catalog` (productType 2 only).
     @State private var merchantCards: [TopicFreeExploreMerchantCard] = []
     let topic: TopicDetail
+    /// R7-PC-B1-6: opens the tapped merchant card's public home (MP index.js:850-853 `onMerchantOpen` → lineup merchant).
+    @Environment(\.topicLineupMerchantDestination) private var merchantDestination
+    @State private var openedMerchantMemberID: Int?
+    /// R7-PC-B1-6: MP `_applyMotionData` (pages/topic/index/index.js:489) builds the cards from the chapters (no sign-in), then
+    /// `mergeExploreCatalog` overlays the catalog perk line (topic-motion.js:246-261) when the signed-in read is there.
     private func loadMerchantCards() async {
-        guard topic.productType == 2, let service = makeGapService?() else { merchantCards = []; return }
-        let cards = TopicFreeExploreMerchantCard.cards(fromCatalog: await service.fetchFreeExploreCatalog(topicID: topic.id).data)
+        guard topic.productType == 2 else { merchantCards = []; return }
+        let base = TopicFreeExploreMerchantCard.cards(fromChapters: topic.chapters)
+        merchantCards = base
+        guard let service = makeGapService?() else { return }
+        let catalog = await service.fetchFreeExploreCatalog(topicID: topic.id).data
         guard !Task.isCancelled else { return }
-        merchantCards = cards
+        merchantCards = base.isEmpty ? TopicFreeExploreMerchantCard.cards(fromCatalog: catalog)
+                                     : TopicFreeExploreMerchantCard.overlay(base, catalog: catalog)
+    }
+    private var selectMerchant: ((TopicFreeExploreMerchantCard) -> Void)? {
+        guard merchantDestination != nil else { return nil }
+        return { card in if card.memberID > 0 { openedMerchantMemberID = card.memberID } }
     }
     private func loadRouteProgress() async {
         guard topic.isSignUp, let service = makeGapService?() else { routeProgress = (0, 0); return }
@@ -569,7 +582,11 @@ struct TopicXcxRouteSection: View {
                                              onSelectPin: { pin in
                                                  let node = topic.chapters.flatMap(\.nodes).first { $0.name == pin.name && $0.latitude == pin.latitude && $0.longitude == pin.longitude }
                                                  if let node, let url = TopicStopMapsLink.url(for: node) { openURL(url) }
-                                             })
+                                             },
+                                             onSelectMerchant: selectMerchant)
+                    .navigationDestination(item: $openedMerchantMemberID) { memberID in
+                        if let merchantDestination { merchantDestination(memberID) }
+                    }
                     .accessibilityElement(children: .contain)
                     .accessibilityIdentifier("topic.route.map")
                     .task(id: TopicRouteProgressKey(topicID: topic.id, bought: topic.isSignUp)) { await loadRouteProgress() }
