@@ -4,6 +4,8 @@ import SwiftUI
 /// `ClubTopicDetailPort.showsVerify` is true; nothing here reads or writes.
 @MainActor struct ClubTopicVerifySummarySection: View {
     let metrics: [ClubTopicDetailPort.Metric]
+    /// CLB-topic-detail-05 (MP topic-detail wxml:96-100 `goLedger`): 台账 in the 核销 header opens the topic's 报名名册.
+    var ledger: AnyView? = nil
     var body: some View {
         Section {
             // Mini-program 核销 card: three counters, number over label. CLB-r9-native-01: no shrink-to-fit; at large
@@ -13,8 +15,15 @@ import SwiftUI
                 VStack(alignment: .leading) { tiles }
             }
         } header: {
-            Text("club.topic.verify.title").textCase(nil)
-                .accessibilityAddTraits(.isHeader)
+            HStack {
+                Text("club.topic.verify.title").textCase(nil)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                if let ledger {
+                    NavigationLink { ledger } label: { Text("club.topic.verify.ledger").textCase(nil) }
+                        .accessibilityIdentifier("club.topic.verify.ledger")
+                }
+            }
         }
     }
 

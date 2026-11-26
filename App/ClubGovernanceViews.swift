@@ -1698,6 +1698,17 @@ struct ClubGovernanceReadView: View {
                         case .more:
                             List {
                                 Section { link(.topicStats); link(.topicSettings); enrollmentLink(focusTopicID: scope.topicID) }
+                                // CLB-topic-detail-05 (MP wxml:454-470): 场次管理 for canManageSessions, then 退出与暂停规则.
+                                Section {
+                                    if stats["canManageSessions"] == .bool(true), scope.clubID != nil {
+                                        NavigationLink {
+                                            ClubOpsEventView(scope: .init(clubID: scope.clubID, topicID: scope.topicID), identity: identity, access: access, coordinator: coordinator)
+                                        } label: { Label("club.topic.more.sessions", systemImage: "calendar") }
+                                            .accessibilityIdentifier("club.topic.more.sessions")
+                                    }
+                                    NavigationLink { ClubOperatingRulesView() } label: { Label("club.topic.more.rules", systemImage: "list.bullet.rectangle") }
+                                        .accessibilityIdentifier("club.topic.more.rules")
+                                }
                                 // CLB-r9-topic-detail-02 / CLB-G12 (MP topic-detail wxml:426-500): one 更多; 编辑主题内容 (fabu ?id),
                                 // 确认终价 while pricing (lifecycle 2, organiser's canDirect), 承接审核 with canReviewChapterApplications.
                                 if let topicID = scope.topicID, scope.clubID != nil, canDirect || stats["canReviewChapterApplications"] == .bool(true) {
@@ -1742,7 +1753,8 @@ struct ClubGovernanceReadView: View {
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
             if ClubTopicDetailPort.showsVerify(topicDisplay, canViewVerify: stats["canViewVerify"].bool) {
                 ClubTopicVerifySummarySection(metrics: ClubTopicDetailPort.verifyMetrics(
-                    pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int))
+                    pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int),
+                    ledger: topicLedger)
             }
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
                 Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
@@ -2069,6 +2081,11 @@ struct ClubGovernanceReadView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+    /// CLB-topic-detail-05 (MP `goLedger` js:870-873): 台账 / 核销记录 open the club's 报名名册 focused on this topic.
+    private var topicLedger: AnyView? {
+        guard let clubID = scope.clubID, let topicID = scope.topicID else { return nil }
+        return AnyView(ClubEnrollmentView(clubID: clubID, focusTopicID: topicID, identity: identity, access: access, coordinator: coordinator))
     }
     private func openAfterMoreSheet(_ route: ClubTopicMoreRoute) {
         topicMoreAfterSheet = route
