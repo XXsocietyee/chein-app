@@ -1104,7 +1104,7 @@ import MapKit
 
     @ViewBuilder
     private func nodeSections(node: PlayNode, context: PlayInteractionContext?) -> some View {
-        if let journey { PlayJourneyCheckView(model: journey, nodeDone: nodeDone) }
+        if let journey { ChanceJourneyCheckView(model: journey, nodeDone: nodeDone) }
         else { PlayCheckRuntimeSection(nodeID: node.id, routeSessionID: model.snapshot?.route?.sessionID, nodeDone: nodeDone) }
         if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
             NavigationLink("journey.record.questions") {

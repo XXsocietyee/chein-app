@@ -211,7 +211,7 @@ extension PlayAdvancedView {
             Group {
                 if let state = model.state, let album = PlayKitAlbumProjection(state: state) {
                     ScrollView {
-                        PlayKitAlbumView(projection: album, approvedHosts: approvedArtworkHosts, complete: albumComplete ?? albumFinish, close: { openKit = nil })
+                        CameraAlbumView(projection: album, approvedHosts: approvedArtworkHosts, complete: albumComplete ?? albumFinish, close: { openKit = nil })
                         albumCapturePanel
                         if let issue = model.issue { PlayExperienceIssueView(issue: issue).padding(.horizontal) }
                     }

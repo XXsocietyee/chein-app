@@ -10795,6 +10795,46 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FABCEFB4B294DBD3FFD196ED";
 		};
+		"E47315EEEF2B80E2D9F15C0B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/CameraKits.swift";
+			"sourceTree" = "<group>";
+		};
+		"E947B5B53400C184B6795EEC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E47315EEEF2B80E2D9F15C0B";
+		};
+		"36AD4824A111DB35229F6CC5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/ChanceKits.swift";
+			"sourceTree" = "<group>";
+		};
+		"8FC028079C6D6BBDD4C1E250" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "36AD4824A111DB35229F6CC5";
+		};
+		"4FAE606433CF304822A907A4" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/ChoiceKits.swift";
+			"sourceTree" = "<group>";
+		};
+		"2CCD8AA6DB0A6D6257F5297C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4FAE606433CF304822A907A4";
+		};
+		"B039EC73E9081BD48FF7681E" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/GamesBKitContext.swift";
+			"sourceTree" = "<group>";
+		};
+		"F976A190B1B057C01C260372" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B039EC73E9081BD48FF7681E";
+		};
 		"A5316E1A4FB27D678BF2F83D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -43013,6 +43053,10 @@
 				"689461CCAFD3020D26140D70",
 				"72A08032098E549642A67C65",
 				"FABCEFB4B294DBD3FFD196ED",
+				"E47315EEEF2B80E2D9F15C0B",
+				"36AD4824A111DB35229F6CC5",
+				"4FAE606433CF304822A907A4",
+				"B039EC73E9081BD48FF7681E",
 				"A5316E1A4FB27D678BF2F83D",
 				"7F8C1C1E521704422D161288",
 				"69947A92192A5150B3DFF1CF",
@@ -48388,6 +48432,10 @@
 				"EB976E99D93A2EEFCF838707",
 				"775A9C4564EF84DFF96D7731",
 				"A85668FB109326CBF51DB01F",
+				"E947B5B53400C184B6795EEC",
+				"8FC028079C6D6BBDD4C1E250",
+				"2CCD8AA6DB0A6D6257F5297C",
+				"F976A190B1B057C01C260372",
 				"A0205E36AD20F9B390C5FAC6",
 				"71BB3EB413E2963E15FFB3CC",
 				"FCC527F2744C4902CD1E8DD1",
