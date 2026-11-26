@@ -9,8 +9,9 @@ class ExitGuardSourceContracts(unittest.TestCase):
     def test_normal_root_host_has_one_additive_entry(self):
         self.assertEqual(HOST.count('.modifier(TemplateAuthoringExitGuard('),1)
         self.assertIn('overlaysOpen: { preview || discard || previewMissing || media.review != nil }',HOST)  # design hand-off r1 CF-45 preview gate
-        self.assertIn('title: appLocalized("templateAuthor.discardQuestion", locale: locale)',HOST)
-        self.assertIn('CYPillButton("templateAuthor.saveLocal", style: .tertiary) { model.save() }',HOST)
+        # native r2: cyModalConfirm became a system confirmationDialog with the same title key; CYPillButton became a plain Button with the same action
+        self.assertIn('.confirmationDialog(appLocalized("templateAuthor.discardQuestion", locale: locale), isPresented: $discard',HOST)
+        self.assertIn('Button { model.save() } label: { Text("templateAuthor.saveLocal") }.accessibilityIdentifier("templateAuthor.saveLocal")',HOST)
     def test_exact_checkpoint_comparison_not_unicode_equatable(self):
         for value in ['.sortedKeys','.withoutEscapingSlashes','encoder.encode(draft)','current == persisted','Self.snapshot(TemplateAuthoringDraft())']:
             self.assertIn(value,CORE)

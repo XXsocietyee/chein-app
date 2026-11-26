@@ -9,7 +9,7 @@ import SwiftUI
     private var failedOnce = false
     let showsBanners: Bool
     init(scenario: String = "content", showsBanners: Bool = false) { self.scenario = scenario; self.showsBanners = showsBanners }
-    /// Design fixture only: three synthetic banners without a cover (the kit pager draws brand gradients).
+    /// Design fixture only: three synthetic banners without a cover (the pager shows the MP default cover).
     func banners() async throws -> [DiscoveryBanner] {
         guard showsBanners else { return [] }
         let titles = ["Night market after rain", "Old Town: ten hidden spots", "Riverside lantern walk"]

@@ -60,7 +60,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                     if model.isLoading || model.loadedScope == nil { ProgressView("creatorContent.loading") }
                     if let issue = model.issue {
                         Text(LocalizedStringKey(issue.localizationKey)).accessibilityIdentifier("profile.selfProjects.issue")
-                        if model.page != nil { Text("profile.selfProjects.stale").cyText(.meta) }
+                        if model.page != nil { Text("profile.selfProjects.stale").font(.footnote).foregroundStyle(.secondary) }
                         if issue != .login {
                             Button("creatorContent.retry") { Task { await load() } }
                                 .disabled(model.isLoading).accessibilityIdentifier("profile.selfProjects.retry")
@@ -70,10 +70,11 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                         let today = ProfileSelfProjectCalendar.today()
                         let preview = ProfileSelfProjectsPreview(page: page, today: today)
                         if preview.rows.isEmpty && model.issue == nil && !model.isLoading {
-                            CYEmptyState(systemImage: "folder", "profile.selfProjects.empty", messageIdentifier: "profile.selfProjects.empty", kind: .projects).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                            ContentUnavailableView("profile.selfProjects.empty", systemImage: "folder")
+                                .accessibilityIdentifier("profile.selfProjects.empty")
                         }
                         if preview.sourceTruncated {
-                            Text("profile.selfProjects.truncated").cyText(.meta)
+                            Text("profile.selfProjects.truncated").font(.footnote).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("profile.selfProjects.truncated")
                         }
                         ForEach(preview.rows) { project in
@@ -106,13 +107,13 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
     }
     private func load() async { await model.load(reader: reader) }
     private func row(_ project: CreatorContentProject, today: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 2) {
             if project.title.isEmpty { Text("creatorContent.untitled") } else { Text(verbatim: project.title) }
             if let status = ProfileSelfProjectCalendar.status(start: project.startTime, end: project.endTime, today: today) {
-                Text(LocalizedStringKey("profile.selfProjects.schedule." + status.rawValue)).cyText(.meta)
+                Text(LocalizedStringKey("profile.selfProjects.schedule." + status.rawValue)).font(.subheadline).foregroundStyle(.secondary)
             }
-            if let start = project.startTime { Text(verbatim: start).cyText(.meta).foregroundStyle(.secondary) }
-        }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            if let start = project.startTime { Text(verbatim: start).font(.subheadline).foregroundStyle(.secondary) }
+        }.frame(maxWidth: .infinity, alignment: .leading).foregroundStyle(.primary)
     }
 }
 @MainActor struct ProfileSelfProjectsBrowser: View {

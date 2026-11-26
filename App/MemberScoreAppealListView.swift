@@ -13,16 +13,8 @@ func playerFactOrDash(_ raw: String?) -> String {
     var body: some View {
         Section {
             NavigationLink { MemberScoreAppealListView(session: session) } label: {
-                HStack(spacing: CYSpacing.md) {
-                    // MP shezhi 我的申诉 = icon_privacy (same tile as CYRowIcon).
-                    AccountPublishMPRowIcon(MPAsset.FeatureIcon.iconPrivacy)
-                    memberScoreText("score.mine.title")
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: CYSpacing.sm)
-                }
-                .frame(minHeight: CYSpacing.minTouchTarget)
+                // MP shezhi 我的申诉 = icon_privacy.
+                Label { memberScoreText("score.mine.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconPrivacy) }
             }.accessibilityIdentifier("settings.scoreAppeals")
         }
     }
@@ -54,9 +46,7 @@ private struct MemberScorePlayLayer: Hashable, Identifiable {
                     Button { showsReputation = true } label: {
                         MemberScoreReputationRow(reputation: reputation)
                     }
-                    .buttonStyle(.cyPressable)
                     .accessibilityIdentifier("score.mine.reputation")
-                    .listRowInsets(rowInsets)
                 }
                 if flow.failure != nil {
                     // The read did not return rows. Do not keep or invent any.
@@ -67,13 +57,14 @@ private struct MemberScorePlayLayer: Hashable, Identifiable {
                     emptyState("score.mine.empty.all")
                 } else {
                     // Chips narrow the rows this read already returned. They do not ask again.
-                    CYTabs(items: [
-                        CYTabItem(id: MemberScoreAppealFilter.all, title: String(localized: LocalizedStringResource("score.filter.all", table: "MemberScoreAppealList", locale: locale))),
-                        CYTabItem(id: MemberScoreAppealFilter.active, title: String(localized: LocalizedStringResource("score.filter.active", table: "MemberScoreAppealList", locale: locale))),
-                        CYTabItem(id: MemberScoreAppealFilter.decided, title: String(localized: LocalizedStringResource("score.filter.decided", table: "MemberScoreAppealList", locale: locale))),
-                    ], selection: $filter, variant: .chip)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
+                    Picker(selection: $filter) {
+                        memberScoreText("score.filter.all").tag(MemberScoreAppealFilter.all)
+                        memberScoreText("score.filter.active").tag(MemberScoreAppealFilter.active)
+                        memberScoreText("score.filter.decided").tag(MemberScoreAppealFilter.decided)
+                    } label: {
+                        memberScoreText("score.mine.title")
+                    }
+                    .pickerStyle(.segmented)
                     .accessibilityIdentifier("score.mine.filter")
                     let shown = visibleRows(flow.rows)
                     if shown.isEmpty {
@@ -84,35 +75,33 @@ private struct MemberScorePlayLayer: Hashable, Identifiable {
                                 Button { playLayer = layer } label: {
                                     MemberScoreAppealMineRow(row: row, showsChevron: true)
                                 }
-                                .buttonStyle(.cyPressable)
                                 .accessibilityIdentifier("score.mine.row.\(row.id)")
-                                .listRowInsets(rowInsets)
                             } else {
                                 MemberScoreAppealMineRow(row: row, showsChevron: false)
                                     .accessibilityIdentifier("score.mine.row.\(row.id)")
-                                    .listRowInsets(rowInsets)
                             }
                         }
                         if !flow.busy {
-                            Text("u9cde.report.end").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                                .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                            Text("u9cde.report.end").font(.footnote).foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity)
                                 .accessibilityIdentifier("score.mine.end")
                         }
                     }
                 }
             } else if session.account == nil {
                 // Signed out: 登录后查看申诉, primary 微信登录, through the existing sign-in.
-                CYEmptyState(systemImage: "person.crop.circle", "score.mine.signIn", tableName: "MemberScoreAppealList",
-                             messageIdentifier: "score.mine.signIn",
-                             actionTitle: "auth.wechat.signIn", actionIdentifier: "score.mine.signIn", actionStyle: .primary) { showsSignIn = true }
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(emptyInsets)
+                ContentUnavailableView {
+                    Label { memberScoreText("score.mine.signIn") } icon: { Image(systemName: "person.crop.circle") }
+                } actions: {
+                    Button { showsSignIn = true } label: { Text("auth.wechat.signIn") }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
+                        .accessibilityIdentifier("score.mine.signIn")
+                }
             } else {
                 failedState { start() }
             }
         }
         .listStyle(.insetGrouped)
-        .cyGroupedSurface()
         .cyPushedChrome(domain: .player)
         .navigationTitle(memberScoreText("score.mine.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
@@ -130,35 +119,29 @@ private struct MemberScorePlayLayer: Hashable, Identifiable {
         .cyDomainScreen(.player)
     }
 
-    private var rowInsets: EdgeInsets {
-        EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
-    }
-    private var emptyInsets: EdgeInsets {
-        EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal)
-    }
-
     private var listSkeleton: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            ForEach(0..<3, id: \.self) { _ in CYSkeleton(variant: .row) }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("score.mine.loading", tableName: "MemberScoreAppealList"))
-        .listRowBackground(Color.clear)
-        .listRowInsets(emptyInsets)
+        ProgressView()
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("score.mine.loading", tableName: "MemberScoreAppealList"))
     }
 
     private func emptyState(_ key: String) -> some View {
-        CYEmptyState(systemImage: "tray", LocalizedStringKey(key), tableName: "MemberScoreAppealList")
-            .listRowBackground(Color.clear)
-            .listRowInsets(emptyInsets)
+        ContentUnavailableView {
+            Label { memberScoreText(key) } icon: { Image(systemName: "tray") }
+        }
     }
 
     private func failedState(_ retry: @escaping () -> Void) -> some View {
-        CYEmptyState(systemImage: "exclamationmark.triangle", "score.mine.failed", tableName: "MemberScoreAppealList",
-                     messageIdentifier: "score.mine.status",
-                     actionTitle: "score.mine.retry", actionIdentifier: "score.mine.retry", kind: .failure, action: retry)
-            .listRowBackground(Color.clear)
-            .listRowInsets(emptyInsets)
+        ContentUnavailableView {
+            Label {
+                memberScoreText("score.mine.failed").accessibilityIdentifier("score.mine.status")
+            } icon: { Image(systemName: "exclamationmark.triangle") }
+        } actions: {
+            Button(action: retry) { memberScoreText("score.mine.retry") }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("score.mine.retry")
+        }
     }
 
     /// Same split as the mini program: open stays in 处理中, accepted and rejected are 已有结论.
@@ -195,25 +178,26 @@ private struct MemberScoreReputationSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYSheetHeader(title: memberScoreText("score.reputation.sheet.title"), style: .player, onClose: { dismiss() })
-            ForEach([MemberScoreReputation.normal, .restricted], id: \.rawValue) { value in
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    memberScoreText("score.reputation.sheet.\(value.rawValue)")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
-                    memberScoreText("score.reputation.sheet.\(value.rawValue).detail")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+        NavigationStack {
+            List {
+                ForEach([MemberScoreReputation.normal, .restricted], id: \.rawValue) { value in
+                    VStack(alignment: .leading, spacing: 2) {
+                        memberScoreText("score.reputation.sheet.\(value.rawValue)")
+                        memberScoreText("score.reputation.sheet.\(value.rawValue).detail")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .accessibilityElement(children: .combine)
                 }
-                .accessibilityElement(children: .combine)
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
             }
-            Spacer(minLength: 0)
+            .listStyle(.insetGrouped)
+            .navigationTitle(memberScoreText("score.reputation.sheet.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
         }
-        .cyDomainSheet(detents: [.half])
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }
 
@@ -221,20 +205,14 @@ private struct MemberScoreReputationRow: View {
     let reputation: MemberScoreReputation
 
     var body: some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
+        LabeledContent {
+            memberScoreText(reputation == .normal ? "score.reputation.sheet.normal" : "score.reputation.sheet.restricted")
+                .foregroundStyle(reputation == .normal ? Color.green : Color.secondary)
+        } label: {
             memberScoreText("score.reputation.sheet.title")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
+                .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: CYSpacing.sm)
-            CYStatusChip(LocalizedStringKey(reputation == .normal ? "score.reputation.sheet.normal" : "score.reputation.sheet.restricted"),
-                         tone: reputation == .normal ? .success : .neutral, tableName: "MemberScoreAppealList")
-            Image(systemName: "chevron.right")
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textTertiary)
-                .accessibilityHidden(true)
         }
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
@@ -248,59 +226,59 @@ private struct MemberScoreAppealMineRow: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
                 if typeSize.isAccessibilitySize {
                     title
                     tag
                 } else {
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
                         title
-                        Spacer(minLength: CYSpacing.sm)
+                        Spacer(minLength: 8)
                         tag
                     }
                 }
                 if let sub = memberScoreAppealSub(topicName: row.title, createTime: row.createTime, chinese: AppLanguage.interfaceIsChinese(locale)) {
                     Text(verbatim: sub)
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if showsChevron {
-                Image(systemName: "chevron.right")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textTertiary)
+                // The row opens a pushed screen from a Button, so it draws the system-style disclosure glyph itself.
+                Image(systemName: "chevron.forward")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
 
     private var title: some View {
         memberScoreText("score.kind.\(row.kind.rawValue)")
-            .cyText(.body)
-            .foregroundStyle(CYColor.textPrimary)
+            .foregroundStyle(.primary)
             .fixedSize(horizontal: false, vertical: true)
     }
 
     private var tag: some View {
-        let tone: CYStatusTone
+        let tone: Color
         let key: LocalizedStringKey
         switch row.status {
         case .open:
-            tone = .info
+            tone = .blue
             key = "score.status.open"
         case .accepted:
-            tone = .success
+            tone = .green
             key = "score.status.accepted"
         case .rejected:
-            tone = .neutral
+            tone = .secondary
             key = "score.status.rejected"
         }
-        return CYStatusChip(key, tone: tone, tableName: "MemberScoreAppealList")
+        return Text(key, tableName: "MemberScoreAppealList").font(.footnote).foregroundStyle(tone)
     }
 }
 
@@ -403,36 +381,24 @@ struct MemberScoreChipChrome<Label: View>: View {
     @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        HStack(spacing: CYSpacing.xs) {
-            Image(systemName: symbol).font(.caption.weight(.bold)).accessibilityHidden(true)
-            label().cyText(.caption)
+        HStack(spacing: 4) {
+            Image(systemName: symbol).accessibilityHidden(true)
+            label()
         }
+        .font(.footnote)
         .foregroundStyle(foreground)
-        .padding(.horizontal, CYSpacing.md)
-        .padding(.vertical, CYSpacing.xs + 1)
-        .background(Capsule(style: .continuous).fill(background))
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
     }
 
     private var foreground: Color {
         switch tone {
-        case .neutral: return palette.textSecondary
-        case .success: return palette.success
-        case .warning: return palette.warning
-        case .danger: return palette.danger
-        case .info: return palette.info
-        case .rare: return palette.rare
-        }
-    }
-    private var background: Color {
-        switch tone {
-        case .neutral: return palette.actionSecondaryBg
-        case .success: return palette.successSoft
-        case .warning: return palette.warningSoft
-        case .danger: return palette.dangerSoft
-        case .info: return palette.infoSoft
-        case .rare: return palette.rareSoft
+        case .neutral: return .secondary
+        case .success: return .green
+        case .warning: return .orange
+        case .danger: return .red
+        case .info: return .blue
+        case .rare: return .indigo
         }
     }
 }

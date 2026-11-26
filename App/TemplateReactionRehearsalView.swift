@@ -115,27 +115,27 @@ import Combine
     }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateReaction.rehearse").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            Section {
-                if controller.mode == .sourceExample { Text("templateReaction.exampleOnly").cyText(.bodyCompact) }
+            if controller.mode == .sourceExample {
+                Section { Text("templateReaction.exampleOnly").foregroundStyle(.secondary) }
             }
             if let state = controller.visibleState {
                 Section {
-                    Text(verbatim: state.kicker).cyText(.sheetTitle)
+                    Text(verbatim: state.kicker).font(.headline)
                     LabeledContent("templateReaction.rounds", value: String(state.rounds))
                     LabeledContent("templateReaction.goal", value: milliseconds(state.goalMs))
                     LabeledContent("templateReaction.round", value: String(state.round))
-                    Text("templateReaction.rule").cyText(.bodyCompact)
+                    Text("templateReaction.rule").font(.subheadline).foregroundStyle(.secondary)
                 }
                 Section {
                     Button(action: controller.action(.tap)) {
                         VStack(spacing: 16) {
-                            Text(LocalizedStringKey(stageKey(state))).cyText(.pageTitle)
-                            Text(LocalizedStringKey(hintKey(state))).cyText(.body)
-                        }.frame(maxWidth: .infinity, minHeight: 180).padding()
-                            .background(stageColor(state).opacity(0.18), in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                            Text(LocalizedStringKey(stageKey(state))).font(.title.bold())
+                            Text(LocalizedStringKey(hintKey(state))).font(.body).foregroundStyle(.secondary)
+                        }.frame(maxWidth: .infinity, minHeight: 180)
                             .contentShape(Rectangle())
                     }.buttonStyle(.plain).disabled(!state.canTap)
+                        // Functional stage signal (wait = red, tap = green), drawn as the system row fill.
+                        .listRowBackground(stageColor(state).opacity(0.18))
                         .accessibilityIdentifier("templateReaction.stage")
                         .accessibilityLabel(LocalizedStringKey(stageKey(state)))
                         .accessibilityHint(LocalizedStringKey(hintKey(state)))
@@ -156,15 +156,19 @@ import Combine
                         Text(LocalizedStringKey(matched ? "templateReaction.matched" : "templateReaction.missed"))
                     }
                 }
-                CYPillButton("creator.reset", style: .secondary, action: controller.action(.reset)).accessibilityIdentifier("templateReaction.reset")
+                Section {
+                    Button(action: controller.action(.reset)) { Label("creator.reset", systemImage: "arrow.counterclockwise") }
+                        .accessibilityIdentifier("templateReaction.reset")
+                }
             } else {
                 Section {
                     Text("templateReaction.unavailable")
-                    CYPillButton("templateReaction.reload", style: .secondary) { controller.reload() }.disabled(!controller.canReload)
+                    Button { controller.reload() } label: { Text("templateReaction.reload") }.disabled(!controller.canReload)
                         .accessibilityIdentifier("templateReaction.reload")
                 }
             }
-        }.cyGroupedSurface().privacySensitive()
+        }.privacySensitive()
+            .navigationTitle(Text("templateReaction.rehearse")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("templateAuthor.close", action: controller.closeAction { dismiss() }).accessibilityIdentifier("templateReaction.close")
             } }

@@ -14,23 +14,33 @@ struct ChannelRedeemSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    Text("channelRedeem.note").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("channelRedeem.note")
+            Form {
+                Section {
                     TextField("channelRedeem.code", text: $code)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .accessibilityIdentifier("channelRedeem.code")
-                    CYMorphButton("channelRedeem.submit", state: working ? .working : .idle) { Task { await redeem() } }
-                        .disabled(working)
-                        .accessibilityIdentifier("channelRedeem.submit")
+                } footer: {
+                    Text("channelRedeem.note")
+                        .accessibilityIdentifier("channelRedeem.note")
+                }
+                Section {
+                    Button { Task { await redeem() } } label: {
+                        HStack {
+                            Text("channelRedeem.submit")
+                            if working {
+                                Spacer()
+                                ProgressView()
+                            }
+                        }
+                    }
+                    .disabled(working)
+                    .accessibilityIdentifier("channelRedeem.submit")
+                }
+                Section {
                     result
                 }
-                .padding(CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
             }
-            .background { MPNightGround() }
             .navigationTitle(Text("channelRedeem.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
@@ -41,9 +51,17 @@ struct ChannelRedeemSheet: View {
     @ViewBuilder private var result: some View {
         switch phase {
         case .idle:
-            CYEmptyState(systemImage: "ticket", "channelRedeem.empty", messageIdentifier: "channelRedeem.empty")
+            ContentUnavailableView {
+                Label {
+                    Text("channelRedeem.empty").accessibilityIdentifier("channelRedeem.empty")
+                } icon: {
+                    Image(systemName: "ticket")
+                }
+            }
         case .loading:
-            CYLoadingStateView(rows: 2).accessibilityIdentifier("channelRedeem.loading")
+            ProgressView()
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("channelRedeem.loading")
         case .unavailable:
             Text("channelRedeem.unavailable").accessibilityIdentifier("channelRedeem.unavailable")
         case .expired:
@@ -61,34 +79,44 @@ struct ChannelRedeemSheet: View {
         case .currency:
             Text("channelRedeem.currency")
         case .failed:
-            CYEmptyState(systemImage: "exclamationmark.triangle", "channelRedeem.error", messageIdentifier: "channelRedeem.error",
-                         actionTitle: "action.retry", action: { Task { await redeem() } })
+            ContentUnavailableView {
+                Label {
+                    Text("channelRedeem.error").accessibilityIdentifier("channelRedeem.error")
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+            } actions: {
+                Button("action.retry") { Task { await redeem() } }
+                    .buttonStyle(.bordered)
+            }
         case .pending:
             Text("channelRedeem.pending")
         case .signedOut:
-            CYEmptyState(systemImage: "person.crop.circle", "hostTip.signedOut", messageIdentifier: "channelRedeem.signedOut")
+            ContentUnavailableView {
+                Label {
+                    Text("hostTip.signedOut").accessibilityIdentifier("channelRedeem.signedOut")
+                } icon: {
+                    Image(systemName: "person.crop.circle")
+                }
+            }
         case .redeemed(let receipt):
             receiptView(receipt)
         }
     }
 
-    private func receiptView(_ receipt: ChannelRedeemReceipt) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(receipt.replayed ? "channelRedeem.replayed" : "channelRedeem.redeemed")
-                .cyText(.bodyMedium)
-                .accessibilityIdentifier(receipt.replayed ? "channelRedeem.replayed" : "channelRedeem.redeemed")
-            labeled("channelRedeem.product", receipt.productName)
-            labeled("channelRedeem.seats", receipt.seatCount)
-            labeled("channelRedeem.valid", receipt.validFrom + " – " + receipt.validTo)
-            labeled("channelRedeem.registration", receipt.registrationNo)
-            Button("channelRedeem.use") { usingRegistration = true }
-                .frame(minHeight: CYSpacing.minTouchTarget)
-                .accessibilityIdentifier("channelRedeem.use")
-            if usingRegistration {
-                Text(verbatim: receipt.registrationNo).cyText(.body).accessibilityIdentifier("channelRedeem.use.registration")
-            }
+    @ViewBuilder private func receiptView(_ receipt: ChannelRedeemReceipt) -> some View {
+        Text(receipt.replayed ? "channelRedeem.replayed" : "channelRedeem.redeemed")
+            .font(.headline)
+            .accessibilityIdentifier(receipt.replayed ? "channelRedeem.replayed" : "channelRedeem.redeemed")
+        labeled("channelRedeem.product", receipt.productName)
+        labeled("channelRedeem.seats", receipt.seatCount)
+        labeled("channelRedeem.valid", receipt.validFrom + " – " + receipt.validTo)
+        labeled("channelRedeem.registration", receipt.registrationNo)
+        Button("channelRedeem.use") { usingRegistration = true }
+            .accessibilityIdentifier("channelRedeem.use")
+        if usingRegistration {
+            Text(verbatim: receipt.registrationNo).accessibilityIdentifier("channelRedeem.use.registration")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func labeled(_ title: LocalizedStringKey, _ value: String) -> some View {
@@ -97,8 +125,6 @@ struct ChannelRedeemSheet: View {
         } label: {
             Text(title)
         }
-        .cyText(.body)
-        .frame(minHeight: CYSpacing.minTouchTarget)
     }
 
     private func redeem() async {

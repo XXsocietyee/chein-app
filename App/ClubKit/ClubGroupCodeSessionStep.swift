@@ -40,14 +40,17 @@ struct ClubGroupCodeSessionStep: View {
     @ViewBuilder private var content: some View {
         switch phase {
         case .loading:
-            CYSkeleton()
+            ProgressView()
                 .accessibilityLabel(Text("clubR3b.groupCode.sessionsLoading"))
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .padding(CYSpacing.pageHorizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .failed(let title):
             // MP cy-error: the sentence plus 重试 (`onRetry` re-reads the sessions).
-            CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(title),
-                         actionTitle: "clubR3b.groupCode.retry", kind: .failure) { attempt += 1 }
+            ContentUnavailableView {
+                Label(LocalizedStringKey(title), systemImage: "exclamationmark.triangle")
+            } actions: {
+                Button("clubR3b.groupCode.retry") { attempt += 1 }
+                    .buttonStyle(.bordered)
+            }
                 .accessibilityIdentifier("club.groupCode.sessions.failed")
         case .sessions(let sessions) where sessions.count == 1:
             issueForm(sessions[0])

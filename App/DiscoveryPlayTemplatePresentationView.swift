@@ -13,12 +13,10 @@ import SwiftUI
         if showsPublisher, let publisher = presentation.publisher {
             Section {
                 Text(verbatim: publisher)
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .font(.body)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("discovery.template.publisherValue")
-                    .discoveryPresentationRow()
             } header: {
                 DiscoverySectionHeader("discovery.template.publisher")
             }
@@ -27,10 +25,8 @@ import SwiftUI
         if presentation.useCount != nil {
             Section {
                 LabeledContent("discovery.template.useCount", value: presentation.useCountText)
-                    .cyText(.numericBody)
                     .monospacedDigit()
                     .accessibilityIdentifier("discovery.template.useCount")
-                    .discoveryPresentationRow()
             }
             .discoveryCardRow()
         }
@@ -38,7 +34,6 @@ import SwiftUI
             Section {
                 NativeMediaGalleryEntry(sources: presentation.gallerySources, scope: scope,
                                         titleKey: "discovery.template.images", reader: imageReader)
-                    .discoveryPresentationRow()
             } header: {
                 DiscoverySectionHeader("discovery.template.images")
             }
@@ -48,33 +43,23 @@ import SwiftUI
             Section {
                 if let text = presentation.storyText {
                     Text(verbatim: text)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .font(.body)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("discovery.template.storyText")
-                        .discoveryPresentationRow()
-                }
+                    }
                 if presentation.storyImage != nil {
                     Text("discovery.template.storyImageInGallery")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("discovery.template.storyImage")
-                        .discoveryPresentationRow()
-                }
+                    }
             } header: {
                 // Round 4 image parity: MP 创作者说 header art (templatedetail.wxml:196 `art/3d/bulb.png`).
                 DiscoverySectionHeader("discovery.template.story", art: MPAsset.FeatureIcon.bulb)
             }
             .discoveryCardRow()
         }
-    }
-}
-
-private extension View {
-    /// 16pt gutters inside the parent detail list. Replaces the row inset; it does not add a second title.
-    func discoveryPresentationRow() -> some View {
-        listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
     }
 }

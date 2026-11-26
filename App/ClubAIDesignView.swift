@@ -36,14 +36,13 @@ import SwiftUI
             }.disabled(generating)
             if !model.flow.isConfigured {
                 Label { Text("context.ai.disabled") } icon: { Image(systemName: "sparkles") }
-                    .cyText(.body).foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(.secondary)
             }
             if generating {
                 ProgressView("context.ai.generating")
-                CYPillButton("action.cancel", style: .tertiary) { operationID = UUID(); generating = false; model.flow.cancel(); model.revision += 1 }
-                    .listRowBackground(Color.clear)
+                Button("action.cancel", role: .cancel) { operationID = UUID(); generating = false; model.flow.cancel(); model.revision += 1 }
             } else {
-                CYPillButton("context.ai.generate", style: model.flow.result == nil ? .primary : .secondary, systemImage: "sparkles") {
+                Button {
                     guard let input else { return }; focused = false
                     let request = UUID(); operationID = request; generating = true
                     Task {
@@ -51,12 +50,11 @@ import SwiftUI
                         await model.flow.generate(input)
                         guard operationID == request else { return }; generating = false; model.revision += 1
                     }
-                }.disabled(input == nil || !model.flow.canGenerate).accessibilityIdentifier("club.context.ai.generate")
-                    .listRowBackground(Color.clear)
+                } label: { Label("context.ai.generate", systemImage: "sparkles") }
+                .disabled(input == nil || !model.flow.canGenerate).accessibilityIdentifier("club.context.ai.generate")
             }
             if let failure = model.flow.failure {
-                Label { Text(LocalizedStringKey("context.ai.error." + String(describing: failure))) } icon: { Image(systemName: "exclamationmark.triangle") }
-                    .cyText(.body).foregroundStyle(CYColor.textPrimary)
+                Label { Text(LocalizedStringKey("context.ai.error." + String(describing: failure))) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }
             }
             if let result = model.flow.result, let resultGeneration = model.flow.resultGeneration, let source = model.flow.resultInput {
                 Section(showsPreviousResult ? LocalizedStringKey("clubAICandidate.previous") : LocalizedStringKey("context.ai.plan")) {
@@ -74,31 +72,33 @@ import SwiftUI
                             else { Text("clubAICandidate.unspecified") }
                         }
                     }.accessibilityIdentifier("clubAICandidate.source")
-                    Text(verbatim: result.title).cyText(.sectionTitle)
-                    Text(verbatim: result.subtitle).cyText(.body).foregroundStyle(CYColor.textSecondary)
-                    Text(verbatim: result.storyline).cyText(.body)
-                    if !result.fitReason.isEmpty { Text(verbatim: result.fitReason).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                    Text(verbatim: result.title).font(.headline)
+                    Text(verbatim: result.subtitle).foregroundStyle(.secondary)
+                    Text(verbatim: result.storyline)
+                    if !result.fitReason.isEmpty { Text(verbatim: result.fitReason).font(.footnote).foregroundStyle(.secondary) }
                     ForEach(Array(result.nodes.enumerated()), id: \.offset) { idx, node in
-                        CYListRow(verbatim: node.name, meta: [node.address, node.task].filter { !$0.isEmpty }.joined(separator: " · "), trailing: .none) {
-                            Text(verbatim: String(idx + 1)).cyText(.label).monospacedDigit().frame(width: 28, height: 28)
-                                .background(CYColor.bgRaised, in: Circle())
-                        }
+                        let meta = [node.address, node.task].filter { !$0.isEmpty }.joined(separator: " · ")
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: node.name)
+                                if !meta.isEmpty { Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary) }
+                            }
+                        } icon: { Image(systemName: idx < 50 ? "\(idx + 1).circle" : "circle") }
                     }
                     ForEach(Array(result.risks.enumerated()), id: \.offset) { _, risk in
-                        Label { Text(verbatim: risk) } icon: { Image(systemName: "exclamationmark.triangle") }.cyText(.meta)
+                        Label { Text(verbatim: risk) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }.font(.footnote)
                     }
                 }
                 Section("context.ai.suggestions") { ForEach(Array(result.merchantSuggestions.enumerated()), id: \.offset) { _, value in Text(verbatim: value) } }
                 if !result.promoCopy.isEmpty { Section("context.ai.promo") { Text(verbatim: result.promoCopy).textSelection(.enabled) } }
                 ClubAIDesignPromoFeedback(clubID: clubID, session: session, flow: model.flow, resultGeneration: resultGeneration, promoCopy: result.promoCopy, operationID: $operationID, generating: $generating)
                 Section {
-                    Text("context.ai.adoptHint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    CYPillButton(showsPreviousResult ? LocalizedStringKey("clubAICandidate.adoptPrevious") : LocalizedStringKey("context.ai.adopt"), style: .primary) {
+                    Button(showsPreviousResult ? LocalizedStringKey("clubAICandidate.adoptPrevious") : LocalizedStringKey("context.ai.adopt")) {
                         guard !generating else { return }
                         if let draft = try? model.flow.adopt(clubID: clubID, generation: resultGeneration) { onAdopt(draft) }
                     }.disabled(generating || !model.flow.canAdoptResult)
-                        .accessibilityIdentifier("club.context.ai.adopt").listRowBackground(Color.clear)
-                }
+                        .accessibilityIdentifier("club.context.ai.adopt")
+                } footer: { Text("context.ai.adoptHint") }
             }
         }.navigationTitle("context.ai.title").scrollDismissesKeyboard(.interactively).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { focused = false } } }

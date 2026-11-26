@@ -29,17 +29,15 @@ import SwiftUI
         // Observe revisions without replacing the recording/upload presentation identity.
         let _ = revision
         Form {
-            CYHeroHeader("d7.imVoice.title").e1HeroRow()
             if !available {
-                CYEmptyState(systemImage: "lock", "d7.imCompose.unavailable", kind: .generic)
+                ContentUnavailableView("d7.imCompose.unavailable", systemImage: "lock")
             } else {
                 Section { composeBody }
                 Section { sendRecovery }
             }
         }
         .imFlowForm()
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("d7.imVoice.title"))
         .themeDomain(.player)
         .privacySensitive()
         .sensoryFeedback(.selection, trigger: recording)
@@ -59,8 +57,8 @@ import SwiftUI
             if owner.canUpload {
                 if recording {
                     Image(systemName: "waveform")
-                        .cyText(.sectionTitle)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
                         .symbolEffect(.variableColor.iterative, isActive: !reduceMotion)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityHidden(true)
@@ -74,8 +72,6 @@ import SwiftUI
                 .accessibilityLabel(Text(recording ? "d7.imVoice.stopRecording" : "d7.imVoice.record"))
                 if case .draft(let clip) = owner.visibleState {
                     LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: clip.durationMS) }
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
                     pill("d7.imVoice.play", image: "play", primary: false) {
                         do { try device?.play(clip.bytes, interrupted: {}) } catch { self.error = true }
                     }
@@ -85,36 +81,34 @@ import SwiftUI
                     destructive("d7.imCompose.discard") { device?.cancel(); owner.discardDraft() }
                 }
             } else {
-                CYEmptyState(systemImage: "mic.slash", "d7.imVoice.unavailable")
+                ContentUnavailableView("d7.imVoice.unavailable", systemImage: "mic.slash")
             }
         case .uploading:
-            status("d7.imCompose.uploading", symbol: "arrow.up.circle", color: CYColor.textSecondary)
-            CYSkeleton().accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.uploading"))
+            status("d7.imCompose.uploading", symbol: "arrow.up.circle", color: .secondary)
+            ProgressView().frame(maxWidth: .infinity).accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.uploading"))
         case .unknown:
-            status("d7.imCompose.uploadUnknown", symbol: "clock.arrow.circlepath", color: CYColor.textSecondary)
+            status("d7.imCompose.uploadUnknown", symbol: "clock.arrow.circlepath", color: .secondary)
             if owner.canRecover { pill("d7.imCompose.checkStatus", image: "arrow.clockwise", primary: false) { Task { await owner.recover() } } }
             if owner.canUpload { pill("d7.chatInfo.tryAgain", image: "arrow.clockwise", primary: false) { Task { if available { await owner.uploadUnchanged() } } } }
         case .held:
-            status("d7.imCompose.inReview", symbol: "clock", color: CYColor.textSecondary)
+            status("d7.imCompose.inReview", symbol: "clock", color: .secondary)
             if owner.canRecover { pill("d7.imCompose.refresh", image: "arrow.clockwise", primary: false) { Task { await owner.recover() } } }
         case .rejected:
-            status("d7.imVoice.rejected", symbol: "xmark.octagon", color: CYColor.dangerText)
+            status("d7.imVoice.rejected", symbol: "xmark.octagon", color: .red)
             if owner.canRecover { pill("d7.imCompose.refresh", image: "arrow.clockwise", primary: false) { Task { await owner.recover() } } }
             destructive("d7.imCompose.discard") { owner.discardRejected() }
         case .ready(let reference):
-            CYStatusChip("d7.imCompose.approved", tone: .success, systemImage: "checkmark.seal")
+            Label("d7.imCompose.approved", systemImage: "checkmark.seal").foregroundStyle(.green)
             LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: reference.durationMS) }
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
             if owner.expanded.writer.canSendVoice && owner.canRecoverOriginalSend {
                 pill("d7.imCompose.continue", image: "arrow.right.circle", primary: commit == .continueSend) {
                     Task { if available { await owner.reviewSend() } }
                 }
             }
         case .closed:
-            CYEmptyState(systemImage: "lock", "d7.imCompose.unavailable")
+            ContentUnavailableView("d7.imCompose.unavailable", systemImage: "lock")
         }
-        if error { status("d7.imVoice.deviceError", symbol: "exclamationmark.circle", color: CYColor.dangerText) }
+        if error { status("d7.imVoice.deviceError", symbol: "exclamationmark.circle", color: .red) }
     }
 
     @ViewBuilder private var sendRecovery: some View {
@@ -125,12 +119,12 @@ import SwiftUI
         }
         switch owner.originalSendState {
         case .reading:
-            status("d7.imCompose.checking", symbol: "clock", color: CYColor.textSecondary)
-            CYSkeleton().accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.checking"))
-        case .notFound: status("d7.imCompose.notFound", symbol: "questionmark.circle", color: CYColor.textSecondary)
-        case .unknown: status("d7.imCompose.stillUnknown", symbol: "clock.arrow.circlepath", color: CYColor.textSecondary)
+            status("d7.imCompose.checking", symbol: "clock", color: .secondary)
+            ProgressView().frame(maxWidth: .infinity).accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.checking"))
+        case .notFound: status("d7.imCompose.notFound", symbol: "questionmark.circle", color: .secondary)
+        case .unknown: status("d7.imCompose.stillUnknown", symbol: "clock.arrow.circlepath", color: .secondary)
         case .found:
-            CYStatusChip("d7.imVoice.sent", tone: .success, systemImage: "checkmark.circle")
+            Label("d7.imVoice.sent", systemImage: "checkmark.circle").foregroundStyle(.green)
             pill("d7.imCompose.done", image: "checkmark", primary: false) { owner.finishAcknowledged() }
         case .unchecked: EmptyView()
         }
@@ -142,15 +136,13 @@ import SwiftUI
                     Task { if available { await owner.expanded.confirm() } }
                 }
                 Button("action.cancel", role: .cancel) { owner.expanded.cancelReview() }
-                    .cyText(.label)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
             }
         case .submitting:
-            status("d7.imCompose.sending", symbol: "paperplane", color: CYColor.textSecondary)
-            CYSkeleton().accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.sending"))
+            status("d7.imCompose.sending", symbol: "paperplane", color: .secondary)
+            ProgressView().frame(maxWidth: .infinity).accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.sending"))
         case .outcomeUnknown(.send(let intent)), .rejected(.send(let intent)):
             if case .voice = intent.payload {
-                status("d7.imCompose.sendUnknown", symbol: "clock.arrow.circlepath", color: CYColor.textSecondary)
+                status("d7.imCompose.sendUnknown", symbol: "clock.arrow.circlepath", color: .secondary)
                 // Retry reads the original receipt first, then retries the same message.
                 if owner.canRecoverOriginalSend {
                     pill("d7.chatInfo.tryAgain", image: "arrow.clockwise", primary: false) {
@@ -160,7 +152,7 @@ import SwiftUI
             }
         case .acknowledged(.sent(let message)):
             if IMVoiceReference.read(message) != nil, !hasRecoveredSend {
-                CYStatusChip("d7.imVoice.sent", tone: .success, systemImage: "checkmark.circle")
+                Label("d7.imVoice.sent", systemImage: "checkmark.circle").foregroundStyle(.green)
                 if owner.canRecoverOriginalSend {
                     pill("d7.imCompose.done", image: "checkmark", primary: false) {
                         Task { if available { await owner.recoverAndFinishAcknowledged() } }
@@ -189,20 +181,23 @@ import SwiftUI
     }
     private func stop() { device?.cancel(); recording = false; owner.invalidate() }
 
-    private func pill(_ title: LocalizedStringKey, image: String, primary: Bool, action: @escaping () -> Void) -> some View {
-        CYPillButton(title, style: primary ? .primary : .secondary, systemImage: image, action: action).e1ActionRow()
+    /// System button: the one filled action is `.borderedProminent`, the rest `.bordered`.
+    @ViewBuilder private func pill(_ title: LocalizedStringKey, image: String, primary: Bool, action: @escaping () -> Void) -> some View {
+        let button = Button(action: action) { Label(title, systemImage: image).frame(maxWidth: .infinity) }
+        if primary {
+            button.buttonStyle(.borderedProminent).controlSize(.large)
+        } else {
+            button.buttonStyle(.bordered).controlSize(.large)
+        }
     }
     private func destructive(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(title, role: .destructive, action: action)
-            .cyText(.label)
-            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
     }
     private func status(_ key: LocalizedStringKey, symbol: String, color: Color) -> some View {
         Label(key, systemImage: symbol)
-            .cyText(.body)
             .foregroundStyle(color)
             .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
     }
 }
@@ -222,23 +217,20 @@ import SwiftUI
     private var canPlay: Bool { owner.service.playbackEnabled && owner.service.playbackStatusEnabled }
     var body: some View {
         Form {
-            CYHeroHeader("d7.imVoice.message").e1HeroRow()
             if let voice = IMVoiceReference.read(message), available {
                 Section {
                     LabeledContent {
                         IMDurationText(milliseconds: voice.durationMS)
                     } label: { Label("d7.imVoice.message", systemImage: "waveform") }
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
                     if loading {
                         Image(systemName: "waveform")
-                            .cyText(.sectionTitle)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
                             .symbolEffect(.variableColor.iterative, isActive: !reduceMotion)
                             .accessibilityHidden(true)
                     }
                     if canPlay {
-                        CYPillButton("d7.imVoice.play", systemImage: "play.fill") {
+                        Button {
                             guard available, !loading else { return }
                             stop(); let stamp = generation; loading = true; failed = false
                             Task { @MainActor in
@@ -252,35 +244,45 @@ import SwiftUI
                                     monitorPlayback(stamp: stamp, durationMS: voice.durationMS)
                                 } catch { if generation == stamp { failPlayback(error) } }
                             }
+                        } label: {
+                            Label("d7.imVoice.play", systemImage: "play.fill").frame(maxWidth: .infinity)
                         }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
                         .disabled(loading)
-                        .e1ActionRow()
                         .accessibilityLabel(Text("d7.imVoice.play"))
                     }
-                    CYPillButton("d7.imVoice.stop", style: canPlay ? .secondary : .primary, systemImage: "stop.fill") { stop() }
-                        .e1ActionRow()
-                        .accessibilityLabel(Text("d7.imVoice.stop"))
+                    Group {
+                        let stopButton = Button { stop() } label: {
+                            Label("d7.imVoice.stop", systemImage: "stop.fill").frame(maxWidth: .infinity)
+                        }
+                        if canPlay {
+                            stopButton.buttonStyle(.bordered).controlSize(.large)
+                        } else {
+                            stopButton.buttonStyle(.borderedProminent).controlSize(.large)
+                        }
+                    }
+                    .accessibilityLabel(Text("d7.imVoice.stop"))
                 }
             } else {
-                CYEmptyState(systemImage: "lock", "d7.imVoice.messageUnavailable")
+                ContentUnavailableView("d7.imVoice.messageUnavailable", systemImage: "lock")
             }
             if loading {
-                Text("d7.imCompose.loading")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                CYSkeleton().accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.loading"))
+                HStack(spacing: 8) {
+                    ProgressView().accessibilityHidden(true)
+                    Text("d7.imCompose.loading")
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityElement(children: .combine)
             }
             if failed {
                 Label("d7.imVoice.playFailed", systemImage: "exclamationmark.circle")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.dangerText)
+                    .foregroundStyle(.red)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .imFlowForm()
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("d7.imVoice.message"))
         .themeDomain(.player)
         .privacySensitive()
         .onReceive(NotificationCenter.default.publisher(for: IMVoiceCoordinator.consumptionRetiredNotification)) { event in

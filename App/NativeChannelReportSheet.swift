@@ -20,12 +20,11 @@ import SwiftUI
                                 } label: { Text("d7.channelReport.reason") }
                                 TextField("d7.channelReport.note", text: Binding(get: { owner.note }, set: { owner.select(reason: owner.selectedReason, note: $0) }), axis: .vertical).lineLimit(3...8)
                                 if owner.note.utf16.count > 500 {
-                                    Text("d7.channelReport.noteTooLong").cyText(.bodyCompact).foregroundStyle(Theme.Color.danger(in: domain))
+                                    Text("d7.channelReport.noteTooLong").font(.footnote).foregroundStyle(.red)
                                 }
                             }
                             Section {
-                                Button { Task { await owner.submit() } } label: { Text("d7.channelReport.submit").frame(maxWidth: .infinity) }
-                                    .nativeChannelFlowAction()
+                                Button { Task { await owner.submit() } } label: { Text("d7.channelReport.submit") }
                                     .disabled(!owner.canSubmit || owner.selectedReason == nil || owner.note.utf16.count > 500)
                             }
                         case .submitting, .reading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("d7.channelReport.submit"))
@@ -55,7 +54,6 @@ import SwiftUI
                 }
             }
             .nativeChannelFlowPage()
-            .cyGroupedSurface()
             .navigationTitle(Text("d7.channelReport.title")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         }

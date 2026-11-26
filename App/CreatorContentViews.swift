@@ -39,33 +39,43 @@ private struct CreatorContentIssueView: View {
     var failureTitleKey: String? = nil
     let retry: () -> Void
     private var isDenied: Bool { issue == .unavailable && deniedTitleKey != nil }
+    /// A failed read with a page title shows that title, with the reason as the description.
+    private var showsReasonBelow: Bool {
+        !(issue == .login && loginTitleKey != nil) && !isDenied && issue != .notConfigured && failureTitleKey != nil
+    }
     var body: some View {
-        VStack(spacing: CYSpacing.md) {
-            Image(systemName: issue == .login || isDenied ? "lock" : "exclamationmark.circle")
-                .font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-            Group {
-                if issue == .login, let loginTitleKey { Text(LocalizedStringKey(loginTitleKey)) }
-                else if isDenied, let deniedTitleKey { Text(LocalizedStringKey(deniedTitleKey)) }
-                else if issue != .notConfigured, let failureTitleKey {
-                    VStack(spacing: CYSpacing.xs) {
-                        Text(LocalizedStringKey(failureTitleKey)).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                        if case .server(let text) = issue { Text(verbatim: text) }
-                        else { Text(LocalizedStringKey(issue.localizationKey)) }
-                    }.accessibilityElement(children: .combine)
+        ContentUnavailableView {
+            Label {
+                Group {
+                    if issue == .login, let loginTitleKey { Text(LocalizedStringKey(loginTitleKey)) }
+                    else if isDenied, let deniedTitleKey { Text(LocalizedStringKey(deniedTitleKey)) }
+                    else if showsReasonBelow, let failureTitleKey { Text(LocalizedStringKey(failureTitleKey)) }
+                    else { reason }
                 }
-                else if case .server(let text) = issue { Text(verbatim: text) }
-                else { Text(LocalizedStringKey(issue.localizationKey)) }
-            }.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 .accessibilityIdentifier("creatorContent.issue")
+            } icon: {
+                Image(systemName: issue == .login || isDenied ? "lock" : "exclamationmark.circle")
+            }
+        } description: {
+            if showsReasonBelow { reason }
+        } actions: {
             if issue == .login, let onLogin {
-                CYPillButton("auth.signIn", style: .primary, fullWidth: false, action: onLogin)
+                Button(action: onLogin) { Text("auth.signIn") }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .accessibilityIdentifier("projects.signInAction")
             }
             if issue != .login && issue != .notConfigured && !isDenied {
-                CYPillButton("creatorContent.retry", style: .secondary, fullWidth: false, action: retry)
+                Button(action: retry) { Text("creatorContent.retry") }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                     .accessibilityIdentifier("creatorContent.retry")
             }
-        }.frame(maxWidth: .infinity).padding(.vertical, CYSpacing.lg)
+        }
+    }
+    @ViewBuilder private var reason: some View {
+        if case .server(let text) = issue { Text(verbatim: text) }
+        else { Text(LocalizedStringKey(issue.localizationKey)) }
     }
 }
 /// Host must observe account/market revisions and reset this destination with .id(reader.scope).
@@ -98,7 +108,7 @@ private struct CreatorContentIssueView: View {
     }
     var body: some View {
         List {
-            if reader.isOfflineExample { CYStatusChip("creatorContent.offlineExample", tone: .warning, systemImage: "testtube.2") }
+            if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(.orange) }
             if !reader.isAuthenticated { issue(.login) }
             else if !reader.isConfigured { issue(.notConfigured) }
             else {
@@ -115,13 +125,13 @@ private struct CreatorContentIssueView: View {
                 else if model.state.isLoading, let kept = model.stale,
                         MyProjectSyncPort.keepsStaleRows(isLoading: true, previousQuery: kept.query, currentQuery: query,
                                                         previousScope: kept.scope, currentScope: key.scope) {
-                    Text("myProject.syncing").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    Text("myProject.syncing").font(.footnote).foregroundStyle(.secondary)
                         .accessibilityAddTraits(.updatesFrequently).accessibilityIdentifier("myProject.syncing")
                     ForEach(MyProjectListPresentation.sorted(kept.value.rows)) { project in
-                        card(project).questifyCardListRow().allowsHitTesting(false)
+                        card(project).allowsHitTesting(false)
                     }
                 }
-                else if model.state.isLoading || model.state.loadedScope != key.scope { CYLoadingStateView(rows: 3).accessibilityLabel(Text("creatorContent.loading")) }
+                else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("creatorContent.loading")) }
                 else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
                 else if let page = model.state.visibleValue(scope: key.scope) {
                     if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
@@ -135,15 +145,14 @@ private struct CreatorContentIssueView: View {
                                       model.state.visibleValue(scope: rowScope)?.rows.contains(project) == true else { return }
                                 if let onOpenProject { onOpenProject(project, rowScope, entryScope) } else { onOpen(destination) }
                             } label: { card(project) }
-                                .buttonStyle(QuestifyCardButtonStyle())
+                                .buttonStyle(.plain)
                                 .accessibilityIdentifier("creatorContent.project.\(project.id)")
                                 .contextMenu { MyProjectRowOperationsMenu(project: project) }
                                 .overlay(alignment: .topTrailing) { MyProjectRowMoreButton(project: project) }
-                                .questifyCardListRow()
                             MyProjectSaveAsTemplateEntry(project: project) { Task { await refresh() } }
                             MyProjectAuditEntry(project: project)
                         } else {
-                            card(project).questifyCardListRow()
+                            card(project)
                         }
                     }
                 }
@@ -169,26 +178,15 @@ private struct CreatorContentIssueView: View {
         .cyToast(verbatimMessage: $toastMessage)
     }
     private var typeTabs: some View {
-        HStack(spacing: 0) {
+        Picker(selection: $query.type) {
             ForEach(["topic", "activity", "template"], id: \.self) { value in
-                let selected = query.type == value
-                Button { query.type = value } label: {
-                    VStack(spacing: CYSpacing.sm) {
-                        Text(LocalizedStringKey("creatorContent.filter." + value))
-                            .cyText(selected ? .cardTitle : .body)
-                            .foregroundStyle(selected ? CYColor.textPrimary : CYColor.textSecondary)
-                        Capsule().fill(selected ? CYColor.textPrimary : Color.clear).frame(height: 3)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(selected ? .isSelected : [])
-                .accessibilityIdentifier("creatorContent.type.\(value)")
+                Text(LocalizedStringKey("creatorContent.filter." + value))
+                    .accessibilityIdentifier("creatorContent.type.\(value)")
+                    .tag(value)
             }
-        }
+        } label: { Text("creatorContent.type") }
+        .pickerStyle(.segmented)
         .sensoryFeedback(.selection, trigger: query.type)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text("creatorContent.type"))
     }
     private func issue(_ value: CreatorContentIssue) -> some View {
         CreatorContentIssueView(issue: value, loginTitleKey: "myProject.signInRequired",
@@ -203,17 +201,17 @@ private struct CreatorContentIssueView: View {
                 Color.clear.frame(width: 92, height: 92)
                     .overlay { E1CoverArt(seed: title, symbol: "map", imageURL: project.cover, debugLabel: false,
                                               fallbackImage: MPAsset.BannerCover.subpackageAImagesRouteFreeCover) } // MP myproject.wxml:38
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .clipShape(.rect(cornerRadius: CYRadius.md, style: .continuous)) // image crop only
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    if let state = project.stateText { CYStatusChip(verbatim: state, tone: .neutral) }
-                    if let type = project.projectTypeText { Text(verbatim: type).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                    if title.isEmpty { Text("creatorContent.untitled").cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
-                    else { Text(verbatim: title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                    if let state = project.stateText { Text(verbatim: state).font(.footnote).foregroundStyle(.secondary) }
+                    if let type = project.projectTypeText { Text(verbatim: type).font(.subheadline).foregroundStyle(.secondary) }
+                    if title.isEmpty { Text("creatorContent.untitled").font(.headline).fixedSize(horizontal: false, vertical: true) }
+                    else { Text(verbatim: title).font(.headline).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true) }
                     MyProjectCardMeta(project: project, chinese: locale.language.languageCode?.identifier == "zh")
                 }
             }
-            Divider().overlay(CYColor.borderSubtle)
+            Divider()
             // Mini-program myproject footer: co-host acceptance text, otherwise always "N 报名 · N 浏览", then the owner identity.
             Group {
                 if let pending = project.pendingVerifyCount { Text("myProject.pendingVerify \(pending)") }
@@ -221,13 +219,14 @@ private struct CreatorContentIssueView: View {
                 // Missing counts read "—", never 0 (U03-03: unknown is not a default).
                 else { Text("list.stats \(project.signupCountFact.displayText) \(project.viewCountFact.displayText)", tableName: PublishClarityText.table) }
             }
-            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            .font(.subheadline).foregroundStyle(.secondary)
             if project.ownerType == "club" || project.ownerType == "merchant" {
                 Text(LocalizedStringKey(project.ownerType == "club" ? "creatorContent.filter.club" : "creatorContent.filter.merchant"))
-                    .cyText(.meta).foregroundStyle(.secondary)
+                    .font(.subheadline).foregroundStyle(.secondary)
             }
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
     private func refresh() async {
@@ -253,17 +252,17 @@ private struct CreatorContentIssueView: View {
     private var key: CreatorContentLoadKey { .init(reader) }
     var body: some View {
         List {
-            if reader.isOfflineExample { CYStatusChip("creatorContent.offlineExample", tone: .warning, systemImage: "testtube.2") }
+            if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(.orange) }
             if !reader.isAuthenticated { issue(.login) }
             else if !reader.isConfigured { issue(.notConfigured) }
-            else if model.state.isLoading || model.state.loadedScope != key.scope { CYLoadingStateView(rows: 3).accessibilityLabel(Text("creatorContent.loading")) }
+            else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("creatorContent.loading")) }
             else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
             else if let center = model.state.visibleValue(scope: key.scope) {
                 Section {
                     Text(LocalizedStringKey("creatorContent.status." + center.status.rawValue))
-                        .cyText(.sectionTitle).accessibilityIdentifier("creatorContent.status")
-                    if let name = center.creatorName { Text(verbatim: name).cyText(.cardTitle) }
-                    if let bio = center.bio { Text(verbatim: bio).cyText(.body).foregroundStyle(CYColor.textSecondary) }
+                        .font(.headline).accessibilityIdentifier("creatorContent.status")
+                    if let name = center.creatorName { Text(verbatim: name) }
+                    if let bio = center.bio { Text(verbatim: bio).foregroundStyle(.secondary) }
                     if center.status == .rejected {
                         if let reason = center.rejectReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(verbatim: reason) }
                         else { Text("creatorContent.noReason") }
@@ -283,15 +282,15 @@ private struct CreatorContentIssueView: View {
                         if center.recentIncome.isEmpty { Text("creatorContent.noIncome") }
                         ForEach(Array(center.recentIncome.enumerated()), id: \.offset) { _, row in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(verbatim: row.amount ?? "—").cyText(.numericBody).monospacedDigit()
-                                if let source = row.source { Text(verbatim: source).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                                if let date = row.date { Text(verbatim: date).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                                Text(verbatim: row.amount ?? "—").monospacedDigit()
+                                if let source = row.source { Text(verbatim: source).font(.subheadline).foregroundStyle(.secondary) }
+                                if let date = row.date { Text(verbatim: date).font(.subheadline).foregroundStyle(.secondary) }
                             }
                         }
                     }
                 }
                 if let creatorStudio { CreatorStudioEntrySection(service: creatorStudio, reader: reader) }
-                Text("creatorContent.centerReadOnly").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("creatorContent.centerReadOnly").font(.footnote).foregroundStyle(.secondary)
             }
         }
         .cyDomainScreen(.topicEditor)
@@ -299,7 +298,7 @@ private struct CreatorContentIssueView: View {
         .appNavigationTitle("creatorContent.center").navigationBarTitleDisplayMode(.inline)
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
     }
-    private func metric(_ title: LocalizedStringKey, _ count: Int?) -> some View { LabeledContent { Text(verbatim: count.map(String.init) ?? "—").cyText(.numericBody).monospacedDigit() } label: { Text(title) } }
+    private func metric(_ title: LocalizedStringKey, _ count: Int?) -> some View { LabeledContent { Text(verbatim: count.map(String.init) ?? "—").monospacedDigit() } label: { Text(title) } }
     private func issue(_ value: CreatorContentIssue) -> some View { CreatorContentIssueView(issue: value) { Task { await refresh() } } }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.clear(); return }

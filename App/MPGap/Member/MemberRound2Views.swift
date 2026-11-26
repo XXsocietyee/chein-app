@@ -36,12 +36,10 @@ public struct OrderDetailTeamSeatsClubSections: View {
                 Section("orderDetail.credentials.extra") {
                     if let partyText, !partyText.isEmpty {
                         LabeledContent("orderDetail.partyTicket", value: partyText)
-                            .cyText(.bodyCompact)
                     }
                     if isTicketExpired {
-                        Text("orderDetail.ticketExpired")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
+                        Label("orderDetail.ticketExpired", systemImage: "clock.badge.exclamationmark")
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -78,8 +76,8 @@ public struct OrderDetailTeamSeatsClubSections: View {
             if let consent = model.merchantConsentText, !consent.isEmpty {
                 Section("orderDetail.merchantConsent.section") {
                     Text(consent)
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -116,16 +114,16 @@ public struct ParticipationDetailGapSections: View {
                 Section {
                     CYCachedAsyncImage(coverURL, role: .cover)
                         .frame(maxWidth: .infinity, minHeight: 160)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .clipped()
+                        .listRowInsets(EdgeInsets())
                 }
             }
 
             if isFreeExplore {
                 Section {
                     Button(action: onOpenFreeExploreBundle) {
-                        Text("participation.freeExploreBundle").cyText(.body)
+                        Text("participation.freeExploreBundle")
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
                     }
                     .accessibilityIdentifier("playerJourney.freeExploreBundle")
                 }
@@ -141,7 +139,8 @@ public struct ParticipationDetailGapSections: View {
                 Section("participation.templateBanner") {
                     CYCachedAsyncImage(templateBannerURL, role: .cover)
                         .frame(maxWidth: .infinity, minHeight: 120)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .clipped()
+                        .listRowInsets(EdgeInsets())
                 }
             }
         }

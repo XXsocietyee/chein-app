@@ -89,14 +89,13 @@ extension ClubLeadPrimaryAction {
     var body: some View {
         Section {
             if let ownerStage, !leadActionAligned {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: ownerStage.label)
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .font(.headline)
                     if !ownerStage.hint.isEmpty {
                         Text(verbatim: ownerStage.hint)
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .accessibilityIdentifier("club.leadPrimary.stage")
@@ -111,21 +110,25 @@ extension ClubLeadPrimaryAction {
                     if let ownerStage { Text(verbatim: ownerStage.label) }
                     else { Text(LocalizedStringKey(action.titleKey)) }
                 }
-                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
                 .disabled(controller.preparing || controller.route != nil || !current || destinations.destination == nil)
                 .accessibilityIdentifier("club.leadPrimary.open")
                 .cyHaptic(.impactMedium, trigger: controller.route?.id) { _, opened in opened != nil }
                 if let hint = ownerStage?.hint, !hint.isEmpty {
                     Text(verbatim: hint)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.leadPrimary.hint")
                 }
             }
-            if controller.preparing { ProgressView("club.leadPrimary.checking").frame(minHeight: CYSpacing.minTouchTarget) }
+            if controller.preparing { ProgressView("club.leadPrimary.checking") }
             if let notice = controller.notice {
-                CYStatusChip(LocalizedStringKey("club.leadPrimary." + notice.rawValue), tone: notice == .changed ? .warning : .neutral, systemImage: "info.circle")
-                    .accessibilityIdentifier("club.leadPrimary.notice")
+                Label {
+                    Text(LocalizedStringKey("club.leadPrimary." + notice.rawValue))
+                } icon: {
+                    Image(systemName: "info.circle").foregroundStyle(notice == .changed ? Color.orange : Color.secondary)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("club.leadPrimary.notice")
             }
         }
         .task(id: context) { if scenePhase == .active { controller.activate(context) } }
@@ -171,8 +174,7 @@ extension ClubLeadPrimaryAction {
             case .merchants:
                 return AnyView(SessionClubMerchantProfileHost(session: self) {
                     List { ClubMerchantDiscoveryView(club: club, clubReader: self, reader: self.cooperationFlowReader) }
-                        .cyGroupedSurface()
-                        .cyHeroScreen()
+                        .navigationBarTitleDisplayMode(.inline)
                 })
             case .sentInvitations:
                 return AnyView(ClubInvitationFeedbackView(club: club, clubReader: self,

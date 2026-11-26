@@ -10,7 +10,9 @@ import SwiftUI
         Section("主题角色成长规则") {
             if author.editor == nil {
                 Text("沿已有 RPG 角色配置编辑本主题成长曲线，不与平台经验互相换算。不会创建缺失角色模板或自动开启成长。")
-                CYPillButton("读取原成长配置", style: .secondary) { author.open() }.listRowBackground(Color.clear).disabled(!author.available)
+                Button { author.open() } label: { Text("读取原成长配置") }
+                    .buttonStyle(.bordered).controlSize(.large)
+                    .disabled(!author.available)
             } else {
                 if !author.isCurrent { NativeAuthorNotice(text: Text("原项目已变化，请重新读取；不会覆盖其他编辑。"), tone: .attention) }
                 editor.disabled(!author.isCurrent)
@@ -38,15 +40,15 @@ import SwiftUI
                         .accessibilityIdentifier("growth.author.issue.\(issue.rawValue)")
                 }
                 Toggle("显式启用本主题成长", isOn: author.enabled)
-                TextField("等级上限（1–20）", text: author.number("maxLevel"))
-                TextField("每级技能点", text: author.number("skillPointsPerLevel"))
+                TextField("等级上限（1–20）", text: author.number("maxLevel")).keyboardType(.numberPad)
+                TextField("每级技能点", text: author.number("skillPointsPerLevel")).keyboardType(.numberPad)
                 Text("以下为累计 XP 阈值，必须严格递增，条数等于等级上限减一；不会按输入等级自动猜测或倍增。")
                 if let required = validation.requiredThresholdCount {
                     Text(verbatim: String(format: NativeRpgGrowthAuthorValidation.text("growthValidation.count", locale: locale), locale: locale, arguments: [validation.thresholdCount, required]))
                         .accessibilityIdentifier("growth.author.thresholdCount")
                 }
                 ForEach(Array((growth["xpThresholds"]?.array ?? []).enumerated()), id: \.offset) { index, _ in
-                    TextField("升至等级 \(index + 2) 的累计 XP", text: author.threshold(index))
+                    TextField("升至等级 \(index + 2) 的累计 XP", text: author.threshold(index)).keyboardType(.numberPad)
                 }
                 Button("添加一项空阈值") { author.mutate(editorID: editorID, changesThresholds: true) { $0.addThreshold() } }.disabled(!validation.canAddThreshold).accessibilityIdentifier("growth.author.addThreshold")
                 Button("移除末项阈值", role: .destructive) { author.mutate(editorID: editorID, changesThresholds: true) { $0.removeLastThreshold() } }.disabled(!validation.canRemoveThreshold).accessibilityIdentifier("growth.author.removeThreshold")
@@ -57,10 +59,13 @@ import SwiftUI
                 } else {
                     ForEach(NativeRpgGrowthAuthorDraft.featKeys, id: \.self) { key in Toggle(key, isOn: author.feat(key)) }
                 }
-                CYPillButton("预览本地成长修改", style: .secondary) { author.preview(editorID: editorID) }.listRowBackground(Color.clear).disabled(!validation.canPreview).accessibilityIdentifier("growth.author.preview")
+                Button { author.preview(editorID: editorID) } label: { Text("预览本地成长修改") }
+                    .buttonStyle(.bordered).controlSize(.large)
+                    .disabled(!validation.canPreview).accessibilityIdentifier("growth.author.preview")
                 if let review = author.review {
                     Text(review.value.text ?? "") .font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                    CYPillButton(author.saveUnconfirmed ? "重试保存原项目本地草稿" : "确认写回并保存原项目草稿") { author.apply(review) }.listRowBackground(Color.clear)
+                    Button { author.apply(review) } label: { Text(LocalizedStringKey(author.saveUnconfirmed ? "重试保存原项目本地草稿" : "确认写回并保存原项目草稿")) }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
                     Text("先由原保存器确认完整本地草稿保存成功，再关闭此副本；本地失败保留编辑。仍须使用页面原云保存／发布，服务器按本版本角色与属性定义校验并冻结。").nativeAuthorSupportingCopy()
                 }
             }

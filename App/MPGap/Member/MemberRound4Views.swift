@@ -93,7 +93,7 @@ public struct TemplateMineCardCoverView: View {
                     .frame(height: 120)
                     .clipped()
             } else {
-                Color(uiColor: .secondarySystemFill)
+                Rectangle().fill(.quaternary)
                     .frame(height: 120)
                     .overlay {
                         Text(String(title.prefix(1)))

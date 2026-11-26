@@ -17,10 +17,12 @@ STEPS = [
     ("content", "活动内容", "这场活动玩什么？", ["description", "imgUrl", "templateId"]),
     ("ticket", "票务与合作", "这场活动怎么卖票？", ["ticket*"]),
 ]
-QUICK_SHA = "c6f8156c2aade5d461d2d9cd602fef121e620e18dcdb9ff23463ddc6ddda32f2"
+# native r2: quick/prefix/suffix slices re-pinned after the presentation-only native SwiftUI conversion
+# (List/Form/LabeledContent/toolbar replace CY rows/pills; same actions, identifiers and request logic).
+QUICK_SHA = "65a1870d689dc9c181dbfa35be9dbfd925ff93451b78227c90f148fb4856c703"
 # fix/r8-player-content: re-pinned for R7-PC-D1-1 (pushed menu 我的项目 → makeProjects) only.
-PREFIX_SHA = "16b6813414a67654c4bc6eaa49d13176e5f7bd12454877b3eea8132f333ab52c"
-SUFFIX_SHA = "877dee84eae51bfba8b6ad26d5304d8b77017a77034324d7d97ae20392808cb0"
+PREFIX_SHA = "8756625bc83ca914e738eeaf29bef4a8ea37e2884b520d2e1f01a10ae450149a"
+SUFFIX_SHA = "52c7c5f642c52f20f97ec5443a52d8bd8cfaae574ed11bb378f3cf5ab22da50c"
 
 
 def read(path):

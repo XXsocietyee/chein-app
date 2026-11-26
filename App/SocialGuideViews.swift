@@ -22,15 +22,25 @@ import SwiftUI
                     // PlayGuideInformationListPage keeps only usable rows; an all-unusable list is the empty phase.
                     let rows = decoded.filter(\.isUsable)
                     if rows.isEmpty {
-                        CYEmptyState(systemImage: "tray", "guideXcx.docsEmpty", messageIdentifier: "social.guide.docsEmpty")
-                            .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                        ContentUnavailableView {
+                            Label { Text("guideXcx.docsEmpty").accessibilityIdentifier("social.guide.docsEmpty") } icon: { Image(systemName: "tray") }
+                        }
                     }
                     ForEach(rows) { row in
                         NavigationLink {
                             if let informationDestination { informationDestination(row) }
                             else { AnyView(SocialInformationView(id: row.id, reader: reader)) }
                         } label: {
-                            CYListRow(verbatim: row.title, meta: row.summary, trailing: .none) { SocialInformationArt(id: row.id).frame(width: 56, height: 56).clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)) }
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(verbatim: row.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : row.title)
+                                    if let summary = row.summary {
+                                        Text(verbatim: summary).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+                                    }
+                                }
+                            } icon: {
+                                SocialInformationArt(id: row.id).frame(width: 56, height: 56)
+                            }
                         }.accessibilityIdentifier("social.information.\(row.id)")
                     }
                 }
@@ -38,7 +48,6 @@ import SwiftUI
                 Text("guideXcx.docs")
             }
         }
-        .cyDomainPageBackground()
         .cyPageTitle("social.guide.title") // PC-D-2-3
         .accessibilityIdentifier("social.guide")
     }
@@ -52,7 +61,13 @@ import SwiftUI
     var body: some View {
         List {
             // Mini-program missing-param shell: 链接已失效 with one 返回.
-            if id <= 0 { CYEmptyState(systemImage: "info.circle", "mp.common.linkExpired", actionTitle: "roamSub.w208.voucher.back", action: { dismiss() }) }
+            if id <= 0 {
+                ContentUnavailableView {
+                    Label("mp.common.linkExpired", systemImage: "info.circle")
+                } actions: {
+                    Button("roamSub.w208.voucher.back") { dismiss() }.buttonStyle(.bordered)
+                }
+            }
             else {
                 SocialReadScreen(reader: reader, requestKey: "information-\(id)", load: { try await reader.information(id: id) }) { row in
                     // subpackageA/pages/infomationdetail: removed, mismatched, or blank documents never render as an article.
@@ -61,7 +76,6 @@ import SwiftUI
                     switch page.phase {
                     case .ready(let article):
                         SocialInformationCover(id: article.id, title: article.title, created: page.createTimeDisplay)
-                            .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
                             .onAppear { articleTitle = article.title }
                         if let contents = article.contents, page.bodyKey == nil {
                             SocialArticleContentView(contents: contents)
@@ -70,21 +84,23 @@ import SwiftUI
                             let media = SocialArticleMediaBlocks.extract(contents)
                             if !media.isEmpty {
                                 SocialArticleRichBlocksView(blocks: media)
-                                    .listRowBackground(Color.clear)
                                     .accessibilityIdentifier("social.article.media")
                             }
                         }
-                        else { CYEmptyState(systemImage: "doc.text", LocalizedStringKey(InformationDetailPageModel.Copy.noContent)) }
+                        else { ContentUnavailableView(LocalizedStringKey(InformationDetailPageModel.Copy.noContent), systemImage: "doc.text") }
                     case .empty(.removed):
                         // R7-PC-D3-4 (MP infomationdetail.wxml:21-23): the removed state leads back to the list.
-                        CYEmptyState(systemImage: "doc", LocalizedStringKey(InformationDetailPageModel.Copy.removed),
-                                     actionTitle: "guideXcx.backToList", action: { dismiss() })
+                        ContentUnavailableView {
+                            Label(LocalizedStringKey(InformationDetailPageModel.Copy.removed), systemImage: "doc")
+                        } actions: {
+                            Button("guideXcx.backToList") { dismiss() }.buttonStyle(.bordered)
+                        }
                             .accessibilityIdentifier(page.accessibilityIdentifier ?? "")
                     case .empty(.incompleteLink):
-                        CYEmptyState(systemImage: "link", LocalizedStringKey(InformationDetailPageModel.Copy.incompleteLink))
+                        ContentUnavailableView(LocalizedStringKey(InformationDetailPageModel.Copy.incompleteLink), systemImage: "link")
                             .accessibilityIdentifier(page.accessibilityIdentifier ?? "")
                     case .unknown:
-                        CYEmptyState(systemImage: "questionmark.folder", LocalizedStringKey(InformationDetailPageModel.Copy.unknown))
+                        ContentUnavailableView(LocalizedStringKey(InformationDetailPageModel.Copy.unknown), systemImage: "questionmark.folder")
                             .accessibilityIdentifier(page.accessibilityIdentifier ?? "")
                     case .loading, .error, nil:
                         EmptyView()
@@ -92,12 +108,10 @@ import SwiftUI
                 }
             }
         }
-        .cyGroupedSurface()
         .modifier(SocialInformationTitle(articleTitle: articleTitle))
         .toolbar {
             if id > 0 { ToolbarItem(placement: .topBarTrailing) { informationShare } }
         }
-        .cyDomainPageBackground()
         .themeDomain(.player)
         .tint(CYDomainPalette(.player).brand)
         .accessibilityIdentifier("social.information.detail")
@@ -119,15 +133,15 @@ import SwiftUI
 struct SocialInformationArt: View {
     let id: Int
     var large = false
-    @Environment(\.cyPalette) private var palette
     var body: some View {
-        RoundedRectangle(cornerRadius: large ? CYRadius.card : CYRadius.inner, style: .continuous)
-            .fill(palette.bgElevated)
+        // A thumbnail placeholder in the system fill, like a document thumbnail in Files.
+        RoundedRectangle(cornerRadius: large ? 12 : 8, style: .continuous)
+            .fill(.quaternary)
             .overlay(alignment: large ? .topTrailing : .center) {
                 Image(systemName: abs(id) % 2 == 0 ? "text.book.closed" : "doc.text")
                     .font(large ? .largeTitle.weight(.thin) : .title3.weight(.light))
-                    .foregroundStyle(palette.textTertiary)
-                    .padding(large ? CYSpacing.lg : 0)
+                    .foregroundStyle(.secondary)
+                    .padding(large ? 16 : 0)
             }
             .accessibilityHidden(true)
     }
@@ -139,20 +153,16 @@ struct SocialInformationCover: View {
     let title: String
     let created: String?
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let created {
-                    Text(verbatim: created).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("social.information.createTime")
-                }
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: title).font(.title2.bold())
+                .fixedSize(horizontal: false, vertical: true)
+            if let created {
+                Text(verbatim: created).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                    .accessibilityIdentifier("social.information.createTime")
             }
-            .accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
-            // R7-PC-D3-5 MP-first: infomationdetail.wxml:30-41 is title + createTime, then the content; no disclaimer row.
-            Divider().overlay(CYColor.borderSubtle)
         }
-        .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+        .accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
+        // R7-PC-D3-5 MP-first: infomationdetail.wxml:30-41 is title + createTime, then the content; no disclaimer row.
     }
 }
 
