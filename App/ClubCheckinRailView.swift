@@ -151,12 +151,13 @@ struct ClubCheckinDetailRows: View {
                 if let cover = text("topicCover") {
                     SquareImage(source: cover)
                         .frame(width: 59, height: 40)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .clipped()
                         .accessibilityHidden(true)
                 } else {
-                    // MP wxml:45 `ckd-cover--empty`: the same footprint on bg-elevated, so the text column never jumps.
-                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                        .fill(Color(uiColor: .tertiarySystemFill))
+                    // MP wxml:45 `ckd-cover--empty`: the same footprint, so the text column never jumps.
+                    // CLB-r10-nat-checkin-01: a system `photo` glyph instead of a drawn RoundedRectangle tile.
+                    Image(systemName: "photo")
+                        .foregroundStyle(.tertiary)
                         .frame(width: 59, height: 40)
                         .accessibilityHidden(true)
                 }
