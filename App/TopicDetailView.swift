@@ -272,7 +272,10 @@ struct TopicDetailView: View {
         List {
             // Mini-program `det1` hero: cover, type and title, then the stat bar and the 详情 / 故事 / 路线 tabs.
             Section {
-                let covers = value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9))
+                // R10-PC-B-N2: without image storage the photos cannot load, so the hero is the plain header row below
+                // (no CYDesignedCover card).
+                let covers = !RetainedPublicImageReader().enabled ? []
+                    : (value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9)))
                 if covers.isEmpty {
                     // Mini-program `cover-brief` (no cover): type, title and one-line hint on an opaque card.
                     // native r2: a plain first-section header (route mark, type, title), no card chrome.
@@ -293,17 +296,8 @@ struct TopicDetailView: View {
                 } else {
                     // verify-r1 3.1 / PL-23 (`169:6954`): the photo is the hero and carries no text, so a cover that
                     // fails to load can never sit under the title. The title and its facts follow below.
-                    Group {
-                        if RetainedPublicImageReader().enabled {
-                            NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
-                        } else {
-                            // Coordinator review: photos cannot load here (no image storage), so the hero is the designed
-                            // cover, never a 图片暂不可用 line.
-                            CYDesignedCover(title: value.name)
-                                .aspectRatio(16 / 9, contentMode: .fit)
-                        }
-                    }
-                    .listRowInsets(EdgeInsets())
+                    NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
+                        .listRowInsets(EdgeInsets())
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
                             .font(.subheadline.weight(.semibold))
@@ -856,15 +850,15 @@ struct TopicChapterView: View {
     var body: some View {
         switch issue {
         case .unavailable:
+            // R10-PC-B-N2/N3: 返回 is the ContentUnavailableView action, a system bordered button.
             ContentUnavailableView {
                 Label { Text("mpfresh.topic.refused.title", tableName: "MpFresh") } icon: { Image(systemName: "eye.slash") }
+            } actions: {
+                Button { dismiss() } label: { Text("mpfresh.topic.back", tableName: "MpFresh") }
+                    .buttonStyle(.bordered).controlSize(.large)
+                    .accessibilityIdentifier("topic.error.back")
             }
                 .accessibilityIdentifier("topic.error")
-                .safeAreaInset(edge: .bottom) {
-                    CYPillButton("mpfresh.topic.back", style: .secondary, tableName: "MpFresh") { dismiss() }
-                        .padding(CYSpacing.pageHorizontal)
-                        .accessibilityIdentifier("topic.error.back")
-                }
         case .failed:
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Text("mpfresh.topic.failed.title", tableName: "MpFresh").font(.title3.weight(.semibold))
