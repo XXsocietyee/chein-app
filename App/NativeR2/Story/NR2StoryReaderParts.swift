@@ -140,10 +140,15 @@ import SwiftUI
 }
 
 /// Podcasts-style mini player pinned to the bottom of the reader.
-/// Uses the existing `PlatformAudioPlayback` with the same per-source consent review as
-/// `PlatformAudioConsumerView`; skip moves to the next clip of this chapter.
+/// Uses the existing `PlatformAudioPlayback`; skip moves to the next clip of this chapter.
+/// P-083: keeps playing in the background (the reader keeps it mounted) and drives Now Playing / remote commands.
+/// P-084: playhead line + elapsed time; tapping the bar opens the full player sheet (scrubber, ±15 s, speed).
+/// P-085: hosts are pre-approved by the media policy; the listener answers one plain question once
+/// ("play story audio?") and later clips start straight away (the per-clip Core approval is given for them).
 @MainActor struct NR2MiniAudioPlayer: View {
     let title: String?
+    /// The story (route) title for Now Playing's second line; nil leaves it out.
+    var chapterTitle: String? = nil
     /// This chapter's clips in reading order (narration / guide first, then audio blocks).
     let urls: [String]
     /// The clip the reader selected. Nil until the first play.
@@ -155,68 +160,105 @@ import SwiftUI
     @State private var model: PlatformAudioPlayback?
     @State private var review = false
     @State private var playAfterSelect = false
+    @State private var showsPlayer = false
+    @AppStorage("play.nr2.storyAudio.consented") private var consented = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var source: PlatformMediaSource? {
         guard let selected, let url = URL(string: selected.trimmingCharacters(in: .whitespacesAndNewlines)) else { return nil }
         return PlatformMediaSource(url: url, scope: scope)
     }
     private var state: PlatformAudioState { model?.state ?? .gated }
+    private var isLoaded: Bool { state == .playing || state == .paused }
     private var nextURL: String? {
         guard !urls.isEmpty else { return nil }
         guard let selected, let index = urls.firstIndex(of: selected) else { return urls.first }
         return urls.indices.contains(index + 1) ? urls[index + 1] : nil
     }
+    private var canSkip: Bool { makeAudio != nil && nextURL != nil && !(selected == nil && urls.count < 2) }
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "waveform")
-                .font(.title3)
-                .foregroundStyle(.tint)
-                .frame(width: 40, height: 40)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 2) {
-                if let title, !title.isEmpty {
-                    Text(verbatim: title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                } else {
-                    Text("platform.audio.title").font(.subheadline.weight(.semibold)).lineLimit(1)
+        VStack(spacing: 0) {
+            NR2StoryAudioProgress(isActive: isLoaded)
+                .opacity(isLoaded ? 1 : 0)
+            HStack(spacing: 12) {
+                Button { showsPlayer = true } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "waveform")
+                            .font(.title3)
+                            .foregroundStyle(.tint)
+                            .symbolEffect(.variableColor.iterative, options: .repeating, isActive: state == .playing && !reduceMotion)
+                            .frame(width: 40, height: 40)
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let title, !title.isEmpty {
+                                Text(verbatim: title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                            } else {
+                                Text("platform.audio.title").font(.subheadline.weight(.semibold)).lineLimit(1)
+                            }
+                            HStack(spacing: 6) {
+                                Text(LocalizedStringKey("platform.audio." + String(describing: state)))
+                                    .contentTransition(.opacity)
+                                    .accessibilityIdentifier("platform.audio.state")
+                                if isLoaded {
+                                    TimelineView(.periodic(from: .now, by: 1)) { _ in
+                                        Text(verbatim: NR2StoryAudioTime.text(PlatformAudioTransportRegistry.active?.elapsed ?? 0))
+                                            .monospacedDigit()
+                                    }
+                                    .accessibilityHidden(true)
+                                }
+                            }
+                            .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .contentShape(Rectangle())
                 }
-                Text(LocalizedStringKey("platform.audio." + String(describing: state)))
-                    .font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                    .accessibilityIdentifier("platform.audio.state")
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            if state == .loading {
-                ProgressView().frame(width: 44, height: 44)
-            } else {
-                Button(action: playPause) {
-                    Image(systemName: state == .playing ? "pause.fill" : "play.fill")
-                        .font(.title2)
+                .buttonStyle(.plain)
+                .disabled(makeAudio == nil || urls.isEmpty)
+                .accessibilityElement(children: .combine)
+                .accessibilityHint(Text("play.nr2.reader.player.openHint"))
+                .accessibilityIdentifier("play.nr2.reader.audio.open")
+                if state == .loading {
+                    ProgressView().frame(width: 44, height: 44)
+                } else {
+                    Button(action: playPause) {
+                        Image(systemName: state == .playing ? "pause.fill" : "play.fill")
+                            .font(.title2)
+                            .contentTransition(.symbolEffect(.replace))
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(makeAudio == nil || urls.isEmpty || state == .disposed)
+                    .accessibilityLabel(Text(state == .playing ? "platform.audio.pause" : "platform.audio.play"))
+                    .accessibilityIdentifier("platform.audio.toggle")
+                }
+                Button(action: skip) {
+                    Image(systemName: "forward.fill")
+                        .font(.title3)
                         .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.borderless)
-                .disabled(makeAudio == nil || urls.isEmpty || state == .disposed)
-                .accessibilityLabel(Text(state == .playing ? "platform.audio.pause" : "platform.audio.play"))
-                .accessibilityIdentifier("platform.audio.toggle")
+                .disabled(!canSkip)
+                .accessibilityLabel(Text("play.nr2.reader.audio.skip"))
+                .accessibilityIdentifier("play.nr2.reader.audio.skip")
             }
-            Button(action: skip) {
-                Image(systemName: "forward.fill")
-                    .font(.title3)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.borderless)
-            .disabled(makeAudio == nil || nextURL == nil || (selected == nil && urls.count < 2))
-            .accessibilityLabel(Text("play.nr2.reader.audio.skip"))
-            .accessibilityIdentifier("play.nr2.reader.audio.skip")
+            .padding(.horizontal)
+            .padding(.vertical, 8)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
         .background(.bar)
         .overlay(alignment: .top) { Divider() }
-        .confirmationDialog("platform.audio.review", isPresented: $review, titleVisibility: .visible) {
-            Button("platform.audio.allow") { model?.approveSelectedMedia(); model?.toggle() }
+        .sensoryFeedback(.impact(weight: .light), trigger: state == .playing)
+        .confirmationDialog("play.nr2.audio.consent.title", isPresented: $review, titleVisibility: .visible) {
+            Button("play.nr2.audio.consent.allow") { consented = true; model?.approveSelectedMedia(); model?.toggle() }
+                .accessibilityIdentifier("play.nr2.audio.consent.allow")
             Button("platform.cancel", role: .cancel) {}
-        } message: { Text(verbatim: source?.url.host ?? "") }
+        } message: { Text("play.nr2.audio.consent.message") }
+        .cySheet(isPresented: $showsPlayer) {
+            NR2StoryFullAudioPlayer(title: title, state: state, canSkip: canSkip,
+                                    togglePlay: playPause, skipClip: skip)
+        }
         .onAppear {
             if model == nil { model = makeAudio?() }
             model?.select(source)
@@ -226,16 +268,27 @@ import SwiftUI
             model?.select(next)
             if playAfterSelect, next != nil { playAfterSelect = false; startOrReview() }
         }
-        .onChange(of: scope) { _, _ in review = false; model?.dispose(); model = makeAudio?(); model?.select(source) }
-        .onChange(of: scenePhase) { _, next in if next != .active { review = false; model?.suspend() } }
+        .onChange(of: scope) { _, _ in review = false; showsPlayer = false; model?.dispose(); model = makeAudio?(); model?.select(source) }
+        // P-083: a clip that is playing or paused keeps going in the background (Lock Screen controls it);
+        // anything not started yet still drops its question and approval, as before.
+        .onChange(of: scenePhase) { _, next in
+            guard next != .active else { return }
+            review = false
+            if !isLoaded { model?.suspend() }
+        }
         .onDisappear {
-            review = false; model?.dispose(); model = nil
+            review = false; showsPlayer = false; model?.dispose(); model = nil
+            NR2StoryNowPlaying.shared.clear()
             IslandMediaBridge.stateChanged(.disposed, title: title, toggle: {})
         }
         // Native r2 M4: playing / paused → media island (play / pause there runs the same toggle) and the
-        // story-audio Live Activity; ended / failed / disposed removes both.
-        .onChange(of: state) { _, next in
+        // story-audio Live Activity; ended / failed / disposed removes both. P-083: and Now Playing.
+        .onChange(of: state) { old, next in
             IslandMediaBridge.stateChanged(next, title: title) { startOrReview() }
+            var remote = NR2StoryNowPlaying.Actions(toggle: { startOrReview() }, next: nil)
+            if canSkip { remote.next = { skip() } }
+            NR2StoryNowPlaying.shared.update(state: next, title: title, chapter: chapterTitle, actions: remote)
+            announce(from: old, to: next)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("play.nr2.reader.miniPlayer")
@@ -249,14 +302,31 @@ import SwiftUI
         }
         startOrReview()
     }
-    /// Same rule as the r1 consumer view: playing or paused toggles, anything else asks first.
+    /// Playing or paused toggles. Otherwise: asked once already → approve this clip and start; first time → ask.
     private func startOrReview() {
         guard let model else { return }
-        if model.state == .playing || model.state == .paused { model.toggle() } else { review = true }
+        if model.state == .playing || model.state == .paused { model.toggle(); return }
+        guard model.state == .idle || model.state == .ended || model.state == .failed else { return }
+        if consented {
+            model.approveSelectedMedia(); model.toggle()
+        } else {
+            review = true
+        }
     }
     private func skip() {
         guard let nextURL else { return }
         playAfterSelect = true
         select(nextURL)
+    }
+    /// VoiceOver hears failures and the end of a clip (the button label already says play / pause).
+    private func announce(from old: PlatformAudioState, to next: PlatformAudioState) {
+        guard old != next else { return }
+        let key: String.LocalizationValue
+        switch next {
+        case .failed: key = "platform.audio.failed"
+        case .ended: key = "platform.audio.ended"
+        default: return
+        }
+        AccessibilityNotification.Announcement(appLocalized(key, locale: .current)).post()
     }
 }
