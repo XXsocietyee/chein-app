@@ -225,17 +225,21 @@ enum RoamMapHomeLoadPhase: Equatable { case idle, loading, loaded, failed }
     /// Bumped by 重试; part of every read key.
     var reloadGeneration = 0
 
-    // Presentations owned by the sheet (a sheet can present; the map under it cannot).
+    // Presentations owned by the bottom panel's content.
     var showsLive = false
     var showsCityBoard = false
     var showsPassport = false
     var showsMyTeams = false
     var showsNearbyTeams = false
     var teamSheet: RoamMapHomeTeamSheet?
-    /// A full-screen cover hides the map; the sheet must stay presented under it.
+    /// A full-screen cover hides the map.
     var coversMap: Bool { showsLive || showsCityBoard }
 
-    static let peek = PresentationDetent.height(120)
+    /// The panel's peek height (search field only), in points.
+    static let peekHeight: CGFloat = 120
+    static let peek = PresentationDetent.height(peekHeight)
+    /// The panel's detents, smallest first (the Apple Maps set).
+    static let detents: [PresentationDetent] = [peek, .medium, .large]
     static let radiusOptions = [1000, 3000, 5000, 10000, 20000]
 
     /// Entry cards of the current read, or none while loading / failed / signed out.
