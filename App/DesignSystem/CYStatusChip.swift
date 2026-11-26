@@ -105,7 +105,7 @@ struct CYCountBadge: View {
         if let label {
             // Native r2: the system badge look (white caption digits on system red).
             Text(verbatim: label)
-                .font(.caption2.weight(.semibold))
+                .font(.caption.weight(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(.white)
                 .padding(.horizontal, 5)
