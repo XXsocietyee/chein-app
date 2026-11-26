@@ -128,6 +128,7 @@ import UIKit
                     if case .created = coordinator.phase {
                         Label("scan.stamp.created", systemImage: "checkmark.seal.fill")
                             .foregroundStyle(.green)
+                            .nativeR2BounceOnAppear()
                     }
                 } footer: {
                     if !pageContract.showsCreate {

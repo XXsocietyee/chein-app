@@ -15,6 +15,7 @@ import MapKit
     var reportDestination: AnyView? = nil
     let onClose: () -> Void
     @State private var loadingBoard = false
+    @Environment(\.locale) private var locale
 
     private struct Metric: Identifiable {
         let id: String
@@ -66,7 +67,10 @@ import MapKit
                     }
                 }
                 if let route, !route.mappedStops.isEmpty {
-                    Section { routeThumbnail(route) }
+                    Section {
+                        routeThumbnail(route)
+                        replayLink(route)
+                    }
                 }
                 if let route { CityOrientationLegsSection(route: route) }
                 if !medals.isEmpty {
@@ -130,6 +134,19 @@ import MapKit
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("nativeR2.city.finish.route"))
         .accessibilityAddTraits(.isImage)
+    }
+
+    /// Motion r1: the walked legs replayed with draw-on and rolling counters.
+    @ViewBuilder private func replayLink(_ route: PlayRouteMapPresentation) -> some View {
+        let legs = NativeR2RouteLeg.walked(in: route, locale: locale)
+        if NativeR2Flags.motion, !legs.isEmpty {
+            NavigationLink {
+                NativeR2RouteReplayView(legs: legs, totalSeconds: model.clock.elapsedSeconds, walkedMeters: walkedMeters)
+            } label: {
+                Label("nativeR2.motion.replay", systemImage: "play.circle")
+            }
+            .accessibilityIdentifier("nativeR2.motion.replay.open")
+        }
     }
 
     /// S14 ranking (Game Center leaderboard rows): my row pinned first, then the list.
