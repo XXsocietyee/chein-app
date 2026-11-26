@@ -5,12 +5,20 @@ import FoundationNetworking
 
 /// Wire contracts for player-content mini-program `sendRequest` calls at hengyin
 /// `chengyinhub-xcx` `25eb6a0c`. Paths, methods, and field names match that source.
-/// Quote, registration create, and pricing confirm follow the payment host switch.
+/// Quote and registration create follow the payment host switch. Pricing confirm does not (R7-PC-B4-1).
 /// They refuse while no host derivation is installed. Nothing here chooses a payment provider.
 public enum PlayerContentMPContract {
     public static var moneyEnabled: Bool { ReleaseMoneyWriteSwitch.paymentEnabled }
-    /// Pricing confirm is a payment write and uses the same host gate.
-    public static var pricingGrantEnabled: Bool { moneyEnabled }
+    /// R7-PC-B4-1: pricing confirm saves the final price and waits for sale review
+    /// (MP pages/topic/pricing/index.js:419-460). It is not a payment, so it does not follow the money switch.
+    public static var pricingGrantEnabled: Bool { true }
+
+    /// R8-PC-B1-1: MP pages/topic/index/index.js:1469. A ¥0 self-play order is not money and is always open;
+    /// a paid total follows the payment switch. A missing price is closed.
+    public static func selfPlayCreateOpen(price: Decimal?) -> Bool {
+        guard let price, !price.isNaN, price >= 0 else { return false }
+        return price == 0 || moneyEnabled
+    }
 
     public enum Refusal: Error, Equatable {
         case moneyDisabled
@@ -388,7 +396,7 @@ public enum PlayerContentMPContract {
         return try json(baseURL, pricingPreviewPath, fields)
     }
 
-    /// `pages/topic/pricing/index.js` confirm. Money write. Refused while `pricingGrantEnabled` is false.
+    /// `pages/topic/pricing/index.js` confirm. Final-price save, not money. Refused only while `pricingGrantEnabled` is false.
     public static func pricingConfirm(
         baseURL: URL, topicID: Int, scope: String?, guidedPrice: Int?, ticketPrices: [TicketPrice],
         leadCost: Int?, teamSize: Int?, selfPrice: Int?

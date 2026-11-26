@@ -149,7 +149,7 @@ import XCTest
         XCTAssertEqual(value.metadataReadCompletions, pending == 0 ? expected : Array(expected.dropLast()))
     }
     private func saveAndRestore(_ app: XCUIApplication) throws {
-        tap("templateAuthor.saveLocal", in: app)
+        tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app)
         let status = app.staticTexts["templateAuthor.status"]
         reveal(status, in: app, hittable: false)
         XCTAssertEqual(status.label, "Saved securely on this device for this account.")

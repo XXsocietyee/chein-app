@@ -6,6 +6,14 @@ import SwiftUI
     let page: String
     let query: [String: String]
     @EnvironmentObject private var session: AppSession
+    /// R9-PC-D4-1: same organizer-finance read as SessionWalletCommerceView; none on the merchant-themed page.
+    private func incomeOrganizerFinance(merchant: Bool) -> WalletOrganizerFinanceAccess? {
+        if merchant { return nil }
+        let reader = session.cooperationFlowReader
+        return WalletOrganizerFinanceAccess(reader: reader, allowsRead: { true }) {
+            CoopFlowReadView(reader: reader, resource: .finance, title: "coopflow.finance")
+        }
+    }
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     /// Perks deep link: the TEST-only template executor (nil where merchant writes are closed).
     @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
@@ -173,7 +181,10 @@ import SwiftUI
             } else { unavailable }
         case "subpackageA/pages/assetcenter/income-detail/income-detail":
             // PC-D-4-1: no coop-finance grant on this host, so no 主办分润 button (same as SessionWalletCommerceView).
+            // R9-PC-D4-1: MP scene-asset-income-detail/index.js:35-38 always offers 主办分润 (api/coop/finance read; the
+            // server decides), so the deep link gets the same organizer-finance access as the wallet entry. Not for theme=merchant.
             WalletIncomeView(reader: session.walletHistoryReader, onCooperationFinance: {}, showsCooperationFinance: false,
+                             organizerFinance: incomeOrganizerFinance(merchant: query["theme"] == "merchant"),
                              merchantView: query["theme"] == "merchant")
         case "subpackageA/pages/assetcenter/earnings/index":
             SessionWalletCommerceView().environmentObject(session)
@@ -291,13 +302,6 @@ import SwiftUI
                                      makeCoverService: { session.makeActivityCoverService() }, coverSession: { session.publishingSession },
                                      startsInEditor: true, from: query["from"])
             }
-        case "subpackageMember/mytemplate/mytemplate":
-            // R8-MEM-26-1: retired the rewrite onto 我发布的. This route is the template author's 我的 page and keeps the link query.
-            TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision,
-                                      memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0).environmentObject(session)) },
-                                      ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0).environmentObject(session)) },
-                                      creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0).environmentObject(session)) },
-                                      linkQuery: query)
         case "pages/club/detail/index":
             // MP detail onLoad: `tab` = manage | overview; `owner` without an id resolves my own club.
             if let id = reviewedID(query) {

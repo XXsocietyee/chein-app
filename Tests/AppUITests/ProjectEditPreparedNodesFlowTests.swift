@@ -59,7 +59,7 @@ import XCTest
     // UNMEASURED full-method allowance:870s. Retained840s floor plus one22s read-only launch reveal and one5s exact chapter-menu readiness wait, rounded up.
     func testPlacedMaterialReeditSavesRestoresAndReadsExactPreparedNodeFields() throws {
         let app = launch(["--project-edit-pending", "--project-edit-prepared-values"])
-        tap("projectEdit.saveLocal", in: app, fixed: true); var saved = try inspect(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); var saved = try inspect(app)
         let material = try XCTUnwrap(saved.pendingMaterials?.first), chapter = saved.chapters[0]
         tap("projectPending.arrange." + material.node.id, in: app)
         let chapterMenuReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in

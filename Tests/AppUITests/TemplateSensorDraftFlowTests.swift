@@ -152,7 +152,7 @@ import XCTest
         XCTAssertFalse(app.staticTexts[validStatus].exists, "Invalid current input must never fall back to valid original JSON")
         back(app)
         assertRemoteActionsDisabled(app)
-        tap("templateAuthor.saveLocal", in: app, towardTop: true)
+        tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app)
         let saved = app.staticTexts["templateAuthor.status"]
         XCTAssertTrue(revealFixtureElement(saved, in: app, maximumSwipes: 10, requiresHittable: false))
         XCTAssertEqual(saved.label, "Saved securely on this device for this account.")
@@ -191,7 +191,7 @@ import XCTest
             XCTAssertFalse(app.descendants(matching: .any)["sensorDraft.preview.value.targetSteps"].firstMatch.exists)
             back(app)
             assertRemoteActionsDisabled(app)
-            tap("templateAuthor.saveLocal", in: app, towardTop: true)
+            tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app)
             tap("templateAuthor.fixture.reopen", in: app)
             XCTAssertTrue(app.buttons["templateAuthor.restore"].waitForExistence(timeout: 5))
             tap("templateAuthor.restore", in: app)

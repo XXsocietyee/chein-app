@@ -57,6 +57,21 @@ public struct PublisherLineup: Equatable, Identifiable {
         chapterID = PublisherValue.integer(b["chapterId"]).flatMap { $0 > 0 ? $0 : nil }; termsMode = b["termsMode"]?.text
     }
 }
+/// R7-PC-B4-3: one row of the preview's ticket list (MP pages/topic/pricing/index.wxml:45-86, one final per ticket).
+/// Keys are read tolerantly (`ticketId`/`id`, `ticketName`/`name`, `price`/`finalPrice`); rows without a positive id are dropped.
+public struct PublisherPreviewTicket: Equatable, Identifiable {
+    public let id: Int
+    public let name: String
+    public let price: Decimal?
+    init?(_ json: ProjectEditJSON) {
+        guard let b = json.object, let id = PublisherValue.integer(b["ticketId"]) ?? PublisherValue.integer(b["id"]), id > 0 else { return nil }
+        self.id = id
+        let label = b["ticketName"]?.text ?? b["name"]?.text ?? ""
+        name = label.isEmpty ? "#\(id)" : label
+        let raw = PublisherValue.raw(b["price"]) ?? PublisherValue.raw(b["finalPrice"])
+        price = raw.flatMap { Decimal(string: $0) }.flatMap { $0.isNaN ? nil : $0 }
+    }
+}
 public struct PublisherPricingPreview: Equatable {
     public let minimum: Decimal; public let reference: Decimal?; public let sampleSize: Int?; public let referenceLabel: String?
     public let lineup: [PublisherLineup]
@@ -64,6 +79,8 @@ public struct PublisherPricingPreview: Equatable {
     public let canConfirm: Bool?
     /// `2` is free explore. The page hides 有人带 / 无人带 for that value.
     public let productType: Int?
+    /// R7-PC-B4-3: preview `tickets`. Empty when the payload carries none.
+    public let tickets: [PublisherPreviewTicket]
     public init(_ data: ProjectEditJSON) throws {
         guard let b = data.object, let floor = PublisherValue.number(b["priceMin"]), !floor.isNaN else { throw PublisherLifecycleError.incomplete }
         minimum = floor; reference = PublisherValue.number(b["cityReferencePrice"])
@@ -71,6 +88,8 @@ public struct PublisherPricingPreview: Equatable {
         lineup = (b["lineup"]?.array ?? []).compactMap(PublisherLineup.init)
         if case .bool(let value)? = b["canConfirm"] { canConfirm = value } else { canConfirm = nil }
         productType = PublisherValue.integer(b["productType"])
+        var seen = Set<Int>()
+        tickets = (b["tickets"]?.array ?? []).compactMap(PublisherPreviewTicket.init).filter { seen.insert($0.id).inserted }
     }
     public func accepts(_ price: Decimal) -> Bool { !price.isNaN && price >= minimum }
 }

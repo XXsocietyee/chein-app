@@ -395,6 +395,18 @@ extension EnvironmentValues {
         }
         .toolbar {
             if model.coordinator.session != nil, step == .edit {
+                // r10 C-T5: MP temp/index.wxml:1492-1494 has only 保存草稿 + 发布 in the bar; the app-only
+                // 保存到此设备 lives in the ⋯ menu.
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button { model.save() } label: { Text("templateAuthor.saveLocal") }
+                            .disabled(!model.canEdit)
+                            .accessibilityIdentifier("templateAuthor.saveLocal")
+                    } label: {
+                        Label("fixr10.ap.moreActions", systemImage: "ellipsis.circle")
+                    }
+                    .accessibilityIdentifier("templateEditorMenu.more")
+                }
                 ToolbarItemGroup(placement: .bottomBar) {
                     // C-T5 (MP temp wxml:1492): 保存草稿 sits in the bottom bar as the secondary action.
                     Button { model.prepare(.saveDraft) } label: { Text("templateAuthor.reviewDraft") }
@@ -611,9 +623,6 @@ extension EnvironmentValues {
                     Label("templateAuthor.localConfigurationOnly", systemImage: "info.circle")
                         .foregroundStyle(.secondary)
                 }
-            }
-            Section {
-                Button { model.save() } label: { Text("templateAuthor.saveLocal") }.accessibilityIdentifier("templateAuthor.saveLocal")
             }
         }.disabled(!model.canEdit)
     }

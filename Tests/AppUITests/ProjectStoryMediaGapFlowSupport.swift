@@ -34,7 +34,7 @@ import XCTest
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-" + media]
         app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
-        tap("projectEdit.saveLocal", app, fixed: true); return app
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); return app
     }
     private func back(_ app: XCUIApplication) {
         let button = app.navigationBars["Chapter"].buttons["BackButton"]

@@ -11,7 +11,10 @@ class ExitGuardSourceContracts(unittest.TestCase):
         self.assertIn('overlaysOpen: { preview || discard || previewMissing || media.review != nil }',HOST)  # design hand-off r1 CF-45 preview gate
         # native r2: cyModalConfirm became a system confirmationDialog with the same title key; CYPillButton became a plain Button with the same action
         self.assertIn('.confirmationDialog(appLocalized("templateAuthor.discardQuestion", locale: locale), isPresented: $discard',HOST)
-        self.assertIn('Button { model.save() } label: { Text("templateAuthor.saveLocal") }.accessibilityIdentifier("templateAuthor.saveLocal")',HOST)
+        # r10 C-T5: the same save action now sits in the ⋯ menu (MP temp/index.wxml:1492-1494 bar has no 保存到此设备).
+        self.assertIn('Button { model.save() } label: { Text("templateAuthor.saveLocal") }',HOST)
+        self.assertIn('.accessibilityIdentifier("templateAuthor.saveLocal")',HOST)
+        self.assertIn('.accessibilityIdentifier("templateEditorMenu.more")',HOST)
     def test_exact_checkpoint_comparison_not_unicode_equatable(self):
         for value in ['.sortedKeys','.withoutEscapingSlashes','encoder.encode(draft)','current == persisted','Self.snapshot(TemplateAuthoringDraft())']:
             self.assertIn(value,CORE)

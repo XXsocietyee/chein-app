@@ -8,8 +8,12 @@ public struct ClubService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
-    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
-        self.configuration = configuration; self.transport = transport
+    /// Off by default: every club read sits behind a session/epoch-fenced reader whose newer read must
+    /// dispatch on its own instead of waiting on an older held one (CoopRelationProfileReadTests). 6ebdcafb9
+    /// joined them; opt in only for callers without such a fence.
+    private let coalescesReads: Bool
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, coalescesReads: Bool = false) {
+        self.configuration = configuration; self.transport = transport; self.coalescesReads = coalescesReads
     }
     public func home(token: String? = nil) async throws -> ClubHome {
         let data = try await post("api/club/home", json: [:], token: token)
@@ -66,7 +70,7 @@ public struct ClubService {
         let body = try JSONSerialization.data(withJSONObject: json, options: [.sortedKeys])
         let key = InFlightReadKey.bytes(method: "POST", path: path, body: body, token: token)
         try Task.checkCancellation()
-        let response = try await reads.join(key) {
+        let read: () async throws -> InFlightHTTPBody = {
             var request = try AuthRequestBuilder.makeFormRequest(
                 url: self.configuration.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -74,6 +78,8 @@ public struct ClubService {
             let (data, status) = try await self.transport.send(request)
             return InFlightHTTPBody(data: data, status: status)
         }
+        let response: InFlightHTTPBody
+        if coalescesReads { response = try await reads.join(key, read) } else { response = try await read() }
         let (data, status) = (response.data, response.status)
         let message = (try? JSONDecoder().decode(ClubServerMessage.self, from: data))?.msg
         if status == 401 { throw ClubReadFailure.unauthorized(message: message) }

@@ -113,9 +113,11 @@ class ClubCustomerPermissionContracts(unittest.TestCase):
         raw = (ROOT / path).read_bytes()
         # 097702ffb (CLB-r9-gate-01..04, owner-approved non-money club writes in Release) added one
         # additive Core test. Strip exactly that hash-pinned method; any other fixture byte still fails.
+        # r10 club-b CLB-r10-gate-05 (MP pages/club/notify, group-code/index.js:93-135, event-ops, topic-detail,
+        # customer-detail) makes saveCustomer and nine more non-money ops MP-first live and adds one Core test.
         start = raw.index(b'    func testLiveCatalogPermitsNamedOperationsWithoutAPreboundTarget()')
         end = raw.index(b'    func testDefaultFactoryDoesNotDispatch()')
-        self.assertEqual(hashlib.sha256(raw[start:end]).hexdigest(), '8f34e97e22523164ca09939b63d472392ea29d205aa2aa26002e787fa151129c')
+        self.assertEqual(hashlib.sha256(raw[start:end]).hexdigest(), '245eb85f491d5cababe0582967444ab8e2a3539d36536f2eae02e6fd6d2a557d')
         raw = raw[:start] + raw[end:]
         # MP pages/club/governance/index.js:466-476 sends durationDays (the server clock owns the expiry;
         # choices are 7/30/90). index.js:270-277 admits member governance only for CLUB_OWNER or CLUB_CO_OWNER,

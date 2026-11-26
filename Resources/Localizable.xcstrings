@@ -157466,7 +157466,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方路线"
+            "value": "官方线路"
           }
         }
       }
@@ -157483,7 +157483,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条路线没加载出来。检查网络后再试一次。"
+            "value": "这条线路没加载出来。检查网络后再试一次。"
           }
         }
       }
@@ -157500,7 +157500,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条路线还没有节点"
+            "value": "这条线路还没有节点"
           }
         }
       }
@@ -157568,7 +157568,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条路线不存在或已下架"
+            "value": "这条线路不存在或已下架"
           }
         }
       }
@@ -157602,7 +157602,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "路线详情"
+            "value": "线路详情"
           }
         }
       }
@@ -157636,7 +157636,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方路线"
+            "value": "官方线路"
           }
         }
       }
@@ -157653,7 +157653,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "城市官方推荐路线"
+            "value": "城市官方推荐线路"
           }
         }
       }
@@ -157670,7 +157670,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有上架的官方路线"
+            "value": "还没有上架的官方线路"
           }
         }
       }
@@ -157687,7 +157687,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "路线没加载出来。检查网络后再试一次。"
+            "value": "线路没加载出来。检查网络后再试一次。"
           }
         }
       }
@@ -157704,7 +157704,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看路线 %@"
+            "value": "查看线路 %@"
           }
         }
       }
@@ -157772,7 +157772,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "分享路线"
+            "value": "分享线路"
           }
         }
       }
@@ -157840,7 +157840,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方路线"
+            "value": "官方线路"
           }
         }
       }
@@ -325531,6 +325531,208 @@
           "stringUnit": {
             "state": "translated",
             "value": "会员 %1$@ · 操作 %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "registration.pass.covered": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can play right away"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已可直接游玩"
+          }
+        }
+      }
+    },
+    "social.article.image": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Article image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文章图片"
+          }
+        }
+      }
+    },
+    "profile.orderExit.payNow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即支付"
+          }
+        }
+      }
+    },
+    "profile.orderExit.cancelRefund": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel and refund"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消并退款"
+          }
+        }
+      }
+    },
+    "club.story.openInMaps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Maps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在地图中打开"
+          }
+        }
+      }
+    },
+    "fixr10.ap.moreActions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
+          }
+        }
+      }
+    },
+    "fixr10.ap.image.uploading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploading…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在上传…"
+          }
+        }
+      }
+    },
+    "fixr10.ap.image.failed %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld photo(s) failed to upload. %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 张图片上传失败 %@"
+          }
+        }
+      }
+    },
+    "fixr10.ap.image.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to upload photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后可上传图片"
+          }
+        }
+      }
+    },
+    "fixr10.ap.cover.replace": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更换"
+          }
+        }
+      }
+    },
+    "fixr10.ap.image.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose from Photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从相册选择"
+          }
+        }
+      }
+    },
+    "fixr10.ap.image.item %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片 %lld"
           }
         }
       }

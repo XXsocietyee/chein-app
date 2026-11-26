@@ -187,7 +187,9 @@ import XCTest
         _ = try await clone.send(form("api/user/balance/list", ["pageNum":"1", "pageSize":"20"]))
         var invalid = [URLRequest]()
         for path in ["api/wallet/withdraw", "api/withdrawal/create", "api/withdrawal/delete", "api/cart/order/settlement", "api/cart/add", "api/cart/cart/add", "api/cart/update", "api/cart/delete", "api/cart/settlement", "api/product/list", "api/points/result_list", "api/user/points/list", "api/payment/create", "api/refund/create", "api/transfer/create"] { invalid.append(try form(path, [:])) }
-        for fields in [["pageNum":"0","pageSize":"20"], ["pageNum":"10001","pageSize":"20"], ["pageNum":"01","pageSize":"20"], ["pageNum":"1","pageSize":"200"], ["pageNum":"1","pageSize":"20","member_id":"8"], ["pageNum":"1","pageSize":"20","eventType":"3"]] { invalid.append(try form("api/user/balance/list", fields)) }
+        // pageSize 200 is now the admitted income-analysis MP page (22b0f3cd0 R7-PC-D6-1, gate widened in
+        // db3a2af14); every other size stays refused.
+        for fields in [["pageNum":"0","pageSize":"20"], ["pageNum":"10001","pageSize":"20"], ["pageNum":"01","pageSize":"20"], ["pageNum":"1","pageSize":"201"], ["pageNum":"1","pageSize":"100"], ["pageNum":"1","pageSize":"20","member_id":"8"], ["pageNum":"1","pageSize":"20","eventType":"3"]] { invalid.append(try form("api/user/balance/list", fields)) }
         invalid.append(try form("api/user/info", ["member_id":"8"]))
         let valid = try form("api/user/balance/list", ["pageNum":"1", "pageSize":"20"])
         for url in ["https://evil.test/native/api/user/balance/list", "https://example.test/other/api/user/balance/list", "https://example.test/native/api/user/balance/list?x=1", "https://example.test/native/api/user/balance/list#x", "https://example.test/native/api/user/%62alance/list", "https://example.test/native/api/user/../user/balance/list"] { var request = valid; request.url = URL(string: url); invalid.append(request) }

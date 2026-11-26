@@ -28,7 +28,7 @@ import XCTest
         XCTAssertFalse(app.buttons["templateAuthor.continue"].isEnabled)
     }
     func testLocalSaveHasExplicitDeviceOnlyResult() {
-        let app = app(); edit(app); tap("templateAuthor.saveLocal", in: app)
+        let app = app(); edit(app); tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app)
         let query = app.staticTexts.matching(identifier: "templateAuthor.status")
         let status = query.element
         XCTAssertTrue(revealFixtureElement(status, in: app, maximumSwipes: 50, requiresHittable: false), app.debugDescription)
@@ -67,7 +67,7 @@ import XCTest
         XCTAssertFalse(app.textFields["templateAuthor.field.title"].exists)
     }
     func testSavedDraftRestoreIsExplicit() {
-        let app = app(); edit(app); tap("templateAuthor.saveLocal", in: app); tap("templateAuthor.fixture.reopen", in: app)
+        let app = app(); edit(app); tapEditorMenuItem("templateAuthor.saveLocal", menu: "templateEditorMenu.more", in: app); tap("templateAuthor.fixture.reopen", in: app)
         XCTAssertTrue(app.buttons["templateAuthor.restore"].exists); tap("templateAuthor.restore", in: app)
         XCTAssertTrue(app.textFields["templateAuthor.field.title"].exists)
     }

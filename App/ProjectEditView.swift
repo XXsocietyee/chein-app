@@ -653,8 +653,14 @@ import SwiftUI
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: CYSpacing.xs) {
-                    if model.canRestore || model.canEdit || model.canReview {
-                        Menu {
+                    // r10 C-F4: MP fabu/index.js (saveDraft=1) has 保存草稿 (server draft) + 下一步 in the bar; the
+                    // app-only 存到本机 lives in this ⋯ menu.
+                    Menu {
+                            Button { focusedField = nil; model.saveLocal() } label: {
+                                Text("projectEdit.saveLocal")
+                            }
+                                .disabled(!model.canSaveLocal)
+                                .accessibilityIdentifier("projectEdit.saveLocal")
                             if model.canRestore {
                                 Button(MerchantCloseCopy.text("使用本地/已保存草稿", "Draft Version Choice", locale)) { activeEditorModal = .draftConflict }
                             }
@@ -668,20 +674,14 @@ import SwiftUI
                             Image(systemName: "ellipsis.circle")
                                 .accessibilityLabel(MerchantCloseCopy.text("草稿与规则弹窗", "Draft and rule actions", locale))
                         }
-                    }
+                        .accessibilityIdentifier("projectEdit.more")
                 }
             }
         }
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
-            // System bottom toolbar: 保存草稿 (+ 保存到云端) and the one prominent 下一步 / 提交草稿.
+            // System bottom toolbar: 保存草稿 (server draft, MP saveDraft=1) and the one prominent 下一步 / 提交草稿.
             ToolbarItemGroup(placement: .bottomBar) {
-                Button { focusedField = nil; model.saveLocal() } label: {
-                    Text("projectEdit.saveLocal")
-                }
-                    .buttonStyle(.bordered)
-                    .disabled(!model.canSaveLocal)
-                    .accessibilityIdentifier("projectEdit.saveLocal")
                 if model.coordinator.canSaveCloudDraft {
                     Button { focusedField = nil; model.review(intent: .saveCloudDraft) } label: {
                         Text("action.saveCloud", tableName: "ProjectCloudDraftReceipt")
@@ -797,58 +797,63 @@ import SwiftUI
             onCancel: { discardConfirmation = false },
             onConfirm: { discardConfirmation = false; model.discard() }
         )
-        .cyModalOverlay(isPresented: activeEditorModal != nil) {
-            if let modal = activeEditorModal {
-                editorParityModalView(modal)
-            }
-        }
+        .background { editorParityAlertHost }
         .cyToast(verbatimMessage: $toastMessage)
     }
-    @ViewBuilder private func editorParityModalView(_ modal: EditorParityModal) -> some View {
+    /// r10 N-19: the 草稿版本选择 / 清空本地草稿 / 发布前提示 confirmations are system alerts (MP fabu uses wx.showModal),
+    /// not the custom CYModal overlay. Hosted on a background view so the editor's long modifier chain stays small.
+    private var editorParityAlertHost: some View {
+        Color.clear
+            .accessibilityHidden(true)
+            .alert(Text(verbatim: activeEditorModal.map { editorParityCopy($0).title } ?? ""),
+                   isPresented: editorParityAlertPresented, presenting: activeEditorModal) { modal in
+                editorParityAlertActions(modal)
+            } message: { modal in
+                Text(verbatim: editorParityCopy(modal).message)
+            }
+    }
+    private var editorParityAlertPresented: Binding<Bool> {
+        Binding(get: { activeEditorModal != nil }, set: { shown in if !shown { activeEditorModal = nil } })
+    }
+    private func editorParityCopy(_ modal: EditorParityModal) -> (title: String, message: String) {
         switch modal {
         case .draftConflict:
-            CYModal(
-                title: MerchantCloseCopy.text("草稿版本选择", "Choose Draft Version", locale),
-                message: MerchantCloseCopy.text("检测到本机存在未上传的改动，请选择保留版本。", "Unsynced local changes detected. Choose which version to keep.", locale),
-                cancelTitle: MerchantCloseCopy.text("使用已保存版本", "Use Saved Version", locale),
-                confirmTitle: MerchantCloseCopy.text("使用本地草稿", "Use Local Draft", locale),
-                onCancel: {
-                    activeEditorModal = nil
-                    if model.canRestore { model.discard() }
-                },
-                onConfirm: {
-                    activeEditorModal = nil
-                    guard model.canRestore else { return }
-                    model.restore()
-                    toastMessage = MerchantCloseCopy.text("已恢复本地草稿", "Local draft restored", locale)
-                }
-            )
+            return (MerchantCloseCopy.text("草稿版本选择", "Choose Draft Version", locale),
+                    MerchantCloseCopy.text("检测到本机存在未上传的改动，请选择保留版本。", "Unsynced local changes detected. Choose which version to keep.", locale))
         case .clearLocalDraft:
-            CYModal(
-                title: MerchantCloseCopy.text("清空本地草稿？", "Clear Local Draft?", locale),
-                message: MerchantCloseCopy.text("当前未发布的章节和待编排素材都会从本机删除。", "Unpublished chapters and pending media will be removed from this device.", locale),
-                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                confirmTitle: MerchantCloseCopy.text("清空", "Clear", locale),
-                isDestructive: true,
-                onCancel: { activeEditorModal = nil },
-                onConfirm: {
-                    activeEditorModal = nil
-                    model.discard()
-                    toastMessage = MerchantCloseCopy.text("已清空本地草稿", "Local draft cleared", locale)
-                }
-            )
+            return (MerchantCloseCopy.text("清空本地草稿？", "Clear Local Draft?", locale),
+                    MerchantCloseCopy.text("当前未发布的章节和待编排素材都会从本机删除。", "Unpublished chapters and pending media will be removed from this device.", locale))
         case .prePublishTip:
-            CYModal(
-                title: MerchantCloseCopy.text("发布前提示", "Pre-publish Reminder", locale),
-                message: MerchantCloseCopy.text("请确认路线节点、参与说明及时间设置无误后再提交发布。", "Verify nodes, instructions, and schedule before publishing.", locale),
-                cancelTitle: MerchantCloseCopy.text("再改改", "Keep Editing", locale),
-                confirmTitle: MerchantCloseCopy.text("继续发布", "Continue Publish", locale),
-                onCancel: { activeEditorModal = nil },
-                onConfirm: {
-                    activeEditorModal = nil
-                    model.review(intent: model.coordinator.canSubmitServerDraft ? .submitServerDraft : .ordinary)
-                }
-            )
+            return (MerchantCloseCopy.text("发布前提示", "Pre-publish Reminder", locale),
+                    MerchantCloseCopy.text("请确认路线节点、参与说明及时间设置无误后再提交发布。", "Verify nodes, instructions, and schedule before publishing.", locale))
+        }
+    }
+    @ViewBuilder private func editorParityAlertActions(_ modal: EditorParityModal) -> some View {
+        switch modal {
+        case .draftConflict:
+            Button(MerchantCloseCopy.text("使用本地草稿", "Use Local Draft", locale)) {
+                activeEditorModal = nil
+                guard model.canRestore else { return }
+                model.restore()
+                toastMessage = MerchantCloseCopy.text("已恢复本地草稿", "Local draft restored", locale)
+            }
+            Button(MerchantCloseCopy.text("使用已保存版本", "Use Saved Version", locale), role: .cancel) {
+                activeEditorModal = nil
+                if model.canRestore { model.discard() }
+            }
+        case .clearLocalDraft:
+            Button(MerchantCloseCopy.text("清空", "Clear", locale), role: .destructive) {
+                activeEditorModal = nil
+                model.discard()
+                toastMessage = MerchantCloseCopy.text("已清空本地草稿", "Local draft cleared", locale)
+            }
+            Button(MerchantCloseCopy.text("取消", "Cancel", locale), role: .cancel) { activeEditorModal = nil }
+        case .prePublishTip:
+            Button(MerchantCloseCopy.text("继续发布", "Continue Publish", locale)) {
+                activeEditorModal = nil
+                model.review(intent: model.coordinator.canSubmitServerDraft ? .submitServerDraft : .ordinary)
+            }
+            Button(MerchantCloseCopy.text("再改改", "Keep Editing", locale), role: .cancel) { activeEditorModal = nil }
         }
     }
     private func submissionBinding(presentedSubmission: PublishingSubmissionHandoff?, submissionIncarnation: UUID) -> Binding<PublishingSubmissionHandoff?> {
@@ -1043,8 +1048,9 @@ import SwiftUI
                 TextField("projectEdit.subtitle", text: $model.draft.subtitle).accessibilityIdentifier("projectEdit.subtitle")
                 TextField("projectEdit.description", text: $model.draft.description, axis: .vertical).lineLimit(3...8)
                     .accessibilityIdentifier("projectEdit.description").id("project-issue-anchor-description")
-                ProjectEditReferenceField(title: "projectEdit.cover", value: $model.draft.imgUrl, identifier: "projectEdit.cover").id("project-issue-anchor-cover")
-                ProjectEditReferenceField(title: "projectEdit.gallery", value: $model.draft.imgArr, identifier: "projectEdit.gallery")
+                // r10 C-F8b / N-18: MP topic-detail-sheet chooseMedia (photo library + uploadOSS), not typed URLs.
+                ProjectEditTopicImageField(kind: .cover, title: "projectEdit.cover", value: $model.draft.imgUrl, identifier: "projectEdit.cover").id("project-issue-anchor-cover")
+                ProjectEditTopicImageField(kind: .gallery, title: "projectEdit.gallery", value: $model.draft.imgArr, identifier: "projectEdit.gallery")
                 ProjectEditCategoryField(selection: $model.draft.categoryIDs).categoryEditing(model).id("project-issue-anchor-categories")
                 ProjectThoughtDefinitionsEntry(model: model)
             }.disabled(!model.canEdit)

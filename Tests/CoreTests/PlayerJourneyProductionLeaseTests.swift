@@ -136,9 +136,10 @@ final class PlayerJourneyProductionLeaseTests: XCTestCase {
         ] {
             XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
-        XCTAssertEqual(JourneyProductionLease.refused, [.issueReferral, .giftClaim])
+        // fix-r10 MKT-3-1b: gift claim is admitted (MP `market/gift/index.js:101-123` sends only the gift token).
+        XCTAssertEqual(JourneyProductionLease.refused, [.issueReferral])
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/marketing/product/gifts/claim"))
         for path in [
-            "/api/marketing/product/gifts/claim",
             "/api/marketing/referral/token",
             "/api/public-catalog/map",
             "/api/public-catalog/ids",

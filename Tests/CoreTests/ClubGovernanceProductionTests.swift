@@ -51,7 +51,41 @@ import FoundationNetworking
         XCTAssertFalse(exact.permits(ban, context: player))
         let factory = ClubGovernanceProductionFactory(api: try .init(baseURL: url), approval: live, transport: Wire(), current: { player })
         XCTAssertNotNil(factory.service(for: ban))
-        XCTAssertNil(factory.service(for: try command()))
+        // CLB-r10-gate-05: saveCustomer is now MP-first live (MP pages/club/customer-detail/index.js save).
+        XCTAssertNotNil(factory.service(for: try command()))
+        XCTAssertFalse(live.liveOperations.contains(.endTopic))
+        XCTAssertFalse(live.liveOperations.contains(.submitEvidence))
+    }
+    /// CLB-r10-gate-05: each non-money club write the MP sends (notify, group-code:93-135, event-ops,
+    /// topic-detail, customer-detail) dispatches under the MP-first China approval.
+    func testMPFirstClubOpsDispatchInChina() throws {
+        let player = try context()
+        let endpoints = try OperationEndpointApproval(baseURL: url, namespace: "test-cn", accountID: 701, paths: ClubMPFirstGovernance.paths(for: ClubMPFirstGovernance.governance))
+        let live = try ClubGovernanceProductionApproval(mpFirstMarket: .china, endpoints: endpoints, operations: ClubMPFirstGovernance.governance)
+        let series: [String: ClubGovernanceValue] = ["recurrenceType": .string("ONCE"), "startDate": .string("2026-12-01"), "startTime": .string("10:00"),
+            "occurrenceCount": .integer(1), "customDates": .null, "capacity": .integer(20), "defaultLeadMemberId": .integer(704),
+            "waitlistEnabled": .bool(false), "offerMinutes": .integer(30)]
+        var createValues = series; createValues["requestId"] = .string("series-1")
+        var updateValues = series; updateValues["expectedVersion"] = .integer(1)
+        let commands: [ClubGovernanceCommand] = [
+            try .init(operation: .sendNotification, scope: .init(clubID: 81), values: ["audienceType": .string("ALL_MEMBERS"), "title": .string("t"), "content": .string("c"), "requestId": .string("n-1")]),
+            try .init(operation: .retryNotification, scope: .init(clubID: 81, campaignID: 9), values: [:]),
+            try .init(operation: .issueGroupCode, scope: .init(activityID: 55), values: [:]),
+            try command(),
+            try .init(operation: .createSeries, scope: .init(clubID: 81, topicID: 3), values: createValues),
+            try .init(operation: .updateSeries, scope: .init(clubID: 81, topicID: 3, seriesID: 4), values: updateValues),
+            try .init(operation: .correctAttendance, scope: .init(clubID: 81, activityID: 55, memberID: 704), values: ["arrived": .bool(true), "expectedVersion": .integer(0), "reason": .string("到场补记"), "requestId": .string("a-1")]),
+            try .init(operation: .saveTopicSettings, scope: .init(clubID: 81, topicID: 3), values: ["coopOpen": .bool(true), "pinned": .bool(false), "memberOnly": .bool(false)]),
+            try .init(operation: .chapterRecruit, scope: .init(clubID: 81, chapterID: 12), values: ["enabled": .integer(1)]),
+            try .init(operation: .chapterFinish, scope: .init(clubID: 81, chapterID: 12), values: [:])
+        ]
+        XCTAssertEqual(Set(commands.map(\.operation)), ClubMPFirstGovernance.clubOps)
+        let factory = ClubGovernanceProductionFactory(api: try .init(baseURL: url), approval: live, transport: Wire(), current: { player })
+        for command in commands {
+            XCTAssertTrue(live.permits(command, context: player), "\(command.operation)")
+            XCTAssertNotNil(factory.service(for: command), "\(command.operation)")
+        }
+        XCTAssertTrue(ClubMPFirstGovernance.clubOps.allSatisfy { $0.risk != .financial })
     }
     func testDefaultFactoryDoesNotDispatch() throws {
         let c = try context(), command = try self.command(), wire = Wire()

@@ -412,7 +412,8 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         ReleaseMoneyWriteSwitch.testDerivation = nil
         PlatformPass.orderWriteTestDerivation = nil
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
-        XCTAssertFalse(PlayerContentMPContract.pricingGrantEnabled)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
@@ -435,11 +436,9 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
             requestID: "r1", quoteSign: nil, sourceClubID: nil, sourceChannelCode: nil)) { error in
             XCTAssertEqual(error as? PlayerContentMPContract.Refusal, .moneyDisabled)
         }
-        XCTAssertThrowsError(try PlayerContentMPContract.pricingConfirm(
+        XCTAssertNoThrow(try PlayerContentMPContract.pricingConfirm(
             baseURL: base, topicID: 6, scope: nil, guidedPrice: nil,
-            ticketPrices: [], leadCost: nil, teamSize: nil, selfPrice: nil)) { error in
-            XCTAssertEqual(error as? PlayerContentMPContract.Refusal, .pricingGrantDisabled)
-        }
+            ticketPrices: [], leadCost: nil, teamSize: nil, selfPrice: nil))
         XCTAssertThrowsError(try Adapt5HighRiskWriteSupplement.refuseRegistrationPay(id: "1")) { error in
             XCTAssertEqual(error as? Adapt5PayRefusal, .blocked)
         }

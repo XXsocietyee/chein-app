@@ -182,6 +182,14 @@ import XCTest
         XCTAssertTrue(governance.liveOperations.contains(.dissolve))
         XCTAssertFalse(governance.liveOperations.contains(.reportHours))
         XCTAssertFalse(governance.liveOperations.contains(.assignRole))
+        // CLB-r10-gate-05: the other non-money club writes the MP sends are live; money stays out.
+        XCTAssertTrue(ClubMPFirstGovernance.clubOps.isSubset(of: governance.liveOperations))
+        XCTAssertFalse(governance.liveOperations.contains(.cancelOccurrence))
+        XCTAssertFalse(governance.liveOperations.contains(.endTopic))
+        // CLB-r10-badges-01: MP pages/club/badges/index.js reads, creates and grants for any club.
+        let badges = try XCTUnwrap(admitted.clubBadgeManagementApproval(player))
+        XCTAssertTrue(badges.permits(player, clubID: 9, writing: true))
+        XCTAssertEqual(admitted.clubBadgeManagementApproval(player)?.revision, badges.revision)
         XCTAssertNotNil(admitted.clubPublicRosterApproval(player))
         XCTAssertNotNil(admitted.clubWelcomeNoteWriteApproval(player))
         XCTAssertNotNil(admitted.clubWelcomeNoteReceiptApproval(player))

@@ -314,9 +314,13 @@ struct ClubCommunityFeedView: View {
     @Environment(\.clubPostPlayHost) private var discussionHost
     /// CLB-detail-31: scroll to this post once it is in the loaded feed (one time per appearance).
     private let focusPostID: Int?
+    /// CLB-detail-14 (MP detail wxml:96-158): on the club page the feed sits inline under 帖文, so the page header and
+    /// tab bar come in as leading sections of this List (the feed keeps its own navigation, refresh and sheets).
+    private let leading: AnyView?
     @State private var didFocusPost = false
-    init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil, focusPostID: Int? = nil) {
-        self.identity = identity; self.clubID = clubID; self.focusPostID = focusPostID
+    init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil, focusPostID: Int? = nil,
+         leading: AnyView? = nil) {
+        self.identity = identity; self.clubID = clubID; self.focusPostID = focusPostID; self.leading = leading
         _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
     private var operation: ClubCommunityRead { clubID.map { .posts(clubID: $0, page: page) } ?? .feed(page: page) }
@@ -326,6 +330,7 @@ struct ClubCommunityFeedView: View {
     var body: some View {
         ScrollViewReader { proxy in
         List {
+            if let leading { leading }
             if model.loading {
                 Section {
                     ProgressView()
@@ -413,7 +418,7 @@ struct ClubCommunityFeedView: View {
             withAnimation { proxy.scrollTo(target.id, anchor: .top) }
         }
         }
-        .modifier(ClubCommunityPushedTitle(title: clubID == nil ? nil : LocalizedStringKey("club.community.posts")))
+        .modifier(ClubCommunityPushedTitle(title: clubID == nil || leading != nil ? nil : LocalizedStringKey("club.community.posts")))
         .toolbar {
             if canCompose {
                 ToolbarItem(placement: .primaryAction) {

@@ -7,13 +7,16 @@ import SwiftUI
     /// Optional source confirmation copy (e.g. official-inbox modal title/content).
     var noticeTitleKey: String? = nil
     var noticeBodyKey: String? = nil
+    /// R7-PC-C5-2: tells the inbox card while the write runs (MP official-inbox/index.js:177-193 `busyId`).
+    var onBusyChange: ((Bool) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model: OfficialActionPresentationModel
     init(coordinator: OfficialActionCoordinator, command: OfficialActionCommand,
-         noticeTitleKey: String? = nil, noticeBodyKey: String? = nil) {
+         noticeTitleKey: String? = nil, noticeBodyKey: String? = nil, onBusyChange: ((Bool) -> Void)? = nil) {
         self.coordinator = coordinator; self.command = command
         self.noticeTitleKey = noticeTitleKey; self.noticeBodyKey = noticeBodyKey
+        self.onBusyChange = onBusyChange
         _model = StateObject(wrappedValue: OfficialActionPresentationModel(coordinator: coordinator, command: command))
     }
     var body: some View {
@@ -28,6 +31,7 @@ import SwiftUI
                 Button("officialAction.close") { model.disappear(); dismiss() }.disabled(model.busy)
             } }
             .interactiveDismissDisabled(model.busy)
+            .onChange(of: model.busy) { _, busy in onBusyChange?(busy) }
             .onAppear { model.appear(isActive: scenePhase == .active) }
             .onChange(of: scenePhase) { _, phase in model.sceneChanged(isActive: phase == .active) }
             .onChange(of: coordinator.identity) { _, _ in model.synchronizeIdentity() }
@@ -225,6 +229,8 @@ import SwiftUI
     @State private var actionFailed = false
     @State private var transferHint = false
     @State private var toastMessage: String?
+    /// R7-PC-C5-2: MP official-inbox/index.wxml:20-32 — 正在提交，请稍候 on the card and its buttons disabled while the write runs.
+    @State private var writing = false
     private var actions: [OfficialResponseAction] { OfficialInboxPresentation.actions(for: invite) }
     var body: some View {
         Group {
@@ -235,11 +241,13 @@ import SwiftUI
         .cySheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } }), onDismiss: {
             // R7-PC-C5-2 (MP `cy-inline-error` 这次操作没有完成 + 重试): a rejected or unknown write stays visible on the card.
             actionFailed = lastReviewed != nil && [.rejected, .unknown].contains(coordinator.state)
+            writing = false
         }) {
             if let reviewed {
                 OfficialActionSheet(coordinator: coordinator, command: reviewed,
                                     noticeTitleKey: reviewedAction.map { OfficialInboxPresentation.confirmationTitleKey(invite, action: $0) },
-                                    noticeBodyKey: reviewedAction.map { OfficialInboxPresentation.confirmationBodyKey(invite, action: $0) })
+                                    noticeBodyKey: reviewedAction.map { OfficialInboxPresentation.confirmationBodyKey(invite, action: $0) },
+                                    onBusyChange: { busy in writing = busy })
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }
@@ -292,7 +300,13 @@ import SwiftUI
                     Text(LocalizedStringKey(OfficialInboxPresentation.buttonKey(action))).frame(maxWidth: .infinity)
                 }
                     .modifier(OfficialInboxActionButtonStyle(prominent: action == .accept))
+                    .disabled(writing)
                     .accessibilityIdentifier("official.inbox.\(action.rawValue.lowercased()).\(invite.id)").e1ActionRow()
+            }
+            if writing {
+                Text("official.inbox.submitting").font(.caption).foregroundStyle(.secondary)
+                    .accessibilityAddTraits(.updatesFrequently)
+                    .accessibilityIdentifier("official.inbox.submitting.\(invite.id)")
             }
             if transferHint {
                 Text("official.privateParity.inbox.organizerTransferHint").font(.subheadline).foregroundStyle(.secondary)

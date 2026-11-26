@@ -54,7 +54,7 @@ extension EnvironmentValues {
     @ViewBuilder private func content(_ model: PlayDirectorCoordinator, host: ClubTopicDirectorHost) -> some View {
         if let projection = model.projection {
             ClubTopicGenericOpsSection(activityID: activityID, revision: projection.revision,
-                                       writeLocked: ["loading", "submitting", "unknown"].contains(model.phase),
+                                       writeLocked: model.phase != "ready",
                                        onOpenAction: { _ in openingTool = true },
                                        onSubmitted: { Task { await model.load() } })
             ClubTopicPlanFallbackSection(activityID: activityID, revision: projection.revision) { Task { await model.load() } }

@@ -476,7 +476,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             Section {
                 if canReview(detail) {
                     Button { showsReview = true } label: {
-                        CYListRow("context.review.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
+                        // R10-PC-C-N4: a system Label row, not CYListRow + CYRowIcon.
+                        Label("context.review.title", systemImage: "square.and.pencil")
                     }
                     .accessibilityIdentifier("activity.openReview")
                 }

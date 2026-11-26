@@ -136,7 +136,9 @@ import SwiftUI
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if let post, let actions, actions.identity.accountID != nil, loadedKey == key {
                 // Source sticky bar "留下你的评论"; opens the existing reviewed comment editor.
-                CYFooterBar {
+                // r10 N-25: system bar material + divider instead of the custom CYFooterBar (square/detail/index.wxml).
+                VStack(spacing: 0) {
+                    Divider()
                     Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
                         Label("square.xcx.commentPlaceholder", systemImage: "text.bubble")
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -145,7 +147,10 @@ import SwiftUI
                     .controlSize(.large)
                     .disabled(!post.viewerCanComment)
                     .accessibilityIdentifier("square.commentBar")
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
                 }
+                .background(.bar)
             }
         }
         .navigationDestination(item: $cloudProfile) { member in

@@ -64,21 +64,30 @@ public struct ClubBadgeManagementApproval: Equatable {
     public let clubIDs: Set<Int>
     public let reviewedPolicyVersion: String
     public let reads: Bool, writes: Bool
+    /// MP-first (CLB-r10-badges-01): every club; the server checks the badge role per club.
+    public let anyClub: Bool
     public init(endpoints: OperationEndpointApproval, clubIDs: Set<Int>, reviewedPolicyVersion: String,
                 reads: Bool = false, writes: Bool = false) throws {
         guard !clubIDs.isEmpty, clubIDs.allSatisfy({ $0 > 0 }), !reviewedPolicyVersion.isEmpty,
               !writes || reads else { throw APIError.invalidConfiguration }
         self.endpoints = endpoints; self.clubIDs = clubIDs; self.reviewedPolicyVersion = reviewedPolicyVersion
-        self.reads = reads; self.writes = writes
+        self.reads = reads; self.writes = writes; self.anyClub = false
+    }
+    /// MP pages/club/badges/index.js reads, creates and grants for whichever club the page opens.
+    /// Non-money. China only; the endpoints must cover every badge path.
+    public init(mpFirstEndpoints endpoints: OperationEndpointApproval) throws {
+        guard ClubBadgeManagementRoute.paths.isSubset(of: endpoints.paths) else { throw APIError.invalidConfiguration }
+        self.endpoints = endpoints; self.clubIDs = []; self.reviewedPolicyVersion = "r10-club-badges-mp-first"
+        self.reads = true; self.writes = true; self.anyClub = true
     }
     public func permits(_ context: RuntimeDependencyContext, clubID: Int, writing: Bool) -> Bool {
         let paths = writing ? ClubBadgeManagementRoute.paths : ClubBadgeManagementRoute.readPaths
-        return context.market == .china && reads && (!writing || writes) && clubIDs.contains(clubID)
+        return context.market == .china && reads && (!writing || writes) && clubID > 0 && (anyClub || clubIDs.contains(clubID))
             && context.baseURL == endpoints.baseURL && context.session.accountID == endpoints.accountID
             && context.session.namespace == endpoints.namespace && paths.isSubset(of: endpoints.paths)
     }
     public func sameReadAuthority(as other: Self) -> Bool {
-        revision == other.revision && endpoints == other.endpoints && clubIDs == other.clubIDs && reviewedPolicyVersion == other.reviewedPolicyVersion && reads == other.reads
+        revision == other.revision && endpoints == other.endpoints && clubIDs == other.clubIDs && reviewedPolicyVersion == other.reviewedPolicyVersion && reads == other.reads && anyClub == other.anyClub
     }
 }
 

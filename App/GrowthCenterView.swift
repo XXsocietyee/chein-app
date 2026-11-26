@@ -20,7 +20,7 @@ extension EnvironmentValues {
 
 struct GrowthSessionProfile: Equatable {
     let name: String?
-    /// Carried for when the owner allows the avatar fetch in Growth views; not drawn today.
+    /// GROWTH-5: the session avatar URL, drawn on the score card (MP growthcenter wxml:17-21).
     let avatar: String?
 }
 private struct GrowthSessionProfileKey: EnvironmentKey {
@@ -152,9 +152,8 @@ extension RootTabSwitch {
     private func person(fallbackName: String?) -> some View {
         let name = GrowthCenterFormatting.nonempty(sessionProfile?.name) ?? GrowthCenterFormatting.nonempty(fallbackName)
         return HStack(spacing: CYSpacing.md) {
-            // The avatar image is not fetched here (test_growth_source_contract: no third-party media in Growth views);
-            // the session name's initial stands in.
-            GrowthProfileDisc(name: name)
+            // GROWTH-5: MP growthcenter wxml:20 `profile.avatarUrl || '/images/d_profile.png'`.
+            GrowthProfileDisc(name: name, avatar: sessionProfile?.avatar)
             if let name {
                 Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(palette.textPrimary).cyWrapText()
             }
@@ -316,25 +315,30 @@ extension RootTabSwitch {
     }
 }
 
-/// Score-card avatar. MP growthcenter wxml:20 is `profile.avatarUrl || '/images/d_profile.png'`; remote avatars are
-/// not loaded on Growth screens (third-party media), so the slot always shows the MP default `d_profile` (MP assets).
+/// Score-card avatar. MP growthcenter wxml:20 is `profile.avatarUrl || '/images/d_profile.png'`: the session's HTTPS
+/// avatar through `CYAvatarView` (as the leaderboard rows do), else the MP default `d_profile` (MP assets). No custom ring.
 struct GrowthProfileDisc: View {
-    @Environment(\.cyPalette) private var palette
     let name: String?
-    @Environment(\.themeDomain) private var themeDomain
+    var avatar: String? = nil
+    private var remoteAvatar: URL? {
+        guard let raw = GrowthCenterFormatting.nonempty(avatar)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              let url = URL(string: raw), url.scheme?.lowercased() == "https",
+              let host = url.host, !host.isEmpty, url.user == nil else { return nil }
+        return url
+    }
     var body: some View {
-        MPAsset.AvatarDefault.dProfile
-            .resizable()
-            .scaledToFill()
-            .frame(width: 48, height: 48)
-            .background(palette.bgRaised)
-            .clipShape(Circle())
-            .overlay {
-                if themeDomain == .player {
-                    Circle().strokeBorder(palette.avatarRing, lineWidth: 2)
-                }
+        Group {
+            if let remoteAvatar {
+                CYAvatarView(url: remoteAvatar, name: name ?? "", size: .md)
+            } else {
+                MPAsset.AvatarDefault.dProfile
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
             }
-            .accessibilityHidden(true)
+        }
+        .accessibilityHidden(true)
     }
 }
 

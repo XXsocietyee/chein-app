@@ -27,6 +27,8 @@ import SwiftUI
     @State private var rosterTab: ClubRosterBucket = .registered
     /// CLB-G15 (MP event-ops wxml:119-120): no topic to open a session for and no series yet.
     @State private var publishEmpty = false
+    /// CLB-G15 (MP event-ops js:499-503 `goPublishTopic` → pages/publish/fabu/index?clubId): the extras section's 发布主题.
+    @State private var publishTopicOpen = false
     private var key: Key { .init(identity: identity, authorization: access.authorizationGeneration, reader: ObjectIdentifier(access), scope: scope) }
     private var accessScope: ClubGovernanceScope { .init(clubID: scope.clubID, activityID: scope.activityID) }
     private var eventScope: ClubGovernanceScope { .init(clubID: scope.clubID, topicID: scope.topicID, activityID: scope.activityID) }
@@ -68,6 +70,13 @@ import SwiftUI
         .accessibilityIdentifier("clubOpsEvent.root")
         .task(id: key) { await load() }
         .refreshable { await load() }
+        .navigationDestination(isPresented: $publishTopicOpen) { publishTopicPage }
+    }
+    /// CLB-G15 (MP event-ops js:499-503): `wx.navigateTo('/pages/publish/fabu/index?clubId=' + clubId)`.
+    @ViewBuilder private var publishTopicPage: some View {
+        if let clubID = scope.clubID {
+            MPReviewedPageScreen(page: "pages/publish/fabu/index", query: ["clubId": String(clubID)])
+        }
     }
     private var denied: some View {
         ContentUnavailableView {
@@ -106,7 +115,9 @@ import SwiftUI
             } header: { ClubOpsTableHeading("clubOpsEvent.section.occurrence") }
             // CLB-G15 (MP event-ops wxml:39-43): 主持小费 · 暂不可开通 under 本场管理 (collection channel not enabled, so no
             // switch or ratio). paymentNotice sits in the series form and windowWarning on its receipt (r9, as in the MP).
-            ClubGapEventOpsExtrasSection(onTapPublishTopic: {})
+            // The extras CTA stays off here (`showsEmptyPublishCTA: false`) because the MP shows it in the 日期清单 slot;
+            // its tap is still wired to the same fabu push so the hook is never a no-op.
+            ClubGapEventOpsExtrasSection(showsEmptyPublishCTA: false, onTapPublishTopic: { publishTopicOpen = true })
             // The empty 发布主题 state sits in the 日期清单 slot (`case .series where publishEmpty`).
         case .roster:
             Section {

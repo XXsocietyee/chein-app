@@ -1,28 +1,5 @@
 import SwiftUI
 
-/// Local presentation choice over the same authorized badge result. No renderer or read capability is added.
-enum ObjectBadgeWallLayout: String, CaseIterable {
-    case list, wall
-    var titleKey: String { "objects.badgeLayout." + rawValue }
-}
-struct ObjectBadgeWallLayoutOwner: Equatable {
-    let readerID: ObjectIdentifier
-    let identity: ProfileReadIdentity?
-    let isConfigured: Bool
-}
-struct ObjectBadgeWallLayoutSelection {
-    private var owner: ObjectBadgeWallLayoutOwner?
-    private var layout: ObjectBadgeWallLayout = .list
-    func value(for current: ObjectBadgeWallLayoutOwner) -> ObjectBadgeWallLayout {
-        owner == current && current.identity != nil && current.isConfigured ? layout : .list
-    }
-    mutating func choose(_ next: ObjectBadgeWallLayout, rendered: ObjectBadgeWallLayoutOwner, current: ObjectBadgeWallLayoutOwner) {
-        guard rendered == current, current.identity != nil, current.isConfigured else { return }
-        owner = current; layout = next
-    }
-    mutating func retire() { owner = nil; layout = .list }
-}
-
 /// BWALL-3 grouping for the wall the server already returned. Lit identities stay in server order,
 /// then city medals, then achievements. Locked identities stay in server order. Medals are lit.
 /// A missing medal collection is not invented. Identifiers stay on the old family prefixes.
@@ -114,14 +91,13 @@ private enum ObjectBadgeWallColumns {
             // The typed internal badge-path entry is not a player feature and is not offered here.
     }
     @ViewBuilder private func badgeGrid(_ slots: [ObjectBadgeWallColumns.Slot], wall: ProfileBadgeWall) -> some View {
-        let layout = ObjectBadgeWallLayout.wall
         LazyVGrid(columns: badgeWallColumns, alignment: .leading, spacing: CYCollectionGrid.spacing) {
             ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
-                link(slot.badge, identifier: slot.identifier, albumID: slot.identifier, layout: layout, wall: wall).buttonStyle(.plain)
+                link(slot.badge, identifier: slot.identifier, albumID: slot.identifier, wall: wall).buttonStyle(.plain)
             }
         }.padding(.vertical, 4)
     }
-    private func link(_ badge: ProfileBadgeSelection, identifier: String, albumID: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
+    private func link(_ badge: ProfileBadgeSelection, identifier: String, albumID: String, wall: ProfileBadgeWall) -> some View {
         let capturedIdentity = reader.identity
         let media = self.media ?? envMedia
         let isNew = ObjectBadgeAlbumItem.isNew(badge) && !seen.contains(ObjectBadgeAlbumItem.seenKey(badge))
@@ -131,7 +107,7 @@ private enum ObjectBadgeWallColumns {
                 .modifier(ObjectBadgeThreeDEntry(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media))
                 .cyHeroDestination(albumID, in: hero)
         } label: {
-            ObjectBadgeWallBadgeLabel(badge: badge, layout: layout, isNew: isNew)
+            ObjectBadgeWallBadgeLabel(badge: badge, isNew: isNew)
                 .cyHeroSource(albumID, in: hero)
         }.accessibilityIdentifier(identifier)
     }
@@ -162,49 +138,24 @@ struct ObjectBadgeAlbumItem: Identifiable {
     }
 }
 
-/// This control is a separate list section, never nested inside a badge's navigation link.
-struct ObjectBadgeWallLayoutControl: View {
-    @Binding var selection: ObjectBadgeWallLayout
-    var body: some View {
-        Picker("objects.badgeLayout.title", selection: $selection) {
-            ForEach(ObjectBadgeWallLayout.allCases, id: \.rawValue) { layout in
-                Text(LocalizedStringKey(layout.titleKey)).tag(layout)
-            }
-        }.pickerStyle(.segmented).labelsHidden().frame(minHeight: 44)
-            .accessibilityLabel(Text("objects.badgeLayout.title"))
-            .accessibilityIdentifier("objects.badge.layout")
-    }
-}
+/// BWALL-3b (MP subpackageP3/badge-wall/index/index.wxml:46-63): one wall tile, the badge art over its name and meta.
+/// Locked tiles are grayscale. No foil, sheen, pulse or card chrome.
 struct ObjectBadgeWallBadgeLabel: View {
     let badge: ProfileBadgeSelection
-    let layout: ObjectBadgeWallLayout
-    /// Unlocked within seven days and not opened yet: gold "new" pulse on the tile.
+    /// Unlocked within seven days and not opened yet; read out by VoiceOver.
     var isNew = false
     @Environment(\.locale) private var locale
     var body: some View {
-        if layout == .wall {
-            VStack(spacing: CYSpacing.sm) {
-                CYFoilMedal(unlocked: !badge.isLocked, size: 76) {
-                    ZStack {
-                        // BWALL-2: server `badge.image` through the bounded loader; MP `badge-demo.png` is the fallback.
-                        ObjectBadgeTileArtwork(url: badge.image, locked: badge.isLocked).padding(CYSpacing.xs)
-                    }
-                }.padding(6).accessibilityHidden(true)   // the name + locked chip carry the meaning
-                description.fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
-            }.frame(maxWidth: .infinity, minHeight: 72)
-                .cyDomainCard(padding: CYSpacing.md)
-                .cyFoilSheen(active: !badge.isLocked)
-                .cyLockedSilhouette(badge.isLocked, showsLock: false)
-                .cyNewPulse(isNew, text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
-                .accessibilityElement(children: .combine)
-                .accessibilityValue(Text(verbatim: isNew ? ChannelCopy.text("新获得", "New", locale: locale) : ""))
-        } else {
-            HStack(spacing: CYSpacing.md) {
-                CYBadgeMedal(seed: badge.name.isEmpty ? badge.image : badge.name, locked: badge.isLocked, size: 48)
-                description
-            }
-            .accessibilityElement(children: .combine)
+        VStack(spacing: CYSpacing.sm) {
+            // BWALL-2: server `badge.image` through the bounded loader; MP `badge-demo.png` is the fallback.
+            ObjectBadgeTileArtwork(url: badge.image, locked: badge.isLocked)
+                .frame(width: 76, height: 76)
+                .grayscale(badge.isLocked ? 1 : 0)
+            description.fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
         }
+        .frame(maxWidth: .infinity, minHeight: 72)
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(Text(verbatim: isNew ? ChannelCopy.text("新获得", "New", locale: locale) : ""))
     }
     private var description: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {

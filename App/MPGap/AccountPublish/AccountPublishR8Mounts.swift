@@ -364,7 +364,8 @@ enum ProjectEditLook {
             } label: { Text("fixr8.look.font") }
             .accessibilityIdentifier("projectEdit.look.font")
         } header: {
-            Text("fixr8.look.title").cyText(.sectionTitle)
+            // r10 N-29: plain system Section header (no custom section-title type).
+            Text("fixr8.look.title")
         }
         .disabled(readOnly)
     }

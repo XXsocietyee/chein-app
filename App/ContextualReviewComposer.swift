@@ -20,13 +20,22 @@ import SwiftUI
     @State private var uploadingPhotos = false
     @State private var photoUploadFailure: String?
     private static let maximumPhotos = 9
-    /// MP topic / activity review textarea maxlength (300); Core still accepts up to 500.
-    static let maximumContents = 300
+    /// MP topic / activity review textarea maxlength (300, a JS length = UTF-16 units); Core uses the same cap.
+    static let maximumContents = ContextualReviewDraft.maximumContents
     /// Round 4 copy (MP topic/index.wxml:438/448): the topic sheet is 评价路线 with 请输入您的评价内容...
     private var isTopic: Bool { if case .topic = target { return true } else { return false } }
     @ScaledMetric(relativeTo: .body) private var photoSide: CGFloat = 72
     /// R9-PC-BN-3 / R9-PC-CN-3: the MP star size follows Dynamic Type.
     @ScaledMetric(relativeTo: .title2) private var starSide: CGFloat = 32
+    /// Whole characters only, up to the MP 300 UTF-16 limit (no split surrogate pair).
+    static func clipped(_ value: String) -> String {
+        var out = ""
+        for character in value {
+            if out.utf16.count + String(character).utf16.count > maximumContents { break }
+            out.append(character)
+        }
+        return out
+    }
     private func uploadPhotos(_ items: [PhotosPickerItem]) {
         guard !items.isEmpty else { return }
         guard let imageUploader, !uploadingPhotos else { photoItems = []; return }
@@ -66,9 +75,9 @@ import SwiftUI
                 TextField(LocalizedStringKey(isTopic ? "context.review.topicContents" : "context.review.contents"), text: $draft.contents, axis: .vertical)
                     .lineLimit(4...10).focused($typing).accessibilityIdentifier("context.review.contents")
                     .onChange(of: draft.contents) { _, value in
-                        if value.count > Self.maximumContents { draft.contents = String(value.prefix(Self.maximumContents)) }
+                        if value.utf16.count > Self.maximumContents { draft.contents = Self.clipped(value) }
                     }
-                Text(verbatim: "\(draft.contents.count)/\(Self.maximumContents)").cyText(.meta)
+                Text(verbatim: "\(draft.contents.utf16.count)/\(Self.maximumContents)").cyText(.meta)
             }.disabled(busy || state == .unknown || state == .acknowledged)
             if imageUploader != nil {
                 Section {

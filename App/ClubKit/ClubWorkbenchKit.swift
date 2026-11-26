@@ -223,8 +223,8 @@ struct ClubInviteShareLink<LabelContent: View>: View {
 }
 
 /// Share in the navigation bar (a glass circle on iOS 26+ bars): the club detail path from `ClubShareLink`.
-/// CLB-detail-30 (fix-r3-club-a round 3, re-applied on the wired path): the path travels as an in-app
-/// `chein://mp/…` link (`ClubShareURL`) with the MP invitation as its message, so the receiver can open it.
+/// CLB-detail-30 (fix-r3-club-a round 3, re-applied on the wired path): the path travels as an
+/// https universal link (`ClubShareURL`, `chein://mp/…` fallback) with the MP invitation as its message, so the receiver can open it.
 struct ClubHeaderShareButton: View {
     let clubID: Int
     var clubName: String? = nil

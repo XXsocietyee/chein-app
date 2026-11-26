@@ -79,6 +79,10 @@ import SwiftUI
         guard topicID > 0, clubID > 0 else { return nil }
         let code = "club-\(clubID)-t\(topicID)"
         guard (1...64).contains(code.unicodeScalars.count) else { return nil }
+        // CLB-detail-30 / CLB-r10-detail-03 (MP club/detail js:3509-3545): https universal link first; chein:// fallback.
+        if let url = PublicContentShareLink.clubTicket(TopicClubShareLink(topicID: topicID, sourceClubId: clubID, clubCode: code)) {
+            return url
+        }
         var components = URLComponents()
         components.scheme = CheinDeepLink.scheme
         components.host = "mp"

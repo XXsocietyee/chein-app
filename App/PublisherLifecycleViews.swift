@@ -30,6 +30,8 @@ import SwiftUI
     @State private var paymentQualificationNote: String?
     /// R7-PC-B4-3: MP `loadSaleStatus` / `loadPendingSettlements` (pages/topic/pricing/index.js:328-370). Read only.
     @State private var pricingExtra = TopicPricingExtraStatus()
+    /// R7-PC-B4-3: MP per-ticket finals (pages/topic/pricing/index.wxml:45-86) → confirm `ticketPrices` when there is more than one ticket.
+    @State private var ticketFields: [TopicPricingPerTicketField] = []
     @Environment(\.topicRouteGapService) private var makePricingGapService
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
@@ -130,7 +132,7 @@ import SwiftUI
                     }
                 }
                 // R7-PC-B4-3: MP 开售状态 and 结算待处理 cards (pages/topic/pricing/index.wxml:79-86) before 合作阵容.
-                TopicPricingGapSection(ticketFields: .constant([]), extraStatus: pricingExtra)
+                TopicPricingGapSection(ticketFields: $ticketFields, extraStatus: pricingExtra, canConfirmPricing: showsConfirm)
                 if !preview.lineup.isEmpty {
                     Section {
                         ForEach(preview.lineup) { row in
@@ -163,7 +165,7 @@ import SwiftUI
                             .buttonStyle(.borderedProminent).controlSize(.large)
                             .disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
                     } else {
-                        // R7-PC-B4-1 (owner decision pending): the page is read-only without the pricing grant — say so.
+                        // R7-PC-B4-1: the session issues the pricing grant; without one (no runtime config) the page is read-only — say so.
                         Text("publisherPricing.confirmNotOpen").font(.footnote).foregroundStyle(.secondary)
                             .accessibilityIdentifier("publisher.confirmNotOpen")
                     }
@@ -222,15 +224,30 @@ import SwiftUI
         }
     }
     private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
-    private func input() throws -> PublisherPricingInput { try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team), scope: pricingScope) }
+    private func input() throws -> PublisherPricingInput {
+        try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team), scope: pricingScope,
+                  ticketPrices: try ticketPriceRows())
+    }
+    /// Preview ignores per-ticket finals, so a half-typed ticket price never blocks 重新计算.
+    private func previewInput() throws -> PublisherPricingInput {
+        try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team), scope: pricingScope)
+    }
+    /// R7-PC-B4-3: MP confirmPrice sends `ticketPrices` only when the page lists more than one ticket.
+    private func ticketPriceRows() throws -> [PublisherTicketPrice] {
+        guard ticketFields.count > 1 else { return [] }
+        return try ticketFields.map { field in
+            guard let value = Decimal(string: field.priceText.trimmingCharacters(in: .whitespaces)) else { throw PublisherLifecycleError.incomplete }
+            return try PublisherTicketPrice(ticketID: field.id, price: value)
+        }
+    }
     private var currentAction: PublisherLifecycleAction? {
         guard let value = Decimal(string: price), let input = try? input() else { return nil }
         return .pricing(input, value)
     }
-    private var formKey: [String] { [String(topicID), String(describing: subtype), cost, team, price] }
+    private var formKey: [String] { [String(topicID), String(describing: subtype), cost, team, price] + ticketFields.map(\.priceText) }
     private func invalidate(keepPreview: Bool = false) {
         generation = UUID(); review = nil; message = ""; busy = false; loadFailed = false
-        if !keepPreview { preview = nil; partnerNames = [:]; resultSession = nil }
+        if !keepPreview { preview = nil; partnerNames = [:]; resultSession = nil; ticketFields = [] }
         coordinator.invalidate()
     }
     private func isCurrent(_ stamp: UUID, _ session: PublishingSession, _ key: [String]) -> Bool {
@@ -248,7 +265,7 @@ import SwiftUI
         guard visible, phase == .active, !busy, let session = client.session,
               coordinator.currentSession == session else { return }
         let capturedInput: PublisherPricingInput
-        do { capturedInput = try input() }
+        do { capturedInput = try previewInput() }
         catch { message = PublisherLifecycleCopy.error(error, zh: isChinese); resultSession = session; loadFailed = true; return }
         invalidate()
         let stamp = generation, key = formKey
@@ -261,6 +278,10 @@ import SwiftUI
                 guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
                 busy = false; preview = value; loadFailed = false; resultSession = session
                 price = String(TopicPricingXcx.initialPrice(floor: value.minimum))
+                ticketFields = value.tickets.count > 1 ? value.tickets.map { ticket in
+                    TopicPricingPerTicketField(id: ticket.id, ticketName: ticket.name,
+                                               priceText: ticket.price.map { TopicPricingXcx.moneyText(decimal: $0) } ?? price)
+                } : []
             } catch {
                 guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
                 loadFailed = true; message = PublisherLifecycleCopy.error(error, zh: isChinese); resultSession = session
@@ -306,27 +327,37 @@ import SwiftUI
             }
         }
     }
+    /// R8-PC-B4-1: MP pages/topic/pricing/index.js:441-460 `confirmPrice` posts `/api/topic/pricing/confirm`.
+    /// On 200 it toasts `res.msg` and goes back; a message naming 支付资质 is shown as the 终价已确认 modal first.
+    /// An error shows its message (`submitError`).
     private func beginConfirm(_ value: PublisherLifecycleReview) {
         guard visible, phase == .active, !busy, let session = client.session,
               coordinator.currentSession == session, value.session == session,
               self.review == value, value.action == currentAction else { return }
-        // Pricing confirm is refused by the contract while the grant flag is off. Do not call the coordinator,
-        // which would build POST api/topic/pricing/confirm. Graduate, transfer, and cancel use their own methods.
         guard case .pricing = value.action else { return }
-        do {
-            _ = try PlayerContentMPContract.pricingConfirm(
-                baseURL: client.configuration.baseURL, topicID: topicID, scope: pricingScope,
-                guidedPrice: subtype == .guided ? Int(price) : nil, ticketPrices: [],
-                leadCost: Int(cost), teamSize: Int(team), selfPrice: subtype == .selfPlay ? Int(price) : nil)
-        } catch {
-            message = PublisherLifecycleCopy.outcome(.notSent, zh: isChinese)
-            resultSession = session
-            review = nil
-            return
+        let stamp = generation, key = formKey
+        busy = true
+        Task {
+            guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
+            defer { if isCurrent(stamp, session, key) { busy = false } }
+            let outcome = await coordinator.confirm(value, consequentialApproval: true)
+            guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
+            review = nil; resultSession = session
+            applyConfirmOutcome(outcome)
         }
-        message = PublisherLifecycleCopy.outcome(.notSent, zh: isChinese)
-        resultSession = session
-        review = nil
+    }
+    private func applyConfirmOutcome(_ outcome: PublisherLifecycleOutcome) {
+        guard case .acknowledged(let note, _) = outcome else {
+            message = PublisherLifecycleCopy.outcome(outcome, zh: isChinese); return
+        }
+        let text = note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if text.contains("支付资质") { paymentQualificationNote = text; return }
+        successToast = text.isEmpty ? PublisherLifecycleCopy.outcome(outcome, zh: isChinese) : text
+        // MP index.js:451 navigates back after the toast (1.5 s).
+        Task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            if visible { dismiss() }
+        }
     }
 }
 @MainActor struct PublisherPartnerView: View {

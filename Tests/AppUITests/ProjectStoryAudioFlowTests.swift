@@ -40,7 +40,7 @@ import XCTest
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-audio", "--project-story-audio-cancel-first"]
         app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
         XCTAssertTrue(app.staticTexts["projectStoryAudio.fixture.scope"].exists)
-        tap("projectEdit.saveLocal", app, fixed: true); var saved = try snapshot(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); var saved = try snapshot(app)
         let chapterID = try XCTUnwrap(chapter(saved)["id"] as? String)
         XCTAssertEqual(try blocks(saved).count, 2); XCTAssertEqual(saved["storyAudioUploadCount"] as? Int, 0)
         tap("projectEdit.chapter." + chapterID, app); tap("projectStoryAudio.add", app); back(app)

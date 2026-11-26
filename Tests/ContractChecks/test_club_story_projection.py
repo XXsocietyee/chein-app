@@ -113,7 +113,9 @@ class ClubStoryProjectionContracts(unittest.TestCase):
                     "testWalkingEstimateKeepsDuplicateDisplayRowsAndDoesNotCreateIdentities",
                     "testWalkingEmptyVisibleNodeProjectionDoesNotUseOpaqueGeometry",
                     "testWalkingSingleVisibleNodeCannotEstimateTowardAnOmittedNode",
-                    "testWalkingOnlyUsesReturnedChaptersWithoutReconstructingLockedContent"]
+                    "testWalkingOnlyUsesReturnedChaptersWithoutReconstructingLockedContent",
+                    # CLB-topic-story-04 r10 (MP topic-story wxml:41, js:77-78): stops carry their own coordinates.
+                    "testStopsCarryTheirOwnCoordinatesAndDropZeroOrMissing"]
         self.assertEqual(set(re.findall(r"func (test\w+)\(", TESTS)), set(expected))
 
 

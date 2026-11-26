@@ -30,9 +30,11 @@ class RuntimeDependencyWiringTests(unittest.TestCase):
         # are MP writes and now ride the publisher grant. Refunds (money) and creator applications stay absent.
         # r8 (4851569b4, RuntimeDependencyTests pin): reads ride publisherReads; ownership and graduation carry the two MP
         # form paths; the pricing grant is not issued here (stricter than R7-PC-B4-1).
-        self.assertIn('return PublisherLifecycleGrants(reads: reads, ownership: ownership, graduation: ownership)', core)
+        # r10 R7-PC-B4-1: the pricing grant is now issued with the session (MP pages/topic/pricing/index.js:419-460;
+        # a final-price save, not money). Refunds and creator applications stay absent.
+        self.assertIn('return PublisherLifecycleGrants(reads: reads, pricing: pricing, ownership: ownership, graduation: ownership)', core)
         self.assertIn('paths.formUnion(["api/topic/beta/graduate", "api/topic/transfer-to-club"])', core)
-        for mutation in ['pricing:', 'cancellationRefunds:', 'creatorApplication:']:
+        for mutation in ['cancellationRefunds:', 'creatorApplication:']:
             self.assertNotIn(mutation, core)
     def test_factories_mount_production_clients_instead_of_fixtures(self):
         app = self.read('App/AppSession.swift')

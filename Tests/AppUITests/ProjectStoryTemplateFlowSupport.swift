@@ -75,7 +75,7 @@ import XCTest
             "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-edit-pending", "--project-story-template"]
         app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
         assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
-        tap("projectEdit.saveLocal", app, fixed: true); return app
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); return app
     }
     private func backToEditor(_ app: XCUIApplication) {
         let button = app.navigationBars.buttons.firstMatch
@@ -193,7 +193,7 @@ import XCTest
         tap("projectEdit.fixture.reopen", app, fixed: true); tap("projectEdit.restore", app)
         // Resave the restored editor state so the probe cannot pass by merely rereading
         // an untouched old envelope while the visible coordinator failed to restore it.
-        tap("projectEdit.saveLocal", app, fixed: true)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app)
         let restored = try snapshot(app)
         XCTAssertEqual(restored.savedDraft, applied.savedDraft)
         XCTAssertEqual(restored.storyTemplateListCount, 3); XCTAssertEqual(restored.storyTemplateDetailCount, 4)

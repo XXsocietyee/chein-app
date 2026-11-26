@@ -19,17 +19,17 @@ class W207PricingApplyParity(unittest.TestCase):
                       'preview.canConfirm == false', '"publisherPricing.thisPartnerLinkIsNoLonger"', '"publisherPricing.theLineupFreezesWhenSalesOpen"']:
             self.assertIn(exact, view)
         # MP pages/topic/pricing/index.js:419 confirmPrice posts /api/topic/pricing/confirm (:443).
-        # Pricing stays dormant: the view only builds the hard-off contract and reports notSent.
-        # It must not call the coordinator, which sends once the runtime pricing grant is present.
-        # Other money confirms in this file still require consequential approval.
+        # R8-PC-B4-1: pricing confirm is a final-price save, not money (pages/topic/pricing/index.js:419-460).
+        # The view sends it through the coordinator (which still needs the runtime pricing grant and a fresh review),
+        # toasts res.msg and goes back; a 支付资质 note is the 终价已确认 modal (index.js:446-460).
         pricing = view.split('@MainActor struct PublisherPricingView', 1)[1].split('@MainActor struct PublisherPartnerView', 1)[0]
-        self.assertIn('PlayerContentMPContract.pricingConfirm(', pricing)
-        self.assertIn('PublisherLifecycleCopy.outcome(.notSent', pricing)
-        self.assertNotIn('await coordinator.confirm(', pricing)
+        self.assertIn('await coordinator.confirm(value, consequentialApproval: true)', pricing)
+        self.assertIn('text.contains("支付资质")', pricing)
         self.assertNotIn('URLSession', pricing)
         self.assertIn('coordinator.confirm(value, consequentialApproval: true)', view)
         contract = read('Core/PlayerContentMPContract.swift')
-        self.assertIn('public static var pricingGrantEnabled: Bool { moneyEnabled }', contract)
+        # R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        self.assertIn('public static var pricingGrantEnabled: Bool { true }', contract)
         self.assertIn('if !pricingGrantEnabled { throw Refusal.pricingGrantDisabled }', contract)
         # Copy moved from inline Chinese literals to catalog keys; the catalog must still carry the exact wording.
         import json

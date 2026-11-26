@@ -77,7 +77,9 @@ import FoundationNetworking
         recorder.response = Data(#"{"code":200,"data":{"priceMin":12,"lineup":[]}}"#.utf8)
         let factory = RuntimeDependencyFactory(api: try .init(baseURL: url), configuration: try approval(paths: ["api/topic/pricing/preview"], play: [], publisher: true), transport: recorder, current: { current })
         let grants = factory.publisherGrants
-        XCTAssertNotNil(grants.reads); XCTAssertNil(grants.pricing); XCTAssertNil(grants.cancellationRefunds)
+        // R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460); granted with the session.
+        XCTAssertNotNil(grants.reads); XCTAssertNil(grants.cancellationRefunds)
+        XCTAssertTrue(grants.pricing?.paths.contains("api/topic/pricing/confirm") == true)
         XCTAssertNotNil(grants.ownership); XCTAssertNotNil(grants.graduation); XCTAssertNil(grants.creatorApplication)
         XCTAssertTrue(grants.ownership?.paths.contains("api/topic/beta/graduate") == true)
         XCTAssertTrue(grants.graduation?.paths.contains("api/topic/transfer-to-club") == true)

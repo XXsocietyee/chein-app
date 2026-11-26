@@ -22,7 +22,7 @@ class SocialArticleContentChecks(unittest.TestCase):
         screen = self.read('App/SocialAccountComponents.swift')
         for token in ['loadedKey != key || busy', 'try Task.checkCancellation()',
                       'guard generation == run, key == captured',
-                      '.task(id: key)', '.onDisappear { loads.cancel(); generation += 1; busy = false }']:
+                      '.task(id: key)', 'guard presentChildren <= 0 else { return }', 'loads.cancel(); generation += 1; busy = false']:  # 03732e2df: cancel only when no child is left (pull-to-refresh fix)
             self.assertIn(token, screen)
 
     def test_pure_projection_has_fixed_input_output_work_and_depth_caps(self):

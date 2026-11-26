@@ -79,7 +79,9 @@ import XCTest
             .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
         }
         let base = player.baseURL
-        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/marketing/product/gifts/claim"), #"{"token":"g"}"#, token: player.session.token)) }
+        // fix-r10 MKT-3-1b: the gift claim is admitted on production (MP `market/gift/index.js:101-123`); the
+        // landing journey stub still throws, and the market/gift page sends it through `PlatformPassGiftClaimSource`.
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/marketing/product/gifts/claim"))
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/marketing/referral/token"), #"{"targetId":"1"}"#, token: player.session.token)) }
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/registration/pay"), #"{"payAmount":1}"#, token: player.session.token)) }
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/login"), "{}", token: player.session.token)) }

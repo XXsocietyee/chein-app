@@ -521,7 +521,7 @@ enum PlayerContentMPAppWire {
     }
 }
 
-/// Topic self-play create consults `registrationCreate` and does not send it.
+/// Topic self-play create (R8-PC-B1-1). Free orders always send; paid orders follow the payment switch.
 /// Quote and activity signup stay on their existing services.
 @MainActor final class PlayerContentSelfPlayClient: TopicSelfPlayServing {
     private let inner: TopicSelfPlayHTTPClient
@@ -545,15 +545,15 @@ enum PlayerContentMPAppWire {
     func readOrder(registrationID: Int) async throws -> OrderLifecycleDetail {
         try await inner.readOrder(registrationID: registrationID)
     }
+    /// R8-PC-B1-1: MP pages/topic/index/index.js:1469 posts `/api/registration/create`.
+    /// A paid total follows `ReleaseMoneyWriteSwitch.paymentEnabled` (owner 11-26: money is on in Release).
+    /// A free (¥0) self-play order is not money and is always sent.
     func create(_ intent: TopicSelfPlayIntent) async throws -> RegistrationCreateResult {
-        do {
-            _ = try PlayerContentMPContract.registrationCreate(
-                baseURL: baseURL, ownerType: 1, ownerID: intent.topic.rawValue, realName: intent.realName,
-                phone: intent.phone, isUsePoint: 0, requestID: intent.requestID, quoteSign: nil,
-                sourceClubID: intent.sourceClubId, sourceChannelCode: intent.sourceChannelCode)
-        } catch {
+        if PlayerContentMPContract.moneyEnabled { return try await inner.create(intent) }
+        let fresh = try await inner.freshTopic(intent.topic)
+        guard PlayerContentMPContract.selfPlayCreateOpen(price: fresh.selfPlayPrice) else {
             throw TopicSelfPlayFailure.unavailable
         }
-        throw TopicSelfPlayFailure.unavailable
+        return try await inner.create(intent)
     }
 }

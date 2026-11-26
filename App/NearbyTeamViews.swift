@@ -647,16 +647,14 @@ import SwiftUI
         }
     }
 
+    /// N-RTEAMS (r10): the review as a system sheet: NavigationStack + Form, inline title, a ✕ cancellation item
+    /// and system buttons (MP subpackageRoam/my-teams/index.wxml review / handle modal).
     private var reviewSheetBody: some View {
-        CYSheetContainer(
-            title: appLocalized(String.LocalizationValue(stringLiteral: snapshot.action.key), locale: locale),
-            onClose: model.running ? nil : { model.cancel() }
-        ) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
+        NavigationStack {
+            Form {
+                Section {
                     Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "")
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .font(.headline)
                         .fixedSize(horizontal: false, vertical: true)
                     if let applicant = snapshot.applicant, !applicant.name.isEmpty {
                         Label {
@@ -665,43 +663,43 @@ import SwiftUI
                         } icon: {
                             Image(systemName: "person.crop.circle")
                         }
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(.secondary)
                     }
+                } footer: {
                     Text(model.coordinator.synthetic ? "nearby.review.consequence" : "nearby.review.liveConsequence")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if !consequenceKeys.isEmpty {
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
-                                HStack(alignment: .top, spacing: CYSpacing.sm) {
-                                    Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
-                                        .cyText(.body)
-                                        .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
-                                        .accessibilityHidden(true)
-                                    Text(LocalizedStringKey(key))
-                                        .cyText(.bodyCompact)
-                                        .foregroundStyle(CYColor.textPrimary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
+                }
+                if !consequenceKeys.isEmpty {
+                    Section {
+                        ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
+                            Label {
+                                Text(LocalizedStringKey(key)).fixedSize(horizontal: false, vertical: true)
+                            } icon: {
+                                Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
+                                    .foregroundStyle(idx == consequenceKeys.count - 1 ? Color.red : Color.secondary)
                             }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(CYSpacing.md)
-                        .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                     }
+                }
+                Section {
                     confirmActionButton
                     Button("nearby.cancel") { model.cancel() }
-                        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+                        .frame(maxWidth: .infinity)
                         .disabled(model.running)
                         .accessibilityIdentifier("nearby.cancel")
                 }
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .navigationTitle(appLocalized(String.LocalizationValue(stringLiteral: snapshot.action.key), locale: locale))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { model.cancel() } label: { Label("action.close", systemImage: "xmark") }
+                        .labelStyle(.iconOnly)
+                        .disabled(model.running)
+                }
+            }
         }
         .interactiveDismissDisabled(model.running)
-        .cyDomainSheet(detents: [.half, .full])
+        .presentationDetents([.medium, .large])
     }
 
     @ViewBuilder private var confirmActionButton: some View {
@@ -711,9 +709,9 @@ import SwiftUI
         .disabled(model.running || !model.coordinator.canSubmit)
         .accessibilityIdentifier("nearby.confirm")
         if isDestructiveAction {
-            button.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            button.frame(maxWidth: .infinity).foregroundStyle(.red)
         } else {
-            button.buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
+            button.frame(maxWidth: .infinity).fontWeight(.semibold)
         }
     }
 }

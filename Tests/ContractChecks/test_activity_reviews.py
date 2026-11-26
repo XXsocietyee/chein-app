@@ -37,7 +37,8 @@ class ActivityReviewChecks(unittest.TestCase):
         self.assertIn('if generation == operation, profileIdentity == peopleProfile?.reader.identity,', view)
         self.assertIn('ContextualReviewComposer(target: .activity(id)', view)
         self.assertIn('Button { showsReview = true } label: {', view)
-        self.assertIn('CYListRow("context.review.title", trailing: .none)', view)
+        # R10-PC-C-N4 (native r2): the 写评价 row is a system Label (MP scene-play-activity-detail/index.wxml:138 opens the sheet).
+        self.assertIn('Label("context.review.title", systemImage: "square.and.pencil")', view)
 
     def test_bounded_preview_is_not_count_average_or_authority(self):
         model = self.read('Core/ActivityReviews.swift')

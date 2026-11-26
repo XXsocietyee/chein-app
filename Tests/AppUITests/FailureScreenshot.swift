@@ -275,3 +275,19 @@ func selectLanguage(in app: XCUIApplication, option: String, timeout: TimeInterv
     choice.tap()
     return true
 }
+
+/// r10 C-T5 / C-F4 (MP temp/index.wxml:1492-1494; fabu/index.js saveDraft=1): the app-only 保存到此设备 / 存到本机
+/// moved out of the editor's bottom bar into its ⋯ toolbar menu. Opens that menu, then taps the item.
+func tapEditorMenuItem(_ id: String, menu: String, in app: XCUIApplication,
+                       file: StaticString = #filePath, line: UInt = #line) {
+    let more = app.buttons[menu]
+    guard more.waitForExistence(timeout: 5), more.isEnabled else {
+        XCTFail("Missing editor menu " + menu + ": " + app.debugDescription, file: file, line: line); return
+    }
+    more.tap()
+    let item = app.buttons[id]
+    guard item.waitForExistence(timeout: 5), item.isEnabled else {
+        XCTFail("Missing enabled menu item " + id + ": " + app.debugDescription, file: file, line: line); return
+    }
+    item.tap()
+}

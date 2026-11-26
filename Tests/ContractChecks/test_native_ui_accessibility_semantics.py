@@ -169,7 +169,9 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
 
     def test_object_menu_keeps_native_action_and_asserts_category_translation(self):
         view = source('App/ObjectCardViews.swift')
-        self.assertIn('.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)', view)
+        # OCARDS-3b (r10, MP subpackageP3/object-cards/index/index.wxml:14-16): the category Menu is a toolbar item.
+        self.assertIn('ToolbarItem(placement: .topBarTrailing)', view)
+        self.assertIn('.accessibilityIdentifier("objects.filter")', view)
         self.assertIn('await model.load(category: category, reader: reader)', view)
         tests = source('Tests/AppUITests/ObjectCardFlowTests.swift')
         self.assertIn('app.descendants(matching: .any)["objects.filter"].firstMatch', tests)
