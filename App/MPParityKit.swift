@@ -151,6 +151,8 @@ enum MPParityRoute: Hashable, Identifiable {
         guard !path.contains("\\"), !path.contains(".."), !path.contains("://"),
               !path.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }) else { return nil }
         let page = path.hasPrefix("/") ? String(path.dropFirst()) : path
+        // Lane G: merchant-center, merchant-onboarding and coop pages are hidden in Release; the link opens player home.
+        if PlayerLaunch.isHidden(page: page) { self = .screen(page: PlayerLaunch.playerHomePage, query: [:]); return }
         func nonEmpty(_ key: String) -> String? {
             guard let v = query[key], !v.isEmpty, v.utf16.count <= 512,
                   v.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }) else { return nil }
@@ -244,7 +246,7 @@ enum MPParityRoute: Hashable, Identifiable {
         case "pages/coop/list/index":
             self = .coopList(query["tab"] == "sent" ? .sent : .received)
         case "subpackageA/pages/myproject/index":
-            let merchant = query["scope"] == "MERCHANT"
+            let merchant = query["scope"] == "MERCHANT" && PlayerLaunch.merchantCenterEnabled // Lane G: no merchant entry in Release
             let type = nonEmpty("type").map { $0 == "club_activity" ? "activity" : ($0 == "template" ? "template" : "topic") }
             self = merchant || type != nil ? .myProjectsEntry(merchant: merchant, initialType: type ?? "topic") : .myProjects
         case "pages/merchant/ledger/index":

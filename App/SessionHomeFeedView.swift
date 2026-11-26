@@ -352,7 +352,7 @@ import SwiftUI
             showsOfficialEvents = true
         case "club_apply":
             if session.account == nil { onSignIn?() } else { showsClubApplication = true }
-        case "merchant_apply":
+        case "merchant_apply" where PlayerLaunch.merchantCenterEnabled: // Lane G: hidden in Release
             if session.account == nil { onSignIn?() } else { showsMerchantApplication = true }
         case "mini_games":
             if session.account == nil { onSignIn?() } else { showsMiniGames = true }
