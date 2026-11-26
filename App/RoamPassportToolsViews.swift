@@ -213,7 +213,6 @@ struct RoamAnniversaryReadIntent {
                     DatePicker("roam.tools.anniversary.change", selection: $pickerDate, displayedComponents: .date)
                         .environment(\.timeZone, Self.shanghai.timeZone)
                         .environment(\.calendar, Self.shanghai)
-                        .labelsHidden()
                         .disabled(state.isLoading || unavailableError != nil)
                         .accessibilityLabel(Text("roam.tools.anniversary.change"))
                         .accessibilityIdentifier("roam.tools.anniversary.change")
@@ -223,8 +222,12 @@ struct RoamAnniversaryReadIntent {
             if let error = unavailableError ?? state.error {
                 Section {
                     if RoamHistoryErrorPresentation.resolve(error: error) == .denied {
-                        Label("roam.tools.anniversary.denied", systemImage: "lock")
-                            .accessibilityIdentifier("roam.tools.anniversary.denied")
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Text("roam.tools.anniversary.denied").cyText(.body)
+                                .accessibilityIdentifier("roam.tools.anniversary.denied")
+                            Button("action.retry") { enqueue(retry) }
+                                .accessibilityIdentifier("roam.experience.retry")
+                        }
                     } else { RoamExperienceIssue(error: error) { enqueue(retry) } }
                 }
                 .accessibilityIdentifier("roam.tools.anniversary.error")
@@ -249,8 +252,12 @@ struct RoamAnniversaryReadIntent {
                 Section {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("roam.tools.anniversary.yearsAgo \(item.yearsAgo)").cyText(.cardTitle).foregroundStyle(.tint)
-                        Text(verbatim: anniversaryTitle(item.title)).cyText(.sectionTitle)
-                        Text("roam.tools.anniversary.completed \(item.completedMinuteText)").cyText(.body).foregroundStyle(.secondary)
+                        if let title = anniversaryField(item.title) {
+                            Text(verbatim: title).cyText(.sectionTitle)
+                        }
+                        if let completed = anniversaryField(item.completedMinuteText) {
+                            Text("roam.tools.anniversary.completed \(completed)").cyText(.body).foregroundStyle(.secondary)
+                        }
                     }.accessibilityElement(children: .combine)
                         .accessibilityIdentifier("roam.tools.anniversary.row")
                     switch RoamAnniversaryRouteAvailability.resolve(memory: item, hasDestination: routeDestination != nil) {
@@ -261,8 +268,8 @@ struct RoamAnniversaryReadIntent {
                                 _ = navigation.open(target, memory: item, currentRows: state.rows, owner: reader?.identity)
                             } label: { Text("roam.tools.anniversary.openRoute") }
                                 .disabled(state.isLoading)
-                                // MP aria-label 查看当前路线 {title}.
-                                .accessibilityLabel(Text("roam.tools.anniversary.openRoute.a11y \(anniversaryTitle(item.title))"))
+                                // MP aria-label 查看当前路线 {title}; a blank title stays off the label.
+                                .accessibilityLabel(anniversaryRouteLabel(item.title))
                                 .accessibilityIdentifier("roam.tools.anniversary.openRoute")
                         }
                     case .invalidTopicID, .noDestination:
@@ -407,9 +414,14 @@ struct RoamAnniversaryReadIntent {
     private func readIntent(_ intent: RoamAnniversaryListState.Intent) -> RoamAnniversaryReadIntent {
         .init(intent: intent, reader: reader, state: state, navigation: navigation, visit: visit)
     }
-    private func anniversaryTitle(_ title: String?) -> String {
-        let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return trimmed.isEmpty ? "—" : trimmed
+    /// Blank title or completed text is absent on the row. A dash would look like another memory.
+    private func anniversaryField(_ value: String?) -> String? {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    private func anniversaryRouteLabel(_ title: String?) -> Text {
+        guard let title = anniversaryField(title) else { return Text("roam.tools.anniversary.openRoute") }
+        return Text("roam.tools.anniversary.openRoute.a11y \(title)")
     }
     private func enqueue(_ offered: RoamAnniversaryReadIntent) {
         Task { await load(offered) }
