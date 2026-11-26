@@ -261,7 +261,8 @@ import UIKit
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if NativeR2Flags.storyFlow, visible, audioMounted, scenePhase == .active, makeAudio != nil, !orderedAudioURLs.isEmpty {
-                NR2MiniAudioPlayer(title: chapter?.title ?? chapterPosition?.name, urls: orderedAudioURLs, selected: audioURL,
+                NR2MiniAudioPlayer(title: chapter?.title ?? chapterPosition?.name, urls: orderedAudioURLs,
+                                   selected: audioURL.flatMap { currentAudioURLs.contains($0) ? $0 : nil },
                                    scope: mediaScope, makeAudio: makeAudio, select: scopedAudioSelection())
                     .id(audioPresentationID)
             }

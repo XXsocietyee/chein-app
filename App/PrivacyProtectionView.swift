@@ -57,7 +57,7 @@ struct PrivacyProtectionView: View {
                     ContentUnavailableView {
                         Label { Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry") } icon: { Image(systemName: "doc.questionmark") }
                     }
-                    .accessibilityIdentifier("authEntry.privacy.guideUnavailable")
+                    .accessibilityIdentifier("privacy.page.guideUnavailable")
                 }
                 Button { document = AuthEntryLegalSheet(type: .userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.agreement")

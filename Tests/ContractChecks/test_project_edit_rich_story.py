@@ -45,7 +45,9 @@ class RichStoryContracts(unittest.TestCase):
             self.assertEqual(set(langs), {'en','zh-Hans'})
             for lang, value in langs.items(): self.assertEqual(catalog[key]['localizations'][lang]['stringUnit']['value'], value)
         for path in ['App/ProjectEditDetailForms.swift', 'App/ProjectEditRichStoryForms.swift']:
-            for key in re.findall(r'"(projectEdit\.rich\.[A-Za-z][A-Za-z.]+)"', self.text(path)):
+            # Accessibility identifiers (e.g. C-F1b `projectEdit.rich.gallery.layout`) are not catalog keys.
+            source = re.sub(r'\.accessibilityIdentifier\("[^"]*"', '.accessibilityIdentifier(', self.text(path))
+            for key in re.findall(r'"(projectEdit\.rich\.[A-Za-z][A-Za-z.]+)"', source):
                 if not key.endswith('.'): self.assertIn(key, additions)
     def test_authored_regressions_and_fixtures_have_no_live_transport(self):
         tests = self.text('Tests/CoreTests/ProjectEditRichStoryTests.swift')

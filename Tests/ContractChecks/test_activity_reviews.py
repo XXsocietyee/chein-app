@@ -14,7 +14,15 @@ class ActivityReviewChecks(unittest.TestCase):
         model = self.read('Core/ActivityDetail.swift')
         self.assertIn('reviews=try ActivityReviews(from:decoder)', model)
         view = self.read('App/ActivityDetailView.swift')
-        self.assertEqual(view.count('ActivityReviewsSection(reviews: detail.reviews)'), 1)
+        # One mount in the classic detail list and one in the native-r2 city event list (3ec3d687f).
+        self.assertEqual(view.count('ActivityReviewsSection(reviews: detail.reviews)'), 2)
+        city = view.split('private func cityEventDetail(', 1)[1].split('private func cityEventCTA(', 1)[0]
+        self.assertEqual(city.count('ActivityReviewsSection(reviews: detail.reviews)'), 1)
+        # In the city list the reviews ride in `more()`, which is mounted after the tickets section.
+        city_list = (ROOT / 'App/NativeR2/CityOrientation/CityOrientationEventDetailList.swift').read_text()
+        self.assertLess(city_list.index('Section("nativeR2.city.event.tickets")'), city_list.index('more()'))
+        self.assertLess(city.index('ActivityReviewsSection('), city.index('moreInfoSections(detail)'))
+        view = view.replace(city, '')
         # U9-B: as in the mini-program, reviews follow the tickets on the first fold, before the "More info" toggle.
         self.assertLess(view.index('E1IconHeader(systemImage: "ticket"'), view.index('ActivityReviewsSection('))
         self.assertLess(view.index('ActivityReviewsSection('), view.index('accessibilityIdentifier("activity.more.toggle")'))

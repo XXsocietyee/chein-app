@@ -310,13 +310,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund accepted"
+            "value": "Refund completed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退款已受理"
+            "value": "退款成功"
           }
         }
       }

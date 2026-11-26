@@ -68,6 +68,21 @@ RAW_COLOR_ALLOWLIST: dict[str, int] = {
     "App/TemplateAuthoringCoverHeader.swift": 1,  # secondarySystemFill cover placeholder
     "App/TemplateAuthoringMineView.swift": 1,  # secondarySystemFill cover placeholder
     "App/TemplateDetailXbChrome.swift": 1,  # tertiarySystemFill capsule
+    # native-r2 club/story/city/games/welcome restyle: Color(uiColor:) wrapping UIKit semantic system colours only
+    # (systemBackground / grouped backgrounds / system fills / systemGray5 / tertiaryLabel / separator); no RGB or hex.
+    "App/ChapterStoryView.swift": 1,  # systemBackground reader canvas (story flow)
+    "App/ClubBadgeManagementView.swift": 1,  # tertiarySystemFill badge placeholder
+    "App/ClubChannelMessagingView.swift": 3,  # tertiarySystemFill selected row, systemGray5 avatar discs
+    "App/ClubCheckinRailView.swift": 2,  # tertiaryLabel unreached stop, tertiarySystemFill rail
+    "App/ClubGovernanceViews.swift": 2,  # secondarySystemFill image placeholders
+    "App/ClubKit/ClubMemberActionKit.swift": 1,  # secondarySystemGroupedBackground action bar
+    "App/ClubMemberReportView.swift": 1,  # systemGroupedBackground canvas
+    "App/ClubStoryViews.swift": 3,  # secondarySystemFill image placeholders
+    "App/NativeChannelTextComposer.swift": 2,  # systemBackground field + separator border
+    "App/NativeR2/CityOrientation/CityOrientationRunView.swift": 1,  # tertiarySystemFill disc
+    "App/NativeR2/Games/ChoiceKits.swift": 1,  # systemBackground
+    "App/NativeR2/Story/NR2StoryRouteSections.swift": 1,  # secondarySystemFill cover placeholder
+    "App/TicketPassSheet.swift": 1,  # secondarySystemGroupedBackground
     "App/ProjectChapterAtmosphereFields.swift": 1,
     "App/QuestifyImageEntityCard.swift": 1,
     "App/QuestifyMotionComponents.swift": 3,
@@ -79,7 +94,7 @@ RAW_COLOR_ALLOWLIST: dict[str, int] = {
     "App/SocialGuideViews.swift": 6,
     "App/SquareXcxPostCard.swift": 2,
     "App/TicketWalletView.swift": 8,
-    "App/WelcomeView.swift": 1,
+    "App/WelcomeView.swift": 3,  # native-r2: + 2 systemBackground panels (semantic, no RGB)
 }
 
 HEX_LITERAL_ALLOWLIST: dict[str, int] = {

@@ -32,7 +32,12 @@ class E2E20261113R12R13(unittest.TestCase):
 
     def test_post_review_unavailable_note_follows_the_write_grant(self):
         views = (ROOT / 'App/ClubCommunityViews.swift').read_text(encoding='utf-8')
-        review = views[views.index('CYPillButton("club.community.confirm")') - 900:views.index('CYPillButton("club.community.confirm")')]
+        # native-r2 club (351198266): Confirm is a system Button in a Form section; the note is the preceding footer.
+        anchor = views.index('.accessibilityIdentifier("club.community.confirm")')
+        review = views[anchor - 1200:anchor]
+        self.assertIn('Text("club.community.confirm")', review)
+        self.assertLess(review.index('if model.context.coordinator?.permitsInjectedWrites != true {'),
+                        review.index('Text("club.community.confirm")'))
         self.assertIn('if model.context.coordinator?.permitsInjectedWrites != true {', review)
         self.assertIn('Text("club.community.offline")', review.split('if model.context.coordinator?.permitsInjectedWrites != true {')[-1])
 

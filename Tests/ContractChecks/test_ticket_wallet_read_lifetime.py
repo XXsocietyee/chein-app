@@ -52,7 +52,18 @@ class TicketWalletReadLifetimeContracts(unittest.TestCase):
                           'model.accepts(presentation, currentOwner: key)']:
                 self.assertIn(token, view)
             self.assertNotIn('Task {', view)
-            self.assertNotIn('.task(id:', view)
+            # 6b940cb8c: the owner probe re-derives owner-action visibility from the signed-in account.
+            # It is the only `.task(id:` allowed: synchronous, fail-closed, and it never reads a ticket.
+            reads = view
+            if 'private struct TicketWalletOwnerProbe' in view:
+                head, probe = view.split('private struct TicketWalletOwnerProbe', 1)
+                probe = probe.split('\n}\n', 1)[0]
+                self.assertIn('.task(id: session.account?.id) { publish() }', probe)
+                for forbidden in ['await', 'reader', 'model.', 'presentation', 'Task {']:
+                    self.assertNotIn(forbidden, probe)
+                self.assertIn('@State private var ownerActionsMatch = false', view)
+                reads = head + view.split('private struct TicketWalletOwnerProbe', 1)[1].split('\n}\n', 1)[1]
+            self.assertNotIn('.task(id:', reads)
     def test_refresh_stays_inside_the_current_read_permit(self):
         for view in self.screens:
             refresh = view.split('.refreshable', 1)[1][:420]

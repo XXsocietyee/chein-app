@@ -25,12 +25,17 @@ class OfficialDetailParityChecks(unittest.TestCase):
     def test_view_uses_core_presentation_in_source_order(self):
         view = read("App/OfficialEventDetailView.swift")
         self.assertIn("let presentation = OfficialEventDetailPresentation(event: event, now: Date())", view)
+        # 04c1d84f1: rewards + collective moved into a @ViewBuilder helper (type-check split); the body calls it
+        # between tasks and the reward footnote, and the helper keeps rewards before collective.
         order = ["OfficialEventCard(event: event)", "OfficialDetailID.organizer", 'Section("official.facts")',
                  "OfficialDetailID.overview", "presentation.cards", "presentation.storyDetail",
-                 '"official.detailParity.tasks.heading"', '"official.detailParity.rewards.heading"',
-                 '"official.collective"', "OfficialDetailID.rewardFootnote", "presentation.cta.key"]
+                 '"official.detailParity.tasks.heading"', "rewardsAndCollective(event: event, presentation: presentation)\n",
+                 "OfficialDetailID.rewardFootnote", "presentation.cta.key"]
+        self.assertEqual(view.count("rewardsAndCollective(event: event, presentation: presentation)\n"), 1)
         positions = [view.index(marker) for marker in order]
         self.assertEqual(positions, sorted(positions))
+        helper = view.split("@ViewBuilder private func rewardsAndCollective(", 1)[1].split("\n    }\n", 1)[0]
+        self.assertLess(helper.index('Section("official.detailParity.rewards.heading")'), helper.index('Section("official.collective")'))
         model = read("Core/OfficialEventDetailPresentation.swift")
         for marker in ['"city_light"', '"merchant_hunt"', '"ROAM_POI_ARRIVAL"', '"EVENT_POINT_ARRIVAL"',
                        '"THEME_VERIFIED_FINISH"', '"ROAM_SESSION_AREA"', 'displayTimeZone: TimeZone = .current', 'calendar.timeZone = displayTimeZone', "if let status, status >= 5 { return .ended }"]:
@@ -52,7 +57,9 @@ class OfficialDetailParityChecks(unittest.TestCase):
 
     def test_new_identifiers_use_detail_prefix(self):
         view = read("App/OfficialEventDetailView.swift")
-        self.assertIn('private static func leaf(_ name: String) -> String { "official.detail" + "." + name }', view)
+        # 04c1d84f1: `leaf` lost `private` so split-out helpers (safetyNotice) can mint ids; the prefix is unchanged.
+        self.assertIn('    static func leaf(_ name: String) -> String { "official.detail" + "." + name }', view)
+        self.assertNotIn('accessibilityIdentifier("official.detail.', view.replace('accessibilityIdentifier("official.detail.content")', ''))
         for leaf in ["organizer", "facts", "overview", "story", "cards", "tasks", "rewards", "collective",
                      "rewardFootnote", "cta", "unavailable", "backToList", "network"]:
             self.assertIn(f'leaf("{leaf}")', view)
