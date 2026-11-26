@@ -22,10 +22,12 @@ import SwiftUI
                 } label: { Label { Text("settings.becomeClubHost") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconFlagBlue) } }
                     .disabled(loadingClubs)
                     .accessibilityIdentifier("settings.becomeClubHost")
+                if PlayerLaunch.merchantCenterEnabled { // Lane G: 成为商家 (merchant onboarding) is hidden in Release
                 NavigationLink {
                     MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
                 } label: { Label { Text("settings.becomeMerchant") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconShop) } }
                     .accessibilityIdentifier("settings.becomeMerchant")
+                }
             }
             .navigationDestination(isPresented: $pushesHostStatus) {
                 ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: session.clubIdentity,

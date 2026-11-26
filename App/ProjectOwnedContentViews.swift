@@ -167,7 +167,8 @@ import SwiftUI
             entryScope: entryScope, canManageProjects: canManageProjects, initialType: initialType)
             .environment(\.myProjectTemplateShelf, MyProjectTemplateShelfHost { session.myProjectTemplateShelf() })
             .environment(\.myProjectPublishEntry, session.myProjectPublishEntry())
-            .environment(\.myProjectReceivedApplies, { showsReceivedApplies = true })
+            // Lane G: received coop applications (协作邀请) are hidden in Release; nil hides 查看申请.
+            .environment(\.myProjectReceivedApplies, PlayerLaunch.merchantCenterEnabled ? { showsReceivedApplies = true } : nil)
             .navigationDestination(isPresented: $showsReceivedApplies) {
                 CooperationBrowserView(reader: session.cooperationReader, peerReader: session.cooperationFlowReader,
                                        operationScope: entryScope, initialDirection: .received,

@@ -37,11 +37,11 @@ public struct ScanRouter {
         let text = payload.trimmingCharacters(in: .whitespaces)
         if text.hasPrefix("https://") {
             guard let url = URL(string: text), let intent = links.parse(url) else { return .unrecognized }
-            return .entry(intent)
+            return .entry(PlayerLaunch.gate(intent)) // Lane G
         }
         // Mini-program share codes carry a source path, with or without the leading slash.
         let path = text.hasPrefix("/") ? text : (text.hasPrefix("pages/") || text.hasPrefix("subpackage") ? "/" + text : nil)
         guard let path, let intent = NativeNavigationContract.parseInternal(path) else { return .unrecognized }
-        return .entry(intent)
+        return .entry(PlayerLaunch.gate(intent)) // Lane G
     }
 }

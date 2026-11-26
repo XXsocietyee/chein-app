@@ -22,8 +22,8 @@ struct HomeHeroHeaderSectionView: View {
     /// The fixed banners, plus Mini games for a signed-in session where the external-games switch is open.
     private var actionBanners: [HomeIndexParityPresentation.ActionBanner] {
         guard let externalGameSession, ExternalGameSessionRead.externalGamesOpen(baseURL: externalGameSession.baseURL)
-        else { return HomeIndexParityPresentation.fixedActionBanners }
-        return HomeIndexParityPresentation.fixedActionBanners + [HomeIndexParityPresentation.miniGamesBanner]
+        else { return HomeIndexParityPresentation.playerActionBanners }
+        return HomeIndexParityPresentation.playerActionBanners + [HomeIndexParityPresentation.miniGamesBanner]
     }
 
     private var hasCity: Bool {
@@ -728,7 +728,8 @@ final class MerchantRootModeCoordinator: ObservableObject {
         isConfigured: Bool,
         revision: UInt64
     ) -> ResolvedRoute {
-        guard isConfigured, isSignedIn, let accountID, accountID > 0 else {
+        // Lane G: the merchant root console is hidden in the player Release build.
+        guard PlayerLaunch.merchantCenterEnabled, isConfigured, isSignedIn, let accountID, accountID > 0 else {
             return .consumerTabs
         }
         guard requestedMode == .merchant,
@@ -842,6 +843,7 @@ final class MerchantRootModeCoordinator: ObservableObject {
         initialTab: MerchantRootBusinessTab = .workbench,
         clearingConsumerHold: Bool = true
     ) async -> Bool {
+        guard PlayerLaunch.merchantCenterEnabled else { return false } // Lane G: no merchant mode in Release
         if clearingConsumerHold {
             consumerHold = nil
         } else if let held = consumerHold, let currentAccount = accountID, currentAccount > 0,
@@ -1146,6 +1148,7 @@ final class MerchantRootModeCoordinator: ObservableObject {
     }
 
     func makeModeSwitch(session: AppSession) -> MerchantRootModeSwitch {
+        guard PlayerLaunch.merchantCenterEnabled else { return .unavailable } // Lane G: no 商家工作台 switch in Release
         let isActive = isMerchantModeActive(
             accountID: session.account?.id,
             isSignedIn: session.isSignedIn,
