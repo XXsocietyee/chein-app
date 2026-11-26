@@ -59,7 +59,7 @@ import SwiftUI
                     return CoopFlowEvidence(baseline: .null, permitted: false)
                 }),
                 executor: executor, locks: CoopFlowPreviewMemoryLocks.shared,
-                enabled: {
+                enabled: { [weak session] in
                     guard let session, let api = session.regionalConfiguration?.apiConfiguration else { return false }
                     return MPFirstCoopWrites.admits(operation, market: session.regionalConfiguration?.market, host: api.baseURL.host,
                                                     cancelsAcceptedCooperation: cancelsAcceptedCooperation)

@@ -500,7 +500,8 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
         }
     }
     @ViewBuilder private var choiceSheet: some View {
-        if let choice, current(choice) {
+        // Bind under another name: the closures below reset the @State `choice`, and shadowing it crashes swift-frontend.
+        if let pending = choice, current(pending) {
             CYOptionSheet(
                 title: String(localized: LocalizedStringResource("club.detail.leaderboard.member.open", table: "ClubPublicRoster", locale: locale)),
                 items: [

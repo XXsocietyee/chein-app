@@ -219,7 +219,7 @@ private struct GrowthRankedAvatar: View {
 
     private var monogramStyle: CYTextStyle {
         switch size {
-        case .lg, .xl: return .title3
+        case .lg, .xl: return .sectionTitle
         case .xs, .sm, .md: return .label
         }
     }

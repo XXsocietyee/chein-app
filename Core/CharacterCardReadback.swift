@@ -163,14 +163,26 @@ public struct CharacterCardPageModel: Equatable {
         let values = card.attributes.map { String($0.value) }
         let percents = card.attributes.map { Self.percentText(value: $0.value, min: $0.min, max: $0.max) }
         let quantities = card.equipment.items.map { Self.statText($0.quantity) }
-        self.phase = card.attributes.isEmpty ? .empty : .ready
-        self.attributeCountText = String(card.attributes.count)
-        self.attributeValueTexts = values
-        self.attributePercentTexts = percents
-        self.breakdownTotalText = Self.statText(card.breakdown.total)
-        self.breakdownDieText = Self.statText(card.breakdown.die)
-        self.momentumText = Self.statText(card.rpgSheet?.momentum?.value)
-        self.equipmentQuantityTexts = quantities
+        self.init(phase: card.attributes.isEmpty ? .empty : .ready,
+                  attributeCountText: String(card.attributes.count),
+                  attributeValueTexts: values,
+                  attributePercentTexts: percents,
+                  breakdownTotalText: Self.statText(card.breakdown.total),
+                  breakdownDieText: Self.statText(card.breakdown.die),
+                  momentumText: Self.statText(card.rpgSheet?.momentum?.value),
+                  equipmentQuantityTexts: quantities)
+    }
+
+    private init(phase: Phase, attributeCountText: String, attributeValueTexts: [String], attributePercentTexts: [String],
+                 breakdownTotalText: String, breakdownDieText: String, momentumText: String, equipmentQuantityTexts: [String]) {
+        self.phase = phase
+        self.attributeCountText = attributeCountText
+        self.attributeValueTexts = attributeValueTexts
+        self.attributePercentTexts = attributePercentTexts
+        self.breakdownTotalText = breakdownTotalText
+        self.breakdownDieText = breakdownDieText
+        self.momentumText = momentumText
+        self.equipmentQuantityTexts = equipmentQuantityTexts
     }
 
     /// Ordinary read failures leave a card that was already on screen. Sign-in and session changes do not.

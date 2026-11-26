@@ -280,10 +280,10 @@ import SwiftUI
         case "subpackageMember/mytemplate/mytemplate":
             // R8-MEM-26-1: retired the rewrite onto 我发布的. This route is the template author's 我的 page and keeps the link query.
             TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision,
-                                      linkQuery: query,
                                       memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0).environmentObject(session)) },
                                       ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0).environmentObject(session)) },
-                                      creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0).environmentObject(session)) })
+                                      creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0).environmentObject(session)) },
+                                      linkQuery: query)
         case "pages/club/detail/index":
             // MP detail onLoad: `tab` = manage | overview; `owner` without an id resolves my own club.
             if let id = reviewedID(query) {
