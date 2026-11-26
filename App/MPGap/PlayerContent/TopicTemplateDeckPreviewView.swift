@@ -7,7 +7,6 @@ public struct TopicTemplateDeckPreviewView: View {
     public var onViewDetail: () -> Void
     public var onUseTemplate: () -> Void
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
     @State private var selectedIndex = 0
     @State private var flippedCardID: String?
@@ -39,8 +38,7 @@ public struct TopicTemplateDeckPreviewView: View {
 
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text(preview.name)
-                        .cyText(.pageTitle)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .font(.title2.bold())
 
                     ForEach(Array(checkLines.enumerated()), id: \.offset) { _, check in
                         // Round 4 image parity: MP `art/tab/check.svg` (topic-preview/index.wxml:40).
@@ -51,14 +49,14 @@ public struct TopicTemplateDeckPreviewView: View {
                                 .accessibilityHidden(true)
                                 .frame(width: 18, height: 18)
                         }
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
                     }
 
                     if let desc = preview.description, !desc.isEmpty {
                         Text(desc)
-                            .cyText(.bodyCompact)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                             .padding(.top, CYSpacing.xs)
                     }
                 }
@@ -66,23 +64,25 @@ public struct TopicTemplateDeckPreviewView: View {
             }
             .padding(.vertical, CYSpacing.md)
         }
-        .background(CYColor.bgPage)
         .cyPageTitle("topicPreview.title")
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: CYSpacing.sm) {
-                Button("topicPreview.viewDetail", action: onViewDetail)
-                    .buttonStyle(.bordered)
-                    .frame(maxWidth: .infinity)
+                Button(action: onViewDetail) {
+                    Text("topicPreview.viewDetail").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
 
                 if !preview.isReadonly {
-                    Button("topicPreview.useTemplate", action: onUseTemplate)
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity)
+                    Button(action: onUseTemplate) {
+                        Text("topicPreview.useTemplate").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
             }
+            .controlSize(.large)
             .padding(.horizontal, CYSpacing.md)
             .padding(.vertical, CYSpacing.sm)
-            .background(.ultraThinMaterial)
+            .background(.bar)
         }
     }
 
@@ -90,12 +90,8 @@ public struct TopicTemplateDeckPreviewView: View {
     private func deckCard(_ card: TopicTemplatePreviewCard) -> some View {
         let isFlipped = flippedCardID == card.id
         Button {
-            if reduceMotion {
+            withAnimation {
                 flippedCardID = isFlipped ? nil : card.id
-            } else {
-                withAnimation(.spring(duration: 0.35)) {
-                    flippedCardID = isFlipped ? nil : card.id
-                }
             }
         } label: {
             ZStack {
@@ -106,12 +102,9 @@ public struct TopicTemplateDeckPreviewView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(CYColor.bgElevated)
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
-            .rotation3DEffect(
-                .degrees(reduceMotion ? 0 : (isFlipped ? 180 : 0)),
-                axis: (x: 0, y: 1, z: 0)
-            )
+            .background(.background.secondary)
+            // Cover photo card in a paged deck: clip like a system photo tile.
+            .clipShape(.rect(cornerRadius: 12))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(card.isCover ? preview.name : card.title)
@@ -127,7 +120,7 @@ public struct TopicTemplateDeckPreviewView: View {
                     .clipped()
             } else {
                 // Round 4 image parity: MP `fc__err` shows `/images/cover-route.svg` centred (topic-preview/index.wxml:21).
-                CYColor.coverFallback
+                Color.secondary.opacity(0.15)
                     .overlay {
                         MPAsset.BannerCover.coverRoute
                             .resizable()
@@ -139,17 +132,17 @@ public struct TopicTemplateDeckPreviewView: View {
             }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(card.isCover ? preview.name : card.title)
-                    .cyText(.sectionTitle)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
                 if !footLine(card).isEmpty {
                     Text(verbatim: footLine(card))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
             }
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.ultraThinMaterial)
+            .background(.regularMaterial)
         }
     }
 
@@ -157,22 +150,21 @@ public struct TopicTemplateDeckPreviewView: View {
     private func backFace(_ card: TopicTemplatePreviewCard) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(card.title)
-                .cyText(.cardTitle)
-                .foregroundStyle(CYColor.textPrimary)
+                .font(.headline)
 
             if card.steps.isEmpty {
                 Text("topicPreview.cardBackEmpty")
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             } else {
                 ForEach(Array(card.steps.enumerated()), id: \.offset) { idx, step in
                     HStack(alignment: .top, spacing: CYSpacing.xs) {
                         Text(step == "…" ? "" : "\(idx + 1).")
-                            .cyText(.meta, monospacedDigit: true)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.subheadline)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
                         Text(step)
-                            .cyText(.bodyCompact)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .font(.subheadline)
                     }
                 }
             }
@@ -188,13 +180,12 @@ public struct TopicTemplateDeckPreviewView: View {
                         .accessibilityHidden(true)
                         .frame(width: 14, height: 14)
                 }
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(CYSpacing.md)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .rotation3DEffect(.degrees(reduceMotion ? 0 : 180), axis: (x: 0, y: 1, z: 0))
     }
 
     /// Catalog `footCopy` / `checkCopies`. An unresolved key keeps the Chinese sentence already on the model.

@@ -186,18 +186,13 @@ import QuestifyCore
         .disabled(model.busy)
         .task { await model.load() }
         .refreshable { await model.load() }
-        .cyPromptModalOverlay(
-            isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } }),
-            title: String(localized: LocalizedStringResource("creatorEditor.keys.rename", table: "CreatorEditorUI", locale: locale)),
-            text: $renameText,
-            placeholder: String(localized: LocalizedStringResource("creatorEditor.keys.name", table: "CreatorEditorUI", locale: locale)),
-            validationMessage: renameText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                ? MerchantAreaCopy.text("请输入名称", "Enter a name", locale)
-                : nil,
-            cancelTitle: String(localized: LocalizedStringResource("creatorEditor.cancel", table: "CreatorEditorUI", locale: locale)),
-            confirmTitle: String(localized: LocalizedStringResource("creatorEditor.save", table: "CreatorEditorUI", locale: locale)),
-            onCancel: { renaming = nil },
-            onConfirm: {
+        .alert(
+            Text("creatorEditor.keys.rename", tableName: "CreatorEditorUI"),
+            isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })
+        ) {
+            TextField(text: $renameText) { Text("creatorEditor.keys.name", tableName: "CreatorEditorUI") }
+            Button(role: .cancel) { renaming = nil } label: { Text("creatorEditor.cancel", tableName: "CreatorEditorUI") }
+            Button {
                 let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmed.isEmpty else { return }
                 if let row = renaming {
@@ -205,8 +200,12 @@ import QuestifyCore
                 }
                 renaming = nil
                 toastMessage = MerchantCloseCopy.text("已重命名", "Renamed", locale)
+            } label: { Text("creatorEditor.save", tableName: "CreatorEditorUI") }
+        } message: {
+            if renameText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(verbatim: MerchantAreaCopy.text("请输入名称", "Enter a name", locale))
             }
-        )
+        }
         .cyToast(verbatimMessage: $toastMessage)
         .cyDomainScreen(.topicEditor)
     }

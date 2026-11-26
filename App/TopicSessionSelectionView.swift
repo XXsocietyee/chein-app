@@ -24,9 +24,11 @@ struct TopicSessionSelectionView: View {
             List {
                 switch resolution {
                 case .missingData:
-                    CYEmptyState(systemImage: "calendar.badge.exclamationmark", "topic.sessionSelection.missingData", messageIdentifier: "topic.sessionSelection.missingData")
+                    ContentUnavailableView { Label("topic.sessionSelection.missingData", systemImage: "calendar.badge.exclamationmark") }
+                        .accessibilityIdentifier("topic.sessionSelection.missingData")
                 case .empty:
-                    CYEmptyState(systemImage: "calendar", "topic.sessionSelection.empty", messageIdentifier: "topic.sessionSelection.empty")
+                    ContentUnavailableView { Label("topic.sessionSelection.empty", systemImage: "calendar") }
+                        .accessibilityIdentifier("topic.sessionSelection.empty")
                 case .destinationUnavailable(let activities):
                     Text("topic.sessionSelection.destinationUnavailable")
                         .accessibilityIdentifier("topic.sessionSelection.destinationUnavailable")
@@ -46,12 +48,12 @@ struct TopicSessionSelectionView: View {
                 if !detail.tickets.isEmpty {
                     Section("topic.tickets") {
                         Text("topic.sessionSelection.ticketDependency")
-                            .cyText(.bodyCompact)
+                            .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("topic.sessionSelection.ticketDependency")
                         ForEach(Array(detail.tickets.enumerated()), id: \.offset) { _, ticket in
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: ticket.name).cyText(.cardTitle)
+                                Text(verbatim: ticket.name).font(.headline)
                                 TopicPrice(value: ticket.price, label: "topic.price")
                                 if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
                                 if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
@@ -92,7 +94,7 @@ struct TopicSessionSelectionView: View {
 
     private func activityRow(_ activity: TopicActivitySummary) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: activity.name).cyText(.cardTitle)
+            Text(verbatim: activity.name).font(.headline).foregroundStyle(.primary)
             if let address = activity.addressName { Text(verbatim: address) }
             if let start = activity.startDate { LabeledContent("topic.start", value: start) }
             if let end = activity.endDate { LabeledContent("topic.end", value: end) }
