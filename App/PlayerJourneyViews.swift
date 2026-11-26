@@ -6,8 +6,7 @@ enum PlayerJourneyRoute: Hashable {
     case ticket(registrationID: Int)
     /// MP mycanyuinfo「我的角色卡」→ `character/index?topicId=` (PLY-23-2). Activity id 0 / nil is a topic registration.
     case characterCard(topicID: Int, activityID: Int?)
-    /// MP mycanyuinfo「自由探索权益」→ `free-explore/index?registrationId=` (flows-g1 member, PLY-23-3): that order's
-    /// detail, which hosts the bundle read.
+    /// MP mycanyuinfo「自由探索权益」→ `free-explore/index?registrationId=` (PLY-23-4): the existing bundle page.
     case freeExploreBundle(registrationID: Int)
 }
 
@@ -134,8 +133,8 @@ extension AppSession {
             case .ticket(let registrationID):
                 SessionTicketWalletHost(isPushed: true, focusRegistrationID: registrationID)
             case .freeExploreBundle(let registrationID):
-                // Same host as the `orderinfo?id=` deep link, so the order's bundle read provider is in the environment.
-                SessionOwnedOrderDetailView(session: session, id: registrationID)
+                // PLY-23-4: open the existing bundle page. The approved read host resolves the topic; no new write.
+                ParticipationFreeExploreBundleRoute(registrationID: registrationID)
             case .characterCard(let topicID, let activityID):
                 let scoped = (activityID ?? 0) > 0 ? activityID : nil
                 if let card = session.characterCardReadback(topicID: topicID, activityID: scoped,
@@ -146,6 +145,121 @@ extension AppSession {
                         .cyPageTitle("characterCard.title")
                 }
             }
+    }
+}
+
+/// PLY-23-4: 参与详情点「自由探索权益」后，打开已经存在的套餐页。
+/// 订单只用来通过已批准的只读 host；预约派发保持默认关闭，这里不发起支付、报名或商家申请。
+@MainActor private struct ParticipationFreeExploreBundleRoute: View {
+    let registrationID: Int
+    @EnvironmentObject private var session: AppSession
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var host: FreeExploreBundleReadHost?
+    @State private var failed = false
+    @State private var generation = UUID()
+
+    var body: some View {
+        Group {
+            if let host {
+                ParticipationFreeExploreBundlePage(host: host)
+            } else if failed {
+                VStack(spacing: CYSpacing.md) {
+                    Text("error", tableName: "FreeExploreBundleLaunch").cyText(.body)
+                    Button {
+                        let request = UUID()
+                        generation = request
+                        Task { await open(request) }
+                    } label: {
+                        Text("recover", tableName: "FreeExploreBundleLaunch").cyText(.body)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .accessibilityIdentifier("playerJourney.freeExploreBundle.recover")
+                }
+                .accessibilityIdentifier("playerJourney.freeExploreBundle.error")
+            } else {
+                ProgressView {
+                    Text("loading", tableName: "FreeExploreBundleLaunch").cyText(.body)
+                }
+                .accessibilityIdentifier("playerJourney.freeExploreBundle.loading")
+            }
+        }
+        .navigationTitle(Text("title", tableName: "FreeExploreBundleLaunch"))
+        .navigationBarTitleDisplayMode(.inline)
+        .cyPushedChrome(domain: .player)
+        .task(id: registrationID) {
+            let request = UUID()
+            generation = request
+            await open(request)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .background else { return }
+            generation = UUID()
+            if let host { host.retire() } else { failed = true }
+        }
+        .onDisappear { generation = UUID(); host?.retire() }
+    }
+
+    private func open(_ request: UUID) async {
+        failed = false
+        host?.retire()
+        host = nil
+        guard registrationID > 0, let provider = session.freeExploreBundleReadProvider, provider.available() else {
+            guard generation == request else { return }
+            failed = true
+            return
+        }
+        let reader = session.ownedOrderReader
+        do {
+            let order = try await reader.profileOrder(id: registrationID)
+            guard generation == request, !Task.isCancelled else { return }
+            guard let created = provider.make(order, registrationID, reader) else {
+                failed = true
+                return
+            }
+            host = created
+        } catch {
+            guard generation == request, !Task.isCancelled else { return }
+            failed = true
+        }
+    }
+}
+
+/// Same states as the order page's bundle destination, then the existing launch view. Read only.
+@MainActor private struct ParticipationFreeExploreBundlePage: View {
+    @Bindable var host: FreeExploreBundleReadHost
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        Group {
+            if !host.current {
+                Text("stale", tableName: "FreeExploreBundleLaunch").cyText(.body)
+                    .accessibilityIdentifier("playerJourney.freeExploreBundle.stale")
+            } else if let model = host.model {
+                FreeExploreBundleLaunchView(model: model)
+            } else if host.busy {
+                ProgressView {
+                    Text("loading", tableName: "FreeExploreBundleLaunch").cyText(.body)
+                }
+                .accessibilityIdentifier("playerJourney.freeExploreBundle.loading")
+            } else if host.legacy {
+                Text("legacy", tableName: "FreeExploreBundleLaunch").cyText(.body)
+                    .accessibilityIdentifier("playerJourney.freeExploreBundle.legacy")
+            } else if host.failed {
+                VStack(spacing: CYSpacing.md) {
+                    Text("error", tableName: "FreeExploreBundleLaunch").cyText(.body)
+                    Button { Task { await host.load() } } label: {
+                        Text("recover", tableName: "FreeExploreBundleLaunch").cyText(.body)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .accessibilityIdentifier("playerJourney.freeExploreBundle.recover")
+                }
+                .accessibilityIdentifier("playerJourney.freeExploreBundle.error")
+            }
+        }
+        .task { await host.load() }
+        .onChange(of: host.current) { _, current in if !current { host.retire() } }
+        .onChange(of: scenePhase) { _, phase in if phase == .background { host.retire() } }
+        .onDisappear { host.retire() }
     }
 }
 
@@ -365,8 +479,8 @@ private struct ParticipationCoverPlaceholder: View {
                 ParticipationDetailGapSections(coverURL: QuestifyCardArtwork.safeURL(detail.templateBannerURL)?.absoluteString
                     ?? QuestifyCardArtwork.safeURL(detail.record.cover)?.absoluteString)
                 ParticipationDetailHeader(detail: detail)
-                // PLY-23-3 (flows-g1 member): 自由探索权益 under the info card (MP wxml:64-66, `_bundleEntry`: ownerType 1 +
-                // cmsTopic + purchaseKind 3 or productType 2), behind the bundle switch.
+                // PLY-23-4: 自由探索权益 under the info card (MP wxml:64-66, `_bundleEntry`: ownerType 1 +
+                // cmsTopic + purchaseKind 3 or productType 2). The route opens FreeExploreBundleLaunchView.
                 ParticipationDetailGapSections(
                     isFreeExplore: bundleEntryEnabled && detail.record.isFreeExplore && detail.record.order.id > 0,
                     onOpenFreeExploreBundle: { open(.freeExploreBundle(registrationID: detail.record.order.id)) })
