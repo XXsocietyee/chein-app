@@ -36,6 +36,7 @@ import SwiftUI
         .navigationBarTitleDisplayMode(.inline)
         // CLB-badges-06: pull to refresh (MP enablePullDownRefresh) instead of a toolbar 刷新.
         .refreshable { model.perform { await $0.refresh() } }
+        .toolbar { createToolbarItem }
         .onAppear { visible = true; if scenePhase == .active { model.start() } }
         .onDisappear { visible = false; creating = false; pendingReview = nil; draft = .init(); model.retire() }
         .onChange(of: scenePhase) { _, phase in
@@ -56,6 +57,20 @@ import SwiftUI
             }
         )) {
             if let flow = model.flow { memberPickerSheet(flow) }
+        }
+    }
+
+    /// CLB-r10-nat-badges-03 (MP badges/index.wxml create entry, shown when `canCreate`): toolbar 创建.
+    private var createToolbarItem: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            if let flow = model.flow, flow.isCurrent, flow.canCreate {
+                Button {
+                    draft = .init(); creating = true
+                } label: {
+                    Label { Text("create", tableName: "ClubBadge") } icon: { Image(systemName: "plus") }
+                }
+                .disabled(model.working)
+            }
         }
     }
 
@@ -90,13 +105,7 @@ import SwiftUI
                 }
             }
             resultStatus(flow.resultPresentation, createIsPrimary: flow.canCreate)
-            if flow.canCreate {
-                Button {
-                    draft = .init(); creating = true
-                } label: {
-                    Label { Text("create", tableName: "ClubBadge") } icon: { Image(systemName: "plus") }
-                }
-            }
+            // CLB-r10-nat-badges-03: 创建勋章 (MP badges wxml create button, owner only) is the toolbar primary action.
             if flow.screenState == .empty {
                 // Round 4 image parity: MP cy-state-shell kind="empty" → the MP two-layer empty art.
                 ClubMPEmptyState(title: Text("empty", tableName: "ClubBadge"))
@@ -162,6 +171,17 @@ import SwiftUI
             }
         }
         .accessibilityElement(children: .contain)
+        // CLB-r10-nat-badges-03: 颁发 is also the row's swipe action (MP badges wxml per-badge 颁发).
+        .swipeActions(edge: .trailing) {
+            if flow.canGrant {
+                Button {
+                    model.perform { await $0.openGrant(badge) }
+                } label: {
+                    Label { Text("grant", tableName: "ClubBadge") } icon: { Image(systemName: "person.badge.plus") }
+                }
+                .tint(.accentColor)
+            }
+        }
     }
 
     /// CLB-badges-04 (fix-r3-club-b): MP cy-sheet 颁给谁？ with the caption 勋章：X and one avatar row per member.
@@ -227,47 +247,40 @@ import SwiftUI
         }
         .presentationDetents([.medium, .large])
         .interactiveDismissDisabled(flow.busy)
-        .cySheet(isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
-            if let review = pendingReview {
-                // CLB-badges-05: the title names the badge and the person (MP 把「X」颁给 Y？).
-                let memberName = review.member.trimmedNickname ?? "—"
-                let badgeName = review.badge.badgeName ?? review.badge.badgeCode
-                NavigationStack {
-                    List {
-                        Section {
-                            Label { Text("confirmGrantConsequence1", tableName: "ClubBadge") } icon: { Image(systemName: "person.badge.plus") }
-                            Label { Text("confirmGrantConsequence2", tableName: "ClubBadge") } icon: { Image(systemName: "medal") }
-                            Label { Text("confirmGrantConsequence3", tableName: "ClubBadge") } icon: { Image(systemName: "exclamationmark.circle") }
-                        } header: {
-                            Text("confirmGrantNamed \(badgeName) \(memberName)", tableName: "ClubBadge")
-                                .textCase(nil)
-                                .accessibilityAddTraits(.isHeader)
-                        } footer: {
-                            Text("confirmGrantDetail", tableName: "ClubBadge")
-                        }
-                    }
-                    .navigationTitle(Text("grant", tableName: "ClubBadge"))
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button {
-                                pendingReview = nil
-                                model.flow?.cancelReview()
-                                model.changed()
-                            } label: { Text("cancel", tableName: "ClubBadge") }
-                        }
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button {
-                                pendingReview = nil
-                                lastWasCreate = false
-                                model.perform { await $0.confirmGrant(review) }
-                            } label: { Text("grant", tableName: "ClubBadge") }
-                        }
-                    }
-                }
-                .presentationDetents([.medium, .large])
-            }
+        // CLB-r10-nat-badges-04 (MP badges/index.js grant confirm, cy-confirm 把「X」颁给 Y？): a system confirmation
+        // dialog with the consequences as its message, instead of a custom confirm sheet.
+        .confirmationDialog(confirmTitle, isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } }),
+                            titleVisibility: .visible, presenting: pendingReview) { review in
+            Button {
+                pendingReview = nil
+                lastWasCreate = false
+                model.perform { await $0.confirmGrant(review) }
+            } label: { Text("grant", tableName: "ClubBadge") }
+            Button(role: .cancel) {
+                pendingReview = nil
+                model.flow?.cancelReview()
+                model.changed()
+            } label: { Text("cancel", tableName: "ClubBadge") }
+        } message: { _ in
+            confirmMessage
         }
+    }
+
+    /// CLB-badges-05: the title names the badge and the person (MP 把「X」颁给 Y？).
+    private var confirmTitle: Text {
+        guard let review = pendingReview else { return Text("grant", tableName: "ClubBadge") }
+        let memberName = review.member.trimmedNickname ?? "—"
+        let badgeName = review.badge.badgeName ?? review.badge.badgeCode
+        return Text("confirmGrantNamed \(badgeName) \(memberName)", tableName: "ClubBadge")
+    }
+    private var confirmMessage: Text {
+        let lines: [Text] = [
+            Text("confirmGrantConsequence1", tableName: "ClubBadge"),
+            Text("confirmGrantConsequence2", tableName: "ClubBadge"),
+            Text("confirmGrantConsequence3", tableName: "ClubBadge"),
+            Text("confirmGrantDetail", tableName: "ClubBadge"),
+        ]
+        return lines.dropFirst().reduce(lines[0]) { $0 + Text(verbatim: "\n") + $1 }
     }
 
     @ViewBuilder private func resultStatus(_ result: ClubBadgeResultPresentation, createIsPrimary: Bool) -> some View {

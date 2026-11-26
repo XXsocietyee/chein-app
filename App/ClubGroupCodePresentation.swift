@@ -14,6 +14,7 @@ import UIKit
     @Environment(\.scenePhase) private var scenePhase
     @State private var savedBrightness: CGFloat?
     @State private var autoReissuedFor: Date?
+    @ScaledMetric(relativeTo: .body) private var codeSide: CGFloat = 240
     private var autoReissueKey: String {
         "\(value.expiresAt.timeIntervalSince1970)|\(current)|\(scenePhase == .active)|\(onReissue != nil)"
     }
@@ -21,14 +22,20 @@ import UIKit
         TimelineView(.periodic(from: value.receivedAt, by: 1)) { timeline in
             if current, scenePhase == .active, value.isActive(at: timeline.date) {
                 if let bytes = value.inlinePNG, let image = UIImage(data: bytes) {
-                    // Mini `club-game-code-sheet` card: code on white inside an ink card, then 保存.
+                    // CLB-r10-nat-group-code-01 (MP club-game-code-sheet): the QR image in a plain row. It keeps a white
+                    // quiet zone so scanners read it in Dark Mode; no custom ink card. The session name is the Section header.
                     VStack(spacing: 8) {
                         Text("club.gov.codeAvailable").font(.headline)
-                        CYClubGameCodeCard(state: .ready, name: sessionName) {
-                            Image(uiImage: image).interpolation(.none).resizable().scaledToFit()
-                                .accessibilityLabel(Text("groupCode.image", tableName: "ClubGroupCodeDisplay"))
-                                .privacySensitive().accessibilityIdentifier("club.gov.groupCode")
+                        if let sessionName, !sessionName.isEmpty {
+                            Text(verbatim: sessionName).font(.subheadline).foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
                         }
+                        Image(uiImage: image).interpolation(.none).resizable().scaledToFit()
+                            .frame(maxWidth: codeSide, maxHeight: codeSide)
+                            .padding(12)
+                            .background(Color.white)
+                            .accessibilityLabel(Text("groupCode.image", tableName: "ClubGroupCodeDisplay"))
+                            .privacySensitive().accessibilityIdentifier("club.gov.groupCode")
                         Text("club.gov.codeExpires \(Text(value.expiresAt, style: .timer))")
                             .font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                         ShareLink(item: Image(uiImage: image),

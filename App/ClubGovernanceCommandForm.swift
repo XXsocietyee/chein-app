@@ -416,11 +416,13 @@ import SwiftUI
                     coordinator: coordinator, formID: route.id)
             }
             if let groupCode {
+                // CLB-r10-nat-group-code-01 (MP group-code wxml:38-39): the session name is the Section header.
                 Section {
                     ClubGroupCodePresentation(value: groupCode,
                         current: identity == access.identity && scenePhase == .active,
-                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } },
-                        sessionName: ClubRoleActivityLabel.entry(sessionLabel))
+                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } })
+                } header: {
+                    if let name = ClubRoleActivityLabel.entry(sessionLabel) { Text(verbatim: name) }
                 }
             }
             if let receipt {
@@ -438,7 +440,12 @@ import SwiftUI
                         Button {
                             Task { await refreshCampaign(silent: false) }
                         } label: {
-                            Label(campaignRefreshing ? LocalizedStringKey("club.notify.refreshing") : LocalizedStringKey("club.notify.refresh"), systemImage: "arrow.clockwise")
+                            // MP notify/index.wxml:76-78: 刷新 / 刷新中… inline; a system spinner while the re-read is in flight.
+                            if campaignRefreshing {
+                                Label { Text("club.notify.refreshing") } icon: { ProgressView() }
+                            } else {
+                                Label("club.notify.refresh", systemImage: "arrow.clockwise")
+                            }
                         }
                         .disabled(campaignRefreshing || busy)
                         .accessibilityIdentifier("club.notify.refreshCampaign")
