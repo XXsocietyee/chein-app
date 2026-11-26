@@ -314160,6 +314160,23 @@
         }
       }
     },
+    "nativeR2.shell.welcome.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to chein"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎来到城瘾"
+          }
+        }
+      }
+    },
     "playerJourney.modify": {
       "extractionState": "manual",
       "localizations": {

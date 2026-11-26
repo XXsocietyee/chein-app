@@ -215,12 +215,10 @@ enum BundleCommerceFailure {
                         .accessibilityIdentifier(entry.identifier)
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
+                .listStyle(.insetGrouped)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(CYNight.ink0.ignoresSafeArea())
         .themeDomain(.player)
         .navigationTitle(Text(verbatim: BundleCommerceCopy.hub(locale)))
         .navigationBarTitleDisplayMode(.inline)
@@ -261,21 +259,24 @@ enum BundleCommerceFailure {
     var body: some View {
         Group {
             if phase == .loading {
-                CYLoadingStateView(rows: 3)
+                ProgressView()
                     .accessibilityIdentifier("bundle.commerce.loading")
             } else {
-                CYStateLayout(
-                    kind: art,
-                    title: Text(verbatim: BundleCommerceCopy.headline(phase, locale)),
-                    detail: detail.map { Text(verbatim: $0) },
-                    primaryVerbatim: button,
-                    primaryIdentifier: primaryIdentifier
-                )
+                ContentUnavailableView {
+                    Label(BundleCommerceCopy.headline(phase, locale), systemImage: symbol)
+                } description: {
+                    if let detail { Text(verbatim: detail) }
+                } actions: {
+                    if let button {
+                        Button(action: button.action) { Text(verbatim: button.title) }
+                            .buttonStyle(.borderedProminent)
+                            .ifLet(primaryIdentifier) { $0.accessibilityIdentifier($1) }
+                    }
+                }
                 .accessibilityIdentifier(identifier)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(CYNight.ink0.ignoresSafeArea())
         .themeDomain(.player)
         .navigationTitle(Text(verbatim: title))
         .navigationBarTitleDisplayMode(.inline)
@@ -286,13 +287,13 @@ enum BundleCommerceFailure {
         return (primaryTitle, primaryAction)
     }
 
-    private var art: CYStateKind {
+    private var symbol: String {
         switch phase {
-        case .offline: return .offline
-        case .error: return .failure
-        case .empty: return .orders
-        case .permission: return .notices
-        default: return .generic
+        case .offline: return "wifi.slash"
+        case .error: return "exclamationmark.triangle"
+        case .empty: return "shippingbox"
+        case .permission: return "lock"
+        default: return "questionmark.circle"
         }
     }
 
@@ -432,7 +433,6 @@ enum BundleCommerceFailure {
 
     var body: some View {
         BundleShelfView(model: model, onSelect: nil)
-            .background(CYNight.ink0.ignoresSafeArea())
             .themeDomain(.player)
     }
 }
@@ -490,7 +490,6 @@ enum BundleCommerceFailure {
 
     var body: some View {
         BundleVoucherView(model: model)
-            .background(CYNight.ink0.ignoresSafeArea())
             .themeDomain(.player)
     }
 }
@@ -617,7 +616,6 @@ enum BundleCommerceFailure {
         BundleCommerceReady(order: order, requestedID: requestedID, origin: origin,
                             title: BundleCommerceEntry.exitSwap.title(locale)) { host, _ in
             BundleExitSwapView(host: host)
-                .background(CYNight.ink0.ignoresSafeArea())
                 .themeDomain(.player)
         }
     }
@@ -643,18 +641,18 @@ enum BundleCommerceFailure {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Text(verbatim: BundleCommerceCopy.shown(row.status))
                                 Text(verbatim: BundleCommerceCopy.shown(row.startAt))
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         .accessibilityIdentifier("bundle.commerce.cancel.reservation.\(row.id.text)")
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
+                .listStyle(.insetGrouped)
                 .navigationTitle(Text(verbatim: BundleCommerceEntry.cancel.title(locale)))
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
-        .background(CYNight.ink0.ignoresSafeArea())
         .themeDomain(.player)
     }
 }
@@ -712,7 +710,6 @@ enum BundleCommerceFailure {
     var body: some View {
         BundleCancelView(model: model, canceler: tools.canceler, service: tools.service,
                          registrationID: registrationID, reservationID: reservationText)
-            .background(CYNight.ink0.ignoresSafeArea())
             .themeDomain(.player)
     }
 }
@@ -781,9 +778,7 @@ enum BundleCommerceFailure {
             }
             .accessibilityIdentifier("bundle.commerce.transfer.claim")
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .background(CYNight.ink0.ignoresSafeArea())
+        .listStyle(.insetGrouped)
         .themeDomain(.player)
         .navigationTitle(Text(verbatim: BundleCommerceEntry.transfer.title(locale)))
         .navigationBarTitleDisplayMode(.inline)
@@ -804,7 +799,6 @@ enum BundleCommerceFailure {
 
     var body: some View {
         BundleTransferSendView(model: model, registrationID: registrationID)
-            .background(CYNight.ink0.ignoresSafeArea())
             .themeDomain(.player)
     }
 }
@@ -821,7 +815,6 @@ enum BundleCommerceFailure {
 
     var body: some View {
         BundleTransferClaimView(model: model)
-            .background(CYNight.ink0.ignoresSafeArea())
             .themeDomain(.player)
     }
 }
@@ -867,18 +860,14 @@ enum BundleCommerceFailure {
                                 PublicMerchantHomeView(target: .ownerMemberID(owner), context: publicMerchant)
                             } label: {
                                 Text(verbatim: ChannelCopy.text("评价本次预约的商家", "Review this merchant", locale: locale))
-                                    .cyText(.body)
                             }
                             .accessibilityIdentifier("bundle.commerce.review.merchant.\(owner.rawValue)")
                         }
                     } footer: {
                         Text(verbatim: ChannelCopy.text("评价需 2～1000 字，审核通过后公开", "Reviews need 2–1000 characters and are public after moderation", locale: locale))
-                            .cyText(.caption)
-                            .foregroundStyle(CYColor.textSecondary)
                     }
                 }
                 .listStyle(.insetGrouped)
-                .background(CYNight.ink0.ignoresSafeArea())
                 .themeDomain(.player)
                 .cyPageTitle(verbatim: BundleCommerceEntry.review.title(locale))
             } else {
@@ -915,7 +904,6 @@ enum BundleCommerceFailure {
 
     var body: some View {
         BundleRenewalIntentView(model: model)
-            .background(CYNight.ink0.ignoresSafeArea())
             .themeDomain(.player)
     }
 }
@@ -959,13 +947,11 @@ enum BundleCommerceFailure {
                         .accessibilityIdentifier("bundle.commerce.appeal.unit.\(unit.id.text)")
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
+                .listStyle(.insetGrouped)
                 .navigationTitle(Text(verbatim: BundleCommerceEntry.appeal.title(locale)))
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
-        .background(CYNight.ink0.ignoresSafeArea())
         .themeDomain(.player)
     }
 }
@@ -988,7 +974,6 @@ enum BundleCommerceFailure {
 
     var body: some View {
         BundleAppealView(model: model, registrationID: registrationID, unitID: unitID, evidenceRefs: $evidence)
-            .background(CYNight.ink0.ignoresSafeArea())
             .themeDomain(.player)
     }
 }

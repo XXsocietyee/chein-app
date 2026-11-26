@@ -23,17 +23,17 @@ struct NativeAuthorNotice: View {
         }
     }
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
+        Label {
+            text
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
             Image(systemName: symbol)
                 .foregroundStyle(color)
                 .accessibilityHidden(true)
-            text
-                .font(.subheadline)
-                .foregroundStyle(.primary)
-                .fixedSize(horizontal: false, vertical: true)
         }
+        .font(.subheadline)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 6)
         .accessibilityElement(children: .combine)
     }
 }
@@ -41,12 +41,12 @@ struct NativeAuthorNotice: View {
 struct NativeAuthorLoading: View {
     let text: Text
     var body: some View {
-        HStack(spacing: 12) {
+        HStack {
             ProgressView().accessibilityHidden(true)
             text.font(.subheadline).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 }
@@ -58,8 +58,6 @@ extension View {
     func nativeAuthorSurface() -> some View {
         self
             .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
-            .background(Color(uiColor: .systemGroupedBackground))
             .navigationBarTitleDisplayMode(.inline)
             .scrollDismissesKeyboard(.interactively)
     }
@@ -67,10 +65,9 @@ extension View {
     func nativeAuthorSupportingCopy() -> some View {
         self.font(.subheadline).foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.vertical, 4)
     }
 
     func nativeAuthorPrimaryAction() -> some View {
-        self.buttonStyle(.questifyPrimary).controlSize(.large)
+        self.buttonStyle(.borderedProminent).controlSize(.large)
     }
 }

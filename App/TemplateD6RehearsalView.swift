@@ -75,12 +75,12 @@ import Combine
     }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateD6.preview", subtitle: "templateD6.sampleOnly") }.e1HeroRow()
+            Section { Label("templateD6.sampleOnly", systemImage: "info.circle").foregroundStyle(.secondary) }
             if let configuration = controller.visibleConfiguration {
                 Section("templateD6.configuration") {
                     if !configuration.kicker.isEmpty { Text(verbatim: configuration.kicker) }
                     Text(LocalizedStringKey(configuration.diceCount == 1 ? "templateD6.oneDie" : "templateD6.twoDice"))
-                    if configuration.diceCount == 2 { Text("templateD6.sumOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                    if configuration.diceCount == 2 { Text("templateD6.sumOnly").font(.footnote).foregroundStyle(.secondary) }
                 }
                 Section("templateD6.exampleValues") {
                     ForEach(0..<configuration.diceCount, id: \.self) { index in
@@ -89,8 +89,8 @@ import Combine
                         } label: { Text("templateD6.dieNumber \(index + 1)") }
                             .accessibilityIdentifier("templateD6.pip.\(index)")
                     }
-                    CYPillButton("templateD6.showSample", systemImage: "dice", action: controller.sampleAction())
-                        .accessibilityIdentifier("templateD6.showSample").e1ActionRow()
+                    Button(action: controller.sampleAction()) { Label("templateD6.showSample", systemImage: "dice") }
+                        .accessibilityIdentifier("templateD6.showSample")
                 }
                 if let sample = controller.visibleSample {
                     Section("templateD6.sampleResult") {
@@ -102,18 +102,20 @@ import Combine
                         }
                         LabeledContent("playkit.dice.total", value: String(sample.total)).monospacedDigit().accessibilityIdentifier("templateD6.total")
                         if let action = sample.action { Text(verbatim: action).accessibilityIdentifier("templateD6.action") }
-                        else { Text("templateD6.sumOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                        else { Text("templateD6.sumOnly").font(.footnote).foregroundStyle(.secondary) }
                     }
                 }
-                CYPillButton("creator.reset", style: .tertiary, action: controller.resetAction()).accessibilityIdentifier("templateD6.reset").e1ActionRow()
+                Section { Button(action: controller.resetAction()) { Text("creator.reset") }.accessibilityIdentifier("templateD6.reset") }
             } else {
                 Section {
                     Text("templateD6.configurationChanged").accessibilityIdentifier("templateD6.unavailable")
-                    CYPillButton("templateD6.reload", style: .secondary, systemImage: "arrow.clockwise") { controller.reload() }.disabled(!controller.canReload)
-                        .accessibilityIdentifier("templateD6.reload").e1ActionRow()
+                    Button { controller.reload() } label: { Label("templateD6.reload", systemImage: "arrow.clockwise") }.disabled(!controller.canReload)
+                        .accessibilityIdentifier("templateD6.reload")
                 }
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().privacySensitive()
+        }.formStyle(.grouped).privacySensitive()
+            .navigationTitle(Text("templateD6.preview"))
+            .navigationBarTitleDisplayMode(.inline)
             .onAppear { controller.reload() }
             .onDisappear { controller.retire() }
     }

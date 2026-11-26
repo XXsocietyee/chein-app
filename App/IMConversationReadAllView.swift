@@ -73,29 +73,31 @@ struct IMConversationReadAllButtonToken: Equatable {
     var body: some View {
         let appearance = model.appearance
         NavigationStack {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                    CYHeroHeader("im.readAll.title")
-                    if model.batch.isCurrent {
-                        CYListRow("d7.readAll.count", trailing: .value(String(model.items.count)), card: true) {
-                            CYRowIcon(systemImage: "bubble.left.and.bubble.right")
+            List {
+                if model.batch.isCurrent {
+                    Section {
+                        LabeledContent {
+                            Text(verbatim: String(model.items.count))
+                        } label: {
+                            Label("d7.readAll.count", systemImage: "bubble.left.and.bubble.right")
                         }
-                        phaseContent(appearance)
-                        LazyVStack(alignment: .leading, spacing: CYSpacing.md) {
-                            CYSectionHeader("d7.readAll.conversations")
-                            ForEach(model.items) { item in conversationRow(item) }
-                        }
-                    } else {
-                        CYEmptyState(systemImage: "person.crop.circle", "messaging.signInHint")
                     }
+                    Section {
+                        phaseContent(appearance)
+                    }
+                    Section {
+                        ForEach(model.items) { item in conversationRow(item) }
+                    } header: {
+                        Text("d7.readAll.conversations")
+                    }
+                } else {
+                    ContentUnavailableView("messaging.signInHint", systemImage: "person.crop.circle")
+                    .listRowBackground(Color.clear)
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .cyDomainPageBackground()
-            .cyHeroScreen()
-            .cyAnimation(value: model.phase)
+            .listStyle(.insetGrouped)
+            .navigationTitle(Text("im.readAll.title"))
+            .navigationBarTitleDisplayMode(.inline)
             .cyHaptic(.success, trigger: model.phase) { _, new in new == .finished }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -116,78 +118,74 @@ struct IMConversationReadAllButtonToken: Equatable {
         switch model.phase {
         case .reviewing:
             if model.batch.canConfirm {
-                CYPillButton("d7.readAll.confirm", systemImage: "checkmark") {
+                Button {
                     guard let token = model.prepare(appearance: appearance) else { return }
                     Task { await model.perform(token) }
+                } label: {
+                    Label("d7.readAll.confirm", systemImage: "checkmark")
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(model.isActionPending)
                 .accessibilityIdentifier("im.readAll.confirmButton")
             } else {
                 Text("d7.readAll.unavailable")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .foregroundStyle(.secondary)
             }
         case .running:
             loadingBlock("d7.readAll.running")
             if model.stopRequested {
                 Text("d7.readAll.stopping")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .foregroundStyle(.secondary)
             } else {
                 Button("d7.readAll.stop", role: .destructive) { model.stop() }
-                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
                     .accessibilityIdentifier("im.readAll.stopButton")
             }
         case .finished:
             summary
             if model.batch.unknownCount > 0 {
                 Text("d7.readAll.unknownHint")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         case .cancelled:
-            CYEmptyState(systemImage: "xmark.circle", "d7.readAll.cancelled")
+            Label("d7.readAll.cancelled", systemImage: "xmark.circle")
+                .foregroundStyle(.secondary)
         }
     }
     private func conversationRow(_ item: IMConversationReadAllItem) -> some View {
-        CYCard {
-            HStack(alignment: .top, spacing: CYSpacing.md) {
-                CYRowIcon(systemImage: "bubble.left")
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    MessagingConversationName(conversation: item.conversation)
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    CYStatusChip(LocalizedStringKey(outcomeKey(item.outcome)), tone: outcomeTone(item.outcome), systemImage: outcomeSymbol(item.outcome))
-                }
+        Label {
+            VStack(alignment: .leading) {
+                MessagingConversationName(conversation: item.conversation)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.leading)
+                Label(LocalizedStringKey(outcomeKey(item.outcome)), systemImage: outcomeSymbol(item.outcome))
+                    .font(.subheadline)
+                    .foregroundStyle(outcomeTint(item.outcome))
             }
-            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("im.readAll.item.\(item.id)")
+        } icon: {
+            Image(systemName: "bubble.left")
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("im.readAll.item.\(item.id)")
     }
     private func loadingBlock(_ key: LocalizedStringKey) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        HStack {
             Text(key)
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            CYSkeleton().accessibilityHidden(true)
+                .foregroundStyle(.secondary)
+            Spacer()
+            ProgressView()
         }
         .accessibilityElement(children: .combine)
     }
-    private func outcomeTone(_ outcome: IMConversationReadAllOutcome) -> CYStatusTone {
+    private func outcomeTint(_ outcome: IMConversationReadAllOutcome) -> Color {
         switch outcome {
-        case .acknowledged: return .success
-        case .rejected: return .danger
-        case .outcomeUnknown, .unavailable: return .warning
-        case .submitting: return .info
-        case .notAttempted, .protectedIntent: return .neutral
+        case .acknowledged: return .green
+        case .rejected: return .red
+        case .outcomeUnknown, .unavailable: return .orange
+        case .submitting: return .blue
+        case .notAttempted, .protectedIntent: return .secondary
         }
     }
     private func outcomeSymbol(_ outcome: IMConversationReadAllOutcome) -> String {
@@ -201,20 +199,17 @@ struct IMConversationReadAllButtonToken: Equatable {
         case .notAttempted: return "circle"
         }
     }
-    private var summary: some View {
-        VStack(spacing: CYSpacing.sm) {
-            CYListRow("d7.readAll.acknowledged", trailing: .value(String(model.batch.acknowledgedCount)), card: true) {
-                CYRowIcon(systemImage: "checkmark.circle")
-            }
-            CYListRow("d7.readAll.unknown", trailing: .value(String(model.batch.unknownCount)), card: true) {
-                CYRowIcon(systemImage: "questionmark.circle")
-            }
-            CYListRow("d7.readAll.rejected", trailing: .value(String(model.batch.rejectedCount)), card: true) {
-                CYRowIcon(systemImage: "xmark.octagon")
-            }
-            CYListRow("d7.readAll.remaining", trailing: .value(String(model.batch.remainingCount)), card: true) {
-                CYRowIcon(systemImage: "circle")
-            }
+    @ViewBuilder private var summary: some View {
+        summaryRow("d7.readAll.acknowledged", value: model.batch.acknowledgedCount, systemImage: "checkmark.circle")
+        summaryRow("d7.readAll.unknown", value: model.batch.unknownCount, systemImage: "questionmark.circle")
+        summaryRow("d7.readAll.rejected", value: model.batch.rejectedCount, systemImage: "xmark.octagon")
+        summaryRow("d7.readAll.remaining", value: model.batch.remainingCount, systemImage: "circle")
+    }
+    private func summaryRow(_ key: LocalizedStringKey, value: Int, systemImage: String) -> some View {
+        LabeledContent {
+            Text(verbatim: String(value))
+        } label: {
+            Label(key, systemImage: systemImage)
         }
     }
     private func outcomeKey(_ outcome: IMConversationReadAllOutcome) -> String {

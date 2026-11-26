@@ -22,18 +22,18 @@ import Combine
                     NavigationLink { TemplateVariantEditor(model: model, index: index) } label: { HStack { Text("creatorRoot.variant"); Text(verbatim: String(index + 1)) } }
                 }.onDelete { indexes in var rows = model.draft.advanced.rootVariants; for index in indexes.sorted(by: >) { rows.remove(at: index) }; model.draft.advanced.value["variants"] = .array(rows) }
                     .onMove { from, to in var rows = model.draft.advanced.rootVariants; rows.move(fromOffsets: from, toOffset: to); model.draft.advanced.value["variants"] = .array(rows) }
-                CYPillButton("creatorRoot.addVariant", style: .secondary) { model.draft.advanced.appendRootVariant() }.disabled(model.draft.advanced.rootVariants.count >= 16)
+                Button { model.draft.advanced.appendRootVariant() } label: { Label("creatorRoot.addVariant", systemImage: "plus") }.disabled(model.draft.advanced.rootVariants.count >= 16)
                 if model.draft.advanced.value["variants"] != nil { Button("creatorRoot.clearVariants", role: .destructive) { model.draft.advanced.value.removeValue(forKey: "variants") } }
             }
             Section("creatorRoot.roleViews") {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled("roleViews") }, set: { model.draft.advanced.setRoleViewsEnabled($0) }))
-                Text("creatorRoot.roleViewsLimit").cyText(.bodyCompact).foregroundStyle(.secondary)
+                Text("creatorRoot.roleViewsLimit").font(.subheadline).foregroundStyle(.secondary)
                 if model.draft.advanced.enabled("roleViews") {
                     ForEach(["A", "B"], id: \.self) { role in NavigationLink { TemplateRoleViewEditor(model: model, role: role) } label: { HStack { Text("creatorRoot.roleLabel"); Text(verbatim: role) } } }
                 }
             }
             Section { NavigationLink("creatorRoot.rehearse") { TemplateRootRehearsalView(draft: model.draft.advanced) }.disabled(!model.draft.advanced.issues.isEmpty) }
-            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } } } }
+            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } } } }
         }.navigationTitle("creatorRoot.rules").navigationBarTitleDisplayMode(.inline).toolbar { EditButton() }.disabled(!model.canEdit)
     }
 }
@@ -69,7 +69,7 @@ import Combine
                 }.disabled(newField == nil)
             }
             let issues = model.draft.advanced.rootCreatorIssues.filter { $0.path.hasPrefix("variants[\(index + 1)]") }
-            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } } }
+            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } } }
         }.navigationTitle("creatorRoot.variant").navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -134,7 +134,7 @@ private struct TemplateConditionEditor: View {
                         itemField(index, "label"); itemField(index, "text")
                     }
                 }.onDelete { indexes in var copy = items; for index in indexes.sorted(by: >) { copy.remove(at: index) }; write("items", .array(copy)) }
-                CYPillButton("creator.add", style: .secondary) { var copy = items; copy.append(.object(["label": .string(""), "text": .string("")])); write("items", .array(copy)) }.disabled(items.count >= 8)
+                Button { var copy = items; copy.append(.object(["label": .string(""), "text": .string("")])); write("items", .array(copy)) } label: { Label("creator.add", systemImage: "plus") }.disabled(items.count >= 8)
             }
             if viewIndex == nil { Text("creatorRoot.validation.roles") }
         }.navigationTitle("creatorRoot.roleViews").navigationBarTitleDisplayMode(.inline)
@@ -358,7 +358,7 @@ enum TemplateLowHPPresetText: String, CaseIterable {
     private func text(_ key: TemplateLowHPPresetText) -> String { key.value(locale) }
     var body: some View {
         Form {
-            Section { Text(verbatim: text(.scope)); Text(verbatim: text(.retained)).cyText(.bodyCompact) }
+            Section { Text(verbatim: text(.scope)); Text(verbatim: text(.retained)).font(.subheadline) }
             if let config = controller.visibleConfiguration, config.isSupported {
                 Section {
                     Picker(text(.choice), selection: controller.selectionBinding) {

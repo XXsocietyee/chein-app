@@ -42,15 +42,16 @@ import SwiftUI
                 if !reader.isAuthenticated {
                     TicketWalletIssueView(issue: .login)
                     if let onSignIn {
-                        CYPillButton("ticketWallet.signIn", action: onSignIn)
-                            .listRowBackground(Color.clear)
+                        Button(action: onSignIn) { Text("ticketWallet.signIn").frame(maxWidth: .infinity) }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                             .accessibilityIdentifier("ticketWallet.signIn")
                     }
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
-                else if model.isLoading || model.loadedOwner != key { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("mpfresh.ticketWallet.loading", tableName: "MpFresh")) }
+                else if model.isLoading || model.loadedOwner != key { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("mpfresh.ticketWallet.loading", tableName: "MpFresh")) }
                 else if let issue = model.issue(owner: key) {
                     // Source failure title 票夹没能打开 precedes the specific reason.
-                    Text("ticketWallet.parity.error.title").cyText(.sectionTitle)
+                    Text("ticketWallet.parity.error.title").font(.headline)
                         .accessibilityIdentifier("ticketWallet.errorTitle")
                     TicketWalletIssueView(issue: issue, retry: { schedule(model.presentation ?? model.beginPresentation(owner: key)) })
                 } else if let snapshot = model.value(owner: key) {
@@ -61,10 +62,8 @@ import SwiftUI
                             Label {
                                 Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
                                     .accessibilityIdentifier("ticketWallet.empty")
-                            } icon: { CYEmptyIllustration(kind: .generic, size: 96) } // MP state-shell empty art
+                            } icon: { Image(systemName: "ticket") }
                         }
-                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
-                        .listRowBackground(Color.clear)
                     }
                     // R9-MEM-NIT-1: the MP signup wallet has no filter (signup/index.wxml), so every ticket shows.
                     let shown = snapshot.tickets
@@ -75,10 +74,7 @@ import SwiftUI
                             NavigationLink {
                                 TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
                             } label: { TicketWalletRow(ticket: ticket) }
-                            .buttonStyle(QuestifyCardButtonStyle())
-                            .questifyHidesLinkIndicator()
                             .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
-                            .questifyCardListRow()
                             .id(rowIndex)
                         } else if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
                                   pendingOrderEntry.canOpen(ticket: ticket, reader: reader, provider: provider) {
@@ -90,28 +86,29 @@ import SwiftUI
                                 pendingOrderEntry.activate(ticket: ticket, rowIndex: rowIndex, snapshot: current,
                                     reader: reader, provider: provider, presentationID: offeredPendingPresentation)
                             } label: { TicketWalletRow(ticket: ticket, showsPendingOrderAction: true) }
-                            .buttonStyle(QuestifyCardButtonStyle())
+                            .foregroundStyle(.primary)
                             .accessibilityIdentifier("ticketWallet.pendingOrder.open.\(ticket.id)")
-                            .questifyCardListRow()
                             .id(rowIndex)
                         } else {
                             TicketWalletRow(ticket: ticket)
                                 .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
-                                .questifyCardListRow()
                                 .id(rowIndex)
                         }
                     }
                 }
-                // R8-MEM-21-1: companion seats join the deck as 同伴席位 cards (MP signup index.js:293-300).
-                ForEach(companions, id: \.invitationID) { seat in
-                    TicketWalletCompanionCard(seat: seat)
-                        .questifyCardListRow()
+                if !companions.isEmpty {
+                    // R8-MEM-21-1: companion seats join the wallet as 同伴席位 rows (MP signup index.js:293-300).
+                    Section {
+                        ForEach(companions, id: \.invitationID) { seat in
+                            TicketWalletCompanionCard(seat: seat)
+                        }
+                    }
+                    .accessibilityIdentifier("ticketWallet.companions")
                 }
                 // MP F-R2U-01: one lane failing leaves the other lane's tickets on screen with a quiet note, no red block.
                 if let partial = model.value(owner: key)?.partialFailure {
                     Text(LocalizedStringKey(partial.lane == .route ? "ticketWallet.partial.route" : "ticketWallet.partial.activity"))
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                        .font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("ticketWallet.partialFailure")
                 }
             }
@@ -216,14 +213,12 @@ import SwiftUI
             ProgressView()
                 .accessibilityLabel(Text("ticketWallet.loading"))
                 .frame(maxWidth: .infinity, minHeight: 44)
-                .listRowBackground(Color.clear)
                 .accessibilityIdentifier("ticketWallet.focus.resolving")
         } else if focusPhase == .missing {
             CYStateView(content: .empty(glyph: "ticket", title: appLocalized("ticketWallet.focus.missing", locale: locale),
                                         body: "", actionTitle: appLocalized("ticketWallet.focus.retry", locale: locale)),
                         onPrimary: { focusPhase = .idle; schedule(model.presentation ?? model.beginPresentation(owner: key)) },
                         compact: true)
-                .listRowBackground(Color.clear)
                 .accessibilityIdentifier("ticketWallet.focus.missing")
         }
     }
@@ -364,140 +359,92 @@ extension TicketWalletTicket {
     }
 }
 
+/// Native r2: one inset-grouped list row (artwork thumbnail, tag, title, facts), no card chrome, scrim or shadow.
 private struct TicketWalletRow: View {
     let ticket: TicketWalletTicket
     var showsPendingOrderAction = false
     @Environment(\.ticketWalletCompletionReader) private var completionReader
-    @Environment(\.dynamicTypeSize) private var typeSize
-    @State private var topHeight: CGFloat = 140
-    /// R7-MEM-21-3: activity image, else topic image. The illustration stays only when that URL is absent.
-    /// PLY-21-15: token colours only, one tint per id so neighbouring cards still differ.
+    @ScaledMetric(relativeTo: .body) private var thumb: CGFloat = 60
+    /// R7-MEM-21-3: activity image, else topic image. The MP illustration stays only when that URL is absent.
     private var httpsCover: URL? { ticket.walletHTTPSCoverURL }
-    private var tint: Color {
-        let tints: [Color] = [CYColor.brandStrong, CYColor.gameAccent, CYColor.rare, CYColor.coverFallback]
-        return tints[abs(ticket.id) % tints.count]
-    }
-    private var art: [Color] { [tint.opacity(0.55), CYColor.bgSurfaceStrong] }
     private var coverIllustration: some View {
-        ZStack(alignment: .topTrailing) {
-            LinearGradient(colors: art, startPoint: .topLeading, endPoint: .bottomTrailing)
-            // MP signup wxml:68 `wc__im--illus`: with no cover the card shows the shipped route illustration (cover-route.svg).
-            MPAsset.BannerCover.coverRoute.resizable().scaledToFit().frame(width: 120, height: 120)
-                .opacity(0.35).offset(x: 90, y: -10).accessibilityHidden(true)
-        }
-        .frame(maxWidth: .infinity, minHeight: 140)
-        .accessibilityHidden(true)
-    }
-    private var hasStub: Bool {
-        (ticket.participateDate?.isEmpty == false) || (ticket.addressName?.isEmpty == false) || ticket.needsScheduleSync
-            || ticket.action != .detail || ticket.walletTypeKey != nil || showsPendingOrderAction
-            || ticket.showsSharedParty || ticket.exploreProgress != nil
+        // MP signup wxml:68 `wc__im--illus`: with no cover the card shows the shipped route illustration (cover-route.svg).
+        MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(6)
+            .background(Color(uiColor: .tertiarySystemFill))
+            .accessibilityHidden(true)
     }
     var body: some View {
         let dimmed = ticket.status == .cancelled || ticket.status == .expired || ticket.isWalletLocked
-        VStack(spacing: 0) {
-            ZStack(alignment: .bottomLeading) {
+        HStack(alignment: .top, spacing: 12) {
+            Group {
                 if let url = httpsCover {
                     AsyncImage(url: url) { phase in
                         if let image = phase.image {
                             image.resizable().scaledToFill()
                         } else {
-                            CYColor.bgSurfaceStrong
+                            Color(uiColor: .tertiarySystemFill)
                         }
                     }
-                    .frame(maxWidth: .infinity, minHeight: 140)
-                    .clipped()
-                    .accessibilityHidden(true)
-                    LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .center, endPoint: .bottom)
-                        .frame(maxWidth: .infinity, minHeight: 140)
-                        .allowsHitTesting(false)
-                        .accessibilityHidden(true)
                 } else {
                     coverIllustration
                 }
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    // Owner rule (MP 2026-10-28): no status on the card. Only the MP tag: M月D日开始 / 退款中 / 已通关 / 未通关.
-                    TicketWalletCardTag(ticket: ticket)
-                    TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                        .cyText(.sectionTitle).foregroundStyle(.white)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if ticket.clearedFlag == nil { completionCaption }
-                }
-                .padding(CYSpacing.lg)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .overlay(alignment: .topTrailing) {
-                // MP signup wxml:64 `wc__go`: round tinted badge with the shipped `icon_go.svg` arrow. Decorative; the card is the control.
-                MPAsset.FeatureIcon.iconGo.resizable().scaledToFit().frame(width: 14, height: 14)
-                    .frame(width: 31, height: 31)
-                    .background(Circle().fill(tint))
-                    .padding(CYSpacing.md)
-                    .accessibilityHidden(true)
-            }
-            .background(GeometryReader { Color.clear.preference(key: TicketTopHeightKey.self, value: $0.size.height) })
-            .overlay(alignment: .bottom) { Rectangle().fill(.clear).frame(height: 0) }
-            if hasStub {
-            // Perforation
-            Line().stroke(CYColor.textPrimary.opacity(0.22), style: StrokeStyle(lineWidth: 1.5, dash: [5, 5]))
-                .frame(height: 1).padding(.horizontal, 22)
-            HStack(alignment: .center, spacing: CYSpacing.md) {
-                VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
-                    if let date = ticket.participateDate, !date.isEmpty {
-                        QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
-                    }
-                    if let place = ticket.addressName, !place.isEmpty {
-                        QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
-                    }
-                    if ticket.needsScheduleSync {
-                        Label { Text("ticketWallet.p2.notice.scheduleSync").fixedSize(horizontal: false, vertical: true) }
-                            icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
-                    }
-                    if ticket.action != .detail {
-                        Label { Text(LocalizedStringKey(ticket.sourceNoticeKey)).fixedSize(horizontal: false, vertical: true) }
-                            icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            .accessibilityIdentifier("ticketWallet.sourceNotice.\(ticket.id)")
-                    }
-                    if ticket.walletTypeKey != nil || ticket.showsSharedParty || ticket.exploreProgress != nil {
-                        // MP card sub-line: 类型 · 剩 N 天, then 已核销 x/y 家 and N 大 M 小同享 (signup/index.js walletCard).
-                        TicketWalletSubline(ticket: ticket, typeKey: ticket.walletTypeKey)
-                            .accessibilityIdentifier("ticketWallet.subline.\(ticket.id)")
-                    }
-                    if showsPendingOrderAction {
-                        Label { Text("ticketPendingOrder.open", tableName: "TicketPendingOrder") } icon: { Image(systemName: "list.bullet.rectangle") }
-                            .cyText(.label, weight: .semibold).foregroundStyle(CYColor.textPrimary)
-                    }
+            .frame(width: thumb, height: thumb)
+            .clipShape(.rect(cornerRadius: 8))
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                // Owner rule (MP 2026-10-28): no status on the card. Only the MP tag: M月D日开始 / 退款中 / 已通关 / 未通关.
+                TicketWalletCardTag(ticket: ticket)
+                TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
+                    .font(.headline).foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if ticket.clearedFlag == nil { completionCaption }
+                if let date = ticket.participateDate, !date.isEmpty {
+                    QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
                 }
-                Spacer(minLength: 0)
+                if let place = ticket.addressName, !place.isEmpty {
+                    QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
+                }
+                if ticket.needsScheduleSync {
+                    Label { Text("ticketWallet.p2.notice.scheduleSync").fixedSize(horizontal: false, vertical: true) }
+                        icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
+                }
+                if ticket.action != .detail {
+                    Label { Text(LocalizedStringKey(ticket.sourceNoticeKey)).fixedSize(horizontal: false, vertical: true) }
+                        icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("ticketWallet.sourceNotice.\(ticket.id)")
+                }
+                if ticket.walletTypeKey != nil || ticket.showsSharedParty || ticket.exploreProgress != nil {
+                    // MP card sub-line: 类型 · 剩 N 天, then 已核销 x/y 家 and N 大 M 小同享 (signup/index.js walletCard).
+                    TicketWalletSubline(ticket: ticket, typeKey: ticket.walletTypeKey)
+                        .accessibilityIdentifier("ticketWallet.subline.\(ticket.id)")
+                }
+                if showsPendingOrderAction {
+                    Label { Text("ticketPendingOrder.open", tableName: "TicketPendingOrder") } icon: { Image(systemName: "list.bullet.rectangle") }
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
+                }
                 // PLY-21-15: no decorative QR glyph; the code is only on the pass.
             }
-            .padding(CYSpacing.lg)
-            .background(CYColor.bgElevated)
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .onPreferenceChange(TicketTopHeightKey.self) { topHeight = $0 }
-        .clipShape(TicketStubShape(notchY: hasStub ? topHeight : -1), style: FillStyle(eoFill: true))
-        .opacity(dimmed ? 0.62 : 1)
-        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
-        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .padding(.vertical, 4)
+        .opacity(dimmed ? 0.6 : 1)
     }
     /// Completed shows 已通关. Absent hides that line. A non-boolean shows an em dash.
     @ViewBuilder private var completionCaption: some View {
         if let completionReader, completionReader.topicCompleted(ticket) == true {
             Text("mpfresh.ticketWallet.filter.completed", tableName: "MpFresh")
-                .cyText(.bodyMedium).foregroundStyle(.white.opacity(0.92))
+                .font(.subheadline).foregroundStyle(.secondary)
                 .accessibilityIdentifier("ticketWallet.topicCompleted.\(ticket.id)")
         } else if let completionReader, completionReader.topicCompleted(ticket) == nil, ticket.topicCompletion == .unknown {
             Text("mpfresh.ticketWallet.completion.unknown", tableName: "MpFresh")
-                .cyText(.bodyMedium).foregroundStyle(.white.opacity(0.92))
+                .font(.subheadline).foregroundStyle(.secondary)
                 .accessibilityLabel(Text("mpfresh.ticketWallet.completion.unknownLabel", tableName: "MpFresh"))
                 .accessibilityIdentifier("ticketWallet.topicCompleted.unknown.\(ticket.id)")
         }
-    }
-    private struct Line: Shape {
-        func path(in rect: CGRect) -> Path { var p = Path(); p.move(to: CGPoint(x: rect.minX, y: rect.midY)); p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)); return p }
     }
 }
 
@@ -507,13 +454,23 @@ private struct TicketWalletCardTag: View {
     var body: some View {
         if ticket.isUpcoming {
             if let start = ticket.upcomingStartMonthDay {
-                CYStatusChip("ticketWallet.tag.startsOn \(start.month) \(start.day)", tone: .info)
-            } else { CYStatusChip("ticketWallet.tag.upcoming", tone: .info) }
+                Label { Text("ticketWallet.tag.startsOn \(start.month) \(start.day)") } icon: { Image(systemName: "calendar").foregroundStyle(.blue) }
+                    .font(.footnote).foregroundStyle(.secondary)
+            } else {
+                Label { Text("ticketWallet.tag.upcoming") } icon: { Image(systemName: "calendar").foregroundStyle(.blue) }
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
         } else if ticket.isRefunding {
-            CYStatusChip("ticketWallet.tag.refunding", tone: .warning)
+            Label { Text("ticketWallet.tag.refunding") } icon: { Image(systemName: "arrow.uturn.backward.circle").foregroundStyle(.orange) }
+                .font(.footnote).foregroundStyle(.secondary)
         } else if let cleared = ticket.clearedFlag {
-            CYStatusChip(cleared ? "ticketWallet.tag.cleared" : "ticketWallet.tag.notCleared", tone: cleared ? .success : .neutral)
-                .accessibilityIdentifier("ticketWallet.topicCompleted.\(ticket.id)")
+            Label {
+                Text(LocalizedStringKey(cleared ? "ticketWallet.tag.cleared" : "ticketWallet.tag.notCleared"))
+            } icon: {
+                Image(systemName: cleared ? "checkmark.seal.fill" : "circle.dashed").foregroundStyle(cleared ? Color.green : Color.secondary)
+            }
+            .font(.footnote).foregroundStyle(.secondary)
+            .accessibilityIdentifier("ticketWallet.topicCompleted.\(ticket.id)")
         }
     }
 }
@@ -525,7 +482,7 @@ private struct TicketWalletSubline: View {
     let ticket: TicketWalletTicket
     let typeKey: String?
     var body: some View {
-        line.cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        line.font(.subheadline).foregroundStyle(.secondary)
     }
     private var line: Text {
         var text: Text?

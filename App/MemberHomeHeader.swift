@@ -23,7 +23,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var typeSize
     /// Rows become columns at accessibility sizes so labels never truncate or overflow.
-    private var rowLayout: AnyLayout { typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.lg)) }
+    private var rowLayout: AnyLayout { typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 16)) }
     enum Phase: Equatable { case loading, ready(MemberIdentitySnapshot), failed(signedOut: Bool) }
     @State private var phase: Phase = .loading
     @State private var failureOffline = false
@@ -33,26 +33,28 @@ import SwiftUI
     @State private var points: Int?
     @State private var contractHome: AccountPublishMPContract.HomeAccount?
     @State private var contractEarnings: AccountPublishMPContract.EarningsBalance?
-    /// First-load entrance only (xrefs-1 motion rules): the card rises once per screen, never on a refresh.
-    @State private var stagger = CYStaggerGate()
     @ScaledMetric(relativeTo: .largeTitle) private var assetDivider: CGFloat = 40
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.themeDomain) private var themeDomain
-    @QuestifyReduceMotion private var reduceMotion
     @Environment(\.locale) private var locale
 
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.lg))) {
+            // MP cy-profile `.pc-hero-bg` (index.js:399 `heroImg` default `/subpackageMember/images/mer1.jpg`): kept as the
+            // one plain header image of the first section (native r2: no fade, no card).
+            Color.clear
+                .frame(height: 120)
+                .overlay { MPAsset.BannerCover.subpackageMemberImagesMer1.resizable().scaledToFill() }
+                .clipped()
+                .listRowInsets(EdgeInsets())
+                .accessibilityHidden(true)
+            (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(alignment: .center, spacing: 16))) {
                 avatarControl
-                VStack(alignment: .leading, spacing: 6) {
-                    name.cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
+                VStack(alignment: .leading, spacing: 4) {
+                    name.font(.title2.weight(.semibold)).foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("member.card.name")
                     if let home = contractHome, !home.greeting.isEmpty {
                         Text(verbatim: home.greeting)
-                            .cyText(.meta).foregroundStyle(palette.textSecondary)
+                            .font(.subheadline).foregroundStyle(.secondary)
                             .accessibilityIdentifier("member.card.greeting")
                             .accessibilityValue(Text(verbatim: "\(home.role) userType:\(home.userType.map(String.init) ?? "") clubLeader:\(home.isClubLeader)"))
                     }
@@ -65,54 +67,51 @@ import SwiftUI
                             .accessibilityLabel(PageTemplateVoiceOver.spoken(levelText, locale: locale))
                         Text("member.card.levelTitle", tableName: "MemberProfile")
                     }
-                    .cyText(.meta, weight: .semibold).foregroundStyle(palette.textPrimary)
+                    .font(.subheadline).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                    .background(palette.bgRaised, in: Capsule(style: .continuous))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
                     Label { city } icon: { Image(systemName: "location").accessibilityHidden(true) }
                         .accessibilityIdentifier("member.card.city")
-                        .cyText(.meta).foregroundStyle(palette.textSecondary)
+                        .font(.subheadline).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
             }
-            // xrefs-1 Adopt 6 (`Player/Streak Row`): the streak gets its own row under the name, not a caption.
+            .padding(.vertical, 4)
+            // xrefs-1 Adopt 6: the streak gets its own row under the name (native r2: a plain LabeledContent row).
             if let streakDays {
-                CYStreakRow(streakDays: streakDays)
-                    .transition(.opacity)
-                    .accessibilityIdentifier("member.card.streak")
+                LabeledContent {
+                    Text(verbatim: "\(streakDays)").monospacedDigit()
+                } label: {
+                    Label { Text("profile.selfGrowth.streak") } icon: { Image(systemName: "flame") }
+                }
+                .accessibilityIdentifier("member.card.streak")
             }
-            // 我的资产 (design hand-off r1 PL-30, owner Q-B; P 210:8603): 积分 first and large, as a plain number with no tile
-            // (xrefs-1 Adopt 4: stats without a box). 积分 is the only currency. The ¥ 账户余额 column appears only when this
-            // account holds real money (the server sent a balance), after a hairline. Unknown 积分 reads "—", never 0.
+            // 我的资产 (design hand-off r1 PL-30, owner Q-B; P 210:8603): 积分 first and large, as a plain number with no tile.
+            // 积分 is the only currency. The ¥ 账户余额 column appears only when this account holds real money (the server
+            // sent a balance). Unknown 积分 reads "—", never 0.
             assets
-            // xrefs-1 Adopt 4: the three counters are a plain row with hairline dividers, no tiles.
-            CYPlainStatRow(stats: [
-                stat(snapshot?.friendCountText, id: "friends", key: "member.card.friends"),
-                stat(snapshot?.followCountText, id: "following", key: "member.card.following"),
-                stat(snapshot?.fansCountText, id: "fans", key: "member.card.fans")
-            ])
-            // Mini-program member header: one full-width 票夹 pill under the counters.
+            // The three counters (好友 / 关注 / 粉丝) as one row of plain columns.
+            HStack(spacing: 0) {
+                statCell(snapshot?.friendCountText, id: "friends", key: "member.card.friends")
+                Divider()
+                statCell(snapshot?.followCountText, id: "following", key: "member.card.following")
+                Divider()
+                statCell(snapshot?.fansCountText, id: "fans", key: "member.card.fans")
+            }
+            // Mini-program member header: one full-width 票夹 button under the counters.
             if let onOpenTickets {
                 Button(action: onOpenTickets) {
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
                 .accessibilityIdentifier("member.card.tickets")
             }
             identityState
-            }
-            // Late values (streak, 积分) arrive in place: the card grows on `standard`, nothing else moves.
-            .cyAnimation(CYMotion.standard, value: streakDays)
-            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
-            .cyStaggeredAppear(index: 0, gate: stagger)
         }
-        .listRowBackground(heroBackdrop)
-        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
         .onAppear { readOwner.appear(active: scenePhase == .active) }
         .task(id: TaskKey(scope: reader.scope, refresh: refreshToken, active: scenePhase == .active)) { await load() }
         .onDisappear { readOwner.disappear() }
@@ -144,47 +143,29 @@ import SwiftUI
         guard let knownLevel else { return MemberHomePageModel.unknownDisplay }
         return "Lv.\(knownLevel)"
     }
-    /// MP cy-profile `.pc-hero-bg` (index.js:399 `heroImg` default `/subpackageMember/images/mer1.jpg`): the cover sits
-    /// behind the identity card and fades into the page colour at the bottom (`.pc-page-fade`). Decorative.
-    private var heroBackdrop: some View {
-        MPAsset.BannerCover.subpackageMemberImagesMer1
-            .resizable()
-            .scaledToFill()
-            .accessibilityHidden(true)
-            .overlay {
-                LinearGradient(stops: [.init(color: palette.bgPage.opacity(themeDomain == .player ? 0 : 0.55), location: 0),
-                                       .init(color: palette.bgPage.opacity(themeDomain == .player ? 0.2 : 0.7), location: 0.55),
-                                       .init(color: palette.bgPage, location: 1)],
-                               startPoint: .top, endPoint: .bottom)
-            }
-            .clipped()
-    }
-    /// Player profile avatar ring. The reserved ring tint is allowed only here, on the selected tab, and on the result spinner.
-    @ViewBuilder private var levelRing: some View {
-        if themeDomain == .player {
-            // xrefs-1 B.2: the ring is ink, not the reserved accent ring (it marked nothing on this page).
-            Circle().strokeBorder(palette.textPrimary.opacity(0.85), lineWidth: 2).accessibilityHidden(true)
-        }
-    }
-
     @ViewBuilder private var identityState: some View {
         switch phase {
         case .loading:
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                CYSkeleton()
+            HStack(spacing: 8) {
+                ProgressView()
                 Text("member.card.loading", tableName: "MemberProfile")
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("member.card.loading")
         case .failed(let signedOut) where failureOffline && !signedOut:
-            CYOfflineBanner { Task { await load() } }
-                .accessibilityIdentifier("member.card.offline")
+            VStack(alignment: .leading, spacing: 8) {
+                Label { Text("cy.state.offline.title") } icon: { Image(systemName: "wifi.slash") }
+                    .foregroundStyle(.secondary)
+                Button { Task { await load() } } label: { Text("cy.state.offline.retry") }
+                    .buttonStyle(.bordered)
+            }
+            .accessibilityIdentifier("member.card.offline")
         case .failed(let signedOut):
             // R1 error state (169:4754): the same inline error as 首页 (166:3280): one line with the warning glyph and one
             // secondary 重新加载. Signed out is not an error (no glyph, no retry); 积分 and 等级 stay "—", never 0.
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            VStack(alignment: .leading, spacing: 8) {
                 Group {
                     if signedOut { Text("member.card.signedOut", tableName: "MemberProfile") }
                     else {
@@ -193,12 +174,11 @@ import SwiftUI
                             else { Text("member.card.unavailable", tableName: "MemberProfile") }
                         } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
                     }
-                }.cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                }.font(.subheadline).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if reader.isConfigured, !signedOut {
                     Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile") }
-                        .buttonStyle(.bordered).buttonBorderShape(.capsule)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .buttonStyle(.bordered)
                         .accessibilityIdentifier("member.card.retry")
                 }
             }
@@ -227,10 +207,7 @@ import SwiftUI
     /// MP profile: a player without an avatar falls back to `/images/d_profile.png` (`MPAsset.AvatarDefault.dProfile`),
     /// not a lettermark; the remote avatar draws over it once it loads.
     private var lettermark: some View {
-        ZStack {
-            Circle().fill(palette.bgRaised)
-            MPAsset.AvatarDefault.dProfile.resizable().scaledToFill().accessibilityHidden(true)
-        }
+        MPAsset.AvatarDefault.dProfile.resizable().scaledToFill().accessibilityHidden(true)
     }
     private var avatar: some View {
         ZStack {
@@ -240,7 +217,6 @@ import SwiftUI
                     .id(AvatarKey(read: observation.readRevision, source: avatarAccess?.sourceRevision()))
             }
         }.frame(width: 72, height: 72).clipShape(Circle())
-        .overlay { levelRing }
     }
     /// A1-04: self avatar is the MP `onAvatarTap` control (72 pt, pen badge, label 编辑个人资料).
     @ViewBuilder private var avatarControl: some View {
@@ -248,17 +224,14 @@ import SwiftUI
             Button(action: onEditProfile) {
                 avatar.overlay(alignment: .bottomTrailing) {
                     // MP profile index.wxml:51 `/subpackageMember/images/icon_pen.svg`.
-                    AccountPublishMPGlyph(MPAsset.FeatureIcon.iconPen, side: 12)
-                        .foregroundStyle(palette.textPrimary)
-                        .frame(width: 24, height: 24)
-                        .background(palette.bgRaised, in: Circle())
-                        .overlay { Circle().strokeBorder(palette.borderSubtle, lineWidth: 1) }
+                    AccountPublishMPGlyph(MPAsset.FeatureIcon.iconPen, side: 14)
+                        .foregroundStyle(.tint)
                         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
                         .accessibilityHidden(true)
                 }
                 .contentShape(Circle())
             }
-            .buttonStyle(.cyPressable)
+            .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("profile.edit.avatarControl"))
             .accessibilityAddTraits(.isButton)
@@ -268,11 +241,21 @@ import SwiftUI
         }
     }
     private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
-    private func stat(_ value: String?, id: String, key: String.LocalizationValue) -> CYPlainStat {
+    /// One counter column: the number (rolls on change), then its label. Unknown reads "—".
+    private func statCell(_ value: String?, id: String, key: LocalizedStringKey) -> some View {
         let shown = value ?? MemberHomePageModel.unknownDisplay
-        return CYPlainStat(id: id, value: shown,
-                           label: String(localized: LocalizedStringResource(key, table: "MemberProfile", locale: locale)),
-                           rollValue: Double(shown), accessibilityIdentifier: "member.card.\(id)")
+        return VStack(spacing: 2) {
+            Text(verbatim: shown)
+                .font(.title3.weight(.semibold)).monospacedDigit()
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .modifier(MemberAssetRoll(value: Double(shown)))
+            Text(key, tableName: "MemberProfile")
+                .font(.caption).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("member.card.\(id)")
     }
     /// 积分 hero + optional ¥ column. Columns stack at accessibility sizes (no hairline then).
     private var assets: some View {
@@ -280,7 +263,7 @@ import SwiftUI
             pointsBlock
             if let balance = balanceDisplay {
                 if !typeSize.isAccessibilitySize {
-                    Rectangle().fill(palette.borderSubtle).frame(width: 1, height: assetDivider).accessibilityHidden(true)
+                    Divider().frame(height: assetDivider).accessibilityHidden(true)
                 }
                 balanceBlock(balance)
             }
@@ -293,44 +276,43 @@ import SwiftUI
     /// 积分: label (with a chevron when it opens the ledger), then the number in the stat-hero style. It rolls in
     /// tabular digits only when the value really changes (xrefs-1 Adopt 3), never on a plain visit.
     @ViewBuilder private var pointsBlock: some View {
-        HStack(alignment: .top, spacing: CYSpacing.xs) {
+        HStack(alignment: .top, spacing: 4) {
             pointsValueBlock
             if let onOpenPointsHelp {
                 // A1-07: MP 如何获取积分 (cyp wxml:297) → 积分任务 sheet. 44 pt target.
                 Button(action: onOpenPointsHelp) {
                     Image(systemName: "info.circle").imageScale(.medium)
-                        .foregroundStyle(palette.textSecondary)
-                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
                 .accessibilityLabel(Text("member.card.pointsHelp"))
                 .accessibilityIdentifier("member.card.pointsHelp")
             }
         }
     }
     @ViewBuilder private var pointsValueBlock: some View {
-        let content = VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            HStack(spacing: CYSpacing.xs) {
+        let content = VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
                 Text("member.card.points", tableName: "DesignR1")
                 if onOpenPoints != nil {
                     Image(systemName: "chevron.right").imageScale(.small).accessibilityHidden(true)
                 }
             }
-            .cyText(.meta).foregroundStyle(palette.textSecondary)
+            .font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: pointsText)
-                .cyText(.dataXL)
-                .foregroundStyle(points == nil ? palette.textTertiary : palette.textPrimary)
+                .font(.largeTitle.weight(.semibold))
+                .foregroundStyle(points == nil ? Color.secondary : Color.primary)
                 .lineLimit(1).minimumScaleFactor(0.6)
                 .modifier(MemberAssetRoll(value: points.map { Double($0) }))
                 .accessibilityLabel(PageTemplateVoiceOver.spoken(pointsText, locale: locale))
                 .accessibilityIdentifier("member.card.pointsValue")
         }
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         .contentShape(Rectangle())
         if let onOpenPoints {
             Button(action: onOpenPoints) { content }
-                .buttonStyle(.cyPressable)
+                .buttonStyle(.plain)
                 .accessibilityElement(children: .combine)
                 .accessibilityAddTraits(.isButton)
                 .accessibilityIdentifier("member.card.points")
@@ -345,19 +327,19 @@ import SwiftUI
         if let onOpenBalance {
             // A1-09: MP whole 账户余额 card opens earnings (cyp wxml:219-231).
             Button(action: onOpenBalance) { balanceContent(balance).contentShape(Rectangle()) }
-                .buttonStyle(.cyPressable)
+                .buttonStyle(.plain)
                 .accessibilityAddTraits(.isButton)
         } else {
             balanceContent(balance)
         }
     }
     private func balanceContent(_ balance: String) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading, spacing: 2) {
             Text("member.card.balance", tableName: "MemberProfile")
-                .cyText(.meta).foregroundStyle(palette.textSecondary)
+                .font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: balance)
-                .cyText(.numericBody)
-                .foregroundStyle(palette.textPrimary)
+                .font(.title3).monospacedDigit()
+                .foregroundStyle(.primary)
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .accessibilityLabel(PageTemplateVoiceOver.spoken(balance, locale: locale))
                 .accessibilityIdentifier("member.card.balanceValue")
@@ -446,12 +428,13 @@ import SwiftUI
             case .loading:
                 ProgressView().accessibilityIdentifier("member.benefits.loading")
             case .unavailable:
-                Text("member.benefits.unavailable", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                Text("member.benefits.unavailable", tableName: "MemberProfile").foregroundStyle(.secondary)
                     .accessibilityIdentifier("member.benefits.unavailable")
             case .failed:
                 VStack(alignment: .leading) {
-                    Text("member.benefits.failed", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                    Button { owner.refresh() } label: { Text("member.card.retry", tableName: "MemberProfile").frame(minHeight: CYSpacing.minTouchTarget) }
+                    Text("member.benefits.failed", tableName: "MemberProfile").foregroundStyle(.secondary)
+                    Button { owner.refresh() } label: { Text("member.card.retry", tableName: "MemberProfile") }
+                        .buttonStyle(.borderless)
                         .accessibilityIdentifier("member.benefits.retry")
                 }.accessibilityIdentifier("member.benefits.failed")
             case .ready(let snapshot):
@@ -486,10 +469,11 @@ import SwiftUI
 struct MemberBenefitRow: View {
     let benefit: MemberBenefit
     var body: some View {
-        HStack(spacing: 10) {
+        Label {
+            label.foregroundStyle(benefit.unlocked ? Color.primary : Color.secondary)
+        } icon: {
             Image(systemName: benefit.unlocked ? "checkmark.circle.fill" : "lock.fill")
-                .accessibilityHidden(true).foregroundStyle(benefit.unlocked ? CYColor.textPrimary : CYColor.textTertiary)
-            label.cyText(.body).foregroundStyle(benefit.unlocked ? CYColor.textPrimary : CYColor.textSecondary)
+                .accessibilityHidden(true).foregroundStyle(benefit.unlocked ? Color.green : Color.secondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue(benefit.unlocked ? Text("member.benefit.unlocked", tableName: "MemberProfile")

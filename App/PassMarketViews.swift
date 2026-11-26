@@ -211,33 +211,48 @@ struct PassMarketView: View {
 
     @State private var tab: PassMarketTab = .shop
     @State private var didSetTab = false
-    /// Continuity r1 (10): the balance card is the zoom source of the points ledger it opens.
-    @Namespace private var pointsHero
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                if let balance = state.pointBalance { balanceCard(balance).padding(.horizontal, CYSpacing.pageHorizontal) }
-                MPChipTabs(tabs: PassMarketTab.allCases, selection: $tab, title: { Text($0.title) }, identifier: { "passMarket.tab.\($0.rawValue)" })
-                if state.refreshFailed {
-                    CYOfflineStrip().padding(.horizontal, CYSpacing.pageHorizontal)
-                }
-                MPLoadSwitch(load: state.content, errorTitle: "mp.common.loadFailed", identifier: "passMarket", onRetry: { onReload(false) }) { content in
-                    Group {
-                        switch tab {
-                        case .shop: shop(content)
-                        case .orders where !state.signedIn, .gifts where !state.signedIn: signInPrompt
-                        case .orders: orders(content)
-                        case .gifts: gifts(content)
-                        }
+        List {
+            if let balance = state.pointBalance { Section { balanceRow(balance) } }
+            Section {
+                Picker(selection: $tab) {
+                    ForEach(PassMarketTab.allCases) { item in
+                        Text(item.title).tag(item).accessibilityIdentifier("passMarket.tab.\(item.rawValue)")
                     }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .transition(.opacity)
+                } label: { EmptyView() }
+                .pickerStyle(.segmented)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            }
+            if state.refreshFailed {
+                Section { CYOfflineStrip() }
+            }
+            switch state.content {
+            case .loading:
+                Section {
+                    ProgressView().frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("passMarket.loading")
+                }
+            case .failed(let message):
+                ContentUnavailableView {
+                    Label { message.map { Text(verbatim: $0) } ?? Text("mp.common.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button { onReload(false) } label: { Text("action.retry") }
+                        .buttonStyle(.bordered).controlSize(.large)
+                        .accessibilityIdentifier("passMarket.retry")
+                }
+                .accessibilityIdentifier("passMarket.error")
+            case .ready(let content):
+                switch tab {
+                case .shop: shop(content)
+                case .orders where !state.signedIn, .gifts where !state.signedIn: signInPrompt
+                case .orders: orders(content)
+                case .gifts: gifts(content)
                 }
             }
-            .padding(.vertical, CYSpacing.lg)
         }
-        .cyAnimation(value: tab)
+        .listStyle(.insetGrouped)
         .refreshable { onReload(true) }
         .cyPushedChrome(domain: .player)
         .cyPageTitle("mp.pass.title")
@@ -245,125 +260,139 @@ struct PassMarketView: View {
     }
 
     private var signInPrompt: some View {
-        CYStateLayout(kind: .orders, title: Text("mp.pass.signIn.orders"),
-                      primary: onSignIn.map { action -> (title: LocalizedStringKey, action: () -> Void) in (title: "mp.pass.signIn.action", action: action) },
-                      primaryStyle: .primary, primaryIdentifier: "passMarket.signIn")
-            .accessibilityIdentifier("passMarket.signInPrompt")
-    }
-
-    // r2-store balance card: read-only server balance; points are earned, never sold (no top-up packs here).
-    @ViewBuilder private func balanceCard(_ balance: Int) -> some View {
-        let label = HStack {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("mp.pass.points").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: String(balance)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                    .contentTransition(.numericText())
-            }
-            Spacer()
-            if pointsDestination != nil {
-                HStack(spacing: CYSpacing.xs) { Text("mp.pass.pointsHistory"); Image(systemName: "chevron.right") }
-                    .cyText(.label).foregroundStyle(CYColor.textSecondary)
+        ContentUnavailableView {
+            Label("mp.pass.signIn.orders", systemImage: "person.crop.circle")
+        } actions: {
+            if let onSignIn {
+                Button(action: onSignIn) { Text("mp.pass.signIn.action") }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .accessibilityIdentifier("passMarket.signIn")
             }
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+        .accessibilityIdentifier("passMarket.signInPrompt")
+    }
+
+    // r2-store balance row: read-only server balance; points are earned, never sold (no top-up packs here).
+    @ViewBuilder private func balanceRow(_ balance: Int) -> some View {
+        let label = LabeledContent {
+            if pointsDestination != nil { Text("mp.pass.pointsHistory") }
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("mp.pass.points").font(.subheadline).foregroundStyle(.secondary)
+                Text(verbatim: String(balance)).font(.largeTitle.weight(.semibold)).monospacedDigit()
+                    .contentTransition(.numericText())
+            }
+        }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("passMarket.points")
         if let pointsDestination {
-            // The card (and its balance number) zooms into the ledger's balance header; the ledger fades its history in
-            // after the midpoint (`walletLedgerZoomArrival`). iOS 17 / Reduce Motion: the plain push, unchanged.
-            NavigationLink {
-                pointsDestination()
-                    .environment(\.walletLedgerZoomArrival, true)
-                    .cyHeroDestinationWithFallback("passMarket.points", in: pointsHero)
-            } label: { label.cyHeroSource("passMarket.points", in: pointsHero, cornerRadius: CYRadius.lg) }.buttonStyle(.cyPressable)
+            NavigationLink { pointsDestination() } label: { label }
         } else {
             label
         }
     }
 
+    /// A list row that runs an action and reads like a navigation row (title, optional sub line, chevron).
+    private func actionRow<Title: View>(_ action: @escaping () -> Void, @ViewBuilder title: () -> Title) -> some View {
+        Button(action: action) {
+            HStack {
+                title()
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
+        }
+        .foregroundStyle(.primary)
+    }
+
     @ViewBuilder private func shop(_ content: PassMarketContent) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            if let member = state.member {
-                Button(action: onOpenMembership) { memberCard(member) }
-                    .buttonStyle(.cyPressable)
+        if let member = state.member {
+            Section {
+                actionRow(onOpenMembership) { memberLabel(member) }
                     .accessibilityIdentifier("passMarket.member")
             }
-            if content.products.isEmpty && state.member == nil {
-                CYEmptyState(systemImage: "tray", "mp.pass.empty.shop", messageIdentifier: "passMarket.shop.empty")
+        }
+        if content.products.isEmpty && state.member == nil {
+            ContentUnavailableView {
+                Label { Text("mp.pass.empty.shop").accessibilityIdentifier("passMarket.shop.empty") } icon: { Image(systemName: "tray") }
             }
-            ForEach(Array(content.products.enumerated()), id: \.element.id) { index, product in
-                Group {
-                    if let onOpenProduct {
-                        Button { onOpenProduct(product.id) } label: { PassProductCardView(product: product) }
-                            .buttonStyle(.cyPressable)
-                    } else {
-                        PassProductCardView(product: product)
+        }
+        if !content.products.isEmpty {
+            Section {
+                ForEach(content.products) { product in
+                    Group {
+                        if let onOpenProduct {
+                            actionRow({ onOpenProduct(product.id) }) { PassProductCardView(product: product) }
+                        } else {
+                            PassProductCardView(product: product)
+                        }
                     }
+                    .accessibilityIdentifier("passMarket.product.\(product.id)")
                 }
-                .cyStaggerAppear(index)
-                .accessibilityIdentifier("passMarket.product.\(product.id)")
             }
-            if state.member != nil, let onOpenLibrary {
-                Button(action: onOpenLibrary) {
-                    MPCard { MPRow(title: Text("mp.pass.library"), chevron: true) }
+        }
+        let openRedeem = (state.platformCodeEnabled ? onOpenPlatformCode : nil) ?? onOpenRedeem
+        if (state.member != nil && onOpenLibrary != nil) || openRedeem != nil {
+            Section {
+                if state.member != nil, let onOpenLibrary {
+                    actionRow(onOpenLibrary) { Text("mp.pass.library") }
+                        .accessibilityIdentifier("passMarket.library")
                 }
-                .buttonStyle(.cyPressable)
-                .accessibilityIdentifier("passMarket.library")
-            }
-            // One 兑换码 row: the session state's flag (tip) or the host's status read (member-a), never both.
-            if let openRedeem = (state.platformCodeEnabled ? onOpenPlatformCode : nil) ?? onOpenRedeem {
-                Button(action: openRedeem) {
-                    MPCard { MPRow(title: Text("mp.pass.redeem"), chevron: true) }
+                // One 兑换码 row: the session state's flag (tip) or the host's status read (member-a), never both.
+                if let openRedeem {
+                    actionRow(openRedeem) { Text("mp.pass.redeem") }
+                        .accessibilityIdentifier("passMarket.redeem")
                 }
-                .buttonStyle(.cyPressable)
-                .accessibilityIdentifier("passMarket.redeem")
             }
         }
     }
 
-    private func memberCard(_ side: PassMemberEntrySide) -> some View {
+    private func memberLabel(_ side: PassMemberEntrySide) -> some View {
         // MP `mk-member` is text only (通行证 + side line) with a chevron; no emblem.
-        HStack(spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("mp.pass.member").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+        VStack(alignment: .leading, spacing: 2) {
+            Text("mp.pass.member").font(.headline)
+            Group {
                 switch side {
-                case .activeUntil(let until): Text("mp.pass.member.until \(until)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                case .plans(let plans): Text(verbatim: plans).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                case .themeCount(let count): Text("mp.pass.member.count \(count)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                case .activeUntil(let until): Text("mp.pass.member.until \(until)")
+                case .plans(let plans): Text(verbatim: plans)
+                case .themeCount(let count): Text("mp.pass.member.count \(count)")
                 case .none: EmptyView()
                 }
             }
-            Spacer()
-            Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            .font(.subheadline).foregroundStyle(.secondary)
         }
-        .padding(CYSpacing.lg)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder private func orders(_ content: PassMarketContent) -> some View {
         let rows = content.orders
         if rows.isEmpty && content.passOrders.isEmpty {
-            CYEmptyState(systemImage: "tray", "mp.pass.empty.orders", messageIdentifier: "passMarket.orders.empty")
-        } else {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                if !content.passOrders.isEmpty { passOrders(content.passOrders) }
-                if !rows.isEmpty { catalogOrders(rows) }
+            ContentUnavailableView {
+                Label { Text("mp.pass.empty.orders").accessibilityIdentifier("passMarket.orders.empty") } icon: { Image(systemName: "tray") }
             }
+        } else {
+            if !content.passOrders.isEmpty { Section { passOrders(content.passOrders) } }
+            if !rows.isEmpty { Section { catalogOrders(rows) } }
         }
     }
 
     /// `market/passes` 通行证订单 group: name + sub, status (and refund progress), amount. Tap opens the order.
     private func passOrders(_ rows: [PlatformPassSubscriptionOrder]) -> some View {
-        MPRows(items: rows) { row in
-            let line = MPRow(title: Text(verbatim: row.name),
-                             sub: Text(verbatim: [row.sub, row.refundText.isEmpty ? row.stateText : row.refundText]
-                                .filter { !$0.isEmpty }.joined(separator: " · ")),
-                             value: Text(verbatim: row.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(row.amount)),
-                             chevron: onOpenPassOrder != nil)
+        ForEach(rows) { row in
+            let line = LabeledContent {
+                Text(verbatim: row.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(row.amount)).monospacedDigit()
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: row.name)
+                    Text(verbatim: [row.sub, row.refundText.isEmpty ? row.stateText : row.refundText]
+                        .filter { !$0.isEmpty }.joined(separator: " · "))
+                        .font(.subheadline).foregroundStyle(.secondary)
+                }
+            }
             Group {
                 if let onOpenPassOrder {
-                    Button { onOpenPassOrder(row.orderNo) } label: { line }.buttonStyle(.cyPressable)
+                    actionRow({ onOpenPassOrder(row.orderNo) }) { line }
                 } else {
                     line
                 }
@@ -373,67 +402,73 @@ struct PassMarketView: View {
     }
 
     private func catalogOrders(_ rows: [PassOrderRow]) -> some View {
-        MPRows(items: rows) { row in
+        ForEach(rows) { row in
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    (row.name.map { Text(verbatim: $0) } ?? Text("mp.pass.order.fallbackName")).cyText(.bodyMedium)
-                    row.state.text.cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    (row.name.map { Text(verbatim: $0) } ?? Text("mp.pass.order.fallbackName"))
+                    row.state.text.font(.subheadline).foregroundStyle(.secondary)
                 }
                 Spacer()
-                VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
-                    if let amount = row.amountText { Text(verbatim: amount).cyText(.bodyMedium).monospacedDigit() }
-                    if let time = row.timeText { Text(verbatim: time).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                VStack(alignment: .trailing, spacing: 2) {
+                    if let amount = row.amountText { Text(verbatim: amount).monospacedDigit() }
+                    if let time = row.timeText { Text(verbatim: time).font(.subheadline).foregroundStyle(.secondary) }
                 }
             }
-            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("passMarket.order.\(row.id)")
-            }
+        }
     }
 
     @ViewBuilder private func gifts(_ content: PassMarketContent) -> some View {
         if content.giftsBought.isEmpty && content.giftsReceived.isEmpty {
-            CYEmptyState(systemImage: "tray", "mp.pass.empty.gifts", messageIdentifier: "passMarket.gifts.empty")
+            ContentUnavailableView {
+                Label { Text("mp.pass.empty.gifts").accessibilityIdentifier("passMarket.gifts.empty") } icon: { Image(systemName: "tray") }
+            }
         } else {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                if !content.giftsBought.isEmpty {
-                    MPSectionHeader(title: "mp.pass.gift.sent")
-                    MPRows(items: content.giftsBought) { giftRow($0, bought: true) }
-                }
-                if !content.giftsReceived.isEmpty {
-                    MPSectionHeader(title: "mp.pass.gift.received").padding(.top, CYSpacing.sm)
-                    MPRows(items: content.giftsReceived) { giftRow($0, bought: false) }
-                }
+            if !content.giftsBought.isEmpty {
+                Section {
+                    ForEach(content.giftsBought) { giftRow($0, bought: true) }
+                } header: { Text("mp.pass.gift.sent") }
+            }
+            if !content.giftsReceived.isEmpty {
+                Section {
+                    ForEach(content.giftsReceived) { giftRow($0, bought: false) }
+                } header: { Text("mp.pass.gift.received") }
             }
         }
     }
 
     private func giftRow(_ row: PassGiftRow, bought: Bool) -> some View {
-        MPRow(title: row.stateText(bought: bought),
-              sub: row.claimDeadlineText.map { Text("mp.pass.gift.deadline \($0)") },
-              value: row.timeText.map { Text(verbatim: $0) })
-            .accessibilityIdentifier("passMarket.gift.\(row.id)")
+        LabeledContent {
+            if let time = row.timeText { Text(verbatim: time).monospacedDigit() }
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                row.stateText(bought: bought)
+                if let deadline = row.claimDeadlineText {
+                    Text("mp.pass.gift.deadline \(deadline)").font(.subheadline).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("passMarket.gift.\(row.id)")
     }
 }
 
-/// Shop card: kind + city header, name, validity, "includes N works · seats", price.
+/// Shop row content: kind + city line, name, validity, "includes N works · seats", price.
 struct PassProductCardView: View {
     let product: PassProductCard
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            HStack(spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
                 if let kind = product.kind {
-                    Text(kind.label).cyText(.caption).foregroundStyle(CYNight.lanternHot)
-                        .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                        .background(CYNight.lantern.opacity(0.14), in: Capsule())
+                    Text(kind.label).font(.footnote.weight(.semibold)).foregroundStyle(.tint)
                 }
-                if let city = product.city { Text(verbatim: city).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
-                Spacer()
+                if let city = product.city { Text(verbatim: city).font(.footnote).foregroundStyle(.secondary) }
             }
-            Text(verbatim: product.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: product.name).font(.headline).foregroundStyle(.primary)
                 .multilineTextAlignment(.leading)
-            if let validity = product.validity { validity.text.cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            if let validity = product.validity { validity.text.font(.subheadline).foregroundStyle(.secondary) }
             ViewThatFits(in: .horizontal) {
                 HStack(alignment: .firstTextBaseline) {
                     if product.coverCount > 0 {
@@ -444,9 +479,9 @@ struct PassProductCardView: View {
                         }
                     }
                     Spacer()
-                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).cyText(.cardTitle)
+                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
                 }
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                VStack(alignment: .leading, spacing: 4) {
                     if product.coverCount > 0 {
                         if let seats = product.seats {
                             Text("mp.pass.coverSeats \(product.coverCount) \(seats)")
@@ -454,13 +489,12 @@ struct PassProductCardView: View {
                             Text("mp.pass.cover \(product.coverCount)")
                         }
                     }
-                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).cyText(.cardTitle)
+                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
                 }
             }
-            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            .font(.subheadline).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
     }
 }
@@ -470,13 +504,13 @@ struct PassPriceText: View {
     let cash: String?
     let points: Int?
     var body: some View {
-        HStack(spacing: CYSpacing.xs) {
+        HStack(spacing: 4) {
             if let cash { Text(verbatim: cash) }
             if cash != nil && points != nil { Text(verbatim: "/") }
             if let points { Text("mp.pass.points.amount \(points)") }
         }
         .monospacedDigit()
-        .foregroundStyle(CYColor.textPrimary)
+        .foregroundStyle(.primary)
     }
 }
 
@@ -599,13 +633,17 @@ struct PassDetailView: View {
         Group {
             switch state.product {
             case .loading:
-                CYLoadingStateView(rows: 3).padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityIdentifier("passDetail.loading")
             case .failed(let reason):
-                CYStateLayout(kind: .failure, title: reason.map { Text(verbatim: $0) } ?? Text("mp.common.loadFailed"),
-                              primary: (title: "action.retry", action: onRetry), primaryStyle: .secondary, primaryIdentifier: "passDetail.retry")
-                    .frame(maxHeight: .infinity)
-                    .accessibilityIdentifier("passDetail.error")
+                ContentUnavailableView {
+                    Label { reason.map { Text(verbatim: $0) } ?? Text("mp.common.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button(action: onRetry) { Text("action.retry") }
+                        .buttonStyle(.bordered).controlSize(.large)
+                        .accessibilityIdentifier("passDetail.retry")
+                }
+                .accessibilityIdentifier("passDetail.error")
             case .ready(let product):
                 content(product)
             }
@@ -621,61 +659,66 @@ struct PassDetailView: View {
         }
         .sheet(item: Binding(get: { state.giftShare }, set: { if $0 == nil { onResultDone(true) } })) { share in
             PassGiftReadySheet(share: share, productName: state.product.value?.name ?? "")
-                .cyPlayerSheetGlass()
         }
     }
 
     private func content(_ product: PassProductCard) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+        List {
+            Section {
                 PassTicketHero(face: product.faceText ?? product.name)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, CYSpacing.md)
-                MPCard {
-                    let rows = facts(product)
-                    ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                        if index > 0 { MPDivider() }
-                        MPRow(title: row.0, value: row.1)
-                    }
-                }
-                if !product.topics.isEmpty {
-                    MPSectionHeader(title: "mp.pass.detail.topics")
-                    MPCard {
-                        ForEach(Array(product.topics.enumerated()), id: \.offset) { index, topic in
-                            if index > 0 { MPDivider() }
-                            MPRow(title: Text(verbatim: topic))
-                        }
-                    }
-                }
-                if product.giftAllowed {
-                    MPChipTabs(tabs: ForWhom.allCases, selection: Binding(get: { state.forGift ? .gift : .me }, set: { onSetForGift($0 == .gift) }),
-                               title: { ($0 == .me ? Text("mp.pass.detail.forMe") : Text("mp.pass.detail.forGift")) },
-                               identifier: { "passDetail.for.\($0.rawValue)" })
-                        .padding(.horizontal, -CYSpacing.pageHorizontal)
-                }
-                if let groupQuote = state.groupQuote {
-                    MPCard {
-                        GroupCheckoutPanel(phase: groupQuote, onRetry: onRetry)
-                            .padding(CYSpacing.lg)
-                    }
-                } else if !state.checkout.isEmpty {
-                    MPSectionHeader(title: "mp.pass.detail.checkout")
-                    MPCard {
-                        ForEach(Array(state.checkout.enumerated()), id: \.element.id) { index, row in
-                            if index > 0 { MPDivider() }
-                            MPRow(title: (row.kind == .price ? Text("mp.pass.detail.price") : row.kind == .cash ? Text("mp.pass.detail.cash") : Text("mp.pass.detail.points")),
-                                  sub: row.note.map { Text(verbatim: $0) }, value: Text(verbatim: row.valueText), strong: true, muted: row.off)
-                        }
-                    }
-                }
-                MPCard {
-                    PassActivatePanel(topicID: state.activateTopicID)
-                        .padding(CYSpacing.lg)
+            }
+            Section {
+                let rows = facts(product)
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    LabeledContent { row.1 } label: { row.0 }
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.bottom, CYSpacing.jumbo)
+            if !product.topics.isEmpty {
+                Section {
+                    ForEach(Array(product.topics.enumerated()), id: \.offset) { _, topic in
+                        Text(verbatim: topic)
+                    }
+                } header: { Text("mp.pass.detail.topics") }
+            }
+            if product.giftAllowed {
+                Section {
+                    Picker(selection: Binding(get: { state.forGift ? ForWhom.gift : ForWhom.me }, set: { onSetForGift($0 == .gift) })) {
+                        ForEach(ForWhom.allCases) { whom in
+                            (whom == .me ? Text("mp.pass.detail.forMe") : Text("mp.pass.detail.forGift"))
+                                .tag(whom)
+                                .accessibilityIdentifier("passDetail.for.\(whom.rawValue)")
+                        }
+                    } label: { EmptyView() }
+                    .pickerStyle(.segmented)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
+            }
+            if let groupQuote = state.groupQuote {
+                Section {
+                    GroupCheckoutPanel(phase: groupQuote, onRetry: onRetry)
+                }
+            } else if !state.checkout.isEmpty {
+                Section {
+                    ForEach(state.checkout) { row in
+                        LabeledContent {
+                            Text(verbatim: row.valueText).font(.headline).monospacedDigit()
+                        } label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                (row.kind == .price ? Text("mp.pass.detail.price") : row.kind == .cash ? Text("mp.pass.detail.cash") : Text("mp.pass.detail.points"))
+                                if let note = row.note { Text(verbatim: note).font(.subheadline).foregroundStyle(.secondary) }
+                            }
+                        }
+                        .foregroundStyle(row.off ? Color.secondary : Color.primary)
+                    }
+                } header: { Text("mp.pass.detail.checkout") }
+            }
+            Section {
+                PassActivatePanel(topicID: state.activateTopicID)
+            }
         }
+        .listStyle(.insetGrouped)
         .safeAreaInset(edge: .bottom) { bar }
     }
 
@@ -691,92 +734,95 @@ struct PassDetailView: View {
         return rows
     }
 
-    @ViewBuilder private var bar: some View {
-        MPBottomBar {
-            switch state.buy {
-            case .loading:
-                ProgressView().frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("passDetail.quoteLoading")
-            case .unavailable(let reason):
-                (reason.map { Text(verbatim: $0) } ?? Text("mp.pass.buy.unavailable"))
-                    .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityIdentifier("passDetail.unavailable")
-            case .signIn:
-                CYPillButton("mp.pass.buy.signIn") { onSignIn?() }
-                    .accessibilityIdentifier("passDetail.signIn")
-            case .checkout(let activityID, let ticketID):
-                if let activityID, let onOpenCheckout {
-                    CYPillButton("mp.pass.buy.checkout") { onOpenCheckout(activityID, ticketID) }
-                        .accessibilityIdentifier("passDetail.checkout")
-                } else {
-                    Text("mp.pass.buy.useCheckout").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                }
-            case .buyable(let modes, let cashReason):
-                if let cashReason, state.checkout.isEmpty {
-                    Text(verbatim: cashReason).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                }
-                // Gate OFF: the pay modes are shown as facts, not buttons.
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: CYSpacing.sm) {
-                        ForEach(modes) { mode in
-                            Text(verbatim: mode.amountText).cyText(.label).foregroundStyle(CYColor.textSecondary)
-                                .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
-                                .background(CYColor.bgElevated, in: Capsule())
-                        }
-                    }
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        ForEach(modes) { mode in
-                            Text(verbatim: mode.amountText).cyText(.label).foregroundStyle(CYColor.textSecondary)
-                                .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
-                                .background(CYColor.bgElevated, in: Capsule())
-                        }
-                    }
-                }
-                MPGatedNote(text: Text("mp.gate.purchase"), identifier: "passDetail.purchaseOff")
+    /// Bottom bar on the system bar material: one prominent action, or the read-only reason / pay facts.
+    private var bar: some View {
+        VStack(spacing: 8) { barContent }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(.bar)
+    }
+
+    @ViewBuilder private var barContent: some View {
+        switch state.buy {
+        case .loading:
+            ProgressView().frame(minHeight: 44).accessibilityIdentifier("passDetail.quoteLoading")
+        case .unavailable(let reason):
+            (reason.map { Text(verbatim: $0) } ?? Text("mp.pass.buy.unavailable"))
+                .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .accessibilityIdentifier("passDetail.unavailable")
+        case .signIn:
+            Button { onSignIn?() } label: { Text("mp.pass.buy.signIn").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .accessibilityIdentifier("passDetail.signIn")
+        case .checkout(let activityID, let ticketID):
+            if let activityID, let onOpenCheckout {
+                Button { onOpenCheckout(activityID, ticketID) } label: { Text("mp.pass.buy.checkout").frame(maxWidth: .infinity) }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .accessibilityIdentifier("passDetail.checkout")
+            } else {
+                Text("mp.pass.buy.useCheckout").font(.subheadline).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 44)
             }
+        case .buyable(let modes, let cashReason):
+            if let cashReason, state.checkout.isEmpty {
+                Text(verbatim: cashReason).font(.subheadline).foregroundStyle(.secondary)
+            }
+            // Gate OFF: the pay modes are shown as facts, not buttons.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) {
+                    ForEach(modes) { mode in
+                        Text(verbatim: mode.amountText).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                    }
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(modes) { mode in
+                        Text(verbatim: mode.amountText).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                    }
+                }
+            }
+            MPGatedNote(text: Text("mp.gate.purchase"), identifier: "passDetail.purchaseOff")
         }
     }
 }
 
-/// cy-pass-unlock: one card per server fact, 下一步 advances, 完成 returns to the orders tab.
+/// cy-pass-unlock: one page per server fact, 下一步 advances, 完成 returns to the orders tab.
 struct PassUnlockStepsView: View {
     let steps: [PassUnlockStep]
     let face: String
     let onDone: () -> Void
     @State private var index = 0
-    @QuestifyReduceMotion private var reduceMotion
 
     var body: some View {
         let step = steps[min(index, steps.count - 1)]
         ZStack {
-            CYColor.bgPage.opacity(0.96).ignoresSafeArea()
-            VStack(spacing: CYSpacing.xl) {
+            Color(uiColor: .systemBackground).ignoresSafeArea()
+            VStack(spacing: 24) {
                 PassTicketHero(face: face)
-                VStack(spacing: CYSpacing.sm) {
-                    Text(verbatim: step.eyebrow).cyText(.caption).tracking(0.6).foregroundStyle(CYNight.lanternHot)
-                    Text(verbatim: step.title).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
-                    if let line = step.line { Text(verbatim: line).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                    ForEach(step.rows, id: \.self) { Text(verbatim: $0).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                VStack(spacing: 8) {
+                    Text(verbatim: step.eyebrow).font(.footnote.weight(.semibold)).foregroundStyle(.tint)
+                    Text(verbatim: step.title).font(.title.weight(.bold)).foregroundStyle(.primary).multilineTextAlignment(.center)
+                    if let line = step.line { Text(verbatim: line).font(.subheadline).foregroundStyle(.secondary) }
+                    ForEach(step.rows, id: \.self) { Text(verbatim: $0).font(.subheadline).foregroundStyle(.secondary) }
                 }
                 .id(step.id)
-                .transition(reduceMotion ? .opacity : .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
-                HStack(spacing: CYSpacing.xs) {
-                    ForEach(steps.indices, id: \.self) { i in
-                        Capsule().fill(i == index ? CYColor.textPrimary : CYColor.textTertiary).frame(width: i == index ? 18 : 6, height: 6)
-                    }
-                }
-                .accessibilityHidden(true)
-                CYPillButton(index < steps.count - 1 ? "mp.pass.unlock.next" : "mp.pass.unlock.done") {
+                ProgressView(value: Double(min(index, steps.count - 1) + 1), total: Double(max(steps.count, 1)))
+                    .frame(maxWidth: 160)
+                    .accessibilityHidden(true)
+                Button {
                     if index < steps.count - 1 {
-                        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { index += 1 }
+                        index += 1
                     } else {
                         onDone()
                     }
+                } label: {
+                    Text(LocalizedStringKey(index < steps.count - 1 ? "mp.pass.unlock.next" : "mp.pass.unlock.done"))
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 .accessibilityIdentifier("passDetail.unlock.next")
             }
-            .padding(CYSpacing.xxl)
+            .padding(32)
         }
         .cyHaptic(.success, trigger: index)
         .accessibilityIdentifier("passDetail.unlock")
@@ -789,88 +835,46 @@ struct PassGiftReadySheet: View {
     let productName: String
 
     var body: some View {
-        VStack(spacing: CYSpacing.lg) {
-            Image(systemName: "gift.fill").cyText(.display).foregroundStyle(CYNight.lanternHot)
-                .padding(CYSpacing.lg).background { Circle().fill(CYNight.glow(radius: 40)) }
-                .accessibilityHidden(true)
-            Text("mp.pass.giftReady.title").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
-            Text("mp.pass.giftReady.note").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+        ContentUnavailableView {
+            Label { Text("mp.pass.giftReady.title") } icon: { Image(systemName: "gift.fill").foregroundStyle(.tint) }
+        } description: {
+            Text("mp.pass.giftReady.note")
+        } actions: {
             ShareLink(item: share.url, message: Text("mp.pass.giftReady.shareTitle \(productName)")) {
                 Text("mp.pass.giftReady.send")
             }
-            .buttonStyle(CYPillButtonStyle(style: .primary))
+            .buttonStyle(.borderedProminent).controlSize(.large)
             .accessibilityIdentifier("passDetail.giftReady.send")
         }
-        .padding(CYSpacing.xxl)
-        .cyDomainSheet(detents: [.half])
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
         .accessibilityIdentifier("passDetail.giftReady")
     }
 }
 
-/// MP `cy-pass-object` seal (`po__seal` / `po__ring` / `po__mark`): a gold disc with an inner ring and the brand
-/// mark `/images/cy_logo_mark.png` toned dark gold (`sepia … brightness(.35)`), here the catalog image as a template.
+/// MP `cy-pass-object` seal (`po__mark`): the brand mark `/images/cy_logo_mark.png` as a template, in the accent.
 struct PassSealMark: View {
     var body: some View {
-        ZStack {
-            Circle().fill(RadialGradient(colors: [CYNight.lanternHot, CYNight.lantern, CYNight.ember],
-                                         center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: 30))
-            Circle().strokeBorder(CYNight.ember.opacity(0.6), lineWidth: 1.5).padding(5)
-            MPAsset.BrandLogo.cyLogoMark
-                .resizable()
-                .renderingMode(.template)
-                .scaledToFit()
-                .foregroundStyle(CYNight.ember)
-                .accessibilityHidden(true)
-                .padding(12)
-        }
-        .frame(width: 48, height: 48)
-        .accessibilityHidden(true)
+        MPAsset.BrandLogo.cyLogoMark
+            .resizable()
+            .renderingMode(.template)
+            .scaledToFit()
+            .foregroundStyle(.tint)
+            .frame(width: 44, height: 44)
+            .accessibilityHidden(true)
     }
 }
 
-/// r3-pass hero: a lantern-gold city pass that assembles from shards on appear (cross-fade under Reduce Motion).
+/// r3-pass header: the MP seal over the pass face (native r2: no shards, glow or foil).
 struct PassTicketHero: View {
     let face: String
-    @State private var assembled = false
-    @QuestifyReduceMotion private var reduceMotion
-
-    private static let shards: [(x: CGFloat, y: CGFloat, r: Double)] = [(-90, -60, -24), (80, -70, 18), (-110, 40, 30), (100, 50, -20), (0, -110, 12), (10, 100, -14)]
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
-        ZStack {
-            CYNight.glow(radius: 120).frame(width: 340, height: 260).opacity(assembled ? 0.8 : 0)
-            ZStack {
-                ForEach(Array(Self.shards.enumerated()), id: \.offset) { index, shard in
-                    shape.fill(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern, CYNight.ember.opacity(0.9)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 220, height: 132)
-                        .mask {
-                            // Each shard shows one sixth of the face; together they read as one ticket.
-                            GeometryReader { geo in
-                                let column = CGFloat(index % 3), row = CGFloat(index / 3)
-                                Rectangle().frame(width: geo.size.width / 3 + 1, height: geo.size.height / 2 + 1)
-                                    .offset(x: column * geo.size.width / 3, y: row * geo.size.height / 2)
-                            }
-                        }
-                        .offset(x: assembled ? 0 : shard.x, y: assembled ? 0 : shard.y)
-                        .rotationEffect(.degrees(assembled ? 0 : shard.r))
-                        .opacity(assembled ? 1 : 0.35)
-                        .animation(reduceMotion ? CYMotion.reduced : .spring(response: 0.55, dampingFraction: 0.72).delay(Double(index) * 0.04), value: assembled)
-                }
-                VStack(spacing: CYSpacing.xs) {
-                    PassSealMark()
-                    Text(verbatim: face).cyText(.cardTitle).lineLimit(2).multilineTextAlignment(.center)
-                }
-                .foregroundStyle(CYNight.ink0)
-                .padding(.horizontal, CYSpacing.lg)
-                .frame(width: 220, height: 132)
-                .opacity(assembled ? 1 : 0)
-                .animation(CYMotion.resolve(CYMotion.entrance.delay(0.35), reduceMotion: reduceMotion), value: assembled)
-            }
-            .cyFoil(in: shape, active: assembled)
+        VStack(spacing: 8) {
+            PassSealMark()
+            Text(verbatim: face).font(.headline).lineLimit(2).multilineTextAlignment(.center)
         }
-        .frame(height: 200)
-        .onAppear { assembled = true }
+        .padding(.vertical, 12)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: face))
     }
@@ -927,73 +931,60 @@ struct PassGiftClaimView: View {
     let state: PassGiftClaimState
     let onClaim: () -> Void
     let onOpenGifts: () -> Void
-    @State private var popped = false
-    @State private var glowing = false
-    @QuestifyReduceMotion private var reduceMotion
     @Environment(\.dismiss) private var dismiss
 
     private var failedReason: String? { if case .failed(let reason) = state.phase { return reason } else { return nil } }
     private var claimed: Bool { if case .claimed = state.phase { return true } else { return false } }
 
     var body: some View {
-        VStack(spacing: CYSpacing.xl) {
-            Spacer()
-            ZStack {
-                if !claimed && failedReason == nil {
-                    Circle().stroke(CYNight.lantern.opacity(0.5), lineWidth: 2)
-                        .frame(width: 120, height: 120)
-                        .scaleEffect(glowing ? 1.6 : 1)
-                        .opacity(glowing ? 0 : 0.8)
-                        .animation(reduceMotion ? nil : .easeOut(duration: 2.4).repeatForever(autoreverses: false), value: glowing)
+        ContentUnavailableView {
+            Label {
+                Group {
+                    if claimed { Text("mp.gift.claimed") }
+                    else if let failedReason { Text(verbatim: failedReason) }
+                    else { Text("mp.gift.title") }
                 }
-                Circle().fill(failedReason == nil ? CYNight.glow(radius: 60) : RadialGradient(colors: [CYColor.bgElevated], center: .center, startRadius: 0, endRadius: 1))
-                    .frame(width: 120, height: 120)
-                Image(systemName: claimed ? "checkmark" : "gift.fill")
-                    .cyText(.display)
-                    .foregroundStyle(failedReason == nil ? (claimed ? CYNight.verify : CYNight.lanternHot) : CYColor.textTertiary)
+                .accessibilityAddTraits(.updatesFrequently)
+                .accessibilityIdentifier("passGift.status")
+            } icon: {
+                Image(systemName: claimed ? "checkmark.circle.fill" : "gift.fill")
+                    .foregroundStyle(failedReason == nil ? (claimed ? Color.green : Color.accentColor) : Color.secondary)
                     .contentTransition(.symbolEffect(.replace))
+                    .accessibilityHidden(true)
             }
-            .scaleEffect(popped ? 1 : 0.6)
-            .opacity(popped ? 1 : 0)
-            .accessibilityHidden(true)
-            Group {
-                if claimed { Text("mp.gift.claimed") }
-                else if let failedReason { Text(verbatim: failedReason) }
-                else { Text("mp.gift.title") }
-            }
-            .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
-            .padding(.horizontal, CYSpacing.xxl)
-            .accessibilityAddTraits(.updatesFrequently)
-            .accessibilityIdentifier("passGift.status")
-            Spacer()
+        } description: {
+            if failedReason == nil, state.phase == .unknown { Text("mp.gift.unknown") }
+        } actions: {
             if failedReason == nil {
                 // MP gf__bar: 领取 / 查看 / 还在确认结果 (`market/gift/index.wxml:21-27`). MKT-3-1: no app-only gate.
-                MPBottomBar {
-                    if state.phase == .unknown { Text("mp.gift.unknown").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                    if claimed {
-                        CYPillButton("mp.gift.view", action: onOpenGifts).accessibilityIdentifier("passGift.view")
-                    } else {
-                        CYMorphButton("mp.gift.claim", state: state.claiming ? .working : .idle, action: onClaim).identifier("passGift.claim")
+                if claimed {
+                    Button(action: onOpenGifts) { Text("mp.gift.view") }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
+                        .accessibilityIdentifier("passGift.view")
+                } else {
+                    Button {
+                        guard !state.claiming else { return }
+                        onClaim()
+                    } label: {
+                        ZStack {
+                            Text("mp.gift.claim").opacity(state.claiming ? 0 : 1)
+                            if state.claiming { ProgressView() }
+                        }
                     }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .accessibilityIdentifier("passGift.claim")
                 }
             } else {
                 // MP failed bar: secondary 返回 (`market/gift/index.wxml:18-20`).
-                MPBottomBar {
-                    Button { dismiss() } label: { Text("action.back") }
-                        .buttonStyle(.cySecondary(fullWidth: true))
-                        .accessibilityIdentifier("passGift.back")
-                }
+                Button { dismiss() } label: { Text("action.back") }
+                    .buttonStyle(.bordered).controlSize(.large)
+                    .accessibilityIdentifier("passGift.back")
             }
         }
-        .frame(maxWidth: .infinity)
         .cyPushedChrome(domain: .player)
         .navigationTitle(Text("mp.gift.nav"))
         .navigationBarTitleDisplayMode(.inline)
         .cyHaptic(.success, trigger: claimed)
-        .onAppear {
-            withAnimation(CYMotion.resolve(.spring(response: 0.45, dampingFraction: 0.6), reduceMotion: reduceMotion)) { popped = true }
-            glowing = true
-        }
     }
 }
 
@@ -1023,78 +1014,99 @@ struct PassOrderDetailView: View {
     @State private var openAssistant = false
 
     var body: some View {
-        ScrollView {
-            MPLoadSwitch(load: phase, errorTitle: "mp.common.loadFailed", identifier: "passOrder", onRetry: onRetry) { order in
+        List {
+            switch phase {
+            case .loading:
+                Section {
+                    ProgressView().frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("passOrder.loading")
+                }
+            case .failed(let message):
+                ContentUnavailableView {
+                    Label { message.map { Text(verbatim: $0) } ?? Text("mp.common.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button(action: onRetry) { Text("action.retry") }
+                        .buttonStyle(.bordered).controlSize(.large)
+                        .accessibilityIdentifier("passOrder.retry")
+                }
+                .accessibilityIdentifier("passOrder.error")
+            case .ready(let order):
                 content(order)
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
+        .listStyle(.insetGrouped)
         .refreshable { onRetry() }
         .cyPushedChrome(domain: .player)
         .cyPageTitle("mp.passOrder.title")
         .navigationDestination(isPresented: $openAssistant) { MPReviewedPageScreen(page: "subpackageB/pages/im/list/index", query: [:]) }
     }
 
-    private func content(_ order: PlatformPassSubscriptionOrder) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            MPCard {
-                MPRow(title: Text(verbatim: order.name), sub: order.sub.isEmpty ? nil : Text(verbatim: order.sub),
-                      value: Text(verbatim: order.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(order.amount)), strong: true)
-                MPDivider()
-                MPRow(title: Text("mp.passOrder.state"), value: Text(verbatim: order.stateText))
-                if !order.refundText.isEmpty {
-                    MPDivider()
-                    MPRow(title: Text("mp.passOrder.refund"), value: Text(verbatim: order.refundText))
+    private func fact(_ title: Text, _ value: Text) -> some View {
+        LabeledContent { value } label: { title }
+    }
+
+    @ViewBuilder private func content(_ order: PlatformPassSubscriptionOrder) -> some View {
+        Section {
+            LabeledContent {
+                Text(verbatim: order.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(order.amount))
+                    .font(.headline).monospacedDigit().foregroundStyle(.primary)
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: order.name)
+                    if !order.sub.isEmpty { Text(verbatim: order.sub).font(.subheadline).foregroundStyle(.secondary) }
                 }
-                switch order.refundDetail {
-                case .refunded(let amount, let time):
-                    MPDivider()
-                    MPRow(title: Text("mp.passOrder.refundAmount"), value: Text(verbatim: MPParityBindings.moneyText(amount)))
-                    if !time.isEmpty {
-                        MPDivider()
-                        MPRow(title: Text("mp.passOrder.refundTime"), value: Text(verbatim: time))
-                    }
-                case .rejected(let reason, _):
-                    if !reason.isEmpty {
-                        MPDivider()
-                        MPRow(title: Text("mp.passOrder.rejectReason"), value: Text(verbatim: reason))
-                    }
-                    MPDivider()
-                    Button { openAssistant = true } label: {
-                        MPRow(title: Text("mp.passOrder.review"), value: Text("mp.passOrder.review.assistant"), chevron: true)
-                    }
-                    .buttonStyle(.cyPressable)
-                    .accessibilityIdentifier("passOrder.review")
-                case nil:
-                    EmptyView()
-                }
-                if !order.validTo.isEmpty {
-                    MPDivider()
-                    MPRow(title: Text("mp.passOrder.validTo"), value: Text(verbatim: order.validTo))
-                }
-                if !order.time.isEmpty {
-                    MPDivider()
-                    MPRow(title: Text("mp.passOrder.paidTime"), value: Text(verbatim: order.time))
-                }
-                MPDivider()
-                Button {
-                    LocalPasteboard.copy(order.orderNo)
-                    copied = true
-                } label: {
-                    MPRow(title: Text("mp.passOrder.number"),
-                          value: copied ? Text("mp.passOrder.copied") : Text("mp.passOrder.copy"))
-                }
-                .buttonStyle(.cyPressable)
-                .sensoryFeedback(.success, trigger: copied)
-                .accessibilityIdentifier("passOrder.copy")
             }
+            // The order facts group (was the MP card id); on the head row so row ids below stay their own.
             .accessibilityIdentifier("passOrder.rows")
-            if order.canResume || order.canCancel || order.canRefund {
+            fact(Text("mp.passOrder.state"), Text(verbatim: order.stateText))
+            if !order.refundText.isEmpty {
+                fact(Text("mp.passOrder.refund"), Text(verbatim: order.refundText))
+            }
+            switch order.refundDetail {
+            case .refunded(let amount, let time):
+                fact(Text("mp.passOrder.refundAmount"), Text(verbatim: MPParityBindings.moneyText(amount)))
+                if !time.isEmpty {
+                    fact(Text("mp.passOrder.refundTime"), Text(verbatim: time))
+                }
+            case .rejected(let reason, _):
+                if !reason.isEmpty {
+                    fact(Text("mp.passOrder.rejectReason"), Text(verbatim: reason))
+                }
+                Button { openAssistant = true } label: {
+                    HStack {
+                        LabeledContent { Text("mp.passOrder.review.assistant") } label: { Text("mp.passOrder.review") }
+                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                            .accessibilityHidden(true)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .foregroundStyle(.primary)
+                .accessibilityIdentifier("passOrder.review")
+            case nil:
+                EmptyView()
+            }
+            if !order.validTo.isEmpty {
+                fact(Text("mp.passOrder.validTo"), Text(verbatim: order.validTo))
+            }
+            if !order.time.isEmpty {
+                fact(Text("mp.passOrder.paidTime"), Text(verbatim: order.time))
+            }
+            Button {
+                LocalPasteboard.copy(order.orderNo)
+                copied = true
+            } label: {
+                LabeledContent {
+                    copied ? Text("mp.passOrder.copied") : Text("mp.passOrder.copy")
+                } label: { Text("mp.passOrder.number").foregroundStyle(.primary) }
+            }
+            .sensoryFeedback(.success, trigger: copied)
+            .accessibilityIdentifier("passOrder.copy")
+        }
+        if order.canResume || order.canCancel || order.canRefund {
+            Section {
                 PassOrderRefusedWrites(order: order, onWritten: onRetry)
             }
         }
-        .transition(.opacity)
     }
 }
 
@@ -1112,31 +1124,30 @@ private struct PassOrderRefusedWrites: View {
     @State private var refusedNotice = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 12) {
             MPGatedNote(text: Text("mp.passOrder.gated"), identifier: "passOrder.gated")
             if refusedNotice {
-                CYNoteBanner(text: Text("mp.passOrder.refused"), symbol: "exclamationmark.triangle", tone: .warning)
+                Label { Text("mp.passOrder.refused") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }
+                    .font(.subheadline)
                     .accessibilityIdentifier("passOrder.refused")
             }
             if order.canResume {
-                Button { refuse(.resume) } label: { Text("mp.passOrder.resume").cyText(.body) }
-                    .buttonStyle(.bordered)
-                    .frame(minHeight: 44)
+                Button { refuse(.resume) } label: { Text("mp.passOrder.resume").frame(maxWidth: .infinity) }
+                    .buttonStyle(.bordered).controlSize(.large)
                     .accessibilityIdentifier("passOrder.resume")
             }
             if order.canCancel {
-                Button(role: .destructive) { confirmCancel = true } label: { Text("mp.passOrder.cancel").cyText(.body) }
-                    .buttonStyle(.bordered)
-                    .frame(minHeight: 44)
+                Button(role: .destructive) { confirmCancel = true } label: { Text("mp.passOrder.cancel").frame(maxWidth: .infinity) }
+                    .buttonStyle(.bordered).controlSize(.large)
                     .accessibilityIdentifier("passOrder.cancel")
             }
             if order.canRefund {
-                Button(role: .destructive) { refunding = true } label: { Text("mp.passOrder.refundApply").cyText(.body) }
-                    .buttonStyle(.bordered)
-                    .frame(minHeight: 44)
+                Button(role: .destructive) { refunding = true } label: { Text("mp.passOrder.refundApply").frame(maxWidth: .infinity) }
+                    .buttonStyle(.bordered).controlSize(.large)
                     .accessibilityIdentifier("passOrder.refund")
             }
         }
+        .padding(.vertical, 4)
         .confirmationDialog(Text("mp.passOrder.cancel"), isPresented: $confirmCancel, titleVisibility: .visible) {
             Button(role: .destructive) { refuse(.cancel) } label: { Text("mp.passOrder.cancel") }
             Button(role: .cancel) {} label: { Text("common.cancel") }
@@ -1146,21 +1157,20 @@ private struct PassOrderRefusedWrites: View {
                 Form {
                     // R8-MEM-5-2: MP OR-024 refund terms above the reason (fixed MP defaults until server terms are wired).
                     Section {
-                        LabeledContent { Text("mp.member.fact.renewal.value").cyText(.bodyCompact) } label: { Text("mp.member.fact.renewal").cyText(.bodyCompact) }
-                        LabeledContent { Text("mp.member.fact.refund.value").cyText(.bodyCompact) } label: { Text("mp.member.fact.refund").cyText(.bodyCompact) }
+                        LabeledContent { Text("mp.member.fact.renewal.value") } label: { Text("mp.member.fact.renewal") }
+                        LabeledContent { Text("mp.member.fact.refund.value") } label: { Text("mp.member.fact.refund") }
                     }
                     .accessibilityIdentifier("passOrder.refund.terms")
                     Section {
                         TextField(text: $reason, axis: .vertical) { Text("mp.passOrder.refundApply.placeholder") }
-                            .cyText(.body)
                             .lineLimit(3...6)
                             .onChange(of: reason) { _, newValue in
                                 if newValue.count > 200 { reason = String(newValue.prefix(200)) }
                             }
                     } header: {
-                        Text("mp.passOrder.refundApply.reason").cyText(.caption)
+                        Text("mp.passOrder.refundApply.reason")
                     } footer: {
-                        Text(verbatim: "\(reason.count)/200").cyText(.caption, monospacedDigit: true)
+                        Text(verbatim: "\(reason.count)/200").monospacedDigit()
                     }
                     Section {
                         Button(role: .destructive) {
@@ -1169,7 +1179,7 @@ private struct PassOrderRefusedWrites: View {
                             refunding = false
                             refuse(.refund, reason: trimmed)
                         } label: {
-                            Text("mp.passOrder.refundApply.submit").cyText(.body)
+                            Text("mp.passOrder.refundApply.submit")
                         }
                         .disabled(reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .accessibilityIdentifier("passOrder.refund.submit")
@@ -1264,31 +1274,51 @@ extension EnvironmentValues {
     @State private var openingTopic = false
 
     var body: some View {
-        VStack(spacing: CYSpacing.lg) {
-            Text(LocalizedStringKey(titleKey))
-                .cyText(.sheetTitle)
-                .multilineTextAlignment(.center)
-                .accessibilityIdentifier("platformCode.title")
+        Form {
+            Section {
+                Text(LocalizedStringKey(titleKey))
+                    .font(.headline)
+                    .accessibilityIdentifier("platformCode.title")
+            }
             if statusReady, codeOn, !claimed {
-                TextField("platformCode.placeholder", text: $code)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .onChange(of: code) { _, value in
-                        if value.count > 64 { code = String(value.prefix(64)) }
+                Section {
+                    TextField("platformCode.placeholder", text: $code)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .submitLabel(.done)
+                        .onChange(of: code) { _, value in
+                            if value.count > 64 { code = String(value.prefix(64)) }
+                        }
+                        .accessibilityIdentifier("platformCode.input")
+                }
+                Section {
+                    Button {
+                        guard !working else { return }
+                        Task { await redeem() }
+                    } label: {
+                        ZStack {
+                            Text("platformCode.submit").opacity(working ? 0 : 1)
+                            if working { ProgressView() }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .accessibilityIdentifier("platformCode.input")
-                CYMorphButton("platformCode.submit", state: working ? .working : .idle) { Task { await redeem() } }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
                     .disabled(working || code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .accessibilityIdentifier("platformCode.submit")
+                }
             }
             if claimed {
-                CYPillButton("platformCode.play") { play() }
-                    .accessibilityIdentifier("platformCode.play")
+                Section {
+                    Button { play() } label: { Text("platformCode.play").frame(maxWidth: .infinity) }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("platformCode.play")
+                }
             }
         }
-        .padding(CYSpacing.pageHorizontal)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(CYColor.bgPage.ignoresSafeArea())
         .navigationTitle(Text("platformCode.title"))
         .navigationBarTitleDisplayMode(.inline)
         .task { await loadStatus() }

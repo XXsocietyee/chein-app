@@ -18,19 +18,20 @@ import SwiftUI
                                       onSignIn: onSignIn, loadFailedKey: "detailLoadFailed")
             if let row = model.detail, row.id == applicationID {
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    VStack(alignment: .leading, spacing: 6) {
                         if cancelPending {
                             // Source 撤回结果未确认 · 待确认.
-                            CYStatusChip(verbatim: invoiceString("pendingTag"), tone: .warning, systemImage: "clock.badge.questionmark")
-                            invoiceText("write.cancel.unknown").cyText(.sectionTitle)
+                            Label { Text(verbatim: invoiceString("pendingTag")) } icon: { Image(systemName: "clock.badge.questionmark").foregroundStyle(.orange) }
+                                .font(.footnote).foregroundStyle(.secondary)
+                            invoiceText("write.cancel.unknown").font(.headline)
                         } else {
-                            CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
-                            invoiceText(row.status.noticeKey).cyText(.sectionTitle)
+                            Label { Text(verbatim: invoiceString(row.status.labelKey)) } icon: { Image(systemName: row.status.chipSymbol).foregroundStyle(row.status.chipTint) }
+                                .font(.footnote).foregroundStyle(.secondary)
+                            invoiceText(row.status.noticeKey).font(.headline)
                         }
-                        Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).cyText(.dataXL).monospacedDigit()
+                        Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).font(.largeTitle.weight(.semibold)).monospacedDigit()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, CYSpacing.xs)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("invoice.detail.notice")
                     if row.status == .rejected, let reason = row.rejectReason, !reason.isEmpty {
@@ -60,11 +61,11 @@ import SwiftUI
                 Section {
                     ForEach(row.orders, id: \.orderId) { order in
                         LabeledContent {
-                            Text(verbatim: invoiceLaunchDisplayedAmount(order.amount, locale: locale)).cyText(.numericBody).monospacedDigit()
+                            Text(verbatim: invoiceLaunchDisplayedAmount(order.amount, locale: locale)).monospacedDigit()
                         } label: { Text(verbatim: orderName(order)) }
                     }
                     LabeledContent {
-                        Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).cyText(.numericBody).monospacedDigit()
+                        Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).monospacedDigit()
                     } label: { invoiceText("invoiceAmount") }
                 } header: { invoiceText("includedOrders") }
                 Section {
@@ -107,7 +108,9 @@ import SwiftUI
         .navigationDestination(isPresented: $reapplying) { InvoiceLaunchApplyView(model: model, onSignIn: onSignIn) }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if let notice = model.writeNotice, notice.action == .cancel {
-                CYFooterBar { InvoiceLaunchWriteNoticeView(notice: notice) }
+                InvoiceLaunchWriteNoticeView(notice: notice)
+                    .padding()
+                    .background(.bar)
             }
         }
         .cyPushedChrome(domain: .player)

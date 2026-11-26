@@ -150,7 +150,7 @@ import Combine
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("title", tableName: "ProjectEditExitGuard").cyText(.cardTitle)
+            Text("title", tableName: "ProjectEditExitGuard").font(.headline)
                 .fixedSize(horizontal: false, vertical: true)
             Text(LocalizedStringKey(original.reason.rawValue), tableName: "ProjectEditExitGuard")
                 .fixedSize(horizontal: false, vertical: true)
@@ -165,7 +165,12 @@ import Combine
                 Button(role: .destructive, action: owner.leaveAction(original, dismiss: leave)) { Text("leave", tableName: "ProjectEditExitGuard") }
                     .accessibilityIdentifier("projectEditExit.leave")
             }.buttonStyle(.bordered)
-        }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.regularMaterial)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        // Opaque system grouped surface so the inset bar stays legible over scrolled content (functional, not chrome).
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .overlay(alignment: .top) { Divider() }
     }
 }
 

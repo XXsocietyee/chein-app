@@ -28,7 +28,7 @@ import SwiftUI
     private var coordinator: OrderLifecycleCoordinator { model.coordinator }
     var body: some View {
         List {
-            if coordinator.isOfflineExample { Text("orderLifecycle.offline").cyText(.meta).accessibilityIdentifier("orderLifecycle.offline") }
+            if coordinator.isOfflineExample { Text("orderLifecycle.offline").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("orderLifecycle.offline") }
             if let issue = coordinator.issue {
                 Section {
                     Label {
@@ -45,12 +45,14 @@ import SwiftUI
                 }
             }
             if coordinator.accountID == nil { Text("orderLifecycle.issue.login") }
-            else if coordinator.isLoading { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("orderLifecycle.loading")) }
+            else if coordinator.isLoading {
+                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("orderLifecycle.loading"))
+            }
             else if let detail = coordinator.detail, detail.id == id {
                 acceptedDetail(detail)
             } else if coordinator.issue == nil {
                 // No accepted detail and no issue: unknown, never an empty order or a zero amount.
-                Text(verbatim: OrderInfoPageModel.unknownMark).cyText(.sectionTitle).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: OrderInfoPageModel.unknownMark).font(.title3).foregroundStyle(.tertiary)
                     .accessibilityLabel(Text("orderLifecycle.amount"))
                     .accessibilityIdentifier(OrderInfoPageModel.unknownIdentifier)
             }
@@ -68,7 +70,6 @@ import SwiftUI
         .cyDomainScreen(.player)
         .cyHideTabBar(true)
         .safeAreaInset(edge: .bottom, spacing: 0) { pinnedPrimary }
-        .listRowBackground(CYColor.bgElevated)
         .appNavigationTitle("orderLifecycle.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -98,7 +99,8 @@ import SwiftUI
             OrderLifecycleReviewView(review: review, canSimulate: coordinator.canSimulate, canDispatch: coordinator.canDispatch,
                 confirm: { Task { await model.confirm(review.id) } }, close: model.dismiss)
                 .themeDomain(.player)
-                .cySheet(detents: [.large])
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .sheet(item: Binding(get: { coordinator.paymentReturn }, set: { if $0 == nil { model.closePayment() } })) { flow in Group {
             PaymentProviderReturnSheet(flow: flow) { _ in model.closePayment() }
@@ -113,12 +115,16 @@ import SwiftUI
     @ViewBuilder private var pinnedPrimary: some View {
         if let detail = coordinator.detail, detail.id == id,
            let action = OrderLifecycleAction.allCases.first(where: { OrderLifecycleCoordinator.isReviewable($0, detail: detail) }) {
-            CYFooterBar {
-                Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
-                    .buttonStyle(CYOrderActionButtonStyle(primary: true))
-                    .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
-                    .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
+            Button { model.prepare(action, orderID: id) } label: {
+                Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)).frame(maxWidth: .infinity)
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
+            .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(.bar)
         }
     }
     /// The accepted order detail, split out so the list body type-checks in reasonable time.
@@ -160,36 +166,35 @@ import SwiftUI
             verificationStatus: detail.verificationStatus
         )
         return Section {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            VStack(alignment: .leading, spacing: 12) {
                 OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + state.state.rawValue), systemImage: "ticket", emphasized: true)
                     .accessibilityIdentifier("orderLifecycle.state")
-                HStack(alignment: .center, spacing: CYSpacing.md) {
+                HStack(alignment: .center, spacing: 12) {
                     if !typeSize.isAccessibilitySize { OrderCoverTile(systemImage: "ticket", size: 64, seed: detail.title ?? "", fallback: MPAsset.EmptyState.iconTicketEmpty) }
                     Group {
                         if let title = detail.title, !title.isEmpty { Text(verbatim: title) }
                         else { Text("orderLifecycle.untitled") }
                     }
-                    .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    .font(.title3.weight(.semibold))
                     .fixedSize(horizontal: false, vertical: true)
                 }
                 Group {
                     if let reason = state.serverReason { Text(verbatim: reason) }
                     else { Text(LocalizedStringKey(state.explanationKey)) }
                 }
-                .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 if let notice = fulfillment.fulfillmentNotice {
-                    Text(verbatim: c.tr(notice)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: c.tr(notice)).font(.footnote).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 // Revolut hero: unknown amount is an em dash, never 0.
                 OrderAmountHero(label: "orderLifecycle.amount", amount: detail.payableAmount)
-            }.padding(.vertical, CYSpacing.sm)
+            }.padding(.vertical, 4)
                 .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
             OrderLifecycleField(label: "orderLifecycle.number", value: detail.registrationNumber)
             OrderLifecycleField(label: "orderLifecycle.ticket", value: detail.ticketName)
         }
-        .listRowBackground(CYColor.bgElevated)
     }
     private func payment(_ detail: OrderLifecycleDetail) -> some View {
         let observation = OrderPaymentObservation(payment: detail.paymentStatus, registration: detail.registrationStatus)
@@ -199,39 +204,35 @@ import SwiftUI
             if let explanation = UnknownPaymentState.explanation(payment: detail.paymentStatus, registration: detail.registrationStatus) {
                 Text(verbatim: explanation).accessibilityIdentifier("orderLifecycle.payment.unknown")
             }
-            Text("orderLifecycle.payment.caution").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text("orderLifecycle.payment.caution").font(.footnote).foregroundStyle(.secondary)
             OrderLifecycleField(label: "orderLifecycle.payment.deadline", value: detail.payExpireTime)
         }
     }
     private func timeline(_ detail: OrderLifecycleDetail) -> some View {
         let rows = detail.timeline()
         return Section("orderLifecycle.timeline.title") {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                    HStack(alignment: .top, spacing: CYSpacing.md) {
-                        VStack(spacing: 0) {
-                            Image(systemName: row.done ? "checkmark.circle.fill" : "circle")
-                                .font(.title3).foregroundStyle(row.done ? CYColor.textPrimary : CYColor.textTertiary)
-                                .accessibilityHidden(true)
-                            if index < rows.count - 1 {
-                                Rectangle().fill(row.done ? CYColor.textSecondary : CYColor.borderStrong).frame(width: 2).frame(maxHeight: .infinity)
-                            }
+            // Native r2: one list row per step, a tinted SF Symbol for done / pending (no drawn rail).
+            ForEach(rows, id: \.id) { row in
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(LocalizedStringKey(row.labelKey))
+                            .foregroundStyle(row.done ? Color.primary : Color.secondary)
+                        // A completed step with no server time is an em dash (OrderInfoPageModel.snapshot rule).
+                        if row.done || row.time != nil {
+                            Text(verbatim: row.time ?? OrderInfoPageModel.unknownMark)
+                                .font(.footnote).foregroundStyle(.secondary).monospacedDigit()
                         }
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(LocalizedStringKey(row.labelKey)).cyText(.bodyCompact)
-                                .foregroundStyle(row.done ? CYColor.textPrimary : CYColor.textSecondary)
-                            // A completed step with no server time is an em dash (OrderInfoPageModel.snapshot rule).
-                            if row.done || row.time != nil { Text(verbatim: row.time ?? OrderInfoPageModel.unknownMark).cyText(.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
-                        }
-                        .padding(.bottom, index < rows.count - 1 ? CYSpacing.lg : 0)
-                        .fixedSize(horizontal: false, vertical: true)
-                        Spacer(minLength: 0)
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("orderLifecycle.timeline." + row.id)
+                    .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: row.done ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(row.done ? Color.accentColor : Color.secondary)
+                        .accessibilityHidden(true)
                 }
-            }.padding(.vertical, CYSpacing.xs)
-            Text("orderLifecycle.timeline.zone").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("orderLifecycle.timeline." + row.id)
+            }
+            Text("orderLifecycle.timeline.zone").font(.footnote).foregroundStyle(.secondary)
         }
     }
     @ViewBuilder private func refund(_ detail: OrderLifecycleDetail) -> some View {
@@ -246,12 +247,12 @@ import SwiftUI
                     LabeledContent(c.t("退款进度", "Refund status")) {
                         Text(verbatim: c.tr(payout.label))
                     }
-                    Text(verbatim: c.tr(payout.hint)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: c.tr(payout.hint)).font(.footnote).foregroundStyle(.secondary)
                 }
                 OrderLifecycleField(label: "orderLifecycle.refund.reason", value: detail.refundReason)
                 OrderLifecycleField(label: "orderLifecycle.refund.deadline", value: detail.refundDeadline)
                 if let amount = detail.refundApplication?.amount { LabeledContent("orderLifecycle.refund.amount") { AmountLabel(amount: amount) } }
-                Text("orderLifecycle.refund.caution").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("orderLifecycle.refund.caution").font(.footnote).foregroundStyle(.secondary)
             }
         }
     }
@@ -261,9 +262,6 @@ import SwiftUI
             ForEach(OrderLifecycleAction.allCases, id: \.self) { action in
                 if OrderLifecycleCoordinator.isReviewable(action, detail: detail), action != reviewable.first {
                     Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
-                        .buttonStyle(CYOrderActionButtonStyle(primary: false))
-                        .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
-                        .listRowBackground(Color.clear)
                         .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
                         .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
                 }
@@ -296,7 +294,7 @@ struct OrderLifecycleField: View {
     var body: some View {
         if let value, !value.isEmpty {
             if size.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 4) { Text(label).foregroundStyle(CYColor.textSecondary); Text(verbatim: value) }
+                VStack(alignment: .leading, spacing: 4) { Text(label).foregroundStyle(.secondary); Text(verbatim: value) }
                     .fixedSize(horizontal: false, vertical: true)
             } else { LabeledContent(label) { Text(verbatim: value).fixedSize(horizontal: false, vertical: true) } }
         }
@@ -313,20 +311,18 @@ struct OrderLifecycleField: View {
         NavigationStack {
             List {
                 Section {
-                    VStack(spacing: CYSpacing.md) {
+                    VStack(spacing: 12) {
                         Image(systemName: review.action == .payment ? "creditcard" : review.action == .refund ? "arrow.uturn.backward.circle" : "xmark.circle")
-                            .cyText(.display, weight: .regular).foregroundStyle(CYColor.textPrimary)
-                            .frame(width: 72, height: 72).background(Circle().fill(CYColor.bgRaised)).accessibilityHidden(true)
+                            .font(.largeTitle).foregroundStyle(.tint).accessibilityHidden(true)
                         Text(LocalizedStringKey("orderLifecycle.question." + review.action.rawValue))
-                            .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+                            .font(.title3.weight(.semibold)).multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                         if review.action != .payment {
-                            Text("orderLifecycle.refund.caution").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            Text("orderLifecycle.refund.caution").font(.footnote).foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.sm)
-                    .listRowBackground(Color.clear)
+                    .frame(maxWidth: .infinity).padding(.vertical, 8)
                 }
                 Section {
                     OrderLifecycleField(label: "orderLifecycle.number", value: review.detail.registrationNumber)
@@ -337,18 +333,30 @@ struct OrderLifecycleField: View {
                 Section {
                     if canDispatch {
                         if review.action == .payment {
-                            Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), action: confirm)
-                                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
+                            Button(action: confirm) {
+                                Text(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue)).frame(maxWidth: .infinity)
+                            }
+                                .buttonStyle(.borderedProminent).controlSize(.large)
+                                .listRowInsets(EdgeInsets())
                                 .listRowBackground(Color.clear)
                                 .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
                         } else {
-                            Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), role: .destructive, action: confirm)
-                                .buttonStyle(.cyDestructive).frame(maxWidth: .infinity)
+                            Button(role: .destructive, action: confirm) {
+                                Text(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue)).frame(maxWidth: .infinity)
+                            }
+                                .buttonStyle(.borderedProminent).tint(.red).controlSize(.large)
+                                .listRowInsets(EdgeInsets())
                                 .listRowBackground(Color.clear)
                                 .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
                         }
                     } else if canSimulate && review.action != .payment {
-                        Button("orderLifecycle.review.simulate", role: .destructive, action: confirm).buttonStyle(.cyDestructive).frame(maxWidth: .infinity).listRowBackground(Color.clear).accessibilityIdentifier("orderLifecycle.review.confirmFixture")
+                        Button(role: .destructive, action: confirm) {
+                            Text("orderLifecycle.review.simulate").frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent).tint(.red).controlSize(.large)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("orderLifecycle.review.confirmFixture")
                     } else {
                         Button("orderLifecycle.review.disabled", action: {}).disabled(true).accessibilityIdentifier("orderLifecycle.review.disabled")
                     }
@@ -359,35 +367,8 @@ struct OrderLifecycleField: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("orderLifecycle.review.close", action: close).accessibilityIdentifier("orderLifecycle.review.close") } }
             .accessibilityIdentifier("orderLifecycle.review.sheet")
         }
-        .cyDomainSheet(detents: [.full])
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
         .cyDomainScreen(.player)
-    }
-}
-
-/// One white primary CTA per screen; every other action is a quiet secondary button.
-private struct CYOrderActionButtonStyle: ButtonStyle {
-    let primary: Bool
-    func makeBody(configuration: Configuration) -> some View {
-        Group {
-            if primary { configuration.label.modifier(CYOrderActionPrimaryLabel()) }
-            else { configuration.label.modifier(CYOrderActionSecondaryLabel()) }
-        }
-        .scaleEffect(configuration.isPressed ? 0.97 : 1)
-        .opacity(configuration.isPressed ? 0.85 : 1)
-    }
-}
-private struct CYOrderActionPrimaryLabel: ViewModifier {
-    func body(content: Content) -> some View {
-        content.cyText(.label).foregroundStyle(CYColor.textOnAccent)
-            .frame(maxWidth: .infinity, minHeight: 50)
-            .background(CYColor.actionPrimaryBg, in: Capsule(style: .continuous))
-    }
-}
-private struct CYOrderActionSecondaryLabel: ViewModifier {
-    func body(content: Content) -> some View {
-        content.cyText(.label).foregroundStyle(CYColor.textSecondary)
-            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-            .background(CYColor.actionSecondary, in: Capsule(style: .continuous))
-            .contentShape(Capsule(style: .continuous))
     }
 }

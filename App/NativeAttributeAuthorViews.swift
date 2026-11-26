@@ -46,45 +46,40 @@ private func nativeAttributeText(_ key: String) -> String {
     @ViewBuilder private var cyDomainBody: some View {
         List {
             Section {
-                CYHeroHeader(verbatim: nativeAttributeText("nativeAttribute.title")) {
-                    NativeAttributeCover(seed: "native-attribute-\(coordinator.binding.topicID)", symbol: "slider.horizontal.3")
+                LabeledContent {
+                    Text(verbatim: String(coordinator.binding.topicID))
+                } label: {
+                    Label(nativeAttributeText("nativeAttribute.topic"), systemImage: "number")
                 }
-            }.e1HeroRow()
-            Section {
-                CYListRow(verbatim: nativeAttributeText("nativeAttribute.topic"), trailing: .value(String(coordinator.binding.topicID))) {
-                    CYRowIcon(systemImage: "number")
-                }
-                CYListRow(verbatim: nativeAttributeText("nativeAttribute.version"), trailing: .value(String(coordinator.draft?.binding.sourceConfigVersion ?? coordinator.binding.sourceConfigVersion))) {
-                    CYRowIcon(systemImage: "clock")
+                LabeledContent {
+                    Text(verbatim: String(coordinator.draft?.binding.sourceConfigVersion ?? coordinator.binding.sourceConfigVersion))
+                } label: {
+                    Label(nativeAttributeText("nativeAttribute.version"), systemImage: "clock")
                 }
                 if coordinator.localDraftOnly {
                     Text(verbatim: nativeAttributeText("nativeAttribute.localDraftNotice"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("nativeAttribute.localOnly")
                 }
                 if coordinator.binding.isLocked {
-                    CYStatusChip(verbatim: nativeAttributeText("nativeAttribute.frozen"), tone: .warning, systemImage: "lock.fill")
+                    Label(nativeAttributeText("nativeAttribute.frozen"), systemImage: "lock.fill")
+                        .foregroundStyle(.orange)
                 }
                 if coordinator.busy {
-                    CYSkeleton()
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(Text(verbatim: nativeAttributeText("nativeAttribute.loading")))
                 }
                 if let issue = coordinator.issue {
-                    Label {
-                        Text(verbatim: nativeAttributeText(issue))
-                            .fixedSize(horizontal: false, vertical: true)
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                    }
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .accessibilityIdentifier("nativeAttribute.issue")
+                    Label(nativeAttributeText(issue), systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("nativeAttribute.issue")
                 }
                 if coordinator.phase == .confirmed && coordinator.projectResult == nil {
-                    CYStatusChip(verbatim: nativeAttributeText("nativeAttribute.confirmed"), tone: .success, systemImage: "checkmark.circle")
+                    Label(nativeAttributeText("nativeAttribute.confirmed"), systemImage: "checkmark.circle")
+                        .foregroundStyle(.green)
                 }
             }
             // Local file inspection only (Qmod import): no coordinator, service or transport is passed in,
@@ -112,45 +107,37 @@ private func nativeAttributeText(_ key: String) -> String {
                     if coordinator.canEdit {
                         Button { _ = coordinator.add() } label: {
                             Label(nativeAttributeText("nativeAttribute.add"), systemImage: "plus")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .frame(minHeight: CYSpacing.minTouchTarget)
                         }
                         .accessibilityIdentifier("nativeAttribute.add")
                         if coordinator.usesVersionedDefinitions {
-                            CYPillButton(verbatim: nativeAttributeText("nativeAttribute.addBasicRegistration"), style: .secondary) { _ = coordinator.add(registrationOnly: true) }
-                                .e1ActionRow()
+                            Button(nativeAttributeText("nativeAttribute.addBasicRegistration")) { _ = coordinator.add(registrationOnly: true) }
                             Text(verbatim: nativeAttributeText(coordinator.localDraftOnly ? "nativeAttribute.localDraftNotice" : "nativeAttribute.versionedSaveNotice"))
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
                         } else {
-                            CYPillButton(verbatim: nativeAttributeText("nativeAttribute.addDefinitionDraft"), style: .secondary) { _ = coordinator.add(registrationOnly: false) }
-                                .e1ActionRow()
+                            Button(nativeAttributeText("nativeAttribute.addDefinitionDraft")) { _ = coordinator.add(registrationOnly: false) }
                             Text(verbatim: nativeAttributeText("nativeAttribute.extensionLocalOnly"))
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 } header: { attributeHeader("nativeAttribute.definitions") }
                 if !coordinator.binding.isLocked && !coordinator.localDraftOnly {
                     Section {
-                        CYPillButton(verbatim: nativeAttributeText("nativeAttribute.checkSave"), style: saveIsPrimary ? .primary : .secondary, systemImage: "checkmark.circle") {
-                            Task { await coordinator.prepareSave() }
+                        Button { Task { await coordinator.prepareSave() } } label: {
+                            Label(nativeAttributeText("nativeAttribute.checkSave"), systemImage: "checkmark.circle")
+                                .fontWeight(saveIsPrimary ? .semibold : .regular)
                         }
                         .disabled(!coordinator.canSave)
                         .accessibilityIdentifier("nativeAttribute.checkSave")
-                        .e1ActionRow()
                         if coordinator.pending != nil {
-                            CYPillButton(verbatim: nativeAttributeText("nativeAttribute.readback"), style: .secondary) { Task { await coordinator.readback() } }
+                            Button(nativeAttributeText("nativeAttribute.readback")) { Task { await coordinator.readback() } }
                                 .disabled(coordinator.busy)
                                 .accessibilityIdentifier("nativeAttribute.readback")
-                                .e1ActionRow()
                         }
                         if coordinator.canRecoverUnsentDraft && coordinator.draft?.binding != coordinator.binding {
                             Button(nativeAttributeText("nativeAttribute.restoreLocal")) { Task { await coordinator.recoverUnsentDraft() } }
                                 .disabled(coordinator.busy)
-                                .frame(minHeight: CYSpacing.minTouchTarget)
                         }
                     }
                     projectFlowSection
@@ -161,78 +148,68 @@ private func nativeAttributeText(_ key: String) -> String {
                     ForEach(check.issues) { finding in
                         NativeAttributeAuthorDiagnosticIssueView(issue: finding)
                     }
-                    if check.issues.isEmpty { Text(verbatim: nativeAttributeText("nativeAttribute.noPublishIssues")).cyText(.body).fixedSize(horizontal: false, vertical: true) }
+                    if check.issues.isEmpty { Text(verbatim: nativeAttributeText("nativeAttribute.noPublishIssues")) }
+                } header: { attributeHeader("nativeAttribute.publishCheck") } footer: {
                     Text(verbatim: nativeAttributeText("nativeAttribute.savedSourceCheck"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                } header: { attributeHeader("nativeAttribute.publishCheck") }
+                }
             }
             if let preflight = coordinator.modulePreflightResult {
                 Section {
                     if let renderer = moduleReportRenderer { renderer.view(preflight) }
                     else {
-                        CYListRow(verbatim: nativeAttributeText("nativeAttribute.topic"), trailing: .value(String(preflight.topicID))) {
-                            CYRowIcon(systemImage: "number")
+                        LabeledContent {
+                            Text(verbatim: String(preflight.topicID))
+                        } label: {
+                            Label(nativeAttributeText("nativeAttribute.topic"), systemImage: "number")
                         }
-                        CYListRow(verbatim: nativeAttributeText("nativeAttribute.version"), trailing: .value(String(preflight.configVersion))) {
-                            CYRowIcon(systemImage: "clock")
+                        LabeledContent {
+                            Text(verbatim: String(preflight.configVersion))
+                        } label: {
+                            Label(nativeAttributeText("nativeAttribute.version"), systemImage: "clock")
                         }
-                        CYStatusChip(
-                            verbatim: nativeAttributeText(preflight.ready ? "nativeAttribute.moduleNoErrors" : "nativeAttribute.moduleHasErrors"),
-                            tone: preflight.ready ? .success : .danger,
+                        Label(
+                            nativeAttributeText(preflight.ready ? "nativeAttribute.moduleNoErrors" : "nativeAttribute.moduleHasErrors"),
                             systemImage: preflight.ready ? "info.circle" : "exclamationmark.circle"
                         )
+                        .foregroundStyle(preflight.ready ? Color.green : Color.red)
                         ForEach(preflight.issues) { NativeAttributeAuthorDiagnosticIssueView(issue: $0) }
                     }
-                    Text(verbatim: nativeAttributeText("nativeAttribute.diagnosticOnly"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(verbatim: nativeAttributeText("nativeAttribute.savedSourceCheck"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                } header: { attributeHeader("nativeAttribute.modulePreflight") }
+                } header: { attributeHeader("nativeAttribute.modulePreflight") } footer: {
+                    VStack(alignment: .leading) {
+                        Text(verbatim: nativeAttributeText("nativeAttribute.diagnosticOnly"))
+                        Text(verbatim: nativeAttributeText("nativeAttribute.savedSourceCheck"))
+                    }
+                }
             }
             if let refs = coordinator.referenceReadback {
                 Section {
                     ForEach(Array(refs.positions.enumerated()), id: \.offset) { _, position in
                         Text(verbatim: cyShownValue(position))
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
                     if let reason = refs.incompleteReason {
                         Text(verbatim: nativeAttributeText(reason))
-                            .cyText(.body)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    if refs.permitsDelete { Text(verbatim: nativeAttributeText("nativeAttribute.referenceClear")).cyText(.body).fixedSize(horizontal: false, vertical: true) }
+                    if refs.permitsDelete { Text(verbatim: nativeAttributeText("nativeAttribute.referenceClear")) }
                 } header: { attributeHeader("nativeAttribute.references") }
             }
             if coordinator.phase == .review {
                 Section {
                     ForEach(Array(coordinator.warnings.enumerated()), id: \.offset) { _, warning in
                         Text(verbatim: nativeAttributeText(warning))
-                            .cyText(.body)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
                     Text(verbatim: nativeAttributeText(coordinator.reviewDeletesKey == nil ? "nativeAttribute.saveReview" : "nativeAttribute.deleteReview"))
-                        .cyText(.body)
-                        .fixedSize(horizontal: false, vertical: true)
-                    CYPillButton(verbatim: nativeAttributeText("nativeAttribute.confirm"), systemImage: "checkmark.circle") { Task { await coordinator.confirm() } }
-                        .accessibilityIdentifier("nativeAttribute.confirm")
-                        .e1ActionRow()
+                    Button { Task { await coordinator.confirm() } } label: {
+                        Label(nativeAttributeText("nativeAttribute.confirm"), systemImage: "checkmark.circle")
+                            .fontWeight(.semibold)
+                    }
+                    .accessibilityIdentifier("nativeAttribute.confirm")
                     Button(nativeAttributeText("nativeAttribute.cancel"), role: .cancel) { coordinator.cancelReview() }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
                 } header: { attributeHeader("nativeAttribute.review") }
             }
         }
         .listStyle(.insetGrouped)
-        .cyText(.body)
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(nativeAttributeText("nativeAttribute.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if coordinator.canEdit { ToolbarItem { EditButton() } }
             ToolbarItem(placement: .topBarTrailing) {
@@ -265,17 +242,25 @@ private func nativeAttributeText(_ key: String) -> String {
         let meta = row.label.isEmpty
             ? (row.isDefinition ? range : nativeAttributeText("nativeAttribute.legacy"))
             : cyShownValue(row.key)
-        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            CYListRow(verbatim: title, meta: meta, trailing: .chevron) {
-                NativeAttributeThumb(seed: row.key.isEmpty ? title : row.key, symbol: "slider.horizontal.3")
+        return Label {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: title)
+                Text(verbatim: meta)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                if !row.label.isEmpty && row.isDefinition {
+                    Text(verbatim: range)
+                        .font(.subheadline)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                } else if !row.label.isEmpty {
+                    Label(nativeAttributeText("nativeAttribute.legacy"), systemImage: "clock.arrow.circlepath")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
-            if !row.label.isEmpty && row.isDefinition {
-                Text(verbatim: range)
-                    .cyText(.numericBody)
-                    .foregroundStyle(CYColor.textSecondary)
-            } else if !row.label.isEmpty {
-                CYStatusChip(verbatim: nativeAttributeText("nativeAttribute.legacy"), tone: .neutral, systemImage: "clock.arrow.circlepath")
-            }
+        } icon: {
+            Image(systemName: "slider.horizontal.3")
         }
         .accessibilityElement(children: .combine)
     }
@@ -284,23 +269,18 @@ private func nativeAttributeText(_ key: String) -> String {
         Section {
             Button(nativeAttributeText("nativeAttribute.publishCheck")) { Task { await coordinator.readPublishCheck() } }
                 .disabled(!coordinator.canReadPublishCheck)
-                .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("nativeAttribute.publishCheck")
             Button(nativeAttributeText("nativeAttribute.modulePreflight")) { Task { await coordinator.readModulePreflight() } }
                 .disabled(!coordinator.canReadModulePreflight)
-                .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("nativeAttribute.modulePreflight")
             ForEach([NativeAttributeAuthorProjectAction.saveDraft, .preview, .publish], id: \.rawValue) { action in
                 Button(nativeAttributeText("nativeAttribute.action.\(action.rawValue)")) { projectReview = action }
                     .disabled(!coordinator.canUseProjectFlow)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityIdentifier("nativeAttribute.action.\(action.rawValue)")
+                        .accessibilityIdentifier("nativeAttribute.action.\(action.rawValue)")
             }
+        } header: { attributeHeader("nativeAttribute.projectFlow") } footer: {
             Text(verbatim: nativeAttributeText("nativeAttribute.originalFlow"))
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        } header: { attributeHeader("nativeAttribute.projectFlow") }
+        }
     }
     private func closeAuthor() {
         // Capture a real confirmed source-retirement result before retire clears presentation.
@@ -312,10 +292,6 @@ private func nativeAttributeText(_ key: String) -> String {
 
 private func attributeHeader(_ key: String) -> some View {
     Text(verbatim: nativeAttributeText(key))
-        .cyText(.sectionTitle)
-        .foregroundStyle(CYColor.textPrimary)
-        .textCase(nil)
-        .accessibilityAddTraits(.isHeader)
 }
 
 /// Both original diagnostics use the same native row. Field/code/message come from the
@@ -323,16 +299,14 @@ private func attributeHeader(_ key: String) -> some View {
 @MainActor private struct NativeAttributeAuthorDiagnosticIssueView: View {
     let issue: NativeAttributeAuthorPublishIssue
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            CYStatusChip(
-                verbatim: nativeAttributeText(issue.level == "error" ? "nativeAttribute.checkError" : "nativeAttribute.checkWarning"),
-                tone: issue.level == "error" ? .danger : .warning,
+        VStack(alignment: .leading, spacing: 6) {
+            Label(
+                nativeAttributeText(issue.level == "error" ? "nativeAttribute.checkError" : "nativeAttribute.checkWarning"),
                 systemImage: issue.level == "error" ? "exclamationmark.circle" : "exclamationmark.triangle"
             )
+            .font(.subheadline)
+            .foregroundStyle(issue.level == "error" ? Color.red : Color.orange)
             Text(verbatim: cyShownValue(issue.message))
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
             LabeledContent(nativeAttributeText("nativeAttribute.issueCode"), value: cyShownValue(issue.code))
             if let field = issue.field { LabeledContent(nativeAttributeText("nativeAttribute.issueField"), value: cyShownValue(field)) }
             if let node = issue.nodeID { LabeledContent(nativeAttributeText("nativeAttribute.node"), value: String(node)) }
@@ -349,17 +323,10 @@ private func attributeHeader(_ key: String) -> some View {
     private var editable: Bool { coordinator.canEdit && row.sourceIsSupported }
     var body: some View {
         Form {
-            Section {
-                CYHeroHeader(verbatim: row.label.isEmpty ? nativeAttributeText("nativeAttribute.add") : row.label) {
-                    NativeAttributeCover(seed: row.key.isEmpty ? "attribute" : row.key, symbol: "slider.horizontal.3")
-                }
-            }.e1HeroRow()
             if let issue = coordinator.issue {
                 Section {
-                    Text(verbatim: nativeAttributeText(issue))
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    Label(nativeAttributeText(issue), systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.secondary)
                 }
             }
             Section {
@@ -372,26 +339,20 @@ private func attributeHeader(_ key: String) -> some View {
                 Picker(nativeAttributeText("nativeAttribute.scope"), selection: $row.scope) {
                     ForEach(["run","party","deployment"], id: \.self) { scope in Text(verbatim: nativeAttributeText("nativeAttribute.scope.\(scope)")).tag(scope) }
                 }.disabled(row.existingKey != nil)
+            } header: { attributeHeader("nativeAttribute.identity") } footer: {
                 if row.existingKey != nil {
                     Text(verbatim: nativeAttributeText("nativeAttribute.immutable"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
-            } header: { attributeHeader("nativeAttribute.identity") }
+            }
             .disabled(!editable)
             if row.isDefinition {
-                Section {
-                    Text(verbatim: nativeAttributeText(coordinator.localDraftOnly ? "nativeAttribute.localDraftNotice" : coordinator.usesVersionedDefinitions ? "nativeAttribute.versionedSaveNotice" : "nativeAttribute.extensionLocalOnly"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
                 Section {
                     number(nativeAttributeText("nativeAttribute.initial"), text: $row.initial)
                     number(nativeAttributeText("nativeAttribute.minimum"), text: $row.minimum)
                     number(nativeAttributeText("nativeAttribute.maximum"), text: $row.maximum)
-                } header: { attributeHeader("nativeAttribute.range") }
+                } header: { attributeHeader("nativeAttribute.range") } footer: {
+                    Text(verbatim: nativeAttributeText(coordinator.localDraftOnly ? "nativeAttribute.localDraftNotice" : coordinator.usesVersionedDefinitions ? "nativeAttribute.versionedSaveNotice" : "nativeAttribute.extensionLocalOnly"))
+                }
                 .disabled(!editable)
                 Section {
                     Picker(nativeAttributeText("nativeAttribute.display"), selection: $row.display) {
@@ -415,49 +376,43 @@ private func attributeHeader(_ key: String) -> some View {
                                 coordinator: coordinator, rowSnapshot: row)
                             Button(nativeAttributeText("nativeAttribute.copyRule")) { row.rules.append(rule.duplicate()) }
                                 .disabled(row.rules.count >= 20)
-                                .frame(minHeight: CYSpacing.minTouchTarget)
-                        }
+                                        }
                         .onDelete { row.rules.remove(atOffsets: $0) }
                         .onMove { row.rules.move(fromOffsets: $0, toOffset: $1) }
                         Button(nativeAttributeText("nativeAttribute.addRule")) { row.rules.append(.init()) }
                             .disabled(row.rules.count >= 20)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
-                    } header: { attributeHeader("nativeAttribute.rules") }
+                                } header: { attributeHeader("nativeAttribute.rules") }
                     .disabled(!editable)
                 }
                 Section { NativeAttributeAuthorPreview(row: row) } header: { attributeHeader("nativeAttribute.preview") }
             } else {
                 Section {
                     number(nativeAttributeText("nativeAttribute.initial"), text: $row.initial)
+                } footer: {
                     Text(verbatim: nativeAttributeText("nativeAttribute.registrationScopeNotice"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }.disabled(!editable)
             }
             Section {
-                if !row.sourceIsSupported { Text(verbatim: nativeAttributeText("nativeAttribute.unsupported")).cyText(.body).fixedSize(horizontal: false, vertical: true) }
-                if row.unsupportedReason != nil && row.sourceIsSupported { Text(verbatim: nativeAttributeText("nativeAttribute.invalid")).cyText(.body).fixedSize(horizontal: false, vertical: true) }
-                CYPillButton(verbatim: nativeAttributeText("nativeAttribute.keepChanges"), systemImage: "checkmark.circle") { if coordinator.replace(row) { dismiss() } }
-                    .disabled(!editable || row.unsupportedReason != nil)
-                    .accessibilityIdentifier("nativeAttribute.keepChanges")
-                    .e1ActionRow()
+                if !row.sourceIsSupported { Text(verbatim: nativeAttributeText("nativeAttribute.unsupported")) }
+                if row.unsupportedReason != nil && row.sourceIsSupported { Text(verbatim: nativeAttributeText("nativeAttribute.invalid")) }
+                Button { if coordinator.replace(row) { dismiss() } } label: {
+                    Label(nativeAttributeText("nativeAttribute.keepChanges"), systemImage: "checkmark.circle")
+                        .fontWeight(.semibold)
+                }
+                .disabled(!editable || row.unsupportedReason != nil)
+                .accessibilityIdentifier("nativeAttribute.keepChanges")
                 if row.existingKey == nil {
                     Button(nativeAttributeText("nativeAttribute.removeLocal"), role: .destructive) { coordinator.removeUnsaved(row.id); dismiss() }
                         .disabled(!coordinator.canEdit)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                } else if !coordinator.localDraftOnly {
+                        } else if !coordinator.localDraftOnly {
                     Button(nativeAttributeText("nativeAttribute.checkDelete"), role: .destructive) { deleteReview = true }
                         .disabled(!coordinator.canDelete)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .accessibilityIdentifier("nativeAttribute.checkDelete")
+                                .accessibilityIdentifier("nativeAttribute.checkDelete")
                 }
             }
         }
-        .listStyle(.insetGrouped)
-        .cyText(.body)
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(row.label.isEmpty ? nativeAttributeText("nativeAttribute.add") : row.label)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar { if editable { EditButton() } }
         .confirmationDialog(nativeAttributeText("nativeAttribute.checkDelete"), isPresented: $deleteReview, titleVisibility: .visible) {
             Button(nativeAttributeText("nativeAttribute.readReferences"), role: .destructive) {
@@ -475,7 +430,7 @@ private func attributeHeader(_ key: String) -> some View {
         .onChange(of: row) { _, edited in if editable { coordinator.replace(edited) } }
     }
     private func number(_ title: String, text: Binding<String>) -> some View {
-        LabeledContent { TextField(title, text: text).keyboardType(.numbersAndPunctuation).multilineTextAlignment(.trailing).cyText(.numericBody) } label: { Text(verbatim: title) }
+        LabeledContent { TextField(title, text: text).keyboardType(.numbersAndPunctuation).multilineTextAlignment(.trailing).monospacedDigit() } label: { Text(verbatim: title) }
     }
 }
 
@@ -487,7 +442,7 @@ private func attributeHeader(_ key: String) -> some View {
     let coordinator: NativeAttributeAuthorCoordinator
     let rowSnapshot: NativeAttributeAuthorRow
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             Picker(nativeAttributeText("nativeAttribute.event"), selection: $rule.event) {
                 ForEach(NativeAttributeAuthorRule.events, id: \.self) { event in Text(verbatim: nativeAttributeText("nativeAttribute.event.\(event)")).tag(event) }
             }
@@ -497,7 +452,7 @@ private func attributeHeader(_ key: String) -> some View {
             if rule.needsValue {
                 TextField(nativeAttributeText("nativeAttribute.value"), text: $rule.value)
                     .keyboardType(.numbersAndPunctuation)
-                    .cyText(.numericBody)
+                    .monospacedDigit()
             }
             if let editor = conditionEditor {
                 NavigationLink("nativeAttribute.condition") {
@@ -511,9 +466,8 @@ private func attributeHeader(_ key: String) -> some View {
                 }
             } else {
                 Text(verbatim: nativeAttributeText("nativeAttribute.conditionPreserved"))
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -522,20 +476,17 @@ private func attributeHeader(_ key: String) -> some View {
 @MainActor private struct NativeAttributeAuthorPreview: View {
     let row: NativeAttributeAuthorRow
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: nativeAttributeText("nativeAttribute.declarationPreview"))
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
             if row.visible && row.display != "hidden" {
                 HStack {
                     if row.display == "icon" { Image(systemName: "circle.fill").foregroundStyle(previewColor).accessibilityHidden(true) }
                     Text(verbatim: cyShownValue(row.label))
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
                     Spacer()
                     Text(verbatim: cyShownValue(row.initial))
-                        .cyText(.numericBody)
+                        .monospacedDigit()
                         .foregroundStyle(previewColor)
                 }
                 if row.display == "bar", let lo = Double(row.minimum), let hi = Double(row.maximum), let value = Double(row.initial), lo < hi {
@@ -545,15 +496,12 @@ private func attributeHeader(_ key: String) -> some View {
                 }
                 if !row.icon.isEmpty {
                     Text(verbatim: row.icon)
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             } else {
                 Text(verbatim: nativeAttributeText("nativeAttribute.hiddenPreview"))
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .foregroundStyle(.secondary)
             }
         }
         .tint(previewColor)
@@ -562,30 +510,8 @@ private func attributeHeader(_ key: String) -> some View {
         // The preview never invents an icon mapping or runs SESSION_START/rules.
     }
     private var previewColor: Color {
-        guard row.color.count == 7, row.color.first == "#", let rgb = UInt32(row.color.dropFirst(), radix: 16) else { return CYColor.textPrimary }
+        guard row.color.count == 7, row.color.first == "#", let rgb = UInt32(row.color.dropFirst(), radix: 16) else { return Color.primary }
         return Color(red: Double((rgb >> 16) & 255) / 255, green: Double((rgb >> 8) & 255) / 255, blue: Double(rgb & 255) / 255)
-    }
-}
-
-private struct NativeAttributeCover: View {
-    let seed: String
-    var symbol: String
-    @ScaledMetric(relativeTo: .largeTitle) private var height: CGFloat = 168
-    var body: some View {
-        CYCoverArt(seed: seed, symbol: symbol, cornerRadius: CYRadius.lg)
-            .frame(maxWidth: .infinity)
-            .frame(height: height)
-            .accessibilityHidden(true)
-    }
-}
-
-private struct NativeAttributeThumb: View {
-    let seed: String
-    var symbol: String
-    var body: some View {
-        CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false, cornerRadius: CYRadius.sm)
-            .frame(width: 40, height: 40)
-            .accessibilityHidden(true)
     }
 }
 

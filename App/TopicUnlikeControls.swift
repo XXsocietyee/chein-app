@@ -15,10 +15,11 @@ struct TopicUnlikeButton: View {
     let controller: TopicUnlikeController
     var body: some View {
         Button { controller.request(topicID: topicID) } label: {
-            Image(systemName: "heart.fill").font(.title3).padding(10)
-                .background(.thinMaterial, in: Circle())
+            Image(systemName: "heart.fill")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.circle)
+        .tint(.red)
         .disabled(isBusy)
         .accessibilityLabel(Text("member.unlike.action", tableName: "MemberProfile"))
         .accessibilityIdentifier("member.unlike.\(topicID)")
@@ -35,33 +36,36 @@ struct TopicUnlikeButton: View {
 struct TopicUnlikeFlow: ViewModifier {
     let controller: TopicUnlikeController?
     let onRemoved: (Int) -> Void
-    @Environment(\.locale) private var locale
     @State private var toastMessage: LocalizedStringKey?
+    /// The confirm button was tapped: the dialog's dismissal must not cancel the pending unlike.
+    @State private var confirmTapped = false
     @ViewBuilder func body(content: Content) -> some View {
         if let controller {
             content
-                .sheet(isPresented: Binding(
-                    get: { if case .confirming = controller.phase { return true }; return false },
-                    set: { if !$0 { controller.cancel() } })) {
-                    CYConfirmSheet(
-                        title: String(localized: LocalizedStringResource("member.unlike.confirmTitle", table: "MemberProfile", locale: locale)),
-                        message: String(localized: LocalizedStringResource("member.unlike.confirmMessage", table: "MemberProfile", locale: locale)),
-                        confirmTitle: String(localized: LocalizedStringResource("member.unlike.confirm", table: "MemberProfile", locale: locale)),
-                        cancelTitle: String(localized: LocalizedStringResource("member.unlike.cancel", table: "MemberProfile", locale: locale)),
-                        isDestructive: true,
-                        onCancel: { controller.cancel() },
-                        onConfirm: {
-                            if case .confirming(_, let id) = controller.phase {
-                                Task { await controller.confirm(id) }
-                            }
+                .confirmationDialog(
+                    Text("member.unlike.confirmTitle", tableName: "MemberProfile"),
+                    isPresented: Binding(
+                        get: { if case .confirming = controller.phase { return true }; return false },
+                        set: { presented in
+                            guard !presented else { return }
+                            if confirmTapped { confirmTapped = false } else { controller.cancel() }
+                        }),
+                    titleVisibility: .visible
+                ) {
+                    Button(role: .destructive) {
+                        if case .confirming(_, let id) = controller.phase {
+                            confirmTapped = true
+                            Task { await controller.confirm(id) }
                         }
-                    )
-                    .cyDomainSheet(detents: [.peek, .half])
-                    .themeDomain(.player)
+                    } label: { Text("member.unlike.confirm", tableName: "MemberProfile") }
+                    Button(role: .cancel) {} label: { Text("member.unlike.cancel", tableName: "MemberProfile") }
+                } message: {
+                    Text("member.unlike.confirmMessage", tableName: "MemberProfile")
                 }
                 .safeAreaInset(edge: .bottom) { TopicUnlikeStatus(controller: controller) }
                 .cyToast(message: $toastMessage, tone: .info)
                 .onChange(of: controller.phase) { _, phase in
+                    if case .confirming = phase { confirmTapped = false }
                     if case .removed(let id) = phase {
                         toastMessage = "topic.unlike.toast"
                         onRemoved(id)
@@ -98,7 +102,7 @@ private struct TopicUnlikeStatus: View {
                 EmptyView()
             }
         }
-        .cyText(.bodyCompact).frame(maxWidth: .infinity).padding(.vertical, 8)
+        .font(.subheadline).frame(maxWidth: .infinity).padding(.vertical, 8)
         .background(.bar)
     }
 }

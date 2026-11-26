@@ -14,7 +14,7 @@ import SwiftUI
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
 
     var body: some View {
-        // Native restyle r1 (spec §3.2): an inset-grouped Form with a system inline title; the CTA stays sticky.
+        // Native r2: an inset-grouped Form with a system inline title; the CTA stays sticky.
         Form {
             phaseBody
         }
@@ -50,11 +50,9 @@ import SwiftUI
         case .idle, .loadingPreview:
             Section { progressRow("transfer.loading") }
         case .unavailable:
-            Section { CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "transfer.unavailable", tableName: table, messageIdentifier: "bundleTransfer.unavailable") }
-                .cyCardRow()
+            Section { unavailable("arrow.triangle.2.circlepath", "transfer.unavailable", identifier: "bundleTransfer.unavailable") }
         case .ineligible:
-            Section { CYEmptyState(systemImage: "exclamationmark.triangle", "transfer.ineligible", tableName: table, messageIdentifier: "bundleTransfer.ineligible", kind: .failure) }
-                .cyCardRow()
+            Section { unavailable("exclamationmark.triangle", "transfer.ineligible", identifier: "bundleTransfer.ineligible") }
         case .ready(let preview):
             readyBody(preview)
         case .sending:
@@ -68,25 +66,32 @@ import SwiftUI
         case .outcomeUnknown:
             Section {
                 text("transfer.unknown")
-                    .cyText(.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         case .failed(let code):
             Section {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "transfer.error", tableName: table, messageIdentifier: "bundleTransfer.error", kind: .failure)
+                unavailable("exclamationmark.triangle", "transfer.error", identifier: "bundleTransfer.error")
             } footer: {
                 if let code { Text(verbatim: Cloud05Copy.server(code)) }
             }
-            .cyCardRow()
+        }
+    }
+
+    private func unavailable(_ symbol: String, _ key: String, identifier: String) -> some View {
+        ContentUnavailableView {
+            Label {
+                text(key).accessibilityIdentifier(identifier)
+            } icon: {
+                Image(systemName: symbol)
+            }
         }
     }
 
     private func progressRow(_ key: String) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYSkeleton()
+        HStack(spacing: CYSpacing.sm) {
+            ProgressView()
             text(key)
-                .cyText(.body)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -98,12 +103,10 @@ import SwiftUI
         Section {
             if preview.impactLines.isEmpty {
                 Text(verbatim: "—")
-                    .cyText(.body)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(Array(preview.impactLines.enumerated()), id: \.offset) { _, line in
                     Text(verbatim: Cloud05Copy.server(line))
-                        .cyText(.body)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -114,7 +117,6 @@ import SwiftUI
             TextField(text: $phone) { text("transfer.phone") }
                 .keyboardType(.phonePad)
                 .textContentType(.telephoneNumber)
-                .cyText(.body)
                 .privacySensitive()
         } header: {
             text("transfer.phone")
@@ -126,7 +128,6 @@ import SwiftUI
                     text("transfer.channel.sms").tag(BundleTransferChannel.sms)
                 } label: { text("transfer.channel") }
                 .pickerStyle(.segmented)
-                .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityLabel(text("transfer.channel"))
             } header: {
                 text("transfer.channel")
@@ -138,7 +139,7 @@ import SwiftUI
         Section {
             if let code = model.oneTimeCode {
                 Text(verbatim: code.reveal())
-                    .cyText(.dataXL)
+                    .font(.largeTitle.weight(.semibold))
                     .monospacedDigit()
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
@@ -148,7 +149,7 @@ import SwiftUI
                     .privacySensitive()
             } else {
                 Text(verbatim: "—")
-                    .cyText(.dataXL)
+                    .font(.largeTitle.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("bundleTransfer.code")
             }
@@ -161,7 +162,6 @@ import SwiftUI
     private var recoveredBody: some View {
         Section {
             text("transfer.code.unavailable")
-                .cyText(.body)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let state = model.display { stateChip(state) }
@@ -171,25 +171,38 @@ import SwiftUI
     @ViewBuilder private var bottomAction: some View {
         switch model.phase {
         case .ready:
-            CYPillButton("transfer.confirm", systemImage: "paperplane.fill", tableName: table) { confirming = true }
-                .disabled(phone.isEmpty)
-                .accessibilityLabel(text("transfer.confirm"))
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.md)
-                .background(.bar)
+            Button { confirming = true } label: {
+                Label { text("transfer.confirm") } icon: { Image(systemName: "paperplane.fill") }
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(phone.isEmpty)
+            .accessibilityLabel(text("transfer.confirm"))
+            .padding(.horizontal)
+            .padding(.vertical, CYSpacing.sm)
+            .background(.bar)
         case .shown, .recovered:
-            Button { Task { await model.revoke() } } label: { text("transfer.revoke") }
-                .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
-                .accessibilityLabel(text("transfer.revoke"))
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.md)
-                .background(.bar)
+            Button(role: .destructive) { Task { await model.revoke() } } label: {
+                text("transfer.revoke").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .accessibilityLabel(text("transfer.revoke"))
+            .padding(.horizontal)
+            .padding(.vertical, CYSpacing.sm)
+            .background(.bar)
         case .outcomeUnknown:
-            CYPillButton("transfer.recover", systemImage: "arrow.clockwise", tableName: table) { Task { await model.recover() } }
-                .accessibilityLabel(text("transfer.recover"))
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.md)
-                .background(.bar)
+            Button { Task { await model.recover() } } label: {
+                Label { text("transfer.recover") } icon: { Image(systemName: "arrow.clockwise") }
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .accessibilityLabel(text("transfer.recover"))
+            .padding(.horizontal)
+            .padding(.vertical, CYSpacing.sm)
+            .background(.bar)
         default:
             EmptyView()
         }
@@ -207,8 +220,12 @@ import SwiftUI
         case .revoked: key = "transfer.state.revoked"; tone = .danger; symbol = "xmark"
         case .unknown: key = "transfer.state.unknown"; tone = .neutral; symbol = "questionmark"
         }
-        return CYStatusChip(verbatim: Cloud05Copy.bundle(key), tone: tone, systemImage: symbol)
-            .accessibilityLabel(text(key))
+        return Label {
+            Text(verbatim: Cloud05Copy.bundle(key))
+        } icon: {
+            Image(systemName: symbol).foregroundStyle(Cloud03Note.tint(tone))
+        }
+        .accessibilityLabel(text(key))
     }
 }
 

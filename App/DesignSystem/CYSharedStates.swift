@@ -6,13 +6,11 @@ import SwiftUI
 
 // MARK: 1. Skeleton block
 
-/// Placeholder block with a quiet shimmer. The shimmer is disabled under Reduce Motion.
+/// Native r2: a system redacted placeholder line (`.redacted(reason: .placeholder)`), no shimmer of our own.
+/// `height` picks the text style the placeholder stands in for; `cornerRadius` is kept for call sites only.
 public struct CYSkeletonBlock: View {
     private let cornerRadius: CGFloat
     private let height: CGFloat
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isDimmed = false
 
     public init(height: CGFloat = 16, cornerRadius: CGFloat = CYRadius.sm) {
         self.height = height
@@ -20,23 +18,18 @@ public struct CYSkeletonBlock: View {
     }
 
     public var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            .fill(CYColor.skeletonBase)
-            .frame(height: height)
-            .opacity(isDimmed && !reduceMotion ? 0.55 : 1.0)
-            .onAppear {
-                guard !reduceMotion else { return }
-                withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
-                    isDimmed = true
-                }
-            }
+        Text(verbatim: "Placeholder placeholder placeholder placeholder placeholder placeholder")
+            .font(height >= 18 ? .headline : (height <= 12 ? .footnote : .body))
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .redacted(reason: .placeholder)
             .accessibilityHidden(true)
     }
 }
 
 // MARK: 2. Loading state
 
-/// Skeleton list shown while content loads. Announces one VoiceOver label instead of each block.
+/// Native r2: the system `ProgressView`. `rows` is kept for call sites. One VoiceOver label.
 public struct CYLoadingStateView: View {
     private let rows: Int
 
@@ -45,69 +38,50 @@ public struct CYLoadingStateView: View {
     }
 
     public var body: some View {
-        VStack(spacing: CYSpacing.md) {
-            ForEach(0..<rows, id: \.self) { _ in
-                CYCard {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        CYSkeletonBlock(height: 18)
-                            .frame(maxWidth: 200)
-                        CYSkeletonBlock(height: 12)
-                        CYSkeletonBlock(height: 12)
-                            .frame(maxWidth: 140)
-                    }
-                }
-            }
-        }
-        .padding(.horizontal, CYSpacing.pageHorizontal)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("cy.state.loading"))
+        ProgressView()
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, CYSpacing.xxl)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("cy.state.loading"))
     }
 }
 
 // MARK: 3. Offline banner
 
-/// Inline banner for "no connection". One optional retry action; text wraps at large Dynamic Type sizes.
+/// Native r2: a `Label(wifi.slash)` footnote plus a borderless retry. No tinted banner fill.
 public struct CYOfflineBanner: View {
     private let onRetry: (() -> Void)?
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(onRetry: (() -> Void)? = nil) {
         self.onRetry = onRetry
     }
 
     public var body: some View {
-        Group {
-            if dynamicTypeSize >= .xxLarge {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    bannerLabel
-                    retryButton
-                }
-            } else {
-                HStack(alignment: .center, spacing: CYSpacing.md) {
-                    bannerLabel
-                    retryButton
-                }
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: CYSpacing.md) {
+                bannerLabel
+                retryButton
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                bannerLabel
+                retryButton
             }
         }
         .padding(.horizontal, CYSpacing.lg)
         .padding(.vertical, CYSpacing.xs)
-        .background(CYColor.warningSoft)
         .accessibilityElement(children: .combine)
     }
 
     private var bannerLabel: some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
-            Image(systemName: "wifi.slash")
-                .font(CYTypography.label)
-                .foregroundStyle(CYColor.warningText)
-                .accessibilityHidden(true)
-
+        Label {
             Text("cy.state.offline.title")
-                .cyText(.bodyCompact)
-                .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
+        } icon: {
+            Image(systemName: "wifi.slash")
         }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
     }
 
     @ViewBuilder
@@ -115,13 +89,9 @@ public struct CYOfflineBanner: View {
         if let onRetry {
             Button(action: onRetry) {
                 Text("cy.state.offline.retry")
-                    .cyText(.label)
-                    .foregroundStyle(CYColor.brand)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
+            .font(.footnote)
         }
     }
 }
@@ -132,8 +102,6 @@ public struct CYInlineError: View {
     private let verbatim: String?
     private let retryTitle: LocalizedStringKey?
     private let onRetry: (() -> Void)?
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
     public init(
         _ message: LocalizedStringKey,
         retryTitle: LocalizedStringKey? = "cy.state.offline.retry",
@@ -157,32 +125,22 @@ public struct CYInlineError: View {
     }
 
     public var body: some View {
-        Group {
-            if dynamicTypeSize >= .xxLarge {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    errorLabel
-                    retryButton
-                }
-            } else {
-                HStack(alignment: .center, spacing: CYSpacing.md) {
-                    errorLabel
-                    retryButton
-                }
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: CYSpacing.md) {
+                errorLabel
+                retryButton
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                errorLabel
+                retryButton
             }
         }
-        .padding(.horizontal, CYSpacing.lg)
-        .padding(.vertical, CYSpacing.md)
-        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.dangerSoft))
         .accessibilityElement(children: .combine)
     }
 
+    /// Native r2: a `Label(exclamationmark.circle)` footnote in the system red, no tinted box.
     private var errorLabel: some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
-            Image(systemName: "exclamationmark.circle.fill")
-                .font(CYTypography.label)
-                .foregroundStyle(CYColor.dangerText)
-                .accessibilityHidden(true)
-
+        Label {
             Group {
                 if let verbatim {
                     Text(verbatim: verbatim)
@@ -190,11 +148,13 @@ public struct CYInlineError: View {
                     Text(message)
                 }
             }
-            .cyText(.bodyCompact)
-            .foregroundStyle(CYColor.dangerText)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
+        } icon: {
+            Image(systemName: "exclamationmark.circle")
         }
+        .font(.footnote)
+        .foregroundStyle(.red)
     }
 
     @ViewBuilder
@@ -202,13 +162,9 @@ public struct CYInlineError: View {
         if let retryTitle, let onRetry {
             Button(action: onRetry) {
                 Text(retryTitle)
-                    .cyText(.label, weight: .semibold)
-                    .foregroundStyle(CYColor.dangerText)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
+            .font(.footnote)
         }
     }
 }
@@ -232,15 +188,15 @@ public enum CYToastTone: Sendable, Hashable {
 
     var iconColor: Color {
         switch self {
-        case .info: return CYColor.textPrimary
-        case .success: return CYColor.successText
-        case .warning: return CYColor.warningText
-        case .undoable: return CYColor.infoText
+        case .info: return .secondary
+        case .success: return .green
+        case .warning: return .orange
+        case .undoable: return .accentColor
         }
     }
 }
 
-/// Floating pill toast (`maxWidth: 300pt`, `10 × 16pt` padding, `modalPanel` fill + float shadow, zero outer border).
+/// Floating pill toast (native r2: system secondary background, no shadow).
 public struct CYToastPill: View {
     private let messageKey: LocalizedStringKey?
     private let verbatim: String?
@@ -277,7 +233,7 @@ public struct CYToastPill: View {
     public var body: some View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: tone.systemImage)
-                .font(.system(.callout, weight: .semibold))
+                .font(.callout)
                 .foregroundStyle(tone.iconColor)
                 .accessibilityHidden(true)
 
@@ -288,27 +244,24 @@ public struct CYToastPill: View {
                     Text(messageKey)
                 }
             }
-            .cyText(.bodyCompact)
-            .foregroundStyle(CYColor.textPrimary)
+            .font(.subheadline)
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
 
             if let undoTitle, let onUndo {
                 Button(action: onUndo) {
                     Text(undoTitle)
-                        .cyText(.label, weight: .bold)
-                        .foregroundStyle(CYColor.infoText)
-                        .padding(.horizontal, CYSpacing.xs)
-                        .frame(minHeight: 32)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
+                .font(.subheadline.weight(.semibold))
             }
         }
         .padding(.horizontal, CYSpacing.lg)
         .padding(.vertical, CYSpacing.s2_5)
         .frame(maxWidth: 300)
-        .background(Capsule(style: .continuous).fill(CYColor.modalPanel))
-        .shadow(color: CYColor.floatShadowColor, radius: 16, x: 0, y: 8)
+        // Native r2: no Apple toast control exists; the closest is a plain secondary-background capsule
+        // (no shadow, no blur), like the system "Copied" HUD.
+        .background(Color(uiColor: .secondarySystemBackground), in: Capsule())
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.updatesFrequently)
     }
@@ -464,22 +417,10 @@ struct CYEmptyIllustration: View {
 
 // MARK: - Previews (synthetic, preview-only)
 
-#Preview("Shared states - dark (player)") {
+#Preview("Shared states") {
     VStack(spacing: CYSpacing.lg) {
         CYOfflineBanner(onRetry: {})
         CYLoadingStateView(rows: 2)
         Spacer()
     }
-    .background(CYColor.bgPage)
-    .preferredColorScheme(.dark)
-}
-
-#Preview("Shared states - light (merchant)") {
-    VStack(spacing: CYSpacing.lg) {
-        CYOfflineBanner(onRetry: {})
-        CYLoadingStateView(rows: 2)
-        Spacer()
-    }
-    .background(CYColor.bgPage)
-    .preferredColorScheme(.light)
 }

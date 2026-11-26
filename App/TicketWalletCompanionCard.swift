@@ -15,58 +15,28 @@ import QuestifyCore
         guard let owner = Int(seat.ownerID), owner > 0 else { return nil }
         return seat.ownerType == 2 ? .activity(owner) : .topic(owner)
     }
-    private var cover: URL? {
-        guard let url = URL(string: seat.coverURL), url.scheme?.lowercased() == "https" else { return nil }
-        return url
-    }
 
+    /// native-r2: a plain list row (Wallet-style pass row), no card chrome. MP image via the seat cover only.
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .bottomLeading) {
-                if let cover {
-                    AsyncImage(url: cover) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() } else { CYColor.bgSurfaceStrong }
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 120, maxHeight: 120)
-                    .clipped()
-                    .accessibilityHidden(true)
-                } else {
-                    ZStack(alignment: .topTrailing) {
-                        LinearGradient(colors: [CYColor.gameAccent.opacity(0.55), CYColor.bgSurfaceStrong],
-                                       startPoint: .topLeading, endPoint: .bottomTrailing)
-                        MPAsset.BannerCover.coverRoute.resizable().scaledToFit().frame(width: 100, height: 100)
-                            .opacity(0.35).offset(x: 70, y: -10).accessibilityHidden(true)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 120, maxHeight: 120)
-                    .clipped()
-                    .accessibilityHidden(true)
-                }
-                CYStatusChip("ticketWallet.companion.type", tone: .info)
-                    .padding(CYSpacing.md)
-            }
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        Group {
+            LabeledContent {
+                Text("ticketWallet.companion.type")
+            } label: {
                 Text(verbatim: seat.title.isEmpty ? "—" : seat.title)
-                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 if !seat.usableUntil.isEmpty {
-                    Text(verbatim: seat.usableUntil).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                }
-                if let scope {
-                    NavigationLink {
-                        SessionPlayRuntimeView(session: session, destination: .journey(scope))
-                            .environment(\.playThemeAuxiliaryProvider, session.playThemeAuxiliaryProvider)
-                    } label: {
-                        Label { Text("playerJourney.start") } icon: { TicketWalletPlayGlyph() }
-                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                    }
-                    .buttonStyle(.cyPrimary(fullWidth: true))
-                    .accessibilityIdentifier("ticketWallet.companion.play.\(seat.invitationID)")
+                    Text(verbatim: seat.usableUntil)
                 }
             }
-            .padding(CYSpacing.md)
+            .accessibilityIdentifier("ticketWallet.companion.\(seat.invitationID)")
+            if let scope {
+                NavigationLink {
+                    SessionPlayRuntimeView(session: session, destination: .journey(scope))
+                        .environment(\.playThemeAuxiliaryProvider, session.playThemeAuxiliaryProvider)
+                } label: {
+                    Label("playerJourney.start", systemImage: "play.fill")
+                }
+                .accessibilityIdentifier("ticketWallet.companion.play.\(seat.invitationID)")
+            }
         }
-        .background(CYColor.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("ticketWallet.companion.\(seat.invitationID)")
     }
 }

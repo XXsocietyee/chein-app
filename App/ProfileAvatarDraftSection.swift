@@ -206,7 +206,7 @@ import UIKit
         if let dependencies, kind != .avatar {
             ProfileMediaUploadEnabledRows(model: model, dependencies: dependencies, kind: kind)
         } else {
-            Text("profile.media.notAvailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text("profile.media.notAvailable").font(.subheadline).foregroundStyle(.secondary)
                 .accessibilityIdentifier("profile.media.notAvailable.\(kind.rawValue)")
         }
     }
@@ -238,28 +238,27 @@ import UIKit
     var body: some View {
         Group {
             ForEach(staged, id: \.id) { item in
-                HStack(spacing: CYSpacing.sm) {
+                HStack {
                     if let preview = model.mediaPreviews[item.id], let image = UIImage(data: preview.jpeg) {
                         Image(uiImage: image).resizable().scaledToFill()
                             .frame(width: 56, height: 56)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+                            .clipped()
                             .accessibilityLabel(LocalizedStringKey(kind == .casePicture ? "profile.case.newPreview" : "profile.contactQR.newPreview"))
                     }
                     Text(LocalizedStringKey(kind == .casePicture ? "profile.case.newStaged" : "profile.contactQR.newStaged"))
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline).foregroundStyle(.secondary)
                     Spacer(minLength: 0)
                     Button(LocalizedStringKey(kind == .casePicture ? "profile.case.removeNew" : "profile.contactQR.discardNew"), role: .destructive) {
                         model.discardMedia(id: item.id)
                     }
                     .buttonStyle(.borderless)
-                    .frame(minHeight: 44)
                     .disabled(model.busy || model.coordinator.isLocked)
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("profile.media.staged.\(kind.rawValue)")
             }
             if atLimit {
-                Text("profile.case.limit").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("profile.case.limit").font(.subheadline).foregroundStyle(.secondary)
                     .accessibilityIdentifier("profile.case.limit")
             } else if kind == .casePicture || staged.isEmpty {
                 Button { guard scenePhase == .active else { return }; presentation.open() } label: {

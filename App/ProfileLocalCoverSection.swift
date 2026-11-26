@@ -119,10 +119,12 @@ extension ProfileLocalCoverOwner {
                         Text(LocalizedStringKey(message)).accessibilityIdentifier("profile.localCover.message")
                     }
                     Button("profile.localCover.edit") { model.open() }
+                        .buttonStyle(.borderless)
                         .disabled(!model.controller.canEdit || scenePhase != .active)
                         .accessibilityIdentifier("profile.localCover.edit")
                     if !model.controller.loaded || model.controller.messageKey == "profile.localCover.changed" {
                         Button("profile.localCover.reload") { model.controller.load() }
+                            .buttonStyle(.borderless)
                             .accessibilityIdentifier("profile.localCover.reload")
                     }
                 }
@@ -167,7 +169,7 @@ extension ProfileLocalCoverOwner {
     private var editor: some View {
         NavigationStack {
             Form {
-                Section { Text("profile.localCover.deviceOnly").cyText(.bodyCompact) }
+                Section { Text("profile.localCover.deviceOnly").font(.subheadline).foregroundStyle(.secondary) }
                 if let crop = model.crop {
                     Section {
                         ProfileLocalCoverCropView(draft: crop, hasError: model.selectionError, confirm: model.acceptCrop, cancel: { model.cancelCrop(id: crop.id) },
@@ -226,7 +228,7 @@ extension ProfileLocalCoverOwner {
             } else { Text("profile.localCover.invalid") }
         } else {
             ZStack {
-                CYColor.bgSurfaceSubtle
+                Color(uiColor: .secondarySystemFill)
                 Label("profile.localCover.default", systemImage: "photo")
             }.aspectRatio(16.0 / 9.0, contentMode: .fit).accessibilityIdentifier("profile.localCover.default")
         }
@@ -248,7 +250,7 @@ extension ProfileLocalCoverOwner {
             Text("profile.localCover.crop")
             if hasError {
                 Text("profile.localCover.cropFailed")
-                    .foregroundStyle(CYColor.dangerText)
+                    .foregroundStyle(.red)
                     .accessibilityIdentifier("profile.localCover.cropFailure")
             }
             if let rect {
@@ -259,14 +261,14 @@ extension ProfileLocalCoverOwner {
                 Slider(value: $position.zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
                 // Mini-program pages/crop offers 还原 next to the crop action.
                 Button("profile.localCover.cropReset") { position = ProfileCoverCropPosition() }
-                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
+                    .buttonStyle(.bordered)
                 Button {
                     guard isCurrent() else { return }; confirm(draft.id, rect)
                 } label: {
                     if hasError { Text("profile.localCover.cropRetry") }
                     else { Text("reviewLocalSave", tableName: "ProfileLocalCoverCrop") }
                 }
-                    .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
+                    .buttonStyle(.borderedProminent).controlSize(.large)
                     .accessibilityIdentifier("profile.localCover.cropConfirm")
             }
             Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.localCover.cropCancel")

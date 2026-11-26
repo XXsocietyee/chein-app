@@ -43,23 +43,15 @@ public struct CYCardSurfaceModifier: ViewModifier {
         Self.backgroundColor(for: variant)
     }
 
+    /// Native r2: the system grouped secondary background (the inset-grouped cell colour, Light/Dark aware) in the
+    /// one card radius (`CYRadius.card`). No shadow, no tint, no border; `variant` and `radius` are kept for call
+    /// sites only. Increase Contrast adds the system separator edge.
     public func body(content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        // Native restyle r1 (spec §3.3): no shadow; elevation comes from the surface colour.
-        let showLightShadow = false
+        let shape = RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
         content
             .padding(padding)
-            .background(shape.fill(backgroundColor))
-            // Native restyle (spec §3.3): elevation comes from the grouped surface colour; Increase Contrast adds a
-            // 1 pt separator edge (the chengyin-ios `questifyCardSurface`).
-            .modifier(CYIncreaseContrastEdge(radius: radius))
-            .shadow(
-                color: showLightShadow ? CYColor.cardShadowColor : Color.clear,
-                // Native restyle: light shadow only (no heavy shadows). A clear shadow still costs a blur pass.
-                radius: showLightShadow ? 3 : 0,
-                x: 0,
-                y: showLightShadow ? 1 : 0
-            )
+            .background(Color(uiColor: .secondarySystemGroupedBackground), in: shape)
+            .modifier(CYIncreaseContrastEdge(radius: CYRadius.card))
     }
 }
 
@@ -83,7 +75,7 @@ struct CYIncreaseContrastEdge: ViewModifier {
         content.overlay {
             if contrast == .increased {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(CYColor.borderStrong, lineWidth: 1)
+                    .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
                     .allowsHitTesting(false)
             }
         }
@@ -169,25 +161,24 @@ public struct CYSectionHeader: View {
         self.action = action
     }
 
-    @Environment(\.dynamicTypeSize) private var typeSize
-
+    /// Native r2: plain section header text (`.headline`, `.isHeader`), a `.secondary` footnote subtitle, and a
+    /// borderless trailing action ("See All" style). No custom colours or heights.
     public var body: some View {
-        if typeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                titles
-                actionButton
-            }
-        } else {
+        ViewThatFits(in: .horizontal) {
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                 titles
                 Spacer(minLength: CYSpacing.sm)
+                actionButton
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                titles
                 actionButton
             }
         }
     }
 
     private var titles: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading, spacing: 2) {
             Group {
                 if let verbatimTitle {
                     Text(verbatim: verbatimTitle)
@@ -195,21 +186,17 @@ public struct CYSectionHeader: View {
                     Text(title)
                 }
             }
-            .cyText(.sectionTitle)
-            .foregroundStyle(CYColor.textPrimary)
-            .cyWrapText()
+            .font(.headline)
             .accessibilityAddTraits(.isHeader)
 
             if let verbatimSubtitle {
                 Text(verbatim: verbatimSubtitle)
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textTertiary)
-                    .cyWrapText()
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             } else if let subtitle {
                 Text(subtitle)
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textTertiary)
-                    .cyWrapText()
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -217,18 +204,9 @@ public struct CYSectionHeader: View {
     @ViewBuilder private var actionButton: some View {
         if let actionTitle, let action {
             Button(action: action) {
-                HStack(spacing: CYSpacing.xs) {
-                    Text(actionTitle)
-                        .cyText(.label)
-                        .cyWrapText()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                }
-                .foregroundStyle(CYColor.brand)
-                .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                .contentShape(Rectangle())
+                Text(actionTitle)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
         }
     }
 }
@@ -279,35 +257,67 @@ public enum CYButtonVariant: Sendable, Hashable {
     case danger
 }
 
-/// 16pt single-arc loading indicator cycling over 700ms (falls back to static ProgressView under Reduce Motion).
+/// Native r2: the system `ProgressView` (spinner) in the given tint.
 public struct CYButtonSpinner: View {
     public var tint: Color
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var spinning = false
 
     public init(tint: Color = CYColor.actionPrimaryFg) {
         self.tint = tint
     }
 
     public var body: some View {
-        if reduceMotion {
-            Image(systemName: "ellipsis")
-                .accessibilityHidden(true)
-                .font(.system(.subheadline, weight: .bold))
-                .foregroundStyle(tint)
-                .frame(width: 16, height: 16)
-                .accessibilityHidden(true)
-        } else {
-            Circle()
-                .trim(from: 0.12, to: 0.85)
-                .stroke(tint, style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                .frame(width: 16, height: 16)
-                .rotationEffect(.degrees(spinning ? 360 : 0))
-                .onAppear {
-                    withAnimation(.linear(duration: 0.7).repeatForever(autoreverses: false)) {
-                        spinning = true
+        ProgressView()
+            .accessibilityHidden(true)
+    }
+}
+
+/// Native r2 host for the `CY*ButtonStyle` family (they must stay `ButtonStyle`s for call sites): the label sits in a
+/// real system button of the matching style, so the system draws fill, shape, tint, label colour, size and the
+/// disabled state. The outer (styled) button takes the tap; the system press dim is mirrored from `isPressed`.
+struct CYSystemButtonHost: View {
+    let configuration: ButtonStyleConfiguration
+    let variant: CYButtonVariant
+    let size: CYButtonSize
+    let isFullWidth: Bool
+    let isLoading: Bool
+
+    var body: some View {
+        styled(
+            Button(role: variant == .danger ? .destructive : configuration.role, action: {}) {
+                ZStack {
+                    configuration.label
+                        .opacity(isLoading ? 0 : 1)
+                    if isLoading {
+                        ProgressView()
                     }
                 }
+                .frame(maxWidth: isFullWidth ? .infinity : nil)
+            }
+        )
+        .controlSize(controlSize)
+        .allowsHitTesting(false)
+        .opacity(configuration.isPressed && !isLoading ? 0.75 : 1)
+    }
+
+    private var controlSize: ControlSize {
+        switch size {
+        case .md: return .large
+        case .sm: return .regular
+        case .xs: return .small
+        }
+    }
+
+    @ViewBuilder
+    private func styled<B: View>(_ button: B) -> some View {
+        switch variant {
+        case .primary:
+            button.buttonStyle(.borderedProminent)
+        case .secondary:
+            button.buttonStyle(.bordered)
+        case .ghost:
+            button.buttonStyle(.borderless)
+        case .danger:
+            button.buttonStyle(.borderedProminent).tint(.red)
         }
     }
 }
@@ -371,8 +381,6 @@ public struct CYPrimaryButtonStyle: ButtonStyle {
     public var size: CYButtonSize
     public var isLoading: Bool
     public var isPill: Bool
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(isFullWidth: Bool = true, size: CYButtonSize = .md, isLoading: Bool = false, isPill: Bool = false) {
         self.isFullWidth = isFullWidth
@@ -382,27 +390,7 @@ public struct CYPrimaryButtonStyle: ButtonStyle {
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        let radius = size.cornerRadius(isPill: isPill)
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let active = isEnabled && !isLoading
-        let tokens = CYButtonTokens.resolve(variant: .primary, isEnabled: isEnabled, isPressed: configuration.isPressed)
-        ZStack {
-            configuration.label
-                .opacity(isLoading ? 0 : 1)
-            if isLoading {
-                CYButtonSpinner(tint: tokens.spinnerTint)
-            }
-        }
-        .font(size.font)
-        .cyWrapText(alignment: .center)
-        .foregroundStyle(tokens.foreground)
-        .padding(.horizontal, size.horizontalPadding)
-        .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
-        .background(shape.fill(tokens.background))
-        .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
-        .contentShape(Rectangle())
-        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
-        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
+        CYSystemButtonHost(configuration: configuration, variant: .primary, size: size, isFullWidth: isFullWidth, isLoading: isLoading)
     }
 }
 
@@ -412,8 +400,6 @@ public struct CYSecondaryButtonStyle: ButtonStyle {
     public var size: CYButtonSize
     public var isLoading: Bool
     public var isPill: Bool
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(isFullWidth: Bool = false, size: CYButtonSize = .md, isLoading: Bool = false, isPill: Bool = false) {
         self.isFullWidth = isFullWidth
@@ -423,27 +409,7 @@ public struct CYSecondaryButtonStyle: ButtonStyle {
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        let radius = size.cornerRadius(isPill: isPill)
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let active = isEnabled && !isLoading
-        let tokens = CYButtonTokens.resolve(variant: .secondary, isEnabled: isEnabled, isPressed: configuration.isPressed)
-        ZStack {
-            configuration.label
-                .opacity(isLoading ? 0 : 1)
-            if isLoading {
-                CYButtonSpinner(tint: tokens.spinnerTint)
-            }
-        }
-        .font(size.font)
-        .cyWrapText(alignment: .center)
-        .foregroundStyle(tokens.foreground)
-        .padding(.horizontal, size.horizontalPadding)
-        .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
-        .background(shape.fill(tokens.background))
-        .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
-        .contentShape(Rectangle())
-        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
-        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
+        CYSystemButtonHost(configuration: configuration, variant: .secondary, size: size, isFullWidth: isFullWidth, isLoading: isLoading)
     }
 }
 
@@ -453,8 +419,6 @@ public struct CYGhostButtonStyle: ButtonStyle {
     public var size: CYButtonSize
     public var isLoading: Bool
     public var isPill: Bool
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(isFullWidth: Bool = false, size: CYButtonSize = .md, isLoading: Bool = false, isPill: Bool = false) {
         self.isFullWidth = isFullWidth
@@ -464,27 +428,7 @@ public struct CYGhostButtonStyle: ButtonStyle {
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        let radius = size.cornerRadius(isPill: isPill)
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let active = isEnabled && !isLoading
-        let tokens = CYButtonTokens.resolve(variant: .ghost, isEnabled: isEnabled, isPressed: active && configuration.isPressed)
-        ZStack {
-            configuration.label
-                .opacity(isLoading ? 0 : 1)
-            if isLoading {
-                CYButtonSpinner(tint: tokens.spinnerTint)
-            }
-        }
-        .font(size.font)
-        .cyWrapText(alignment: .center)
-        .foregroundStyle(tokens.foreground)
-        .padding(.horizontal, size.horizontalPadding)
-        .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
-        .background(shape.fill(tokens.background))
-        .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
-        .contentShape(Rectangle())
-        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
-        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
+        CYSystemButtonHost(configuration: configuration, variant: .ghost, size: size, isFullWidth: isFullWidth, isLoading: isLoading)
     }
 }
 
@@ -494,8 +438,6 @@ public struct CYDestructiveButtonStyle: ButtonStyle {
     public var size: CYButtonSize
     public var isLoading: Bool
     public var isPill: Bool
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(isFullWidth: Bool = false, size: CYButtonSize = .md, isLoading: Bool = false, isPill: Bool = false) {
         self.isFullWidth = isFullWidth
@@ -505,27 +447,7 @@ public struct CYDestructiveButtonStyle: ButtonStyle {
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        let radius = size.cornerRadius(isPill: isPill)
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let active = isEnabled && !isLoading
-        let tokens = CYButtonTokens.resolve(variant: .danger, isEnabled: isEnabled, isPressed: configuration.isPressed)
-        ZStack {
-            configuration.label
-                .opacity(isLoading ? 0 : 1)
-            if isLoading {
-                CYButtonSpinner(tint: tokens.spinnerTint)
-            }
-        }
-        .font(size.font)
-        .cyWrapText(alignment: .center)
-        .foregroundStyle(tokens.foreground)
-        .padding(.horizontal, size.horizontalPadding)
-        .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
-        .background(shape.fill(tokens.background))
-        .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
-        .contentShape(Rectangle())
-        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
-        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
+        CYSystemButtonHost(configuration: configuration, variant: .danger, size: size, isFullWidth: isFullWidth, isLoading: isLoading)
     }
 }
 
