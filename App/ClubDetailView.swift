@@ -464,7 +464,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     .task {
                         guard let governance = management?.governance else { return }
                         await r8Mounts.loadSettingsCounts(clubID: club.id, canSeeCustomers: club.isOwner || club.viewerIsAdmin,
-                                                          access: governance.access)
+                                                          access: governance.access, locale: locale)
                     }
             }
             .cyToast(message: $groupCodeToast)

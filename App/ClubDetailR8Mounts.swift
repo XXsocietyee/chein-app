@@ -25,7 +25,7 @@ import SwiftUI
     private var avatarsKey: String?
     /// CLB-r7-A-06 (MP loadSettingsCounts js:3579-3601): read once per club when 俱乐部设置 opens; a failure clears the
     /// guard so the next opening asks again. Owner / admin only, as the MP sends it.
-    func loadSettingsCounts(clubID: Int, canSeeCustomers: Bool, access: any ClubGovernanceAccess) async {
+    func loadSettingsCounts(clubID: Int, canSeeCustomers: Bool, access: any ClubGovernanceAccess, locale: Locale = .current) async {
         guard canSeeCustomers, settingsCountsFor != clubID else { return }
         settingsCountsFor = clubID
         if topicTotal == nil,
@@ -36,11 +36,11 @@ import SwiftUI
         do {
             let count = try await access.read(.customerCount, scope: .init(clubID: clubID), options: [:])
             guard settingsCountsFor == clubID, !Task.isCancelled else { return }
-            if let total = count.value["total"].int, total > 0 { customerCountText = "\(total) 人" }
+            if let total = count.value["total"].int, total > 0 { customerCountText = String(format: appLocalized("club.settings.customerCount %lld", locale: locale), total) }
         } catch {
             guard settingsCountsFor == clubID, !Task.isCancelled else { return }
             settingsCountsFor = nil
-            customerCountText = "暂时读不到"
+            customerCountText = appLocalized("club.settings.countUnavailable", locale: locale)
         }
     }
 

@@ -230,41 +230,43 @@ public struct ClubGapSettingsSheet: View {
             List {
                 if onCustomers != nil || onEnroll != nil || onEventOps != nil || onRoles != nil {
                     Section {
-                        settingsRow("查看客户", onCustomers, count: customerCountText)
-                        settingsRow("报名名册", onEnroll, count: (topicCount ?? 0) > 0 ? "\(topicCount ?? 0) 个团" : nil)
-                        settingsRow("活动运营", onEventOps)
-                        settingsRow("角色与权限", onRoles, count: delegatedRoleCount > 0 ? "\(delegatedRoleCount) 已委派" : nil)
+                        // CLB-r9-detail-03 (MP detail wxml:690-797): catalog keys, counts as the trailing value.
+                        settingsRow("club.settings.customers", onCustomers, count: customerCountText.map { Text(verbatim: $0) })
+                        settingsRow("club.settings.enroll", onEnroll, count: topicCountText)
+                        settingsRow("club.settings.eventOps", onEventOps)
+                        settingsRow("club.settings.roles", onRoles, count: delegatedRoleCount > 0 ? Text("club.settings.delegated \(delegatedRoleCount)") : nil)
                     } header: {
-                        Text(verbatim: "客户与项目").cyText(.sectionTitle)
+                        Text("club.settings.customersSection")
                     }
                 }
                 if canGovern {
                     Section {
-                        Button("编辑俱乐部资料") {
+                        Button("club.settings.editClub") {
                             dismiss()
                             onEditClub()
                         }
                         .cyText(.body)
                     }
                     Section {
-                        Button("改为转让主理人") {
+                        Button("club.settings.transferOwner") {
                             dismiss()
                             onTransferOwner()
                         }
                         .cyText(.body)
-                        Button("解散俱乐部", role: .destructive) {
+                        Button("club.settings.dissolve", role: .destructive) {
                             dismiss()
                             onDissolveClub()
                         }
                         .cyText(.body)
                     } header: {
-                        Text(verbatim: "危险操作").cyText(.sectionTitle)
+                        Text("club.settings.danger")
                     } footer: {
-                        Text(verbatim: "成员将失去俱乐部与群聊入口，已报名不会自动退款。").cyText(.meta)
+                        Text("club.settings.dissolveFooter")
                     }
                 }
             }
-            .cyPageTitle(verbatim: "俱乐部设置")
+            .navigationTitle(Text("club.settings.title"))
+            .navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier("club.settings.sheet")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -288,21 +290,23 @@ public struct ClubGapSettingsSheet: View {
         return copy
     }
 
-    @ViewBuilder private func settingsRow(_ title: String, _ action: (() -> Void)?, count: String? = nil) -> some View {
+    /// 「N 个团」 beside 报名名册; nil or 0 hides it.
+    private var topicCountText: Text? {
+        guard let topicCount, topicCount > 0 else { return nil }
+        return Text("club.settings.topicCount \(topicCount)")
+    }
+
+    @ViewBuilder private func settingsRow(_ title: LocalizedStringKey, _ action: (() -> Void)?, count: Text? = nil) -> some View {
         if let action {
             Button {
                 dismiss()
                 action()
             } label: {
-                HStack {
-                    Text(verbatim: title).cyText(.body).foregroundStyle(CYColor.textPrimary)
-                    Spacer()
-                    if let count { Text(verbatim: count).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                    Image(systemName: "chevron.right").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityHidden(true)
+                LabeledContent {
+                    if let count { count }
+                } label: {
+                    Text(title).foregroundStyle(.primary)
                 }
-                .frame(minHeight: CYSpacing.minTouchTarget)
-                .contentShape(Rectangle())
             }
         }
     }
