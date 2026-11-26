@@ -326202,13 +326202,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "More actions"
+            "value": "Order actions"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "更多操作"
+            "value": "订单操作"
           }
         }
       }

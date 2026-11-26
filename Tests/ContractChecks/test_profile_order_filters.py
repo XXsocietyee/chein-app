@@ -44,7 +44,10 @@ class ProfileOrderFilterChecks(unittest.TestCase):
         self.assertIn('let matches = ProfileOrderSearch.matches(visible, query: orderQuery)',self.app)
         self.assertIn('ForEach(matches) { order in',self.app)
         self.assertIn('ProfileOrderDetailView(id: order.id, reader: reader,',self.app)
-        self.assertIn('historyState: order.historyState(now: clock.date)',self.app)
+        # NIT-R11-1: the row moved into orderListRow (MP scene-member-order-history/index.wxml:84-90 visible card actions);
+        # it still reads the TimelineView clock.
+        self.assertIn('orderListRow(order, now: clock.date)',self.app)
+        self.assertIn('historyState: order.historyState(now: now)',self.app)
     def test_true_empty_and_filter_empty_distinct(self):
         self.assertIn('if orders.isEmpty',self.app);self.assertIn('isEmpty: visible.isEmpty',self.app)
         self.assertIn('Text("profile.orderFilter.empty")',self.ui);self.assertIn('{ selection = .all }',self.ui)
