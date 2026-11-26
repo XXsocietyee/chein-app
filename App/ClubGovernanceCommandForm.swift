@@ -174,11 +174,11 @@ import SwiftUI
                 }
                 if applyStep == 4 {
                     Section {
-                        // 资质 / 案例图 upload has no working upload path yet, and picked images block submission,
-                        // so the picker stays hidden until uploads exist (ClubHostApplicationMaterialsRows).
                         flagRow("hasGuideCert")
                     } header: { applyStepHeader(4) }
                         .disabled(busy || locked || review != nil)
+                    // CLB-apply-05: 资质 / 案例图, uploaded like the MP and sent as `certImages` (comma-joined URLs).
+                    ClubHostCertImagesSection(urlsText: textBinding("certImages"), disabled: busy || locked || review != nil)
                 }
             } else if route.operation == .sendNotification {
                 // Mini-program club/notify: 选择受众 list, then 内容.
