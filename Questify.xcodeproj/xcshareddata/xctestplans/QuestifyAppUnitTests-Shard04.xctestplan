@@ -202,6 +202,7 @@
         "LocalizationCompletenessSectionViewTests",
         "LocalizationPluralAndFormatterConsistencySectionViewTests",
         "MPFirstCMAGrantTests",
+        "MPFirstCoopWritesTests",
         "MPFirstMerchantWriteRouteTests",
         "MPParityDeepLinkRouteTests",
         "MPParityPassBindingTests",
