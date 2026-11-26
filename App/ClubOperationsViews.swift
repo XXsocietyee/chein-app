@@ -250,6 +250,16 @@ struct ClubOperationsWorkspaceView: View {
                 .accessibilityLabel(Text("club.ops.close"))
                 .accessibilityIdentifier("club.ops.close")
             }
+            // CLB-r9-create-03 (MP create wxml:6-8): 「n / 4」 at the bar's trailing end while a wizard step shows.
+            if target == .create, let step = createStepBar.step, (1...4).contains(step) {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Text(verbatim: "\(step) / 4")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel(Text(verbatim: ClubPlayerCopy.progressLabel(step, locale: locale)))
+                        .accessibilityIdentifier("club.create.stepCount")
+                }
+            }
         }
         .interactiveDismissDisabled(dirty || state.locksForm)
         .confirmationDialog("club.ops.discardTitle", isPresented: $showDiscard, titleVisibility: .visible) {
