@@ -127,6 +127,11 @@ enum MPFirstClubWriteRoute {
               let parsed = try? JSONSerialization.jsonObject(with: body),
               let object = parsed as? [String: Any],
               moneyKeys.isDisjoint(with: object.keys) else { return false }
+        // `api/club/members` is a review read (ClubGovernanceRead.members), not a write: admit only its exact
+        // `{"clubId": positive}` shape, as ClubPublicRosterRoute does, so an extra key (e.g. `amount`) stays closed.
+        if relative == ClubGovernanceRead.members.path {
+            guard Set(object.keys) == ["clubId"], let id = object["clubId"] as? Int, id > 0 else { return false }
+        }
         return true
     }
 }

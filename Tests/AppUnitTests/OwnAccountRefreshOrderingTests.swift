@@ -21,7 +21,12 @@ private final class OrderedAccountWire: HTTPTransport {
     func reply(id: Int = 7, role: String = "player", nickname: String = "Initial") -> (Data, Int) {
         (Data("{\"code\":200,\"appUser\":{\"id\":\(id),\"role\":\"\(role)\",\"nickname\":\"\(nickname)\"}}".utf8), 200)
     }
-    func send(_ request: URLRequest) async throws -> (Data, Int) {
+    /// `HTTPTransport.send` is nonisolated, so it runs on the global executor while the @MainActor test
+    /// polls `pending`/`readCount`. Unsynchronized Dictionary insert vs. read raced and crashed the clone
+    /// with SIGSEGV (testDuplicateExecutionWhileOriginalReadIsPendingCannotDispatchAgain). Hop to the main
+    /// actor so every wire mutation is serialized with the test's reads.
+    func send(_ request: URLRequest) async throws -> (Data, Int) { try await mainActorSend(request) }
+    @MainActor private func mainActorSend(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         guard let path = request.url?.path else { throw APIError.invalidRequest }
         if path.hasSuffix("/api/userInfo") {
