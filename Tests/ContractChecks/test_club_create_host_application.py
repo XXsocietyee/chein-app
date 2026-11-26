@@ -23,6 +23,9 @@ class ClubCreateHostApplicationContracts(unittest.TestCase):
         self.assertNotIn('send(', link)
         self.assertIn('case .hostApply: return "api/club/become-leader"', read('Core/ClubGovernanceCommands.swift'))
         self.assertIn('hostApplication: management?.governance)', read('App/ClubHomeView.swift'))
+        # CLB-r9-create-02 (MP create js:114-118, 192-200): a non-host is sent on to apply once per visit.
+        self.assertIn('.modifier(ClubCreateHostAutoOpen(active: hostAutoOpenActive, identity: identity, governance: hostApplication))', view)
+        self.assertIn('struct ClubCreateHostAutoOpen: ViewModifier', link)
 
     def test_fixture_opt_in_and_copy(self):
         fixture = read('App/ClubOperationsFixtureSupport.swift')

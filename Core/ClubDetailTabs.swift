@@ -77,40 +77,16 @@ public struct ClubDetailTabPolicy: Equatable, Sendable {
     }
 }
 
-/// Mini-program `pages/club/detail` 3-up overview facts grid: 主理人 / 等级 / 所在城市.
-/// A missing host or city is 待补充. A level outside 1...5 is 待定. Unknown counts stay on
-/// `ClubDetailPageModel.unknownMark` and are not rewritten here.
-public struct ClubDetailOverviewFactsGrid: Equatable, Sendable {
-    public enum Field: String, CaseIterable, Identifiable, Sendable {
-        case leader, level, city
-        public var id: String { rawValue }
-        public var label: String {
-            switch self {
-            case .leader: return "主理人"
-            case .level: return "等级"
-            case .city: return "所在城市"
-            }
-        }
-    }
-    public struct Item: Equatable, Identifiable, Sendable {
-        public let field: Field
-        public let label: String
-        public let value: String
-        public var id: String { field.rawValue }
-    }
-    public let items: [Item]
-    public init(leaderName: String?, level: Int, city: String?) {
-        let normalizedLeader = leaderName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let normalizedCity = city?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let levelText = (1...5).contains(level) ? "L\(level)" : "待定"
-        items = [
-            Item(field: .leader, label: Field.leader.label, value: normalizedLeader.isEmpty ? "待补充" : normalizedLeader),
-            Item(field: .level, label: Field.level.label, value: levelText),
-            Item(field: .city, label: Field.city.label, value: normalizedCity.isEmpty ? "待补充" : normalizedCity),
-        ]
-    }
-    public init(club: ClubRecord) {
-        self.init(leaderName: club.leaderName, level: club.level, city: club.city)
+/// CLB-detail-42: MP `pages/club/detail` header shows 主理人 and 城市 even when the server left them out; a missing
+/// value reads 待补充 (catalog key below). The old dead overview-grid type had no App caller and is gone again.
+/// Unknown counts stay on `ClubDetailPageModel.unknownMark` and are not rewritten here.
+public enum ClubDetailHeaderFact {
+    /// zh-Hans 待补充 / en "To be added".
+    public static let pendingKey = "club.detail.factPending"
+    /// The trimmed value, or nil when it is blank or the unknown mark (the header then shows `pendingKey`).
+    public static func known(_ value: String?) -> String? {
+        let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty || text == ClubDetailPageModel.unknownMark ? nil : text
     }
 }
 

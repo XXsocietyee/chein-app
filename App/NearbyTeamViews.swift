@@ -303,7 +303,8 @@ import SwiftUI
                 if !coordinator.serverMessage.isEmpty { Text(verbatim: coordinator.serverMessage).accessibilityIdentifier("nearby.serverMessage") }
             }.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                // N-RTEAMS (r10): system GroupBox instead of the drawn domain card (MP my-teams / nearby wxml notice block).
+                .groupBoxWrapped()
         }
     }
     /// Mini-program 范围 control. Coordinates are only typed in when the host gave no map point.
@@ -435,7 +436,8 @@ import SwiftUI
             }
             NearbyTeamReportButton(teamID: team.id.rawValue, leader: team.mode == "leader" || team.viewerStatus == .leader)
         }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+            // N-RTEAMS (r10): the team card is a system GroupBox, not the drawn domain card (MP nearby / my-teams team card).
+            .groupBoxWrapped()
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")
     }
     @ViewBuilder private var applicantSection: some View {
@@ -714,4 +716,9 @@ import SwiftUI
             button.frame(maxWidth: .infinity).fontWeight(.semibold)
         }
     }
+}
+
+private extension View {
+    /// N-RTEAMS (r10): wraps the receiver in a system `GroupBox` (system grouped fill, system corner radius).
+    func groupBoxWrapped() -> some View { GroupBox { self } }
 }

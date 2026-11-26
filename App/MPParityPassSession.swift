@@ -460,7 +460,6 @@ struct MPParityPassEnvironment: ViewModifier {
         content.environment(\.mpParity, bindings)
             .environment(\.g6Capabilities, session.g6Capabilities())
             .modifier(PlayerJourneySignInSheet(bridge: .shared, session: session))
-            .onAppear { session.installPublicCatalogHost() }
     }
 }
 

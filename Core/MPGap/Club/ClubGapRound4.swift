@@ -122,6 +122,20 @@ public struct FEReferenceRangeFilter: Equatable, Sendable {
         self.fromDate = fromDate
         self.toDate = toDate
     }
+
+    /// CLB-r10-nat-detail-12: the MP `picker mode="date"` value, `YYYY-MM-DD` on the Beijing calendar.
+    public static func date(_ text: String) -> Date? {
+        text.isEmpty ? nil : dayFormatter.date(from: text)
+    }
+    public static func text(_ date: Date) -> String { dayFormatter.string(from: date) }
+    private static var dayFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }
 }
 
 public struct ClubFEReferenceExportClient {
@@ -182,6 +196,7 @@ public enum ClubRound4Copy {
     public static let rangeStartPlaceholder = "开始日期"
     public static let rangeEndPlaceholder = "结束日期"
     public static let rangeClear = "清除"
+    public static let rangeUnset = "未设置"
     public static let rangeExport = "导出"
     public static let groupCodeSelectTitle = "选择场次"
     public static let groupCodeEmptyTitle = "暂无可带队的场次"

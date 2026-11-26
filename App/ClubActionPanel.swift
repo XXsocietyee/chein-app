@@ -170,8 +170,8 @@ struct ClubActionPanel: View {
         if canLeaveHere || (onReportClub != nil && identity.isSignedIn) {
             Section {
                 confirmationPresenter(ClubPageEndActions(canLeave: canLeaveHere && !isWorking, onLeave: { prepare(.leave) }, onReport: onReportClub))
+                    // CLB-r10-nat-detail-08: the system List cell draws the group (no cleared row and no drawn plate).
                     .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
                     .onChange(of: identity) { _, _ in reset() }
                     .onChange(of: club.id) { old, _ in reset(clubID: old) }
                     .onDisappear { reset() }

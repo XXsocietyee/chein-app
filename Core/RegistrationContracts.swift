@@ -6,12 +6,17 @@ public struct RegistrationQuoteRequest: Encodable, Equatable {
     public let ticketID: Int?
     public let usePoints: Bool
     public let waitlistOffer: RegistrationWaitlistOffer?
+    /// R7-PC-C2-1: MP baoming.wxml:155-161 / js:1876 send the picked 儿童年龄 with quote and create.
+    /// Nil (no child on the ticket, or nothing picked) leaves the key out of the body.
+    public let childAge: Int?
     public var ownerType: Int { 2 }
 
-    public init(ownerID: Int, ticketID: Int? = nil, usePoints: Bool = false, waitlistOffer: RegistrationWaitlistOffer? = nil) throws {
-        guard ownerID > 0, ticketID.map({ $0 > 0 }) ?? true else {
+    public init(ownerID: Int, ticketID: Int? = nil, usePoints: Bool = false, waitlistOffer: RegistrationWaitlistOffer? = nil,
+                childAge: Int? = nil) throws {
+        guard ownerID > 0, ticketID.map({ $0 > 0 }) ?? true, childAge.map({ $0 >= 0 }) ?? true else {
             throw APIError.invalidRequest
         }
+        self.childAge = childAge
         self.ownerID = ownerID
         self.ticketID = ticketID
         guard waitlistOffer == nil || ticketID != nil else { throw APIError.invalidRequest }
@@ -19,13 +24,14 @@ public struct RegistrationQuoteRequest: Encodable, Equatable {
         self.waitlistOffer = waitlistOffer
     }
 
-    private enum CodingKeys: String, CodingKey { case ownerType, ownerId, ticketId, isUsePoint, waitlistOfferId, waitlistOfferToken }
+    private enum CodingKeys: String, CodingKey { case ownerType, ownerId, ticketId, isUsePoint, waitlistOfferId, waitlistOfferToken, childAge }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(ownerType, forKey: .ownerType)
         try c.encode(ownerID, forKey: .ownerId)
         try c.encodeIfPresent(ticketID, forKey: .ticketId)
         try c.encode(usePoints ? 1 : 0, forKey: .isUsePoint)
+        try c.encodeIfPresent(childAge, forKey: .childAge)
         if let waitlistOffer {
             try c.encode(waitlistOffer.id, forKey: .waitlistOfferId)
             try c.encode(waitlistOffer.token, forKey: .waitlistOfferToken)
@@ -166,7 +172,7 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case ownerType, ownerId, ticketId, realName, phone, email, participateDate
-        case isUsePoint, quoteSign, payChannel, requestId, waitlistOfferId, waitlistOfferToken
+        case isUsePoint, quoteSign, payChannel, requestId, waitlistOfferId, waitlistOfferToken, childAge
     }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
@@ -178,6 +184,7 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
         try c.encodeIfPresent(email, forKey: .email)
         try c.encodeIfPresent(participateDate, forKey: .participateDate)
         try c.encode(selection.usePoints ? 1 : 0, forKey: .isUsePoint)
+        try c.encodeIfPresent(selection.childAge, forKey: .childAge)
         try c.encode(quoteSign, forKey: .quoteSign)
         if usesAppPaymentChannel { try c.encode("APP", forKey: .payChannel) }
         try c.encode(requestID, forKey: .requestId)
