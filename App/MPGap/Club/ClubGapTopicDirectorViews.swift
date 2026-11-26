@@ -27,33 +27,26 @@ public struct ClubGapTopicDirectorEmbeddedSection: View {
         Group {
             if summary.hasUnknownWrite {
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Label {
                         Text(verbatim: summary.unknownWriteLabel ?? ClubTopicDirectorCopy.unknownWriteTitle)
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textPrimary)
-                        HStack(spacing: CYSpacing.sm) {
-                            Button(ClubTopicDirectorCopy.confirmResult, action: onConfirmUnknownWrite)
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
-                            Button(ClubTopicDirectorCopy.retryOriginalAction, action: onRetryUnknownWrite)
-                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
-                        }
+                    } icon: {
+                        Image(systemName: "questionmark.circle")
+                            .foregroundStyle(.orange)
                     }
-                    .padding(.vertical, CYSpacing.xs)
+                    Button(ClubTopicDirectorCopy.confirmResult, action: onConfirmUnknownWrite)
+                    Button(ClubTopicDirectorCopy.retryOriginalAction, action: onRetryUnknownWrite)
                 }
             }
 
             Section {
                 LabeledContent("站点准备", value: "\(summary.readyStations) / \(summary.totalStations)")
-                    .cyText(.body)
                 LabeledContent("进行中队伍", value: "\(summary.activeTeams)")
-                    .cyText(.body)
+            } header: {
+                Text(verbatim: ClubTopicDirectorCopy.prepOverviewTitle)
+            } footer: {
                 if let caption = summary.caption, !caption.isEmpty {
                     Text(verbatim: caption)
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
                 }
-            } header: {
-                Text(verbatim: ClubTopicDirectorCopy.prepOverviewTitle).cyText(.sectionTitle)
             }
 
             Section {
@@ -62,11 +55,10 @@ public struct ClubGapTopicDirectorEmbeddedSection: View {
                         onOpenTool(tool)
                     } label: {
                         Label(tool.title, systemImage: tool.systemImage)
-                            .cyText(.body)
                     }
                 }
             } header: {
-                Text(verbatim: ClubTopicDirectorCopy.directorToolsTitle).cyText(.sectionTitle)
+                Text(verbatim: ClubTopicDirectorCopy.directorToolsTitle)
             }
 
             Section {
@@ -77,10 +69,9 @@ public struct ClubGapTopicDirectorEmbeddedSection: View {
                         summary.leaderboardHidden ? ClubTopicDirectorCopy.showLeaderboard : ClubTopicDirectorCopy.hideLeaderboard,
                         systemImage: summary.leaderboardHidden ? "eye" : "eye.slash"
                     )
-                    .cyText(.body)
                 }
             } header: {
-                Text(verbatim: ClubTopicDirectorCopy.leaderboardTitle).cyText(.sectionTitle)
+                Text(verbatim: ClubTopicDirectorCopy.leaderboardTitle)
             }
         }
     }

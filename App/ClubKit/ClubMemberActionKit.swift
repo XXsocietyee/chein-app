@@ -41,7 +41,6 @@ struct ClubMemberActionMenu: View {
     var reportIdentifier: String?
     let perform: (ClubMemberAction) -> Void
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         Menu {
@@ -62,9 +61,9 @@ struct ClubMemberActionMenu: View {
                 }
             }
         } label: {
-            Image(systemName: "ellipsis")
-                .cyText(.body, weight: .semibold)
-                .foregroundStyle(palette.textSecondary)
+            Image(systemName: "ellipsis.circle")
+                .imageScale(.large)
+                .foregroundStyle(.secondary)
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 .contentShape(Rectangle())
         }
@@ -85,51 +84,49 @@ struct ClubConsequenceSheet: View {
     let onConfirm: () -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     @State private var presented = 0
 
     var body: some View {
-        CYResizableSheet(kind: .pickerLong, title: Text(verbatim: title)) {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            if let objectName, !objectName.isEmpty {
-                Text(verbatim: objectName)
-                    .cyText(.body)
-                    .foregroundStyle(palette.textSecondary)
-            }
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                ForEach(consequences) { item in
-                    HStack(alignment: .top, spacing: CYSpacing.sm) {
-                        Image(systemName: item.systemImage)
-                            .foregroundStyle(palette.textSecondary)
-                            .frame(width: 24)
-                            .accessibilityHidden(true)
-                        Text(verbatim: item.text)
-                            .cyText(.body)
-                            .foregroundStyle(palette.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(consequences) { item in
+                        Label {
+                            Text(verbatim: item.text)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: item.systemImage)
+                                .accessibilityHidden(true)
+                        }
+                    }
+                } header: {
+                    if let objectName, !objectName.isEmpty {
+                        Text(verbatim: objectName)
                     }
                 }
-            }
-            .padding(CYSpacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
-            VStack(spacing: CYSpacing.md) {
-                if let alternativeTitle, let onAlternative {
-                    Button {
+                Section {
+                    if let alternativeTitle, let onAlternative {
+                        Button {
+                            dismiss()
+                            onAlternative()
+                        } label: { Text(verbatim: alternativeTitle) }
+                    }
+                    Button(role: .destructive) {
                         dismiss()
-                        onAlternative()
-                    } label: { Text(verbatim: alternativeTitle) }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary))
+                        onConfirm()
+                    } label: { Text(verbatim: confirmTitle) }
+                    .accessibilityIdentifier("club.consequence.confirm")
                 }
-                Button {
-                    dismiss()
-                    onConfirm()
-                } label: { Text(verbatim: confirmTitle) }
-                .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isPill: true))
-                .accessibilityIdentifier("club.consequence.confirm")
+            }
+            .navigationTitle(Text(verbatim: title))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.cancel") { dismiss() }
+                }
             }
         }
-        }
+        .presentationDetents([.medium, .large])
         .sensoryFeedback(.warning, trigger: presented)
         .onAppear { presented += 1 }
     }
@@ -157,9 +154,9 @@ struct ClubPageEndActions: View {
     let onLeave: () -> Void
     var onReport: (() -> Void)?
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
+        // The host places this in one List row with zero insets; these are Settings-style red rows in that cell.
         VStack(spacing: 0) {
             if canLeave {
                 row(key: "club.leave", symbol: "rectangle.portrait.and.arrow.right", identifier: "club.end.leave", action: onLeave)
@@ -169,24 +166,23 @@ struct ClubPageEndActions: View {
                 row(key: "club.report", symbol: "flag", identifier: "club.end.report", action: onReport)
             }
         }
-        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private func row(key: String, symbol: String, identifier: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: CYSpacing.md) {
-                Image(systemName: symbol).frame(width: 24).accessibilityHidden(true)
+        Button(role: .destructive, action: action) {
+            Label {
                 Text(verbatim: clubR1(key, locale))
-                Spacer(minLength: 0)
+            } icon: {
+                Image(systemName: symbol).accessibilityHidden(true)
             }
-            .cyText(.bodyMedium)
-            .foregroundStyle(palette.danger)
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
             .padding(.horizontal, CYSpacing.lg)
-            .frame(minHeight: 52)
             .contentShape(Rectangle())
         }
-        .buttonStyle(CYListRowButtonStyle())
+        // Borderless keeps each row its own tap target inside the host's single List row.
+        .buttonStyle(.borderless)
         .accessibilityIdentifier(identifier)
     }
 }
@@ -194,20 +190,18 @@ struct ClubPageEndActions: View {
 /// MC-29 / MR-07 / MR-38: withdrawal is a named customer-service hand-off with the next step and reply time.
 struct ClubWithdrawalHandOffNote: View {
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: "person.crop.circle.badge.questionmark")
-                .foregroundStyle(palette.textSecondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: clubR1("funds.handOff.title", locale))
-                    .cyText(.bodyMedium)
-                    .foregroundStyle(palette.textPrimary)
+                    .font(.headline)
                 Text(verbatim: clubR1("funds.handOff.line", locale))
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

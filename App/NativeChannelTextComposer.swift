@@ -45,7 +45,7 @@ import SwiftUI
                             }.buttonStyle(.borderless)
                         }
                         if coordinator.quotedMessageID != nil && !coordinator.quoteDraftIsCurrent {
-                            Text("channelText.replyUnavailable", tableName: "NativeChannelText").cyText(.bodyCompact).foregroundStyle(Theme.Color.danger(in: domain)).fixedSize(horizontal: false, vertical: true)
+                            Text("channelText.replyUnavailable", tableName: "NativeChannelText").cyText(.bodyCompact).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     // `+` on the left, then a rounded field with the send control inside it.
@@ -78,7 +78,9 @@ import SwiftUI
                             .accessibilityIdentifier("channel.text.send")
                         }
                         .frame(minHeight: 44)
-                        .background(Theme.Color.bgRaised(in: domain), in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
+                        // Messages-style field: system background with a hairline separator outline.
+                        .background(Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color(uiColor: .separator)))
                     }
                 } else {
                     if let pending = coordinator.pendingText {

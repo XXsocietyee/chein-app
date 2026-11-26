@@ -371,16 +371,17 @@ import SwiftUI
             .disabled(!owns(ticket) || screenTask != nil)
         }
         .cyText(.body)
-        .sheet(isPresented: $confirmationPresented, onDismiss: { reviewed = nil }) {
-            CYConfirmSheet(
-                title: appLocalized("d7.channelChat.markReadTitle", locale: locale),
-                message: "",
-                confirmTitle: appLocalized("d7.channelChat.markReadConfirm", locale: locale),
-                onCancel: { reviewed = nil }
-            ) {
-                if let reviewed { confirm(reviewed) }
-            }
-            .cyDomainSheet(detents: [.peek, .half])
+        .confirmationDialog(
+            appLocalized("d7.channelChat.markReadTitle", locale: locale),
+            isPresented: $confirmationPresented,
+            titleVisibility: .visible,
+            presenting: reviewed
+        ) { review in
+            Button(appLocalized("d7.channelChat.markReadConfirm", locale: locale)) { confirm(review) }
+            Button("action.cancel", role: .cancel) { reviewed = nil }
+        }
+        .onChange(of: confirmationPresented) { _, presented in
+            if !presented { reviewed = nil }
         }
         .onAppear { visible = true; cancelQueued() }
         .onDisappear { visible = false; cancelQueued() }

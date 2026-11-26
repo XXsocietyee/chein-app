@@ -11,51 +11,59 @@ struct TeamPageHeader: View {
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     @ViewBuilder private var teamTitle: some View {
         let title = detail.team.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        if title.isEmpty { Text("team.untitled").cyText(.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
-        else { Text(verbatim: title).cyText(.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+        if title.isEmpty { Text("team.untitled").font(.title2.bold()).accessibilityAddTraits(.isHeader) }
+        else { Text(verbatim: title).font(.title2.bold()).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true) }
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             if kind == .invitation {
-                // Mini join page `.team-head`: eyebrow, title, explainer, then the meta card.
+                // Mini join page `.team-head`: title, explainer, then the meta facts.
                 teamTitle
-                Text("team.page.inviteExplainer").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("team.page.inviteExplainer").foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("teamPage.inviteExplainer")
             } else {
-                // Mini `.team-status(.live)`: brand-soft pill while recruiting, neutral pill otherwise.
-                CYStatusChip(LocalizedStringKey(detail.team.status.key),
-                             tone: TeamPagePresentation.statusIsLive(detail.team.status) ? .success : .neutral,
-                             systemImage: TeamPagePresentation.statusIsLive(detail.team.status) ? "dot.radiowaves.left.and.right" : nil)
-                    .accessibilityIdentifier("teamPage.status")
+                // Mini `.team-status(.live)`: a live symbol while recruiting, plain status otherwise.
+                let live = TeamPagePresentation.statusIsLive(detail.team.status)
+                Label {
+                    Text(LocalizedStringKey(detail.team.status.key))
+                } icon: {
+                    Image(systemName: live ? "dot.radiowaves.left.and.right" : "circle.fill")
+                        .imageScale(live ? .medium : .small)
+                        .foregroundStyle(live ? Color.green : Color.secondary)
+                }
+                .font(.subheadline)
+                .accessibilityIdentifier("teamPage.status")
                 teamTitle
                 HStack(spacing: 4) {
                     Text(LocalizedStringKey(TeamPagePresentation.modeKey(confirmedJoinMode ?? detail.team.joinMode)))
                     Text(verbatim: "·").accessibilityHidden(true)
                     Text("team.page.noEffectOnActivity")
-                }.cyText(.body).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
+                }.font(.subheadline).foregroundStyle(.secondary).accessibilityElement(children: .combine)
                     .accessibilityIdentifier("teamPage.subtitle")
             }
-            // Mini `.team-meta`: two equal columns, bold value over caption key (members / start or method).
+            // Mini `.team-meta`: two equal columns, value over caption key (members / start or method).
             let metaLayout = typeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.lg))
-                : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.xl))
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+                : AnyLayout(HStackLayout(alignment: .top, spacing: 20))
             metaLayout {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                VStack(alignment: .leading, spacing: 2) {
                     // pages/team/join: a missing joined count or capacity is an em dash; a literal 0 stays "0 / max".
                     Text(verbatim: TeamPagePresentation.memberCountText(detail.team))
-                        .cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        .font(.headline).monospacedDigit()
                         .contentTransition(.numericText())
-                    Text("team.members.count").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("team.members.count").font(.caption).foregroundStyle(.secondary)
                 }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    if kind == .invitation { Text("team.page.inviteOnlyMethod").cyText(.numericBody).foregroundStyle(CYColor.textPrimary) }
-                    else if let start = TeamPagePresentation.startText(detail.team.expireTime, chinese: chinese) { Text(verbatim: start).cyText(.numericBody).foregroundStyle(CYColor.textPrimary) }
-                    else { Text("team.page.startPending").cyText(.numericBody).foregroundStyle(CYColor.textPrimary) }
-                    Text(kind == .invitation ? "team.mode.title" : "team.sessionStart").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Group {
+                        if kind == .invitation { Text("team.page.inviteOnlyMethod") }
+                        else if let start = TeamPagePresentation.startText(detail.team.expireTime, chinese: chinese) { Text(verbatim: start) }
+                        else { Text("team.page.startPending") }
+                    }.font(.headline)
+                    Text(kind == .invitation ? "team.mode.title" : "team.sessionStart").font(.caption).foregroundStyle(.secondary)
                 }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.meta")
-            }.padding(.top, CYSpacing.sm)
+            }.padding(.top, 4)
             if kind == .invitation {
-                Text("team.join.consequence").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("team.join.consequence").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -67,17 +75,21 @@ struct TeamPageStateView: View {
     var reload: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     var body: some View {
-        CYEmptyState(
-            systemImage: state.kind == .signIn ? "person.crop.circle.badge.questionmark" : "exclamationmark.triangle",
-            LocalizedStringKey(state.titleKey),
-            detail: LocalizedStringKey(state.detailKey),
-            messageIdentifier: "teamPage.state.title",
-            actionTitle: state.actionKey.map { LocalizedStringKey($0) },
-            actionIdentifier: "teamPage.state.action",
-            actionStyle: .primary,
-            action: handler
-        )
-        .frame(maxWidth: .infinity)
+        ContentUnavailableView {
+            Label {
+                Text(LocalizedStringKey(state.titleKey)).accessibilityIdentifier("teamPage.state.title")
+            } icon: {
+                Image(systemName: state.kind == .signIn ? "person.crop.circle.badge.questionmark" : "exclamationmark.triangle")
+            }
+        } description: {
+            Text(LocalizedStringKey(state.detailKey))
+        } actions: {
+            if let actionKey = state.actionKey, let handler {
+                Button(action: handler) { Text(LocalizedStringKey(actionKey)) }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("teamPage.state.action")
+            }
+        }
     }
     private var handler: (() -> Void)? {
         switch state.action {
@@ -94,10 +106,9 @@ struct TeamStaleBanner: View {
     let detail: String
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label(LocalizedStringKey(title), systemImage: "arrow.clockwise.circle").cyText(.label, weight: .semibold).foregroundStyle(CYColor.warningText)
-            Text(LocalizedStringKey(detail)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-        }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            Label(LocalizedStringKey(title), systemImage: "arrow.clockwise.circle").font(.subheadline.weight(.semibold)).foregroundStyle(.orange)
+            Text(LocalizedStringKey(detail)).font(.subheadline).foregroundStyle(.secondary)
+        }.frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.stale")
     }
 }
@@ -106,7 +117,8 @@ struct TeamStaleBanner: View {
 struct TeamClosedInvitationButton: View {
     let cta: TeamInvitationCTA
     var body: some View {
-        CYPillButton(LocalizedStringKey(cta.key), style: .secondary) {}
+        Button {} label: { Text(LocalizedStringKey(cta.key)).frame(maxWidth: .infinity) }
+            .buttonStyle(.bordered).controlSize(.large)
             .disabled(true).accessibilityIdentifier("teamPage.closedInvitation")
     }
 }
@@ -117,10 +129,9 @@ struct TeamJoinRetryNotice: View {
     var reasonKey: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label("team.page.joinFailed", systemImage: "exclamationmark.circle").cyText(.label, weight: .semibold).foregroundStyle(CYColor.dangerText)
-            Text(LocalizedStringKey(reasonKey ?? "team.page.joinFailed.detail")).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-        }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.dangerSoft, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            Label("team.page.joinFailed", systemImage: "exclamationmark.circle").font(.subheadline.weight(.semibold)).foregroundStyle(.red)
+            Text(LocalizedStringKey(reasonKey ?? "team.page.joinFailed.detail")).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }.frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.joinFailed")
     }
 }

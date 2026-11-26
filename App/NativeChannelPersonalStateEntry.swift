@@ -55,16 +55,15 @@ import SwiftUI
                     }
                 }
                 .refreshable { await flow.refresh() }
-                .sheet(isPresented: $retryConfirmation) {
-                    CYConfirmSheet(
-                        title: appLocalized("d7.channelPersonal.retryConfirm", locale: locale),
-                        message: "",
-                        confirmTitle: appLocalized("d7.channelPersonal.retry", locale: locale),
-                        cancelTitle: appLocalized("d7.channelPersonal.cancel", locale: locale)
-                    ) {
+                .confirmationDialog(
+                    appLocalized("d7.channelPersonal.retryConfirm", locale: locale),
+                    isPresented: $retryConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button(appLocalized("d7.channelPersonal.retry", locale: locale)) {
                         Task { await flow.retryOriginal() }
                     }
-                    .cyDomainSheet(detents: [.peek, .half])
+                    Button(appLocalized("d7.channelPersonal.cancel", locale: locale), role: .cancel) {}
                 }
             } else if attempted {
                 ContentUnavailableView {
@@ -75,7 +74,6 @@ import SwiftUI
             } else { ProgressView() }
         }
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
         .navigationTitle(Text("d7.channelPersonal.title")).navigationBarTitleDisplayMode(.inline)
         .task { await open() }
         .task { while !Task.isCancelled { if let flow,!flow.isCurrent { close() };do { try await Task.sleep(nanoseconds:500_000_000) } catch { return } } }
