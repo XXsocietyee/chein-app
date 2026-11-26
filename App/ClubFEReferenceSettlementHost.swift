@@ -2,8 +2,8 @@ import SwiftUI
 
 /// CLB-G17 / CLB-settlement-02 + CLB-r7-D-01 (fix-r8-club): mini-program `cy-fe-reference-range kind="payer"` on
 /// `pages/club/settlement` (index.wxml:11): 自由探索结算（参考） with the date range and 导出对账表 bar.
-/// Reads ride the payout area (open off the production host in DEBUG/TEST, closed in Release). 标记已结清 is a money
-/// write: TEST-only and behind `ClubFEReferenceMoneyWriteGate.allowsSettle`, which stays false (owner decision 12).
+/// Reads need only an installed API host (`PayoutReceiverBridge.readsOpen`). 标记已结清 is a money write: it needs the
+/// payout area (open on any installed host in every build since owner 11-26) and `ClubFEReferenceMoneyWriteGate.allowsSettle`.
 enum ClubFEReferenceMoneyWriteGate {
     #if TEST
     static var allowsSettle = false
@@ -15,7 +15,7 @@ enum ClubFEReferenceMoneyWriteGate {
 @MainActor enum ClubFEReferenceBridge {
     /// CLB-settlement-05: the payer list and export are reads; they no longer wait on the payout area.
     static func open(_ session: AppSession) -> Bool { PayoutReceiverBridge.readsOpen(session) }
-    /// 标记已结清 is money: it still needs the payout area (TEST/DEBUG off the production host) and the TEST gate.
+    /// 标记已结清 is money: it needs the payout area (any installed host, Release included) and the settle gate.
     static func settleOpen(_ session: AppSession) -> Bool { PayoutReceiverBridge.payoutOpen(session) }
 
     private static func lease(_ session: AppSession) -> (any HTTPTransport)? {
