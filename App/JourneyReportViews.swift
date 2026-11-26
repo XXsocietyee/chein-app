@@ -533,92 +533,74 @@ struct JourneyReportView: View {
         return report.nodes.compactMap { JourneyNodePhoto.url($0.photoURL).map(JourneyNodePhoto.init(url:)) }
     }
 
+    /// N-JOURNEY-3 (r10): the 战报 as an inset-grouped List; each MP card is a Section with LabeledContent rows
+    /// (MP subpackageJourney/pages/report/index.wxml). Requests, strings and identifiers are unchanged.
     private func ready(_ report: JourneyReport) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+        List {
+            Section {
                 VStack(spacing: CYSpacing.sm) {
                     let eyebrow = [report.dateLabel, topicName].compactMap { $0 }.joined(separator: " · ")
-                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).font(.footnote).foregroundStyle(.secondary) }
                     if let result = report.result {
-                        Text(result.label).cyText(.label)
-                            .foregroundStyle(result.win ? CYNight.ink0 : CYColor.textPrimary)
-                            .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                            .background(result.win ? AnyShapeStyle(CYNight.lantern) : AnyShapeStyle(CYNight.ink2), in: Capsule())
+                        Label { Text(result.label) } icon: { Image(systemName: result.win ? "trophy.fill" : "flag.checkered") }
+                            .font(.headline)
+                            .foregroundStyle(result.win ? Color.accentColor : Color.primary)
                     }
                     // 战报 (204:15044, skill-r2 SR2-07): 本局不计分 is said once, as the subtitle, never again as a tile.
                     if report.score == nil {
-                        Text("mp.report.notScored").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("mp.report.notScored").font(.footnote).foregroundStyle(.secondary)
                             .accessibilityIdentifier("journeyReport.notScored")
+                    }
+                    // A number the report cannot read is left out (SR1-43), so the row holds one to three stats.
+                    let stats = Self.stats(report)
+                    if !stats.isEmpty {
+                        HStack(spacing: 0) {
+                            ForEach(Array(stats.enumerated()), id: \.offset) { _, item in
+                                stat(Text(verbatim: item.value), item.label)
+                            }
+                        }
+                        .padding(.top, CYSpacing.sm)
+                        .accessibilityIdentifier("journeyReport.stats")
                     }
                 }
                 .frame(maxWidth: .infinity)
-                // 战报 (204:15044, xrefs-1 Adopt 4): the numbers with hairline dividers, no tile. A number the report
-                // cannot read is left out (SR1-43: no 0 / 6 or — tiles), so the row holds one to three stats.
-                let stats = Self.stats(report)
-                if !stats.isEmpty {
-                    HStack(spacing: 0) {
-                        ForEach(Array(stats.enumerated()), id: \.offset) { index, item in
-                            if index > 0 { statDivider }
-                            stat(Text(verbatim: item.value), item.label)
-                        }
-                    }
-                    .padding(.vertical, CYSpacing.sm)
-                    .accessibilityIdentifier("journeyReport.stats")
+            }
+            Section {
+                Button { rankShown = true } label: {
+                    Self.chevronRow(Text("mp.report.rankRow"), sub: report.rankBasisCount.map { Text("mp.report.rankBasis \($0)") },
+                                    value: report.rank.map { Text("mp.report.rank \($0)") } ?? Text("mp.report.noRank"))
                 }
-                MPCard {
-                    Button { rankShown = true } label: {
-                        MPRow(title: Text("mp.report.rankRow"), sub: report.rankBasisCount.map { Text("mp.report.rankBasis \($0)") },
-                              value: report.rank.map { Text("mp.report.rank \($0)") } ?? Text("mp.report.noRank"), strong: report.rank != nil, chevron: true)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint(Text("mp.report.rank.hint"))  // JREPORT-9: says it opens the board
-                    .accessibilityIdentifier("journeyReport.rank")
-                    if let penalty = report.penaltyText {
-                        MPDivider()
-                        MPRow(title: Text("mp.report.penalty"), value: Text(verbatim: penalty))
-                    }
-                    if let items = report.rewardItems, items > 0 {
-                        MPDivider()
-                        MPRow(title: Text("mp.report.backpack"), value: Text("mp.report.items \(items)"))
-                    }
-                    if !report.legacy && report.runID != nil {
-                        MPDivider()
-                        Button { memoryShown = true } label: { MPRow(title: Text("mp.report.memory"), chevron: true) }
-                            .buttonStyle(.plain).accessibilityIdentifier("journeyReport.memory")
-                    }
-                    if hasSeats {
-                        MPDivider()
-                        Button(action: onOpenSeats) { MPRow(title: Text("mp.report.seats"), chevron: true) }
-                            .buttonStyle(.plain).accessibilityIdentifier("journeyReport.seats")
-                    }
-                    if feedbackAvailable {
-                        MPDivider()
-                        Button { feedbackShown = true } label: { MPRow(title: Text("mp.feedback.entry"), chevron: true) }
-                            .buttonStyle(.plain).accessibilityIdentifier("journeyReport.feedback")
-                    }
+                .buttonStyle(.plain)
+                .accessibilityHint(Text("mp.report.rank.hint"))  // JREPORT-9: says it opens the board
+                .accessibilityIdentifier("journeyReport.rank")
+                if let penalty = report.penaltyText {
+                    LabeledContent { Text(verbatim: penalty) } label: { Text("mp.report.penalty") }
                 }
-                if !report.nodes.isEmpty {
-                    MPSectionHeader(title: "mp.report.nodes")
-                    MPRows(items: report.nodes) { node in
-                        let row = MPRow(title: node.name.map { Text(verbatim: $0) } ?? Text("mp.report.node"),
-                                        sub: node.mode.map { $0 == .skipped ? Text("mp.report.node.skipped") : Text("mp.report.node.revealed") },
-                                        value: node.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.node.notScored"),
-                                        chevron: JourneyNodePhoto.url(node.photoURL) != nil,
-                                        leading: JourneyNodePhoto.url(node.photoURL).map { AnyView(Self.nodeThumb($0)) })
-                        if let photo = JourneyNodePhoto.url(node.photoURL) {
-                            Button { nodePhoto = JourneyNodePhoto(url: photo) } label: { row }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(Text("mp.report.node.photo \(node.name ?? "")"))
-                                .accessibilityIdentifier("journeyReport.node.photo." + node.id)
-                        } else {
-                            row
-                        }
+                if let items = report.rewardItems, items > 0 {
+                    LabeledContent { Text("mp.report.items \(items)") } label: { Text("mp.report.backpack") }
+                }
+                if !report.legacy && report.runID != nil {
+                    Button { memoryShown = true } label: { Self.chevronRow(Text("mp.report.memory")) }
+                        .buttonStyle(.plain).accessibilityIdentifier("journeyReport.memory")
+                }
+                if hasSeats {
+                    Button(action: onOpenSeats) { Self.chevronRow(Text("mp.report.seats")) }
+                        .buttonStyle(.plain).accessibilityIdentifier("journeyReport.seats")
+                }
+                if feedbackAvailable {
+                    Button { feedbackShown = true } label: { Self.chevronRow(Text("mp.feedback.entry")) }
+                        .buttonStyle(.plain).accessibilityIdentifier("journeyReport.feedback")
+                }
+            }
+            if !report.nodes.isEmpty {
+                Section("mp.report.nodes") {
+                    ForEach(report.nodes) { node in
+                        nodeRow(node)
                     }
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
+        .listStyle(.insetGrouped)
         .refreshable { onRetry() }
         .safeAreaInset(edge: .bottom) {
             if report.finished {
@@ -637,8 +619,45 @@ struct JourneyReportView: View {
         }
     }
 
-    private var statDivider: some View {
-        Rectangle().fill(CYColor.borderSubtle).frame(width: 1, height: 28).accessibilityHidden(true)
+    /// A List row that opens something: title (+ sub) on the left, value and a disclosure chevron on the right.
+    static func chevronRow(_ title: Text, sub: Text? = nil, value: Text? = nil) -> some View {
+        HStack(spacing: CYSpacing.sm) {
+            LabeledContent {
+                if let value { value.monospacedDigit() }
+            } label: {
+                title
+                if let sub { sub }
+            }
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+        }
+        .contentShape(Rectangle())
+    }
+
+    @ViewBuilder private func nodeRow(_ node: JourneyNodeRow) -> some View {
+        let photo = JourneyNodePhoto.url(node.photoURL)
+        let row = HStack(spacing: CYSpacing.md) {
+            if let photo { Self.nodeThumb(photo) }
+            LabeledContent {
+                (node.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.node.notScored")).monospacedDigit()
+            } label: {
+                node.name.map { Text(verbatim: $0) } ?? Text("mp.report.node")
+                if let mode = node.mode { mode == .skipped ? Text("mp.report.node.skipped") : Text("mp.report.node.revealed") }
+            }
+            if photo != nil {
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .contentShape(Rectangle())
+        if let photo {
+            Button { nodePhoto = JourneyNodePhoto(url: photo) } label: { row }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("mp.report.node.photo \(node.name ?? "")"))
+                .accessibilityIdentifier("journeyReport.node.photo." + node.id)
+        } else {
+            row.accessibilityElement(children: .combine)
+        }
     }
 
     /// JREPORT-2 (MP report wxml:53-54): a 44 pt thumb of the player's own photo; the row button opens the viewer.
@@ -936,15 +955,15 @@ struct JourneySettleView: View {
                 case .overview: overview(report).transition(.opacity)
                 case .rank:
                     ScrollView {
-                        VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            // JSETTLE-9: MP `st-h` (32 rpx) is a card title.
-                            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisStage")).cyText(.cardTitle)
-                                .accessibilityAddTraits(.isHeader)
+                        // N-JOURNEY-3 (r10): a system GroupBox instead of the drawn sheet card.
+                        GroupBox {
                             JourneyRankBoardView(state: rank, onScope: onRankScope, onPeriod: onRankPeriod, onRetry: onLoadRank)
+                        } label: {
+                            // JSETTLE-9: MP `st-h` (32 rpx) is a card title.
+                            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisStage")).font(.headline)
+                                .accessibilityAddTraits(.isHeader)
                         }
-                        .padding(CYSpacing.lg)
-                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
-                        .padding(.horizontal, CYSpacing.sm)
+                        .padding(.horizontal, CYSpacing.pageHorizontal)
                     }
                     .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
                     .onAppear(perform: onLoadRank)
@@ -987,11 +1006,14 @@ struct JourneySettleView: View {
             Spacer()
             // 结算 (204:15096, skill-r2 SR2-07): the `Moment/Art` seal at 96 pt lands over the stop count (6 / 6),
             // in place of the trophy and the row of ticks. No glow behind it (AGENTS 删减: no 发光).
-            CYMomentSeal(text: Text("playx.completed"), landed: overviewOn)
-                .frame(height: 160)
+            // N-JOURNEY-3 (r10): an SF Symbol seal instead of the drawn moment art (MP subpackageJourney/pages/settle).
+            Label { Text("playx.completed") } icon: { Image(systemName: "checkmark.seal.fill").imageScale(.large) }
+                .labelStyle(.iconOnly)
+                .font(.largeTitle)
+                .foregroundStyle(Color.accentColor)
                 .accessibilityHidden(true)
             if let result = report.result {
-                Text(result.label).cyText(.label).foregroundStyle(CYNight.lanternHot)
+                Text(result.label).font(.headline).foregroundStyle(Color.accentColor)
                     .settleRise(overviewOn, 0, skipped: skipped, reduceMotion: reduceMotion)
             }
             (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.pageTitle).multilineTextAlignment(.center)
@@ -1091,10 +1113,8 @@ struct JourneySettleView: View {
                             stars = value; localError = nil
                         } label: {
                             Image(systemName: value <= stars ? "star.fill" : "star")
-                                .cyText(.dataXL)
-                                .foregroundStyle(value <= stars ? CYNight.lantern : CYColor.textTertiary)
-                                .scaleEffect(value <= stars && !reduceMotion ? 1.08 : 1)
-                                .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.5).delay(Double(value) * 0.04), value: stars)
+                                .font(.title)
+                                .foregroundStyle(value <= stars ? Color.yellow : Color.secondary)
                                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         }
                         .buttonStyle(.plain)
@@ -1111,13 +1131,11 @@ struct JourneySettleView: View {
                             if on { tags.remove(index) } else { tags.insert(index) }
                             localError = nil
                         } label: {
-                            Text(Self.tagKeys[index]).cyText(.label)
-                                .foregroundStyle(on ? CYColor.textOnAccent : CYColor.textSecondary)
-                                .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
-                                .background(on ? AnyShapeStyle(CYColor.selection) : AnyShapeStyle(CYColor.bgRaised), in: Capsule())
-                                .frame(minHeight: CYSpacing.minTouchTarget)
+                            Label { Text(Self.tagKeys[index]) } icon: { if on { Image(systemName: "checkmark") } }
                         }
-                        .buttonStyle(.plain)
+                        // N-JOURNEY-3 (r10): system bordered capsule buttons; selected = accent tint + checkmark.
+                        .buttonStyle(.bordered).buttonBorderShape(.capsule).controlSize(.large)
+                        .tint(on ? Color.accentColor : Color.secondary)
                         .accessibilityAddTraits(on ? [.isSelected] : [])
                         .accessibilityIdentifier("journeySettle.tag.\(index)")
                     }
@@ -1126,8 +1144,7 @@ struct JourneySettleView: View {
                 VStack(alignment: .trailing, spacing: CYSpacing.xs) {
                     TextField(text: $review, axis: .vertical) { Text("mp.settle.rate.placeholder") }
                         .lineLimit(3...6)
-                        .padding(CYSpacing.lg)
-                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .textFieldStyle(.roundedBorder)  // N-JOURNEY-3 (r10): system field, no drawn box
                         .onChange(of: review) { _, value in
                             if value.count > Self.reviewMax { review = String(value.prefix(Self.reviewMax)) }
                             localError = nil
