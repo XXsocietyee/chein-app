@@ -21,6 +21,12 @@ import SwiftUI
                 Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
+            // CLB-G15 (MP event-ops wxml:199): the selected topic cannot take online payment for priced sessions.
+            if let notice = topicFact?.paymentNotice, !notice.isEmpty {
+                Label("club.eventOps.paymentNotice", systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                    .accessibilityIdentifier("clubOpsEvent.paymentNotice")
+            }
             if topicFact?.showsCapacity ?? true {
             VStack(alignment: .leading, spacing: 6) {
                 Text("clubOpsEvent.section.capacity", tableName: "ClubOpsEvent").cyText(.cardTitle)

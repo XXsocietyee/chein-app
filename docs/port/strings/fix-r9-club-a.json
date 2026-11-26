@@ -2074,6 +2074,40 @@
           }
         }
       }
+    },
+    "club.eventOps.paymentNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic can’t take online payment yet, so players can’t pay for priced sessions online"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个主题暂不能在线收款，玩家无法在线报名付费场次"
+          }
+        }
+      }
+    },
+    "club.eventOps.noTopics": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No topics to open sessions for"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可开场的主题"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

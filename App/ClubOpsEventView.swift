@@ -25,6 +25,8 @@ import SwiftUI
     @State private var rosterTotal: Int?
     @State private var rosterSnapshot: ClubGovernanceSnapshot?
     @State private var rosterTab: ClubRosterBucket = .registered
+    /// CLB-G15 (MP event-ops wxml:119-120): no topic to open a session for and no series yet.
+    @State private var publishEmpty = false
     private var key: Key { .init(identity: identity, authorization: access.authorizationGeneration, reader: ObjectIdentifier(access), scope: scope) }
     private var accessScope: ClubGovernanceScope { .init(clubID: scope.clubID, activityID: scope.activityID) }
     private var eventScope: ClubGovernanceScope { .init(clubID: scope.clubID, topicID: scope.topicID, activityID: scope.activityID) }
@@ -110,8 +112,9 @@ import SwiftUI
                 }
             } header: { ClubOpsTableHeading("clubOpsEvent.section.occurrence") }
             // CLB-G15 (MP event-ops wxml:39-43): 主持小费 · 暂不可开通 under 本场管理 (collection channel not enabled, so no
-            // switch or ratio). paymentNotice / windowWarning stay nil until Core feeds them (fix-r8-club "for Cursor").
+            // switch or ratio). paymentNotice sits in the series form and windowWarning on its receipt (r9, as in the MP).
             ClubGapEventOpsExtrasSection(onTapPublishTopic: {})
+            // The empty 发布主题 state sits in the 日期清单 slot (`case .series where publishEmpty`).
         case .roster:
             Section {
                 push(.roster, eventScope) {
@@ -126,6 +129,23 @@ import SwiftUI
             if let inlineRoster {
                 ClubOpsEventInlineRoster(roster: inlineRoster, selected: $rosterTab) {
                     ClubGovernanceReadView(operation: .roster, scope: eventScope, identity: identity, access: access, coordinator: coordinator)
+                }
+            }
+        case .series where publishEmpty:
+            // CLB-G15 (MP wxml:119-120): only the empty state and 发布主题 (`goPublishTopic` → fabu?clubId, js:499-503).
+            Section {
+                ContentUnavailableView {
+                    Label("club.eventOps.noTopics", systemImage: "calendar.badge.plus")
+                } actions: {
+                    if let clubID = scope.clubID {
+                        NavigationLink {
+                            MPReviewedPageScreen(page: "pages/publish/fabu/index", query: ["clubId": String(clubID)])
+                        } label: {
+                            Text("club.detail.events.publish")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("clubOpsEvent.publishTopic")
+                    }
                 }
             }
         case .series:
@@ -183,7 +203,17 @@ import SwiftUI
                 throw ClubGovernanceFailure.malformed
             }
             model = ClubOpsEventAccess(permissions: permissions, scope: eventScope); loadedKey = expected
-            occurrenceStatus = nil; rosterTotal = nil; rosterSnapshot = nil
+            occurrenceStatus = nil; rosterTotal = nil; rosterSnapshot = nil; publishEmpty = false
+            if let model, model.sections.contains(.series) {
+                // MP `topicsLoaded && topics.length === 0 && seriesState === 'empty'`: both reads must answer.
+                let clubScope = ClubGovernanceScope(clubID: scope.clubID)
+                if let topics = try? await access.read(.eventTopics, scope: clubScope, options: [:], check: check),
+                   let series = try? await access.read(.series, scope: clubScope, options: [:], check: check) {
+                    guard revision == generation, expected == key else { return }
+                    let seriesRows = series.value.array ?? series.value["rows"].array ?? series.value["items"].array
+                    publishEmpty = topics.value.array?.isEmpty == true && seriesRows?.isEmpty == true
+                }
+            }
             if (scope.activityID ?? 0) > 0, let model {
                 if model.sections.contains(.occurrence),
                    let status = try? await access.read(.occurrenceStatus, scope: eventScope, options: [:], check: check) {

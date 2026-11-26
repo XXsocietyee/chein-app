@@ -453,6 +453,12 @@ import SwiftUI
                         NavigationLink { ClubGovernanceReadView(operation: .notificationStatus, scope: .init(clubID: route.scope.clubID, activityID: route.scope.activityID, campaignID: id), identity: identity, access: access, coordinator: coordinator) } label: { Text("club.gov.notificationStatus") }
                     }
                     ForEach(Array((receipt["failedSessions"].array ?? []).enumerated()), id: \.offset) { _, value in Text(verbatim: value.string ?? "") }
+                    // CLB-G15 (MP event-ops wxml:200): the series-create receipt's windowWarning, the server's own sentence.
+                    if route.operation == .createSeries, let warning = receipt["windowWarning"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !warning.isEmpty {
+                        Label { Text(verbatim: warning) } icon: { Image(systemName: "exclamationmark.triangle") }
+                            .foregroundStyle(.orange)
+                            .accessibilityIdentifier("clubOpsEvent.series.windowWarning")
+                    }
                     // CLB-apply-11 (MP apply/index.js:415, wxml:177): 主理人 comes from the submitted draft, not a status read.
                     if route.operation == .hostApply, let leader = draft.text["leaderName"]?.trimmingCharacters(in: .whitespacesAndNewlines), !leader.isEmpty {
                         LabeledContent("club.host.done.leaderLabel") { Text(verbatim: leader) }
