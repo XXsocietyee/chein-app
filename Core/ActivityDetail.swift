@@ -13,6 +13,9 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
     /// Source PublicTicketVO.meetingPoint (oms_ticket.meeting_point): this session's gathering
     /// place, distinct from the activity venue. Blank or non-text values stay absent.
     public let meetingPoint: String?
+    /// R7-PC-C1-5: MP scene-play-activity-detail/index.wxml:89-96 lists who joined each session from the
+    /// ticket's `cmsRegistrationList`. A missing or malformed list is empty; rows without a nickname are dropped.
+    public let registrants: [TopicRegistrant]
     /// Early UI guard mirrors the current activity create service, not a purchase grant.
     /// Zone-free timestamps use the existing Shanghai server-date parser. Missing or
     /// malformed ordinary timestamps cannot establish expiry. Self-guided tickets require
@@ -30,7 +33,7 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
         let boundary = startTime.flatMap(RegistrationWaitlistStatus.parseDeadline) ?? end
         return boundary.map { now >= $0 } ?? false
     }
-    private enum CodingKeys: String, CodingKey { case id,name,price,remainingInventory,description,startTime,endTime,selfGuided,signupDeadline,meetingPoint }
+    private enum CodingKeys: String, CodingKey { case id,name,price,remainingInventory,description,startTime,endTime,selfGuided,signupDeadline,meetingPoint,cmsRegistrationList }
     public init(from decoder:Decoder) throws {
         let c=try decoder.container(keyedBy:CodingKeys.self)
         id=try c.decode(Int.self,forKey:.id)
@@ -45,6 +48,8 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
         // Optional display text must not invalidate an otherwise valid ticket.
         let point = ((try? c.decodeIfPresent(String.self,forKey:.meetingPoint)) ?? nil)?.trimmingCharacters(in:.whitespacesAndNewlines)
         meetingPoint = point.flatMap { $0.isEmpty ? nil : $0 }
+        let rows = ((try? c.decodeIfPresent([TopicRegistrant].self,forKey:.cmsRegistrationList)) ?? nil) ?? []
+        registrants = rows.filter { !$0.nickname.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty }
         guard id > 0, price.map({ $0 >= .zero }) ?? true else { throw APIError.malformedResponse }
     }
     public var isSoldOut: Bool { remainingInventory.map { $0 <= 0 } ?? false }
