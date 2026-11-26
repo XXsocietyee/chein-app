@@ -23,7 +23,8 @@ class ClubStoryRuntimeBoundaryChecks(unittest.TestCase):
     def test_gameplay_card_identifier_is_a_leaf_and_does_not_replace_title_identifier(self):
         source = self.text('App/ClubStoryViews.swift').split('struct ClubStoryGameplayCard', 1)[1]
         # CLB-topic-story-09 (fix-r8-club): the image card titles the play in sheetTitle on the scrim.
-        self.assertRegex(source, r'\.cyText\(\.sheetTitle\)\s*\.fixedSize\([^\n]+\)\s*\.accessibilityIdentifier\("club.gov.fact.title"\)')
+        # native-r2 club round 2: system .headline on a Group of one Text; Group forwards the identifier to that leaf.
+        self.assertRegex(source, r'Group \{\s*if let title = play\.title \{ Text\(verbatim: title\) \}\s*else \{ Text\("discovery\.untitledPlay"\) \}\s*\}\s*\.font\(\.headline\)\s*\.fixedSize\([^\n]+\)\s*\.accessibilityIdentifier\("club.gov.fact.title"\)')
         self.assertRegex(source, r'Text\(verbatim: metaLine\)[^}]*\.accessibilityIdentifier\("club.story.play.\\\(play.id\)"\)')
         self.assertNotRegex(source, r'}\.fixedSize\([^\n]+\)\s*\.accessibilityIdentifier')
 

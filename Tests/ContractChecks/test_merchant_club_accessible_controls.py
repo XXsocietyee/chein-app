@@ -4,8 +4,10 @@ ROOT=Path(__file__).resolve().parents[2]
 class MerchantClubAccessibleControls(unittest.TestCase):
     def test_unavailable_title_does_not_override_retry_identifier(self):
         s=(ROOT/'App/ClubHomeView.swift').read_text()
-        # The shared empty state carries the message and the retry action under separate identifiers.
-        self.assertIn('"club.locality.unavailable",\n                    messageIdentifier: "club.home.locality.unavailable",\n                    actionTitle: "action.retry",\n                    actionIdentifier: "club.home.locality.retry"',s)
+        # native-r2 club round 2: ContentUnavailableView keeps the message (title leaf) and the retry button
+        # under separate identifiers; neither identifier is applied to the container.
+        self.assertIn('Label { Text("club.locality.unavailable").accessibilityIdentifier("club.home.locality.unavailable") } icon: { Image(systemName: "wifi.slash") }',s)
+        self.assertIn('Button("action.retry") { Task { await loadLocality() } }\n                        .buttonStyle(.bordered)\n                        .accessibilityIdentifier("club.home.locality.retry")',s)
         self.assertNotIn('}.accessibilityIdentifier("club.home.locality.unavailable")',s)
     def test_header_controls_use_exact_unique_visible_enabled_native_query(self):
         s=(ROOT/'Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift').read_text()
