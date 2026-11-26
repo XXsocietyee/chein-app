@@ -109,7 +109,9 @@ public struct WalletHistoryReadRoute: Equatable {
             case "api/user/info": guard fields == ["member_id": String(accountID)] else { return nil }
             case "api/balance/list": guard fields.isEmpty || fields == ["change_type": "1"] || fields == ["change_type": "2"] else { return nil }
             case "api/user/balance/list":
-                guard positive("pageNum", limit: 10_000), fields["pageSize"] == "20" else { return nil }
+                // 20 = the paged ledger default; 200 = the income analysis MP page (22b0f3cd0, R7-PC-D6-1).
+                guard positive("pageNum", limit: 10_000),
+                      fields["pageSize"] == "20" || fields["pageSize"] == String(WalletAnalysisPagingPolicy.mpPageSize) else { return nil }
                 let keys = Set(fields.keys)
                 guard keys == ["pageNum", "pageSize"] || (path == "api/user/balance/list" && keys == ["pageNum", "pageSize", "eventType"] && ["1", "2"].contains(fields["eventType"] ?? "")) else { return nil }
             default: guard fields.isEmpty else { return nil }

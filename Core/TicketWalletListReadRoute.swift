@@ -48,9 +48,11 @@ public enum TicketWalletListReadRoute: Int, Equatable, CaseIterable {
             let name = String(rest[..<quote])
             let after = rest[rest.index(after: quote)...]
             guard after.hasPrefix("\r\n\r\n") else { return nil }
-            var value = String(after.dropFirst(4))
+            // "\r\n" is ONE Swift Character, so trim by separator Character counts, not
+            // byte counts: dropFirst(4)/removeLast(2) from a12ffd853 also ate the value itself.
+            var value = String(after.dropFirst("\r\n\r\n".count))
             guard value.hasSuffix("\r\n") else { return nil }
-            value.removeLast(2)
+            value.removeLast("\r\n".count)
             guard fields[name] == nil, !name.isEmpty else { return nil }
             fields[name] = value
         }

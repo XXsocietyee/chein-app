@@ -50,7 +50,8 @@ struct WalletFormatting {
 
     func points(_ value: WalletAmount?) -> String {
         guard let value else { return appLocalized("wallet.unknownPoints", locale: locale) }
-        return WalletNumberLocalization.money(value.text, locale: locale) + " " + pointsUnit(for: value)
+        // Points are not money: owner decision 9 (4a884ff02) pads money only, "points unchanged".
+        return WalletNumberLocalization.text(value.text, locale: locale) + " " + pointsUnit(for: value)
     }
 
     func signed(_ row: WalletLedgerRow, points: Bool, income: Bool) -> String {
