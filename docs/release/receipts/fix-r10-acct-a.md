@@ -69,3 +69,22 @@ The audit ran on 82bcf2c2d. Nine rows in this slice were already fixed on the ti
   - `contract_ratchet --check` shows 192 failing against a baseline of 192 (0 new). The round-1 base failure (`test_social_article_content…`) is now fixed on the tip.
 
 **Lane status:** done. The rows left need Core, the owner or a simulator.
+
+## Round 3 (merged `origin/ui/combined-r7` @ ae477be47)
+
+- **No new code.** I checked the open rows again on the new tip:
+  - C-T2b is still blocked. Outside Core/TemplateAuthoringDomain.swift, nothing in the repo uses `TemplateAuthoringSupportPhase` or `TemplateAdoptionConfirmation`. It needs Cursor Core.
+  - C-F2 (rest) is still blocked. `SearchMapReading` fixtures exist only in unit and contract tests. The App UI-test host still has none, so it also needs a simulator run.
+  - C-T3c is still merchant release.
+  - A1-02 still needs an owner call.
+- **acct-b** (`origin/fix/r10-acct-b` @ a95fdbbc1, round 2 receipt):
+  - A8-03 is still blocked (MP wxml + owner + simulator).
+  - A3-05 still waits on the owner.
+  - N-18 is closed here with C-F8b.
+  - There are no other unfixed P1 rows.
+- **Gates:**
+  - `check_scaffold` passes.
+  - `check_a11y_lint` passes (0 new).
+  - `contract_ratchet --check` shows 192 failing against a baseline of 192 (0 new, 0 fixed).
+
+**Lane status:** done. The rows left need Core, the owner or a simulator.
