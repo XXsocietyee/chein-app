@@ -262,12 +262,7 @@ struct E3LocationCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack {
-                LinearGradient(colors: [Color(red: 0.13, green: 0.30, blue: 0.27), Color(red: 0.07, green: 0.14, blue: 0.20)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                Path { p in
-                    p.move(to: CGPoint(x: 0, y: 70)); p.addCurve(to: CGPoint(x: 260, y: 30), control1: CGPoint(x: 80, y: 20), control2: CGPoint(x: 160, y: 90))
-                    p.move(to: CGPoint(x: 40, y: 0)); p.addLine(to: CGPoint(x: 120, y: 120))
-                    p.move(to: CGPoint(x: 200, y: 0)); p.addLine(to: CGPoint(x: 170, y: 120))
-                }.stroke(Color.white.opacity(0.14), lineWidth: 6)
+                Rectangle().fill(.fill.tertiary)
                 Image(systemName: "mappin.circle.fill").cyText(.dataXL).foregroundStyle(.white, Color.red)
                     .symbolRenderingMode(.palette)
             }
@@ -341,7 +336,6 @@ struct E3VideoCard: View {
     var body: some View {
         ZStack {
             CYIMCoverArt(seed: seed, systemImage: "film.fill", symbolSize: 44)
-            LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
             Image(systemName: "play.fill").accessibilityLabel(Text(verbatim: "Play")).font(.title3).foregroundStyle(.white)
                 .frame(width: 52, height: 52).background(.black.opacity(0.45), in: Circle())
                 .overlay(Circle().strokeBorder(.white.opacity(0.5), lineWidth: 1))
