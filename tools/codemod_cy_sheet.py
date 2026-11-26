@@ -134,6 +134,34 @@ def _label(src: str, start: int, end: int, mask: list[bool]) -> str:
     return "_" if i < end else ""
 
 
+def has_local_backdrop(src: str, close_paren: int, mask: list[bool]) -> bool:
+    """True if the call (plus its trailing closures) is directly followed by motion-r1's `.nativeR2SheetBackdrop(`.
+
+    Those overlay sheets already draw the M2 backdrop on their presenter; routing them through `cySheet` as well
+    would blur twice.
+    """
+    i = skip_trivia(src, close_paren + 1, mask)
+    while True:
+        m = IDENT.match(src, i)
+        if m and src[skip_trivia(src, m.end(), mask):].startswith(":"):  # labeled trailing closure `label: {`
+            i = skip_trivia(src, skip_trivia(src, m.end(), mask) + 1, mask)
+        if i < len(src) and src[i] == "{":
+            depth = 0
+            while i < len(src):
+                if mask[i]:
+                    if src[i] == "{":
+                        depth += 1
+                    elif src[i] == "}":
+                        depth -= 1
+                        if depth == 0:
+                            break
+                i += 1
+            i = skip_trivia(src, i + 1, mask)
+            continue
+        break
+    return src.startswith(".nativeR2SheetBackdrop(", i)
+
+
 def line_of(src: str, i: int) -> int:
     return src.count("\n", 0, i) + 1
 
@@ -157,7 +185,7 @@ def process(path: Path, write: bool) -> tuple[dict, list[dict], str]:
         if parsed is None:
             skips.append({**where, "reason": "unbalanced call (could not parse arguments)"})
             continue
-        labels, _ = parsed
+        labels, close_paren = parsed
         labels = [l for l in labels if l != ""]
         if not labels or labels[0] not in FIRST_LABELS:
             # Not SwiftUI's presentation modifier (e.g. `kind.sheet(locale:)`, `Tokens.sheet(in:)`): leave silently
@@ -168,6 +196,9 @@ def process(path: Path, write: bool) -> tuple[dict, list[dict], str]:
         extra = [l for l in labels if l not in ALLOWED_LABELS]
         if extra:
             skips.append({**where, "reason": f"labels {extra} outside Apple's signature (type inference may change)"})
+            continue
+        if has_local_backdrop(src, close_paren, mask):
+            skips.append({**where, "reason": "already has motion-r1's local .nativeR2SheetBackdrop (would blur twice)"})
             continue
         if pinned:
             skips.append({**where, "reason": f"byte-pinned file ({pinned})"})
