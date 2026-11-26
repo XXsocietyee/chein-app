@@ -20,31 +20,19 @@ import SwiftUI
     private func copy(_ zh: String, _ en: String) -> String { locale.pick(zh, en) }
     var body: some View {
         Form {
-            Section {
-                CYHeroHeader(verbatim: copy("俱乐部共同通知默认", "Club Shared Notification Default")) {
-                    CYCoverArt(seed: "club-shared-notification", symbol: "bell", showsDebugLabel: false, cornerRadius: CYRadius.lg)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 120)
-                        .accessibilityHidden(true)
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
-            }
             if sourceCurrent(), let model, model.isCurrent {
                 if let row = model.clubDefault {
                     Section {
-                        CYSectionHeader(LocalizedStringKey(copy("俱乐部共同默认，不是我的个人设置", "Club shared default, not your personal setting")))
-                        CYStatusChip(
-                            verbatim: row.level == .all ? copy("当前：所有消息", "Current: All messages") : copy("当前：仅提及我", "Current: Only @mentions"),
-                            tone: row.level == .all ? .info : .neutral,
+                        Label(
+                            row.level == .all ? copy("当前：所有消息", "Current: All messages") : copy("当前：仅提及我", "Current: Only @mentions"),
                             systemImage: row.level == .all ? "bell" : "at"
                         )
-                        CYListRow(
-                            verbatim: copy("政策版本", "Policy version"),
-                            meta: row.configured ? copy("原政策版本 \(row.version)", "Policy version \(row.version)") : copy("尚未设置，使用正式默认：仅提及我", "Not configured; using default: Only @mentions"),
-                            trailing: .value(String(row.version))
-                        ) {
-                            CYRowIcon(systemImage: "number")
+                        .foregroundStyle(.tint)
+                        LabeledContent {
+                            Text(verbatim: String(row.version))
+                        } label: {
+                            Text(verbatim: copy("政策版本", "Policy version"))
+                            Text(verbatim: row.configured ? copy("原政策版本 \(row.version)", "Policy version \(row.version)") : copy("尚未设置，使用正式默认：仅提及我", "Not configured; using default: Only @mentions"))
                         }
                         Picker(copy("共同默认", "Shared default"), selection: $selection) {
                             Text(copy("所有消息", "All messages")).tag(NativeChannelNotificationLevel.all)
@@ -52,84 +40,82 @@ import SwiftUI
                         }
                         .disabled(!model.canSaveClubDefault)
                         .accessibilityLabel(Text(verbatim: copy("共同默认", "Shared default")))
-                        CYPillButton(verbatim: copy("核对并保存", "Review and save"), systemImage: "checkmark.circle") {
+                        Button {
                             review = Review(club: row.clubID, version: row.version, level: selection)
+                        } label: {
+                            Label(copy("核对并保存", "Review and save"), systemImage: "checkmark.circle")
                         }
                         .disabled(!model.canSaveClubDefault)
+                    } header: {
+                        Text(verbatim: copy("俱乐部共同默认，不是我的个人设置", "Club shared default, not your personal setting"))
+                    } footer: {
                         Text(verbatim: copy("只在成员自己的频道、分类和俱乐部偏好继承时使用；不会取消任何人的静音、免打扰或系统权限。", "Used only when a member inherits channel, category, and club preferences; never overrides personal mutes, DND, or system permissions."))
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 Section {
-                    CYSectionHeader(LocalizedStringKey(copy("原请求与当前状态", "Original request & current status")))
                     if model.isBusy {
-                        CYSkeleton()
-                            .accessibilityLabel(Text(verbatim: copy("正在读取原服务", "Reading service state")))
-                        Text(verbatim: copy("正在读取原服务", "Reading service state"))
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Label {
+                            Text(verbatim: copy("正在读取原服务", "Reading service state"))
+                                .foregroundStyle(.secondary)
+                        } icon: {
+                            ProgressView()
+                        }
                     }
                     if let request = model.pendingRequestID {
-                        CYListRow(verbatim: copy("原请求", "Original request"), meta: request, trailing: .none) {
-                            CYRowIcon(systemImage: "number")
+                        LabeledContent {
+                            Text(verbatim: request)
+                                .textSelection(.enabled)
+                        } label: {
+                            Text(verbatim: copy("原请求", "Original request"))
+                            Text(verbatim: copy("结果未确定时只回读原请求，不重发，也不会另建请求覆盖它。", "While the outcome is pending, only the original request is read back; it is not resent or overwritten."))
                         }
-                        .textSelection(.enabled)
-                        Text(verbatim: copy("结果未确定时只回读原请求，不重发，也不会另建请求覆盖它。", "While the outcome is pending, only the original request is read back; it is not resent or overwritten."))
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
                     if let rejected = model.sharedDefaultRejection {
-                        CYStatusChip(
-                            verbatim: rejected == "CLUB_DEFAULT_VERSION_EXHAUSTED"
+                        Label(
+                            rejected == "CLUB_DEFAULT_VERSION_EXHAUSTED"
                                 ? copy("原请求未写入：政策版本已不可递增。", "Original request not applied: policy version cannot be incremented.")
                                 : copy("原请求已明确拒绝；不会自动重试。请核对最新政策后重新确认。", "Original request was rejected and will not auto-retry. Please review the latest policy and confirm again."),
-                            tone: .danger,
                             systemImage: "exclamationmark.triangle"
                         )
+                        .foregroundStyle(.red)
                     }
                     if isReadFailure(model.state) {
-                        CYErrorState(
-                            LocalizedStringKey(status(model.state)),
-                            retryTitle: LocalizedStringKey(reloadTitle(model)),
-                            onRetry: { reload(model) }
-                        )
-                        .disabled(reloadDisabled(model))
+                        ContentUnavailableView {
+                            Label(status(model.state), systemImage: "exclamationmark.triangle")
+                        } actions: {
+                            Button(reloadTitle(model)) { reload(model) }
+                                .buttonStyle(.bordered)
+                                .disabled(reloadDisabled(model))
+                        }
                     } else {
                         Text(verbatim: status(model.state))
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        CYPillButton(verbatim: reloadTitle(model), style: .secondary, systemImage: "arrow.clockwise") {
+                        Button {
                             reload(model)
+                        } label: {
+                            Label(reloadTitle(model), systemImage: "arrow.clockwise")
                         }
                         .disabled(reloadDisabled(model))
                     }
+                } header: {
+                    Text(verbatim: copy("原请求与当前状态", "Original request & current status"))
                 }
             } else if attempted {
-                CYEmptyState(
-                    systemImage: "bell.slash",
-                    LocalizedStringKey(copy("共同默认当前不可用", "Shared default unavailable")),
-                    detail: LocalizedStringKey(copy("需要原俱乐部管理权限及独立通知操作授权；本页不会授予权限。", "Requires club management permission and notification operation grant; this page does not grant permissions.")),
-                    kind: .notices
-                )
+                ContentUnavailableView {
+                    Label(copy("共同默认当前不可用", "Shared default unavailable"), systemImage: "bell.slash")
+                } description: {
+                    Text(verbatim: copy("需要原俱乐部管理权限及独立通知操作授权；本页不会授予权限。", "Requires club management permission and notification operation grant; this page does not grant permissions."))
+                }
             } else {
-                CYSkeleton()
-                    .accessibilityLabel(Text(verbatim: copy("正在读取原权限", "Reading permissions")))
-                Text(verbatim: copy("正在读取原权限", "Reading permissions"))
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    Spacer()
+                    ProgressView(copy("正在读取原权限", "Reading permissions"))
+                    Spacer()
+                }
             }
         }
-        .cyText(.body)
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text(verbatim: copy("俱乐部共同通知默认", "Club Shared Notification Default")))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
-        .cyAnimation(value: model?.state)
         .task { await reopen() }
         .onChange(of: phase) { _, value in
             if value == .active { Task { await reopen() } } else { clear() }
@@ -143,32 +129,30 @@ import SwiftUI
             NavigationStack {
                 Form {
                     Section {
-                        CYHeroHeader(verbatim: copy("修改所有继承此政策的俱乐部频道默认通知", "Update default notifications for all club channels inheriting this policy"))
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets())
-                    }
-                    Section {
-                        CYStatusChip(
-                            verbatim: item.level == .all ? copy("所有消息", "All messages") : copy("仅提及我", "Only @mentions"),
-                            tone: item.level == .all ? .info : .neutral,
+                        Label(
+                            item.level == .all ? copy("所有消息", "All messages") : copy("仅提及我", "Only @mentions"),
                             systemImage: item.level == .all ? "bell" : "at"
                         )
+                        .foregroundStyle(.tint)
+                    } footer: {
                         Text(verbatim: copy("基于原版本 \(item.version)，不修改成员自己的偏好。", "Based on version \(item.version); does not modify members' personal preferences."))
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        CYPillButton(verbatim: copy("确认保存共同默认", "Confirm saving shared default"), systemImage: "checkmark.circle") {
+                    }
+                }
+                .navigationTitle(Text(verbatim: copy("修改所有继承此政策的俱乐部频道默认通知", "Update default notifications for all club channels inheriting this policy")))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(copy("取消", "Cancel"), role: .cancel) { review = nil }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(copy("确认保存共同默认", "Confirm saving shared default")) {
                             guard sourceCurrent(), let model, model.canSaveClubDefault,
                                   model.clubDefault?.clubID == item.club, model.clubDefault?.version == item.version else { review = nil; return }
                             review = nil
                             Task { await model.saveClubDefault(level: item.level, expectedVersion: item.version) }
                         }
-                        Button(copy("取消", "Cancel"), role: .cancel) { review = nil }
                     }
                 }
-                .cyText(.body)
-                .cyGroupedSurface()
-                .cyHeroScreen()
                 .privacySensitive()
             }
             .presentationDetents([.medium, .large])

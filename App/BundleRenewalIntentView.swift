@@ -8,12 +8,8 @@ import SwiftUI
     @State private var choice: BundleRenewalIntent = .maybe
     @State private var note = ""
     @State private var submitTick = 0
-    @ScaledMetric(relativeTo: .largeTitle) private var artHeight: CGFloat = 112
     private let table = "BundleCommerce"
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
-    private func copy(_ key: String) -> String {
-        String(localized: String.LocalizationValue(stringLiteral: key), table: table)
-    }
     private func label(_ intent: BundleRenewalIntent) -> Text {
         switch intent {
         case .willRenew: return text("renewal.intent.WILL_RENEW")
@@ -21,28 +17,12 @@ import SwiftUI
         case .no: return text("renewal.intent.NO")
         }
     }
-    private func intentKey(_ intent: BundleRenewalIntent) -> String {
-        switch intent {
-        case .willRenew: return "renewal.intent.WILL_RENEW"
-        case .maybe: return "renewal.intent.MAYBE"
-        case .no: return "renewal.intent.NO"
-        }
-    }
 
     var body: some View {
-        // Native restyle r1 (spec §3.2): an inset-grouped Form, a system inline title, explanations in footers.
+        // Native r2: an inset-grouped Form, a system inline title, explanations in footers.
         Form {
-            Section {
-                CYCoverArt(seed: "renewal-intent", symbol: "arrow.triangle.2.circlepath", showsDebugLabel: false)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: artHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
-                    .accessibilityHidden(true)
-            }
-            .cyCardRow()
             if !model.current {
-                Section { CYEmptyState(systemImage: "clock.arrow.circlepath", "renewal.stale", tableName: table) }
-                    .cyCardRow()
+                Section { notice("clock.arrow.circlepath", "renewal.stale") }
             } else {
                 currentBody
             }
@@ -53,15 +33,26 @@ import SwiftUI
         .cyAnimation(value: model.phase)
         .cyAnimation(value: model.busy)
         .task { await model.load() }
+        .refreshable { await model.load() }
+    }
+
+    /// A system unavailable-content view with an SF Symbol; the identifier stays on the message text.
+    private func notice(_ symbol: String, _ key: String, identifier: String? = nil) -> some View {
+        ContentUnavailableView {
+            Label {
+                text(key).accessibilityIdentifier(identifier ?? key)
+            } icon: {
+                Image(systemName: symbol)
+            }
+        }
     }
 
     @ViewBuilder private var currentBody: some View {
         if model.busy {
             Section {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYSkeleton().accessibilityHidden(true)
+                HStack(spacing: CYSpacing.sm) {
+                    ProgressView()
                     text("renewal.loading")
-                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -70,26 +61,24 @@ import SwiftUI
         }
         if model.phase == .unavailable {
             Section {
-                CYEmptyState(systemImage: "wifi.slash", "renewal.unavailable", tableName: table, messageIdentifier: "bundleRenewal.unavailable")
+                notice("wifi.slash", "renewal.unavailable", identifier: "bundleRenewal.unavailable")
             } footer: {
                 text("renewal.intentOnly")
             }
-            .cyCardRow()
         } else if model.failure != nil && model.phase != .outcomeUnknown {
-            Section { CYEmptyState(systemImage: "exclamationmark.triangle", "renewal.error", tableName: table, messageIdentifier: "bundleRenewal.error") }
-                .cyCardRow()
+            Section { notice("exclamationmark.triangle", "renewal.error", identifier: "bundleRenewal.error") }
         }
         if let latest = model.latest {
             Section {
                 if let known = latest.knownIntent {
-                    label(known).cyText(.body).fixedSize(horizontal: false, vertical: true)
+                    label(known).fixedSize(horizontal: false, vertical: true)
                 } else {
-                    text("renewal.intent.unrecognized").cyText(.body).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    text("renewal.intent.unrecognized").foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 if let note = latest.note {
                     let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
                     Text(verbatim: trimmed.isEmpty ? "—" : note)
-                        .cyText(.meta)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -99,7 +88,6 @@ import SwiftUI
         } else if model.phase == .loaded {
             Section {
                 text("renewal.none")
-                    .cyText(.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -107,33 +95,35 @@ import SwiftUI
         if model.phase == .outcomeUnknown {
             Section {
                 text("renewal.unknown")
-                    .cyText(.body)
                     .fixedSize(horizontal: false, vertical: true)
             } footer: {
                 text("renewal.intentOnly")
             }
             Section {
-                VStack(spacing: CYSpacing.md) {
-                    CYPillButton("renewal.recover", tableName: table, action: { Task { await model.recover() } })
-                        .disabled(!model.canRecover)
-                        .accessibilityLabel(text("renewal.recover"))
-                    CYPillButton("renewal.retry", style: .secondary, tableName: table, action: { Task { await model.retry() } })
-                        .disabled(!model.canRetry)
-                        .accessibilityLabel(text("renewal.retry"))
-                }
+                Button { Task { await model.recover() } } label: { text("renewal.recover") }
+                    .disabled(!model.canRecover)
+                    .accessibilityLabel(text("renewal.recover"))
+                Button { Task { await model.retry() } } label: { text("renewal.retry") }
+                    .disabled(!model.canRetry)
+                    .accessibilityLabel(text("renewal.retry"))
             }
-            .cyCardRow()
         } else if model.phase != .unavailable {
             Section {
-                ForEach(BundleRenewalIntent.allCases, id: \.self) { intent in
-                    CYChoiceRow(label: copy(intentKey(intent)), selected: choice == intent) { choice = intent }
+                Picker(selection: $choice) {
+                    ForEach(BundleRenewalIntent.allCases, id: \.self) { intent in
+                        label(intent).tag(intent)
+                    }
+                } label: {
+                    text("renewal.choose")
                 }
+                .pickerStyle(.inline)
+                .labelsHidden()
             } header: {
                 text("renewal.choose")
             }
             Section {
                 TextField(text: $note, axis: .vertical) { text("renewal.note") }
-                    .cyText(.body)
+                    .lineLimit(3...8)
                     .onChange(of: note) { _, value in
                         if value.count > BundleRenewalCommand.noteLimit {
                             note = String(value.prefix(BundleRenewalCommand.noteLimit))
@@ -143,15 +133,16 @@ import SwiftUI
                 text("renewal.intentOnly")
             }
             Section {
-                CYPillButton("renewal.submit", systemImage: "paperplane.fill", tableName: table) {
+                Button {
                     submitTick += 1
                     Task { await model.submit(intent: choice, note: note) }
+                } label: {
+                    Label { text("renewal.submit") } icon: { Image(systemName: "paperplane.fill") }
                 }
                 .disabled(!model.canSubmit)
                 .accessibilityLabel(text("renewal.submit"))
                 .cyHaptic(.impactMedium, trigger: submitTick)
             }
-            .cyCardRow()
         }
     }
 }

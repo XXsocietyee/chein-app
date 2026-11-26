@@ -2,7 +2,7 @@ import SwiftUI
 
 enum CYStatusTone { case neutral, success, warning, danger, info, rare }
 
-/// Small capsule status badge (`--cy-comp-tag-h` 20pt, soft fill, zero outer border). Colour is never the only signal: pass text.
+/// Status word (native r2: secondary text or a tinted `Label`, no capsule). Colour is never the only signal: pass text.
 struct CYStatusChip: View {
     private let text: LocalizedStringKey
     private let verbatim: String?
@@ -12,7 +12,6 @@ struct CYStatusChip: View {
     private let isSelected: Bool
     private var forcesSingleLine = false
 
-    @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
 
     init(_ text: LocalizedStringKey, tone: CYStatusTone = .neutral, systemImage: String? = nil, isSelected: Bool = false, tableName: String? = nil) {
@@ -38,41 +37,46 @@ struct CYStatusChip: View {
     /// One short status word (Locked / Unlocked): never wraps or hyphenates, shrinks a little instead, at any text size.
     func singleLine() -> CYStatusChip { var copy = self; copy.forcesSingleLine = true; return copy }
 
+    /// Native r2: no capsule chrome. A `.footnote` `Label` (tinted SF Symbol when one is given) or plain text:
+    /// `.secondary` for neutral, the matching system colour (green / orange / red / blue / purple) otherwise.
     var body: some View {
-        let shape = Capsule(style: .continuous)
-        HStack(spacing: CYSpacing.xs) {
+        Group {
             if let systemImage {
-                Image(systemName: systemImage)
-                    .font(CYTypography.caption.weight(.semibold))
-            }
-            Group {
-                if let verbatim { Text(verbatim: verbatim) } else { Text(text, tableName: tableName) }
-            }
-            .cyText(.micro)
-        }
-        .foregroundStyle(foreground)
-        .padding(.horizontal, 9)
-        .frame(minHeight: 20)
-        .background(shape.fill(background))
-        .overlay {
-            if isSelected {
-                shape.strokeBorder(palette.borderStrong, lineWidth: 1)
+                Label {
+                    textView
+                } icon: {
+                    Image(systemName: systemImage)
+                }
+            } else {
+                textView
             }
         }
-        // Accessibility sizes may wrap to a second line instead of truncating a status word.
+        .font(.footnote)
+        .fontWeight(isSelected ? .semibold : nil)
+        .foregroundStyle(Self.systemStyle(for: tone))
         .lineLimit(forcesSingleLine ? 1 : (typeSize.isAccessibilitySize ? 3 : 1))
         .minimumScaleFactor(forcesSingleLine ? 0.7 : 1)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
     }
 
-    private var foreground: Color {
-        Self.tokens(for: tone, isSelected: isSelected, in: palette).foreground
-    }
-    private var background: Color {
-        Self.tokens(for: tone, isSelected: isSelected, in: palette).background
+    @ViewBuilder private var textView: some View {
+        if let verbatim { Text(verbatim: verbatim) } else { Text(text, tableName: tableName) }
     }
 
+    /// The system colour a tone renders in (native r2).
+    static func systemStyle(for tone: CYStatusTone) -> AnyShapeStyle {
+        switch tone {
+        case .neutral: return AnyShapeStyle(.secondary)
+        case .success: return AnyShapeStyle(Color.green)
+        case .warning: return AnyShapeStyle(Color.orange)
+        case .danger: return AnyShapeStyle(Color.red)
+        case .info: return AnyShapeStyle(Color.blue)
+        case .rare: return AnyShapeStyle(Color.purple)
+        }
+    }
+
+    /// Token readback kept for existing token tests; the chip itself renders `systemStyle(for:)`.
     static func tokens(
         for tone: CYStatusTone,
         isSelected: Bool = false,
@@ -97,16 +101,16 @@ struct CYCountBadge: View {
     let count: Int?
     var showsZero: Bool = false
 
-    @Environment(\.cyPalette) private var palette
-
     var body: some View {
         if let label {
+            // Native r2: the system badge look (white caption digits on system red).
             Text(verbatim: label)
-                .cyText(.micro, weight: .bold, monospacedDigit: true)
-                .foregroundStyle(palette.actionDangerFg)
+                .font(.caption.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(.white)
                 .padding(.horizontal, 5)
                 .frame(minWidth: 16, minHeight: 16)
-                .background(Capsule(style: .continuous).fill(palette.actionDangerBg))
+                .background(Color.red, in: Capsule())
                 .accessibilityLabel(Text(verbatim: label))
         }
     }
@@ -124,19 +128,13 @@ struct CYCountBadge: View {
 
 private struct CYStatusChipPreviewBody: View {
     var body: some View {
-        HStack(spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             CYStatusChip("Pending")
             CYStatusChip("Paid", tone: .success, systemImage: "checkmark")
-            CYStatusChip("Expiring", tone: .warning)
             CYStatusChip("Refunded", tone: .danger)
-            CYStatusChip("New", tone: .info)
-            CYStatusChip("Rare", tone: .rare, systemImage: "star.fill")
             CYCountBadge(count: 12)
         }
-        .padding(CYSpacing.pageHorizontal)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .cyDomainPageBackground()
+        .padding()
     }
 }
-#Preview("Chip · player dark") { CYStatusChipPreviewBody().themeDomain(.player) }
-#Preview("Chip · merchant light") { CYStatusChipPreviewBody().themeDomain(.merchant) }
+#Preview("Chip") { CYStatusChipPreviewBody() }

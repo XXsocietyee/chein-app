@@ -43,16 +43,6 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                CYHeroHeader(verbatim: localized("friendDirectory.title")) {
-                    CYCoverArt(seed: "friend-directory", symbol: "person.2.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 120)
-                        .accessibilityHidden(true)
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
-            }
-            Section {
                 Picker(localized("friendDirectory.partition"), selection: Binding(get: { flow.filter.section }, set: { value in
                     var filter = flow.filter; filter.section = value; Task { await flow.select(filter) }
                 })) {
@@ -62,46 +52,53 @@ import SwiftUI
                 }
                 .pickerStyle(.segmented).labelsHidden()
                 .accessibilityIdentifier("friendDirectory.partition")
-                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)).listRowBackground(Color.clear)
             }
             if flow.busy {
                 Section {
-                    CYSkeleton()
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("friendDirectory.loading")
                         .accessibilityLabel(Text("cloud31.loading.friends"))
                 }
             }
             if flow.phase == .closed {
-                Section { CYStatusChip(verbatim: localized("friendDirectory.closed"), tone: .neutral, systemImage: "lock") }
+                Section { Label(localized("friendDirectory.closed"), systemImage: "lock").foregroundStyle(.secondary) }
             }
             if let issue = flow.issue {
                 Section {
-                    CYErrorState(
-                        LocalizedStringKey(localized(issue)),
-                        retryTitle: LocalizedStringKey(localized(flow.paginationFailed ? "friendDirectory.retryPage" : "friendDirectory.refresh")),
-                        onRetry: { Task { await flow.retry() } }
-                    )
-                    .disabled(flow.busy)
+                    ContentUnavailableView {
+                        Label(localized(issue), systemImage: "exclamationmark.triangle")
+                    } actions: {
+                        Button(localized(flow.paginationFailed ? "friendDirectory.retryPage" : "friendDirectory.refresh")) { Task { await flow.retry() } }
+                            .buttonStyle(.bordered)
+                            .disabled(flow.busy)
+                    }
                     .accessibilityIdentifier("friendDirectory.issue")
                 }
             }
             Section {
                 if flow.phase == .ready && flow.items.isEmpty {
-                    CYEmptyState(systemImage: "person.2", "friendDirectory.empty", tableName: "NativeFriendDirectory", messageIdentifier: "friendDirectory.empty")
+                    ContentUnavailableView {
+                        Label { text("friendDirectory.empty") } icon: { Image(systemName: "person.2") }
+                    }
+                    .accessibilityIdentifier("friendDirectory.empty")
                 }
                 ForEach(flow.items) { item in
                     Button { model.open(item) } label: {
-                        CYListRow(verbatim: friendName(item), meta: remarkLine(item), trailing: .chevron) {
-                            HStack(spacing: CYSpacing.sm) {
-                                CYCoverArt(seed: item.displayName.isEmpty ? String(item.peerID) : item.displayName, symbol: "person.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg)
-                                    .frame(width: 40, height: 40)
-                                    .accessibilityHidden(true)
-                                if item.starred == 1 {
-                                    Image(systemName: "star.fill")
-                                        .cyText(.caption)
-                                        .foregroundStyle(CYColor.warningText)
-                                        .accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata"))
+                        LabeledContent {
+                            if item.starred == 1 {
+                                Image(systemName: "star.fill")
+                                    .foregroundStyle(.orange)
+                                    .accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata"))
+                            }
+                        } label: {
+                            Label {
+                                VStack(alignment: .leading) {
+                                    Text(verbatim: friendName(item)).foregroundStyle(.primary)
+                                    if let remark = remarkLine(item) { Text(verbatim: remark).font(.subheadline).foregroundStyle(.secondary) }
                                 }
+                            } icon: {
+                                Image(systemName: "person.crop.circle.fill").foregroundStyle(.secondary)
                             }
                         }
                     }.disabled(flow.busy).accessibilityIdentifier("friendDirectory.peer.\(item.peerID)")
@@ -111,14 +108,11 @@ import SwiftUI
                         .disabled(flow.busy).accessibilityIdentifier("friendDirectory.more")
                 }
             } header: {
-                CYSectionHeader(LocalizedStringKey(sectionHeading))
+                Text(verbatim: sectionHeading)
             }
         }
         .listStyle(.insetGrouped)
-        .cyText(.body)
-        .cyGroupedSurface()
-        .cyHeroScreen()
-        .cyAnimation(value: flow.phase)
+        .navigationTitle(localized("friendDirectory.title"))
         .accessibilityIdentifier("friendDirectory.home")
         .task { await flow.load() }
         .refreshable { await flow.load() }
@@ -281,45 +275,46 @@ import SwiftUI
             Section {
                 if let item = flow.detail?.item {
                     let name = item.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-                    CYImageCard(verbatim: name.isEmpty ? "—" : name, fallback: "friendDirectory.detail", meta: localized("friendDirectory.detail"), style: .hero)
-                        .accessibilityIdentifier("friendDirectory.detailName")
-                        .accessibilityAddTraits(.isHeader)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    Label {
+                        VStack(alignment: .leading) {
+                            Text(verbatim: name.isEmpty ? "—" : name)
+                                .font(.title2.bold())
+                                .accessibilityIdentifier("friendDirectory.detailName")
+                                .accessibilityAddTraits(.isHeader)
+                            Text(verbatim: localized("friendDirectory.detail")).font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary)
+                    }
                 } else if flow.busy {
-                    CYSkeleton()
-                        .accessibilityLabel(Text("cloud31.loading.friends"))
-                } else {
-                    CYCoverArt(seed: "friend-detail", symbol: "person.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg)
+                    ProgressView()
                         .frame(maxWidth: .infinity)
-                        .frame(height: 160)
-                        .accessibilityHidden(true)
-                        .listRowBackground(Color.clear)
+                        .accessibilityLabel(Text("cloud31.loading.friends"))
                 }
                 if let detail = flow.detail {
                     if detail.conversationID != nil {
-                        CYPillButton("d7.friendProfile.message", style: .primary, systemImage: "message.fill") { Task { await model.openConversation() } }
+                        Button { Task { await model.openConversation() } } label: { Label("d7.friendProfile.message", systemImage: "message.fill") }
                             .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.chat")
                     }
                     if publicProfile != nil {
-                        CYPillButton("d7.friendProfile.profile", style: detail.conversationID == nil ? .primary : .secondary, systemImage: "person.text.rectangle") { Task { await model.openProfile() } }
+                        Button { Task { await model.openProfile() } } label: { Label("d7.friendProfile.profile", systemImage: "person.text.rectangle") }
                             .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.profile")
                     }
                     if let metadataFactory {
-                        let leading = detail.conversationID != nil || publicProfile != nil
-                        CYPillButton("d7.friendProfile.settings", style: leading ? .secondary : .primary, systemImage: "slider.horizontal.3") { model.openMetadata(using: metadataFactory) }
+                        Button { model.openMetadata(using: metadataFactory) } label: { Label("d7.friendProfile.settings", systemImage: "slider.horizontal.3") }
                             .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.metadata")
                     }
                 }
             }
             if let issue = flow.issue {
                 Section {
-                    CYErrorState(
-                        LocalizedStringKey(localized(issue)),
-                        retryTitle: LocalizedStringKey(localized("friendDirectory.refresh")),
-                        onRetry: { Task { await flow.load() } }
-                    )
-                    .disabled(flow.busy)
+                    ContentUnavailableView {
+                        Label(localized(issue), systemImage: "exclamationmark.triangle")
+                    } actions: {
+                        Button(localized("friendDirectory.refresh")) { Task { await flow.load() } }
+                            .buttonStyle(.bordered)
+                            .disabled(flow.busy)
+                    }
                     .accessibilityIdentifier("friendDirectory.detailIssue")
                 }
             }
@@ -327,11 +322,9 @@ import SwiftUI
                 let item = detail.item
                 Section {
                     LabeledContent {
-                        CYStatusChip(
-                            verbatim: localized(item.starred == 1 ? "friendDirectory.starred" : "friendDirectory.notStarred"),
-                            tone: item.starred == 1 ? .warning : .neutral,
-                            systemImage: item.starred == 1 ? "star.fill" : "star"
-                        )
+                        Label(localized(item.starred == 1 ? "friendDirectory.starred" : "friendDirectory.notStarred"),
+                              systemImage: item.starred == 1 ? "star.fill" : "star")
+                            .foregroundStyle(item.starred == 1 ? Color.orange : Color.secondary)
                     } label: { Text("friendMeta.starred", tableName: "NativeFriendMetadata") }
                 }
                 if let progressCard, flow.canOpen {
@@ -340,7 +333,7 @@ import SwiftUI
                 if let removalFactory {
                     Section {
                         Button(role: .destructive) { model.openRemoval(using: removalFactory) } label: {
-                            Text("friendRemoval.title", tableName: "NativeFriendRemoval").frame(maxWidth: .infinity)
+                            Text("friendRemoval.title", tableName: "NativeFriendRemoval")
                         }
                             .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.remove")
                     }
@@ -348,10 +341,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .cyText(.body)
-        .cyGroupedSurface()
-        .cyHeroScreen()
-        .cyAnimation(value: flow.busy)
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("friendDirectory.detail")
         .task { await flow.load() }
         .refreshable { await flow.load() }

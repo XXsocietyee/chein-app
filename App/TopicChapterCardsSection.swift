@@ -4,7 +4,7 @@ import SwiftUI
 /// `pages/topic/utils/chapter-cards.js`). Tapping a card discloses its description in place; tapping again
 /// collapses it, and only one card is open at a time. Ending chapters are already excluded by `TopicChapterCards`.
 /// Ported from chengyin-ios `f815bf30` (port plan r1 C9), re-skinned for the native iOS rule: Dynamic Type `.cyText` tokens,
-/// 12 pt card radius, `CYMotion` spring (instant under Reduce Motion), system press feedback.
+/// native r2: system text styles and colours, system animation (instant under Reduce Motion), plain button.
 /// Replaces the old per-template 「节点介绍」 shelf (`TopicXcxTemplatesSection`), which the MP also replaced.
 struct TopicChapterCardsSection: View {
     let cards: [TopicChapterCard]
@@ -32,12 +32,11 @@ struct TopicChapterCardsSection: View {
         let next = TopicChapterCards.toggle(open: openID, tapped: id)
         // Reduce Motion: the description is simply there (plan C9: "instant under Reduce Motion").
         guard !reduceMotion else { openID = next; return }
-        withAnimation(CYMotion.standard) { openID = next }
+        withAnimation { openID = next }
     }
 }
 
 struct TopicChapterCardView: View {
-    @Environment(\.cyPalette) private var palette
     let card: TopicChapterCard
     let isOpen: Bool
     let toggle: () -> Void
@@ -64,29 +63,28 @@ struct TopicChapterCardView: View {
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
                 Text(verbatim: card.title)
-                    .cyText(.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
                     .lineLimit(1)
                 if let metaText {
                     metaText
-                        .cyText(.caption)
+                        .font(.caption)
                         .monospacedDigit()
-                        .foregroundStyle(palette.textSecondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
                 if isOpen, let description = card.description {
                     Text(verbatim: description)
-                        .cyText(.bodyCompact)
-                        .foregroundStyle(palette.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
             .frame(width: Self.width, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.cyPressable)
+        .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
         .accessibilityValue(Text(isOpen ? LocalizedStringKey("topic.chapterCard.expanded") : LocalizedStringKey("topic.chapterCard.collapsed")))

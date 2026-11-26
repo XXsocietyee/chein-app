@@ -7,7 +7,6 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Form {
-            Section { CYHeroHeader("d7.notifyPermission.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 if model.busy {
                     ProgressView().frame(maxWidth: .infinity)
@@ -15,9 +14,8 @@ import SwiftUI
                         .accessibilityIdentifier("notification.permission.busy")
                 }
                 Label(NativeNotificationPermissionStatusPresentation.project(authorization: model.snapshot?.authorization, busy: model.busy, hasIssue: model.issue != nil).title(locale: locale), systemImage: "bell.badge")
-                    .cyText(.cardTitle)
+                    .font(.headline)
                     .accessibilityAddTraits(.isHeader)
-                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("notification.permission.status")
                 if let snapshot = model.snapshot {
                     LabeledContent(n("permission.alerts"), value: label(snapshot.alerts))
@@ -28,10 +26,10 @@ import SwiftUI
             if let snapshot = model.snapshot {
                 Section {
                     if snapshot.authorization == .notDetermined {
-                        CYPillButton("d7.notifyPermission.request") { let revision = model.revision; Task { await model.requestFromUserAction(expectedRevision: revision) } }
+                        Button { let revision = model.revision; Task { await model.requestFromUserAction(expectedRevision: revision) } } label: { Text("d7.notifyPermission.request") }
                             .accessibilityIdentifier("notification.permission.request")
                     } else {
-                        CYPillButton("d7.notifyPermission.settings") { let revision = model.revision; Task { await model.openSettingsFromUserAction(expectedRevision: revision) } }
+                        Button { let revision = model.revision; Task { await model.openSettingsFromUserAction(expectedRevision: revision) } } label: { Text("d7.notifyPermission.settings") }
                             .accessibilityIdentifier("notification.permission.settings")
                     }
                 }
@@ -40,8 +38,8 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .disabled(model.busy)
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("d7.notifyPermission.title"))
+        .navigationBarTitleDisplayMode(.inline)
         // Pull to refresh replaces the "read permission again" button; it also rereads on return to the app.
         .refreshable { let revision = model.revision; await model.refresh(expectedRevision: revision) }
         .task { await model.refresh(expectedRevision: model.revision) }

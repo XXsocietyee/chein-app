@@ -11,7 +11,7 @@ public enum CYFieldState: Equatable, Sendable {
     case disabled
 }
 
-/// Domain-aware single-line or multiline input field implementing DESIGN.md Part 4 input specs.
+/// Single-line or multiline input field (native r2: the system `TextField`).
 /// Supports automatic state detection from text/focus/error/help AND explicit `forcedState` previews.
 public struct CYField: View {
     private let label: String
@@ -27,8 +27,6 @@ public struct CYField: View {
     private let forcedState: CYFieldState?
 
     @FocusState private var isFocused: Bool
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.colorScheme) private var colorScheme
 
     public init(
         label: String,
@@ -140,20 +138,6 @@ public struct CYField: View {
         )
     }
 
-    private var resolvedTokens: (
-        background: Color,
-        borderColor: Color,
-        borderWidth: CGFloat,
-        textForeground: Color,
-        footerForeground: Color?,
-        showsSuccessIcon: Bool
-    ) {
-        Self.tokens(for: resolvedState, hasText: !text.isEmpty, colorScheme: colorScheme, in: palette)
-    }
-
-    private var boxBackground: Color { resolvedTokens.background }
-    private var borderStroke: (color: Color, width: CGFloat) { (resolvedTokens.borderColor, resolvedTokens.borderWidth) }
-
     private var footerMessage: (text: String, isError: Bool)? {
         switch resolvedState {
         case .error(let msg):
@@ -167,103 +151,38 @@ public struct CYField: View {
         }
     }
 
+    /// Native r2: the system text field (`.roundedBorder`; multiline is the vertical-axis `TextField`) with the label
+    /// as plain `.subheadline` secondary text above it and validation / help as a `.footnote` below (red for errors).
+    /// No box, border, placeholder colour or counter drawn by us. `maxLength` is still enforced.
     public var body: some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-        VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
-            headerRow
-            inputContainer(shape: shape)
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: isRequired ? label + " *" : label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            input
             if let footer = footerMessage {
-                let footerColor = resolvedTokens.footerForeground ?? (footer.isError ? palette.danger : palette.textTertiary)
-                HStack(spacing: CYSpacing.xs) {
-                    if footer.isError {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .font(CYTypography.micro.weight(.semibold))
-                            .accessibilityHidden(true)
-                    }
-                    Text(verbatim: footer.text)
-                        .cyText(.micro)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .foregroundStyle(footerColor)
+                Text(verbatim: footer.text)
+                    .font(.footnote)
+                    .foregroundStyle(footer.isError ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .accessibilityElement(children: .contain)
     }
 
-    private var headerRow: some View {
-        HStack(spacing: CYSpacing.xs) {
-            HStack(spacing: CYSpacing.xxs) {
-                Text(verbatim: label)
-                    .cyText(.caption, weight: .medium)
-                    .foregroundStyle(palette.textSecondary)
-                if isRequired {
-                    Text(verbatim: "*")
-                        .cyText(.caption, weight: .bold)
-                        .foregroundStyle(palette.danger)
-                        .accessibilityHidden(true)
-                }
-            }
-            Spacer(minLength: CYSpacing.sm)
-            if let maxLength {
-                Text(verbatim: "\(text.count)/\(maxLength)")
-                    .cyText(.micro, monospacedDigit: true)
-                    .foregroundStyle(text.count > maxLength ? palette.danger : palette.textTertiary)
-            }
-        }
-    }
-
     @ViewBuilder
-    private func inputContainer(shape: RoundedRectangle) -> some View {
-        let tokens = resolvedTokens
-        HStack(alignment: multiline ? .top : .center, spacing: CYSpacing.sm) {
-            if multiline {
-                ZStack(alignment: .topLeading) {
-                    if text.isEmpty {
-                        Text(verbatim: placeholder)
-                            .cyText(.body)
-                            .foregroundStyle(palette.textPlaceholder)
-                            .padding(.top, 8)
-                            .padding(.leading, 4)
-                            .allowsHitTesting(false)
-                    }
-                    TextEditor(text: boundedBinding)
-                        .cyText(.body)
-                        .foregroundStyle(tokens.textForeground)
-                        .scrollContentBackground(.hidden)
-                        .focused($isFocused)
-                        .disabled(resolvedState == .disabled)
-                        .frame(minHeight: 84)
-                }
-            } else {
-                TextField(
-                    "",
-                    text: boundedBinding,
-                    prompt: Text(verbatim: placeholder).foregroundStyle(palette.textPlaceholder)
-                )
-                .cyText(.body)
-                .foregroundStyle(tokens.textForeground)
+    private var input: some View {
+        if multiline {
+            TextField(label, text: boundedBinding, prompt: Text(verbatim: placeholder), axis: .vertical)
+                .lineLimit(3...8)
+                .textFieldStyle(.roundedBorder)
                 .focused($isFocused)
                 .disabled(resolvedState == .disabled)
-            }
-
-            if tokens.showsSuccessIcon {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(.callout, weight: .semibold))
-                    .foregroundStyle(palette.success)
-                    .accessibilityHidden(true)
-            }
-        }
-        .padding(.horizontal, CYSpacing.md)
-        .padding(.vertical, multiline ? CYSpacing.sm : CYSpacing.s2_5)
-        .frame(minHeight: multiline ? 100 : CYSpacing.minTouchTarget)
-        .background(shape.fill(tokens.background))
-        .overlay {
-            if tokens.borderWidth > 0 {
-                shape.strokeBorder(tokens.borderColor, lineWidth: tokens.borderWidth)
-            }
-        }
-        .onTapGesture {
-            if resolvedState != .disabled { isFocused = true }
+        } else {
+            TextField(label, text: boundedBinding, prompt: Text(verbatim: placeholder))
+                .textFieldStyle(.roundedBorder)
+                .focused($isFocused)
+                .disabled(resolvedState == .disabled)
         }
     }
 

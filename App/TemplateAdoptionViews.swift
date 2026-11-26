@@ -36,7 +36,7 @@ struct TemplateAdoptButton: View {
     @State private var message: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 4) {
             Button { Task { await adopt() } } label: {
                 Label(PlayerCapabilityCopy.text("采用为我的草稿", "Adopt as my draft", locale), systemImage: "square.and.arrow.down")
             }
@@ -44,7 +44,7 @@ struct TemplateAdoptButton: View {
             .accessibilityIdentifier("template.adopt")
             if busy { ProgressView() }
             if let message {
-                Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: message).font(.footnote).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -102,26 +102,27 @@ struct TemplateLocationTodosSection: View {
                 Section {
                     if let source = todos.sourceTopicText {
                         Text(verbatim: [source, todos.sourceRevisionText, todos.intentText].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .font(.footnote).foregroundStyle(.secondary)
                     }
                     ForEach(todos.rows) { row in
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            HStack {
-                                Text(verbatim: row.title).cyText(.cardTitle)
-                                Spacer()
-                                Text(verbatim: row.statusText).cyText(.meta)
-                                    .foregroundStyle(row.blocking ? CYColor.dangerText : (row.warn ? CYColor.warningText : CYColor.textSecondary))
+                        VStack(alignment: .leading, spacing: 4) {
+                            LabeledContent {
+                                Text(verbatim: row.statusText).font(.footnote)
+                                    .foregroundStyle(row.blocking ? AnyShapeStyle(.red) : (row.warn ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary)))
+                            } label: {
+                                Text(verbatim: row.title).font(.headline)
                             }
                             if !row.what.isEmpty || !row.how.isEmpty {
                                 Text(verbatim: [row.what, row.how].filter { !$0.isEmpty }.joined(separator: " · "))
-                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                    .font(.footnote).foregroundStyle(.secondary)
                             }
-                            if !row.issueText.isEmpty { Text(verbatim: row.issueText).cyText(.meta).foregroundStyle(CYColor.warningText) }
-                            if let error = rowError[row.slotKey] { Text(verbatim: error).cyText(.meta).foregroundStyle(CYColor.dangerText) }
+                            if !row.issueText.isEmpty { Text(verbatim: row.issueText).font(.footnote).foregroundStyle(.orange) }
+                            if let error = rowError[row.slotKey] { Text(verbatim: error).font(.footnote).foregroundStyle(.red) }
                             Button(PlayerCapabilityCopy.text("选节点绑定", "Bind a node", locale)) {
                                 if bindableNodes.isEmpty { rowError[row.slotKey] = "先在章节里给节点设置这座城市的地点并保存" }
                                 else { picking = row }
                             }
+                            .buttonStyle(.borderless)
                             .disabled(busySlot != nil)
                             .accessibilityIdentifier("template.location.bind.\(row.slotKey)")
                         }
@@ -131,21 +132,15 @@ struct TemplateLocationTodosSection: View {
                 }
             }
         }
-        .sheet(item: $picking) { row in
-            MerchantChoiceOptionSheet(
-                title: PlayerCapabilityCopy.text("绑定到哪个节点", "Bind to which node", locale),
-                options: bindableNodes.map { node in
-                    MerchantChoiceOption(id: String(node.id), title: node.label, systemImage: "mappin.and.ellipse")
-                },
-                domain: .topicEditor,
-                selectedID: .constant(nil),
-                onSelect: { option in
-                    if let nodeID = Int(option.id) {
-                        Task { await bind(row, nodeID: nodeID) }
-                    }
-                },
-                onClose: { picking = nil }
-            )
+        .confirmationDialog(
+            PlayerCapabilityCopy.text("绑定到哪个节点", "Bind to which node", locale),
+            isPresented: Binding(get: { picking != nil }, set: { if !$0 { picking = nil } }),
+            titleVisibility: .visible,
+            presenting: picking
+        ) { row in
+            ForEach(bindableNodes.indices, id: \.self) { index in
+                Button(bindableNodes[index].label) { Task { await bind(row, nodeID: bindableNodes[index].id) } }
+            }
         }
     }
 
@@ -184,24 +179,23 @@ struct TemplateProjectActions: View {
     @State private var toast: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 4) {
             Button(kind == .topic ? PlayerCapabilityCopy.text("另存为模板", "Save as template", locale)
                                   : PlayerCapabilityCopy.text("提交广场审核", "Submit to the market", locale)) {
                 if kind == .topic { confirming = true } else { Task { await run() } }
             }
             .disabled(busy)
             .accessibilityIdentifier(kind == .topic ? "template.saveAs.\(id)" : "template.marketSubmit.\(id)")
-            if let toast { Text(verbatim: toast).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            if let toast { Text(verbatim: toast).font(.footnote).foregroundStyle(.secondary) }
         }
-        .sheet(isPresented: $confirming) {
-            CYConfirmSheet(
-                title: PlayerCapabilityCopy.text("另存为模板", "Save as template", locale),
-                message: "「" + (title.isEmpty ? "这个主题" : title) + "」会出现在主题模板货架上，其他人可以复制它作为草稿起点。",
-                confirmTitle: PlayerCapabilityCopy.text("另存为模板", "Save as template", locale),
-                onConfirm: { Task { await run() } }
-            )
-            .cyDomainSheet(detents: [.half])
-            .themeDomain(.topicEditor)
+        .confirmationDialog(
+            PlayerCapabilityCopy.text("另存为模板", "Save as template", locale),
+            isPresented: $confirming,
+            titleVisibility: .visible
+        ) {
+            Button(PlayerCapabilityCopy.text("另存为模板", "Save as template", locale)) { Task { await run() } }
+        } message: {
+            Text(verbatim: "「" + (title.isEmpty ? "这个主题" : title) + "」会出现在主题模板货架上，其他人可以复制它作为草稿起点。")
         }
     }
 

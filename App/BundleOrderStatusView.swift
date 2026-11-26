@@ -80,31 +80,34 @@ enum BundleOrderStatusPresentation {
             seed: order?.registrationId.text ?? "bundle-order",
             symbol: "shippingbox"
         ) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                if banner == .confirming {
-                    CYSkeleton()
-                        .accessibilityHidden(true)
-                        .cyRowTransition()
-                }
-                if let key = BundleOrderStatusPresentation.bannerKey(banner) {
-                    CYNoteBanner(text: Text(verbatim: catalog(key)), symbol: bannerSymbol(banner), tone: bannerTone(banner))
-                        .accessibilityIdentifier("bundle.order.receiptBanner")
-                        .cyRowTransition()
+            if let key = BundleOrderStatusPresentation.bannerKey(banner) {
+                Section {
+                    HStack(spacing: CYSpacing.sm) {
+                        Cloud03Note(text: Text(verbatim: catalog(key)), symbol: bannerSymbol(banner), tone: bannerTone(banner))
+                            .accessibilityIdentifier("bundle.order.receiptBanner")
+                        if banner == .confirming {
+                            Spacer(minLength: 0)
+                            ProgressView()
+                        }
+                    }
                     if poller?.state == .stillUnconfirmed || poller?.state == .readUnavailable {
-                        CYPillButton(verbatim: catalog("order.receipt.recheck"), systemImage: "arrow.clockwise") {
+                        Button {
                             poller?.poller.start()
+                        } label: {
+                            Label(catalog("order.receipt.recheck"), systemImage: "arrow.clockwise")
                         }
                         .accessibilityLabel(Text(verbatim: catalog("order.receipt.recheck")))
                     }
                 }
-                if let order {
-                    orderBody(order)
-                } else if banner == .none {
-                    CYStateLayout(
-                        kind: .orders,
-                        title: Text(verbatim: Cloud03Copy.line("还没有可显示的订单", "No order to show", locale: locale))
-                    )
-                }
+            }
+            if let order {
+                orderBody(order)
+            } else if banner == .none {
+                ContentUnavailableView(
+                    Cloud03Copy.line("还没有可显示的订单", "No order to show", locale: locale),
+                    systemImage: "shippingbox"
+                )
+                .listRowBackground(Color.clear)
             }
         }
         .cyAnimation(value: poller?.state)
@@ -119,30 +122,29 @@ enum BundleOrderStatusPresentation {
     }
 
     private func orderBody(_ order: BundleOrderReadModel) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYListRow(
-            verbatim: catalog("order.number"),
-            trailing: .value(Cloud03Copy.shown(order.registrationId.text)),
-            card: true
-        ) { CYRowIcon(systemImage: "number") }
-        if let number = order.registrationNo {
-            Text(verbatim: Cloud03Copy.shown(number))
-                .cyText(.numericBody)
-                .foregroundStyle(CYColor.textPrimary)
-                .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        if order.isLegacy {
-            CYNoteBanner(text: Text(verbatim: catalog("order.legacy")), symbol: "doc.text", tone: .neutral)
-                .accessibilityIdentifier("bundle.order.legacy")
-        } else {
-            let key = BundleOrderStatusPresentation.activationKey(order.activation)
-            CYListRow(
-                verbatim: catalog("order.status"),
-                trailing: .value(catalog(key)),
-                card: true
-            ) { CYRowIcon(systemImage: activationSymbol(order.activation)) }
-            .accessibilityIdentifier("bundle.order.activation")
+        Section {
+            LabeledContent {
+                Text(verbatim: Cloud03Copy.shown(order.registrationId.text))
+            } label: {
+                Label(catalog("order.number"), systemImage: "number")
+            }
+            if let number = order.registrationNo {
+                Text(verbatim: Cloud03Copy.shown(number))
+                    .font(.body.monospacedDigit())
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if order.isLegacy {
+                Cloud03Note(text: Text(verbatim: catalog("order.legacy")), symbol: "doc.text", tone: .neutral)
+                    .accessibilityIdentifier("bundle.order.legacy")
+            } else {
+                let key = BundleOrderStatusPresentation.activationKey(order.activation)
+                LabeledContent {
+                    Text(verbatim: catalog(key))
+                } label: {
+                    Label(catalog("order.status"), systemImage: activationSymbol(order.activation))
+                }
+                .accessibilityIdentifier("bundle.order.activation")
             }
         }
     }
@@ -218,22 +220,33 @@ enum Cloud03Copy {
     }
 }
 
-struct Cloud03Cover: View {
-    let seed: String
+/// Native r2: a note line is a system `Label` with a tinted SF Symbol (replaces the custom note banner on this lane).
+struct Cloud03Note: View {
+    let text: Text
     let symbol: String
+    var tone: CYStatusTone = .info
 
     var body: some View {
-        Color.clear
-            .aspectRatio(1.6, contentMode: .fit)
-            .overlay {
-                CYCoverArt(seed: seed, symbol: symbol, cornerRadius: CYRadius.hero)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
-            .accessibilityHidden(true)
+        Label {
+            text.fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: symbol).foregroundStyle(Cloud03Note.tint(tone))
+        }
+    }
+
+    static func tint(_ tone: CYStatusTone) -> Color {
+        switch tone {
+        case .neutral: return .secondary
+        case .success: return .green
+        case .warning: return .orange
+        case .danger: return .red
+        case .info, .rare: return .accentColor
+        }
     }
 }
 
-/// One visible title: the system inline navigation title (native restyle r1). Page gutters are 16pt.
+/// Native r2: every screen on this lane is a system inset-grouped list with the inline navigation title.
+/// `seed` and `symbol` are kept for call-site compatibility; the generated cover art is retired.
 struct Cloud03Screen<Content: View>: View {
     let title: String
     var subtitle: String?
@@ -250,27 +263,20 @@ struct Cloud03Screen<Content: View>: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                Cloud03Cover(seed: seed, symbol: symbol)
-                // Native restyle r1 (spec §3.1): the title is the system inline navigation title, not a second
-                // in-content hero title. The subtitle stays as body copy.
-                if let subtitle {
+        List {
+            if let subtitle {
+                Section {
                     Text(verbatim: subtitle)
-                        .cyText(.body)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                content()
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.top, CYSpacing.md)
-            .padding(.bottom, CYSpacing.jumbo)
+            content()
         }
+        .listStyle(.insetGrouped)
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle(Text(verbatim: title))
         .navigationBarTitleDisplayMode(.inline)
-        .cyDomainPageBackground()
         .themeDomain(.player)
     }
 }

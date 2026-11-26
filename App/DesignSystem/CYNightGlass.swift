@@ -7,20 +7,11 @@ private struct CYNightGlassModifier<S: InsettableShape>: ViewModifier {
     let shape: S
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
+    /// Native r2: no glass, material, gradient edge or shadow. A plain system secondary background in the shape,
+    /// so controls over a map stay legible.
     func body(content: Content) -> some View {
         content
-            .background {
-                if reduceTransparency {
-                    shape.fill(CYNight.ink2)
-                } else {
-                    shape.fill(.ultraThinMaterial).overlay(shape.fill(CYNight.glassFill))
-                }
-            }
-            .overlay {
-                shape.strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom],
-                                                  startPoint: .top, endPoint: .bottom), lineWidth: 1)
-            }
-            .shadow(color: CYNight.ink0.opacity(0.4), radius: 12, y: 4)
+            .background(Color(uiColor: .secondarySystemBackground), in: shape)
     }
 }
 

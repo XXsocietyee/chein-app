@@ -170,20 +170,28 @@ public struct CYTabs<ID: Hashable>: View {
         self.variant = variant
     }
 
+    /// Native r2: the system segmented `Picker` for up to five tabs (any variant); longer lists and `.chip` use the
+    /// system capsule filter buttons in a horizontal scroll. Badges read as "Title n". No drawn indicator or motion.
     public var body: some View {
-        switch variant {
-        case .underline:
-            underlineBar
-        case .segmented:
-            segmentedBar
-        case .chip:
+        if variant != .chip && items.count <= 5 {
+            Picker(selection: $selection) {
+                ForEach(items) { item in
+                    Text(verbatim: segmentTitle(item)).tag(item.id)
+                }
+            } label: {
+                EmptyView()
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding(.horizontal, variant == .segmented ? 0 : CYSpacing.pageHorizontal)
+        } else {
             chipBar
-        case .sticky:
-            let tokens = CYTabsTokens.resolve(variant: .sticky, isSelected: true, in: palette)
-            underlineBar
-                .background(tokens.containerBackground ?? palette.bgPage)
-                .zIndex(85)
         }
+    }
+
+    private func segmentTitle(_ item: CYTabItem<ID>) -> String {
+        if let badgeCount = item.badgeCount, badgeCount > 0 { return item.title + " " + String(badgeCount) }
+        return item.title
     }
 
     private var selectedIndex: Int? { items.firstIndex { $0.id == selection } }
@@ -304,15 +312,6 @@ public struct CYTabs<ID: Hashable>: View {
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
-        }
-        .overlay(alignment: .trailing) {
-            LinearGradient(
-                colors: [palette.bgPage.opacity(0), palette.bgPage],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .frame(width: 24)
-            .allowsHitTesting(false)
         }
     }
 

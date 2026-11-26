@@ -105,7 +105,6 @@ import Combine
     }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateSamples.open").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 NavigationLink("templateSampleCoverage.open") { TemplateAdditionalSampleBrowserView(model: model) }
                     .accessibilityIdentifier("templateSampleCoverage.open")
@@ -116,9 +115,10 @@ import Combine
                 Section(LocalizedStringKey(group.labelKey)) {
                     ForEach(TemplateSamplePreview.Choice.allCases.filter { $0.group == group }) { choice in
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(LocalizedStringKey(choice.labelKey)).cyText(.cardTitle)
+                            Text(LocalizedStringKey(choice.labelKey)).font(.headline)
                             HStack {
-                                CYPillButton("templateSamples.preview", style: .secondary, action: controller.openAction(choice))
+                                Button("templateSamples.preview", action: controller.openAction(choice))
+                                    .buttonStyle(.bordered)
                                     .disabled(!controller.canBrowse || controller.presentation != nil)
                                     .accessibilityIdentifier("templateSamples.preview." + choice.rawValue)
                                 Spacer()
@@ -130,7 +130,8 @@ import Combine
                     }
                 }
             }
-        }.cyGroupedSurface()
+        }
+            .navigationTitle("templateSamples.open")
             .sheet(item: controller.presentationBinding) { item in
                 Group {
                     NavigationStack { TemplateSamplePresentationView(controller: controller, presentationID: item.id) }
@@ -153,8 +154,8 @@ import Combine
         Group {
             if let item = controller.visiblePresentation, item.id == presentationID {
                 VStack(spacing: 8) {
-                    Text("templateSamples.previewScope").cyText(.bodyCompact).padding(.horizontal)
-                    Text("templateSamples.filled \(item.sample.filledFields.count)").cyText(.meta)
+                    Text("templateSamples.previewScope").font(.subheadline).padding(.horizontal)
+                    Text("templateSamples.filled \(item.sample.filledFields.count)").font(.footnote).foregroundStyle(.secondary)
                     TemplateCreatorRehearsalView(draft: item.sample.draft, family: item.sample.choice.family)
                         .id(item.id)
                 }

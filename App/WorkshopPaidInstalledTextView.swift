@@ -54,7 +54,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                 } else if controller.phase == .invalidated {
                     paidText(controller.issue == .disabled ? "notConfigured" : "sessionChanged")
                 } else if controller.phase == .loading {
-                    CYLoadingStateView(rows: 1).accessibilityLabel(paidText("loading"))
+                    ProgressView().frame(maxWidth: .infinity).accessibilityLabel(paidText("loading"))
                 } else if let content = controller.content {
                     Section {
                         paidFact("version", content.version)
@@ -95,7 +95,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                 } else if controller.phase == .unavailable {
                     Section {
                         paidText(controller.issue == .disabled ? "notConfigured" : "unavailable").fixedSize(horizontal: false, vertical: true)
-                        CYPillButton(LocalizedStringKey("workshopPaidInstalledText.retry"), style: .secondary, tableName: "WorkshopPaidInstalledText") { schedule(controller.offerReload(displayed)) }
+                        Button { schedule(controller.offerReload(displayed)) } label: { Text("workshopPaidInstalledText.retry", tableName: "WorkshopPaidInstalledText") }
                             .accessibilityIdentifier("workshopPaidInstalledText.retry")
                     }
                 }
@@ -131,8 +131,9 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
         guard let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
     }
     private func paidFact(_ key: String, _ value: String) -> some View {
-        RevolutInsetRow(title: paidLabel(key, locale: locale), value: value)
-            .fixedSize(horizontal: false, vertical: true)
+        LabeledContent(paidLabel(key, locale: locale)) {
+            Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 private func paidLabel(_ key: String, locale: Locale) -> String {

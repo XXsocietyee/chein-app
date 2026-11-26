@@ -163,22 +163,22 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
 
     public var body: some View {
         Section {
-            HStack {
-                Text(verbatim: "iOS 原生超集与小程序契约对齐策略")
-                    .cyText(.bodyMedium)
-                Spacer()
-                Text(verbatim: snapshot.isSupersetIntact ? "6/6 超集完整 (SUPERSET_OK)" : "存在降级告警")
-                    .cyText(.caption, weight: .bold)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(snapshot.isSupersetIntact ? CYColor.successSoft : CYColor.warningSoft, in: Capsule())
-                    .foregroundStyle(snapshot.isSupersetIntact ? CYColor.successText : CYColor.warningText)
+            LabeledContent {
+                Label {
+                    Text(verbatim: snapshot.isSupersetIntact ? "6/6 超集完整 (SUPERSET_OK)" : "存在降级告警")
+                } icon: {
+                    Image(systemName: snapshot.isSupersetIntact ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                }
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(snapshot.isSupersetIntact ? Color.green : Color.orange)
                     .accessibilityIdentifier("nativeSupersetPolicy.overallBadge")
+            } label: {
+                Text(verbatim: "iOS 原生超集与小程序契约对齐策略")
             }
 
             LabeledContent {
                 Text(verbatim: snapshot.summaryText)
-                    .cyText(.numericBody)
+                    .monospacedDigit()
             } label: {
                 Text(verbatim: "超集能力统计")
             }
@@ -186,22 +186,18 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
 
             ForEach(snapshot.rows) { row in
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(verbatim: row.title)
-                            .cyText(.bodyMedium)
-                        Spacer()
+                    LabeledContent {
                         Text(verbatim: row.badgeText)
-                            .cyText(.caption, weight: .bold)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(badgeSoftColor(for: row.status), in: Capsule())
+                            .font(.footnote.weight(.semibold))
                             .foregroundStyle(badgeColor(for: row.status))
+                    } label: {
+                        Text(verbatim: row.title)
                     }
                     Text(verbatim: "对齐契约：\(row.miniProgramContract)")
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                     Text(verbatim: "原生超集：\(row.nativeSupersetCapability)")
-                        .cyText(.caption)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)
@@ -216,22 +212,11 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
     private func badgeColor(for status: NativeSupersetDomainRow.Status) -> Color {
         switch status {
         case .preservedSuperset:
-            return CYColor.successText
+            return .green
         case .downgradedWarning:
-            return CYColor.warningText
+            return .orange
         case .contractMismatch:
-            return CYColor.dangerText
-        }
-    }
-
-    private func badgeSoftColor(for status: NativeSupersetDomainRow.Status) -> Color {
-        switch status {
-        case .preservedSuperset:
-            return CYColor.successSoft
-        case .downgradedWarning:
-            return CYColor.warningSoft
-        case .contractMismatch:
-            return CYColor.dangerSoft
+            return .red
         }
     }
 }

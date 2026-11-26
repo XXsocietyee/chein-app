@@ -4,6 +4,7 @@ import SwiftUI
 /// springs into the new slot, then relaxes. Neutral selection (ink at 12%), per the design hand-off r1 PL-01. It sits over the native `TabView` bar as a
 /// non-interactive, accessibility-hidden indicator, so the native tab buttons keep their taps, identifiers and VoiceOver.
 /// Reduce Motion: the pill crossfades between slots. Spec: design-wave3 §4.5.
+/// Native r2 (2026-11-26): no longer mounted by the app shell (the system tab bar draws selection); design fixtures only.
 struct CYNightTabBar: View {
     let selection: RootTab
     var tabs: [RootTab] = RootTab.playerTabs
@@ -144,34 +145,10 @@ private struct CYFloatingTabBarClearance: ViewModifier {
         let baseClearance = isTabBarHidden ? 0 : CYFloatingTabBarClearanceKey.height
         let clearance = (visibility?.isHidden == true) ? 0 : baseClearance
         if #available(iOS 26, *) {
+            // Native r2: the system scroll edge effect only; no painted fade under the bar.
             content.safeAreaPadding(.bottom, clearance).environment(\.cyTabBarClearance, clearance)
                 .scrollEdgeEffectStyle(.soft, for: .bottom)
-                .overlay(alignment: .bottom) {
-                    if clearance > 0 { CYTabBarScrollEdgeFade(clearance: clearance) }
-                }
         } else { content }
-    }
-}
-
-/// verify-r1 1.4 / N-11 (HIG Layout: "use a scroll edge effect to visually elevate controls above content"): the floating
-/// glass bar sat over scrolling rows, so two layers of text were read at once. Under the bar the page colour is solid and
-/// it fades out over 32 pt above it, so a row's label is gone before it reaches the tab labels. Not interactive, not read
-/// by VoiceOver, and it sits under the system bar (which is drawn by UIKit above the tab content).
-private struct CYTabBarScrollEdgeFade: View {
-    let clearance: CGFloat
-    @Environment(\.cyPalette) private var palette
-    private let fade: CGFloat = 32
-
-    var body: some View {
-        VStack(spacing: 0) {
-            LinearGradient(colors: [palette.bgPage.opacity(0), palette.bgPage], startPoint: .top, endPoint: .bottom)
-                .frame(height: fade)
-            // The colour runs on under the home indicator; the frame itself stops at the safe-area edge.
-            palette.bgPage.ignoresSafeArea(edges: .bottom)
-                .frame(height: max(clearance - CYFloatingTabBarClearanceKey.barOverlap, 0))
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
     }
 }
 
