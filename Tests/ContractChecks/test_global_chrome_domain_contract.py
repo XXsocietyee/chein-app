@@ -208,8 +208,12 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
         # native r2: the project editor's pinned action bar is now the system bottom toolbar (same actions/ids).
         editor = read_swift("App/ProjectEditView.swift")
         bar = editor[editor.index("ToolbarItemGroup(placement: .bottomBar)"):]
-        for ident in ("projectEdit.saveLocal", "projectEdit.saveCloudDraft", "projectEdit.submitServerDraft", "projectEdit.review"):
+        for ident in ("projectEdit.saveCloudDraft", "projectEdit.submitServerDraft", "projectEdit.review"):
             self.assertIn(f'.accessibilityIdentifier("{ident}")', bar)
+        # r10 C-F4: MP fabu/index.js (saveDraft=1) bar is 保存草稿 + 下一步; 存到本机 moved into the ⋯ menu.
+        self.assertNotIn('.accessibilityIdentifier("projectEdit.saveLocal")', bar)
+        menu = editor[editor.index('.accessibilityIdentifier("projectEdit.saveLocal")'):]
+        self.assertIn('.accessibilityIdentifier("projectEdit.more")', menu[:menu.index("ToolbarItemGroup(placement: .bottomBar)")])
 
     def test_sheets_use_player_sheet_glass_and_no_cynight_chrome(self):
         # Native restyle (native-ios-r1 §3.4): sheets use the system corners and background in the role
