@@ -99,10 +99,7 @@ extension RootTabSwitch {
             }
         }
         .cyCelebrations(celebrations)
-        .cyFullScreenCover(item: $levelUp) { payload in
-            CYLevelUpMoment(payload: payload) { levelUp = nil }
-                .roleThemedPresentation()
-        }
+        // N-GROWTH (r10): no full-screen level-up cover; the level change keeps its haptic (HapticsService .levelUp).
         .modifier(GrowthCenterReadLifecycle(key: key, refresh: load, cancel: model.cancelPending))
         .onAppear { badgeVisible = true; badgeExploreConsumed = false; badgePresentationID = UUID(); latestReaderID = ObjectIdentifier(reader) }
         .onDisappear { badgeVisible = false; badgePresentationID = UUID() }
@@ -112,7 +109,6 @@ extension RootTabSwitch {
     @ViewBuilder private func score(_ overview: GrowthCenterOverview) -> some View {
         // B68 gc-score-card: avatar + name, the points on the right, then the 总积分榜 row.
         Section { scoreRows(overview) }
-            .listRowBackground(palette.bgElevated)
     }
     @ViewBuilder private func scoreRows(_ overview: GrowthCenterOverview) -> some View {
         Group {
@@ -229,7 +225,6 @@ extension RootTabSwitch {
                 }
             }
         }
-        .listRowBackground(palette.bgElevated)
         }
     }
     @ViewBuilder private func growthCount(_ value: Int?, unit: LocalizedStringKey) -> some View {
@@ -245,7 +240,6 @@ extension RootTabSwitch {
                 if let count = overview.center.value?.badges.count { Text(count, format: .number).monospacedDigit().foregroundStyle(palette.textSecondary) }
             }
         }
-        .listRowBackground(palette.bgElevated)
     }
     @ViewBuilder private func badgeRows(_ overview: GrowthCenterOverview) -> some View {
         Group {

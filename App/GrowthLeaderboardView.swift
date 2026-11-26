@@ -265,10 +265,14 @@ private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
         self.title = title; self._selection = selection; self.options = options; self.key = key
     }
     @Environment(\.locale) private var locale
-    /// LEADER-7: the shared chip tabs (`CYTabs(variant: .chip)`), not a hand-rolled capsule row.
+    /// N-GROWTH (r10): a segmented system Picker (MP subpackageP3/leaderboard tab row).
     var body: some View {
-        CYTabs(items: options.map { CYTabItem(id: $0, title: appLocalized(String.LocalizationValue(key($0)), locale: locale)) },
-               selection: $selection, variant: .chip)
+        Picker(selection: $selection) {
+            ForEach(options, id: \.self) { option in
+                Text(verbatim: appLocalized(String.LocalizationValue(key(option)), locale: locale)).tag(option)
+            }
+        } label: { Text(title) }
+            .pickerStyle(.segmented)
             .sensoryFeedback(.selection, trigger: selection)
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text(title))
@@ -292,8 +296,8 @@ private struct GrowthLeaderboardPodiumView: View {
     }
     private func column(_ entry: GrowthLeaderboardEntry, place: Int) -> some View {
         // LEADER-6 (MP RING_BG): gold / pale gold / bronze rings for 1 · 2 · 3.
-        let ring = place == 1 ? Color(red: 0.96, green: 0.77, blue: 0.26)
-            : place == 2 ? Color(red: 0.90, green: 0.77, blue: 0.42) : Color(red: 0.85, green: 0.59, blue: 0.29)
+        // N-GROWTH (r10): system colours instead of hand-mixed RGB (gold / silver / bronze).
+        let ring: Color = place == 1 ? .yellow : place == 2 ? .gray : .brown
         let name = GrowthCenterFormatting.nonempty(entry.nickname)
         return VStack(spacing: CYSpacing.sm) {
             // LEADER-6: MP `gc-crown` star above the first place (decorative).
