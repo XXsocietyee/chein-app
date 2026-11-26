@@ -506,7 +506,15 @@ struct TopicXcxRouteSection: View {
     /// progress) (pages/topic/index/index.js:765-780).
     @Environment(\.topicRouteGapService) private var makeGapService
     @State private var routeProgress: (done: Int, total: Int) = (0, 0)
+    /// R7-PC-B1-6: MP index.js:665-669 free-explore merchant cards from `/api/free-explore/bundle/catalog` (productType 2 only).
+    @State private var merchantCards: [TopicFreeExploreMerchantCard] = []
     let topic: TopicDetail
+    private func loadMerchantCards() async {
+        guard topic.productType == 2, let service = makeGapService?() else { merchantCards = []; return }
+        let cards = TopicFreeExploreMerchantCard.cards(fromCatalog: await service.fetchFreeExploreCatalog(topicID: topic.id).data)
+        guard !Task.isCancelled else { return }
+        merchantCards = cards
+    }
     private func loadRouteProgress() async {
         guard topic.isSignUp, let service = makeGapService?() else { routeProgress = (0, 0); return }
         guard let data = await service.fetchTopicRouteNodes(topicID: topic.id).data,
@@ -552,8 +560,9 @@ struct TopicXcxRouteSection: View {
         Section {
             // Flow gap PC-B-1-5: the route map. Progress / teams need a play read, so they stay off on the detail.
             let pins = Self.mapPins(topic)
-            if !pins.isEmpty {
+            if !pins.isEmpty || !merchantCards.isEmpty {
                 TopicRouteMapAndTeamsSection(pins: pins, completedCount: routeProgress.done, totalCount: routeProgress.total, isFreeExplore: topic.productType == 2,
+                                             merchantCards: merchantCards,
                                              onSelectPin: { pin in
                                                  let node = topic.chapters.flatMap(\.nodes).first { $0.name == pin.name && $0.latitude == pin.latitude && $0.longitude == pin.longitude }
                                                  if let node, let url = TopicStopMapsLink.url(for: node) { openURL(url) }
@@ -567,6 +576,7 @@ struct TopicXcxRouteSection: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.primary)
                 .accessibilityIdentifier("topic.route.note")
+                .task(id: topic.id) { await loadMerchantCards() }
             // R7-PC-B1-18, MP pages/topic/utils/topic-motion.js routeNote: the gift count is in the sentence.
             Text(verbatim: routeNoteText)
                 .font(.footnote).foregroundStyle(.secondary)

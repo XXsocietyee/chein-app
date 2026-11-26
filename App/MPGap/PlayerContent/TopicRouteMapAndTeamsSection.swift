@@ -11,7 +11,8 @@ public struct TopicRouteMapAndTeamsSection: View {
     public let merchantCards: [TopicFreeExploreMerchantCard]
     public var onSelectPin: (TopicRouteNodePin) -> Void = { _ in }
     public var onOpenAllTeams: () -> Void = {}
-    public var onSelectMerchant: (TopicFreeExploreMerchantCard) -> Void = { _ in }
+    /// Nil: the cards are read-only rows (no dead button when the host has no opener).
+    public var onSelectMerchant: ((TopicFreeExploreMerchantCard) -> Void)? = nil
 
     public init(
         pins: [TopicRouteNodePin],
@@ -22,7 +23,7 @@ public struct TopicRouteMapAndTeamsSection: View {
         merchantCards: [TopicFreeExploreMerchantCard] = [],
         onSelectPin: @escaping (TopicRouteNodePin) -> Void = { _ in },
         onOpenAllTeams: @escaping () -> Void = {},
-        onSelectMerchant: @escaping (TopicFreeExploreMerchantCard) -> Void = { _ in }
+        onSelectMerchant: ((TopicFreeExploreMerchantCard) -> Void)? = nil
     ) {
         self.pins = pins
         self.completedCount = completedCount
@@ -112,34 +113,43 @@ public struct TopicRouteMapAndTeamsSection: View {
                     Text("topicRoute.merchants.title")
                         .font(.headline)
                     ForEach(merchantCards) { card in
-                        Button {
-                            onSelectMerchant(card)
-                        } label: {
-                            HStack(spacing: CYSpacing.sm) {
-                                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                    Text(card.merchantName)
-                                        .foregroundStyle(.primary)
-                                    if let perk = card.perkTitle, !perk.isEmpty {
-                                        Text(perk)
-                                            .font(.subheadline)
-                                            .foregroundStyle(.tint)
-                                    }
-                                    if let addr = card.address, !addr.isEmpty {
-                                        Text(addr)
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                    }
+                        if let onSelectMerchant {
+                            Button {
+                                onSelectMerchant(card)
+                            } label: {
+                                HStack(spacing: CYSpacing.sm) {
+                                    merchantCardText(card)
+                                    Spacer()
+                                    Image(systemName: "chevron.forward")
+                                        .font(.footnote.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
                                 }
-                                Spacer()
-                                Image(systemName: "chevron.forward")
-                                    .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
+                                .contentShape(Rectangle())
                             }
-                            .contentShape(Rectangle())
+                            .buttonStyle(.plain)
+                        } else {
+                            merchantCardText(card)
+                                .accessibilityElement(children: .combine)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
+            }
+        }
+    }
+
+    private func merchantCardText(_ card: TopicFreeExploreMerchantCard) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            Text(card.merchantName)
+                .foregroundStyle(.primary)
+            if let perk = card.perkTitle, !perk.isEmpty {
+                Text(perk)
+                    .font(.subheadline)
+                    .foregroundStyle(.tint)
+            }
+            if let addr = card.address, !addr.isEmpty {
+                Text(addr)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
     }
