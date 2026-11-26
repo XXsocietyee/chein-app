@@ -1609,7 +1609,7 @@ struct ClubGovernanceReadView: View {
                             if let image = phase.image { image.resizable().scaledToFill() } else { Color(uiColor: .secondarySystemFill) }
                         }
                         .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .clipped()
                         .accessibilityLabel(Text("club.topic.merchantLogo"))
                     }
                     Text(verbatim: value["name"].string ?? value["title"].string ?? "—")
