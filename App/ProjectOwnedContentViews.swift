@@ -165,7 +165,7 @@ import SwiftUI
             publishingEpoch: session.publishingSession?.epoch,
             activityGrants: session.activityEditingGrants(),
             entryScope: entryScope, canManageProjects: canManageProjects, initialType: initialType)
-            .environment(\.myProjectTemplateShelf, MyProjectTemplateShelfHost { session.myProjectTemplateShelf() })
+            .environment(\.myProjectTemplateShelf, MyProjectTemplateShelfHost { session.myProjectTemplateShelf(header: $0) })
             .environment(\.myProjectPublishEntry, session.myProjectPublishEntry())
             // Lane G: received coop applications (协作邀请) are hidden in Release; nil hides 查看申请.
             .environment(\.myProjectReceivedApplies, PlayerLaunch.merchantCenterEnabled ? { showsReceivedApplies = true } : nil)
