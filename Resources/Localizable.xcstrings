@@ -326212,6 +326212,23 @@
           }
         }
       }
+    },
+    "roam.detail.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spot details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "据点详情"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
