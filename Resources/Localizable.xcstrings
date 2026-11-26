@@ -326144,6 +326144,74 @@
           }
         }
       }
+    },
+    "playx.backpack.zeroSync": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync recovery status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步恢复状态"
+          }
+        }
+      }
+    },
+    "playx.backpack.zeroCountdown %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %lld min %lld s left"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld分%lld秒（预计）"
+          }
+        }
+      }
+    },
+    "playx.backpack.zeroDue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time is up. Confirming recovery…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间已到，正在确认恢复状态"
+          }
+        }
+      }
+    },
+    "playx.backpack.zeroUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result not confirmed. Tap to retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作结果未确认，点击重试"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
