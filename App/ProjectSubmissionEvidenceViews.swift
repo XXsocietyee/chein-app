@@ -14,7 +14,8 @@ import SwiftUI
             if let task = acknowledgment.auditTaskID {
                 field(String(localized: LocalizedStringResource("projectSubmission.auditTaskID", defaultValue: "Review task ID", locale: locale)), value: String(task), id: "projectSubmission.auditTaskID")
             }
-            CYStatusChip(verbatim: stateText, tone: acknowledgment.reviewState == "ESCALATED" ? .warning : .info, systemImage: "doc.text.magnifyingglass")
+            Label(stateText, systemImage: "doc.text.magnifyingglass")
+                .foregroundStyle(acknowledgment.reviewState == "ESCALATED" ? AnyShapeStyle(.orange) : AnyShapeStyle(.tint))
             field(String(localized: LocalizedStringResource("projectSubmission.submittedState", defaultValue: "Review state at submission", locale: locale)), value: stateText, id: "projectSubmission.submittedState")
             field(String(localized: LocalizedStringResource("projectSubmission.legacyVisibility", defaultValue: "Legacy service reported published", locale: locale)),
                   value: acknowledgment.published ? String(localized: LocalizedStringResource("projectSubmission.yes", defaultValue: "Yes", locale: locale)) : String(localized: LocalizedStringResource("projectSubmission.no", defaultValue: "No", locale: locale)),

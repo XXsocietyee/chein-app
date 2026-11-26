@@ -23,9 +23,8 @@ enum WorkshopLicenseLibraryPresentation {
     var body: some View {
         List {
             if scenePhase == .active {
-                Section {
+                Section {} footer: {
                     licenseLibraryText("library.boundary")
-                        .cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 if let controller, controller.isCurrent {
                     ForEach(controller.licenses, id: \.licenseId) { item in
@@ -33,18 +32,17 @@ enum WorkshopLicenseLibraryPresentation {
                             NavigationLink {
                                 WorkshopCommerceLicenseDetailView(controller: controller, licenseId: item.licenseId)
                             } label: {
-                                VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                                    Text(verbatim: item.moduleId).cyText(.sectionTitle)
-                                    Text(verbatim: item.purchasedVersionId).cyText(.body).foregroundStyle(.secondary)
+                                VStack(alignment: .leading) {
+                                    Text(verbatim: item.moduleId).font(.headline)
+                                    Text(verbatim: item.purchasedVersionId).font(.subheadline).foregroundStyle(.secondary)
                                     if let key = WorkshopLicenseLibraryPresentation.statusKey(item.status) {
                                         WorkshopCommerceLibraryState(label: Text(LocalizedStringKey(key), tableName: "WorkshopCommerce"), raw: item.status)
                                     } else {
                                         // Keep an unrecognised original state visible; never invent ACTIVE.
-                                        Text(verbatim: item.status).cyText(.body).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                                        Text(verbatim: item.status).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                                     }
                                 }.fixedSize(horizontal: false, vertical: true)
                                     .accessibilityElement(children: .combine)
-                                    .padding(.vertical, Theme.Space.s2)
                             }.accessibilityIdentifier("modLicense.original." + item.licenseId)
                             let original = ModInstallationIdentity(licenseId: item.licenseId, moduleId: item.moduleId,
                                 releaseId: item.purchasedVersionId, contentHash: item.terms.contentHash, termsHash: item.terms.hash)
@@ -64,40 +62,41 @@ enum WorkshopLicenseLibraryPresentation {
                     }
                     Section {
                         if controller.busy || !hasReadLicenses {
-                            CYLoadingStateView(rows: 1).accessibilityLabel(licenseLibraryText("library.loading"))
+                            ProgressView().frame(maxWidth: .infinity).accessibilityLabel(licenseLibraryText("library.loading"))
                                 .accessibilityIdentifier("workshopLicenseLibrary.loading")
                         }
                         if let message = controller.licensesMessageKey {
                             Label {
                                 Text(LocalizedStringKey(WorkshopLicenseLibraryPresentation.messageKey(message)), tableName: "WorkshopCommerce")
                                     .fixedSize(horizontal: false, vertical: true)
-                            } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                            .padding(.vertical, Theme.Space.s2)
+                            } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange).accessibilityHidden(true) }
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("workshopLicenseLibrary.readError")
                         }
                         if WorkshopLicenseLibraryPresentation.showsEmpty(hasRead: hasReadLicenses, busy: controller.busy,
                                                                          count: controller.licenses.count, message: controller.licensesMessageKey) {
-                            WorkshopCommerceLibraryNotice(text: licenseLibraryText("library.empty"), symbol: "tray")
+                            ContentUnavailableView { Label { licenseLibraryText("library.empty") } icon: { Image(systemName: "tray") } }
                         }
-                        CYPillButton(LocalizedStringKey("workshopCommerce.library.refresh"), style: .secondary, tableName: "WorkshopCommerce") { Task { await read() } }
+                        Button { Task { await read() } } label: { Label { licenseLibraryText("library.refresh") } icon: { Image(systemName: "arrow.clockwise") } }
                             .disabled(controller.busy)
                         if controller.hasMoreLicenses {
-                            CYPillButton(LocalizedStringKey("workshopCommerce.library.nextPage"), style: .secondary, tableName: "WorkshopCommerce") { Task { await read(more: true) } }
+                            Button { Task { await read(more: true) } } label: { licenseLibraryText("library.nextPage") }
                                 .disabled(controller.busy)
                         }
                     } header: { licenseLibraryText("library.readState") }
                 } else {
                     Section {
-                        WorkshopCommerceLibraryNotice(text: licenseLibraryText("library.unavailable"), symbol: "icloud.slash")
-                        CYPillButton(LocalizedStringKey("workshopCommerce.library.reopen"), style: .secondary, tableName: "WorkshopCommerce") { Task { await read() } }
+                        ContentUnavailableView {
+                            Label { licenseLibraryText("library.unavailable") } icon: { Image(systemName: "icloud.slash") }
+                        } actions: {
+                            Button { Task { await read() } } label: { licenseLibraryText("library.reopen") }
+                                .buttonStyle(.bordered)
+                        }
                     }
                 }
             }
         }
         .listStyle(.insetGrouped)
-        .cyText(.body)
-        .modifier(WorkshopLibrarySurface())
         .navigationTitle(String(localized: LocalizedStringResource("workshopCommerce.library.title", table: "WorkshopCommerce", locale: locale))).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task { await read() }

@@ -13,17 +13,9 @@ private struct CYFoilModifier<S: Shape>: ViewModifier {
 
     private var live: Bool { active && !reduceMotion && CYLightBudget.gyroAllowed }
 
+    /// Native r2: no foil sheen and no gyro tilt. Shows the content as is.
     func body(content: Content) -> some View {
         content
-            .overlay {
-                if active {
-                    Group {
-                        if live { CYFoilLive(scale: strength) } else { CYFoilLayers(u: UnitPoint(x: 0.3, y: 0.25), strength: 0.25 * strength) }
-                    }
-                    .clipShape(shape)   // clip the light only, never the host (shadows and glows stay)
-                }
-            }
-            .cyTiltHold(live)
     }
 }
 

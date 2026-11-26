@@ -99,19 +99,38 @@ import Observation
             // One stable child owns the lifecycle, including loading and unavailable states.
             VStack(alignment: .leading, spacing: 10) {
                 switch model.state {
-                case .loading: CYLoadingState("profile.loading", messageIdentifier: "profile.weekly.loading")
+                case .loading:
+                    ProgressView { Text("profile.loading") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("profile.weekly.loading")
                 case .unavailable:
-                    CYEmptyState(systemImage: "wifi.slash", "profile.weekly.unavailable", messageIdentifier: "profile.weekly.unavailable", kind: .offline)
-                case .signIn: CYEmptyState(systemImage: "person.crop.circle", "profile.signInRequired", messageIdentifier: "profile.weekly.signIn")
-                case .changed: CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "social.changed", messageIdentifier: "profile.weekly.changed")
+                    ContentUnavailableView("profile.weekly.unavailable", systemImage: "wifi.slash")
+                        .accessibilityIdentifier("profile.weekly.unavailable")
+                case .signIn:
+                    ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle")
+                        .accessibilityIdentifier("profile.weekly.signIn")
+                case .changed:
+                    ContentUnavailableView("social.changed", systemImage: "arrow.triangle.2.circlepath")
+                        .accessibilityIdentifier("profile.weekly.changed")
                 case .failed:
-                    CYEmptyState(systemImage: "exclamationmark.triangle", "profile.loadFailed", messageIdentifier: "profile.weekly.error", actionTitle: "action.retry", actionIdentifier: "profile.weekly.retry", kind: .failure) { model.refresh() }
+                    ContentUnavailableView {
+                        Label("profile.loadFailed", systemImage: "exclamationmark.triangle")
+                            .accessibilityIdentifier("profile.weekly.error")
+                    } description: {
+                        EmptyView()
+                    } actions: {
+                        Button("action.retry") { model.refresh() }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("profile.weekly.retry")
+                    }
                 case .content(let value):
                     LabeledContent("profile.weekly.points", value: String(value.weekPoints))
                         .accessibilityIdentifier("profile.weekly.points")
                     LabeledContent("profile.weekly.rank", value: value.rankPercentage)
                         .accessibilityIdentifier("profile.weekly.rank")
-                    Button("profile.refresh") { model.refresh() }.accessibilityIdentifier("profile.weekly.refresh")
+                    Button("profile.refresh") { model.refresh() }
+                        .buttonStyle(.borderless)
+                        .accessibilityIdentifier("profile.weekly.refresh")
                 }
             }
             .onAppear { model.appear(active: scenePhase == .active) }

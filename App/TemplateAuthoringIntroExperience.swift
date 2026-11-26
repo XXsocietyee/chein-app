@@ -95,7 +95,6 @@ import Combine
     @StateObject private var controller: TemplateAuthoringIntroController
     @State private var readerRevision: UInt64 = 0
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private struct LoadKey: Equatable { let scope: TemplateAuthoringIntroController.Scope; let readerRevision: UInt64; let active: Bool }
     init(model: TemplateAuthoringModel, reader: (any DiscoveryReading)?, onContinue: @escaping () -> Void) {
@@ -108,13 +107,13 @@ import Combine
         // Mini-program publish/template-intro: real featured covers, the two-line value
         // proposition, then one primary action (开始创建). No captions, no second exit.
         let cardLayout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
-            : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.sm))
-        VStack(alignment:.leading,spacing:CYSpacing.xl) {
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+        VStack(alignment:.leading,spacing:20) {
             if let examples = controller.visibleExamples, !examples.rows.isEmpty {
                 cardLayout {
                     ForEach(Array(examples.rows.enumerated()),id:\.offset) { index, item in
-                        VStack(alignment:.leading,spacing:CYSpacing.s1_5) {
+                        VStack(alignment:.leading,spacing:6) {
                             Group {
                                 // MP: pages/publish/template-intro/index.js:117 `it.imgUrl || templateArt(it)`: no cover of its own →
                                 // the play's interaction-templates art (utils/template-art.js), aspect-filled like the canvas circle.
@@ -129,54 +128,52 @@ import Combine
                                 }
                             }
                                 .frame(maxWidth:.infinity)
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                                .clipped()
                             Text(verbatim:examples.categoryName(at:index))
-                                .cyText(.meta)
-                                .foregroundStyle(palette.textSecondary)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .accessibilityIdentifier("creatorIntro.example.category.\(index)")
                             Group {
                                 if item.title.isEmpty { Text("creatorIntro.unnamed",tableName:"CreatorIntroExamples") }
                                 else { Text(verbatim:item.title) }
                             }
-                            .cyText(.label)
-                            .foregroundStyle(palette.textPrimary)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
                             .lineLimit(2)
                         }
                         .frame(maxWidth:.infinity,alignment:.leading)
-                        .cyDomainCard(padding: CYSpacing.xs)
-                        .modifier(TemplateIntroFloatingCover(index: index)) // r8 C-I9-r7: covers float (still under Reduce Motion)
                         .accessibilityElement(children:.combine).accessibilityIdentifier("creatorIntro.example.\(index)")
                     }
                 }
             } else {
                 switch controller.visiblePhase {
                 case .idle,.loading:
-                    CYSkeleton().frame(maxWidth:.infinity,minHeight:150)
+                    ProgressView().frame(maxWidth:.infinity,minHeight:150)
                 case .failed:
-                    VStack(alignment:.leading,spacing:CYSpacing.sm) {
-                        Text("creatorIntro.failed",tableName:"CreatorIntroExamples").cyText(.meta).foregroundStyle(palette.danger)
+                    VStack(alignment:.leading,spacing:8) {
+                        Label { Text("creatorIntro.failed",tableName:"CreatorIntroExamples") } icon: { Image(systemName: "exclamationmark.triangle") }
+                            .font(.footnote).foregroundStyle(.red)
                         Button(action:{ controller.load(permit) }) { Text("creatorIntro.retry",tableName:"CreatorIntroExamples") }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                            .buttonStyle(.bordered)
                             .accessibilityIdentifier("creatorIntro.retry")
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .cyDomainCard()
                 // C-I3 (MP x-fix4 A-4): no examples draws nothing, no 「暂无」 sentence.
                 case .empty,.ready: EmptyView()
                 case .unavailable: EmptyView()
                 }
             }
-            VStack(alignment:.leading,spacing:CYSpacing.xs) {
+            VStack(alignment:.leading,spacing:4) {
                 // Mini-program weight order: the lead line is the bold claim, the tail is the lighter follow-on.
                 // C-I4: MP 46 rpx for both lines (23 pt) → `sheetTitle` 22 bold, both in ink.
-                Text("publishParity.intro.lead").cyText(.sheetTitle).foregroundStyle(palette.textPrimary)
-                Text("publishParity.intro.tail").cyText(.sheetTitle).foregroundStyle(palette.textPrimary)
+                Text("publishParity.intro.lead").font(.title3.bold())
+                Text("publishParity.intro.tail").font(.title3.bold())
             }
             .fixedSize(horizontal:false,vertical:true)
             .accessibilityElement(children:.combine).accessibilityIdentifier("publishParity.intro.value")
-            Button(action:advance) { Text("templateAuthor.begin") }
-                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+            Button(action:advance) { Text("templateAuthor.begin").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled(!controller.canContinue || scenePhase != .active).accessibilityIdentifier("templateAuthor.begin")
         }
         .padding(.vertical,8)

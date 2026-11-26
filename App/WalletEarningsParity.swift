@@ -20,17 +20,23 @@ struct WalletIncomeDayText: View {
 struct WalletEarningsEmptyNote: View {
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            // Round 4 image parity: MP `cy-empty kind="empty"` (scene-asset-earnings/index.wxml:22) draws
-            // `images/empty_state_bg.svg` + `empty_state_figure.svg`; the shared illustration is decorative.
-            CYEmptyIllustration(kind: .generic, size: 96)
-                .frame(maxWidth: .infinity)
-            // Round 4 copy: MP has the title only (还没有收益, no sub line).
-            Text("member.wallet.noEarnings", tableName: "MemberProfile").cyText(.cardTitle)
-                .frame(maxWidth: .infinity)
-                .accessibilityIdentifier("wallet.earnings.empty")
+        // Native r2: the system ContentUnavailableView. Round 4 image parity: MP `cy-empty kind="empty"`
+        // (scene-asset-earnings/index.wxml:22) draws `images/empty_state_bg.svg` + `empty_state_figure.svg`;
+        // the shared illustration stays as the icon. Round 4 copy: MP has the title only (还没有收益, no sub line).
+        ContentUnavailableView {
+            Label {
+                Text("member.wallet.noEarnings", tableName: "MemberProfile")
+                    .accessibilityIdentifier("wallet.earnings.empty")
+            } icon: {
+                CYEmptyIllustration(kind: .generic, size: 96)
+            }
+        } description: {
+            EmptyView()
+        } actions: {
             if rootTabSwitch.isAvailable {
-                CYPillButton("wallet.earnings.goPublish", style: .secondary, fullWidth: false) { rootTabSwitch(.publish) }
+                Button { rootTabSwitch(.publish) } label: { Text("wallet.earnings.goPublish") }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                     .accessibilityIdentifier("wallet.earnings.goPublish")
             }
         }

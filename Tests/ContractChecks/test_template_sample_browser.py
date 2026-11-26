@@ -88,7 +88,7 @@ class TemplateSampleBrowserSourceTests(unittest.TestCase):
         self.assertNotIn('self.model = model; reload()', self.app)
         self.assertEqual(self.app.count('.sheet(item: controller.presentationBinding)'), 1)
         self.assertIn('controller.close(expected: presentationID)', self.app)
-        self.assertLess(self.app.index('}.cyGroupedSurface()'), self.app.index('.sheet(item: controller.presentationBinding)'))
+        self.assertLess(self.app.index('.navigationTitle("templateSamples.open")'), self.app.index('.sheet(item: controller.presentationBinding)'))
 
     def test_presentation_binding_getter_is_same_captured_visible_identity(self):
         binding = self.app.split('var presentationBinding:')[1].split('\n}')[0]

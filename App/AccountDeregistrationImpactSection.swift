@@ -29,25 +29,23 @@ struct AccountDeregistrationImpactSection: View {
     var body: some View {
         Section {
             ForEach(impact.items) { item in
-                HStack(alignment: .top, spacing: Theme.Space.s3) {
-                    Image(systemName: Self.symbol(item.key)).font(.system(.subheadline, weight: .semibold)).foregroundStyle(.white)
-                        .frame(width: 30, height: 30)
-                        .background(CYColor.warningText.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
-                        .accessibilityHidden(true)
+                Label {
                     VStack(alignment: .leading, spacing: 2) {
-                        if let title = titles[item.key] { Text(LocalizedStringKey(title), tableName: "AccountDeregistrationPresentation").cyText(.cardTitle) }
-                        else { Text(verbatim: item.key).cyText(.cardTitle) }
+                        if let title = titles[item.key] { Text(LocalizedStringKey(title), tableName: "AccountDeregistrationPresentation").font(.body) }
+                        else { Text(verbatim: item.key).font(.body) }
                         Group {
                             if item.key == "SEASON_REWARD_EFFECT" { Text("c08.display.29", tableName: "AccountDeregistrationPresentation") }
                             else if item.value == "true" { Text("c08.display.30", tableName: "AccountDeregistrationPresentation") }
                             else if item.value == "false" { Text("c08.display.31", tableName: "AccountDeregistrationPresentation") }
                             else { Text(verbatim: item.value).monospacedDigit() }
                         }
-                        .font(.subheadline).foregroundStyle(CYColor.textPrimary)
-                        Text(item.effect).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        .font(.subheadline).foregroundStyle(.primary)
+                        Text(item.effect).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
+                } icon: {
+                    Image(systemName: Self.symbol(item.key)).foregroundStyle(.orange)
+                        .accessibilityHidden(true)
                 }
-                .padding(.vertical, 2)
                 .accessibilityElement(children: .combine)
             }
             if !impact.unknownCoverage.isEmpty {
@@ -57,10 +55,8 @@ struct AccountDeregistrationImpactSection: View {
                 }.joined(separator: "、")))
                 Text("c08.display.33", tableName: "AccountDeregistrationPresentation")
             }
-            (Text("c08.display.34", tableName: "AccountDeregistrationPresentation") + Text(verbatim: impact.revision)).cyText(.caption).textSelection(.enabled)
+            (Text("c08.display.34", tableName: "AccountDeregistrationPresentation") + Text(verbatim: impact.revision)).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
         } header: { Text("c08.display.28", tableName: "AccountDeregistrationPresentation") }
-        .cyText(.body)
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
@@ -75,28 +71,22 @@ struct AccountDeregistrationImpactConfirmation: View {
     @FocusState private var focused: Bool
     private var matches: Bool { confirmation == "注销" }
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s3) {
-            Text("compliance.typeToConfirm").cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("compliance.typeToConfirm").font(.subheadline).foregroundStyle(.secondary)
             TextField(text: $confirmation) { Text("c08.display.35", tableName: "AccountDeregistrationPresentation") }
-                .font(.system(.title3, design: .rounded, weight: .semibold))
+                .textFieldStyle(.roundedBorder)
                 .focused($focused)
                 .autocorrectionDisabled().textInputAutocapitalization(.never)
-                .padding(.horizontal, CYSpacing.lg).frame(minHeight: 56)
-                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(matches ? CYColor.dangerText : (focused ? CYColor.textPrimary.opacity(0.4) : .clear), lineWidth: 1.5))
+                .submitLabel(.done)
                 .accessibilityIdentifier("compliance.impactConfirmation")
             Button(role: .destructive) { focused = false; confirming = true } label: {
                 Text("compliance.submit", tableName: "AccountCompliance")
-                    .cyText(.cardTitle).frame(maxWidth: .infinity, minHeight: 52)
-                    .foregroundStyle(matches ? Color.white : CYColor.textSecondary)
-                    .background(matches ? CYColor.dangerText.opacity(0.92) : CYColor.bgRaised, in: Capsule())
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderedProminent).controlSize(.large)
             .disabled(!matches).accessibilityIdentifier("compliance.submit")
             .sensoryFeedback(.warning, trigger: confirming) { _, new in new }
         }
-        .cyText(.body)
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .onDisappear { confirmation = "" }
         .sheet(isPresented: $confirming) {
             MemberDeregistrationSubmitConfirmSheet {

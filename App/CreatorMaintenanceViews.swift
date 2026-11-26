@@ -131,8 +131,7 @@ import QuestifyCore
                     Text("creatorStudio.maintenance.tab.feedback").tag(CreatorMaintenanceModel.Tab.feedback)
                     Text("creatorStudio.maintenance.tab.tickets").tag(CreatorMaintenanceModel.Tab.tickets)
                 }.pickerStyle(.segmented).accessibilityIdentifier("creatorStudio.maintenance.tab")
-                Text("creatorStudio.maintenance.flow").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            }
+            } footer: { Text("creatorStudio.maintenance.flow") }
             if tab == .feedback { feedbackSections } else { ticketSections }
         }
         .appNavigationTitle("creatorStudio.maintenance.title").navigationBarTitleDisplayMode(.inline)
@@ -161,24 +160,24 @@ import QuestifyCore
         }
         Section {
             switch model.feedbackPhase {
-            case .idle, .loading: CYLoadingStateView(rows: 3)
+            case .idle, .loading: ProgressView().frame(maxWidth: .infinity)
             case .failed(let failure): CreatorStudioIssueView(failure: failure) { Task { await model.reloadFeedback() } }
             case .loaded:
-                if model.topicID == nil { CYEmptyState(systemImage: "square.stack.3d.up.slash", "creatorStudio.issue.noTopics") }
-                else if model.feedback.isEmpty { CYEmptyState(systemImage: "checkmark.bubble", "creatorStudio.feedback.empty") }
+                if model.topicID == nil { ContentUnavailableView("creatorStudio.issue.noTopics", systemImage: "square.stack.3d.up.slash") }
+                else if model.feedback.isEmpty { ContentUnavailableView("creatorStudio.feedback.empty", systemImage: "checkmark.bubble") }
                 ForEach(model.feedback) { item in
                     Button { model.toggle(item) } label: { CreatorFeedbackRow(item: item, selected: model.selected.contains(item.feedbackId)) }
                         .buttonStyle(.plain).disabled(item.ticketId != nil)
                         .accessibilityIdentifier("creatorStudio.feedback.\(item.feedbackId)")
                 }
                 if model.feedbackCursor != nil {
-                    CYPillButton("creatorStudio.more", style: .tertiary) { Task { await model.moreFeedback() } }
+                    Button("creatorStudio.more") { Task { await model.moreFeedback() } }
                 }
             }
         } header: { Text("creatorStudio.feedback.header") } footer: { Text("creatorStudio.feedback.privacy") }
         if !model.selected.isEmpty || model.pendingOpen != nil {
             Section {
-                CYPillButton("creatorStudio.ticket.open", systemImage: "plus.rectangle.on.rectangle") { composing = true }
+                Button { composing = true } label: { Label("creatorStudio.ticket.open", systemImage: "plus.rectangle.on.rectangle") }
                     .accessibilityIdentifier("creatorStudio.ticket.open")
             }
         }
@@ -187,25 +186,25 @@ import QuestifyCore
     @ViewBuilder private var ticketSections: some View {
         Section {
             switch model.ticketsPhase {
-            case .idle, .loading: CYLoadingStateView(rows: 3)
+            case .idle, .loading: ProgressView().frame(maxWidth: .infinity)
             case .failed(let failure): CreatorStudioIssueView(failure: failure) { Task { await model.reloadTickets() } }
             case .loaded:
-                if model.tickets.isEmpty { CYEmptyState(systemImage: "wrench.and.screwdriver", "creatorStudio.tickets.empty") }
+                if model.tickets.isEmpty { ContentUnavailableView("creatorStudio.tickets.empty", systemImage: "wrench.and.screwdriver") }
                 ForEach(model.tickets) { ticket in
                     NavigationLink { CreatorTicketDetailView(model: model, ticketID: ticket.ticketId) } label: {
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            HStack(alignment: .firstTextBaseline) {
-                                Text(verbatim: ticket.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
-                                Spacer(minLength: CYSpacing.sm)
+                        VStack(alignment: .leading, spacing: 4) {
+                            LabeledContent {
                                 CreatorTicketStageChip(stage: ticket.knownStage)
+                            } label: {
+                                Text(verbatim: ticket.title).font(.headline).lineLimit(2)
                             }
-                            if let name = ticket.topicName { Text(verbatim: name).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                            Text("creatorStudio.ticket.feedbackCount \(ticket.feedback.count)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            if let name = ticket.topicName { Text(verbatim: name).font(.subheadline).foregroundStyle(.secondary) }
+                            Text("creatorStudio.ticket.feedbackCount \(ticket.feedback.count)").font(.footnote).foregroundStyle(.tertiary)
                         }
                     }.accessibilityIdentifier("creatorStudio.ticket.\(ticket.ticketId)")
                 }
                 if model.ticketsCursor != nil {
-                    CYPillButton("creatorStudio.more", style: .tertiary) { Task { await model.moreTickets() } }
+                    Button("creatorStudio.more") { Task { await model.moreTickets() } }
                 }
             }
         } header: { Text("creatorStudio.tickets.header") }
@@ -216,20 +215,21 @@ struct CreatorFeedbackRow: View {
     let item: CreatorFeedbackItem
     var selected = false
     var body: some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
+        HStack(alignment: .top, spacing: 12) {
             Image(systemName: item.ticketId != nil ? "link" : selected ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(selected ? CYColor.brand : CYColor.textTertiary).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                HStack(spacing: CYSpacing.sm) {
-                    CYStatusChip(CreatorFeedbackRow.category(item.category), tone: .info)
-                    if let version = item.configVersion { Text("creatorStudio.version \(version)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                    if let ticket = item.ticketId { Text("creatorStudio.feedback.inTicket \(ticket)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                .imageScale(.large)
+                .foregroundStyle(selected ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary)).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
+                    Text(CreatorFeedbackRow.category(item.category)).font(.footnote.weight(.semibold)).foregroundStyle(.tint)
+                    if let version = item.configVersion { Text("creatorStudio.version \(version)").font(.footnote).foregroundStyle(.secondary) }
+                    if let ticket = item.ticketId { Text("creatorStudio.feedback.inTicket \(ticket)").font(.footnote).foregroundStyle(.tertiary) }
                 }
-                if let content = item.content { Text(verbatim: content).cyText(.body).foregroundStyle(CYColor.textPrimary) }
-                if let node = item.nodeName { Label { Text(verbatim: node) } icon: { Image(systemName: "mappin") }.cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                if let date = item.createdAt { Text(verbatim: String(date.prefix(16)).replacingOccurrences(of: "T", with: " ")).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                if let content = item.content { Text(verbatim: content).font(.body).foregroundStyle(.primary) }
+                if let node = item.nodeName { Label { Text(verbatim: node) } icon: { Image(systemName: "mappin") }.font(.footnote).foregroundStyle(.secondary) }
+                if let date = item.createdAt { Text(verbatim: String(date.prefix(16)).replacingOccurrences(of: "T", with: " ")).font(.footnote).foregroundStyle(.tertiary) }
             }
-        }.padding(.vertical, CYSpacing.xs).contentShape(Rectangle())
+        }.contentShape(Rectangle())
     }
 
     static func category(_ raw: String?) -> LocalizedStringKey {
@@ -245,12 +245,12 @@ struct CreatorTicketStageChip: View {
     let stage: CreatorMaintenanceTicket.Stage?
     var body: some View {
         switch stage {
-        case .reported?: CYStatusChip("creatorStudio.stage.reported", tone: .warning)
-        case .fixDrafted?: CYStatusChip("creatorStudio.stage.fixDrafted", tone: .info)
-        case .fixPublished?: CYStatusChip("creatorStudio.stage.fixPublished", tone: .info)
-        case .retested?: CYStatusChip("creatorStudio.stage.retested", tone: .success)
-        case .closed?: CYStatusChip("creatorStudio.stage.closed", tone: .neutral)
-        case nil: CYStatusChip("creatorStudio.stage.unknown", tone: .neutral)
+        case .reported?: Text("creatorStudio.stage.reported").font(.footnote).foregroundStyle(.orange)
+        case .fixDrafted?: Text("creatorStudio.stage.fixDrafted").font(.footnote).foregroundStyle(.tint)
+        case .fixPublished?: Text("creatorStudio.stage.fixPublished").font(.footnote).foregroundStyle(.tint)
+        case .retested?: Text("creatorStudio.stage.retested").font(.footnote).foregroundStyle(.green)
+        case .closed?: Text("creatorStudio.stage.closed").font(.footnote).foregroundStyle(.secondary)
+        case nil: Text("creatorStudio.stage.unknown").font(.footnote).foregroundStyle(.secondary)
         }
     }
 }
@@ -267,31 +267,35 @@ struct CreatorTicketStageChip: View {
             Form {
                 if let pending = model.pendingOpen {
                     Section {
-                        CYStatusChip("creatorStudio.write.unknown", tone: .warning, systemImage: "questionmark.circle")
-                        Text(verbatim: pending.request.title).cyText(.cardTitle)
+                        Label("creatorStudio.write.unknown", systemImage: "questionmark.circle").foregroundStyle(.orange)
+                        Text(verbatim: pending.request.title).font(.headline)
                     }
                 } else {
                     Section("creatorStudio.ticket.titleField") {
-                        TextField("creatorStudio.ticket.titlePlaceholder", text: $title).accessibilityIdentifier("creatorStudio.ticket.title")
+                        TextField("creatorStudio.ticket.titlePlaceholder", text: $title)
+                            .submitLabel(.next)
+                            .accessibilityIdentifier("creatorStudio.ticket.title")
                     }
-                    Section("creatorStudio.ticket.noteField") {
+                    Section {
                         TextField("creatorStudio.ticket.notePlaceholder", text: $note, axis: .vertical).lineLimit(3...6)
-                    }
-                    Section { Text("creatorStudio.ticket.selected \(model.selected.count)").cyText(.meta) }
+                    } header: { Text("creatorStudio.ticket.noteField") } footer: { Text("creatorStudio.ticket.selected \(model.selected.count)") }
                 }
-                if let issue = model.writeIssue { Section { CreatorStudioWriteIssueText(failure: issue) } }
-                Section {
-                    CYPillButton(model.pendingOpen == nil ? "creatorStudio.ticket.confirmOpen" : "creatorStudio.write.recheck") {
+                if let issue = model.writeIssue { Section { CreatorStudioWriteIssueText(failure: issue).foregroundStyle(.red) } }
+                Section {} footer: { Text("creatorStudio.ticket.baselineNote") }
+            }
+            .navigationTitle("creatorStudio.ticket.open").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
                         Task { if let ticket = await model.open(title: title, note: note) { onOpened(ticket) } }
+                    } label: {
+                        Text(model.pendingOpen == nil ? "creatorStudio.ticket.confirmOpen" as LocalizedStringKey : "creatorStudio.write.recheck" as LocalizedStringKey)
                     }
                     .disabled(model.writing || (model.pendingOpen == nil && (title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || title.count > 80 || note.count > 500)))
                     .accessibilityIdentifier("creatorStudio.ticket.confirmOpen")
-                    Text("creatorStudio.ticket.baselineNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
-            .cyGroupedSurface()
-            .navigationTitle("creatorStudio.ticket.open").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } } }
         }
     }
 }
@@ -321,7 +325,7 @@ struct CreatorStudioWriteIssueText: View {
 
     var body: some View {
         List {
-            if loading && ticket == nil { CYLoadingStateView(rows: 4) }
+            if loading && ticket == nil { ProgressView().frame(maxWidth: .infinity) }
             else if let ticket { content(ticket) }
             else { CreatorStudioIssueView(failure: failure) { Task { await load() } } }
         }
@@ -349,13 +353,13 @@ struct CreatorStudioWriteIssueText: View {
 
     @ViewBuilder private func content(_ ticket: CreatorMaintenanceTicket) -> some View {
         Section {
-            HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: ticket.title).cyText(.sectionTitle)
-                Spacer(minLength: CYSpacing.sm)
+            LabeledContent {
                 CreatorTicketStageChip(stage: ticket.knownStage)
+            } label: {
+                Text(verbatim: ticket.title).font(.headline)
             }
-            if let name = ticket.topicName { Text(verbatim: name).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-            if let note = ticket.note { Text(verbatim: note).cyText(.body) }
+            if let name = ticket.topicName { Text(verbatim: name).font(.subheadline).foregroundStyle(.secondary) }
+            if let note = ticket.note { Text(verbatim: note) }
         }
         Section {
             stageRow("creatorStudio.flow.problem", done: true, detail: Text("creatorStudio.ticket.feedbackCount \(ticket.feedback.count)"))
@@ -373,22 +377,26 @@ struct CreatorStudioWriteIssueText: View {
         }
         if !ticket.isClosed {
             Section {
-                CYPillButton("creatorStudio.close.fixed", systemImage: "checkmark.seal") { closing = .init(resolution: .fixed) }
+                Button { closing = .init(resolution: .fixed) } label: { Label("creatorStudio.close.fixed", systemImage: "checkmark.seal") }
                     .disabled(!ticket.canCloseFixed).accessibilityIdentifier("creatorStudio.close.fixed")
-                if !ticket.canCloseFixed { Text("creatorStudio.close.fixedNeedsVersion").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                CYPillButton("creatorStudio.close.noChange", style: .secondary) { closing = .init(resolution: .noChange) }
+                Button("creatorStudio.close.noChange") { closing = .init(resolution: .noChange) }
                     .accessibilityIdentifier("creatorStudio.close.noChange")
+            } footer: {
+                if !ticket.canCloseFixed { Text("creatorStudio.close.fixedNeedsVersion") }
             }
         }
     }
 
     private func stageRow(_ title: LocalizedStringKey, done: Bool, detail: Text?) -> some View {
-        HStack(spacing: CYSpacing.md) {
-            Image(systemName: done ? "checkmark.circle.fill" : "circle.dashed")
-                .foregroundStyle(done ? CYColor.successText : CYColor.textTertiary).accessibilityHidden(true)
-            Text(title).cyText(.body)
-            Spacer(minLength: CYSpacing.sm)
-            if let detail { detail.cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
+        LabeledContent {
+            if let detail { detail.monospacedDigit() }
+        } label: {
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemName: done ? "checkmark.circle.fill" : "circle.dashed")
+                    .foregroundStyle(done ? AnyShapeStyle(.green) : AnyShapeStyle(.tertiary))
+            }
         }.accessibilityElement(children: .combine)
     }
 }
@@ -425,17 +433,20 @@ struct CreatorTicketCloseChoice: Identifiable {
                     TextField(resolution == .fixed ? "creatorStudio.close.reasonOptional" : "creatorStudio.close.reasonRequired", text: $reason, axis: .vertical)
                         .lineLimit(2...5).disabled(pending != nil).accessibilityIdentifier("creatorStudio.close.reasonField")
                 }
-                if unknown { Section { CYStatusChip("creatorStudio.write.unknown", tone: .warning, systemImage: "questionmark.circle") } }
-                if let issue { Section { CreatorStudioWriteIssueText(failure: issue) } }
-                Section {
-                    CYPillButton(unknown ? "creatorStudio.write.recheck" : "creatorStudio.close.confirm") { Task { await send() } }
-                        .disabled(sending || !draft.isComplete || reason.count > 500)
-                        .accessibilityIdentifier("creatorStudio.close.confirm")
+                if unknown { Section { Label("creatorStudio.write.unknown", systemImage: "questionmark.circle").foregroundStyle(.orange) } }
+                if let issue { Section { CreatorStudioWriteIssueText(failure: issue).foregroundStyle(.red) } }
+            }
+            .navigationTitle(resolution == .fixed ? "creatorStudio.close.fixed" : "creatorStudio.close.noChange").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { Task { await send() } } label: {
+                        Text(unknown ? "creatorStudio.write.recheck" as LocalizedStringKey : "creatorStudio.close.confirm" as LocalizedStringKey)
+                    }
+                    .disabled(sending || !draft.isComplete || reason.count > 500)
+                    .accessibilityIdentifier("creatorStudio.close.confirm")
                 }
             }
-            .cyGroupedSurface()
-            .navigationTitle(resolution == .fixed ? "creatorStudio.close.fixed" : "creatorStudio.close.noChange").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } } }
         }
     }
 

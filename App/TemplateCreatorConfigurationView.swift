@@ -10,39 +10,38 @@ import Combine
     private var configurationFields: [TemplateCreatorField] { TemplateCreatorSchema.fields(family).filter { (!usesHotspotPlacement || $0.id != "hotspots") && (!usesPredictionPlan || !TemplatePredictionPlan.managedFields.contains($0.id)) } }
     var body: some View {
         Form {
-            Section { CYHeroHeader(LocalizedStringKey(family.labelKey)) }.e1HeroRow()
             Section {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled(family.rawValue) }, set: { model.draft.advanced.setCreatorEnabled(family, $0) }))
-                Text(LocalizedStringKey(family.providerKey)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text(LocalizedStringKey(family.providerKey)).font(.footnote).foregroundStyle(.secondary)
             }
             if model.draft.advanced.enabled(family.rawValue) {
                 if family == .check {
                     Section { NavigationLink { TemplateCheckPresetView(model: model) } label: { TemplateCheckPresetEntryLabel() } }
                 }
                 if family == .scan && TemplateScanResponseConfiguration(model.draft.advanced).isSupported {
-                    Section { NavigationLink { TemplateScanResponseEditor(model: model) } label: { CYListRow("templateScan.title", trailing: .none) { CYRowIcon(systemImage: "viewfinder") } } }
+                    Section { NavigationLink { TemplateScanResponseEditor(model: model) } label: { Label("templateScan.title", systemImage: "viewfinder") } }
                     TemplateCreatorFieldsView(model: model, family: family, fields: configurationFields.filter { !TemplateScanResponseConfiguration.managedFields.contains($0.id) }, path: [])
                 } else {
                 TemplateCreatorFieldsView(model: model, family: family, fields: configurationFields, path: [])
                 }
                 if usesHotspotPlacement {
-                    Section { NavigationLink { TemplateHotspotPlacementView(model: model) } label: { CYListRow("templateHotspots.title", trailing: .none) { CYRowIcon(systemImage: "scope") } } }
+                    Section { NavigationLink { TemplateHotspotPlacementView(model: model) } label: { Label("templateHotspots.title", systemImage: "scope") } }
                 }
                 if usesPredictionPlan {
-                    Section { NavigationLink { TemplatePredictionPlanEditor(model: model) } label: { CYListRow("templatePrediction.title", trailing: .none) { CYRowIcon(systemImage: "chart.line.uptrend.xyaxis") } } }
+                    Section { NavigationLink { TemplatePredictionPlanEditor(model: model) } label: { Label("templatePrediction.title", systemImage: "chart.line.uptrend.xyaxis") } }
                 }
                 Section("creator.review") {
-                    NavigationLink { TemplateCreatorRehearsalView(draft: model.draft.advanced, family: family) } label: { CYListRow("creator.rehearse", trailing: .none) { CYRowIcon(systemImage: "play.circle") } }.disabled(!issues.isEmpty)
+                    NavigationLink { TemplateCreatorRehearsalView(draft: model.draft.advanced, family: family) } label: { Label("creator.rehearse", systemImage: "play.circle") }.disabled(!issues.isEmpty)
                 }
                 if !issues.isEmpty {
                     Section("templateAuthor.validationTitle") {
                         ForEach(issues) { issue in VStack(alignment: .leading) {
-                            Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText)
+                            Label(LocalizedStringKey(issue.labelKey), systemImage: "exclamationmark.circle").foregroundStyle(.red)
                         } }
                     }
                 }
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().disabled(!model.canEdit)
+        }.formStyle(.grouped).navigationTitle(LocalizedStringKey(family.labelKey)).disabled(!model.canEdit)
             .accessibilityIdentifier("creator.form." + family.rawValue)
     }
 }
@@ -122,7 +121,7 @@ import Combine
                 Toggle("creator.compare.limitAttempts", isOn: Binding(get: { current != .null }, set: { write($0 ? .number(3) : nil) }))
                     .accessibilityIdentifier("creator.compare.limitAttempts")
                 if current != .null { control.accessibilityIdentifier("creator.field.compare.maxAttempts") }
-                else { Text("creator.compare.unlimited").cyText(.bodyCompact) }
+                else { Text("creator.compare.unlimited").foregroundStyle(.secondary) }
             } else if usesProfileRows {
                 profileRows.accessibilityIdentifier("creator.field.profile." + field.id)
             } else if field.id == "kind", let index = profileQuestionIndex, profileComposition.isSupported {
@@ -141,7 +140,7 @@ import Combine
             } else {
             VStack(alignment: .leading) {
                 TextField(LocalizedStringKey(field.labelKey), text: text, axis: .vertical).textInputAutocapitalization(.never)
-                HStack { if required { Text("creator.required") }; Spacer(); Text(verbatim: "\(text.wrappedValue.utf16.count)/\(max)") }.cyText(.meta).foregroundStyle(.secondary)
+                HStack { if required { Text("creator.required") }; Spacer(); Text(verbatim: "\(text.wrappedValue.utf16.count)/\(max)") }.font(.footnote).foregroundStyle(.secondary)
             }
             }
         case .number(let min, let max, let integer):
@@ -150,11 +149,11 @@ import Combine
                     TextField(LocalizedStringKey(field.labelKey), text: text).keyboardType(.numbersAndPunctuation)
                     // Design hand-off r1 CF-47 / CF-48: unit as a suffix; 积分 is the only currency.
                     if let unit = TemplateCreatorFieldView.units[field.id] {
-                        EditorKitText.text(unit.key).cyText(.body).foregroundStyle(CYColor.textSecondary)
+                        EditorKitText.text(unit.key).foregroundStyle(.secondary)
                     }
                 }
-                if max < 1e15 { Text(verbatim: "\(min.formatted()) … \(max.formatted())").cyText(.meta).foregroundStyle(.secondary) }
-                if integer { Text("creator.integer").cyText(.meta).foregroundStyle(.secondary) }
+                if max < 1e15 { Text(verbatim: "\(min.formatted()) … \(max.formatted())").font(.footnote).foregroundStyle(.secondary) }
+                if integer { Text("creator.integer").font(.footnote).foregroundStyle(.secondary) }
                 if family == .hiddenObject && ["x", "y"].contains(field.id) {
                     Slider(value: Binding(get: { current.number ?? 0.5 }, set: { write(.number($0)) }), in: 0...1)
                 }
@@ -198,7 +197,7 @@ import Combine
                         } label: {
                             VStack(alignment: .leading) {
                                 Text(verbatim: rowLabel(index))
-                                Text(verbatim: "\(index + 1)").cyText(.meta).foregroundStyle(.secondary)
+                                Text(verbatim: "\(index + 1)").font(.footnote).foregroundStyle(.secondary)
                             }
                         }
                     }.onDelete { indexes in var copy = rows; for index in indexes.sorted(by: >) { copy.remove(at: index) }; write(.array(copy)) }
@@ -210,7 +209,7 @@ import Combine
                     } else {
                         Button("creator.add") { model.draft.advanced.addCreatorRow(family, path: path, field: field) }.disabled(rows.count >= maximum)
                     }
-                    Text(verbatim: "\(rows.count) / \(minimum)…\(maximum)").cyText(.meta)
+                    Text(verbatim: "\(rows.count) / \(minimum)…\(maximum)").font(.footnote).foregroundStyle(.secondary)
                 }.toolbar { EditButton() }.navigationTitle(LocalizedStringKey(field.labelKey)).navigationBarTitleDisplayMode(.inline)
                 }
             } label: { LabeledContent(LocalizedStringKey(field.labelKey), value: String(rows.count)) }
@@ -272,7 +271,7 @@ import Combine
     }
     private func stringRows(max: Int, length: Int) -> some View {
         VStack(alignment: .leading) {
-            Text(LocalizedStringKey(field.labelKey)).cyText(.cardTitle)
+            Text(LocalizedStringKey(field.labelKey)).font(.headline)
             ForEach(rows.indices, id: \.self) { index in
                 HStack {
                     TextField(LocalizedStringKey(field.labelKey), text: Binding(get: { rows.indices.contains(index) ? rows[index].string ?? "" : "" }, set: { value in var copy = rows; guard copy.indices.contains(index) else { return }; copy[index] = .string(value); write(.array(copy)) }))
@@ -280,7 +279,7 @@ import Combine
                 }
             }
             Button("creator.add") { var copy = rows; copy.append(.string("")); write(.array(copy)) }.disabled(rows.count >= max)
-            Text(verbatim: "≤ \(max) × \(length)").cyText(.meta).foregroundStyle(.secondary)
+            Text(verbatim: "≤ \(max) × \(length)").font(.footnote).foregroundStyle(.secondary)
         }
     }
 }
@@ -520,15 +519,14 @@ enum TemplateCheckPresetText {
     }
     var body: some View {
         Form {
-            Section { CYHeroHeader(verbatim: text(.title), subtitle: text(.scope)) }.e1HeroRow()
-            Section { Text(verbatim: text(.retained)).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+            Section { Text(verbatim: text(.retained)).font(.footnote).foregroundStyle(.secondary) } header: { Text(verbatim: text(.scope)) }
             if controller.visibleConfiguration?.isSupported == true {
                 Section {
                     Picker(text(.luck), selection: controller.luckBinding) {
                         ForEach(TemplateCheckLuckChoice.allCases) { choice in Text(verbatim: luckText(choice)).tag(choice) }
                     }.accessibilityIdentifier("templateCheckPresets.luck")
                     Toggle(text(.ladder), isOn: controller.hpBinding).accessibilityIdentifier("templateCheckPresets.hp")
-                    Text(verbatim: text(.warning)).cyText(.bodyCompact)
+                    Label(text(.warning), systemImage: "info.circle").foregroundStyle(.secondary)
                 }
                 if let draft = controller.preview {
                     Section(text(.preview)) {
@@ -541,15 +539,24 @@ enum TemplateCheckPresetText {
                         }
                     }.accessibilityIdentifier("templateCheckPresets.preview")
                 } else { Text(verbatim: text(.unsupported)) }
-                CYPillButton(verbatim: text(.apply), action: controller.applyAction()).disabled(!controller.canApply)
-                    .accessibilityIdentifier("templateCheckPresets.apply").e1ActionRow()
-                if controller.didApply { Text(verbatim: text(.applied)).accessibilityIdentifier("templateCheckPresets.applied") }
+                Section {
+                    Button(action: controller.applyAction()) { Text(verbatim: text(.apply)) }.disabled(!controller.canApply)
+                        .accessibilityIdentifier("templateCheckPresets.apply")
+                } footer: {
+                    if controller.didApply { Text(verbatim: text(.applied)).accessibilityIdentifier("templateCheckPresets.applied") }
+                }
             } else {
-                Text(verbatim: text(.unsupported))
-                CYPillButton(verbatim: text(.reload), style: .secondary, action: controller.reloadAction()).accessibilityIdentifier("templateCheckPresets.reload").e1ActionRow()
+                Section {
+                    Text(verbatim: text(.unsupported))
+                    Button(action: controller.reloadAction()) { Text(verbatim: text(.reload)) }.accessibilityIdentifier("templateCheckPresets.reload")
+                }
             }
-            CYPillButton(verbatim: text(.cancel), style: .tertiary, action: controller.cancelAction { dismiss() }).accessibilityIdentifier("templateCheckPresets.cancel").e1ActionRow()
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+        }.formStyle(.grouped).navigationTitle(Text(verbatim: text(.title))).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: controller.cancelAction { dismiss() }) { Text(verbatim: text(.cancel)) }.accessibilityIdentifier("templateCheckPresets.cancel")
+                }
+            }
             .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
             .onDisappear { controller.viewDisappeared() }
             .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }

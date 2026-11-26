@@ -9,7 +9,6 @@ import SwiftUI
 #endif
     var body: some View {
         Form {
-            Section { CYHeroHeader(LocalizedStringKey(game.labelKey)) }.e1HeroRow()
             Section {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled(game.section) }, set: { enabled in
                     model.setGameEnabled(game, enabled)
@@ -25,7 +24,7 @@ import SwiftUI
                     }
                     .accessibilityIdentifier("creatorComposition.probe." + game.rawValue)
                     .accessibilityValue(inputProbeSnapshot.isEmpty ? model.gameInputProbe(game) : inputProbeSnapshot)
-                }.cyText(.meta).dynamicTypeSize(.large)
+                }.font(.footnote).dynamicTypeSize(.large)
             }
 #endif
             Section(LocalizedStringKey(game.labelKey)) {
@@ -36,7 +35,7 @@ import SwiftUI
                 switch game {
                 case .coin:
                     nested("heads", "label"); nested("heads", "action"); nested("tails", "label"); nested("tails", "action")
-                    NavigationLink { TemplateCoinFlipRehearsalView(model: model, mode: .currentConfiguration) } label: { CYListRow("templateCoin.rehearse") { CYRowIcon(systemImage: "play.circle") } }
+                    NavigationLink { TemplateCoinFlipRehearsalView(model: model, mode: .currentConfiguration) } label: { Label("templateCoin.rehearse", systemImage: "play.circle") }
                         .accessibilityIdentifier("templateCoin.openConfiguration")
                 case .dice:
                     Picker("creatorRoot.diceMode", selection: Binding(get: { model.draft.advanced.diceMode }, set: { model.draft.advanced.setDiceMode($0) })) {
@@ -51,12 +50,12 @@ import SwiftUI
                             return faces.indices.contains(index) ? faces[index].string ?? "" : ""
                         }, set: { model.draft.advanced.setFace(index, $0) }))
                     }
-                    NavigationLink { TemplateD6RehearsalView(model: model) } label: { CYListRow("templateD6.preview") { CYRowIcon(systemImage: "play.circle") } }
+                    NavigationLink { TemplateD6RehearsalView(model: model) } label: { Label("templateD6.preview", systemImage: "play.circle") }
                         .disabled((try? TemplateD6Rehearsal(draft: model.draft.advanced)) == nil)
                         .accessibilityIdentifier("templateD6.open")
                     }
                 case .react: field(game.section, "rounds"); field(game.section, "goalMs")
-                    NavigationLink { TemplateReactionRehearsalView(model: model, mode: .currentConfiguration) } label: { CYListRow("templateReaction.rehearse") { CYRowIcon(systemImage: "play.circle") } }
+                    NavigationLink { TemplateReactionRehearsalView(model: model, mode: .currentConfiguration) } label: { Label("templateReaction.rehearse", systemImage: "play.circle") }
                         .accessibilityIdentifier("templateReaction.openConfiguration")
                 case .shake:
                     field(game.section, "goal")
@@ -64,10 +63,10 @@ import SwiftUI
                     if model.draft.advanced.value[game.section]?.object?["timed"]?.bool == true { field(game.section, "seconds") }
                 case .quiet: field(game.section, "sub"); field(game.section, "seconds")
                 case .countdown: field(game.section, "seconds"); field(game.section, "doneText")
-                    NavigationLink { TemplateTimerRehearsalView(model: model, kind: .countdown, mode: .currentConfiguration) } label: { CYListRow("templateTimer.kind.countdown") { CYRowIcon(systemImage: "play.circle") } }
+                    NavigationLink { TemplateTimerRehearsalView(model: model, kind: .countdown, mode: .currentConfiguration) } label: { Label("templateTimer.kind.countdown", systemImage: "play.circle") }
                         .accessibilityIdentifier("templateTimer.openConfiguration.countdown")
                 case .stopwatch: field(game.section, "targetSeconds"); field(game.section, "toleranceMs"); field(game.section, "tries")
-                    NavigationLink { TemplateTimerRehearsalView(model: model, kind: .stopwatch, mode: .currentConfiguration) } label: { CYListRow("templateTimer.kind.stopwatch") { CYRowIcon(systemImage: "play.circle") } }
+                    NavigationLink { TemplateTimerRehearsalView(model: model, kind: .stopwatch, mode: .currentConfiguration) } label: { Label("templateTimer.kind.stopwatch", systemImage: "play.circle") }
                         .accessibilityIdentifier("templateTimer.openConfiguration.stopwatch")
                 case .sort, .match, .classify, .compass, .shout: EmptyView()
                 }
@@ -75,10 +74,10 @@ import SwiftUI
             }
             if !model.draft.advanced.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
-                    ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)) }
+                    ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Label(LocalizedStringKey($0), systemImage: "exclamationmark.circle").foregroundStyle(.red) }
                 }
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().disabled(!model.canEdit)
+        }.formStyle(.grouped).navigationTitle(LocalizedStringKey(game.labelKey)).disabled(!model.canEdit)
     }
     private func field(_ section: String, _ key: String) -> some View {
         TemplateAuthoringField(key, text: .init(get: { model.draft.advanced.text(section, key) }, set: { model.draft.advanced.set(section, key, .string($0)) }))

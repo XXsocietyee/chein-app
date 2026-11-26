@@ -1,26 +1,20 @@
 import SwiftUI
 
 /// S02 presentation only. The original owners retain every state and request boundary.
+/// Native r2: the system grouped form and the system prominent button, no custom type, tint or row heights.
 private struct IMFlowFormPresentation: ViewModifier {
-    @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content
             .formStyle(.grouped)
-            .cyText(.body)
-            .environment(\.defaultMinListRowHeight, 44)
             .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 private struct IMFlowPrimaryActionPresentation: ViewModifier {
-    @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
-        content.cyText(.button)
-            .buttonStyle(.questifyPrimary)
+        content
+            .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .tint(Theme.Color.actionPrimaryBackground(in: domain))
-            .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))
-            .frame(minHeight: 44)
     }
 }
 
@@ -35,30 +29,18 @@ struct IMFlowStateMessage: View {
     let text: Text
     var symbol = "info.circle"
     var tone: Tone = .neutral
-    @Environment(\.cyPalette) private var palette
     private var color: Color {
         switch tone {
-        case .neutral: return palette.textSecondary
-        case .attention: return palette.danger
-        case .success: return palette.success
-        }
-    }
-    private var fill: Color {
-        switch tone {
-        case .neutral: return palette.actionSecondaryBg
-        case .attention: return palette.dangerSoft
-        case .success: return palette.successSoft
+        case .neutral: return .secondary
+        case .attention: return .red
+        case .success: return .green
         }
     }
     var body: some View {
-        Label { text.fixedSize(horizontal: false, vertical: true) } icon: {
-            Image(systemName: symbol).accessibilityHidden(true)
+        Label { text } icon: {
+            Image(systemName: symbol).foregroundStyle(color).accessibilityHidden(true)
         }
-        .cyText(.bodyCompact)
-        .foregroundStyle(color)
-        .padding(CYSpacing.md)
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-        .background(fill, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 }

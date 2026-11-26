@@ -120,17 +120,19 @@ import Combine
     init(model: TemplateAuthoringModel) { self.model = model; _editor = StateObject(wrappedValue: .init(model: model)) }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateHotspots.title", subtitle: "templateHotspots.instructions") }.e1HeroRow()
             Section {
-                CYPillButton("templateHotspots.loadScene", style: .secondary, systemImage: "photo", action: editor.loadSceneAction())
-                    .disabled(!editor.canLoadScene).accessibilityIdentifier("creator.hotspots.load").e1ActionRow()
-                if !editor.canLoadScene { Text("templateHotspots.sceneUnavailable").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                Button(action: editor.loadSceneAction()) { Label("templateHotspots.loadScene", systemImage: "photo") }
+                    .disabled(!editor.canLoadScene).accessibilityIdentifier("creator.hotspots.load")
                 if let request = editor.scene { canvas(request).id(request.id) }
+            } header: {
+                Text("templateHotspots.instructions")
+            } footer: {
+                if !editor.canLoadScene { Text("templateHotspots.sceneUnavailable") }
             }
             Section("creator.field.hotspots") {
                 ForEach(Array(editor.targets.enumerated()), id: \.element.id) { index, target in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("templateHotspots.targetNumber \(index + 1)").cyText(.cardTitle).monospacedDigit()
+                        Text("templateHotspots.targetNumber \(index + 1)").font(.headline).monospacedDigit()
                         TextField("creator.field.label", text: editor.label(target.id), axis: .vertical)
                             .accessibilityIdentifier("creator.hotspots.label." + target.id)
                         HStack {
@@ -138,7 +140,7 @@ import Combine
                                 Label(LocalizedStringKey(editor.armedID == target.id ? "templateHotspots.cancel" : "templateHotspots.mark"), systemImage: editor.armedID == target.id ? "xmark.circle" : "scope")
                             }.disabled(!editor.isSceneReady).accessibilityIdentifier("creator.hotspots.arm." + target.id)
                             Spacer()
-                            Text(LocalizedStringKey(target.point == nil ? "templateHotspots.unplaced" : "templateHotspots.placed")).cyText(.meta)
+                            Text(LocalizedStringKey(target.point == nil ? "templateHotspots.unplaced" : "templateHotspots.placed")).font(.footnote).foregroundStyle(.secondary)
                             Button("creator.remove", role: .destructive, action: editor.removeAction(target.id)).disabled(!editor.canRemove)
                         }.buttonStyle(.borderless)
                         HStack {
@@ -147,15 +149,15 @@ import Combine
                         }.buttonStyle(.borderless)
                     }
                 }
-                CYPillButton("templateHotspots.add", style: .secondary, systemImage: "plus", action: editor.addAction()).disabled(!editor.canAdd)
-                    .accessibilityIdentifier("creator.hotspots.add").e1ActionRow()
+                Button(action: editor.addAction()) { Label("templateHotspots.add", systemImage: "plus") }.disabled(!editor.canAdd)
+                    .accessibilityIdentifier("creator.hotspots.add")
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
-                    ForEach(editor.issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } }
+                    ForEach(editor.issues) { issue in VStack(alignment: .leading) { Label(LocalizedStringKey(issue.labelKey), systemImage: "exclamationmark.circle").foregroundStyle(.red) } }
                 }
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().disabled(!editor.canEdit)
+        }.formStyle(.grouped).navigationTitle(Text("templateHotspots.title")).navigationBarTitleDisplayMode(.inline).disabled(!editor.canEdit)
             .onAppear { editor.reload() }.onDisappear { editor.retire() }
             .onChange(of: model.mediaReviewGeneration) { _, _ in editor.reload() }
             .onChange(of: scenePhase) { _, phase in if phase == .active { editor.reload() } else { editor.retire() } }
@@ -173,7 +175,7 @@ import Combine
                                 })
                             ForEach(Array(editor.targets.enumerated()), id: \.element.id) { index, target in
                                 if let point = target.point {
-                                    Text(verbatim: String(index + 1)).cyText(.meta, weight: .bold).padding(6)
+                                    Text(verbatim: String(index + 1)).font(.caption.bold()).monospacedDigit().padding(6)
                                         .background(editor.armedID == target.id ? Color.orange : Color.accentColor, in: Circle())
                                         .foregroundStyle(.white).position(x: geometry.size.width * CGFloat(point.x), y: geometry.size.height * CGFloat(point.y))
                                         .allowsHitTesting(false).accessibilityHidden(true)
@@ -185,7 +187,7 @@ import Combine
                     .accessibilityLabel("templateHotspots.canvas").accessibilityIdentifier("creator.hotspots.canvas")
             } else if phase.error != nil {
                 Text("templateHotspots.loadFailed").onAppear { editor.imageFailed(request) }
-            } else { CYSkeletonBlock(height: 200, cornerRadius: CYRadius.md).accessibilityLabel(Text("templateHotspots.loading")) }
+            } else { ProgressView().frame(maxWidth: .infinity, minHeight: 200).accessibilityLabel(Text("templateHotspots.loading")) }
         }
     }
 }

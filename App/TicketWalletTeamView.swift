@@ -49,10 +49,14 @@ struct TicketWalletTeamContext: Hashable {
             if let context, reader.isAuthenticated, reader.isConfigured {
                 let presentation = entry.presentationID
                 Section {
-                    CYPillButton("ticketTeam.open", style: .secondary, systemImage: "person.3") {
+                    Button {
                         entry.activate(context: context, reader: reader, presentationID: presentation)
-                    }.accessibilityIdentifier("ticketTeam.open")
-                    Text("ticketTeam.lookupHint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    } label: {
+                        Label("ticketTeam.open", systemImage: "person.3")
+                    }
+                    .accessibilityIdentifier("ticketTeam.open")
+                } footer: {
+                    Text("ticketTeam.lookupHint")
                 }
             }
         }
@@ -63,7 +67,7 @@ struct TicketWalletTeamContext: Hashable {
         .navigationDestination(item: $entry.target) { target in
             if entry.matches(target, context: context, reader: reader) {
                 TicketWalletTeamView(target: target, reader: reader, coordinator: makeCoordinator()).id(target.id)
-            } else { CYEmptyState(systemImage: "lock", "ticketTeam.changed") }
+            } else { ContentUnavailableView("ticketTeam.changed", systemImage: "lock") }
         }
     }
 }
@@ -160,7 +164,6 @@ struct TicketWalletTeamContext: Hashable {
     @State private var model: TicketWalletTeamModel
     @State private var visible = false
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.cyPalette) private var palette
     init(target: TicketWalletTeamEntryState.Target, reader: any TicketWalletReading, coordinator: TeamCoordinator) {
         self.target = target; self.reader = reader
         _model = State(initialValue: TicketWalletTeamModel(target: target, reader: reader, coordinator: coordinator))
@@ -168,47 +171,54 @@ struct TicketWalletTeamContext: Hashable {
     var body: some View {
         let offeredPresentation = model.presentation
         List {
-            if !model.ownerIsCurrent { CYEmptyState(systemImage: "lock", "ticketTeam.changed") }
+            if !model.ownerIsCurrent { ContentUnavailableView("ticketTeam.changed", systemImage: "lock") }
             else {
                 if let issue = model.issue {
                     Section {
-                        CYStatusChip(LocalizedStringKey(issueKey(issue)), tone: .danger, systemImage: "exclamationmark.triangle")
-                        CYPillButton("ticketTeam.retry", style: .secondary) { model.scheduleList(offeredPresentation) }
+                        Label {
+                            Text(LocalizedStringKey(issueKey(issue)))
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle").foregroundStyle(.red)
+                        }
+                        Button("ticketTeam.retry") { model.scheduleList(offeredPresentation) }
                             .disabled(offeredPresentation == nil)
                     }
                 }
-                if model.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("ticketTeam.loading")) }
+                if model.loading {
+                    ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("ticketTeam.loading"))
+                }
                 if model.loaded && model.rows.isEmpty && model.issue == nil {
-                    CYEmptyState(systemImage: "person.3", "ticketTeam.empty", detail: "ticketTeam.emptyHint")
+                    ContentUnavailableView("ticketTeam.empty", systemImage: "person.3", description: Text("ticketTeam.emptyHint"))
                 }
                 if !model.rows.isEmpty {
                     Section("ticketTeam.choose") {
                         ForEach(model.rows) { team in
                             Button { model.scheduleDetail(team, presentation: offeredPresentation) } label: {
-                                HStack(spacing: CYSpacing.md) {
-                                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                        if team.title.isEmpty { Text("team.untitled").cyText(.cardTitle) }
-                                        else { Text(verbatim: team.title).cyText(.cardTitle) }
-                                        CYStatusChip(LocalizedStringKey(team.status.key), tone: .neutral)
-                                    }.foregroundStyle(palette.textPrimary)
-                                    Spacer(minLength: 0)
-                                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                                        .foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-                                }.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading).contentShape(Rectangle())
-                            }.disabled(model.loading).accessibilityIdentifier("ticketTeam.row.\(team.id)")
+                                VStack(alignment: .leading) {
+                                    if team.title.isEmpty { Text("team.untitled") }
+                                    else { Text(verbatim: team.title) }
+                                    Text(LocalizedStringKey(team.status.key))
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                            }
+                            .tint(.primary)
+                            .disabled(model.loading).accessibilityIdentifier("ticketTeam.row.\(team.id)")
                         }
                     }
                 }
                 if let detail = model.detail {
                     Section("ticketTeam.detail") {
                         TeamCard(team: detail.team)
-                        Text("team.ticketSeparation").cyText(.meta).foregroundStyle(palette.textTertiary)
+                        Text("team.ticketSeparation").font(.footnote).foregroundStyle(.secondary)
                         if let expiry = detail.team.expireTime, !expiry.isEmpty {
                             LabeledContent("team.invitationExpiry", value: expiry)
                         } else { Text("team.invitationExpiryUnknown") }
                     }
                     Section("team.members.title") {
-                        if detail.members.isEmpty { CYEmptyState(systemImage: "person.2", "team.members.empty") }
+                        if detail.members.isEmpty { ContentUnavailableView("team.members.empty", systemImage: "person.2") }
                         ForEach(detail.members) { member in TeamMemberRow(member: member, remove: nil) }
                     }
                 }

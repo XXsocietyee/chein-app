@@ -274,7 +274,7 @@ struct TopicDetailView: View {
                         else { Text("topicXcx.coverHint").font(.body).foregroundStyle(.secondary) }
                     }
                     .padding(.vertical, CYSpacing.sm)
-                    }.accessibilityElement(children: .combine)
+                    .accessibilityElement(children: .combine)
                 } else {
                     // verify-r1 3.1 / PL-23 (`169:6954`): the photo is the hero and carries no text, so a cover that
                     // fails to load can never sit under the title. The title and its facts follow below.
