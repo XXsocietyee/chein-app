@@ -112,7 +112,7 @@ import SwiftUI
                     // CLB-event-ops-07: the consequence lives in the confirm only (MP 1121), not on the row.
                     Label("club.gov.action.cancelOccurrence", systemImage: "calendar.badge.minus")
                 }
-            } header: { ClubOpsTableHeading("clubOpsEvent.section.occurrence") }
+            } header: { Text("clubOpsEvent.section.occurrence", tableName: "ClubOpsEvent") }
             // CLB-G15 (MP event-ops wxml:39-43): 主持小费 · 暂不可开通 under 本场管理 (collection channel not enabled, so no
             // switch or ratio). paymentNotice sits in the series form and windowWarning on its receipt (r9, as in the MP).
             // The extras CTA stays off here (`showsEmptyPublishCTA: false`) because the MP shows it in the 日期清单 slot;
@@ -164,7 +164,7 @@ import SwiftUI
                         Image(systemName: "calendar")
                     }
                 }
-            } footer: { ClubOpsTableNote("clubOpsEvent.series.note") }
+            } footer: { Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent") }
         case .recurrence:
             Section {
                 push(.eventTopics, .init(clubID: scope.clubID, topicID: scope.topicID)) {
@@ -179,7 +179,7 @@ import SwiftUI
                         Image(systemName: "plus.circle")
                     }
                 }
-            } header: { ClubOpsTableHeading("clubOpsEvent.section.recurrence") } footer: { ClubOpsTableNote("clubOpsEvent.recurrence.note") }
+            } header: { Text("clubOpsEvent.section.recurrence", tableName: "ClubOpsEvent") } footer: { Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent") }
         case .capacity:
             // Capacity and waitlist are set inside the series form (ClubOpsEventSeriesFields);
             // the hub section held only explanations with no control, so it is not shown.
@@ -296,7 +296,7 @@ import SwiftUI
     var loadNames: (@MainActor (ClubGovernanceReadContext) async -> Void)? = nil
     var body: some View {
         Section {
-            ClubOpsTableNote("clubOpsEvent.series.note")
+            Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent")
                 .task(id: namesKey) { if let namesKey, let loadNames { await loadNames(namesKey) } }
             if empty {
                 ContentUnavailableView {
@@ -458,26 +458,8 @@ struct ClubOpsEventSeriesConflictNotice: View {
     }
 }
 
-private struct ClubOpsTableHeading: View {
-    let key: String
-    init(_ key: String) { self.key = key }
-    var body: some View {
-        Text(LocalizedStringKey(key), tableName: "ClubOpsEvent")
-            .textCase(nil)
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityAddTraits(.isHeader)
-    }
-}
-
-private struct ClubOpsTableNote: View {
-    let key: String
-    init(_ key: String) { self.key = key }
-    var body: some View {
-        Text(LocalizedStringKey(key), tableName: "ClubOpsEvent")
-            .textCase(nil)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-}
+// CLB-r10-nat-event-ops-03: Section headers and footers are plain `Text` (system styling); the
+// ClubOpsTableHeading / ClubOpsTableNote wrappers are gone.
 
 /// Icon plus wrapping status copy. A blank server reason is an em dash, never a zero.
 private struct ClubOpsEventStatusLine: View {
