@@ -4,32 +4,31 @@ import SwiftUI
 /// the "正在同步最新内容…" refresh line, and the empty-state "刷新试试" action.
 struct DiscoveryTopicCoverThumb: View {
     let urlString: String?
-    /// Screens r4 · Figma 243:1964 (CF-61): a theme with no cover shows the default art seeded by its name, not a
-    /// 图片暂不可用 glyph tile. The unavailable tile is kept for a cover that exists but fails to load.
+    /// A theme with no cover shows the system artwork placeholder; the unavailable tile is kept for a cover that
+    /// exists but fails to load. `seed` is kept for call-site compatibility.
     var seed: String = ""
     /// The square tracks body type size. The caption is not given a fixed height.
-    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 72
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 60
 
     var body: some View {
         Group {
             if let url = TemplateBrowserPort.coverURL(urlString) {
                 PlayerFeedRemoteImage(url: url, maxPixel: 256, placeholder: {
-                    CYCoverArt(seed: url.absoluteString, showsDebugLabel: false, cornerRadius: CYRadius.sm)
-                        .frame(width: side, height: side)
+                    DiscoveryArtPlaceholder()
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(Text("discovery.loading"))
                 }, failure: {
                     DiscoveryCoverUnavailable(side: side)
                 })
-                .frame(width: side, height: side)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .accessibilityHidden(true)
             } else {
-                CYCoverArt(seed: seed.isEmpty ? "discovery.untitledTopic" : seed, showsDebugLabel: false, cornerRadius: CYRadius.sm)
-                    .frame(width: side, height: side)
+                DiscoveryArtPlaceholder()
                     .accessibilityHidden(true)
             }
         }
+        .frame(width: side, height: side)
+        // Artwork clip only (as Music/Podcasts draw list artwork); no card chrome.
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         .accessibilityElement(children: .contain)
     }
 }
@@ -38,43 +37,38 @@ private struct DiscoveryCoverUnavailable: View {
     let side: CGFloat
 
     var body: some View {
-        VStack(spacing: CYSpacing.xxs) {
+        VStack(spacing: 2) {
             Image(systemName: "photo")
-                .cyText(.label)
+                .font(.body)
                 .accessibilityHidden(true)
             Text("discovery.coverUnavailable")
-                .cyText(.caption)
+                .font(.caption)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .foregroundStyle(CYColor.textTertiary)
-        .padding(CYSpacing.xs)
+        .foregroundStyle(.secondary)
+        .padding(4)
         .frame(width: side)
         .frame(minHeight: side)
-        .background {
-            CYCoverArt(seed: "discovery.coverUnavailable", showsDebugLabel: false, showsGlyph: false, cornerRadius: CYRadius.sm)
-                .frame(width: side, height: side)
-                .opacity(0.4)
-                .accessibilityHidden(true)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .background(.quaternary)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("discovery.coverUnavailable"))
     }
 }
 
-/// First load keeps a layout-shaped skeleton; a refresh over loaded rows shows the quiet sync line.
+/// First load shows a system spinner; a refresh over loaded rows shows the quiet sync line.
 struct DiscoveryTemplateSyncingRow: View {
     let hasLoadedRows: Bool
     var body: some View {
         if TemplateBrowserPort.showsSyncingLine(isLoading: true, hasLoadedRows: hasLoadedRows) {
             Text("discovery.syncing")
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.updatesFrequently)
         } else {
-            CYSkeleton()
+            ProgressView()
+                .frame(maxWidth: .infinity)
                 .accessibilityLabel(Text("discovery.loading"))
         }
     }
@@ -83,8 +77,11 @@ struct DiscoveryTemplateSyncingRow: View {
 struct DiscoveryTemplateEmptyRefresh: View {
     let action: () -> Void
     var body: some View {
-        CYPillButton("discovery.emptyRefresh", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: action)
-            .accessibilityIdentifier("discovery.emptyRefresh")
-            .accessibilityLabel(Text("discovery.emptyRefresh"))
+        Button(action: action) {
+            Label("discovery.emptyRefresh", systemImage: "arrow.clockwise")
+        }
+        .buttonStyle(.bordered)
+        .accessibilityIdentifier("discovery.emptyRefresh")
+        .accessibilityLabel(Text("discovery.emptyRefresh"))
     }
 }
