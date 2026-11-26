@@ -66,6 +66,10 @@ extension EnvironmentValues {
     let progress: NativeGameProgress?
     let wrongReply: String?
     let submit: NativeGameSubmit?
+    /// The server verdict (nil until one exists). A fresh `.passed` plays the success feedback (G-007).
+    let verdict: PlayGameOutcome?
+    /// A server-reported score; the result sheet rolls it up from zero (G-009).
+    let score: Int?
     let help: NativeGameHelpContext?
     let analyticsNodeID: Int?
     let analyticsKit: String?
@@ -75,6 +79,12 @@ extension EnvironmentValues {
     let controls: Controls
     let outcome: Outcome
     @State private var hintShown = false
+    /// Bumped when a fresh pass arrives; drives the verdict symbol bounce.
+    @State private var celebration = 0
+    /// What the result sheet shows; rolls from 0 to `score` when the sheet appears.
+    @State private var shownScore = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
 
     init(title: Text,
          style: NativeGameShellStyle = .list,
@@ -84,6 +94,8 @@ extension EnvironmentValues {
          progress: NativeGameProgress? = nil,
          wrongReply: String? = nil,
          submit: NativeGameSubmit? = nil,
+         verdict: PlayGameOutcome? = nil,
+         score: Int? = nil,
          help: NativeGameHelpContext? = nil,
          analyticsNodeID: Int? = nil,
          analyticsKit: String? = nil,
@@ -94,6 +106,7 @@ extension EnvironmentValues {
          @ViewBuilder outcome: () -> Outcome) {
         self.title = title; self.style = style; self.reorderable = reorderable; self.wrapsInNavigationStack = wrapsInNavigationStack
         self.close = close; self.progress = progress; self.wrongReply = wrongReply; self.submit = submit
+        self.verdict = verdict; self.score = score
         self.help = help; self.analyticsNodeID = analyticsNodeID; self.analyticsKit = analyticsKit
         self.identifier = identifier; self._resultPresented = resultPresented; self.resultActions = resultActions
         self.controls = controls(); self.outcome = outcome()
@@ -136,7 +149,8 @@ extension EnvironmentValues {
             }
         }
         .safeAreaInset(edge: .bottom) { submitBar }
-        .sensoryFeedback(.error, trigger: wrongReply) { _, next in next != nil }
+        .animation(reduceMotion ? nil : .smooth, value: wrongReply)
+        .modifier(NativeGameFeedback(wrongReply: wrongReply, verdict: verdict, celebrate: celebrate))
         .cySheet(isPresented: $resultPresented) { resultSheet }
         .cySheet(isPresented: $hintShown) { hintSheet }
         // Native r2 M4: a revealed hint level pops the hint island; "下一条提示" reopens this ladder.
@@ -154,7 +168,8 @@ extension EnvironmentValues {
             if let submit { submitButton(submit) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .sensoryFeedback(.error, trigger: wrongReply) { _, next in next != nil }
+        .animation(reduceMotion ? nil : .smooth, value: wrongReply)
+        .modifier(NativeGameFeedback(wrongReply: wrongReply, verdict: verdict, celebrate: celebrate))
         .accessibilityIdentifier(identifier)
     }
 
@@ -175,6 +190,8 @@ extension EnvironmentValues {
                     Image(systemName: "xmark.circle")
                 }
                 .foregroundStyle(.red)
+                .symbolEffect(.bounce, value: reduceMotion ? nil : wrongReply)
+                .transition(reduceMotion ? AnyTransition.opacity : AnyTransition.move(edge: .top).combined(with: .opacity))
                 .accessibilityIdentifier("playkit.qa.wrongReply")
             }
         }
@@ -199,12 +216,16 @@ extension EnvironmentValues {
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
         .disabled(!submit.enabled || submit.busy)
+        // G-006: the spinner replaces the title, so VoiceOver keeps the title and hears "sending" as the value.
+        .accessibilityLabel(submit.title)
+        .accessibilityValue(submit.busy ? Text("playkit.sending") : Text(verbatim: ""))
         .accessibilityIdentifier(submit.identifier)
     }
 
     private var resultSheet: some View {
         NavigationStack {
             List {
+                if let verdict { resultHeader(verdict) }
                 outcome
                 if resultActions.canRetry || resultActions.canContinue {
                     Section {
@@ -245,8 +266,61 @@ extension EnvironmentValues {
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
+        .onAppear(perform: rollScore)
         .accessibilityIdentifier("nativeGames.result.sheet")
+    }
+
+    /// Big verdict symbol (bounces on a pass) and the server score rolling up from zero (G-007 / G-009).
+    private func resultHeader(_ verdict: PlayGameOutcome) -> some View {
+        Section {
+            VStack(spacing: 8) {
+                Image(systemName: Self.symbol(for: verdict))
+                    .font(.largeTitle)
+                    .imageScale(.large)
+                    .foregroundStyle(verdict == .passed ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+                    .symbolEffect(.bounce, value: reduceMotion ? 0 : celebration)
+                    .accessibilityHidden(true)
+                if let score {
+                    Text(verbatim: shownScore.formatted(.number.locale(locale)))
+                        .font(.largeTitle.bold())
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(shownScore)))
+                        .accessibilityLabel(Text("nativeGames.result.score \(score)"))
+                        .accessibilityIdentifier("nativeGames.result.score")
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
+        }
+        .listRowBackground(Color.clear)
+    }
+
+    /// Runs once the sheet is on screen so the bounce and the numeric roll are visible (Reduce Motion: set instantly).
+    private func rollScore() {
+        if reduceMotion { shownScore = score ?? 0; return }
+        shownScore = 0
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(250))
+            if verdict == .passed { celebration += 1 }
+            if let score { withAnimation(.smooth(duration: 0.8)) { shownScore = score } }
+        }
+    }
+
+    /// A fresh pass: bounce, success haptic (in `NativeGameFeedback`), island and a VoiceOver announcement.
+    private func celebrate() {
+        celebration += 1
+        IslandCenter.shared.status(.key("nativeGames.passed.island"), tone: .success)
+        AccessibilityNotification.Announcement(appLocalized("nativeGames.passed.island", locale: locale)).post()
+    }
+
+    static func symbol(for verdict: PlayGameOutcome) -> String {
+        switch verdict {
+        case .passed: return "checkmark.seal.fill"
+        case .notPassed: return "arrow.uturn.backward.circle"
+        case .recorded: return "bookmark.circle"
+        case .noVerdict: return "ellipsis.circle"
+        }
     }
 
     @ViewBuilder private var hintSheet: some View {
@@ -293,6 +367,25 @@ extension EnvironmentValues {
         #else
         nil
         #endif
+    }
+}
+
+/// G-007 / G-012: error haptic + VoiceOver announcement for a new wrong reply; success haptic and
+/// `celebrate` for a fresh pass. Haptics are system `.sensoryFeedback` (they respect the system setting).
+@MainActor private struct NativeGameFeedback: ViewModifier {
+    let wrongReply: String?
+    let verdict: PlayGameOutcome?
+    let celebrate: @MainActor () -> Void
+    func body(content: Content) -> some View {
+        content
+            .sensoryFeedback(.error, trigger: wrongReply) { _, next in next != nil }
+            .sensoryFeedback(.success, trigger: verdict) { old, next in old != .passed && next == .passed }
+            .onChange(of: wrongReply) { _, next in
+                if let next, !next.isEmpty { AccessibilityNotification.Announcement(next).post() }
+            }
+            .onChange(of: verdict) { old, next in
+                if old != .passed && next == .passed { celebrate() }
+            }
     }
 }
 

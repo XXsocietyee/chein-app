@@ -265,7 +265,8 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
         }
     }
     /// UG-03 publishes through prepare("SUBMIT_QA"). A second action name is not used.
-    private var accusationWrite: PlayKitAccusationWrite? {
+    /// Internal so the native accusation kit (App/NativeR2/Games/NativeGameKitsC.swift) publishes through the same write.
+    var accusationWrite: PlayKitAccusationWrite? {
         if let ugAccusationWrite { return ugAccusationWrite }
         guard UGGameplay.accusationPublishable else { return nil }
         return { id in prepare(PlayKitPublishedWrites.accusationAction, PlayKitPublishedWrites.accusationDetail(optionID: id)) }

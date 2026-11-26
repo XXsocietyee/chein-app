@@ -1,57 +1,44 @@
 import SwiftUI
 
 extension PlayKitScreen {
+    // G-003: the flag-off path also draws with system controls (no CYChoiceRow / CYPillButton / glass).
     @ViewBuilder var trueFalseForm: some View {
         artwork(raw["imageUrl"].text)
         HStack(spacing: CYSpacing.sm) {
-            CYChoiceRow(
-                label: appLocalized("playkit.trueFalse.true", locale: .current),
-                selected: selected.contains("true"),
-                multi: false,
-                enabled: enabled,
-                marker: "✓"
-            ) {
-                UIKitHapticsDriver.ensureInstalled()
-                HapticsService.shared.play(.selection)
-                selected = ["true"]
-                dirty = true
-            }
-            .accessibilityLabel(Text(verbatim: appLocalized("playkit.trueFalse.true", locale: .current)))
-            .accessibilityAddTraits(selected.contains("true") ? .isSelected : [])
-            .accessibilityIdentifier("playkit.trueFalse.true")
-
-            CYChoiceRow(
-                label: appLocalized("playkit.trueFalse.false", locale: .current),
-                selected: selected.contains("false"),
-                multi: false,
-                enabled: enabled,
-                marker: "✕"
-            ) {
-                UIKitHapticsDriver.ensureInstalled()
-                HapticsService.shared.play(.selection)
-                selected = ["false"]
-                dirty = true
-            }
-            .accessibilityLabel(Text(verbatim: appLocalized("playkit.trueFalse.false", locale: .current)))
-            .accessibilityAddTraits(selected.contains("false") ? .isSelected : [])
-            .accessibilityIdentifier("playkit.trueFalse.false")
+            legacyTrueFalseButton(id: "true", key: "playkit.trueFalse.true", systemImage: "checkmark")
+            legacyTrueFalseButton(id: "false", key: "playkit.trueFalse.false", systemImage: "xmark")
         }
+        .sensoryFeedback(.selection, trigger: selected)
         submitButton(
             "SUBMIT_TRUE_FALSE",
             payload: ["answer": .bool(selected.contains("true"))],
             valid: selected.contains("true") || selected.contains("false")
         )
         if projection.complete, let explanation = raw["explanation"].text, !explanation.isEmpty {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("playkit.trueFalse.explanation").cyText(.caption).foregroundStyle(.secondary)
-                Text(verbatim: explanation).cyText(.body)
+            GroupBox {
+                Text(verbatim: explanation).frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            } label: {
+                Text("playkit.trueFalse.explanation")
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(CYSpacing.md)
-            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.glassFill))
             .accessibilityIdentifier("playkit.trueFalse.explanation")
         }
         attempts
+    }
+
+    @ViewBuilder private func legacyTrueFalseButton(id: String, key: String, systemImage: String) -> some View {
+        let on = selected.contains(id)
+        let button = Button {
+            selected = [id]
+            dirty = true
+        } label: {
+            Label(LocalizedStringKey(key), systemImage: systemImage).frame(maxWidth: .infinity)
+        }
+        .controlSize(.large)
+        .disabled(!enabled)
+        .accessibilityAddTraits(on ? .isSelected : [])
+        .accessibilityIdentifier("playkit.trueFalse." + id)
+        if on { button.buttonStyle(.borderedProminent) } else { button.buttonStyle(.bordered) }
     }
 
     @ViewBuilder var imageGuessForm: some View {
@@ -63,52 +50,49 @@ extension PlayKitScreen {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             artwork(raw["imageUrl"].text)
                 .blur(radius: blurRadius)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .clipped()
                 .accessibilityLabel(Text("playkit.imageGuess.artworkLabel"))
                 .accessibilityIdentifier("playkit.imageGuess.artwork")
 
-            HStack(spacing: CYSpacing.sm) {
-                CYStatusChip(
-                    verbatim: appLocalized("playkit.imageGuess.revealPct \(revealPercent)", locale: .current),
-                    tone: projection.complete ? .success : .info,
-                    systemImage: projection.complete ? "eye.fill" : "sparkles"
-                )
-                .accessibilityIdentifier("playkit.imageGuess.revealPct")
-                if totalClues > 0 {
-                    Text("playkit.imageGuess.cluesCount \(revealLevel) \(totalClues)")
-                        .cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
-                        .accessibilityIdentifier("playkit.imageGuess.cluesCount")
-                }
+            ProgressView(value: Double(revealPercent), total: 100) {
+                Text(verbatim: appLocalized("playkit.imageGuess.revealPct \(revealPercent)", locale: .current))
+            }
+            .accessibilityIdentifier("playkit.imageGuess.revealPct")
+            if totalClues > 0 {
+                Text("playkit.imageGuess.cluesCount \(revealLevel) \(totalClues)")
+                    .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                    .accessibilityIdentifier("playkit.imageGuess.cluesCount")
             }
         }
 
         let clues = (raw["revealedClues"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
         if !clues.isEmpty {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                ForEach(Array(clues.enumerated()), id: \.offset) { index, clue in
-                    Text(verbatim: "\(index + 1). \(clue)").cyText(.bodyCompact)
+            GroupBox {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    ForEach(Array(clues.enumerated()), id: \.offset) { index, clue in
+                        Text(verbatim: "\(index + 1). \(clue)").frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(CYSpacing.md)
-            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.glassFill))
             .accessibilityIdentifier("playkit.imageGuess.clues")
         }
 
         if totalClues > revealLevel && enabled {
-            CYPillButton("playkit.imageGuess.revealNext", style: .secondary) {
-                UIKitHapticsDriver.ensureInstalled()
-                HapticsService.shared.play(.selection)
+            Button {
                 prepare("SUBMIT_IMAGE_GUESS", ["action": .string("REVEAL_STEP")], {})
+            } label: {
+                Label("playkit.imageGuess.revealNext", systemImage: "eye")
             }
-            .accessibilityLabel(Text("playkit.imageGuess.revealNext"))
+            .buttonStyle(.bordered)
+            .sensoryFeedback(.selection, trigger: revealLevel)
             .accessibilityIdentifier("playkit.imageGuess.revealNext")
         }
 
         TextField("playkit.imageGuess.guessPlaceholder", text: textBinding(limit: 200))
-            .cyField()
+            .textFieldStyle(.roundedBorder)
+            .autocorrectionDisabled()
+            .submitLabel(.send)
             .disabled(!enabled)
-            .accessibilityLabel(Text("playkit.imageGuess.guessPlaceholder"))
             .accessibilityIdentifier("playkit.imageGuess.input")
 
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)

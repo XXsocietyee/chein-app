@@ -1,0 +1,14 @@
+# Receipt: design/p1-games (design backlog P1 · L6 Games)
+
+Base: origin/ui/combined-r7. island-r1, motion-r1 and sheets-r1 were already merged there; fix/backlog-p0 touches no Games file.
+Gates: `tools/generate_project.py`, `check_scaffold.py` PASS, `check_a11y_lint.py` PASS (0 new). Contract checks that grep the changed files pass as on the base (`test_global_chrome_domain_contract` fails on the base too, on OrderLifecycleView, which is outside this lane). No compiler in the cloud: every API was checked by grep only.
+
+- G-001 done: trueFalse, imageGuess, jigsaw, scratchCard and compare draw inside `NativeGameShell` (new `App/NativeR2/Games/NativeGameKitsC.swift`, `NativeGameKits.templateC`). They use the same SUBMIT_* payloads and review path. The legacy forms stay for the flag-off path. Scratch card has no Apple control: it keeps a Canvas scratch surface in a system grey with no custom chrome, and the bottom bar's "直接刮开" is the accessible alternative. Reduce Motion no longer auto-reveals without submitting.
+- G-002 done: the UG-03 accusation runs in the shell (`NativeGameAccusationKit`). Clues open as a `cySheet` (.medium/.large), suspects show one at a time with a push transition (opacity under Reduce Motion), and "指认 X" in the bottom bar opens a `.confirmationDialog`. The ending reads only the server verdict and uses `.symbolEffect(.bounce/.pulse)`. A missing write shows an IslandCenter `.status(.warning)` plus an inline label. `PlayKitScreen.accusationWrite` is now internal instead of private.
+- G-003 done: the legacy true/false and image-guess forms (`PlayKitNewGameForms.swift`) now use system Buttons (.bordered/.borderedProminent), ProgressView, GroupBox, a rounded-border TextField and `.sensoryFeedback`. No CYChoiceRow, CYPillButton, CYStatusChip or glass remain. Jigsaw and scratch legacy views are unchanged because the native path replaces them.
+- G-006 done: the busy submit keeps its title as the VoiceOver label, with "正在发送" as its value (`NativeGameShell.submitButton`).
+- G-007 done: a fresh `.passed` verdict now gives `.sensoryFeedback(.success)`, an IslandCenter `.status(.success)` "闯关成功", a VoiceOver announcement and a verdict symbol `.symbolEffect(.bounce)` in the result sheet. This moved from the host into the shell's `NativeGameFeedback`.
+- G-009 done: the result sheet has a verdict header, and a server `score`/`points` (when the segment has one) rolls up from 0 with `.contentTransition(.numericText(value:))`, or is set instantly under Reduce Motion. Detents are now [.medium, .large].
+- G-012 done: a wrong reply slides in (move+opacity, or opacity under Reduce Motion), its icon bounces, the error haptic plays and VoiceOver announces the reply text. This applies to both list and embedded styles.
+
+Strings: `docs/port/strings/native-r2-games-p1.json` (3 keys, zh-Hans + en) merged into `Resources/Localizable.xcstrings`.
