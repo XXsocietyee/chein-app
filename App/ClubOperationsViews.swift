@@ -215,9 +215,21 @@ struct ClubOperationsWorkspaceView: View {
                         .buttonStyle(.bordered)
                         .accessibilityIdentifier("club.ops.edit.backToClub")
                 }
+            } else if let errorKey, target == .create, snapshot == nil {
+                // Round 4 copy (MP create wxml:16-18): a failed create check is 创建资格未确认 + the reason + 重新检查.
+                // CLB-r10-nat-create-04: shown as a `ContentUnavailableView`.
+                ContentUnavailableView {
+                    Label("club.ops.create.checkFailed", systemImage: "exclamationmark.triangle")
+                } description: {
+                    Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
+                } actions: {
+                    if !loading, identity != nil {
+                        Button("club.ops.recheck") { Task { await load() } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("club.ops.recheck")
+                    }
+                }
             } else if let errorKey {
-                // Round 4 copy (MP create wxml:17): a failed create check is titled 创建资格未确认 above the reason.
-                if target == .create, snapshot == nil { Text("club.ops.create.checkFailed").cyText(.cardTitle).accessibilityAddTraits(.isHeader) }
                 Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
                 if !loading, identity != nil {
                     Button("club.ops.recheck") { Task { await load() } }
