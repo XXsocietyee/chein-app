@@ -186,7 +186,7 @@ public struct OwnerDecisionPayoutClient {
         self.transport = transport
         self.token = token
         let production = configuration.baseURL.host?.lowercased() == "www.chengyinhub.com"
-        self.payoutOpen = payoutOpen && !production && ReleaseMoneyWriteSwitch.payoutEnabled
+        self.payoutOpen = payoutOpen && ReleaseMoneyWriteSwitch.payoutEnabled
         self.merchantWritesOpen = merchantWritesOpen && !production
     }
 

@@ -253,7 +253,7 @@ class PublishFabuPageModelContract(unittest.TestCase):
             self.assertTrue(text.endswith("#endif"), name)
         source = SWITCHES.read_text(encoding="utf-8")
         for name in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
-            self.assertIn(f"public static let {name} = false", source)
+            self.assertIn(f"public static var {name}: Bool {{ testDerivation?", source)
             self.assertNotIn(f"public static let {name} = true", source)
 
 

@@ -72,7 +72,7 @@ class PlayPoiChallengePageContract(unittest.TestCase):
         self.assertIn("static let showsMerchantChoice = false", self.text("App/WelcomeView.swift"))
         switches = self.text("Core/ChinaReviewedRouteCapability.swift")
         for name in ["paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"]:
-            self.assertIn("public static let " + name + " = false", switches)
+            self.assertIn("public static var " + name + ": Bool { testDerivation?", switches)
         writer = self.text("Core/ChallengePOISubmission.swift")
         self.assertIn("case .unavailable", writer)
         self.assertIn("public func complete(_ request: ChallengePOICompleteRequest) async -> ChallengePOIWriteOutcome { .unavailable }", writer)

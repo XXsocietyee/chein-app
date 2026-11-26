@@ -1,8 +1,8 @@
 import XCTest
 @testable import Questify
 
-/// WP-01 / WP-05. The app's area switch decides the Core money switch: the production host keeps every payout and
-/// money write closed; a TEST/DEBUG host opens them (owner 2026-11-13). Virtual goods never open.
+/// WP-01 / WP-05. The app's area switch decides the Core money switch. Owner 2026-11-25: www.chengyinhub.com
+/// and a non-production test host open payout and payment. A missing host stays closed. Virtual goods never open.
 @MainActor final class PayoutReceiverAppTests: XCTestCase {
     override func tearDown() { ReleaseMoneyWriteSwitch.testDerivation = nil; super.tearDown() }
 
@@ -16,10 +16,16 @@ import XCTest
 
     func testProductionHostKeepsEveryMoneyRouteClosed() {
         ReviewedAreaSwitch.installReleaseMoneyDerivation(host: ReviewedAreaSwitch.productionAPIHost)
-        XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
-        for path in payoutPaths + moneyWrites + ["/api/registration/payment-readiness", "/api/cart/add"] {
-            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.refundEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
+        for path in payoutPaths + moneyWrites + ["/api/registration/payment-readiness"] {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/cart/add"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/login"))
         ReviewedAreaSwitch.installReleaseMoneyDerivation(host: nil)
         for path in payoutPaths + moneyWrites { XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path) }
         for path in statusReads { XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path) }

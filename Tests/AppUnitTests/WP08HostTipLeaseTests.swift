@@ -6,8 +6,9 @@ import XCTest
 final class WP08HostTipLeaseTests: XCTestCase {
     func testPlayerLeaseAdmitsTheSurfaceAndRefusesAPayChannel() throws {
         XCTAssertTrue(ReviewedProductionGateLeases.playPaths.isSuperset(of: ReviewedProductionGateLeases.wp08Paths))
-        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: ReviewedAreaSwitch.productionAPIHost))
-        XCTAssertFalse(ReviewedAreaSwitch.payout(apiHost: "www.chengyinhub.com"))
+        XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: ReviewedAreaSwitch.productionAPIHost))
+        XCTAssertTrue(ReviewedAreaSwitch.payout(apiHost: "www.chengyinhub.com"))
+        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: nil))
         let paths = ReviewedProductionGateLeases.wp08Paths
         let mine = try request(method: "GET", path: "api/host-tip/config/mine", body: nil)
         XCTAssertEqual(ReviewedProductionFormMutationRoute.hostTipSurfaceDecision(method: "GET", relative: "api/host-tip/config/mine", request: mine, paths: paths), true)
