@@ -438,7 +438,12 @@ import SwiftUI
                         Button {
                             Task { await refreshCampaign(silent: false) }
                         } label: {
-                            Label(campaignRefreshing ? LocalizedStringKey("club.notify.refreshing") : LocalizedStringKey("club.notify.refresh"), systemImage: "arrow.clockwise")
+                            // MP notify/index.wxml:76-78: 刷新 / 刷新中… inline; a system spinner while the re-read is in flight.
+                            if campaignRefreshing {
+                                Label { Text("club.notify.refreshing") } icon: { ProgressView() }
+                            } else {
+                                Label("club.notify.refresh", systemImage: "arrow.clockwise")
+                            }
                         }
                         .disabled(campaignRefreshing || busy)
                         .accessibilityIdentifier("club.notify.refreshCampaign")
