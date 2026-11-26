@@ -41,6 +41,14 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             "App/PlayKitScreen.swift",
         ):
             src = read_swift(rel)
+            if rel == "App/PlayExperienceView.swift":
+                # P-049 (design P1 L4): legacy play stays on .game; the native r2 city orientation /
+                # free explore screens follow the system appearance under the player domain.
+                self.assertIn("private var screenDomain: ThemeDomain { usesNativeR2Domain ? .player : .game }", src)
+                self.assertIn(".cyDomainScreen(screenDomain)", src)
+                self.assertIn("if model.gameplayMode == .cityOrientation { return NativeR2Flags.cityOrientation }", src)
+                self.assertNotIn(".themeDomain(.player)", src)
+                continue
             self.assertRegex(
                 src,
                 r"cyDomainScreen\(\.game\)|cyPushedChrome\(domain: \.game\)",
