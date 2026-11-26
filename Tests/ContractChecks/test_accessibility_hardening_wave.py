@@ -271,9 +271,11 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
         self.assertIn('.onMapCameraChange(frequency:.onEnd)', desk)
 
     def test_turntable_is_a_button_with_action(self):
+        # fix/r10-roam-b N-B3D (play-roam.md §5; MP subpackageP3/badge-3d 2D fallback): the 3D turntable and its
+        # tap action are gone; the badge preview is a static List image row, so no button trait is claimed.
         s = src('App/ObjectBadgeViews.swift')
-        self.assertIn('.accessibilityAddTraits(.isButton)', s)
-        self.assertIn('.accessibilityAction {', s)
+        self.assertNotIn('rotation3DEffect', s)
+        self.assertIn('.accessibilityIdentifier("objects.badge.turntable")', s)
 
     def test_ticking_views_honour_reduce_motion(self):
         self.assertIn('RoamLiveTick.interval(reduceMotion: reduceMotion)', src('App/RoamLiveSessionView.swift'))

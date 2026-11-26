@@ -36,55 +36,39 @@ struct RoamHomeTabPicker: View {
     }
     private var specs: [Spec] {
         var list = [Spec(id: "roam.home.intro.start", title: "roam.w208.intro.start", sub: "roam.w208.intro.start.sub",
-                         symbol: "point.topleft.down.to.point.bottomright.curvepath", art: MPAsset.FeatureIcon.introTicketRoute, spine: Color(red: 0.36, green: 0.75, blue: 0.42), destination: start)]
+                         symbol: "point.topleft.down.to.point.bottomright.curvepath", art: MPAsset.FeatureIcon.introTicketRoute, spine: .green, destination: start)]
         if let nearby { list.append(Spec(id: "roam.home.intro.map", title: "roam.w208.intro.map", sub: "roam.w208.intro.map.sub",
-                                         symbol: "map", art: MPAsset.FeatureIcon.introTicketMap, spine: Color(red: 0.36, green: 0.55, blue: 0.88), destination: nearby, live: teamsLive)) }
+                                         symbol: "map", art: MPAsset.FeatureIcon.introTicketMap, spine: .blue, destination: nearby, live: teamsLive)) }
         if let myTeams { list.append(Spec(id: "roam.home.intro.teams", title: "roam.w208.intro.teams", sub: "roam.w208.intro.teams.sub",
-                                          symbol: "person.3", art: MPAsset.FeatureIcon.introTicketTeam, spine: Color(red: 0.93, green: 0.58, blue: 0.27), destination: myTeams)) }
+                                          symbol: "person.3", art: MPAsset.FeatureIcon.introTicketTeam, spine: .orange, destination: myTeams)) }
         if let officialRoutes { list.append(Spec(id: "roam.home.intro.officialRoutes", title: "officialRoute.intro", sub: "officialRoute.intro.sub",
-                                                 symbol: "signpost.right.and.left", spine: Color(red: 0.25, green: 0.70, blue: 0.72), destination: officialRoutes)) }
+                                                 symbol: "signpost.right.and.left", spine: .teal, destination: officialRoutes)) }
         return list
     }
-    /// Mini-program ticket cards: coloured spine with symbol and `NO.0n`, white body with title and subtitle.
+    /// N-ROAM-HOME (r10): the MP intro tickets (pages/roam/index.wxml:186-205) as List rows: a NavigationLink
+    /// `Label` with the `MPAsset` thumbnail, title and subtitle. No drawn ticket, white card or shadow.
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(Array(specs.enumerated()), id: \.element.id) { index, spec in card(spec, number: index + 1) }
-            }.padding(.vertical, 4)
-        }
+        ForEach(specs) { spec in row(spec) }
     }
-    private func card(_ spec: Spec, number: Int) -> some View {
+    private func row(_ spec: Spec) -> some View {
         NavigationLink { spec.destination() } label: {
-            HStack(spacing: 0) {
-                VStack(alignment: .leading) {
-                    Group {
-                        if let art = spec.art { art.resizable().scaledToFit().frame(width: 36, height: 36) }
-                        else { Image(systemName: spec.symbol).font(.title3.weight(.semibold)) }
-                    }.accessibilityHidden(true)
-                    Spacer(minLength: 8)
-                    Text(verbatim: "NO.0\(number)").cyText(.caption, weight: .semibold).monospaced()
-                }
-                .foregroundStyle(.black.opacity(0.78))
-                .padding(12).frame(width: 84, alignment: .leading)
-                .frame(maxHeight: .infinity, alignment: .topLeading)
-                .background(spec.spine)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(spec.title).cyText(.cardTitle).foregroundStyle(.black)
-                    Text(spec.sub).cyText(.meta).foregroundStyle(.black.opacity(0.6))
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(spec.title)
+                    Text(spec.sub).font(.footnote).foregroundStyle(.secondary)
                     if let live = spec.live, live > 0 {
-                        Text("roam.w208.intro.live \(live)").cyText(.meta, weight: .semibold, monospacedDigit: true)
-                            .foregroundStyle(spec.spine.opacity(0.95))
+                        Text("roam.w208.intro.live \(live)").font(.footnote).monospacedDigit().foregroundStyle(.secondary)
                             .accessibilityIdentifier("roam.home.intro.live")
                     }
                 }
-                .padding(14).frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
+            } icon: {
+                Group {
+                    if let art = spec.art { art.resizable().scaledToFit().frame(width: 36, height: 36) }
+                    else { Image(systemName: spec.symbol).foregroundStyle(spec.spine) }
+                }
+                .accessibilityHidden(true)
             }
-            .frame(minWidth: 260, minHeight: 92)
-            .background(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: .black.opacity(0.12), radius: 4, y: 2)
         }
-        .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(spec.id)
     }
@@ -604,7 +588,8 @@ struct RoamToolUnavailableView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(LocalizedStringKey(tile.titleKey)).cyText(.cardTitle)
-                        if tile.isNew { Text("roam.private.new").cyText(.caption, weight: .bold).padding(.horizontal, 6).background(.tint.opacity(0.2), in: Capsule()) }
+                        // N-ROAM-HOME (r10): plain tinted caption instead of a drawn capsule badge.
+                        if tile.isNew { Text("roam.private.new").font(.caption.bold()).foregroundStyle(.tint) }
                     }
                     caption(tile).cyText(.meta).foregroundStyle(.secondary)
                 }

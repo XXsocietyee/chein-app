@@ -87,7 +87,6 @@ RAW_COLOR_ALLOWLIST: dict[str, int] = {
     "App/QuestifyImageEntityCard.swift": 1,
     "App/QuestifyMotionComponents.swift": 3,
     "App/QuestifyPalette.swift": 3,
-    "App/RoamHomeTabsView.swift": 4,
     "App/RoamSubpageParityViews.swift": 1,
     "App/SearchMapCanvas.swift": 8,
     "App/SearchMapComponents.swift": 1,

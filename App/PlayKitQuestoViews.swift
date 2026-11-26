@@ -315,9 +315,9 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     } label: {
                         Text(verbatim: character).font(.title2.weight(.semibold))
                             .frame(minWidth: cell, minHeight: cell)
-                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
                     }
-                    .buttonStyle(.plain)
+                    // N-KIT-QUESTO (r10): system bordered keys (MP playkit-qa letter pool).
+                    .buttonStyle(.bordered).controlSize(.small)
                     .opacity(used ? 0.35 : 1)
                     .disabled(!enabled || used || state.isComplete)
                     .accessibilityLabel(Text("playkit.letterPool.candidate \(character)"))
@@ -511,8 +511,8 @@ typealias PlayKitAccusationWrite = (String) -> Void
             if let suspect {
                 card(suspect)
                     .id(suspect.id)
-                    .rotation3DEffect(.degrees(flipping && !reduceMotion ? -90 : 0), axis: (x: 0, y: 1, z: 0))
-                    .opacity(flipping && reduceMotion ? 0 : 1)
+                    // N-KIT-QUESTO (r10): no 3D turn; the next suspect cross-fades (MP playkit-qa accusation deck).
+                    .opacity(flipping ? 0 : 1)
                     .onTapGesture(perform: flipNext)
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel(Text(verbatim: suspect.identity.isEmpty ? suspect.name : suspect.name + "，" + suspect.identity))

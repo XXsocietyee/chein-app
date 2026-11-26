@@ -31,7 +31,7 @@ import SwiftUI
                     ProfileObjectCardsDestination(context: context, accountReader: accountReader,
                         objectReader: access.reader, isCurrent: isCurrent)
                         .id(context)
-                } label: { CYListRow("objects.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") } }
+                } label: { Label("objects.title", systemImage: "rectangle.stack") }  // N-OCARDS (r10): system NavigationLink Label row
                     .accessibilityIdentifier("profile.objectCards")
             }.id(context)
         }
