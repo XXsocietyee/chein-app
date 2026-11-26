@@ -66,7 +66,8 @@ extension EnvironmentValues {
                                           onConfirmUnknownWrite: { Task { await model.recover() } },
                                           onRetryUnknownWrite: { Task { await model.retryExact() } },
                                           onOpenTool: { openingTool = true },
-                                          onToggleLeaderboard: { toggleLeaderboard(model) })
+                                          onToggleLeaderboard: { toggleLeaderboard(model) },
+                                          onExportRecap: { Task { if let text = await model.exportRecap() { LocalPasteboard.copy(text) } } })
         } else if model.phase == "loading" {
             Section {
                 ProgressView()
@@ -248,6 +249,9 @@ struct ClubTopicMoreRoute: Hashable {
     let onRetryUnknownWrite: () -> Void
     let onOpenTool: () -> Void
     let onToggleLeaderboard: () -> Void
+    /// CLB-r11-topic-detail-03 (MP director.js:1440-1466 copyRecap): copies the privacy-filtered recap export.
+    var onExportRecap: () -> Void = {}
+    @Environment(\.locale) private var locale
 
     private var actions: Set<String> { projection.availableActions }
     private var canUnlockChapter: Bool { actions.contains("UNLOCK_CHAPTER") && !projection.chapterOptions.isEmpty }
@@ -259,6 +263,9 @@ struct ClubTopicMoreRoute: Hashable {
     private var leaderboard: PlayWireValue { projection.club["leaderboard"] }
     private var leaderboardRows: [PlayWireValue] { leaderboard["rows"].array ?? [] }
     private var finished: Bool { ["FINISHED", "CANCELLED"].contains(projection.status.uppercased()) }
+    private var ended: Bool { projection.status.uppercased() == "FINISHED" }
+    /// MP director.js:829-831: `projection.recap`, normalized through the same allowlist the director page uses.
+    private var recap: PlayWireValue? { try? PlayDirectorRecap.normalize(projection.club["recap"]) }
 
     var body: some View {
         if phase == "submitting" || phase == "unknown" {
@@ -323,6 +330,96 @@ struct ClubTopicMoreRoute: Hashable {
                 Text("club.director.leaderboard")
             }
         }
+        if ended { recapSections }
+    }
+
+    /// CLB-r11-topic-detail-03 (MP topic-detail wxml:296-312; director.js:280-305, 829-905): once the session has
+    /// FINISHED, 活动复盘 shows the recap metrics (first three, then 完成情况), 节点完成 per station and the 榜单 rows,
+    /// with 显示/隐藏榜单 and 复制复盘数据 where the projection offers them; without a recap it reads 复盘尚未生成.
+    @ViewBuilder private var recapSections: some View {
+        if let recap {
+            let metrics = recap["metrics"].array ?? []
+            let stations = recap["stations"].array ?? []
+            Section {
+                ForEach(Array(metrics.prefix(3).enumerated()), id: \.offset) { _, metric in metricRow(metric) }
+                if projection.leaderboardVisible != nil, actions.contains("SET_LEADERBOARD_VISIBILITY") {
+                    let visible = projection.leaderboardVisible == true
+                    Button(action: onToggleLeaderboard) {
+                        Label(visible ? LocalizedStringKey("club.director.hideLeaderboard") : LocalizedStringKey("club.director.showLeaderboard"),
+                              systemImage: visible ? "eye.slash" : "eye")
+                    }
+                    .disabled(phase != "ready")
+                    .accessibilityIdentifier("club.topic.director.recap.toggleLeaderboard")
+                }
+                if recap["exportAvailable"].bool == true {
+                    Button(action: onExportRecap) { Label("club.director.recap.copy", systemImage: "doc.on.doc") }
+                        .disabled(phase != "ready")
+                        .accessibilityIdentifier("club.topic.director.recap.copy")
+                }
+            } header: {
+                Text("club.director.recap.title")
+            }
+            if metrics.count > 3 {
+                Section {
+                    ForEach(Array(metrics.dropFirst(3).enumerated()), id: \.offset) { _, metric in metricRow(metric) }
+                } header: {
+                    Text("club.director.recap.completion")
+                }
+            }
+            if !leaderboardRows.isEmpty {
+                Section {
+                    ForEach(Array(leaderboardRows.enumerated()), id: \.offset) { index, row in
+                        LabeledContent {
+                            if let value = Self.firstText(row, ["value", "scoreText", "score"]) { Text(verbatim: value).monospacedDigit() }
+                        } label: {
+                            Text(verbatim: "\(index + 1). " + (Self.firstText(row, ["title", "teamName", "nickname", "name"]) ?? "—"))
+                        }
+                    }
+                } header: {
+                    Text("club.director.recap.leaderboard")
+                }
+            }
+            if !stations.isEmpty {
+                Section {
+                    ForEach(Array(stations.enumerated()), id: \.offset) { _, station in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: station["nodeName"].text ?? "—")
+                            let subtitle = stationSubtitle(station)
+                            if !subtitle.isEmpty { Text(verbatim: subtitle).font(.subheadline).foregroundStyle(.secondary) }
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                } header: {
+                    Text("club.director.recap.stations")
+                }
+            }
+        } else {
+            Section {
+                Text("club.director.recap.pending").foregroundStyle(.secondary)
+            } header: {
+                Text("club.director.recap.title")
+            }
+        }
+    }
+
+    private func metricRow(_ metric: PlayWireValue) -> some View {
+        let unit = metric["unit"].text ?? ""
+        let value = metric["value"].integer.map { String($0) } ?? "—"
+        return LabeledContent {
+            Text(verbatim: unit.isEmpty ? value : value + " " + unit).monospacedDigit()
+        } label: {
+            Text(verbatim: metric["label"].text ?? "")
+        }
+    }
+
+    /// MP director.js:295-305 recapStationRow: 到达 N 人 · 完成 N · 兜底 N · 打回 N.
+    private func stationSubtitle(_ station: PlayWireValue) -> String {
+        var parts: [String] = []
+        if let arrived = station["arrivedPlayers"].integer { parts.append(appLocalized("club.director.recap.arrived \(arrived)", locale: locale)) }
+        if let done = station["normalCompletedCount"].integer { parts.append(appLocalized("club.director.recap.completed \(done)", locale: locale)) }
+        if let fallback = station["fallbackCompletedCount"].integer, fallback > 0 { parts.append(appLocalized("club.director.recap.fallback \(fallback)", locale: locale)) }
+        if let rejected = station["rejectedCount"].integer, rejected > 0 { parts.append(appLocalized("club.director.recap.rejected \(rejected)", locale: locale)) }
+        return parts.joined(separator: " · ")
     }
 
     private func tool(_ key: LocalizedStringKey, _ symbol: String, id: String) -> some View {
