@@ -11,6 +11,10 @@ import SwiftUI
 enum MPCommerceGate {
     static let purchasesEnabled = false
     static let claimsEnabled = false
+    /// JLAND-r11-1: a seat claim is not money or virtual goods (`JourneyLoopSource` `seatClaim … money: false`), so an
+    /// invited friend can claim the seat. MP subpackageJourney/pages/landing/index.js:144-157, 171-199 (`_claimSeat`).
+    /// Gift claims stay on `claimsEnabled`.
+    static let seatClaimsEnabled = true
     static let payoutEnabled = false
 }
 

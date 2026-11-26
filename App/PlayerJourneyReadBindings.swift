@@ -87,18 +87,29 @@ struct PlayerJourneySignInSheet: ViewModifier {
         case .enterRun:
             route = PlayerJourneyProjection.enterRunRoute(activityID: link.activityID, topicID: link.topicID)
         case .claimGift, .claimSeat, .checkClaimResult:
-            guard MPCommerceGate.claimsEnabled else { return }
+            guard claimAllowed(primary) else { return }
             Task { await claim(primary) }
+        }
+    }
+
+    /// JLAND-r11-1: seat claims (and the seat 查询领取结果 re-check) use `seatClaimsEnabled`; gift claims keep `claimsEnabled`.
+    /// MP subpackageJourney/pages/landing/index.js:144-157 (`onPrimary` → `_claimSeat`).
+    private func claimAllowed(_ primary: JourneyLandingPrimary) -> Bool {
+        switch primary {
+        case .claimSeat: return MPCommerceGate.seatClaimsEnabled
+        case .checkClaimResult: return link.kind == .seat ? MPCommerceGate.seatClaimsEnabled : MPCommerceGate.claimsEnabled
+        case .claimGift: return MPCommerceGate.claimsEnabled
+        case .view, .buyOwn, .enterRun: return true
         }
     }
 
     /// Classifies a claim envelope with `JourneyLandingClaim`. Gift claim throws before any HTTP.
     private func claim(_ primary: JourneyLandingPrimary) async {
-        guard MPCommerceGate.claimsEnabled else { return }
+        guard claimAllowed(primary) else { return }
         guard let session = token(), AuthRequestBuilder.isValidToken(session) else { return }
         markClaimBusy(true)
         switch primary {
-        case .claimGift, .checkClaimResult:
+        case .claimGift, .checkClaimResult where link.kind != .seat:
             let requestID = retainedGiftRequest(token: link.token)
             _ = JourneyGiftClaimBody.fields(token: link.token, requestID: requestID)
             do {
@@ -108,7 +119,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
                 // `moneyOff`: the body was not sent. Keep the request id. Do not draw a claimed gift.
                 markClaimBusy(false)
             }
-        case .claimSeat:
+        case .claimSeat, .checkClaimResult:
+            // The saved request id is reused for 查询领取结果 (MP `savedRequestId('seat', token)`, landing/index.js:172).
             do {
                 let envelope = try await source.seatClaim(token: link.token, sessionToken: session)
                 applyClaim(JourneyLandingClaim.seat(envelope, canBuyOwn: link.activityID != nil || link.topicID != nil))
