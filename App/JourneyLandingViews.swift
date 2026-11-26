@@ -852,20 +852,13 @@ struct JourneyLobbyHowToCard: View {
 private struct JourneyInviteSheet: View {
     let content: JourneySeatsContent
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
+    /// seats-save (r10): the invite card rendered once for the system share sheet (Save Image lives there).
+    @State private var inviteImage: Image?
 
     var body: some View {
         VStack(spacing: CYSpacing.lg) {
-            VStack(spacing: CYSpacing.md) {
-                Image(systemName: "envelope.open.fill").font(CYTypography.display).foregroundStyle(CYNight.lanternHot)
-                    .background { Circle().fill(CYNight.glow(radius: 40)).frame(width: 140, height: 140) }
-                    .accessibilityHidden(true)
-                (content.headName.map { Text(verbatim: $0) } ?? Text("mp.seats.invite.fallbackTitle")).cyText(.sectionTitle)
-                if let me = content.me?.name, !me.isEmpty { Text("mp.seats.invite.from \(me)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                Text("mp.seats.invite.left \(content.openCount)").cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
-            }
-            .padding(CYSpacing.xl)
-            .frame(maxWidth: .infinity)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
+            inviteCard
             if let url = content.inviteShareURL {
                 ShareLink(item: url, subject: Text("mp.seats.invite.fallbackTitle")) {
                     Label("mp.seats.invite.send", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
@@ -877,12 +870,41 @@ private struct JourneyInviteSheet: View {
             } else {
                 ProgressView().frame(minHeight: CYSpacing.minTouchTarget)
             }
+            // seats-save (r10): MP seats 保存邀请图 (subpackageJourney/pages/seats/index.wxml) via ImageRenderer + ShareLink.
+            if let inviteImage {
+                ShareLink(item: inviteImage, preview: SharePreview(Text("mp.seats.invite.fallbackTitle"), image: inviteImage)) {
+                    Label("gap.team.saveInviteImage", systemImage: "photo").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered).controlSize(.large)
+                .accessibilityIdentifier("journeySeats.invite.saveImage")
+            }
             Button("action.close") { dismiss() }.frame(minHeight: CYSpacing.minTouchTarget)
         }
         .padding(CYSpacing.pageHorizontal)
+        .task(id: content) { await renderInviteImage() }
         // JSEAT-10: large Dynamic Type can grow the card past half height.
         .cySheet(detents: [.medium, .large])
         .cyPlayerSheetGlass()
+    }
+
+    @MainActor private func renderInviteImage() {
+        let renderer = ImageRenderer(content: inviteCard.environment(\.locale, locale).frame(width: 340))
+        renderer.scale = 3
+        inviteImage = renderer.uiImage.map { Image(uiImage: $0) }
+    }
+
+    private var inviteCard: some View {
+            VStack(spacing: CYSpacing.md) {
+                Image(systemName: "envelope.open.fill").font(CYTypography.display).foregroundStyle(CYNight.lanternHot)
+                    .background { Circle().fill(CYNight.glow(radius: 40)).frame(width: 140, height: 140) }
+                    .accessibilityHidden(true)
+                (content.headName.map { Text(verbatim: $0) } ?? Text("mp.seats.invite.fallbackTitle")).cyText(.sectionTitle)
+                if let me = content.me?.name, !me.isEmpty { Text("mp.seats.invite.from \(me)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                Text("mp.seats.invite.left \(content.openCount)").cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
+            }
+            .padding(CYSpacing.xl)
+            .frame(maxWidth: .infinity)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
     }
 }
 
