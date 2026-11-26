@@ -28,8 +28,8 @@ extension ClubGovernanceCommand {
 /// and pricing confirm are not in this set. Settlement mine stays `POST {}` elsewhere.
 public enum ClubMPFirstGovernance {
     public static let policyVersion = "r9-club-mp-first"
-    public static let governance: Set<ClubGovernanceMutation> = [.ban, .unban, .transferOwner, .report, .appeal, .hostApply, .dissolve]
-        .union(clubOps)
+    private static let baseGovernance: Set<ClubGovernanceMutation> = [.ban, .unban, .transferOwner, .report, .appeal, .hostApply, .dissolve]
+    public static let governance: Set<ClubGovernanceMutation> = baseGovernance.union(clubOps)
     /// CLB-r10-gate-05: the other non-money club writes the MP sends. MP: pages/club/notify/index.js (send, retry),
     /// group-code/index.js:93-135 (issue), event-ops/index.js (series create/update, attendance correct),
     /// topic-detail/index.js (settings save, chapter recruit/finish), customer-detail/index.js (save).
