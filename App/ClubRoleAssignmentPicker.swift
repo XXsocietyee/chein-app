@@ -84,8 +84,8 @@ import SwiftUI
     }
 }
 
-/// Inline expand/cancel selectors avoid nesting another sheet inside the existing
-/// command sheet. Choice is local; existing prepare/confirm owns every write gate.
+/// Member / role selectors push inside the command sheet's NavigationStack (no nested sheet).
+/// Choice is local; existing prepare/confirm owns every write gate.
 @MainActor struct ClubRoleAssignmentPicker: View {
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
@@ -95,26 +95,35 @@ import SwiftUI
     @Binding var roleCode: String
     let canEdit: () -> Bool
     var applySelection: (String, String) -> Void = { _, _ in }
-    private enum Expanded: Equatable { case member, role }
-    @State private var expanded: Expanded?
     @Environment(\.clubRoleActivityLabel) private var activityLabel
     @Environment(\.clubFocusMemberID) private var focusMemberID
     private var context: ClubGovernanceReadContext { ClubRoleAssignmentReadModel.context(scope: scope, identity: identity, access: access) }
     var body: some View {
         let expected = context
         let permit = model.permit(in: expected)
-        VStack(alignment: .leading, spacing: 12) {
-            // CLB-roles-02: name the scope, never the activity id (MC-044).
-            if scope.activityID != nil {
-                Text("club.rolePicker.eventScopeOnly").cyText(.bodyCompact).accessibilityIdentifier("club.rolePicker.eventScope")
-                // CLB-roles-02: the session by its label (MP activitySubtitle), 未命名 when the entry did not carry one.
-                Group {
-                    if let activityLabel { Text(verbatim: activityLabel) } else { Text("club.rolePicker.untitledSession") }
-                }
-                .cyText(.meta).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("club.rolePicker.eventLabel")
-            } else { Text("club.rolePicker.clubScope").cyText(.bodyCompact) }
+        // CLB-r10-nat-roles-01: each part is its own Form row (Group, not one VStack row), so each Picker pushes on its own.
+        Group {
+            VStack(alignment: .leading, spacing: 4) {
+                // CLB-roles-02: name the scope, never the activity id (MC-044).
+                if scope.activityID != nil {
+                    Text("club.rolePicker.eventScopeOnly").cyText(.bodyCompact).accessibilityIdentifier("club.rolePicker.eventScope")
+                    // CLB-roles-02: the session by its label (MP activitySubtitle), 未命名 when the entry did not carry one.
+                    Group {
+                        if let activityLabel { Text(verbatim: activityLabel) } else { Text("club.rolePicker.untitledSession") }
+                    }
+                    .cyText(.meta).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("club.rolePicker.eventLabel")
+                } else { Text("club.rolePicker.clubScope").cyText(.bodyCompact) }
+            }
+            // CLB-G16 (MP roles js:195, 312): a `memberId` link starts with that member chosen, once the read has it.
+            .onChange(of: model.options, initial: true) { _, _ in
+                guard memberID.isEmpty, let focusMemberID, canEdit(),
+                      let options = model.accepted(context, access: access),
+                      options.members.contains(where: { $0.id == focusMemberID }) else { return }
+                memberID = String(focusMemberID)
+                applySelection(memberID, roleCode)
+            }
             if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.rolePicker.loading") }
             if permit != nil, let failure = model.failure {
                 Label { Text(LocalizedStringKey(failure.localizationKey)).fixedSize(horizontal: false, vertical: true) } icon: {
@@ -126,80 +135,62 @@ import SwiftUI
                 if options.hasUnverifiedMembers { Text("club.rolePicker.unverified").cyText(.bodyCompact) }
                 if options.members.isEmpty { Text("club.rolePicker.empty").accessibilityIdentifier("club.rolePicker.empty") }
                 else {
-                    DisclosureGroup(isExpanded: Binding(get: { expanded == .member }, set: { expanded = $0 ? .member : nil })) {
-                        ForEach(options.members) { member in
-                            Button {
-                                guard canEdit(), model.canSelect(options, snapshotID: readID, permit: permit, access: access) else { return }
-                                memberID = String(member.id)
-                                applySelection(String(member.id), roleCode)
-                                expanded = nil
-                            } label: {
-                                HStack {
-                                    memberName(member)
-                                    Spacer()
-                                    if memberID == String(member.id) { Image(systemName: "checkmark").accessibilityLabel("club.rolePicker.selected") }
-                                }.contentShape(Rectangle())
-                            }.accessibilityIdentifier("club.rolePicker.member.\(member.id)")
-                        }
-                        Button { expanded = nil } label: {
-                            Text("action.cancel").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
-                        }.accessibilityIdentifier("club.rolePicker.cancelMember")
-                    } label: {
-                        LabeledContent("club.rolePicker.member") {
-                            if let selected = options.members.first(where: { String($0.id) == memberID }) { memberName(selected) }
-                            else { Text("club.rolePicker.unselected") }
-                        }
-                    }.accessibilityIdentifier("club.rolePicker.openMembers")
-                    DisclosureGroup(isExpanded: Binding(get: { expanded == .role }, set: { expanded = $0 ? .role : nil })) {
-                        ForEach(options.roles) { role in
-                            Button {
-                                guard canEdit(), model.canSelect(options, snapshotID: readID, permit: permit, access: access) else { return }
-                                roleCode = role.code
-                                applySelection(memberID, role.code)
-                                expanded = nil
-                            } label: {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    HStack {
-                                        Text(verbatim: role.name).cyText(.cardTitle)
-                                        Spacer()
-                                        if roleCode == role.code { Image(systemName: "checkmark").accessibilityLabel("club.rolePicker.selected") }
-                                    }
-                                    Text(LocalizedStringKey(role.summaryKey)).cyText(.bodyCompact).foregroundStyle(.secondary)
-                                }.contentShape(Rectangle())
-                            }.accessibilityIdentifier("club.rolePicker.role.\(role.code)")
-                        }
-                        Button { expanded = nil } label: {
-                            Text("action.cancel").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
-                        }.accessibilityIdentifier("club.rolePicker.cancelRole")
-                    } label: {
-                        LabeledContent("club.rolePicker.role") {
-                            if let selected = options.roles.first(where: { $0.code == roleCode }) { Text(verbatim: selected.name).cyText(.cardTitle) }
-                            else { Text("club.rolePicker.unselected") }
-                        }
-                    }.accessibilityIdentifier("club.rolePicker.openRoles")
+                    // CLB-r10-nat-roles-01 (MP roles wxml:84-91 member / role pickers): one system `Picker(.navigationLink)`
+                    // row each; the selection still passes canEdit + canSelect before it is written.
+                    memberPicker(options, permit: permit, readID: readID)
+                    rolePicker(options, permit: permit, readID: readID)
                 }
             }
             if model.failure != .forbidden {
                 Button {
                     guard canEdit(), let permit else { return }
-                    expanded = nil
                     Task { await model.load(permit, access: access) }
                 } label: {
                     Text(LocalizedStringKey(model.failure == nil ? "club.gov.refresh" : "action.retry"))
                         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
-                }.disabled(model.loading || permit == nil).accessibilityIdentifier("club.rolePicker.reload")
+                }
+                .buttonStyle(.borderless)
+                .disabled(model.loading || permit == nil).accessibilityIdentifier("club.rolePicker.reload")
             }
         }
-        .buttonStyle(.borderless)
-        .onChange(of: expected) { _, _ in expanded = nil }
-        // CLB-G16 (MP roles js:195, 312): a `memberId` link starts with that member chosen, once the read has it.
-        .onChange(of: model.options, initial: true) { _, _ in
-            guard memberID.isEmpty, let focusMemberID, canEdit(),
-                  let options = model.accepted(context, access: access),
-                  options.members.contains(where: { $0.id == focusMemberID }) else { return }
-            memberID = String(focusMemberID)
-            applySelection(memberID, roleCode)
-        }
+    }
+    private func memberPicker(_ options: ClubRoleAssignmentOptions, permit: ClubRoleAssignmentReadModel.Permit, readID: UUID) -> some View {
+        Picker(selection: Binding(get: { memberID }, set: { picked in
+            guard !picked.isEmpty, canEdit(), model.canSelect(options, snapshotID: readID, permit: permit, access: access) else { return }
+            memberID = picked
+            applySelection(picked, roleCode)
+        })) {
+            if !options.members.contains(where: { String($0.id) == memberID }) {
+                Text("club.rolePicker.unselected").tag(memberID)
+            }
+            ForEach(options.members) { member in
+                memberName(member).tag(String(member.id))
+                    .accessibilityIdentifier("club.rolePicker.member.\(member.id)")
+            }
+        } label: { Text("club.rolePicker.member") }
+        .pickerStyle(.navigationLink)
+        .accessibilityIdentifier("club.rolePicker.openMembers")
+    }
+    private func rolePicker(_ options: ClubRoleAssignmentOptions, permit: ClubRoleAssignmentReadModel.Permit, readID: UUID) -> some View {
+        Picker(selection: Binding(get: { roleCode }, set: { picked in
+            guard !picked.isEmpty, canEdit(), model.canSelect(options, snapshotID: readID, permit: permit, access: access) else { return }
+            roleCode = picked
+            applySelection(memberID, picked)
+        })) {
+            if !options.roles.contains(where: { $0.code == roleCode }) {
+                Text("club.rolePicker.unselected").tag(roleCode)
+            }
+            ForEach(options.roles) { role in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: role.name)
+                    Text(LocalizedStringKey(role.summaryKey)).font(.footnote).foregroundStyle(.secondary)
+                }
+                .tag(role.code)
+                .accessibilityIdentifier("club.rolePicker.role.\(role.code)")
+            }
+        } label: { Text("club.rolePicker.role") }
+        .pickerStyle(.navigationLink)
+        .accessibilityIdentifier("club.rolePicker.openRoles")
     }
     private func memberName(_ member: ClubRoleAssignableMember) -> some View {
         // CLB-roles-03: the member's name only; a missing name reads 未命名, never 「用户 <id>」.
