@@ -63,28 +63,29 @@ import UIKit
                 // The canvas measures the frame, so it stays mounted while the page model is still loading.
                 if images.indices.contains(index), page.phase != .error, page.phase != .unknown { canvas(images[index]) }
                 else if images.isEmpty {
-                    CYEmptyState(systemImage: "info.circle", LocalizedStringKey(CropPageModel.Copy.empty), messageIdentifier: "miniCrop.empty")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ContentUnavailableView(LocalizedStringKey(CropPageModel.Copy.empty), systemImage: "info.circle")
+                        .accessibilityIdentifier("miniCrop.empty")
                 } else if page.phase == .unknown {
-                    CYEmptyState(systemImage: "questionmark.square.dashed", LocalizedStringKey(CropPageModel.Copy.unknown), messageIdentifier: "miniCrop.unknown")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ContentUnavailableView(LocalizedStringKey(CropPageModel.Copy.unknown), systemImage: "questionmark.square.dashed")
+                        .accessibilityIdentifier("miniCrop.unknown")
                 } else {
                     // A7-08-r7: MP source error 图片没能打开 (pages.crop.error); 使用原图 / 取消 stay in the bar.
                     // r9 A7-08b: MP crop/index.wxml:26 `retry="重试" bind:retry="onRetrySource"` → index.js:149
                     // `startAt(this.idx)`, i.e. re-open the current image: `MiniCropSession.retryCurrent()`.
-                    CYEmptyState(systemImage: "photo.badge.exclamationmark", LocalizedStringKey(CropPageModel.Copy.error),
-                                 messageIdentifier: "miniCrop.failed",
-                                 actionTitle: "common.retry", actionIdentifier: "miniCrop.retry",
-                                 action: retrySource)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ContentUnavailableView {
+                        Label(LocalizedStringKey(CropPageModel.Copy.error), systemImage: "photo.badge.exclamationmark")
+                            .accessibilityIdentifier("miniCrop.failed")
+                    } actions: {
+                        Button("common.retry", action: retrySource)
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("miniCrop.retry")
+                    }
                 }
             }
             .overlay {
                 // A7-08-r7: MP waiting state 正在准备图片 until the frame is measured.
                 if page.phase == .loading, !images.isEmpty {
                     ProgressView { Text(LocalizedStringKey(CropPageModel.Copy.loading)) }
-                        .padding(CYSpacing.md)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityIdentifier("miniCrop.loading")
                 }
             }
@@ -123,8 +124,9 @@ import UIKit
     @ViewBuilder private var controls: some View {
         if images.isEmpty {
             // Mini-program missing-source state: one full-width 返回上一页, no crop actions.
-            Button("pages.crop.back", action: onCancel)
-                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+            Button(action: onCancel) { Text("pages.crop.back").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .accessibilityIdentifier("miniCrop.cancel")
         } else if typeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: CYSpacing.sm) { controlButtons }
@@ -135,17 +137,16 @@ import UIKit
 
     @ViewBuilder private var controlButtons: some View {
         Button("publishParity.crop.cancel", role: .cancel, action: onCancel)
-            .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+            .buttonStyle(.borderless)
             .accessibilityIdentifier("miniCrop.cancel")
         if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
         Button("publishParity.crop.useOriginal") { if session.useOriginal() { afterAdvance() } }
-            .cyText(.label).foregroundStyle(CYColor.textSecondary)
-            .frame(minHeight: CYSpacing.minTouchTarget)
+            .buttonStyle(.bordered)
             .disabled(!page.canUseOriginal)
             .accessibilityIdentifier("miniCrop.useOriginal")
         Button(LocalizedStringKey(page.confirmKey)) { confirm() }
-            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: typeSize.isAccessibilitySize))
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(!page.canConfirm && page.phase != .loading)
             .accessibilityIdentifier("miniCrop.confirm")
     }
