@@ -43,9 +43,15 @@ import SwiftUI
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("withdrawal.history.loadMore")
                 }
+                // FIN-19-1: MP scene-member-withdraw-history index.wxml:16 `cy-error` 更多提现记录加载失败 · 重试 (onPageRetry).
                 if model.loadMoreFailed {
-                    Text("withdrawal.history.failed.detail").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("withdrawal.history.loadMoreFailed")
+                    Section {
+                        Label("withdrawal.history.loadMoreFailed", systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("withdrawal.history.loadMoreFailed")
+                        Button("wallet.retry") { Task { await model.loadMore() } }
+                            .accessibilityIdentifier("withdrawal.history.loadMoreRetry")
+                    }
                 }
             case .empty:
                 CYEmptyState(systemImage: "tray", "wallet.withdrawals.emptyTitle", messageIdentifier: "withdrawal.history.empty")

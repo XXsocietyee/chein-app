@@ -1839,6 +1839,23 @@
           }
         }
       }
+    },
+    "withdrawal.history.loadMoreFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load more withdrawal records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多提现记录加载失败"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
