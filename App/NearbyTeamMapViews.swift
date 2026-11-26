@@ -51,7 +51,7 @@ struct NearbyLoadIssueCard: View {
                 CYPillButton(LocalizedStringKey(issue.actionKey), style: .secondary, action: retry).accessibilityIdentifier("nearby.w208.issue.action")
             }
         }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))  // N-RNEAR (r10): system grouped fill
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.w208.issue.\(issue.rawValue)")
     }
 }
@@ -295,7 +295,7 @@ struct NearbyRecruitingSection: View {
                     Text("nearby.w208.recruit.onMap").cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textPrimary)
                 }
             }.frame(maxWidth: .infinity, alignment: .leading).padding()
-                .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))  // N-RNEAR (r10): system grouped fill.contentShape(Rectangle())
+                .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityIdentifier("nearby.w208.recruit.\(team.id.rawValue)")
     }
 }

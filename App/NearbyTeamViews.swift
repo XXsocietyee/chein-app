@@ -303,7 +303,7 @@ import SwiftUI
                 if !coordinator.serverMessage.isEmpty { Text(verbatim: coordinator.serverMessage).accessibilityIdentifier("nearby.serverMessage") }
             }.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding().background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))  // N-RTEAMS (r10): inset-grouped cell fill
+                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         }
     }
     /// Mini-program 范围 control. Coordinates are only typed in when the host gave no map point.
@@ -435,7 +435,7 @@ import SwiftUI
             }
             NearbyTeamReportButton(teamID: team.id.rawValue, leader: team.mode == "leader" || team.viewerStatus == .leader)
         }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
-            .padding().background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))  // N-RTEAMS (r10): inset-grouped cell fill
+            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")
     }
     @ViewBuilder private var applicantSection: some View {

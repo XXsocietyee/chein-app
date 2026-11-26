@@ -363,7 +363,7 @@ struct RoamBrowserView: View {
         }
         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
         // N-ROAM-MAP (r10): system search-field fill (same as UISearchBar) instead of a white-alpha capsule.
-        .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.sm)
     }
     /// Collapsed sheet line: "Nearby activities N" (em dash while the count is unknown).
