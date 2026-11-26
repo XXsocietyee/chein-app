@@ -11,6 +11,19 @@ permissions:
 env:
   ACCEPTANCE_MODE: ${{ github.ref == 'refs/heads/ci/baseline-record' && 'record' || 'check' }}
 jobs:
+  hosted-build-probe:
+    # 11-26: does the app build with the hosted image's Xcode 26.6 (no Xcode 27 there yet)? Experiment only.
+    runs-on: macos-latest
+    timeout-minutes: 120
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build for the iOS Simulator (no signing)
+        run: |
+          xcodebuild -version
+          set -o pipefail
+          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES COMPILER_INDEX_STORE_ENABLE=NO build 2>&1 | tee hosted-build.log | grep -E 'error:|BUILD (SUCCEEDED|FAILED)' | head -60
+
   hosted-probe:
     # 11-26: can GitHub's free macOS runners (public repo) build this project? Reports Xcode + iOS runtimes only.
     runs-on: macos-latest
