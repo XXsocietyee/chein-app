@@ -42,20 +42,7 @@ public struct ClubGapTopicDirectorEmbeddedSection: View {
                 }
             }
 
-            Section {
-                LabeledContent("站点准备", value: "\(summary.readyStations) / \(summary.totalStations)")
-                    .cyText(.body)
-                LabeledContent("进行中队伍", value: "\(summary.activeTeams)")
-                    .cyText(.body)
-                if let caption = summary.caption, !caption.isEmpty {
-                    Text(verbatim: caption)
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                }
-            } header: {
-                Text(verbatim: ClubTopicDirectorCopy.prepOverviewTitle).cyText(.sectionTitle)
-            }
-
+            // CLB-G13c: 准备总览 moved to `ClubTopicDirectorReadySection` (preparing only, MP wxml:244-261).
             Section {
                 ForEach(ClubTopicDirectorToolKind.allCases) { tool in
                     Button {

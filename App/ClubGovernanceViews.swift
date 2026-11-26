@@ -1777,7 +1777,7 @@ struct ClubGovernanceReadView: View {
                 }, presentation: terminalPresentation)
             // CLB-G13 (MP topic-detail wxml:160-500): with an activityId the topic detail carries the director block
             // (K8 banner, 准备总览, director tools, 排行榜), only where topic-manage-stats grants canDirect.
-            if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID) }
+            if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID, topicID: scope.topicID) }
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
             // CLB-topic-detail-02: the phase primary is the pinned footer (`topicPrimaryFooter`), not the last row.
         } else if operation == .audienceCounts {
