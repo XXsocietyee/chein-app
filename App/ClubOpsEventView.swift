@@ -48,15 +48,23 @@ import SwiftUI
                     .e1HeroRow()
             } else if failure == .forbidden || (loadedKey == key && model?.permitted == false) {
                 denied
+            } else if (scope.clubID ?? 0) <= 0 {
+                // CLB-event-ops-05 (MP event-ops wxml:12, js:479): no clubId is `missing-param` → 链接已失效 + 返回.
+                MemberMissingLinkState(identifier: "clubOpsEvent.missingParam")
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             } else if let failure {
-                VStack(spacing: CYSpacing.md) {
-                    Text(verbatim: ClubOpsNetworkFailureClassifier.eventOpsHubTitle(failure))
-                        .cyText(.cardTitle)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity)
-                        .accessibilityIdentifier("clubOpsEvent.error")
-                    CYPillButton("action.retry", style: .primary) { Task { await load() } }
+                // CLB-event-ops-05 (MP wxml:17-18): the failure title, then 重新加载.
+                ContentUnavailableView {
+                    Label {
+                        Text(verbatim: ClubOpsNetworkFailureClassifier.eventOpsHubTitle(failure))
+                            .accessibilityIdentifier("clubOpsEvent.error")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                } actions: {
+                    Button("action.reload") { Task { await load() } }
+                        .buttonStyle(.bordered)
                         .accessibilityIdentifier("clubOpsEvent.retry")
                 }
                 .listRowBackground(Color.clear)
