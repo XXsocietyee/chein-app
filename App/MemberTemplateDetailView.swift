@@ -30,48 +30,74 @@ import SwiftUI
     var body: some View {
         List {
             if loading {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("memberTemplate.loading"))
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
             }
             if let failure {
                 Section {
                     if let message {
-                        Text(verbatim: message)
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Label {
+                            Text(verbatim: message)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                        }
+                        .foregroundStyle(.secondary)
                     } else {
-                        CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failure), kind: .failure)
+                        ContentUnavailableView(LocalizedStringKey(failure), systemImage: "exclamationmark.triangle")
                     }
-                    CYPillButton("action.retry", systemImage: "arrow.clockwise") { Task { await load() } }
-                        .disabled(loading)
-                        .e1ActionRow()
+                    Button { Task { await load() } } label: {
+                        Label("action.retry", systemImage: "arrow.clockwise")
+                    }
+                    .disabled(loading)
                 }
             }
             if let detail {
                 let item = detail.overview
                 Section {
-                    CYImageCard(
-                        verbatim: item.title,
-                        fallback: "discovery.untitledPlay",
-                        meta: item.description,
-                        imageURL: TemplateBrowserPort.coverURL(detail.gallery.first ?? item.imgUrl)
-                    )
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    // One optional image header in the first section, then the title (App Store product page order).
+                    if let cover = TemplateBrowserPort.coverURL(detail.gallery.first ?? item.imgUrl), cover.scheme?.lowercased() == "https" {
+                        Color.clear
+                            .aspectRatio(16.0 / 10.0, contentMode: .fit)
+                            .overlay {
+                                AsyncImage(url: cover) { phase in
+                                    if let image = phase.image { image.resizable().scaledToFill() } else { ProgressView() }
+                                }
+                            }
+                            .clipped()
+                            .listRowInsets(EdgeInsets())
+                            .accessibilityHidden(true)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        (item.title.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: item.title))
+                            .font(.title2.weight(.bold))
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let meta = item.description, !meta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Text(verbatim: meta)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
                     DiscoveryPlayMetadata(item: item)
                     if let draft = detail.draftStatus {
-                        if draft == 0 { CYStatusChip("memberTemplate.draft", tone: .neutral, systemImage: "pencil") }
-                        else if draft == 1 { CYStatusChip("memberTemplate.published", tone: .success, systemImage: "checkmark.circle.fill") }
+                        if draft == 0 {
+                            Label("memberTemplate.draft", systemImage: "pencil").foregroundStyle(.secondary)
+                        } else if draft == 1 {
+                            Label {
+                                Text("memberTemplate.published")
+                            } icon: {
+                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                            }
+                            .foregroundStyle(.secondary)
+                        }
                     }
                     if let feedback = detail.reviewFeedback {
                         Text("discovery.templateDetail.reviewFeedback \(feedback)")
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.warningText)
+                            .foregroundStyle(.orange)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("memberTemplate.reviewFeedback")
                     }
@@ -89,24 +115,22 @@ import SwiftUI
                 if let verification = item.verification {
                     Section {
                         Text(verification.label)
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     } header: {
-                        CYSectionHeader("discovery.verification")
+                        Text("discovery.verification")
                     }
                 }
                 if !detail.story.isEmpty {
                     Section {
                         ForEach(detail.story) { part in
-                            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                            VStack(alignment: .leading, spacing: 8) {
                                 if let tag = part.tag, !tag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                    CYStatusChip(verbatim: tag, tone: .neutral, systemImage: "tag")
+                                    Label(tag, systemImage: "tag")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
                                 }
                                 if let text = part.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                     Text(verbatim: text)
-                                        .cyText(.body)
-                                        .foregroundStyle(CYColor.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                         .textSelection(.enabled)
                                 }
@@ -117,28 +141,26 @@ import SwiftUI
                             }
                         }
                     } header: {
-                        CYSectionHeader("memberTemplate.story")
+                        Text("memberTemplate.story")
                     }
                 } else { textSection("memberTemplate.story", value: item.storyText) }
                 textSection("discovery.creator", value: item.publisher)
             }
-        }.listStyle(.insetGrouped).cyGroupedSurface().navigationTitle(Text("memberTemplate.title")).navigationBarTitleDisplayMode(.inline)
+        }.listStyle(.insetGrouped).navigationTitle(Text("memberTemplate.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive().accessibilityIdentifier("memberTemplate.detail")
         .task(id: reader.scope) { detail = nil; await load() }
         .refreshable { await load() }
         .onDisappear { generation = UUID(); detail = nil }
-        .cyDomainScreen(.player)
+        .themeDomain(.player)
     }
     @ViewBuilder private func textSection(_ label: LocalizedStringKey, value: String?) -> some View {
         if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             Section {
                 Text(verbatim: value)
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
             } header: {
-                CYSectionHeader(label)
+                Text(label)
             }
         }
     }

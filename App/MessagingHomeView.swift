@@ -28,7 +28,7 @@ struct MessagingHomeView: View {
             .labelsHidden()
             .accessibilityLabel(Text("messaging.scope"))
             .padding(.horizontal)
-            .padding(.vertical, CYSpacing.xs)
+            .padding(.bottom, 8)
             .accessibilityIdentifier("messaging.list.scope")
             if let predictionEntry { predictionEntry().padding(.horizontal) }
             switch box {
@@ -40,8 +40,8 @@ struct MessagingHomeView: View {
                     if let coopInviteStrip {
                         coopInviteStrip().environment(\.imCoopInviteDirection, .sent).padding(.horizontal)
                     } else {
-                        CYEmptyState(systemImage: "tray", "im.list.box.outboxEmpty", messageIdentifier: "messaging.list.outboxEmpty")
-                            .padding(.top, CYSpacing.lg)
+                        ContentUnavailableView("im.list.box.outboxEmpty", systemImage: "tray")
+                            .accessibilityIdentifier("messaging.list.outboxEmpty")
                     }
                 }
             }
@@ -82,10 +82,8 @@ private struct MessagingConversationListView: View {
                 let rows = filtered(conversations, tab: tab)
                 if tab.rows(conversations).isEmpty {
                     emptyState(tab: tab, conversations: conversations)
-                        .listRowBackground(Color.clear)
                 } else if rows.isEmpty {
                     emptyState(title: "messaging.noMatches", identifier: "messaging.list.noMatches")
-                        .listRowBackground(Color.clear)
                 } else {
                     let visible = Array(rows.prefix(displayLimit))
                     if tab == .channels {
@@ -103,7 +101,7 @@ private struct MessagingConversationListView: View {
                             Section {
                                 ForEach(section.rows) { conversation in conversationRow(conversation) }
                             } header: {
-                                Text(verbatim: section.title).cyText(.meta, weight: .semibold).textCase(nil)
+                                Text(verbatim: section.title)
                                     .accessibilityAddTraits(.isHeader)
                             }
                         }
@@ -111,7 +109,7 @@ private struct MessagingConversationListView: View {
                     if displayLimit < rows.count {
                         Section {
                             Button("messaging.moreConversations") { displayLimit += 30 }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary))
+                                .buttonStyle(.borderless)
                                 .frame(maxWidth: .infinity)
                                 .accessibilityIdentifier("messaging.list.more")
                         }
@@ -119,8 +117,6 @@ private struct MessagingConversationListView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
-            .cyDomainPageBackground()
             .toolbar {
                 // Leading on the tab root (no Back button here) so the trailing side keeps two actions.
                 ToolbarItem(placement: .topBarLeading) {
@@ -179,7 +175,7 @@ private struct MessagingConversationListView: View {
         .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: Text("messaging.searchPrompt"))
         .onChange(of: query) { _, _ in displayLimit = 30 }
         .onChange(of: selectedTab) { _, _ in displayLimit = 30 }
-        .cyDomainScreen(.player)
+        .themeDomain(.player)
     }
     @ViewBuilder private func conversationRow(_ conversation: MessagingConversation) -> some View {
         UGCBlockedFilterContainer(
@@ -245,8 +241,9 @@ private struct MessagingConversationListView: View {
         }
     }
     @ViewBuilder private func emptyState(title: LocalizedStringKey, identifier: String, tab: MessagingSegment? = nil) -> some View {
-        VStack(spacing: CYSpacing.md) {
-            CYEmptyState(systemImage: "bubble.left.and.bubble.right", title, messageIdentifier: identifier)
+        ContentUnavailableView {
+            Label(title, systemImage: "bubble.left.and.bubble.right")
+        } actions: {
             // P032: only a successfully loaded, genuinely empty direct-message list
             // offers Square. Search misses, errors and missing grants do not.
             if tab == .direct || tab == .all, query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -261,10 +258,12 @@ private struct MessagingConversationListView: View {
                           IMInboxSummary(conversations: conversations).rows(for: .direct).isEmpty else { return }
                     showsSquare = true
                 }
-                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false))
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .accessibilityIdentifier("messaging.list.emptySquare")
             }
         }
+        .accessibilityIdentifier(identifier)
     }
     @ViewBuilder private func rowActions(for conversation: MessagingConversation) -> some View {
         if let identity = reader.identity, let coordinator = expanded?.coordinator(conversation.id) {
