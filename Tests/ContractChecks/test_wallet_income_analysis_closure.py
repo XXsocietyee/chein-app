@@ -7,7 +7,8 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
  def testNormalEntryUsesExistingIncomeGateAndSameReader(self):
   s=self.src('App/WalletCommerceViews.swift')
   # R7-PC-D5-2: 分析 is the quick action only (MP scene-asset-earnings); the 更多 menu no longer repeats it.
-  expected='''if visibility.income { out.append(.init(title: "wallet.analysis.title", icon: "chart.bar.xaxis", id: "wallet.analysis.quick") { AnyView(WalletIncomeAnalysisView(reader: reader)) }) }'''
+  # 6afe54b4a compile fix: the destination is an explicit labelled argument (a trailing closure bound to the wrong init).
+  expected='''if visibility.income { out.append(.init(title: "wallet.analysis.title", icon: "chart.bar.xaxis", id: "wallet.analysis.quick", destination: { AnyView(WalletIncomeAnalysisView(reader: reader)) })) }'''
   self.assertIn(expected,s)
   self.assertIn('WalletCommerceHomeView(reader: session.walletHistoryReader',self.src('App/SessionWalletCommerceView.swift'))
  def testAnalysisNeverCreatesReaderGrantOrMutation(self):
