@@ -30,6 +30,22 @@ import SwiftUI
     }
 }
 
+/// The customers keyword is the system bar search field (CLB-customers-07); other reads carry no search.
+private struct ClubCustomerKeywordSearch: ViewModifier {
+    let enabled: Bool
+    let text: Binding<String>
+    let submit: () -> Void
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled {
+            content
+                .searchable(text: text, prompt: Text("club.gov.keyword"))
+                .onSubmit(of: .search) { submit() }
+        } else {
+            content
+        }
+    }
+}
+
 struct ClubCustomerFilters: Equatable {
     var filter = "all"
     var keyword = ""
@@ -61,7 +77,7 @@ struct ClubGovernanceEntryButton: View {
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: {
-            CYListRow(titleKey, trailing: .chevron) { CYRowIcon(systemImage: "person.3.sequence.fill") }
+            Label(titleKey, systemImage: "person.3.sequence.fill")
         }
             .accessibilityIdentifier("club.gov.open")
             .sheet(isPresented: $presented) {
@@ -84,12 +100,12 @@ struct ClubGovernanceHomeEntries: View {
     let coordinator: ClubGovernanceCoordinator
     var body: some View {
         NavigationLink { ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: identity, access: access, coordinator: coordinator) } label: {
-            CYListRow("club.gov.hostStatus", trailing: .chevron) { CYRowIcon(systemImage: "person.badge.plus") }
+            Label("club.gov.hostStatus", systemImage: "person.badge.plus")
         }
             .accessibilityIdentifier("club.gov.openHost")
         NavigationLink { ClubGovernanceReadView(operation: .feed, scope: .init(), identity: identity, access: access, coordinator: coordinator)
                 .environment(\.clubGovernanceFeed, feedContext) } label: {
-            CYListRow("club.gov.feed", trailing: .chevron) { CYRowIcon(systemImage: "text.bubble") }
+            Label("club.gov.feed", systemImage: "text.bubble")
         }
             .accessibilityIdentifier("club.gov.openFeed")
     }
@@ -618,15 +634,13 @@ struct ClubGovernanceReadView: View {
             // X1 / CLB-governance-13 (parity r2): the page-type title is the inline bar title, not a hero in the content.
             if loading, operation == .nodeAnswer {
                 // CLB-topic-story-03 (MP topic-story wxml:115-142): the answer sheet says 正在取答案….
-                HStack(spacing: CYSpacing.sm) {
-                    ProgressView()
-                    Text("club.story.answer.loading").cyText(.body).foregroundStyle(CYColor.textSecondary)
-                }
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                ProgressView { Text("club.story.answer.loading") }
+                .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.gov.loading")
             } else if loading {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("club.loading"))
                     .accessibilityIdentifier("club.gov.loading")
@@ -646,22 +660,33 @@ struct ClubGovernanceReadView: View {
             // else the generic reason; the reason line keeps the `club.gov.error` id the UI tests read.
             if operation == .hostStatus, failure == .signedOut {
                 // CLB-apply-08 (MP apply wxml:27-28): the guest state is 登录后申请成为主理人 + 登录.
-                CYEmptyState(systemImage: "person.crop.circle.badge.plus", "club.host.signIn.title",
-                             messageIdentifier: "club.host.signIn",
-                             actionTitle: rootTabSwitch.isAvailable ? "club.host.signIn.action" : nil,
-                             actionIdentifier: "club.host.signIn.action", actionStyle: .primary,
-                             action: rootTabSwitch.isAvailable ? { dismissPage(); rootTabSwitch(.mine) } : nil)
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label { Text("club.host.signIn.title").accessibilityIdentifier("club.host.signIn") } icon: {
+                        Image(systemName: "person.crop.circle.badge.plus")
+                    }
+                } actions: {
+                    if rootTabSwitch.isAvailable {
+                        Button { dismissPage(); rootTabSwitch(.mine) } label: { Text("club.host.signIn.action") }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("club.host.signIn.action")
+                    }
+                }
             } else if operation == .nodeAnswer, let failure, failure != .forbidden, failure != .signedOut {
                 // CLB-topic-story-03: 答案没取到 + 重试, with the server reason when it sent one.
-                CYEmptyState(systemImage: "exclamationmark.triangle", "club.story.answer.failed",
-                             messageIdentifier: "club.story.answer.failed",
-                             actionTitle: loading ? nil : "action.retry", actionIdentifier: "club.gov.refresh",
-                             actionStyle: .secondary, kind: .failure,
-                             action: loading ? nil : { Task { await load() } })
-                    .listRowBackground(Color.clear)
-                if let message = failure.message {
-                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("club.story.answer.reason")
+                ContentUnavailableView {
+                    Label { Text("club.story.answer.failed").accessibilityIdentifier("club.story.answer.failed") } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                } description: {
+                    if let message = failure.message {
+                        Text(verbatim: message).accessibilityIdentifier("club.story.answer.reason")
+                    }
+                } actions: {
+                    if !loading {
+                        Button("action.retry") { Task { await load() } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("club.gov.refresh")
+                    }
                 }
             } else if case .checkin = operation, let failure, failure != .signedOut {
                 // Round 4 (CLB-checkin-detail-03): a failed read clears the snapshot, so the MP full-page states
@@ -677,17 +702,16 @@ struct ClubGovernanceReadView: View {
                 ClubOpsGovernanceDeniedNote(operation: operation, cases: scope.clubID == nil ? nil : AnyView(link(.cases)))
             } else if let failure {
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text(LocalizedStringKey(failure.localizationKey)).cyText(.cardTitle).accessibilityIdentifier("club.gov.error")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(LocalizedStringKey(failure.localizationKey)).font(.headline).accessibilityIdentifier("club.gov.error")
                         if let message = failure.message {
-                            Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                            Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary).textSelection(.enabled)
                         }
-                        // X2: pull-to-refresh already reloads; a button is offered only to retry a failed read.
-                        if !loading, failure != .forbidden {
-                            Button("action.retry") { Task { await load() } }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
-                                .accessibilityIdentifier("club.gov.refresh")
-                        }
+                    }
+                    // X2: pull-to-refresh already reloads; a button is offered only to retry a failed read.
+                    if !loading, failure != .forbidden {
+                        Button("action.retry") { Task { await load() } }
+                            .accessibilityIdentifier("club.gov.refresh")
                     }
                 }
                 if failure == .forbidden { ClubOpsGovernanceDeniedNote(operation: operation, cases: scope.clubID == nil ? nil : AnyView(link(.cases))) }
@@ -695,35 +719,16 @@ struct ClubGovernanceReadView: View {
             if operation == .customers {
                 Section {
                     // Mini-program club/customers: filter chips, then search (typing already re-reads).
-                    // CLB-customers-07 (MP customers wxml:15-23): a scrolling chip row, not a segmented control.
-                    ScrollView(.horizontal) {
-                        HStack(spacing: CYSpacing.sm) {
-                            ForEach(["all", "repeat", "new", "remark"], id: \.self) { value in
-                                let selected = customerFilterBinding.wrappedValue == value
-                                Button { customerFilterBinding.wrappedValue = value } label: {
-                                    Text(LocalizedStringKey("club.gov.filter." + value))
-                                        .cyText(.label)
-                                        .foregroundStyle(selected ? CYColor.textInverse : CYColor.textPrimary)
-                                        .padding(.horizontal, CYSpacing.md)
-                                        .frame(minHeight: CYSpacing.minTouchTarget)
-                                        .background(Capsule().fill(selected ? CYColor.textPrimary : CYColor.bgRaised))
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityAddTraits(selected ? .isSelected : [])
+                    // CLB-customers-07: the MP chip row is the system segmented control; the keyword is the bar search field.
+                    Picker("club.gov.filter", selection: customerFilterBinding) {
+                        ForEach(["all", "repeat", "new", "remark"], id: \.self) { value in
+                            Text(LocalizedStringKey("club.gov.filter." + value))
+                                .tag(value)
                                 .accessibilityIdentifier("club.gov.customers.filter." + value)
-                            }
                         }
                     }
-                    .scrollIndicators(.hidden)
-                    .accessibilityElement(children: .contain)
-                    .accessibilityLabel(Text("club.gov.filter"))
-                    HStack {
-                        Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                        TextField("club.gov.keyword", text: customerKeywordBinding)
-                            .submitLabel(.search)
-                            .accessibilityLabel(Text("club.gov.keyword"))
-                            .onSubmit { loadCustomersNow() }
-                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
                 }
             }
             if operation == .topicCustomers {
@@ -749,28 +754,27 @@ struct ClubGovernanceReadView: View {
                 Section {
                     HStack {
                         Button("club.gov.previous") { page -= 1; Task { await load() } }
-                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .buttonStyle(.borderless)
                             .disabled(page <= 1 || loading)
                             .accessibilityIdentifier("club.gov.previous")
-                        Spacer(minLength: CYSpacing.sm)
-                        Text(page, format: .number).font(CYTypography.numericBody)
-                        Spacer(minLength: CYSpacing.sm)
+                        Spacer()
+                        Text(page, format: .number).monospacedDigit()
+                        Spacer()
                         Button("club.gov.next") { page += 1; Task { await load() } }
-                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .buttonStyle(.borderless)
                             .disabled(loading || (snapshot?.value.array ?? snapshot?.value["rows"].array ?? []).count < 20)
                             .accessibilityIdentifier("club.gov.next")
                     }
                 }
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
+        .modifier(ClubCustomerKeywordSearch(enabled: operation == .customers, text: customerKeywordBinding,
+                                            submit: { loadCustomersNow() }))
         .safeAreaInset(edge: .bottom) { topicPrimaryFooter }
         .sheet(isPresented: $sessionPickerVisible) { topicSessionPicker }
         .navigationDestination(item: $pickedSession) { target in
             ClubOpsEventView(scope: target, identity: identity, access: access, coordinator: coordinator)
         }
-        .cyGroupedSurface()
         // Round 4 copy: MP customer-detail bar title is 客户 (wxml:8); the member action sheet keeps 客户详情.
         .cyPageTitle(String.LocalizationValue(stringLiteral: operation == .customer ? "clubR3b.customer.title" : "club.gov." + operation.rawValue))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
@@ -1317,20 +1321,26 @@ struct ClubGovernanceReadView: View {
             ClubGovernanceCommandForm(route: .init(operation: .sendNotification, scope: .init(clubID: target.clubID, activityID: target.activityID)),
                                       identity: identity, access: access, coordinator: coordinator)
         } label: {
-            CYListRow(LocalizedStringKey("club.gov." + ClubGovernanceRead.audienceCounts.rawValue), trailing: .chevron,
-                      verbatimMeta: operation == .access ? Self.subline(.audienceCounts) : nil) {
-                CYRowIcon(systemImage: Self.symbol(.audienceCounts))
-            }
+            routeLabel(.audienceCounts)
         }
         .accessibilityIdentifier("club.gov.route." + ClubGovernanceRead.audienceCounts.rawValue)
     }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
         NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: {
-            CYListRow(LocalizedStringKey("club.gov." + target.rawValue), trailing: .chevron, verbatimMeta: operation == .access ? Self.subline(target) : nil) {
-                CYRowIcon(systemImage: Self.symbol(target))
-            }
+            routeLabel(target)
         }
             .accessibilityIdentifier("club.gov.route." + target.rawValue)
+    }
+    /// Settings-style row: icon, title, and on the workspace list the MP one-line description under it.
+    private func routeLabel(_ target: ClubGovernanceRead) -> some View {
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(LocalizedStringKey("club.gov." + target.rawValue))
+                if operation == .access, let meta = Self.subline(target) {
+                    Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary)
+                }
+            }
+        } icon: { Image(systemName: Self.symbol(target)) }
     }
     /// Mini-program settings-sheet rows carry a one-line description under the title (workspace list only).
     static func subline(_ read: ClubGovernanceRead) -> String? {
@@ -1375,7 +1385,8 @@ struct ClubGovernanceReadView: View {
         let settingsSource = topicSettingsSource
         let bansSource = banRemovalSource
         // Round 4 copy: MP customer-detail button reads 编辑 (wxml:96); 编辑标签与备注 stays its VoiceOver label and the editor title.
-        return Button(LocalizedStringKey(operation == .saveCustomer ? "clubR3b.customer.edit" : "club.gov.action." + operation.rawValue)) {
+        let titleKey = LocalizedStringKey(operation == .saveCustomer ? "clubR3b.customer.edit" : "club.gov.action." + operation.rawValue)
+        return Button(role: role == .destructive || role == .inlineDestructive ? .destructive : nil) {
             if operation == .updateSeries, self.operation == .seriesDetail {
                 seriesUpdateReturn.open(seriesUpdateSource, visible: seriesHostVisible, active: scenePhase == .active)
             } else if operation == .createSeries, self.operation == .eventTopics {
@@ -1398,6 +1409,9 @@ struct ClubGovernanceReadView: View {
                 caseSubmissionReturn.open(operation, source: caseSubmissionSource,
                                           visible: caseHostVisible, active: scenePhase == .active)
             } else { editor = .init(operation: operation, scope: scope ?? self.scope, seed: seed) }
+        } label: {
+            // The one prominent action fills the row width; every other command reads as a plain list row action.
+            Text(titleKey).frame(maxWidth: role == .primary ? .infinity : nil)
         }
         .modifier(ClubGovActionChrome(role: role))
         .disabled((self.operation == .roles && roleManagementReturn.retainsReturn) ||
@@ -1441,8 +1455,7 @@ struct ClubGovernanceReadView: View {
                 if snapshot.permissions?.permissions.contains("club:member:manage") == true,
                    snapshot.permissions?.canGovernMembers != true {
                     Text(verbatim: ClubGovernancePermissions.memberGovernanceDenial)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.memberGovernance.denied")
                 }
             }
@@ -1463,9 +1476,8 @@ struct ClubGovernanceReadView: View {
                 // (MP isMerchantAccount → merchantActive: true) unless the read says otherwise. Active → 切换到商家端
                 // (reLaunch pages/merchant/index/index); otherwise 查看商家入驻 (pages/merchant/apply/index).
                 let merchantActive = value["merchantActive"].bool ?? true
-                CYEmptyState(systemImage: "storefront", "club.host.merchant.title",
-                             detail: LocalizedStringKey(merchantActive ? "club.host.merchant.activeSub" : "club.gov.hostMerchantBlocked"))
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView("club.host.merchant.title", systemImage: "storefront",
+                                       description: Text(LocalizedStringKey(merchantActive ? "club.host.merchant.activeSub" : "club.gov.hostMerchantBlocked")))
                 // CLB-apply-04 (MP apply wxml:30-33, js:157-162): the way out is the merchant side, plus 返回.
                 Section {
                     NavigationLink {
@@ -1473,16 +1485,17 @@ struct ClubGovernanceReadView: View {
                     } label: {
                         Text(LocalizedStringKey(merchantActive ? "club.host.merchant.switch" : "club.host.merchant.viewApply"))
                     }
-                    .buttonStyle(CYPillButtonStyle(style: .primary))
                     .accessibilityIdentifier(merchantActive ? "club.host.merchant.switch" : "club.host.merchant.viewApply")
                     Button("action.back") { dismissPage() }
-                        .buttonStyle(CYPillButtonStyle(style: .secondary))
                         .accessibilityIdentifier("club.host.merchant.back")
-                }.listRowBackground(Color.clear)
+                }
             } else if value["accountRole"] == .string("club") {
                 // Source club/apply done card: page title 成为主理人, an 已生效 chip, then the 可建俱乐部 row.
                 Section {
-                    CYStatusChip("club.host.done.active", tone: .success)
+                    Label { Text("club.host.done.active") } icon: {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    }
+                        .accessibilityElement(children: .ignore)
                         .accessibilityLabel(Text("club.host.done.status")).accessibilityValue(Text("club.host.done.active"))
                     // CLB-apply-11 (MP apply wxml:177): 主理人 <leaderName> when the status read carries it.
                     if let leader = value["leaderName"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !leader.isEmpty {
@@ -1494,16 +1507,16 @@ struct ClubGovernanceReadView: View {
                                                               allowance: value["allowance"]).allowance.displayText)
                     }
                 }
-                Section { ClubCreateMyClubLink(identity: identity) }.listRowBackground(Color.clear)
+                Section { ClubCreateMyClubLink(identity: identity) }
             } else {
                 // Source club/apply intro: one large two-line title over the 成为主理人 CTA, nothing else.
                 Section {
-                    Text("club.host.intro.title").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                    Text("club.host.intro.title").font(.title2.bold())
                         .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                }.listRowBackground(Color.clear)
+                }
                 Section {
                     edit(.hostApply, role: .primary)
-                }.listRowBackground(Color.clear)
+                }
             }
         } else if operation == .roster {
             if let roster = try? ClubRosterPresentation(snapshot: snapshot, context: readContext) {
@@ -1563,47 +1576,51 @@ struct ClubGovernanceReadView: View {
                 let logoURL = QuestifyCardArtwork.safeURL(value["merchantLogo"].string)
                 if let coverURL {
                     AsyncImage(url: coverURL) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() } else { CYColor.bgSurfaceSubtle }
+                        if let image = phase.image { image.resizable().scaledToFill() } else { Color(uiColor: .secondarySystemFill) }
                     }
                     .frame(height: 160).frame(maxWidth: .infinity).clipped()
                     .listRowInsets(EdgeInsets())
                     .accessibilityHidden(true)
                 }
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                VStack(alignment: .leading, spacing: 6) {
                     if let logoURL {
                         AsyncImage(url: logoURL) { phase in
-                            if let image = phase.image { image.resizable().scaledToFill() } else { CYColor.bgSurfaceSubtle }
+                            if let image = phase.image { image.resizable().scaledToFill() } else { Color(uiColor: .secondarySystemFill) }
                         }
                         .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .accessibilityLabel(Text("club.topic.merchantLogo"))
                     }
                     Text(verbatim: value["name"].string ?? value["title"].string ?? "—")
-                        .cyText(.pageTitle)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .font(.title2.bold())
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
-                    HStack(spacing: CYSpacing.sm) {
+                    HStack(spacing: 8) {
                         let chipState = topicDisplay.state == .selfrun ? ClubTopicDetailPort.State.running : topicDisplay.state
-                        CYStatusChip(LocalizedStringKey(topicDisplay.cancelled ? "club.topic.status.cancelled" : "club.topic.status." + chipState.rawValue),
-                                     tone: chipState == .rejected ? .danger : (chipState == .running ? .success : .neutral),
-                                     systemImage: chipState == .rejected ? "xmark" : "circle.fill")
-                            .accessibilityIdentifier("club.topic.status")
+                        Label {
+                            Text(LocalizedStringKey(topicDisplay.cancelled ? "club.topic.status.cancelled" : "club.topic.status." + chipState.rawValue))
+                        } icon: {
+                            Image(systemName: chipState == .rejected ? "xmark.circle.fill" : "circle.fill")
+                                .imageScale(.small)
+                                .foregroundStyle(chipState == .rejected ? Color.red : (chipState == .running ? Color.green : Color.secondary))
+                        }
+                        .font(.subheadline)
+                        .accessibilityIdentifier("club.topic.status")
                         if let notOnSale = ClubTopicDetailPort.notOnSaleKey(lifecycle: value["lifecycle"].int) {
-                            Text(LocalizedStringKey(notOnSale)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            Text(LocalizedStringKey(notOnSale)).font(.subheadline).foregroundStyle(.secondary)
                         }
                     }
                     let dateRange = [value["startDate"].text, value["endDate"].text].compactMap { $0?.isEmpty == false ? $0 : nil }
                     if !dateRange.isEmpty {
                         Label { Text(verbatim: dateRange.joined(separator: " ~ ")) } icon: { Image(systemName: "calendar") }
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .font(.subheadline).foregroundStyle(.secondary)
                     }
                     if let verifyMode = value["verifyModeText"].text, !verifyMode.isEmpty {
                         Label { Text(verbatim: verifyMode) } icon: { Image(systemName: "clock") }
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .font(.subheadline).foregroundStyle(.secondary)
                     } else if logoURL != nil {
                         Label { Text("club.topic.verifyAtStore") } icon: { Image(systemName: "clock") }
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .font(.subheadline).foregroundStyle(.secondary)
                     }
                 }.accessibilityElement(children: .combine)
                 // CLB-topic-detail-08 residual (MP wxml:57-59, js:740-747 buildChips): playModeText, then 本场 N 人 only when
@@ -1611,10 +1628,11 @@ struct ClubGovernanceReadView: View {
                 let headcount = stats["sessionHeadcount"].int ?? 0
                 let playMode = value["playModeText"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 if !playMode.isEmpty || (scope.activityID != nil && headcount > 0) {
-                    HStack(spacing: CYSpacing.sm) {
-                        if !playMode.isEmpty { CYStatusChip(verbatim: playMode, tone: .neutral) }
-                        if scope.activityID != nil, headcount > 0 { CYStatusChip("club.topic.chip.sessionHeadcount \(headcount)", tone: .neutral) }
+                    HStack(spacing: 12) {
+                        if !playMode.isEmpty { Text(verbatim: playMode) }
+                        if scope.activityID != nil, headcount > 0 { Text("club.topic.chip.sessionHeadcount \(headcount)") }
                     }
+                    .font(.subheadline).foregroundStyle(.secondary)
                     .accessibilityIdentifier("club.topic.chips")
                 }
             }
@@ -1687,7 +1705,7 @@ struct ClubGovernanceReadView: View {
                     pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int))
             }
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
-                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(CYColor.dangerText) }
+                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
             }
             // CLB-r8-topic-detail-01 (MP wxml:106-125): the 主题 card (cover when present, name, 「N 章 · N 站 · 玩法」, the
             // 剧情已写 chip, 打开剧情与玩法) is the story entry.
@@ -1695,11 +1713,11 @@ struct ClubGovernanceReadView: View {
                 NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: {
                     ClubTopicStoryCard(value: value, nodeCount: stats["nodeCount"].int)
                 }.accessibilityIdentifier("club.gov.openStory")
-            } header: { Text("club.topic.card.title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil) }
+            } header: { Text("club.topic.card.title") }
             Section("club.topic.upcoming") {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
-                if sessions.isEmpty { CYEmptyState(systemImage: "calendar", "club.topic.noSessions") }
+                if sessions.isEmpty { ContentUnavailableView("club.topic.noSessions", systemImage: "calendar") }
                 // CLB-topic-detail-07: 接下来 links to event ops (MP 管理场次 → pages/club/event-ops), only when the
                 // manage stats grant `canManageSessions` (MP wxml:684-700).
                 if scope.clubID != nil, stats["canManageSessions"] == .bool(true) {
@@ -1716,19 +1734,19 @@ struct ClubGovernanceReadView: View {
                             // CLB-topic-detail-15 (MP wxml:134-152): when over who, the headcount as a trailing chip.
                             let when = ClubGroupCodePort.formatStart(date: row["startDate"].string, time: row["startTime"].string)
                             let who = row["name"].string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                            HStack(alignment: .center, spacing: CYSpacing.sm) {
-                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    if !when.isEmpty { Text(verbatim: when).cyText(.bodyMedium).monospacedDigit() }
-                                    if !who.isEmpty { Text(verbatim: who).cyText(when.isEmpty ? .bodyMedium : .meta).foregroundStyle(when.isEmpty ? CYColor.textPrimary : CYColor.textSecondary) }
+                            HStack(alignment: .center, spacing: 8) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    if !when.isEmpty { Text(verbatim: when).monospacedDigit() }
+                                    if !who.isEmpty { Text(verbatim: who).font(when.isEmpty ? .body : .subheadline).foregroundStyle(when.isEmpty ? Color.primary : Color.secondary) }
                                     // CLB-r8-topic-detail-02 (MP wxml:142-148, js:783-785): the eta line is the session's addressName;
                                     // the kind chip stays out because the server sends no session kind (MP kindText '').
                                     if let eta = row["addressName"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !eta.isEmpty {
-                                        Text(verbatim: eta).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                        Text(verbatim: eta).font(.subheadline).foregroundStyle(.tertiary)
                                     }
                                     if when.isEmpty && who.isEmpty { Text("club.gov.eventID \(id)") }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                if let issued { CYStatusChip(verbatim: issued.headcount.displayText, tone: .neutral) }
+                                if let issued { Text(verbatim: issued.headcount.displayText).foregroundStyle(.secondary).monospacedDigit() }
                             }
                             .accessibilityElement(children: .combine)
                         }
@@ -1830,7 +1848,7 @@ struct ClubGovernanceReadView: View {
                     ClubOpsCustomerMetricTile(value: metrics.pending, label: "clubOps.customer.pending")
                     ClubOpsCustomerMetricTile(value: metrics.refunded, label: "clubOps.customer.refunded")
                     if let paid = customerPage.paidAmount?.displayText {
-                        Text(verbatim: paid).font(CYTypography.numericBody).monospacedDigit().accessibilityIdentifier(ClubCustomerDetailPage.Accessibility.paidAmount)
+                        Text(verbatim: paid).monospacedDigit().accessibilityIdentifier(ClubCustomerDetailPage.Accessibility.paidAmount)
                     }
                 }
             } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customer.malformed") }
@@ -1900,7 +1918,7 @@ struct ClubGovernanceReadView: View {
                 ClubGovernanceFactRows(value: session, fields: ["timeText", "name"])
                 // CLB-topic-detail-10: MP cli-row (avatar initial, masked phone, 拨号 when callable, status chip).
                 let rows = session["rows"].array ?? []
-                if rows.isEmpty { CYEmptyState(systemImage: "tray", "club.gov.empty") }
+                if rows.isEmpty { ContentUnavailableView("club.gov.empty", systemImage: "tray") }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     ClubTopicCustomerRow(row: row, sessionTime: session["timeText"].string)
                 }
@@ -1946,11 +1964,11 @@ struct ClubGovernanceReadView: View {
             let state = ClubTopicDetailPort.stateKey(snapshot.value)
             if topicPrimaryPlan(state: state, stats: stats, sessions: sessions) != ClubTopicDetailPort.Primary.none {
                 VStack(spacing: 0) {
-                    Divider().overlay(CYColor.borderSubtle)
+                    Divider()
                     topicPrimary(state: state, stats: stats, sessions: sessions)
                         .frame(maxWidth: .infinity)
-                        .padding(.horizontal, CYSpacing.lg)
-                        .padding(.vertical, CYSpacing.sm)
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
                 }
                 .background(.bar)
             }
@@ -1969,19 +1987,13 @@ struct ClubGovernanceReadView: View {
                         sessionPickerVisible = false
                         pickedSession = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
                     } label: {
-                        HStack(spacing: CYSpacing.sm) {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                if !when.isEmpty { Text(verbatim: when).cyText(.bodyMedium).monospacedDigit() }
-                                if !who.isEmpty { Text(verbatim: who).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                                if when.isEmpty && who.isEmpty { Text("club.gov.eventID \(id)") }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            if !when.isEmpty { Text(verbatim: when).monospacedDigit() }
+                            if !who.isEmpty { Text(verbatim: who).font(.subheadline).foregroundStyle(.secondary) }
+                            if when.isEmpty && who.isEmpty { Text("club.gov.eventID \(id)") }
                         }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .contentShape(Rectangle())
+                        .foregroundStyle(Color.primary)
                     }
-                    .buttonStyle(.plain)
                     .accessibilityLabel(Text("club.topic.sessionPicker.a11y \(when.isEmpty ? who : when)"))
                     .accessibilityIdentifier("club.topic.sessionPicker.\(id)")
                 }
@@ -2015,50 +2027,52 @@ struct ClubGovernanceReadView: View {
                 EmptyView()
             case .chooseSession where sessions.compactMap({ $0["id"].int }).count > 1:
                 // CLB-topic-detail-07: several sessions → pick one first (MP sessionPick sheet), then its event ops.
-                Button { sessionPickerVisible = true } label: { Text("club.topic.primary.chooseSession") }
-                    .buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                Button { sessionPickerVisible = true } label: { Text("club.topic.primary.chooseSession").frame(maxWidth: .infinity) }
+                    .accessibilityIdentifier("club.topic.primary")
             case .chooseSession, .openSession:
                 NavigationLink { ClubOpsEventView(scope: opsScope, identity: identity, access: access, coordinator: coordinator) } label: {
-                    Text(plan == .chooseSession ? "club.topic.primary.chooseSession" : "club.topic.primary.openSession")
-                }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    Text(plan == .chooseSession ? "club.topic.primary.chooseSession" : "club.topic.primary.openSession").frame(maxWidth: .infinity)
+                }.accessibilityIdentifier("club.topic.primary")
             case .action(let phase):
                 switch phase {
                 case .reviewing:
-                    Button(LocalizedStringKey(phase.primaryKey)) {}.disabled(true)
-                        .buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    Button {} label: { Text(LocalizedStringKey(phase.primaryKey)).frame(maxWidth: .infinity) }.disabled(true)
+                        .accessibilityIdentifier("club.topic.primary")
                 case .ended:
                     if let clubID = scope.clubID {
                         NavigationLink { ClubGovernanceReadView(operation: .settlement, scope: .init(clubID: clubID), identity: identity, access: access, coordinator: coordinator) } label: {
-                            Text(LocalizedStringKey(phase.primaryKey))
-                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                            Text(LocalizedStringKey(phase.primaryKey)).frame(maxWidth: .infinity)
+                        }.accessibilityIdentifier("club.topic.primary")
                     }
                 case .confirmed, .preparing, .running, .selfrun:
                     if let sessionScope {
                         NavigationLink { ClubGovernanceEventView(scope: sessionScope, identity: identity, access: access, coordinator: coordinator) } label: {
-                            Text(LocalizedStringKey(phase.primaryKey))
-                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                            Text(LocalizedStringKey(phase.primaryKey)).frame(maxWidth: .infinity)
+                        }.accessibilityIdentifier("club.topic.primary")
                     } else {
                         NavigationLink { ClubOpsEventView(scope: opsScope, identity: identity, access: access, coordinator: coordinator) } label: {
-                            Text(LocalizedStringKey(phase.primaryKey))
-                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                            Text(LocalizedStringKey(phase.primaryKey)).frame(maxWidth: .infinity)
+                        }.accessibilityIdentifier("club.topic.primary")
                     }
                 case .rejected:
                     // CLB-topic-detail-02 (MP onPrimary → goEditTopic, js:886, 1303): 修改并重新提交 opens the topic
                     // editor by id (pages/publish/fabu?id=), the native ProjectEditView behind the MP route.
                     if let topicID = scope.topicID {
                         NavigationLink { MPReviewedPageScreen(page: "pages/publish/fabu/index", query: ["id": String(topicID)]) } label: {
-                            Text(LocalizedStringKey(phase.primaryKey))
-                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                            Text(LocalizedStringKey(phase.primaryKey)).frame(maxWidth: .infinity)
+                        }.accessibilityIdentifier("club.topic.primary")
                     }
                 }
             }
         }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
     }
     @ViewBuilder private func dataRows(_ rows: [ClubGovernanceValue]) -> some View {
         if rows.isEmpty {
             // WP-02: an empty editions list asks the server why (`edition-empty-reason.js`).
             if operation == .editions, let clubID = scope.clubID, clubID > 0 { ClubEditionEmptyReasonView(clubID: clubID, reload: { Task { await load() } }) }
-            else { CYEmptyState(systemImage: "tray", "club.gov.empty") }
+            else { ContentUnavailableView("club.gov.empty", systemImage: "tray") }
         }
         ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
             Section {
@@ -2127,9 +2141,8 @@ struct ClubGovernanceEventView: View {
             NavigationLink { ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator) } label: {
                 Label {
                     Text("clubOpsEvent.entry.event", tableName: "ClubOpsEvent")
-                        .font(CYTypography.cardTitle)
                         .fixedSize(horizontal: false, vertical: true)
-                } icon: { CYRowIcon(systemImage: "person.crop.circle.badge.checkmark") }
+                } icon: { Image(systemName: "person.crop.circle.badge.checkmark") }
             }.accessibilityIdentifier("clubOpsEvent.open.event")
             ForEach([ClubGovernanceRead.roster, .occurrenceStatus, .roles, .audienceCounts, .topicStats], id: \.rawValue) { operation in
                 // Original role approval and journal own exactly club + optional activity.
@@ -2144,7 +2157,7 @@ struct ClubGovernanceEventView: View {
                             .environment(\.clubRoleActivityLabel, activityLabel)
                     }
                 } label: {
-                    CYListRow(LocalizedStringKey("club.gov." + operation.rawValue), trailing: .chevron) { CYRowIcon(systemImage: "calendar") }
+                    Label(LocalizedStringKey("club.gov." + operation.rawValue), systemImage: "calendar")
                 }
             }
             if let activity = scope.activityID, activity > 0,
@@ -2152,12 +2165,10 @@ struct ClubGovernanceEventView: View {
                 // CLB-group-code-04 (fix-r3-club-b round 3): the session label rides in the environment, not the command.
                 NavigationLink { ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: scope), identity: identity, access: access, coordinator: coordinator)
                     .environment(\.clubRoleActivityLabel, activityLabel) } label: {
-                    CYListRow("club.gov.action.issueGroupCode", trailing: .chevron) { CYRowIcon(systemImage: "qrcode") }
+                    Label("club.gov.action.issueGroupCode", systemImage: "qrcode")
                 }
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyPageTitle("club.gov.events")
     }
 }
@@ -2219,31 +2230,34 @@ struct ClubGovernanceEventView: View {
             if identity?.isSignedIn != true || identity != access.identity {
                 Text("club.gov.signedOut").accessibilityIdentifier("club.story.signedOut")
             } else if loading {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("club.story.loading"))
                     .accessibilityIdentifier("club.story.loading")
             } else if let failure {
                 // CLB-topic-story-07: one failure state with its own 重试; pull-to-refresh covers the rest.
-                CYEmptyState(systemImage: "exclamationmark.triangle", "club.story.failed",
-                             detail: LocalizedStringKey(failure.localizationKey),
-                             messageIdentifier: "club.story.failure",
-                             actionTitle: "action.retry", actionIdentifier: "club.story.refresh",
-                             kind: .failure) { Task { await reload() } }
+                ContentUnavailableView {
+                    Label { Text("club.story.failed").accessibilityIdentifier("club.story.failure") } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                } description: {
+                    Text(LocalizedStringKey(failure.localizationKey))
+                } actions: {
+                    Button("action.retry") { Task { await reload() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("club.story.refresh")
+                }
                     .disabled(loading)
-                    .listRowBackground(Color.clear)
             } else if let presentation {
                 Picker("club.story.sections", selection: $tab) {
                     Text("club.story.route").tag(ClubStoryTab.route).accessibilityIdentifier("club.story.tab.route")
                     Text("club.story.play").tag(ClubStoryTab.play).accessibilityIdentifier("club.story.tab.play")
-                }.pickerStyle(.segmented).labelsHidden().listRowBackground(Color.clear).accessibilityIdentifier("club.story.tabs")
+                }.pickerStyle(.segmented).labelsHidden().accessibilityIdentifier("club.story.tabs")
                 // Mini topic-story `story-aigc` (P0-14): explicit generative-AI label when publishMode is ai_simple.
                 if snapshot?.value["publishMode"].string?.trimmingCharacters(in: .whitespaces).lowercased() == "ai_simple" {
                     Label { Text("story.aigc", tableName: "SocialParity") } icon: { Image(systemName: "sparkles") }
-                        .font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
-                        .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                        .background(CYColor.bgElevated, in: Capsule())
-                        .listRowBackground(Color.clear)
+                        .font(.subheadline).foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.story.aigc")
                 }
                 if presentation.chapters.isEmpty {
@@ -2262,7 +2276,7 @@ struct ClubGovernanceEventView: View {
                         } header: { ClubStoryChapterHeader(chapter: chapter) }
                     }
                 } else {
-                    chapterPicker(presentation.chapters).listRowBackground(Color.clear)
+                    chapterPicker(presentation.chapters)
                     if let chapter = presentation.chapters.first(where: { $0.id == selectedChapter }) ?? presentation.chapters.first {
                         playContent(chapter)
                     }
@@ -2271,9 +2285,6 @@ struct ClubGovernanceEventView: View {
                 Text("club.story.sourceUnavailable").accessibilityIdentifier("club.story.sourceUnavailable")
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
-        .cyGroupedSurface()
         .cyPageTitle("club.gov.story")
         .accessibilityIdentifier("club.gov.story")
         .navigationDestination(item: $selectedTemplate) { selection in
@@ -2312,7 +2323,7 @@ struct ClubGovernanceEventView: View {
                         .id(target.id)
                 } else {
                     Text("club.story.sourceUnavailable")
-                        .padding(CYSpacing.pageHorizontal)
+                        .padding()
                 }
             }
         }
@@ -2347,7 +2358,6 @@ struct ClubGovernanceEventView: View {
                 ForEach(chapters) { chapter in ClubStoryChapterTitle(chapter: chapter).tag(chapter.id) }
             } label: { Text("club.story.sections") }
             .pickerStyle(.menu)
-            .frame(minHeight: CYSpacing.minTouchTarget)
             .accessibilityIdentifier("club.story.chapterMenu")
             .cyHaptic(.selection, trigger: selectedChapter)
         } else {
@@ -2356,7 +2366,7 @@ struct ClubGovernanceEventView: View {
     }
     private func chapterChips(_ chapters: [ClubStoryChapter]) -> some View {
         ScrollView(.horizontal) {
-            HStack(spacing: CYSpacing.sm) {
+            HStack(spacing: 8) {
                 ForEach(chapters) { chapter in
                     let selected = selectedChapter == chapter.id
                     Button {
@@ -2366,14 +2376,11 @@ struct ClubGovernanceEventView: View {
                         selectedChapter = chapter.id; invalidateSelection()
                     } label: {
                         ClubStoryChapterTitle(chapter: chapter)
-                            .font(CYTypography.meta.weight(.semibold))
                             .fixedSize(horizontal: false, vertical: true)
-                            .padding(.horizontal, CYSpacing.md)
-                            .padding(.vertical, CYSpacing.sm)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.bordered)
-                    .tint(selected ? CYColor.textPrimary : CYColor.textTertiary)
+                    .buttonBorderShape(.capsule)
+                    .tint(selected ? Color.accentColor : Color.secondary)
                     .accessibilityAddTraits(selected ? .isSelected : [])
                     .accessibilityIdentifier("club.story.chapter.\(chapter.id)")
                 }
@@ -2400,11 +2407,11 @@ struct ClubGovernanceEventView: View {
                 ClubStoryEmptyState(title: "club.story.noPlays", detail: "club.story.awaitingPlays")
             }
             ForEach(chapter.gameplay) { play in
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                VStack(alignment: .leading, spacing: 12) {
                     ClubStoryGameplayCard(play: play, imageReader: templates.imageReader,
                                           order: (chapter.gameplay.firstIndex(of: play) ?? 0) + 1)
                     // CLB-topic-story-02 (MP wxml:97-104): one row of borderless actions; 查看答案 opens one sheet.
-                    HStack(spacing: CYSpacing.lg) {
+                    HStack(spacing: 16) {
                         if let selection = templateSelection(play) {
                             Button("club.story.viewTemplate") {
                                 guard selectedTemplate == nil, selectedAnswer == nil, sourceIsCurrent,
@@ -2412,10 +2419,9 @@ struct ClubGovernanceEventView: View {
                                           snapshotGeneration: snapshotGeneration, templates: templates) else { return }
                                 selectedTemplate = selection
                             }
-                            .frame(minHeight: CYSpacing.minTouchTarget)
                             .accessibilityIdentifier("club.story.template.\(play.id)")
                         } else {
-                            Text("club.story.templateUnavailable").cyText(.meta).foregroundStyle(.secondary)
+                            Text("club.story.templateUnavailable").font(.subheadline).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("club.story.templateUnavailable.\(play.id)")
                         }
                         if let target = answerRoute(play) {
@@ -2427,7 +2433,6 @@ struct ClubGovernanceEventView: View {
                                 answerSheetName = play.nodeName ?? play.title
                                 answerSheetTarget = target
                             }
-                            .frame(minHeight: CYSpacing.minTouchTarget)
                             .accessibilityIdentifier("club.story.answer.\(play.id)")
                         } else if let target = hostAnswerTarget(play) {
                             // CLB-topic-story-05: merchant entry posts api/topic/host-node-answer {topicId, nodeId, scope}.
@@ -2438,7 +2443,6 @@ struct ClubGovernanceEventView: View {
                                 }
                                 hostAnswerTarget = target
                             }
-                            .frame(minHeight: CYSpacing.minTouchTarget)
                             .accessibilityIdentifier("club.story.answer.\(play.id)")
                         }
                     }
@@ -2514,33 +2518,20 @@ struct ClubGovernanceFactRows: View {
 
 private enum ClubGovActionRole { case primary, secondary, destructive, inlineDestructive, inlineLink }
 
-/// One filled action per screen. Other commands stay outlined; dissolve stays destructive.
+/// One prominent action per screen. Other commands are plain Settings-style row buttons; dissolve keeps the
+/// destructive role (red, set on the Button itself).
 private struct ClubGovActionChrome: ViewModifier {
     var role: ClubGovActionRole
-    func body(content: Content) -> some View {
+    @ViewBuilder func body(content: Content) -> some View {
         switch role {
         case .primary:
-            content.buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
-        case .secondary:
-            content.buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
-        case .destructive:
-            content.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
-        case .inlineLink:
-            // CLB-governance-02: 解封 is a row-level borderless link (MP text action), not a full-width pill. 44 pt target.
+            content.buttonStyle(.borderedProminent).controlSize(.large)
+        case .secondary, .destructive:
             content
-                .buttonStyle(.borderless)
-                .cyText(.label)
-                .frame(minHeight: CYSpacing.minTouchTarget)
-                .contentShape(Rectangle())
-        case .inlineDestructive:
-            // CLB-roles-08 / CLB-governance-02 (parity r2): row-level 撤销 / 封禁 / 转让 read as a red inline action
-            // (MP red link, MC-20), not a full-width secondary pill. 44 pt target.
-            content
-                .buttonStyle(.borderless)
-                .cyText(.label)
-                .foregroundStyle(CYColor.dangerText)
-                .frame(minHeight: CYSpacing.minTouchTarget)
-                .contentShape(Rectangle())
+        case .inlineLink, .inlineDestructive:
+            // CLB-governance-02 / CLB-roles-08: row-level 解封 / 撤销 / 封禁 / 转让 stay inline borderless actions
+            // (destructive ones red through the Button role), so a row's other controls keep their own taps.
+            content.buttonStyle(.borderless)
         }
     }
 }

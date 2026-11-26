@@ -10,7 +10,6 @@ import SwiftUI
     let viewerRevision: UInt64
     let isLeaderboard: Bool
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @State private var mode: ClubPublicRosterMode
     @State private var snapshot: ClubPublicRosterSnapshot?
@@ -61,7 +60,8 @@ import SwiftUI
                 rosterList
             }
         }
-        .cyHeroScreen()
+        .navigationTitle(isLeaderboard ? Text("club.detail.leaderboard.title") : Text("club.members"))
+        .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .accessibilityIdentifier("club.publicRoster.root")
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("club.refresh", systemImage: "arrow.clockwise") { Task { await load() } }.disabled(loading) } }
@@ -84,56 +84,41 @@ import SwiftUI
         }
         .cyDomainScreen(.player)
     }
-    @ViewBuilder private var rosterTitle: some View {
-        if isLeaderboard {
-            CYHeroHeader("club.detail.leaderboard.title") { ClubCloud14Banner(seed: "roster-\(clubID)", symbol: "trophy") }
-        } else {
-            CYHeroHeader("club.members") { ClubCloud14Banner(seed: "roster-\(clubID)", symbol: "person.3") }
-        }
-    }
     private func rosterGate(systemImage: String, _ message: LocalizedStringKey, table: String?) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                rosterTitle
-                CYEmptyState(systemImage: systemImage, message, tableName: table)
-            }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
+        ContentUnavailableView {
+            Label { Text(message, tableName: table) } icon: { Image(systemName: systemImage) }
         }
-        .cyDomainPageBackground()
     }
     private var rosterList: some View {
         List {
-            rosterTitle.listRowBackground(Color.clear).listRowSeparator(.hidden)
             if isLeaderboard {
-                Picker("club.gov.sort", selection: $mode) {
-                    ForEach([ClubPublicRosterMode.composite, .mileage, .pace, .duration], id: \.self) { value in
-                        Text(LocalizedStringKey("club.gov.sort." + value.rawValue)).tag(value)
+                Section {
+                    Picker("club.gov.sort", selection: $mode) {
+                        ForEach([ClubPublicRosterMode.composite, .mileage, .pace, .duration], id: \.self) { value in
+                            Text(LocalizedStringKey("club.gov.sort." + value.rawValue)).tag(value)
+                        }
                     }
-                }.cyText(.label).frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("club.publicRoster.sort")
-                Text("club.detail.leaderboard.reset").cyText(.meta).foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                } footer: {
+                    Text("club.detail.leaderboard.reset")
+                }
             }
             if loading { rosterLoading }
             if failed { rosterError }
             else if let current = accepted { rosterRows(current) }
         }
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
-        .cyGroupedSurface()
     }
     private var rosterLoading: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYSkeleton().accessibilityHidden(true)
-            Text("club.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
-        }
-        .accessibilityElement(children: .combine)
+        ProgressView { Text("club.loading") }
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .combine)
     }
     private var rosterError: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYStatusChip(verbatim: rosterCopy("club.publicRoster.revoked"), tone: .danger, systemImage: "exclamationmark.triangle")
+        Section {
+            Label { Text(verbatim: rosterCopy("club.publicRoster.revoked")) } icon: { Image(systemName: "exclamationmark.triangle") }
+                .foregroundStyle(.red)
                 .accessibilityIdentifier("club.publicRoster.error")
-            CYPillButton("action.retry", systemImage: "arrow.clockwise") { Task { await load() } }
+            Button { Task { await load() } } label: { Label("action.retry", systemImage: "arrow.clockwise") }
                 .disabled(loading)
         }
     }
@@ -146,8 +131,6 @@ import SwiftUI
     }
     @ViewBuilder private func rosterRows(_ current: ClubPublicRosterSnapshot) -> some View {
         Section {
-        Text(verbatim: shown(current.club.name)).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-            .fixedSize(horizontal: false, vertical: true)
         if current.memberIDs.isEmpty { rosterEmpty(memberCount: current.club.memberCount) }
         ForEach(current.members) { member in
             memberLink(id: member.memberId, nickname: member.nickname, avatar: member.avatar) {
@@ -159,8 +142,8 @@ import SwiftUI
         ForEach(Array(ClubDetailRankingPort.fold(current.ranks.map(\.memberId), me: nil).enumerated()), id: \.offset) { _, row in
             switch row {
             case .gap(let hidden):
-                Text("club.publicRoster.rankGap \(hidden)", tableName: "ClubPublicRoster").cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                Text("club.publicRoster.rankGap \(hidden)", tableName: "ClubPublicRoster").font(.footnote)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("club.publicRoster.rankGap")
             case .member(let rank, let memberID, _):
                 if let member = current.ranks.first(where: { $0.memberId == memberID }) {
@@ -170,18 +153,28 @@ import SwiftUI
                 }
             }
         }
-        Text("club.publicRoster.readOnly", tableName: "ClubPublicRoster").cyText(.meta)
-            .foregroundStyle(palette.textSecondary)
-            .fixedSize(horizontal: false, vertical: true)
+        } header: {
+            Text(verbatim: shown(current.club.name))
+        } footer: {
+            Text("club.publicRoster.readOnly", tableName: "ClubPublicRoster")
         }
     }
     @ViewBuilder private func rosterEmpty(memberCount: Int) -> some View {
         if isLeaderboard {
-            CYEmptyState(systemImage: "trophy", LocalizedStringKey("club.publicRoster.emptyRank." + ClubDetailRankingPort.emptyKey(sort: mode.rawValue)), tableName: "ClubPublicRoster", messageIdentifier: "club.publicRoster.empty")
+            ContentUnavailableView {
+                Label {
+                    Text(LocalizedStringKey("club.publicRoster.emptyRank." + ClubDetailRankingPort.emptyKey(sort: mode.rawValue)), tableName: "ClubPublicRoster")
+                        .accessibilityIdentifier("club.publicRoster.empty")
+                } icon: { Image(systemName: "trophy") }
+            }
         } else if memberCount > 0 {
-            CYEmptyState(systemImage: "person.2", "club.membersUnavailable", messageIdentifier: "club.publicRoster.empty")
+            ContentUnavailableView {
+                Label { Text("club.membersUnavailable").accessibilityIdentifier("club.publicRoster.empty") } icon: { Image(systemName: "person.2") }
+            }
         } else {
-            CYEmptyState(systemImage: "person.2", "club.emptyMembers", messageIdentifier: "club.publicRoster.empty")
+            ContentUnavailableView {
+                Label { Text("club.emptyMembers").accessibilityIdentifier("club.publicRoster.empty") } icon: { Image(systemName: "person.2") }
+            }
         }
     }
     private func rankFacts(rank: Int, member: ClubPublicRosterRank) -> some View {
@@ -196,24 +189,28 @@ import SwiftUI
                 Text(verbatim: member.metric(mode).map { ClubDetailRankingPort.oneDecimal($0) } ?? "—").monospacedDigit()
                 Text(LocalizedStringKey("club.publicRoster.unit." + mode.rawValue), tableName: "ClubPublicRoster")
             }
-        }.cyText(.meta)
+        }.font(.subheadline)
     }
     @ViewBuilder private func memberLink<Detail: View>(id: Int, nickname: String?, avatar: String? = nil, @ViewBuilder detail: () -> Detail) -> some View {
         let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         Button { Task { await load(selecting: id) } } label: {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                if trimmed.isEmpty {
-                    CYListRow("club.memberNumber \(id)", trailing: .chevron) { memberPortrait(avatar, name: String(id)) }
-                } else {
-                    CYListRow(verbatim: trimmed, trailing: .chevron) { memberPortrait(avatar, name: trimmed) }
+            HStack {
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        if trimmed.isEmpty { Text("club.memberNumber \(id)") } else { Text(verbatim: trimmed) }
+                        detail().font(.subheadline).foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    memberPortrait(avatar, name: trimmed.isEmpty ? String(id) : trimmed)
                 }
-                detail().foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary).accessibilityHidden(true)
             }
-            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
             .contentShape(Rectangle())
             .accessibilityElement(children: .combine)
         }
-        .buttonStyle(.plain)
+        .foregroundStyle(.primary)
         .disabled(loading || !profileMatches || profileTarget != nil)
         .accessibilityIdentifier("club.publicRoster.member.\(id)")
     }
@@ -258,18 +255,6 @@ import SwiftUI
             guard active, generation == operation, key == expected, !Task.isCancelled else { return }
             snapshot = nil; profileTarget = nil; failed = true
         }
-    }
-}
-
-private struct ClubCloud14Banner: View {
-    let seed: String
-    var symbol: String? = nil
-    var body: some View {
-        Color.clear
-            .aspectRatio(2.4, contentMode: .fit)
-            .overlay { CYCoverArt(seed: seed, symbol: symbol) }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-            .accessibilityHidden(true)
     }
 }
 

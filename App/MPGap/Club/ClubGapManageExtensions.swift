@@ -33,18 +33,17 @@ public struct ClubGapCoopPoolSection: View {
             Button(action: onOpenMyCoop) {
                 HStack {
                     Text(verbatim: ClubCoopPoolCopy.myCoopTitle)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .foregroundStyle(.primary)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
                 }
             }
             content
         } header: {
             Text(verbatim: ClubCoopPoolCopy.sectionTitle)
-                .cyText(.sectionTitle)
         }
         .sheet(item: $applyingItem) { item in
             NavigationStack {
@@ -52,7 +51,6 @@ public struct ClubGapCoopPoolSection: View {
                     Section {
                         TextField(ClubCoopPoolCopy.applyPlaceholder, text: $applyMessage, axis: .vertical)
                             .lineLimit(3...6)
-                            .cyText(.body)
                     }
                 }
                 .cyPageTitle(verbatim: ClubCoopPoolCopy.applyModalTitle(topicName: item.name))
@@ -77,44 +75,42 @@ public struct ClubGapCoopPoolSection: View {
     private var content: some View {
         switch state {
         case .idle, .loading:
-            HStack {
-                Spacer()
-                ProgressView()
-                Spacer()
-            }
-            .padding(.vertical, CYSpacing.md)
+            ProgressView()
+                .frame(maxWidth: .infinity)
         case .permission(let reason):
-            CYEmptyState(systemImage: "lock", verbatimTitle: "暂不能看可对接的活动", verbatimSubtitle: reason)
+            ContentUnavailableView("暂不能看可对接的活动", systemImage: "lock", description: Text(verbatim: reason))
         case .error(let reason):
-            CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: ClubCoopPoolCopy.loadFailed, verbatimSubtitle: reason, action: onRetry)
+            // The former empty state took `onRetry` without an action title, so it drew no button; pull to refresh retries.
+            ContentUnavailableView(ClubCoopPoolCopy.loadFailed, systemImage: "exclamationmark.triangle", description: Text(verbatim: reason))
         case .ready(let items):
             if items.isEmpty {
-                CYEmptyState(systemImage: "tray", verbatimTitle: ClubCoopPoolCopy.emptyTitle)
+                ContentUnavailableView(ClubCoopPoolCopy.emptyTitle, systemImage: "tray")
             } else {
                 ForEach(items) { item in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: item.name)
-                                .cyText(.cardTitle)
-                                .foregroundStyle(CYColor.textPrimary)
+                                .font(.headline)
                             Spacer()
-                            CYStatusChip(verbatim: item.stateText, tone: item.isTaken ? .neutral : .info)
+                            Text(verbatim: item.stateText)
+                                .font(.subheadline)
+                                .foregroundStyle(item.isTaken ? Color.secondary : Color.accentColor)
                         }
                         if let nick = item.merchantNick, !nick.isEmpty {
                             Text(verbatim: "\(nick) 发布")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
                         if let subtitle = item.subtitle, !subtitle.isEmpty {
                             Text(verbatim: subtitle)
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
                         HStack {
                             if let deadline = item.deadlineText, !deadline.isEmpty {
                                 Text(verbatim: deadline)
-                                    .cyText(.meta)
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
                             }
                             Spacer()
                             if item.canApply {
@@ -123,17 +119,18 @@ public struct ClubGapCoopPoolSection: View {
                                     applyMessage = ""
                                     applyingItem = item
                                 }
-                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.small)
                                 .disabled(isBusy)
                             } else if let applyID = item.applyID {
                                 Button(ClubCoopPoolCopy.viewApplicationButton) {
                                     onOpenApplication(applyID)
                                 }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
                             }
                         }
                     }
-                    .padding(.vertical, CYSpacing.xs)
                     .opacity(item.isTaken ? 0.65 : 1.0)
                 }
             }
@@ -167,23 +164,21 @@ public struct ClubGapMemberAvatarStrip: View {
 
     public var body: some View {
         Button(action: onTapAll) {
-            HStack(spacing: CYSpacing.sm) {
+            HStack(spacing: 8) {
                 ForEach(Array(avatars.prefix(4))) { item in
                     CYAvatarView(url: item.url, name: item.name, size: .sm)
                 }
                 let overflow = max(0, totalCount - min(avatars.count, 4))
                 if overflow > 0 {
                     Text(verbatim: "+\(overflow)")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .padding(.horizontal, CYSpacing.sm)
-                        .padding(.vertical, CYSpacing.xs)
-                        .background(Capsule().fill(CYColor.bgSurfaceSubtle))
+                        .font(.subheadline)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
             }
             .contentShape(Rectangle())
         }
@@ -235,7 +230,7 @@ public struct ClubGapSettingsSheet: View {
                         settingsRow("活动运营", onEventOps)
                         settingsRow("角色与权限", onRoles, count: delegatedRoleCount > 0 ? "\(delegatedRoleCount) 已委派" : nil)
                     } header: {
-                        Text(verbatim: "客户与项目").cyText(.sectionTitle)
+                        Text(verbatim: "客户与项目")
                     }
                 }
                 if canGovern {
@@ -244,23 +239,20 @@ public struct ClubGapSettingsSheet: View {
                             dismiss()
                             onEditClub()
                         }
-                        .cyText(.body)
                     }
                     Section {
                         Button("改为转让主理人") {
                             dismiss()
                             onTransferOwner()
                         }
-                        .cyText(.body)
                         Button("解散俱乐部", role: .destructive) {
                             dismiss()
                             onDissolveClub()
                         }
-                        .cyText(.body)
                     } header: {
-                        Text(verbatim: "危险操作").cyText(.sectionTitle)
+                        Text(verbatim: "危险操作")
                     } footer: {
-                        Text(verbatim: "成员将失去俱乐部与群聊入口，已报名不会自动退款。").cyText(.meta)
+                        Text(verbatim: "成员将失去俱乐部与群聊入口，已报名不会自动退款。")
                     }
                 }
             }
@@ -295,13 +287,12 @@ public struct ClubGapSettingsSheet: View {
                 action()
             } label: {
                 HStack {
-                    Text(verbatim: title).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: title).foregroundStyle(.primary)
                     Spacer()
-                    if let count { Text(verbatim: count).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                    Image(systemName: "chevron.right").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    if let count { Text(verbatim: count).foregroundStyle(.secondary) }
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                         .accessibilityHidden(true)
                 }
-                .frame(minHeight: CYSpacing.minTouchTarget)
                 .contentShape(Rectangle())
             }
         }

@@ -102,7 +102,7 @@ import SwiftUI
             if permit != nil, let failure = model.failure {
                 Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.seriesLead.error")
                 if failure != .forbidden {
-                    Text("clubOpsEvent.lead.unavailable", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(CYColor.warningText)
+                    Text("clubOpsEvent.lead.unavailable", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.orange)
                         .accessibilityIdentifier("clubOpsEvent.lead.unavailable")
                     ownerDefaultButton(permit: permit)
                 }

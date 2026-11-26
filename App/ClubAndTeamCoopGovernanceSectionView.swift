@@ -169,38 +169,34 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
     }
 
     public var body: some View {
+        GroupBox {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "社团、组队与共创治理全景状态")
-                        .cyText(.cardTitle)
+                        .font(.headline)
                         .accessibilityIdentifier("clubTeamGovernance.header.title")
                     Text(verbatim: snapshot.headlineSummaryText)
-                        .cyText(.body)
                         .foregroundStyle(snapshot.allPillarsHealthy ? .green : .orange)
                         .accessibilityIdentifier("clubTeamGovernance.header.summary")
                 }
                 Spacer()
-                Text(verbatim: snapshot.allPillarsHealthy ? "治理就绪" : "需关注")
-                    .cyText(.meta, weight: .semibold)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule().fill(
-                            snapshot.allPillarsHealthy
-                                ? CYColor.successSoft
-                                : CYColor.warningSoft
-                        )
-                    )
+                Label {
+                    Text(verbatim: snapshot.allPillarsHealthy ? "治理就绪" : "需关注")
+                } icon: {
+                    Image(systemName: snapshot.allPillarsHealthy ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .foregroundStyle(snapshot.allPillarsHealthy ? Color.green : Color.orange)
+                }
+                    .font(.subheadline.weight(.semibold))
                     .accessibilityIdentifier("clubTeamGovernance.header.badge")
             }
 
             ForEach(snapshot.rows) { row in
+                Divider()
                 pillarRowView(row)
             }
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: CYRadius.card).fill(Color.secondary.opacity(0.08)))
+        }
         .accessibilityIdentifier("clubTeamGovernance.section")
     }
 
@@ -209,7 +205,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: row.titleText)
-                    .cyText(.bodyMedium)
+                    .font(.body.weight(.medium))
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.referenceBadge)
@@ -217,20 +213,20 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).ref")
                 Text(verbatim: row.statusBadgeText)
-                    .cyText(.caption, weight: .semibold)
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(row.isHealthy ? .green : .red)
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).status")
             }
 
             Text(verbatim: row.summaryText)
-                .cyText(.meta)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).summary")
 
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(row.invariants, id: \.self) { invariant in
                     Text(verbatim: "• \(invariant)")
-                        .cyText(.caption)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -239,13 +235,12 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
             if let onSelectPillar {
                 Button(action: { onSelectPillar(row) }) {
                     Text(verbatim: "查看治理支柱详情")
-                        .cyText(.meta)
+                        .font(.subheadline)
                 }
+                .buttonStyle(.borderless)
                 .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).action")
             }
         }
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: CYRadius.inner).fill(Color.secondary.opacity(0.06)))
         .accessibilityIdentifier("clubTeamGovernance.row.\(row.id)")
     }
 }

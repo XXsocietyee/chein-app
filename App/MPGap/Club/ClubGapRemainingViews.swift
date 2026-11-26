@@ -12,23 +12,22 @@ struct ClubGapPlayRecordPickerRow: View {
     @State private var state: LoadState = .idle
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             if let selected {
                 // MP cmp-chip: the picked record with an ✕ that clears it.
-                HStack(spacing: CYSpacing.sm) {
+                HStack(spacing: 8) {
                     Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-                        .foregroundStyle(CYColor.brand)
+                        .foregroundStyle(.tint)
                         .accessibilityHidden(true)
                     Text(verbatim: selected.title)
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .font(.subheadline)
                         .lineLimit(1)
                     Spacer(minLength: 0)
                     Button { self.selected = nil } label: {
-                        Image(systemName: "xmark.circle.fill").foregroundStyle(CYColor.textSecondary)
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
                     }
                     .buttonStyle(.borderless)
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .frame(minWidth: 44, minHeight: 44)
                     .accessibilityLabel(Text("club.postRef.clear"))
                 }
                 .accessibilityElement(children: .combine)
@@ -39,10 +38,9 @@ struct ClubGapPlayRecordPickerRow: View {
                 Task { await reload() }
             } label: {
                 Label("club.postRef.pick", systemImage: "flag")
-                    .cyText(.body)
             }
             .buttonStyle(.borderless)
-            .frame(minHeight: CYSpacing.minTouchTarget)
+            .frame(minHeight: 44)
             .accessibilityIdentifier("club.community.postRef")
         }
         .sheet(isPresented: $showPicker) {
@@ -64,7 +62,7 @@ struct ClubGapPlayRecordPickerRow: View {
     private var pickerContent: some View {
         switch state {
         case .idle, .loading:
-            HStack { Spacer(); ProgressView(); Spacer() }
+            ProgressView().frame(maxWidth: .infinity)
         case let .failed(message):
             ContentUnavailableView {
                 Label("club.postRef.loadFailed", systemImage: "exclamationmark.triangle")
@@ -83,14 +81,14 @@ struct ClubGapPlayRecordPickerRow: View {
                         showPicker = false
                     } label: {
                         HStack {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(verbatim: option.title).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: option.title).foregroundStyle(.primary)
                                 Text(LocalizedStringKey(option.refType == 1 ? "club.postRef.kind.activity" : "club.postRef.kind.topic"))
-                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                    .font(.subheadline).foregroundStyle(.secondary)
                             }
                             Spacer(minLength: 0)
                             if selected == option {
-                                Image(systemName: "checkmark").foregroundStyle(CYColor.brand).accessibilityHidden(true)
+                                Image(systemName: "checkmark").font(.body.weight(.semibold)).foregroundStyle(.tint).accessibilityHidden(true)
                             }
                         }
                     }
@@ -133,14 +131,16 @@ public struct ClubGapActivityAndScanActions: View {
     }
 
     public var body: some View {
-        HStack(spacing: CYSpacing.sm) {
+        HStack(spacing: 8) {
             if showsUndertake {
                 Button(ClubScanCopy.undertakeTitle, action: onTapUndertake)
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
             }
             if showsScanVerify {
                 Button(ClubScanCopy.scanActionTitle, action: onTapScanVerify)
-                    .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
             }
         }
     }
@@ -153,13 +153,15 @@ struct ClubGapFollowAuthorButton: View {
     let onFollow: () -> Void
 
     var body: some View {
-        Button(action: onFollow) {
+        let button = Button(action: onFollow) {
             Label(isFollowing ? "social.following" : "social.editor.follow",
                   systemImage: isFollowing ? "checkmark" : "plus")
         }
-        .buttonStyle(CYPillButtonStyle(style: isFollowing ? .secondary : .primary, fullWidth: false, compact: true))
+        .controlSize(.small)
         .disabled(isFollowing)
         .accessibilityIdentifier("club.community.follow")
+        // Follow is prominent; the followed state is the quieter bordered button (Podcasts / Music follow buttons).
+        if isFollowing { button.buttonStyle(.bordered) } else { button.buttonStyle(.borderedProminent) }
     }
 }
 
@@ -188,29 +190,28 @@ public struct ClubGapEventOpsExtrasSection: View {
             if let paymentNotice, !paymentNotice.isEmpty {
                 Section {
                     Text(verbatim: paymentNotice)
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
             }
             if let windowWarning, !windowWarning.isEmpty {
                 Section {
                     Label(windowWarning, systemImage: "exclamationmark.triangle")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.warningText)
+                        .font(.subheadline)
+                        .foregroundStyle(.orange)
                 }
             }
             Section {
                 LabeledContent(ClubEventOpsGapCopy.hostTipTitle, value: ClubEventOpsGapCopy.hostTipUnavailable)
-                    .cyText(.body)
             }
             if showsEmptyPublishCTA {
                 Section {
-                    CYEmptyState(
-                        systemImage: "sparkles",
-                        LocalizedStringKey(ClubEventOpsGapCopy.emptyTopicsTitle),
-                        actionTitle: LocalizedStringKey(ClubEventOpsGapCopy.publishTopicCTA),
-                        action: onTapPublishTopic
-                    )
+                    ContentUnavailableView {
+                        Label(LocalizedStringKey(ClubEventOpsGapCopy.emptyTopicsTitle), systemImage: "sparkles")
+                    } actions: {
+                        Button(LocalizedStringKey(ClubEventOpsGapCopy.publishTopicCTA), action: onTapPublishTopic)
+                            .buttonStyle(.bordered)
+                    }
                 }
             }
         }

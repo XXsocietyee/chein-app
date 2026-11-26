@@ -22,29 +22,28 @@ import SwiftUI
             if members.isEmpty {
                 // MP wxml:93 这一段暂时没有成员.
                 Text("clubOpsEvent.roster.emptyBucket", tableName: "ClubOpsEvent")
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("clubOpsEvent.roster.inlineEmpty")
             }
             ForEach(members) { member in card(member) }
         }
     }
     private func card(_ member: ClubRosterMember) -> some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
                 if let name = member.nickname {
-                    Text(verbatim: name).cyText(.cardTitle)
+                    Text(verbatim: name)
                 } else {
-                    Text("club.roster.unnamed").cyText(.cardTitle)
+                    Text("club.roster.unnamed")
                 }
                 // MP wxml:98-99: waitlist tab → the waitlist state; other tabs → the phone.
                 if selected == .waitlist, let state = member.waitlistState {
-                    Text(verbatim: state).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: state).font(.subheadline).foregroundStyle(.secondary)
                 } else if let phone = member.phone {
-                    Text(verbatim: phone).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: phone).font(.subheadline).foregroundStyle(.secondary)
                 }
             }
-            Spacer(minLength: CYSpacing.sm)
+            Spacer(minLength: 8)
             if let phone = member.phone, let url = URL(string: "tel:" + phone) {
                 // MP wxml:101-104 member-call.
                 Link(destination: url) {
@@ -59,9 +58,10 @@ import SwiftUI
                 NavigationLink {
                     correction()
                 } label: {
-                    Text(selected == .arrived ? "clubOpsEvent.roster.markAbsent" : "clubOpsEvent.roster.markArrived", tableName: "ClubOpsEvent")
-                        .cyText(.label)
+                    Text(LocalizedStringKey(selected == .arrived ? "clubOpsEvent.roster.markAbsent" : "clubOpsEvent.roster.markArrived"), tableName: "ClubOpsEvent")
                 }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
                 .fixedSize()
                 .disabled(roster.correctionOperable == false)
                 .accessibilityIdentifier("clubOpsEvent.roster.correct.\(member.id)")

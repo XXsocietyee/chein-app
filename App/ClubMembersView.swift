@@ -54,67 +54,55 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                        }) { directory in
             List {
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        // CLB-detail-33 (parity r2): a sheet title is CYSheetHeader (22 pt), not a 34 pt hero; ✕ stays in the toolbar.
-                        CYSheetHeader(title: Text("club.members"))
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         ClubName(value: directory.club.name)
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                         // verify-r1 2.6 / N-14: the role counts are the subtitle; the roster card moved to 报名名册.
                         if !directory.members.isEmpty {
                             Text(verbatim: ClubRosterCardModel.roleSummary(directory, locale: locale))
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                                 .monospacedDigit()
                                 .accessibilityIdentifier("club.members.roleSummary")
                         }
                     }
-                    .listRowInsets(Self.rowInsets)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
                 }
                 if directory.members.isEmpty {
-                    CYEmptyState(
-                        systemImage: "person.3",
-                        directory.isReportedListUnavailable ? LocalizedStringKey("club.membersUnavailable") : LocalizedStringKey("club.emptyMembers"),
-                        detail: directory.isReportedListUnavailable ? LocalizedStringKey("club.membersUnavailableHint") : LocalizedStringKey("club.emptyMembersHint"),
-                        messageIdentifier: "club.members.empty",
-                        kind: .generic
-                    )
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                    ContentUnavailableView {
+                        Label {
+                            Text(directory.isReportedListUnavailable ? LocalizedStringKey("club.membersUnavailable") : LocalizedStringKey("club.emptyMembers"))
+                                .accessibilityIdentifier("club.members.empty")
+                        } icon: {
+                            Image(systemName: "person.3")
+                        }
+                    } description: {
+                        Text(directory.isReportedListUnavailable ? LocalizedStringKey("club.membersUnavailableHint") : LocalizedStringKey("club.emptyMembersHint"))
+                    }
                 } else {
                     Section {
                         // Figma 223:3698: 邀请成员 is the first row. Clubs have no invite link yet, so it shares a
                         // text invitation (club name + how to find it in the app) through the system share sheet.
                         if directory.club.isOwner || directory.club.viewerIsAdmin {
                             ClubMemberInviteRow(clubName: directory.club.name)
-                                .listRowInsets(Self.rowInsets)
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
                         }
                         ForEach(Array(directory.members.enumerated()), id: \.offset) { _, member in
                             memberLine(member, directory: directory)
-                                .listRowInsets(Self.rowInsets)
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
                         }
                     }
                 }
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .cyDomainPageBackground()
         }
-        .cyHeroScreen()
+        // CLB-detail-33 (parity r2): a sheet title in the bar; ✕ stays in the toolbar.
+        .navigationTitle(Text("club.members"))
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $memberReport) { target in Group {
             if let governance, currentReport(target) {
                 NavigationStack { ClubMemberReportView(target: target, identity: reader.clubIdentity, governance: governance) }
             } else {
                 Color.clear.onAppear { if memberReport?.id == target.id { memberReport = nil } }
             }
-        }.cySheet(detents: [.large])
+        }.presentationDetents([.large])
         }
         .onChange(of: reportContext) { _, _ in
             reportReadGeneration &+= 1; reportDirectory = nil; memberReport = nil; reportRefreshRevision &+= 1
@@ -125,38 +113,37 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         .onDisappear { reportSourceActive = false; reportReadGeneration &+= 1 }
         .sheet(isPresented: $choosing) {
             if let target = choice {
-                let items: [CYOptionSheetItem<String>] = {
-                    var list: [CYOptionSheetItem<String>] = [
-                        CYOptionSheetItem(
-                            id: "public",
-                            title: appLocalized("social.profile", locale: locale),
-                            systemImage: "person.crop.circle",
-                            identifier: "club.member.choice.public"
-                        )
-                    ]
-                    if target.viewerRevision == governance?.viewerRevision, matchesGovernance(target.identity) {
-                        list.append(CYOptionSheetItem(
-                            id: "customer",
-                            title: appLocalized("club.gov.customer", locale: locale),
-                            systemImage: "person.text.rectangle",
-                            identifier: "club.member.choice.customer"
-                        ))
+                NavigationStack {
+                    List {
+                        Button {
+                            choosing = false
+                            select(target, customer: false)
+                        } label: {
+                            Label(appLocalized("social.profile", locale: locale), systemImage: "person.crop.circle")
+                        }
+                        .accessibilityIdentifier("club.member.choice.public")
+                        if target.viewerRevision == governance?.viewerRevision, matchesGovernance(target.identity) {
+                            Button {
+                                choosing = false
+                                select(target, customer: true)
+                            } label: {
+                                Label(appLocalized("club.gov.customer", locale: locale), systemImage: "person.text.rectangle")
+                            }
+                            .accessibilityIdentifier("club.member.choice.customer")
+                        }
                     }
-                    return list
-                }()
-                CYOptionSheet(
-                    title: appLocalized("club.members", locale: locale),
-                    items: items,
-                    onSelect: { selected in
-                        choosing = false
-                        select(target, customer: selected == "customer")
-                    },
-                    onClose: {
-                        choosing = false
-                        choice = nil
+                    .navigationTitle(appLocalized("club.members", locale: locale))
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("action.cancel") {
+                                choosing = false
+                                choice = nil
+                            }
+                        }
                     }
-                )
-                .cyDomainSheet(detents: [.peek, .half])
+                }
+                .presentationDetents([.medium])
             }
         }
         .navigationDestination(item: $destination) { target in
@@ -201,8 +188,8 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                 if directory.club.id == id, directory.club.canGovern, matchesGovernance(target.identity) {
                     choice = target; choosing = true
                 } else { destination = target }
-            } label: { memberRow(member).cyPressTracking() }
-            .buttonStyle(.cyPressTracked)
+            } label: { memberRow(member).contentShape(Rectangle()) }
+            .buttonStyle(.plain)
             .accessibilityIdentifier("club.member.\(member.memberId)")
             .accessibilityHint(Text(directory.club.canGovern && matchesGovernance(reader.clubIdentity) ? "club.members" : "social.profile"))
         } else {
@@ -256,21 +243,24 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let nickname = member.trimmedNickname {
                     Text(verbatim: nickname)
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("club.memberNumber \(member.memberId)")
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if member.isOwner { CYStatusChip("club.role.creator", tone: .neutral, systemImage: "star") }
-                else if member.isAdmin { CYStatusChip("club.role.administrator", tone: .neutral, systemImage: "shield") }
+                if member.isOwner {
+                    Label("club.role.creator", systemImage: "star")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else if member.isAdmin {
+                    Label("club.role.administrator", systemImage: "shield")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
                 if let level = member.displayedLevel {
                     Text("club.memberLevel \(level)")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.member.level.\(member.memberId)")
@@ -278,8 +268,8 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                 // verify-r1 1.5 / MC-02: 11月16日, not the server's raw wall-clock text.
                 if let joined = member.displayedJoinTime.map({ ClubJoinDateDisplay.text($0, locale: locale) }) {
                     Text("club.memberJoined \(joined)")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textTertiary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.member.joined.\(member.memberId)")
                 }
@@ -288,7 +278,6 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         }
         .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
     }
-    private static var rowInsets: EdgeInsets { EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal) }
 }
 
 
@@ -312,26 +301,16 @@ enum ClubJoinDateDisplay {
 struct ClubMemberInviteRow: View {
     let clubName: String
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         ShareLink(item: String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)) {
-            HStack(spacing: CYSpacing.md) {
-                Image(systemName: "person.badge.plus")
-                    .cyText(.bodyMedium)  // CLB-detail-41
-                    .foregroundStyle(palette.textPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(Circle().fill(palette.bgElevated))
-                    .accessibilityHidden(true)
+            Label {
                 OpsR3Text.text("r3club.invite.title")
-                    .cyText(.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
-                Spacer(minLength: 0)
+            } icon: {
+                Image(systemName: "person.badge.plus")
+                    .accessibilityHidden(true)
             }
-            .frame(minHeight: CYSpacing.minTouchTarget)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.cyPressable)
         .accessibilityHint(OpsR3Text.text("r3club.invite.hint"))
         .accessibilityIdentifier("club.members.invite")
     }

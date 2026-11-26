@@ -29,16 +29,13 @@ import SwiftUI
     /// composer stayed locked on 请先成功加载此会话 while the user typed and tapped Send (F-09).
     /// Keep one reader per issuance, exactly as the messaging home does.
     @StateObject private var readerOwner = SessionMessagingHomeReaderOwner()
-    @Environment(\.cyPalette) private var palette
     init(owner: ClubChatCoordinator, session: AppSession) { _model = StateObject(wrappedValue: ClubChatViewModel(owner)); self.session = session }
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                CYHeroHeader("club.chat.title", subtitle: "club.chat.explanation")
+        List {
+            Section {
                 if !model.owner.service.isConfigured {
                     Text("club.chat.disabled")
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.chat.disabled")
                 }
@@ -46,11 +43,12 @@ import SwiftUI
                 enterButton
                     .disabled(!model.owner.canEnter)
                     .accessibilityIdentifier("club.chat.enter")
+            } footer: {
+                Text("club.chat.explanation")
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
-        .cyDomainPageBackground()
+        .navigationTitle(Text("club.chat.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .accessibilityIdentifier("club.chat.screen")
         .onAppear { model.observe() }
@@ -66,9 +64,9 @@ import SwiftUI
     }
     @ViewBuilder private var enterButton: some View {
         if model.phase == .unknown {
-            CYPillButton("club.chat.retry", systemImage: "arrow.clockwise") { enter() }
+            Button { enter() } label: { Label("club.chat.retry", systemImage: "arrow.clockwise") }
         } else {
-            CYPillButton("club.chat.enter", systemImage: "bubble.left.and.bubble.right") { enter() }
+            Button { enter() } label: { Label("club.chat.enter", systemImage: "bubble.left.and.bubble.right") }
         }
     }
     private func enter() {
@@ -77,22 +75,19 @@ import SwiftUI
     @ViewBuilder private var phaseStatus: some View {
         switch model.phase {
         case .entering:
-            CYSkeleton().accessibilityLabel(Text("club.chat.loading"))
+            ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("club.chat.loading"))
         case .unknown:
             Text("club.chat.unknown")
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("club.chat.unknown")
         case .rejected:
             Text("club.chat.rejected")
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         case .stale:
             Text("poll.stale")
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         default:
             EmptyView()
@@ -103,14 +98,13 @@ import SwiftUI
 /// One title, no enter action: chat is not available for this session.
 @MainActor private struct ClubChatUnavailableView: View {
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                CYHeroHeader("club.chat.title", subtitle: "club.chat.disabled")
-            }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
+        ContentUnavailableView {
+            Label("club.chat.title", systemImage: "bubble.left.and.bubble.right")
+        } description: {
+            Text("club.chat.disabled")
         }
-        .cyDomainPageBackground()
+        .navigationTitle(Text("club.chat.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.player)
     }
 }

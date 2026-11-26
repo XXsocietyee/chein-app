@@ -3,11 +3,10 @@ import SwiftUI
 /// Native selectable text only. The projection contains no URLs or executable markup.
 struct SocialArticleContentView: View {
     let article: SocialArticleContent
-    @Environment(\.cyPalette) private var palette
     init(contents: String) { article = SocialArticleContent(contents) }
     var body: some View {
         Group {
-            if article.blocks.isEmpty { CYEmptyState(systemImage: "doc.text", "social.guide.noContent") }
+            if article.blocks.isEmpty { ContentUnavailableView("social.guide.noContent", systemImage: "doc.text") }
             ForEach(Array(article.blocks.enumerated()), id: \.offset) { index, block in
                 blockView(block)
                     .textSelection(.enabled)
@@ -15,25 +14,27 @@ struct SocialArticleContentView: View {
                     .accessibilityIdentifier("social.article.block.\(index)")
             }
             if article.isLimited {
-                CYStatusChip("social.article.limited", tone: .neutral, systemImage: "scissors")
+                Label("social.article.limited", systemImage: "scissors")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("social.article.limited")
             }
         }
     }
     @ViewBuilder private func blockView(_ block: SocialArticleContent.Block) -> some View {
         switch block.kind {
-        case .paragraph: text(block).cyText(.body).foregroundStyle(palette.textPrimary)
+        case .paragraph: text(block)
         case .heading(let level):
-            text(block).font(level <= 2 ? CYTypography.sectionTitle : CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+            text(block).font(level <= 2 ? Font.title3.weight(.semibold) : Font.headline)
                 .accessibilityAddTraits(.isHeader)
         case .listItem(let marker, let depth):
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(verbatim: marker)
                 text(block)
-            }.cyText(.body).foregroundStyle(palette.textPrimary).padding(.leading, CGFloat(min(depth, 4)) * 12)
+            }.padding(.leading, CGFloat(min(depth, 4)) * 12)
                 .accessibilityElement(children: .combine)
         case .quote:
-            text(block).cyText(.body).padding(.leading, CYSpacing.md).foregroundStyle(palette.textSecondary)
+            text(block).padding(.leading, 12).foregroundStyle(.secondary)
         }
     }
     private func text(_ block: SocialArticleContent.Block) -> Text {
