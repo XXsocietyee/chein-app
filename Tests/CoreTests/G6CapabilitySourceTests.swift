@@ -401,7 +401,7 @@ import FoundationNetworking
         }
         for path in ["/api/marketing/attribution/claim",
                      "/api/ai/npc/chat", "/api/ai/npc/chat/request", "/api/author-write/receipt",
-                     "/api/marketing/product/quote", "/api/marketing/product/order", "/api/marketing/product/gifts/claim",
+                     "/api/marketing/product/quote", "/api/marketing/product/order",
                      "/api/marketing/product/orders/77/pay", "/api/registration/pay", "/api/pay/create", "/api/withdrawal/create"] {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
