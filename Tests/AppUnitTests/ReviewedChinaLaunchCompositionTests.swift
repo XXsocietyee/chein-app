@@ -938,13 +938,32 @@ import XCTest
         _ = await service.postAnalyticsBatch([analytics]); sent("api/analytics/events/batch")
         let before = recorder.paths.count
         let base = player.baseURL
-        // Money, and the merchant-scope supply review, stay closed.
+        // The money-write switch is process-global and the host app installs it at launch. Pin "no host
+        // derivation" so this measures the parity-B grant: it carries no money route of its own.
+        let savedDerivation = ReleaseMoneyWriteSwitch.testDerivation
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        defer { ReleaseMoneyWriteSwitch.testDerivation = savedDerivation }
+        // Money stays closed, and the parity-B grant does not carry it.
         for closed in ["api/registration/pay", "api/registration/payment-readiness", "api/wallet/withdraw",
-                       "api/club/settlement/withdraw", "api/circle-theme/instance/review"] {
+                       "api/club/settlement/withdraw"] {
             XCTAssertFalse(grant.play.paths.contains(closed), closed)
             await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent(closed), #"{"activityId":3}"#, token: player.session.token)) }
         }
         XCTAssertEqual(recorder.paths.count, before)
+        // 4b9037eb1 (MP-first, owner 2026-11-25): the merchant-content supply review is admitted by
+        // `MerchantContentMPWriteRoute` (the server's permission check decides), not by the parity-B play grant.
+        let review = "api/circle-theme/instance/review"
+        XCTAssertFalse(grant.play.paths.contains(review))
+        XCTAssertTrue(MerchantContentMPWriteRoute.paths.contains(review))
+        XCTAssertNil(ReleaseMoneyWriteSwitch.kind(for: "/" + review))
+        // 139e06853 (owner 2026-11-25): with the shipped host derivation installed, Release money is on through
+        // `ReleaseMoneyWriteSwitch` (not the parity-B grant). Virtual goods stay off.
+        ReviewedAreaSwitch.installReleaseMoneyDerivation(host: base.host)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/registration/pay"))
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/cart/add"))
+        XCTAssertFalse(grant.play.paths.contains("api/registration/pay"))
     }
 
     /// G1 play runtime: every owner-approved player read/write the play page needs reaches the network

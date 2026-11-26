@@ -48,15 +48,31 @@ import XCTest
             XCTAssertEqual(recorder.paths.last, path)
         }
 
-        for path in ["api/marketing/attribution/claim", "api/platform-pass/orders", "api/marketing/product/order",
+        // The money-write switch is process-global and the host app installs it at launch (139e06853: money is on
+        // for any installed host). Pin "no host derivation" so these checks measure the G6 grant, not test order.
+        let savedDerivation = ReleaseMoneyWriteSwitch.testDerivation
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        defer { ReleaseMoneyWriteSwitch.testDerivation = savedDerivation }
+        for path in ["api/marketing/attribution/claim", "api/marketing/product/order",
                      "api/marketing/product/quote", "api/marketing/product/gifts/claim", "api/registration/pay", "api/pay/create"] {
             XCTAssertFalse(ReviewedProductionGateLeases.playPaths.contains(path), path)
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
             await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent(path), #"{"amount":1}"#, token: player.session.token)) }
         }
-        for path in ["api/platform-pass/orders/77", "api/ai/npc/chat/request", "api/author-write/receipt"] {
+        for path in ["api/ai/npc/chat/request", "api/author-write/receipt"] {
             XCTAssertFalse(ReviewedProductionFormMutationRoute.coversCapabilityRead(path), path)
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+        }
+        // 7579bd41b (owner 2026-11-24): platform-pass order reads are on for players, so the path is admitted.
+        // Any write on it (create, pay, cancel) is still refused by `isPlatformPassOrderWrite`, and the G6 play
+        // grant still does not carry it.
+        for path in ["api/platform-pass/orders", "api/platform-pass/orders/77"] {
+            XCTAssertFalse(ReviewedProductionGateLeases.playPaths.contains(path), path)
+            XCTAssertFalse(ReviewedProductionFormMutationRoute.coversCapabilityRead(path), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            let write = jsonRequest(base.appendingPathComponent(path), #"{"amount":1}"#, token: player.session.token)
+            XCTAssertTrue(ChinaReviewedRouteCapability.isPlatformPassOrderWrite(write), path)
+            await assertClosed { try await transport.send(write) }
         }
         XCTAssertFalse(recorder.paths.contains { $0.contains("attribution") || $0.contains("platform-pass") || $0.hasSuffix("/pay") })
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)

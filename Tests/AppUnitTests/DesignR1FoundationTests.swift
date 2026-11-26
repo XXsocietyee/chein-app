@@ -165,7 +165,12 @@ final class DesignR1FoundationTests: XCTestCase {
     }
 
     func testSheetHeaderGreyCloseCircle() {
-        assertHex(CYSheetHeader.closeFill(in: CYDomainPalette(.player)), 0x3A3A3C, scheme: .dark, "player grey ✕")
+        // 82bcf2c2d (native r2): the player palette follows the system Light/Dark trait, so its ✕ uses the
+        // secondary action fill like merchant (`--cy-color-action-secondary-bg`: white 8% dark / #EEEEEE light).
+        // Only the forced-dark game stage keeps the `#3A3A3C` sheet-card circle.
+        assertHex(CYSheetHeader.closeFill(in: CYDomainPalette(.player)), 0xFFFFFF, alpha: 0.08, scheme: .dark, "player grey ✕ (dark)")
+        assertHex(CYSheetHeader.closeFill(in: CYDomainPalette(.player)), 0xEEEEEE, scheme: .light, "player grey ✕ (light)")
+        assertHex(CYSheetHeader.closeFill(in: CYDomainPalette(.game)), 0x3A3A3C, scheme: .dark, "game stage grey ✕")
         assertHex(CYSheetHeader.closeFill(in: CYDomainPalette(.merchant)), 0xEEEEEE, scheme: .light, "merchant grey ✕")
     }
 }

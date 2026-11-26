@@ -51,7 +51,10 @@ import UIKit
         let article=h.session.makeProfileGuideArticleReader(selection);article.appear(foreground:true)
         let result=try await article.information(id:21);XCTAssertEqual(result.title,"Guide");XCTAssertEqual(result.contents,"<h1>Guide</h1><p>Read safely</p>")
         XCTAssertEqual(h.wire.paths,["infomation_list","infomation_detail"])
-        let list=try XCTUnwrap(h.wire.requests.first);XCTAssertNil(list.httpBody);XCTAssertEqual(list.httpMethod,"POST")
+        // 252af5c46 (MP contract): the list now posts the mini-program's first page (pageNum 1, pageSize 10).
+        let list=try XCTUnwrap(h.wire.requests.first);XCTAssertEqual(list.httpMethod,"POST")
+        XCTAssertEqual(ProfileFavoritesRequestContract.fields(list,baseURL:h.base,paths:[ProfileGuideReadRoute.listPath])?.1,ProfileGuideReadRoute.listPageFields)
+        XCTAssertEqual(ProfileGuideReadRoute(request:list,baseURL:h.base),.list)
         XCTAssertEqual(ProfileGuideReadRoute(request:try XCTUnwrap(h.wire.requests.last),baseURL:h.base),.detail(21))
         do {_ = try await reader.information(id:21);XCTFail()}catch{XCTAssertEqual(error as? APIError,.notConfigured)}
         do {_ = try await article.information(id:22);XCTFail()}catch{XCTAssertEqual(error as? APIError,.invalidRequest)}

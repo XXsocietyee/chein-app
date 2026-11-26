@@ -11,6 +11,10 @@ import XCTest
             "subpackageJourney/pages/landing/index": ["k": "g", "t": "tok"],
             "subpackageJourney/pages/seats/index": ["registrationId": "9"],
             "pages/team/join/index": ["entry": "code"],
+            // Pages whose MP query needs one of several keys (no single `required` key):
+            // 537bfd65a group-code takes activityId or topicId; c9cbcd24b the public merchant home takes id or poiId.
+            "pages/club/group-code/index": ["activityId": "7"],
+            "pages/merchant/profile/index": ["id": "7"],
         ]
         // Every other required key gets a value too (parity r1: clubId, memberId, orderNo, topicId, reportId…).
         for (page, rule) in MiniProgramPageLink.reviewedPages where samples[page] == nil && !rule.required.isEmpty {
