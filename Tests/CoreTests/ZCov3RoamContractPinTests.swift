@@ -16,11 +16,11 @@ private final class Cov3RoamPinTransport: HTTPTransport, @unchecked Sendable {
 /// public `liboyang42-cpu/hengyin` `chengyinhub-xcx` `25eb6a0c`.
 /// Each call test names the path, the method literal, and the literal field names.
 /// No endpoint is added. Gift claim still throws `moneyOff` and sends nothing.
-/// `PlayStageAnalyticsGate.enabled` stays false.
+/// PLAY-r11-3: `PlayStageAnalyticsGate.enabled` is on (MP utils/stage-events.js:36-50).
 /// The type name sorts after pins that already cover a narrower field list.
 final class ZCov3RoamContractPinTests: XCTestCase {
     func testGiftClaimThrowsMoneyOffAndSendsNothing() throws {
-        XCTAssertFalse(PlayStageAnalyticsGate.enabled)
+        XCTAssertTrue(PlayStageAnalyticsGate.enabled) // PLAY-r11-3: MP utils/stage-events.js:36-50
         let transport = Cov3RoamPinTransport()
         let source = try JourneyLoopSource(
             configuration: APIConfiguration(baseURL: URL(string: "https://example.test")!),
@@ -96,6 +96,6 @@ final class ZCov3RoamContractPinTests: XCTestCase {
     func testForwardedRoamAndCityStampCallsStayWithoutAPath() {
         let cityStampMethod = "POST"
         XCTAssertEqual(cityStampMethod, "POST")
-        XCTAssertFalse(PlayStageAnalyticsGate.enabled)
+        XCTAssertTrue(PlayStageAnalyticsGate.enabled) // PLAY-r11-3: MP utils/stage-events.js:36-50
     }
 }

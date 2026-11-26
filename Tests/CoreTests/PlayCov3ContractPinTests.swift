@@ -75,7 +75,7 @@ final class PlayCov3ContractPinTests: XCTestCase {
         XCTAssertTrue(PlayerContentMPContract.pricingGrantEnabled)
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
-        XCTAssertFalse(PlayStageAnalyticsGate.enabled)
+        XCTAssertTrue(PlayStageAnalyticsGate.enabled) // PLAY-r11-3: MP utils/stage-events.js:36-50
         let base = try XCTUnwrap(URL(string: "https://example.com"))
         XCTAssertThrowsError(try PlayerContentMPContract.registrationQuote(baseURL: base, ownerType: 1, ownerID: 4)) { error in
             XCTAssertEqual(error as? PlayerContentMPContract.Refusal, .moneyDisabled)

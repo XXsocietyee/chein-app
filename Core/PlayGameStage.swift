@@ -105,12 +105,11 @@ public struct PlayGameMatchLine: Equatable, Hashable {
 
 /// CG-01-P2-9 stage events. Names match the server allow-list. Properties carry
 /// only codes (node id, kit, issue kind). No answers, typed text or photos.
-/// Sending is off until `PlayStageAnalyticsGate` is turned on. The events go
-/// through the existing `AnalyticsEventClient`; this type does not queue or post.
+/// The events go through the existing `AnalyticsEventClient`; this type does not queue or post.
+/// PLAY-r11-3: on, as in the MP (这一站有问题 → `stage_issue_report`, toast 已记录;
+/// pages/play/play-help.wxml:47, :68, utils/stage-events.js:36-50).
 public enum PlayStageAnalyticsGate {
-    /// Default off. P2 owns the reviewed-route lease. Until that lease is on, the UI
-    /// does not emit these events and the issue menu stays hidden.
-    public static var enabled: Bool { false }
+    public static var enabled: Bool { true }
 }
 
 public enum PlayStageEvent: String, Equatable, CaseIterable {
