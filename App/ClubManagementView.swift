@@ -313,9 +313,9 @@ struct ClubManagementView: View {
             Button {
                 Task { await prepare(.approve, memberID: request.id, attachment: attachment, source: source) }
             } label: { Text(verbatim: clubR1("request.approve", locale)) }
-            .buttonStyle(.bordered)
+            // CLB-r10-nat-join-requests-01 (MP join-requests wxml: 通过 is the primary action): small `.borderedProminent`.
+            .buttonStyle(.borderedProminent)
             .controlSize(.small)
-            .tint(.green)
             .accessibilityIdentifier("club.management.row.approve.\(request.id)")
         }
         .disabled(busy)
