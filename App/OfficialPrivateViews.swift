@@ -110,7 +110,8 @@ import SwiftUI
                     }
                 } header: { Text("official.published.eventsHeader \(events.count)") }
                 Section {
-                    if broadcasts.isEmpty { emptyRow("official.published.broadcastsEmpty", "official.published.broadcastsEmptyDetail") }
+                    // R9-PC-C6-1: MP cy-empty title only (pages/activity/official-mine/index.wxml:23).
+                    if broadcasts.isEmpty { emptyRow("official.published.broadcastsEmpty") }
                         ForEach(Array(broadcasts.enumerated()), id: \.offset) { _, broadcast in
                             if broadcast.id > 0 {
                                 // R7-PC-C6-3 (MP official-mine/index.wxml:25-29): tapping the card reads its 复盘 in place.
@@ -239,6 +240,9 @@ private extension Decimal {
     @ViewBuilder let label: () -> Content
     private enum Phase: Equatable { case idle, loading, loaded(OfficialBroadcastStats), failed(String?) }
     @State private var phase: Phase = .idle
+    @State private var confirmsRecover = false
+    @State private var recovering = false
+    @State private var recoverError: String?
     @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -256,11 +260,6 @@ private extension Decimal {
                         } else if let counts = OfficialBroadcastStatsText.counts(stats) {
                             Text("official.published.statsLine \(counts.reached) \(counts.clicked)").font(.caption).monospacedDigit()
                                 .foregroundStyle(.secondary)
-                        } else if stats.canRecoverInapp {
-                            Text(verbatim: OfficialReadCopy.recoverableDelivery(locale: locale))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .accessibilityIdentifier("official.broadcast." + "recoverable")
                         }
                     case .failed(let note):
                         Text(verbatim: OfficialBroadcastStats.failureLine(serverMessage: note, locale: locale))
@@ -274,6 +273,44 @@ private extension Decimal {
             .buttonStyle(.plain)
             .disabled(phase == .loading)
             .accessibilityHint(Text("official.published.statsHint"))
+            // R10-PC-C6-2: MP official-mine/index.wxml:30 `安全恢复原投递` when the stats say `canRecoverInapp`.
+            if case .loaded(let stats) = phase, stats.canRecoverInapp {
+                Button("official.broadcast.recover") { confirmsRecover = true }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .disabled(recovering)
+                    .accessibilityIdentifier("official.broadcast.recover")
+            }
+            if let recoverError {
+                Text(verbatim: recoverError).font(.caption).foregroundStyle(.red)
+                    .accessibilityIdentifier("official.broadcast." + "recoverError")
+            }
+        }
+        .confirmationDialog(Text("official.broadcast.recover"), isPresented: $confirmsRecover, titleVisibility: .visible) {
+            Button("official.broadcast.recover.confirm") { recover() }
+        } message: {
+            Text("official.broadcast.recover.message")
+        }
+    }
+    /// MP index.js:181-197: one request per broadcast at a time; a refusal says why, then the stats are read again.
+    private func recover() {
+        guard !recovering else { return }
+        recovering = true; recoverError = nil
+        let scope = reader.scope
+        Task {
+            defer { recovering = false }
+            do {
+                try await reader.recoverBroadcast(id: String(id))
+            } catch is CancellationError {
+                return
+            } catch {
+                guard reader.scope == scope else { return }
+                recoverError = OfficialBroadcastStats.serverNote(error)
+                    ?? OfficialReadCopy.text("网络连接失败", "Network connection failed", locale: locale)
+            }
+            guard reader.scope == scope else { return }
+            phase = .idle
+            load()
         }
     }
     private func load() {

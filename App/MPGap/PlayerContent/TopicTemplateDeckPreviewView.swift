@@ -8,6 +8,9 @@ public struct TopicTemplateDeckPreviewView: View {
     public var onUseTemplate: () -> Void
 
     @Environment(\.locale) private var locale
+    /// R9-PC-A-N1: MP check / clock icons follow Dynamic Type.
+    @ScaledMetric(relativeTo: .body) private var checkIconSide: CGFloat = 18
+    @ScaledMetric(relativeTo: .footnote) private var clockIconSide: CGFloat = 14
     @State private var selectedIndex = 0
     @State private var flippedCardID: String?
 
@@ -47,7 +50,7 @@ public struct TopicTemplateDeckPreviewView: View {
                         } icon: {
                             MPAsset.FeatureIcon.pagesTemplatedetailArtTabCheck.resizable().scaledToFit()
                                 .accessibilityHidden(true)
-                                .frame(width: 18, height: 18)
+                                .frame(width: checkIconSide, height: checkIconSide)
                         }
                             .font(.body)
                             .foregroundStyle(.secondary)
@@ -178,7 +181,7 @@ public struct TopicTemplateDeckPreviewView: View {
                 } icon: {
                     MPAsset.FeatureIcon.pagesTemplatedetailArtTabClock.resizable().scaledToFit()
                         .accessibilityHidden(true)
-                        .frame(width: 14, height: 14)
+                        .frame(width: clockIconSide, height: clockIconSide)
                 }
                     .font(.footnote)
                     .foregroundStyle(.secondary)

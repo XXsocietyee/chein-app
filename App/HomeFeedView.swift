@@ -357,6 +357,18 @@ import UIKit
             }
         }
     }
+    /// Club label, first category and status in one secondary line; a repeated value shows once.
+    static func recoCaption(_ item: HomeFeedItem) -> String {
+        var parts: [String] = []
+        for part in [item.clubLabel].compactMap({ $0 }) + recoChips(item) where !parts.contains(part) { parts.append(part) }
+        return parts.joined(separator: " · ")
+    }
+    static func recoChips(_ item: HomeFeedItem) -> [String] {
+        var chips: [String] = []
+        if let first = item.categoryNames.first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty }) { chips.append(first) }
+        if let status = item.statusLabel?.trimmingCharacters(in: .whitespaces), !status.isEmpty { chips.append(status) }
+        return chips
+    }
     /// Horizontal shelf over the already-loaded section items. Open goes through the same guarded destination as the
     /// nearby cards. 即将上线 keeps the source countdown (还剩N天 / 还剩N小时 / 已开始) under each card.
     private func carouselRail(_ items: [HomeFeedItem], section: HomeFeedSection) -> some View {
@@ -366,6 +378,17 @@ import UIKit
                 ForEach(capped) { item in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         row(item, section: section.rawValue, style: .shelf)
+                        // R7-PC-A1-3: MP index.wxml:107-120 — club label, first category and status on 编辑精选.
+                        if section == .recommended {
+                            let caption = Self.recoCaption(item)
+                            if !caption.isEmpty {
+                                Text(verbatim: caption)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .accessibilityIdentifier("homeFeed.reco.caption.\(item.accessibilityKey)")
+                            }
+                        }
                         if section == .upcoming, let countdown = upcomingCountdown(item) {
                             Text(verbatim: countdown)
                                 .font(.footnote)
@@ -620,6 +643,18 @@ struct HomeFeedCard: View {
             // Round 4 image parity: MP stream card default (index.wxml:216/253).
             .fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)
             .cachingFeedImage()
+            // R7-PC-A1-3: MP stream card shows ≤2 category chips (`feedTags`, pages/index/index.wxml:216-253).
+            if !item.feedTags.isEmpty {
+                HStack(spacing: CYSpacing.xs) {
+                    ForEach(Array(item.feedTags.enumerated()), id: \.offset) { _, tag in
+                        Text(verbatim: tag)
+                            .font(.footnote)
+                            .lineLimit(1)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+            }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 priceRow
                 timeRow

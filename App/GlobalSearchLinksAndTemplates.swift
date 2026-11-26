@@ -414,7 +414,25 @@ enum PlayerContentMPAppWire {
     func partyInbox() async throws -> [OfficialPartyInvite] { try await inner.partyInbox() }
     func myPublished() async throws -> OfficialPublished { try await inner.myPublished() }
     func broadcastStats(id: Int) async throws -> OfficialBroadcastStats { try await inner.broadcastStats(id: id) }
-    func recoverBroadcast(id: String) async throws { try await inner.recoverBroadcast(id: id) }
+    /// R10-PC-C6-2: MP official-mine/index.js:181-197 `recoverBroadcast` — `POST /api/official/broadcast/{id}/recover`,
+    /// no body. A non-200 carries the server `msg` so the card can say it.
+    func recoverBroadcast(id: String) async throws {
+        guard isAuthenticated else { throw APIError.unauthorized }
+        guard isConfigured, let base = baseURL() else { throw APIError.notConfigured }
+        guard let credential = token(), AuthRequestBuilder.isValidToken(credential) else { throw APIError.unauthorized }
+        let drafted = try PlayerContentMPContract.broadcastRecover(baseURL: base, id: id)
+        try await fenced {
+            let (data, status) = try await self.load(drafted)
+            struct Status: Decodable { let code: Int?; let msg: String? }
+            let envelope = try? JSONDecoder().decode(Status.self, from: data)
+            if status == 401 || envelope?.code == 401 { throw APIError.unauthorized }
+            let note = envelope?.msg?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard (200..<300).contains(status), envelope?.code == 200 else {
+                if !note.isEmpty { throw OfficialReadFailure.explained(envelope?.code ?? status, note) }
+                throw OfficialReadFailure.rejected(envelope?.code ?? status)
+            }
+        }
+    }
 
     func events(city: String?) async throws -> [OfficialEvent] {
         if city != nil { return try await inner.events(city: city) }

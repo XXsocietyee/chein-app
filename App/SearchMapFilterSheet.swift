@@ -6,7 +6,6 @@ import SwiftUI
     @State private var minimum: String
     @State private var maximum: String
     @State private var dateDraft: SearchMapDateFilterDraft
-    @State private var datePicker: SearchMapDatePickerDraft?
     @State private var invalid = false
     @State private var tag: String
     @State private var cityRole: String
@@ -39,7 +38,7 @@ import SwiftUI
                         TextField("searchMap.tag", text: $tag).accessibilityIdentifier("searchMap.tag")
                         TextField("searchMap.cityRole", text: $cityRole).accessibilityIdentifier("searchMap.cityRole")
                         Picker("searchMap.sort", selection: $sortType) {
-                            Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
+                            Text("searchMap.nearest").tag(1) // R7-PC-A5-3: MP searchmap sort_type 最近 only; 最热 removed (pages/searchmap/index.js:281)
                         }
                     }
                 }
@@ -81,12 +80,20 @@ import SwiftUI
                         Text("globalDatePreset.disclosure").font(.footnote).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    TextField("searchMap.startDate", text: $dateDraft.startDate).accessibilityIdentifier("searchMap.filter.start")
-                    Button("mapDatePicker.start") { openDatePicker(.start) }
-                        .frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.start")
-                    TextField("searchMap.endDate", text: $dateDraft.endDate).accessibilityIdentifier("searchMap.filter.end")
-                    Button("mapDatePicker.end") { openDatePicker(.end) }
-                        .frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.end")
+                    // R7-PC-A3-3: MP search2 start/end `picker mode="date"` rows (pages/search2/index.wxml:100-129).
+                    // Native: a Toggle that reveals an inline compact DatePicker, as Reminders does for an optional date.
+                    Toggle("searchMap.startDate", isOn: dateEnabled(\.startDate))
+                        .accessibilityIdentifier("searchMap.filter.start.toggle")
+                    if !dateDraft.startDate.isEmpty {
+                        DatePicker("mapDatePicker.start", selection: dateValue(\.startDate), displayedComponents: .date)
+                            .accessibilityIdentifier("searchMap.filter.start")
+                    }
+                    Toggle("searchMap.endDate", isOn: dateEnabled(\.endDate))
+                        .accessibilityIdentifier("searchMap.filter.end.toggle")
+                    if !dateDraft.endDate.isEmpty {
+                        DatePicker("mapDatePicker.end", selection: dateValue(\.endDate), displayedComponents: .date)
+                            .accessibilityIdentifier("searchMap.filter.end")
+                    }
                 }
                 Section("searchMap.price") {
                     TextField("searchMap.minimum", text: $minimum).keyboardType(.decimalPad)
@@ -124,18 +131,36 @@ import SwiftUI
                     ToolbarItem(placement: .confirmationAction) { Button("searchMap.apply") { commit() }.accessibilityIdentifier("searchMap.filter.apply") }
                 }
         }
-        .sheet(item: $datePicker) { picker in Group {
-            SearchMapDatePickerSheet(initial: picker) { selection in
-                do {
-                    dateDraft = try selection.confirming(in: dateDraft)
-                    invalid = false; datePicker = nil
-                    return true
-                } catch { return false }
-            }
-        }.cySheet() }
     }
-    private func openDatePicker(_ field: SearchMapDatePickerField) {
-        datePicker = SearchMapDatePickerDraft(field: field, draft: dateDraft)
+    /// Gregorian civil day in the phone's zone, matching `SearchMapDateFilterDraft.select` (YYYY-MM-DD).
+    private static var civilCalendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = .current; return calendar
+    }
+    private static func civilString(_ date: Date) -> String {
+        let parts = civilCalendar.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", parts.year ?? 1970, parts.month ?? 1, parts.day ?? 1)
+    }
+    private static func civilDate(_ text: String) -> Date? {
+        let parts = text.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3 else { return nil }
+        return civilCalendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2], hour: 12))
+    }
+    /// On: today (or the start day for 结束日期). Off: clears the bound.
+    private func dateEnabled(_ field: WritableKeyPath<SearchMapDateFilterDraft, String>) -> Binding<Bool> {
+        Binding(get: { !dateDraft[keyPath: field].isEmpty }, set: { isOn in
+            if isOn {
+                let fallback = field == \SearchMapDateFilterDraft.endDate && !dateDraft.startDate.isEmpty
+                    ? dateDraft.startDate : Self.civilString(Date())
+                dateDraft[keyPath: field] = fallback
+            } else {
+                dateDraft[keyPath: field] = ""
+            }
+            invalid = false
+        })
+    }
+    private func dateValue(_ field: WritableKeyPath<SearchMapDateFilterDraft, String>) -> Binding<Date> {
+        Binding(get: { Self.civilDate(dateDraft[keyPath: field]) ?? Date() },
+                set: { dateDraft[keyPath: field] = Self.civilString($0); invalid = false })
     }
     private func selectDatePreset(_ preset: SearchMapDatePreset) {
         do { try dateDraft.select(preset); invalid = false } catch { invalid = true }
@@ -151,73 +176,5 @@ import SwiftUI
             let applied = try dateDraft.applying(to: draft)
             applyCityOptions?(tag, cityRole, sortType); apply(applied); dismiss()
         } catch { invalid = true }
-    }
-}
-
-/// Numeric native wheels deliberately keep Gregorian civil dates separate from
-/// instants, regardless of the device's preferred calendar or display locale.
-@MainActor private struct SearchMapDatePickerSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    /// Wheel rows are clipped to this height. It tracks title2 so the clip window grows with the text.
-    @ScaledMetric(relativeTo: .title2) private var wheelHeight: CGFloat = 160
-    @State private var picker: SearchMapDatePickerDraft
-    @State private var invalid = false
-    let confirm: (SearchMapDatePickerDraft) -> Bool
-
-    init(initial: SearchMapDatePickerDraft, confirm: @escaping (SearchMapDatePickerDraft) -> Bool) {
-        _picker = State(initialValue: initial)
-        self.confirm = confirm
-    }
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text(verbatim: picker.value).font(.headline)
-                        .accessibilityIdentifier("mapDatePicker.value")
-                    let layout = dynamicTypeSize.isAccessibilitySize
-                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 16))
-                        : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
-                    layout {
-                        wheel("mapDatePicker.year", values: SearchMapDatePickerDraft.years,
-                              selection: Binding(get: { picker.year }, set: { picker.selectYear($0); invalid = false }),
-                              identifier: "mapDatePicker.year")
-                        wheel("mapDatePicker.month", values: 1...12,
-                              selection: Binding(get: { picker.month }, set: { picker.selectMonth($0); invalid = false }),
-                              identifier: "mapDatePicker.month")
-                        wheel("mapDatePicker.day", values: picker.days,
-                              selection: Binding(get: { picker.day }, set: { picker.selectDay($0); invalid = false }),
-                              identifier: "mapDatePicker.day")
-                    }
-                    if invalid {
-                        Label("mapDatePicker.invalidOrder", systemImage: "exclamationmark.circle")
-                            .accessibilityIdentifier("mapDatePicker.invalidOrder")
-                    }
-                }.padding()
-            }
-            .appNavigationTitle(picker.field == .start ? "mapDatePicker.start" : "mapDatePicker.end")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("searchMap.cancel") { dismiss() }.accessibilityIdentifier("mapDatePicker.cancel")
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("mapDatePicker.confirm") { invalid = !confirm(picker) }
-                        .accessibilityIdentifier("mapDatePicker.confirm")
-                }
-            }
-        }
-    }
-
-    private func wheel(_ title: LocalizedStringKey, values: ClosedRange<Int>, selection: Binding<Int>, identifier: String) -> some View {
-        VStack(alignment: .leading) {
-            Text(title).font(.subheadline)
-            Picker(title, selection: selection) {
-                ForEach(values, id: \.self) { Text(verbatim: String($0)).tag($0) }
-            }
-            .pickerStyle(.wheel).labelsHidden().frame(height: wheelHeight).clipped()
-            .accessibilityIdentifier(identifier)
-        }.frame(maxWidth: .infinity)
     }
 }

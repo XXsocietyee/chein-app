@@ -16,9 +16,14 @@ struct TopicDetailView: View {
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     var ticketWalletDestination: ((Int) -> AnyView)? = nil
+    /// R7-PC-B1-5: MP `startPrepPlay` → `/pages/play/index?topicId=` after the safety check (pages/topic/index/index.js:714-722).
+    var playDestination: ((Int) -> AnyView)? = nil
+    @State private var showingPlay = false
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
+    /// R7-PC-B1-13: MP `sessionPreferName` (pages/topic/index/index.js:1319-1321): the tapped session row's ticket name.
+    @State private var sessionPreferName: String?
     /// Continuity r1 (6): which bar button opened the self-play / tickets / pricing sheet now up; nil for every other opener.
     /// Cleared on dismiss. The session sheet has no other opener, so it always zooms from the bar.
     @State private var barSheetOrigin: TopicBarSheet?
@@ -63,6 +68,12 @@ struct TopicDetailView: View {
     @State private var topicPageVisible = false
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
+    /// R7-PC-B1-5: the prep 开始游玩 opens the play runtime (MP); the ticket wallet stays the fallback when no runtime is mounted.
+    private var prepStartAction: (() -> Void)? {
+        if playDestination != nil { return { showingPlay = true } }
+        if ticketWalletDestination != nil { return { showingTickets = true } }
+        return nil
+    }
     var body: some View {
         Group {
             if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
@@ -110,7 +121,10 @@ struct TopicDetailView: View {
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false }
+        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false; showingPlay = false }
+        .navigationDestination(isPresented: $showingPlay) {
+            if let playDestination { playDestination(id) }
+        }
         .sheet(isPresented: $showingTickets, onDismiss: { barSheetOrigin = nil }) {
             if let ticketWalletDestination {
                 ticketWalletDestination(id)
@@ -376,7 +390,11 @@ struct TopicDetailView: View {
                 if value.tickets.isEmpty { Text("topic.noTickets") }
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
                     // R7-PC-B1-13 (MP index.wxml:227 `bindtap="bmClick"`): a session row opens the in-page session picker.
-                    Button { if !showingSessionSelection { showingSessionSelection = true } } label: {
+                    Button {
+                        guard !showingSessionSelection else { return }
+                        sessionPreferName = ticket.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                        showingSessionSelection = true
+                    } label: {
                     // Mini-program `sess`: name / time / meeting point / refund on the left, price and seats left on the right.
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         // Grouped session card: one element. The visible rows stay in source order.
@@ -456,7 +474,7 @@ struct TopicDetailView: View {
             // R7-PC-B1-20: MP shows 开局前准备 only to a viewer who has joined (`is_join == 1 && prep.show`).
             if value.isSignUp {
                 // 开始游玩 hands over to the ticket wallet, where the joined pass starts play (server checks run there).
-                PlayTopicPrepSection(topicID: id, onStart: ticketWalletDestination != nil ? { showingTickets = true } : nil)
+                PlayTopicPrepSection(topicID: id, onStart: prepStartAction)
             }
             G6TopicCharactersSection(chapters: value.chapters)
             Section("topic.availability") {
@@ -480,14 +498,17 @@ struct TopicDetailView: View {
             // C13: the empty state is said once (TopicReviewsContent), with no 0 total and no small print under the
             // reviews (MP `det6`: 还没有评价 card, else rating + 基于 N 条评论 + list).
             Section("topic.comments") {
-                CYPillButton("context.review.title", style: .secondary) { asSignedIn { showsReview = true } }.accessibilityIdentifier("topic.openReview")
+                Button("context.review.title") { asSignedIn { showsReview = true } }
+                    .buttonStyle(.bordered).accessibilityIdentifier("topic.openReview")
                 // R8-PC-B1-2 (MP `det6`): the 还没有评价 card itself is the write entry; the content view stays read-only.
-                let emptyWrite = value.reviews.hasConfirmedNoReviews && value.reviews.preview.isEmpty
-                TopicReviewsContent(reviews: value.reviews)
-                    .contentShape(Rectangle())
-                    .onTapGesture { if emptyWrite { asSignedIn { showsReview = true } } }
-                    .accessibilityAddTraits(emptyWrite ? .isButton : [])
-                    .accessibilityHint(emptyWrite ? Text("context.review.title") : Text(verbatim: ""))
+                // R9-PC-BN-4: a real Button (system traits and highlight) instead of onTapGesture + a manual trait.
+                if value.reviews.hasConfirmedNoReviews && value.reviews.preview.isEmpty {
+                    Button { asSignedIn { showsReview = true } } label: { TopicReviewsContent(reviews: value.reviews) }
+                        .buttonStyle(.plain)
+                        .accessibilityHint(Text("context.review.title"))
+                } else {
+                    TopicReviewsContent(reviews: value.reviews)
+                }
             }
             .environment(\.ugcSafetySubjectID, value.id)
             Section {
@@ -572,8 +593,9 @@ struct TopicDetailView: View {
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
                               heroNamespace: barHero)
         }
-        .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
-            TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
+        .sheet(isPresented: $showingSessionSelection, onDismiss: { sessionPreferName = nil; loads.start { await load() } }) {
+            TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination,
+                                      preferredTicketName: sessionPreferName)
                 .modifier(TopicBarHeroDestination(sheet: .sessions, origin: .sessions, namespace: barHero)) // only the bar opens it
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])

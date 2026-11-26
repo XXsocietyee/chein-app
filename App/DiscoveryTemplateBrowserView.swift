@@ -3,6 +3,7 @@ import SwiftUI
 /// Embed in the root's NavigationStack or present through DiscoveryHomeView.
 @MainActor
 struct DiscoveryTemplateBrowserView: View {
+    /// R9-PC-A-N1: the MP bell icon follows Dynamic Type.
     let reader: any DiscoveryReading
     let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
     let authoringRevision: UInt64

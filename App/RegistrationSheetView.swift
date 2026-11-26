@@ -146,6 +146,7 @@ struct RegistrationSheetView: View {
                         CouponUsabilitySection(phase: couponPhase, onRetry: { Task { await reloadCoupons() } })
                         RegistrationPaymentReadinessSection(price: flow.selectedTicket?.price, onResult: { paymentReadiness = $0 })
                         refundTiersSection
+                        hostReservationSection
                         waitlistSection
                         confirmationSection
                         }
@@ -631,6 +632,39 @@ struct RegistrationSheetView: View {
             }
         } header: { E1IconHeader(systemImage: "ticket", title: CoreLoopCopy(locale: locale).t("票种", "Ticket")) }
     }
+    /// R9-PC-C2-1: MP baoming 主持预约 block (pages/activity/baoming/baoming.wxml:225-241; js:1083), its own section
+    /// outside 候补: 状态, 付款截止 when awaiting payment, 撤销申请 (waitlist cancel) and 请求主持.
+    private var hostReservation: ActivityHostReservationState? {
+        guard let status = flow.waitlistStatus else { return nil }
+        let value = status.hostReservation(ticketSoldOut: flow.selectedTicket?.isSoldOut ?? false)
+        return value.isShown ? value : nil
+    }
+    @ViewBuilder private var hostReservationSection: some View {
+        if let reservation = hostReservation {
+            Section {
+                LabeledContent("registration.hostReservation.status") {
+                    Text(verbatim: reservation.statusText)
+                        .foregroundStyle(reservation.awaitingPayment ? .primary : .secondary)
+                }
+                if reservation.awaitingPayment, let deadline = flow.waitlistStatus?.expiresAt {
+                    LabeledContent("registration.hostReservation.payBy") {
+                        Text(deadline, format: .dateTime.month().day().hour().minute())
+                    }
+                }
+                if reservation.canCancel {
+                    Button("registration.hostReservation.cancel", role: .destructive) {
+                        if flow.prepareWaitlistCancellation() { showingWaitlistCancellation = true }
+                    }
+                    .disabled(!flow.canEdit || flow.isMutatingWaitlist)
+                    .accessibilityIdentifier("registration.hostReservation.cancel")
+                }
+                if reservation.canRequest, let ticket = flow.selectedTicket {
+                    ClubHostRequestButton(activityID: flow.activity.summary.id, ticketID: ticket.id,
+                                          reload: { Task { await flow.loadWaitlist() } })
+                }
+            } header: { Text("registration.hostReservation.title") }
+        }
+    }
     @ViewBuilder private var waitlistSection: some View {
         if flow.selectedTicket?.isSoldOut == true || flow.waitlistStatus != nil {
             Section {
@@ -675,11 +709,6 @@ struct RegistrationSheetView: View {
                     CYPillButton("registration.waitlist.refresh", style: .secondary) { Task { await flow.loadWaitlist() } }
                         .disabled(!flow.canEdit || flow.isReadingWaitlist)
                         .accessibilityIdentifier("registration.waitlist.refresh")
-                    if let ticket = flow.selectedTicket {
-                        // §27.6 request a host; the result is the reread waitlist state, never this reply.
-                        ClubHostRequestButton(activityID: flow.activity.summary.id, ticketID: ticket.id,
-                                              reload: { Task { await flow.loadWaitlist() } })
-                    }
                     if flow.canJoinWaitlist {
                         CYPillButton("registration.waitlist.join", style: .secondary) { Task { await flow.joinWaitlist() } }
                             .accessibilityIdentifier("registration.waitlist.join")
