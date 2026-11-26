@@ -36,6 +36,7 @@ import SwiftUI
         .navigationBarTitleDisplayMode(.inline)
         // CLB-badges-06: pull to refresh (MP enablePullDownRefresh) instead of a toolbar 刷新.
         .refreshable { model.perform { await $0.refresh() } }
+        .toolbar { createToolbarItem }
         .onAppear { visible = true; if scenePhase == .active { model.start() } }
         .onDisappear { visible = false; creating = false; pendingReview = nil; draft = .init(); model.retire() }
         .onChange(of: scenePhase) { _, phase in
@@ -56,6 +57,20 @@ import SwiftUI
             }
         )) {
             if let flow = model.flow { memberPickerSheet(flow) }
+        }
+    }
+
+    /// CLB-r10-nat-badges-03 (MP badges/index.wxml create entry, shown when `canCreate`): toolbar 创建.
+    private var createToolbarItem: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            if let flow = model.flow, flow.isCurrent, flow.canCreate {
+                Button {
+                    draft = .init(); creating = true
+                } label: {
+                    Label { Text("create", tableName: "ClubBadge") } icon: { Image(systemName: "plus") }
+                }
+                .disabled(model.working)
+            }
         }
     }
 
@@ -90,13 +105,7 @@ import SwiftUI
                 }
             }
             resultStatus(flow.resultPresentation, createIsPrimary: flow.canCreate)
-            if flow.canCreate {
-                Button {
-                    draft = .init(); creating = true
-                } label: {
-                    Label { Text("create", tableName: "ClubBadge") } icon: { Image(systemName: "plus") }
-                }
-            }
+            // CLB-r10-nat-badges-03: 创建勋章 (MP badges wxml create button, owner only) is the toolbar primary action.
             if flow.screenState == .empty {
                 // Round 4 image parity: MP cy-state-shell kind="empty" → the MP two-layer empty art.
                 ClubMPEmptyState(title: Text("empty", tableName: "ClubBadge"))
@@ -162,6 +171,17 @@ import SwiftUI
             }
         }
         .accessibilityElement(children: .contain)
+        // CLB-r10-nat-badges-03: 颁发 is also the row's swipe action (MP badges wxml per-badge 颁发).
+        .swipeActions(edge: .trailing) {
+            if flow.canGrant {
+                Button {
+                    model.perform { await $0.openGrant(badge) }
+                } label: {
+                    Label { Text("grant", tableName: "ClubBadge") } icon: { Image(systemName: "person.badge.plus") }
+                }
+                .tint(.accentColor)
+            }
+        }
     }
 
     /// CLB-badges-04 (fix-r3-club-b): MP cy-sheet 颁给谁？ with the caption 勋章：X and one avatar row per member.
