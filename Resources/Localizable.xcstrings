@@ -311352,12 +311352,11 @@
       }
     },
     "official.broadcast.recover": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restore the original delivery"
+            "value": "Safely restore original delivery"
           }
         },
         "zh-Hans": {
@@ -320847,6 +320846,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "返回活动列表"
+          }
+        }
+      }
+    },
+    "official.broadcast.recover.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确定"
+          }
+        }
+      }
+    },
+    "official.broadcast.recover.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the original recipients are restored. Deliveries with an unknown result or pending history are not resent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只会按原收件人恢复，结果不明或历史待核的不会重发。"
           }
         }
       }
