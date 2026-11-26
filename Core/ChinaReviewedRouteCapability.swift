@@ -185,7 +185,9 @@ public enum ChinaReviewedRouteCapability {
         "/api/club-direct-merchant/club": .payout, "/api/club-direct-merchant/merchant": .payout,
         "/api/registration/payment-readiness": .payment, "/api/registration/pay": .payment, "/api/registration/pay/app": .payment,
         "/api/fund/preflight/bank-withdrawal": .withdrawal, "/api/fund/preflight/{}/confirm": .withdrawal,
-        "/api/fund/preflight/{}/reject": .withdrawal, "/api/withdrawal/create": .withdrawal
+        "/api/fund/preflight/{}/reject": .withdrawal, "/api/withdrawal/create": .withdrawal,
+        // CLB-r11-settlement-01 (MP components/cy/fe-reference-settlement/index.js:68-69): 标记已结清, payer side only.
+        "/api/fe/reference-settlement/settle": .payout
     ]
 
     /// Contract §7 item 18. The six recipient-preview patterns (`IMPreviewRouteTemplates`).

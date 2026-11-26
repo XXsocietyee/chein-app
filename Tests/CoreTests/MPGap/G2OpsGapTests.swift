@@ -47,6 +47,19 @@ final class G2OpsGapTests: XCTestCase {
         XCTAssertEqual(ClubTopicDirectorToolKind.allCases.map(\.title), ["章节放行", "队伍进度", "角色分配", "现场事件", "定向广播"])
     }
 
+    /// CLB-r11-settlement-01 (MP components/cy/fe-reference-settlement/index.js:57-75): settle follows the payout switch.
+    func testFEReferenceSettleFollowsPayoutSwitch() {
+        let saved = ReleaseMoneyWriteSwitch.testDerivation
+        defer { ReleaseMoneyWriteSwitch.testDerivation = saved }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .payout }
+        XCTAssertTrue(FEReferenceSettlementMoneyWrite.enabled)
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/fe/reference-settlement/settle"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/fe/reference-settlement/dispute"))
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        XCTAssertFalse(FEReferenceSettlementMoneyWrite.enabled)
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/fe/reference-settlement/settle"))
+    }
+
     func testFEReferenceSettlementMoneyWriteGateClosedByDefault() async throws {
         let transport = StubTransport { _ in (Data("{\"code\":200}".utf8), 200) }
         let client = ClubFEReferenceSettlementClient(configuration: baseConfig, transport: transport)
@@ -191,6 +204,10 @@ final class G2OpsGapTests: XCTestCase {
         for path in ChinaReviewedRouteCapability.feReferenceSettlementReadGrant {
             XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
+        let savedMoney = ReleaseMoneyWriteSwitch.testDerivation
+        defer { ReleaseMoneyWriteSwitch.testDerivation = savedMoney }
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        // CLB-r11-settlement-01: closed with no money derivation installed (no host).
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/fe/reference-settlement/settle"))
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/fe/reference-settlement/dispute"))
         XCTAssertFalse(FEReferenceSettlementMoneyWrite.enabled)

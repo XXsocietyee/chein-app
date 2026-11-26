@@ -2,13 +2,15 @@ import SwiftUI
 
 /// CLB-G17 / CLB-settlement-02 + CLB-r7-D-01 (fix-r8-club): mini-program `cy-fe-reference-range kind="payer"` on
 /// `pages/club/settlement` (index.wxml:11): 自由探索结算（参考） with the date range and 导出对账表 bar.
-/// Reads ride the payout area (open off the production host in DEBUG/TEST, closed in Release). 标记已结清 is a money
-/// write: TEST-only and behind `ClubFEReferenceMoneyWriteGate.allowsSettle`, which stays false (owner decision 12).
+/// 标记已结清 is a payout money write. CLB-r11-settlement-01 (owner 11-26, money on in Release; MP
+/// components/cy/fe-reference-settlement/index.js:57-75): it follows `ReleaseMoneyWriteSwitch` `.payout`.
+/// TEST builds may still force it with `testOverride`.
 enum ClubFEReferenceMoneyWriteGate {
     #if TEST
-    static var allowsSettle = false
+    static var testOverride: Bool?
+    static var allowsSettle: Bool { testOverride ?? ReleaseMoneyWriteSwitch.isEnabled(.payout) }
     #else
-    static let allowsSettle = false
+    static var allowsSettle: Bool { ReleaseMoneyWriteSwitch.isEnabled(.payout) }
     #endif
 }
 

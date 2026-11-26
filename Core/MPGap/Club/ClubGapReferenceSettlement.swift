@@ -40,7 +40,9 @@ public enum FEReferenceSettlementRole: String, Sendable {
 
 /// Settle and dispute stay off. List and export reads are not on this switch.
 public enum FEReferenceSettlementMoneyWrite {
-    public static let enabled = false
+    /// CLB-r11-settlement-01 (MP components/cy/fe-reference-settlement/index.js:57-75): 标记已结清 is a payout-kind
+    /// money write. Owner 11-26: money is on in Release, so it follows `ReleaseMoneyWriteSwitch` `.payout`.
+    public static var enabled: Bool { ReleaseMoneyWriteSwitch.isEnabled(.payout) }
 }
 
 public enum FEReferenceSettlementCopy {
