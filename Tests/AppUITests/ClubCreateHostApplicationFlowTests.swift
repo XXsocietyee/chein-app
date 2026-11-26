@@ -18,8 +18,13 @@ final class ClubCreateHostApplicationFlowTests: XCTestCase {
     func testNonLeaderCreateLinksToHostApplicationWithoutWriting() {
         launch("ordinary", hostApply: true)
         let apply = app.buttons["club.ops.applyHost"]
-        XCTAssertTrue(apply.waitForExistence(timeout: 10), app.debugDescription)
+        // CLB-r9-create-02 (MP create js:114-118): the create check sends a non-host on to the application once;
+        // back returns to the create page, which still offers 前往申请.
+        let back = app.navigationBars.buttons.element(boundBy: 0)
+        XCTAssertTrue(back.waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertFalse(app.buttons["club.ops.reviewProfile"].exists)
+        back.tap()
+        XCTAssertTrue(apply.waitForExistence(timeout: 10), app.debugDescription)
         apply.tap()
         XCTAssertFalse(apply.waitForExistence(timeout: 2) && apply.isHittable, app.debugDescription)
         XCTAssertEqual(app.staticTexts["club.ops.writeCount"].firstMatch.label, "0")

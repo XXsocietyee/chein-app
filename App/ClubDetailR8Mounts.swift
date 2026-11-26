@@ -568,3 +568,90 @@ private enum ClubCloud14HTTPS {
         return url
     }
 }
+
+/// CLB-r9-detail-01 (MP detail wxml:266-277, `goMemberProfile` js:2529-2534): a tapped strip avatar opens 公开资料;
+/// the owner and administrators first choose 公开资料 / 客户档案, as on the 本团贡献榜 rows above.
+/// `tapped` is set by the strip and cleared here once the tap is routed.
+@MainActor struct ClubDetailStripMemberOpen: ViewModifier {
+    @Binding var tapped: Int?
+    let club: ClubRecord
+    let identity: ClubReadIdentity
+    let governance: ClubGovernanceContext?
+    @State private var destination: ClubDetailLeaderboardMemberOpen?
+    @State private var choice: ClubDetailLeaderboardMemberOpen?
+    @State private var choosing = false
+
+    func body(content: Content) -> some View {
+        content
+            .navigationDestination(item: $destination) { destinationPage($0) }
+            .confirmationDialog(Text("club.detail.leaderboard.member.open", tableName: "ClubPublicRoster"),
+                                isPresented: $choosing, titleVisibility: .visible) { choiceActions }
+            .onChange(of: tapped) { _, memberID in route(memberID) }
+            .onChange(of: choosing) { _, open in if !open { choice = nil } }
+            .onChange(of: identity) { _, _ in destination = nil; choice = nil; choosing = false }
+    }
+    private var revision: UInt64 { governance?.viewerRevision ?? 0 }
+    private var profileOpenable: Bool {
+        guard identity.isSignedIn, let profile = governance?.enrollmentProfile else { return false }
+        return profile.reader.isConfigured && profile.reader.identity.accountID == identity.accountID
+    }
+    private var offersCustomer: Bool {
+        guard club.isOwner || club.viewerIsAdmin, identity.isSignedIn, let governance else { return false }
+        return governance.access.isConfigured && governance.access.identity == identity
+    }
+    private func target(_ memberID: Int, customer: Bool) -> ClubDetailLeaderboardMemberOpen {
+        ClubDetailLeaderboardMemberOpen(id: UUID(), memberID: memberID, customer: customer, clubID: club.id,
+                                        identity: identity, viewerRevision: revision)
+    }
+    private func current(_ target: ClubDetailLeaderboardMemberOpen) -> Bool {
+        guard target.identity == identity, target.viewerRevision == revision, target.clubID == club.id, target.memberID > 0 else { return false }
+        return target.customer ? offersCustomer : profileOpenable
+    }
+    private func route(_ memberID: Int?) {
+        guard let memberID else { return }
+        tapped = nil
+        guard memberID > 0, destination == nil, !choosing else { return }
+        if profileOpenable && offersCustomer {
+            choice = target(memberID, customer: false); choosing = true
+        } else if profileOpenable {
+            destination = target(memberID, customer: false)
+        } else if offersCustomer {
+            destination = target(memberID, customer: true)
+        }
+    }
+    @ViewBuilder private var choiceActions: some View {
+        // Read `choice` inside the actions; shadowing the @State with if-let crashes swift-frontend.
+        if let pending = choice, current(pending) {
+            Button { pick(customer: false) } label: {
+                Text("club.detail.leaderboard.member.public", tableName: "ClubPublicRoster")
+            }
+            .accessibilityIdentifier("club.detail.memberStrip.choice.public")
+            Button { pick(customer: true) } label: {
+                Text("club.detail.leaderboard.member.customer", tableName: "ClubPublicRoster")
+            }
+            .accessibilityIdentifier("club.detail.memberStrip.choice.customer")
+        }
+        Button("action.cancel", role: .cancel) { choosing = false; choice = nil }
+    }
+    private func pick(customer: Bool) {
+        guard let picked = choice else { choosing = false; return }
+        let next = target(picked.memberID, customer: customer)
+        choosing = false; choice = nil
+        if current(next) { destination = next }
+    }
+    @ViewBuilder private func destinationPage(_ target: ClubDetailLeaderboardMemberOpen) -> some View {
+        if current(target), target.customer, let governance {
+            ClubGovernanceReadView(operation: .customer, scope: .init(clubID: target.clubID, memberID: target.memberID),
+                                   identity: target.identity, access: governance.access, coordinator: governance.coordinator)
+                .environment(\.clubCustomerTopics, governance.customerTopics)
+                .environment(\.clubEnrollmentProfile, governance.enrollmentProfile)
+                .id(target.id)
+        } else if current(target), let profile = governance?.enrollmentProfile {
+            SocialPublicProfileView(memberID: target.memberID, reader: profile.reader, squareReader: profile.squareReader,
+                                    actions: profile.actions, isCurrent: { current(target) })
+                .id(target.id)
+        } else {
+            Color.clear.onAppear { if destination?.id == target.id { destination = nil } }
+        }
+    }
+}

@@ -29,6 +29,10 @@ import SwiftUI
     @State private var publishEmpty = false
     /// CLB-G15 (MP event-ops js:499-503 `goPublishTopic` → pages/publish/fabu/index?clubId): the extras section's 发布主题.
     @State private var publishTopicOpen = false
+    /// CLB-r9-event-ops-01 (MP event-ops topic dropdown): the hub's eventTopics read feeds an inline topic menu;
+    /// 添加日期 opens the picked topic first (ClubOpsEventAccess.focusFirst on the pushed list).
+    @State private var topicFacts: [ClubOpsEventTopicFact] = []
+    @State private var pickedTopicID: Int?
     private var key: Key { .init(identity: identity, authorization: access.authorizationGeneration, reader: ObjectIdentifier(access), scope: scope) }
     private var accessScope: ClubGovernanceScope { .init(clubID: scope.clubID, activityID: scope.activityID) }
     private var eventScope: ClubGovernanceScope { .init(clubID: scope.clubID, topicID: scope.topicID, activityID: scope.activityID) }
@@ -167,7 +171,8 @@ import SwiftUI
             } footer: { ClubOpsTableNote("clubOpsEvent.series.note") }
         case .recurrence:
             Section {
-                push(.eventTopics, .init(clubID: scope.clubID, topicID: scope.topicID)) {
+                if topicFacts.count > 1 { topicPicker }
+                push(.eventTopics, .init(clubID: scope.clubID, topicID: pickedTopicID ?? scope.topicID)) {
                     Label {
                         VStack(alignment: .leading) {
                             Text("clubOpsEvent.recurrence.add", tableName: "ClubOpsEvent")
@@ -185,6 +190,17 @@ import SwiftUI
             // the hub section held only explanations with no control, so it is not shown.
             EmptyView()
         }
+    }
+    private var topicPicker: some View {
+        Picker(selection: $pickedTopicID) {
+            ForEach(topicFacts) { fact in
+                Text(verbatim: fact.name ?? "#\(fact.id)").tag(Optional(fact.id))
+            }
+        } label: {
+            Text("clubOpsEvent.recurrence.topic", tableName: "ClubOpsEvent")
+        }
+        .pickerStyle(.menu)
+        .accessibilityIdentifier("clubOpsEvent.recurrence.topicPicker")
     }
     /// CLB-event-ops-02: the hub's roster read as the shared presentation; nil when it is missing or malformed.
     private var inlineRoster: ClubRosterPresentation? {
@@ -216,11 +232,17 @@ import SwiftUI
                 throw ClubGovernanceFailure.malformed
             }
             model = ClubOpsEventAccess(permissions: permissions, scope: eventScope); loadedKey = expected
-            occurrenceStatus = nil; rosterTotal = nil; rosterSnapshot = nil; publishEmpty = false
-            if let model, model.sections.contains(.series) {
-                // MP `topicsLoaded && topics.length === 0 && seriesState === 'empty'`: both reads must answer.
+            occurrenceStatus = nil; rosterTotal = nil; rosterSnapshot = nil; publishEmpty = false; topicFacts = []
+            if let model, model.sections.contains(.series) || model.sections.contains(.recurrence) {
                 let clubScope = ClubGovernanceScope(clubID: scope.clubID)
-                if let topics = try? await access.read(.eventTopics, scope: clubScope, options: [:], check: check),
+                let topics = try? await access.read(.eventTopics, scope: clubScope, options: [:], check: check)
+                guard revision == generation, expected == key else { return }
+                topicFacts = ClubOpsEventTopicNames.facts(topics, clubID: scope.clubID)
+                if !topicFacts.contains(where: { $0.id == pickedTopicID }) {
+                    pickedTopicID = topicFacts.first(where: { $0.id == scope.topicID })?.id ?? topicFacts.first?.id
+                }
+                // MP `topicsLoaded && topics.length === 0 && seriesState === 'empty'`: both reads must answer.
+                if model.sections.contains(.series), let topics,
                    let series = try? await access.read(.series, scope: clubScope, options: [:], check: check) {
                     guard revision == generation, expected == key else { return }
                     let seriesRows = series.value.array ?? series.value["rows"].array ?? series.value["items"].array

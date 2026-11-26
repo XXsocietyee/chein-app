@@ -325974,6 +325974,23 @@
           }
         }
       }
+    },
+    "club.detail.factPending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To be added"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待补充"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

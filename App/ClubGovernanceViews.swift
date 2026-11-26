@@ -2042,14 +2042,13 @@ struct ClubGovernanceReadView: View {
             let sessions = snapshot.value["activityList"].array ?? []
             let state = ClubTopicDetailPort.stateKey(snapshot.value)
             if topicPrimaryPlan(state: state, stats: stats, sessions: sessions) != ClubTopicDetailPort.Primary.none {
-                VStack(spacing: 0) {
-                    Divider()
-                    topicPrimary(state: state, stats: stats, sessions: sessions)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                }
-                .background(.bar)
+                // CLB-r10-nat-topic-detail-03: a `.borderedProminent` primary in the safe-area inset on the system bar
+                // material; no drawn Divider overlay.
+                topicPrimary(state: state, stats: stats, sessions: sessions)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(.bar)
             }
         }
     }

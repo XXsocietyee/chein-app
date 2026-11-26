@@ -8,12 +8,9 @@ import SwiftUI
     var ledger: AnyView? = nil
     var body: some View {
         Section {
-            // Mini-program 核销 card: three counters, number over label. CLB-r9-native-01: no shrink-to-fit; at large
-            // Dynamic Type sizes the counters stack instead (system text styles, no card chrome).
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .top) { tiles }
-                VStack(alignment: .leading) { tiles }
-            }
+            // Mini-program 核销 card: three counters. CLB-r10-nat-topic-detail-01: three system `LabeledContent` rows
+            // (label leading, monospaced value trailing); no tile chrome and no shrink-to-fit.
+            rows
         } header: {
             HStack {
                 Text("club.topic.verify.title").textCase(nil)
@@ -27,15 +24,13 @@ import SwiftUI
         }
     }
 
-    @ViewBuilder private var tiles: some View {
+    private var rows: some View {
         ForEach(metrics, id: \.key) { metric in
-            VStack(alignment: .leading) {
-                Text(verbatim: metric.value.isEmpty ? "—" : metric.value)
-                    .font(.title2.weight(.semibold)).monospacedDigit()
-                Text(LocalizedStringKey("club.topic.verify." + metric.key))
-                    .font(.footnote).foregroundStyle(.secondary)  // CLB-topic-detail-14
+            LabeledContent {
+                Text(verbatim: metric.value.isEmpty ? "—" : metric.value).monospacedDigit()
+            } label: {
+                Text(LocalizedStringKey("club.topic.verify." + metric.key))  // CLB-topic-detail-14
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("club.topic.verify." + metric.key)
         }
