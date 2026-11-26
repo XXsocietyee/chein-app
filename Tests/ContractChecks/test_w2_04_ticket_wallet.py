@@ -45,13 +45,19 @@ class W204TicketWalletParity(unittest.TestCase):
         self.assertNotIn('ticketWallet.parity.empty.detail', empty)
         # MP F-R2U-01 (PLY-21-10): the failed lane is a quiet meta note, never the full-failure title.
         partial = self.view.split('if let partial = model.value(owner: key)?.partialFailure {', 1)[1].split('}', 1)[0]
-        self.assertIn('.cyText(.meta)', partial)
+        # Native restyle R2: the meta token is the system footnote in secondary color.
+        self.assertIn('.font(.footnote).foregroundStyle(.secondary)', partial)
         self.assertNotIn('ticketWallet.parity.error.title', partial)
 
     def test_hint_and_title_are_presentation_only(self):
         self.assertIn('TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)', self.view)
         # Owner rule: no status on the card; the stub carries the MP sub-line (类型 · 剩 N 天) instead (PLY-21-5).
-        self.assertIn('if let type = ticket.walletTypeKey {', self.view)
+        # 6b940cb8c: the sub-line also carries 已核销 x/y 家 and N 大 M 小同享, so it shows when any part exists.
+        self.assertIn('if ticket.walletTypeKey != nil || ticket.showsSharedParty || ticket.exploreProgress != nil {', self.view)
+        self.assertIn('TicketWalletSubline(ticket: ticket, typeKey: ticket.walletTypeKey)', self.view)
+        subline = self.view.split('private struct TicketWalletSubline: View {', 1)[1].split('\n}\n', 1)[0]
+        for forbidden in ['Button(', 'Task {', 'await ', 'status']:
+            self.assertNotIn(forbidden, subline)
         self.assertNotIn('TicketWalletStatusBadge(status: ticket.status)', self.view)
         body = self.copy.split('public extension TicketWalletTicket {', 1)[1]
         for forbidden in ['action', 'Task {', 'transport', 'URLRequest', 'send(']:

@@ -200604,7 +200604,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund accepted"
+            "value": "Refund completed"
           }
         },
         "zh-Hans": {
@@ -292208,6 +292208,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "普通票"
+          }
+        }
+      }
+    },
+    "暂不能看可对接的活动": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't view activities open for cooperation yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不能看可对接的活动"
           }
         }
       }

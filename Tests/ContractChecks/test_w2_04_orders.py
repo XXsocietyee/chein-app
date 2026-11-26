@@ -110,6 +110,15 @@ class W204OrderParityChecks(unittest.TestCase):
         # 71ac8de83/c9dd60b21: the file also holds ProfileOrderConsentSection, which runs the existing marketing GET
         # (list only). The source sections stay presentation-only; the consent section never writes.
         source_sections, consent = sections.split('struct ProfileOrderConsentSection: View {', 1)
+        # 5043b2ced FIN-17-4: ProfileOrderTeamSeatClubSection (same file) carries the MP host-club follow
+        # (`followClub` -> /api/user/follow/action). That is its only write; it never pays, refunds or cancels.
+        source_sections, team_seat_club = source_sections.split('struct ProfileOrderTeamSeatClubSection: View {', 1)
+        self.assertEqual(team_seat_club.count('Task {'), 1)
+        self.assertEqual(team_seat_club.count('await '), 2)
+        self.assertIn('Button("orderDetail.club.follow") { Task { await follow(leader) } }', team_seat_club)
+        self.assertIn('let reply = await service.followClubOwner(memberID: memberID)', team_seat_club)
+        for forbidden in ['URLSession', 'pay(', 'refund', 'cancel', 'setMarketing', '.consent(', 'Toggle(']:
+            self.assertNotIn(forbidden, team_seat_club)
         for forbidden in ['Task {', 'await ', 'transport', 'URLSession', 'Button(']:
             self.assertNotIn(forbidden, source_sections)
             self.assertNotIn(forbidden, timeline)
