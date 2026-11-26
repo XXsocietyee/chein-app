@@ -31,7 +31,9 @@ class ClubDetailTabContracts(unittest.TestCase):
         self.assertLess(view.index('ClubActionPanel('), view.index('ClubDetailTabBar('))
         # CLB-detail-14 (0bcd0607d): 帖文 is the feed only; the chat entry moved to 概览 behind the same member gate.
         self.assertIn('if tab == .overview, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn', view)
-        for marker, tab in [('club.chat.entry', '.overview'), ('ClubCommunityEntry(', '.posts'), ('SessionClubPublicActivityListView(clubID: id', '.events'),
+        # CLB-detail-14 r10 (MP detail wxml:96-158): 帖文 is the feed itself; the feed List carries the same page header.
+        self.assertIn('ZStack { if tab == .posts, let community {\n                postsFeed(club: club', view)
+        for marker, tab in [('club.chat.entry', '.overview'), ('SessionClubPublicActivityListView(clubID: id', '.events'),
                             ('club.openManagement', '.manage'), ('club.statsOverview.open', '.manage'), ('club.openMembers', '.overview'),
                             ('ClubMerchantDiscoveryView(', '.manage'), ('club.projectLaunch.entry', '.manage'),
                             ('club.detail.leaderboard.open', '.overview')]:

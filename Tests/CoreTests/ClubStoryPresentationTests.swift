@@ -235,6 +235,15 @@ extension ClubStoryPresentationTests {
         XCTAssertEqual(stops.map(\.estimatedWalkingMinutes), [nil, 14, 3])
         XCTAssertEqual(stops.map(\.sequence), [1, 2, 3])
     }
+    /// CLB-topic-story-04 (MP topic-story wxml:41, js:77-78): each stop carries its own coordinates for 在地图中打开.
+    func testStopsCarryTheirOwnCoordinatesAndDropZeroOrMissing() throws {
+        let stops = try walkStops([walkNode(301, latitude: .decimal(31.01)), walkNode(302, latitude: .integer(0)),
+            walkNode(303, longitude: .null)])
+        XCTAssertEqual(stops[0].latitude, 31.01)
+        XCTAssertEqual(stops[0].longitude, 121)
+        XCTAssertNil(stops[1].latitude)
+        XCTAssertNil(stops[2].longitude)
+    }
     func testWalkingEstimateRestartsAtEveryChapterBoundary() throws {
         let projection = try ClubStoryPresentation(snapshot: snapshot([
             chapter(nodes: [walkNode(301), walkNode(302, latitude: .decimal(31.01))]),

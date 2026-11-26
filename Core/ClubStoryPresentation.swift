@@ -24,6 +24,9 @@ public struct ClubStoryStop: Equatable, Identifiable {
     public let name: String?
     public let address: String?
     public let imgUrl: String?
+    /// CLB-topic-story-04 (MP topic-story wxml:41, js:77-78 `openLocation`): the node's own coordinates; nil when missing or 0.
+    public let latitude: Double?
+    public let longitude: Double?
 }
 
 public struct ClubStoryGameplay: Equatable, Identifiable {
@@ -98,7 +101,8 @@ public struct ClubStoryPresentation: Equatable {
                     businessTime: Self.text(node["businessTime"]),
                     estimatedWalkingMinutes: nodeIndex > 0
                         ? Self.walkingMinutes(from: nodesByChapter[index][nodeIndex - 1], to: node) : nil, name: name,
-                    address: Self.text(node["address"]), imgUrl: cover))
+                    address: Self.text(node["address"]), imgUrl: cover,
+                    latitude: Self.coordinate(node)?.latitude, longitude: Self.coordinate(node)?.longitude))
                 let template = node["cmsMemberTemplate"]
                 guard template.object != nil else { continue }
                 let templateID = Self.uniqueID(template["id"], counts: templateIDs).flatMap(MemberPlayTemplateID.init(rawValue:))

@@ -1979,23 +1979,19 @@ struct ClubGovernanceReadView: View {
             } }
             // CLB-topic-detail-10 (MP topic-detail wxml:609-625, js:1094-1100): 定向广播 under the participants when the
             // director runs this session; the projection offers BROADCAST or the row is dimmed with the reason.
+            // r10: the disabled row stays visible and dimmed; MP `broadcastDisabledText` (wxml:621-624) sits in the footer.
             if operation == .topicCustomers, let projection = sessionDirector?.projection {
+                let canBroadcast = projection.availableActions.contains(PlayDirectorAction.broadcast.rawValue)
                 Section {
-                    if projection.availableActions.contains(PlayDirectorAction.broadcast.rawValue) {
-                        Button { opensDirectorBroadcast = true } label: {
-                            Label("club.topic.broadcast", systemImage: "megaphone")
-                        }
-                        .accessibilityIdentifier("club.topic.broadcast")
-                    } else {
-                        VStack(alignment: .leading) {
-                            Text("club.topic.broadcast")
-                            Text("club.topic.broadcast.disabled \(appLocalized(String.LocalizationValue(stringLiteral: Self.sessionStatusKey(projection.status)), locale: locale))")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        .foregroundStyle(.secondary)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityIdentifier("club.topic.broadcast.disabled")
+                    Button { opensDirectorBroadcast = true } label: {
+                        Label("club.topic.broadcast", systemImage: "megaphone")
+                    }
+                    .disabled(!canBroadcast)
+                    .accessibilityIdentifier("club.topic.broadcast")
+                } footer: {
+                    if !canBroadcast {
+                        Text("club.topic.broadcast.disabled \(appLocalized(String.LocalizationValue(stringLiteral: Self.sessionStatusKey(projection.status)), locale: locale))")
+                            .accessibilityIdentifier("club.topic.broadcast.disabledReason")
                     }
                 }
             }

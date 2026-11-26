@@ -107,22 +107,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             let facts = detailFacts(club)
             let tabs = ClubDetailTabPolicy(club: club, grant: manageGrant)
             let tab = tabs.resolve(selectedTab ?? tabs.initialTab(requested: focusPostID != nil ? .posts : requestedTab))
+            // CLB-detail-14 (MP detail wxml:96-158): 帖文 is the feed itself, inline under the header and tab bar.
+            ZStack { if tab == .posts, let community {
+                postsFeed(club: club, tabs: tabs, tab: tab, facts: facts, community: community)
+            } else {
             List {
-                // skill-r2 hand-off `204:24899` / `204:24850` (Club/Header, MC-22): cover banner, logo beside the name,
-                // one meta line 「类型 · N 名成员 · 公开加入」, the host line, and the viewer's status as a tag.
-                Section {
-                    ClubDetailHeader(club: club, memberText: facts.meta, content: facts.content)
-                        .listRowInsets(EdgeInsets())
-                }
-                if let actionCoordinator {
-                    ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
-                                    leavesAtPageEnd: tab == .overview,
-                                    onReadbackStarted: { detailGeneration &+= 1; return detailGeneration }) { detail, identity, generation in
-                        guard identity == reader.clubIdentity, detail.id == id, generation == detailGeneration else { return }
-                        actionDetail = detail; actionIdentity = identity
-                    }
-                }
-                ClubDetailTabBar(tabs: tabs.tabs, selection: tab) { selectedTab = tabs.select($0, from: tab) }
+                pageHeader(club: club, tabs: tabs, tab: tab, facts: facts)
                 // r4 · 主理人工作台 (`170:1744`, MC-28): 现在要做 and the three numbers head the 管理 tab; the project and
                 // management rows below keep their order (项目 · 合作与期次 · 管理).
                 if tab == .manage, club.canGovern {
@@ -175,14 +165,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     Section {
                         ContentUnavailableView("club.detail.posts.unavailable", systemImage: "text.bubble")
                             .accessibilityIdentifier("club.detail.posts.unavailable")
-                    }
-                }
-                if tab == .posts, let community {
-                    Section {
-                        ClubCommunityEntry(clubID: id, identity: reader.clubIdentity, context: community, focusPostID: focusPostID)
-                            .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
-                            .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
-                            .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
                     }
                 }
                 // CLB-detail-02: 活动 lists the club's current activities inline for every viewer (MP detail
@@ -416,6 +398,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
+            } }
             .cyTracksHeroScroll($heroScrolledAway)
             .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
             .task(id: "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)") {
@@ -535,6 +518,36 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
 
     /// Projects the decoded club through `ClubDetailPageModel`. `ClubRecord` stores a missing
     /// member count or level as 0, so only source-present facts are forwarded: unknown stays `—`.
+    /// CLB-detail-14 (MP detail wxml:96-158): the feed owns the 帖文 List, so its navigation, refresh and sheets stay
+    /// outside a lazy container; the page header, action panel and tab bar are its leading sections.
+    private func postsFeed(club: ClubRecord, tabs: ClubDetailTabPolicy, tab: ClubDetailTab,
+                           facts: (meta: String, raw: String, channels: Bool, content: ClubDetailPageContent?),
+                           community: ClubCommunityContext) -> some View {
+        ClubCommunityFeedView(context: community, identity: reader.clubIdentity, clubID: id, focusPostID: focusPostID,
+                              leading: AnyView(pageHeader(club: club, tabs: tabs, tab: tab, facts: facts)))
+            .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
+            .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
+            .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
+            .accessibilityIdentifier("club.detail.posts.feed")
+    }
+    /// skill-r2 hand-off `204:24899` / `204:24850` (Club/Header, MC-22): cover banner, logo beside the name,
+    /// one meta line 「类型 · N 名成员 · 公开加入」, the host line, and the viewer's status as a tag; then the tab bar.
+    @ViewBuilder private func pageHeader(club: ClubRecord, tabs: ClubDetailTabPolicy, tab: ClubDetailTab,
+                                         facts: (meta: String, raw: String, channels: Bool, content: ClubDetailPageContent?)) -> some View {
+        Section {
+            ClubDetailHeader(club: club, memberText: facts.meta, content: facts.content)
+                .listRowInsets(EdgeInsets())
+        }
+        if let actionCoordinator {
+            ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
+                            leavesAtPageEnd: tab == .overview,
+                            onReadbackStarted: { detailGeneration &+= 1; return detailGeneration }) { detail, identity, generation in
+                guard identity == reader.clubIdentity, detail.id == id, generation == detailGeneration else { return }
+                actionDetail = detail; actionIdentity = identity
+            }
+        }
+        ClubDetailTabBar(tabs: tabs.tabs, selection: tab) { selectedTab = tabs.select($0, from: tab) }
+    }
     private func detailFacts(_ club: ClubRecord) -> (meta: String, raw: String, channels: Bool, content: ClubDetailPageContent?) {
         var body: [String: Any] = ["id": club.id, "name": club.name, "isOwner": club.isOwner, "isJoined": club.isJoined, "viewerIsAdmin": club.viewerIsAdmin]
         if let count = club.sourceMemberCount { body["memberCount"] = count }
