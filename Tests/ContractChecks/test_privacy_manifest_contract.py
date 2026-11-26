@@ -20,6 +20,10 @@ EVIDENCE = {
     'PurchaseHistory': ('Core/OrderLifecycleDormantAdapter.swift', 'api/registration/pay/app'),
     'Fitness': ('App/IPhonePedometerProvider.swift', 'CMPedometer'),
     'DeviceID': ('App/AppAttestStepAssertionProvider.swift', 'generateAssertion'),
+    'SearchHistory': ('Core/MPGap/PlayerContent/PlayerContentRound2Service.swift', 'api/search/unified'),
+    'GameplayContent': ('Core/PlayRuntimeGap.swift', 'api/play/run-session/save'),
+    'CustomerSupport': ('Core/JourneyLoopSource.swift', '/api/play/feedback/submit'),
+    'OtherDataTypes': ('Core/PublisherIdentityRegistration.swift', 'idCard'),
 }
 
 

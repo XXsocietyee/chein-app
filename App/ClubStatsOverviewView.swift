@@ -90,9 +90,6 @@ import SwiftUI
               viewerRevision: governance.viewerRevision, authorizationGeneration: governance.access.authorizationGeneration,
               accessIdentity: ObjectIdentifier(governance.access))
     }
-    private var pageInsets: EdgeInsets {
-        EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal)
-    }
     private var reloadTitle: LocalizedStringKey {
         model.failure == nil ? LocalizedStringKey("club.gov.refresh") : LocalizedStringKey("action.retry")
     }
@@ -102,53 +99,56 @@ import SwiftUI
         let permit = model.permit(in: expected)
         List {
             if model.loading || permit == nil {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityLabel(Text("club.loading"))
                     .accessibilityIdentifier("club.statsOverview.loading")
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(pageInsets)
-                    .listRowSeparator(.hidden)
             }
             if permit != nil, let failure = model.failure {
-                CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failure.localizationKey),
-                             messageIdentifier: "club.statsOverview.error", kind: .failure)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(pageInsets)
-                    .listRowSeparator(.hidden)
+                ContentUnavailableView {
+                    Label {
+                        Text(LocalizedStringKey(failure.localizationKey))
+                            .accessibilityIdentifier("club.statsOverview.error")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                }
             }
             if let overview = model.accepted(expected, access: governance.access) {
                 summary(overview)
                 Section {
                     if overview.projects.isEmpty {
-                        CYEmptyState(systemImage: "square.stack.3d.up", "club.statsOverview.empty", messageIdentifier: "club.statsOverview.empty")
-                            .listRowBackground(Color.clear)
+                        ContentUnavailableView {
+                            Label {
+                                Text("club.statsOverview.empty")
+                                    .accessibilityIdentifier("club.statsOverview.empty")
+                            } icon: {
+                                Image(systemName: "square.stack.3d.up")
+                            }
+                        }
                     }
                     ForEach(overview.projects) { project in
                         projectCard(project)
                     }
+                } header: {
+                    Text("club.statsOverview.projects")
+                } footer: {
                     if overview.hasMoreProjects {
                         Text("club.statsOverview.firstFive")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
-                } header: {
-                    CYSectionHeader("club.statsOverview.projects").textCase(nil)
                 }
             }
             Section {
-                CYPillButton(reloadTitle, systemImage: "arrow.clockwise") {
+                Button {
                     guard let permit else { return }
                     Task { await model.load(permit, access: governance.access) }
+                } label: {
+                    Label(reloadTitle, systemImage: "arrow.clockwise")
                 }
                 .disabled(model.loading || permit == nil)
                 .accessibilityIdentifier("club.statsOverview.reload")
-                .listRowBackground(Color.clear)
-                .listRowInsets(pageInsets)
             }
         }
-        .listStyle(.insetGrouped)
-        .cyGroupedSurface()
         .cyPageTitle("club.statsOverview.title")
         .task(id: expected) {
             guard let permit = model.activate(expected) else { return }
@@ -169,19 +169,19 @@ import SwiftUI
                 metric("club.statsOverview.completed", systemImage: "checkmark.circle") { count(overview.completed) }
                 metric("club.statsOverview.rate", systemImage: "percent") { rate(overview.completion) }
             }.accessibilityIdentifier("club.statsOverview.summary")
-            Text("club.statsOverview.scope")
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Text("club.statsOverview.rateScope")
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+        } footer: {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text("club.statsOverview.scope")
+                Text("club.statsOverview.rateScope")
+            }
         }
     }
     private func projectCard(_ project: ClubStatsProject) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                CYRowIcon(systemImage: "flag.checkered")
+            Label {
                 projectTitle(project)
+            } icon: {
+                Image(systemName: "flag.checkered")
             }
             countRow("club.statsOverview.participants", project.participants, systemImage: "person.2")
             countRow("club.statsOverview.completed", project.completed, systemImage: "checkmark.circle")
@@ -196,32 +196,31 @@ import SwiftUI
             else if project.name == nil { Text("club.statsOverview.unnamed") }
             else { Text(verbatim: "—").accessibilityLabel(Text("club.statsOverview.unnamed")) }
         }
-        .cyText(.cardTitle)
-        .foregroundStyle(CYColor.textPrimary)
+        .font(.headline)
         .fixedSize(horizontal: false, vertical: true)
     }
     private func countRow(_ title: LocalizedStringKey, _ value: Int?, systemImage: String) -> some View {
-        CYListRow(title, trailing: .value(countText(value))) { CYRowIcon(systemImage: systemImage) }
+        LabeledContent { Text(verbatim: countText(value)).monospacedDigit() } label: { Label(title, systemImage: systemImage) }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(countLabel(title, value))
     }
     private func rateRow(_ value: ClubStatsCompletion) -> some View {
-        CYListRow("club.statsOverview.rate", trailing: .value(rateText(value))) { CYRowIcon(systemImage: "percent") }
+        LabeledContent { Text(verbatim: rateText(value)).monospacedDigit() } label: { Label("club.statsOverview.rate", systemImage: "percent") }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(rateLabel(value))
     }
     private func metric<Value: View>(_ title: LocalizedStringKey, systemImage: String, @ViewBuilder value: () -> Value) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Image(systemName: systemImage)
-                .cyText(.meta, weight: .semibold)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             value()
-                .cyText(.dataXL)
-                .foregroundStyle(CYColor.textPrimary)
+                .font(.title2.weight(.semibold))
+                .monospacedDigit()
             Text(title)
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)

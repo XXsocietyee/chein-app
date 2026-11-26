@@ -19,24 +19,20 @@ import SwiftUI
     @State private var revision = 0
     @State private var task: Task<Void, Never>?
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 40
     var body: some View {
         let _ = revision
         Group {
             if !model.isCurrent {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    historyHero
-                    MessagingIssueView(issue: .init(APIError.notConfigured), identifier: "channel.history.unavailable", retry: {})
-                }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                MessagingIssueView(issue: .init(APIError.notConfigured), identifier: "channel.history.unavailable", retry: {})
+                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             } else {
                 List {
                     if let error = model.issue {
                         Section {
                             if let operation = model.failedOperation, case .read = operation {
-                                Text("channel.receiptUnknown", tableName: "NativeChannel").cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                                Text("channel.receiptUnknown", tableName: "NativeChannel").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                             }
                             MessagingIssueView(issue: .init(error), identifier: "channel.history.error") {
                                 run(.retry)
@@ -44,33 +40,35 @@ import SwiftUI
                         }
                     }
                     if model.history.older.hasMore {
-                        CYPillButton("channel.older", style: .secondary, tableName: "NativeChannel") { run(.older) }
+                        Button { run(.older) } label: { Text("channel.older", tableName: "NativeChannel").frame(maxWidth: .infinity) }
                             .disabled(model.isLoading).accessibilityIdentifier("channel.history.older")
                             .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
                     }
                     if model.loaded && renderedMessages.isEmpty && !model.isLoading {
-                        CYEmptyState(systemImage: "bubble.left.and.bubble.right", "channel.noMessages", tableName: "NativeChannel")
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
+                        ContentUnavailableView {
+                            Label { Text("channel.noMessages", tableName: "NativeChannel") } icon: { Image(systemName: "bubble.left.and.bubble.right") }
+                        }
+                        .listRowSeparator(.hidden)
                     }
                     // Same row rules as direct chat: grouped time, avatar and name on received rows only.
                     let dividers = IMInboxTime.dividers(for: renderedMessages, now: Date())
                     ForEach(renderedMessages) { message in
                         let isOwn = message.senderID == model.client.identity?.accountID
-                        VStack(spacing: CYSpacing.sm) {
+                        VStack(spacing: 8) {
                             if let divider = dividers[message.id] {
-                                IMChatDividerLabel(divider: divider).cyText(.meta).foregroundStyle(palette.textSecondary)
+                                IMChatDividerLabel(divider: divider).font(.caption).foregroundStyle(.secondary)
                                     .frame(maxWidth: .infinity)
                             }
                             Button {
                                 selectedMessageID = message.id; presentsMessage = true
                             } label: {
-                                HStack(alignment: .bottom, spacing: CYSpacing.sm) {
+                                HStack(alignment: .bottom, spacing: 8) {
                                     if !isOwn {
-                                        CYCoverArt(seed: "channel-message-\(message.id)", symbol: "person.fill", showsDebugLabel: false, cornerRadius: avatarSize / 2)
+                                        Image(systemName: "person.crop.circle.fill")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .foregroundStyle(.secondary)
                                             .frame(width: avatarSize, height: avatarSize)
-                                            .clipShape(Circle())
                                             .accessibilityHidden(true)
                                     }
                                     ChatMessageBubble(isOwn: isOwn) {
@@ -88,26 +86,23 @@ import SwiftUI
                             .accessibilityIdentifier("channel.message.\(message.id)")
                         }
                         .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.pageHorizontal,
-                                                  bottom: CYSpacing.xs, trailing: CYSpacing.pageHorizontal))
+                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
                     if model.loaded {
                         // Only paging through a newer backlog is a button; fresh messages come with pull to refresh.
                         if model.client.canLoadNewer && model.history.hasMoreNewer {
-                            CYPillButton("channel.moreNewer", style: .secondary, tableName: "NativeChannel") { run(.newer) }
+                            Button { run(.newer) } label: { Text("channel.moreNewer", tableName: "NativeChannel").frame(maxWidth: .infinity) }
                                 .disabled(model.isLoading).accessibilityIdentifier("channel.history.newer")
                                 .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
                         }
                         if acknowledgementControls == nil, model.client.canReadThrough {
-                            CYPillButton("channel.markSeen", style: .secondary, tableName: "NativeChannel") {
+                            Button {
                                 if let last = renderedMessages.last?.id { model.observed(last) }
                                 run(.markSeen)
-                            }
+                            } label: { Text("channel.markSeen", tableName: "NativeChannel").frame(maxWidth: .infinity) }
                             .disabled(model.isLoading || renderedMessages.isEmpty)
                             .accessibilityIdentifier("channel.history.markSeen")
                             .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
                         }
                     }
                     if let acknowledgementControls { acknowledgementControls(renderedMessages).listRowSeparator(.hidden) }
@@ -115,18 +110,18 @@ import SwiftUI
                         LabeledContent {
                             Text(receipt.unread, format: .number).monospacedDigit()
                         } label: { Text("channel.unreadRemaining", tableName: "NativeChannel") }
-                            .cyText(.meta).foregroundStyle(palette.textSecondary)
+                            .font(.footnote).foregroundStyle(.secondary)
                             .accessibilityIdentifier("channel.history.readResult")
                             .listRowSeparator(.hidden)
                     }
                     if model.isLoading && renderedMessages.isEmpty {
-                        CYSkeleton()
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
                             .accessibilityElement(children: .ignore)
                             .accessibilityLabel(Text("messaging.loading"))
                             .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
                     } else if model.isLoading {
-                        ProgressView("messaging.loading").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget).listRowSeparator(.hidden)
+                        ProgressView("messaging.loading").frame(maxWidth: .infinity).listRowSeparator(.hidden)
                     }
                 }
                 .listStyle(.plain)
@@ -154,19 +149,26 @@ import SwiftUI
             } else if model.isCurrent, let composerAccessory {
                 // No text composer: the `+` still sits where the composer would be.
                 HStack { composerAccessory; Spacer(minLength: 0) }
-                    .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm).background(palette.bgPage)
+                    .padding(.horizontal).padding(.vertical, 8).background(.bar)
             }
         }
-        .safeAreaInset(edge: .top) {
-            if model.isCurrent {
-                historyHero
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.sm)
-                    .background(palette.bgPage)
+        .navigationTitle(Text("channel.history", tableName: "NativeChannel"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // Two-line title like Messages: page name over the conversation name.
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: 0) {
+                    Text("channel.history", tableName: "NativeChannel").font(.headline)
+                    if model.isCurrent {
+                        MessagingConversationName(conversation: model.conversation)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
             }
         }
-        .cyGroupedSurface()
-        .cyHeroScreen()
         // Pull to refresh replaces the toolbar refresh button; the same guarded run path loads.
         .refreshable {
             guard model.isCurrent else { return }
@@ -188,16 +190,6 @@ import SwiftUI
             if !available { task?.cancel(); textCoordinator?.accessInvalidated(); model.stop(); revision += 1 }
         }
         .privacySensitive()
-    }
-    private var historyHero: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            CYHeroHeader("channel.history", tableName: "NativeChannel")
-            MessagingConversationName(conversation: model.conversation)
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
     // A verified hidden receipt is a monotonic veto, never a second history source.
     // Read the observable veto here and in detail closures, including open child sheets.

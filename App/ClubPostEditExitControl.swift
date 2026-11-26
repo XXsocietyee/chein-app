@@ -81,25 +81,24 @@ import SwiftUI
         }
         .disabled(!canExit() || scenePhase != .active)
         .accessibilityIdentifier("club.postEditExit.cancel")
-        .sheet(isPresented: Binding(get: { model.dialog }, set: { model.presentationChanged($0) })) {
-            if let ticket = model.pending {
-                CYConfirmSheet(
-                    title: appLocalized("club.postEditExit.title", locale: locale),
-                    message: appLocalized("club.postEditExit.message", locale: locale),
-                    confirmTitle: appLocalized("club.postEditExit.discard", locale: locale),
-                    cancelTitle: appLocalized("club.postEditExit.keep", locale: locale),
-                    isDestructive: true,
-                    confirmIdentifier: "club.postEditExit.discard",
-                    cancelIdentifier: "club.postEditExit.keep",
-                    onCancel: { model.keepEditing(ticket) },
-                    onConfirm: {
-                        guard model.discard(ticket, scope: scope, draft: draft, currentSession: session,
-                                            canExit: canExit() && scenePhase == .active) else { return }
-                        close()
-                    }
-                )
-                .cyDomainSheet(detents: [.peek, .half])
+        .confirmationDialog(
+            appLocalized("club.postEditExit.title", locale: locale),
+            isPresented: Binding(get: { model.dialog }, set: { model.presentationChanged($0) }),
+            titleVisibility: .visible,
+            presenting: model.pending
+        ) { ticket in
+            Button(appLocalized("club.postEditExit.discard", locale: locale), role: .destructive) {
+                guard model.discard(ticket, scope: scope, draft: draft, currentSession: session,
+                                    canExit: canExit() && scenePhase == .active) else { return }
+                close()
             }
+            .accessibilityIdentifier("club.postEditExit.discard")
+            Button(appLocalized("club.postEditExit.keep", locale: locale), role: .cancel) {
+                model.keepEditing(ticket)
+            }
+            .accessibilityIdentifier("club.postEditExit.keep")
+        } message: { _ in
+            Text(verbatim: appLocalized("club.postEditExit.message", locale: locale))
         }
         .onAppear { model.appear() }
         .onDisappear { model.leave() }

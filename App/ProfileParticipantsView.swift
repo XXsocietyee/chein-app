@@ -53,55 +53,56 @@ struct ProfileParticipantsView: View {
                 if let deletedNotice {
                     // Source danger-confirm step three: the result card, not a passing toast.
                     Section {
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Label("participant.list.deletedTitle", systemImage: "checkmark.circle.fill")
-                                .cyText(.cardTitle).foregroundStyle(CYColor.successText)
-                            Text("participant.list.deletedDetail").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label {
+                                Text("participant.list.deletedTitle").font(.headline)
+                            } icon: {
+                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                            }
+                            Text("participant.list.deletedDetail").font(.subheadline).foregroundStyle(.secondary)
                         }
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("participant.list.deleted")
                         .id(deletedNotice)
                     }
-                    .transition(.opacity)
                 }
                 Section {
                     ForEach(page.cards) { card in
                         let name = card.fullName.trimmingCharacters(in: .whitespaces)
-                        let rowLabel = HStack(spacing: CYSpacing.md) {
+                        let rowLabel = HStack(spacing: 12) {
                             Text(verbatim: String(name.prefix(1)).uppercased())
-                                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                                .frame(width: 44, height: 44)
-                                .background(Circle().fill(CYColor.bgRaised))
-                                .overlay { if name.isEmpty { Image(systemName: "person.fill").foregroundStyle(CYColor.textTertiary) } }
+                                .font(.headline).foregroundStyle(.secondary)
+                                .frame(width: 40, height: 40)
+                                .background(.quaternary, in: Circle())
+                                .overlay { if name.isEmpty { Image(systemName: "person.fill").foregroundStyle(.secondary) } }
                                 .accessibilityHidden(true)
-                            VStack(alignment: .leading, spacing: 4) {
-                                if card.fullName.isEmpty { Text("profile.participants.unnamed").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                                else { Text(verbatim: card.fullName).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            VStack(alignment: .leading, spacing: 2) {
+                                if card.fullName.isEmpty { Text("profile.participants.unnamed").foregroundStyle(.primary) }
+                                else { Text(verbatim: card.fullName).foregroundStyle(.primary) }
                                 // Blank phone shows the model's em dash, never an empty line.
-                                Text(verbatim: card.phoneText).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: card.phoneText).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                                     .accessibilityLabel(PageTemplateVoiceOver.spoken(card.phoneText, locale: locale))
                             }
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .padding(.vertical, 4)
                         .accessibilityElement(children: .combine)
                         .accessibilityAddTraits(.isButton)
-                        HStack(spacing: CYSpacing.sm) {
+                        HStack(spacing: 8) {
                             NavigationLink { ProfileParticipantDetailView(id: card.id, reader: reader, coordinator: coordinator) } label: { rowLabel }
                                 .accessibilityIdentifier("profile.participant.\(card.id)")
                             // Mini-program pages/address row: 编辑 and × stay visible beside each participant.
                             if let coordinator, coordinator.canPrepare, reader.identity != nil {
                                 Button { editing = ParticipantRowTarget(id: card.id) } label: {
-                                    Text("participant.list.editShort").cyText(.meta).underline().foregroundStyle(CYColor.textSecondary)
-                                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                                    Text("participant.list.editShort")
+                                        .frame(minWidth: 44, minHeight: 44)
                                 }
                                 .buttonStyle(.borderless)
                                 .pageTemplateControl(label: Text("participant.list.editShort"), traits: .isButton)
                                 .accessibilityIdentifier("participant.list.editInline.\(card.id)")
                                 Button { deleting = ParticipantRowTarget(id: card.id) } label: {
-                                    Image(systemName: "xmark").foregroundStyle(CYColor.textTertiary)
-                                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                                    Image(systemName: "xmark.circle.fill").symbolRenderingMode(.hierarchical).foregroundStyle(.secondary)
+                                        .frame(minWidth: 44, minHeight: 44)
                                 }
                                 .buttonStyle(.borderless)
                                 .pageTemplateControl(label: Text("participant.form.delete"), traits: .isButton)
@@ -114,26 +115,24 @@ struct ProfileParticipantsView: View {
                                 Button("participant.list.deleteShort", role: .destructive) { deleting = ParticipantRowTarget(id: card.id) } // MP address.wxml 删除
                                     .accessibilityIdentifier("participant.list.delete.\(card.id)")
                                 Button("participant.list.editShort") { editing = ParticipantRowTarget(id: card.id) } // MP address.wxml 编辑
-                                    .tint(CYColor.infoText).accessibilityIdentifier("participant.list.edit.\(card.id)")
+                                    .tint(.blue).accessibilityIdentifier("participant.list.edit.\(card.id)")
                             }
                         }
                     }
                 } footer: {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 4) {
                         // A5-05: MP pages/address purpose line (用于报名联系和到场核验) once for the list, not on every row.
-                        Text("profile.participants.rowPurpose").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("profile.participants.rowPurpose")
                             .accessibilityIdentifier("profile.participants.purpose")
                         // Table total only when the reader exposes it; the row count is never shown in its place.
                         if reader is ProfileParticipantListFactsReading {
-                            Text("profile.participants.total \(page.totalText)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            Text("profile.participants.total \(page.totalText)")
                                 .accessibilityIdentifier("profile.participants.total")
                         }
                     }
                 }
             }
             .listStyle(.insetGrouped)
-            .cyGroupedSurface()
-            .cyAnimation(CYMotion.standard, value: deletedNotice)
         }
         }
         }
@@ -182,7 +181,7 @@ struct ProfileParticipantsView: View {
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         }
-        .cyDomainScreen(ThemeDomain.player)
+        .themeDomain(.player)
     }
 }
 
@@ -219,9 +218,25 @@ enum ProfileParticipantDisplay {
 
     var body: some View {
         let page = page
-        CYLoadSlot(isLoading: reader.isConfigured && page.phase == .loading, label: "profile.loading",
-                   identifier: "profile.participants.loading", announces: true) {
-            ZStack(alignment: .top) {
+        Group {
+            if reader.isConfigured && page.phase == .loading {
+                ProgressView("profile.loading")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityIdentifier("profile.participants.loading")
+            } else {
+            VStack(spacing: 0) {
+                if page.isRefreshing {
+                    // Source: 正在更新参与人信息… shows above the kept list while a newer read runs.
+                    HStack(spacing: 8) {
+                        ProgressView()
+                        Text("profile.participants.refreshing")
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 8)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("profile.participants.refreshing")
+                }
                 switch page.phase {
                 case .loading:
                     Color.clear
@@ -230,25 +245,27 @@ enum ProfileParticipantDisplay {
                 case .error:
                     failure
                 case .unknown:
-                    CYEmptyState(systemImage: "questionmark.circle", "profile.participants.unknown", detail: "profile.retryHint",
-                                 messageIdentifier: "profile.participants.unknown", actionTitle: "action.retry",
-                                 actionIdentifier: "profile.participants.retry", kind: .failure) { loadOwner.start { await reload() } }
+                    ContentUnavailableView {
+                        Label("profile.participants.unknown", systemImage: "questionmark.circle")
+                    } description: {
+                        Text("profile.retryHint")
+                    } actions: {
+                        Button("action.retry") { loadOwner.start { await reload() } }
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
+                            .accessibilityIdentifier("profile.participants.retry")
+                    }
+                    .accessibilityIdentifier("profile.participants.unknown")
                 case .ready:
                     ready(page)
                 }
-                if page.isRefreshing {
-                    // Source: 正在更新参与人信息… floats over the kept list while a newer read runs.
-                    CYStatusChip("profile.participants.refreshing", tone: .neutral, systemImage: "arrow.triangle.2.circlepath")
-                        .padding(.top, CYSpacing.sm)
-                        .accessibilityIdentifier("profile.participants.refreshing")
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
             }
-            .cyAnimation(CYMotion.standard, value: page.isRefreshing)
+            }
         }
         .overlay {
             if !reader.isConfigured {
-                CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", messageIdentifier: "profile.participants.unavailable")
+                ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                    .accessibilityIdentifier("profile.participants.unavailable")
             }
         }
         // A5-04 (native spec §3.1): pull to refresh is the one refresh; no duplicate toolbar button.
@@ -261,13 +278,20 @@ enum ProfileParticipantDisplay {
 
     @ViewBuilder private var failure: some View {
         if case .failure(let error)? = result, Self.isSignIn(error) {
-            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "profile.signInRequired", detail: "auth.expired",
-                         messageIdentifier: "profile.participants.signIn")
+            ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("auth.expired"))
+                .accessibilityIdentifier("profile.participants.signIn")
         } else {
-            CYEmptyState(systemImage: "exclamationmark.triangle", "profile.participants.loadFailed",
-                         detail: LocalizedStringKey(Self.failureDetailKey(result)),
-                         messageIdentifier: "profile.participants.error", actionTitle: "action.retry",
-                         actionIdentifier: "profile.participants.retry", kind: .failure) { loadOwner.start { await reload() } }
+            ContentUnavailableView {
+                Label("profile.participants.loadFailed", systemImage: "exclamationmark.triangle")
+            } description: {
+                Text(LocalizedStringKey(Self.failureDetailKey(result)))
+            } actions: {
+                Button("action.retry") { loadOwner.start { await reload() } }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("profile.participants.retry")
+            }
+            .accessibilityIdentifier("profile.participants.error")
         }
     }
 
@@ -330,7 +354,7 @@ struct ParticipantListDeleteView: View {
             if model.showsOwnedUnknown {
                 Form { ParticipantOperationSections(state: model.coordinator.state, readback: model.coordinator.readbackState, canReadAgain: model.canReadBack, actionIssue: model.issue) { Task { await model.readBack() } } }
             } else if model.loading || (model.loaded && !model.hasCurrentProjection) {
-                CYSkeleton()
+                ProgressView()
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {
@@ -369,7 +393,7 @@ struct ParticipantListDeleteView: View {
         }
         .task(id: model.reader.identity) { await model.load() }
         .onDisappear { model.disappear() }
-        .cyDomainScreen(ThemeDomain.player)
+        .themeDomain(.player)
     }
 }
 
@@ -414,6 +438,6 @@ struct ProfileParticipantDetailView: View {
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
-        .cyDomainScreen(ThemeDomain.player)
+        .themeDomain(.player)
     }
 }

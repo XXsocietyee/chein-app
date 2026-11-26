@@ -84,14 +84,15 @@ enum ClubFEReferenceMoneyWriteGate {
             Group {
                 switch phase {
                 case .loading:
-                    Section { CYLoadingStateView(rows: 1) }
+                    Section { ProgressView().frame(maxWidth: .infinity) }
                 case .failed:
                     Section {
-                        HStack {
-                            Text("feReference.failed", tableName: "PayoutReceiver").foregroundStyle(CYColor.textSecondary)
-                            Spacer()
+                        // CLB-r9-native-03: system failure state.
+                        ContentUnavailableView {
+                            Label { Text("feReference.failed", tableName: "PayoutReceiver") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } actions: {
                             Button { Task { await load() } } label: { Text("feReference.retry", tableName: "PayoutReceiver") }
-                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .buttonStyle(.bordered)
                                 .accessibilityIdentifier("feReference.retry")
                         }
                     } header: { Text("feReference.title", tableName: "PayoutReceiver") }
@@ -99,7 +100,7 @@ enum ClubFEReferenceMoneyWriteGate {
                     if !items.isEmpty || range.isActive {
                         ClubGapFEReferenceRangeBar(range: $range, isExporting: exporting) { Task { await export() } }
                         if exportFailed {
-                            Section { Text("feReference.exportFailed", tableName: "PayoutReceiver").cyText(.meta).foregroundStyle(CYColor.dangerText) }
+                            Section { Text("feReference.exportFailed", tableName: "PayoutReceiver").font(.subheadline).foregroundStyle(.red) }
                         }
                         ClubGapFEReferenceSettlementSection(role: .payer, items: items,
                             allowsMoneyWrite: ClubFEReferenceMoneyWriteGate.allowsSettle,

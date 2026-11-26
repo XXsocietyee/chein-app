@@ -40,11 +40,6 @@ import UIKit
     @State private var keyword = ""
     @State private var categoryID: Int?
     @State private var submittedKeyword = ""
-    /// Loading-to-content choreography (docs/release/motion-spec-loading.md).
-    @State private var streamSkeleton = false
-    @State private var stagger = CYStaggerGate()
-    /// First-fold section reveal (spring, 70 ms apart, once per screen).
-    @State private var reveal = CYSectionRevealGate()
     @State private var localSelectedCity: String? = nil
     @State private var localIsNationwide: Bool = false
     private var hasHeroHeader: Bool { showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil }
@@ -52,20 +47,26 @@ import UIKit
     var body: some View {
         let binding = model.bind(reader, available: unavailableMessageKey == nil)
         let permit = model.permit(reader)
-        CYLoadSlot(isLoading: reader.isConfigured && unavailableMessageKey == nil && !model.matches(reader), skeletonRows: 4, label: "homeFeed.loading", announces: true) {
+        Group {
             if !reader.isConfigured || unavailableMessageKey != nil {
-                // Night-city offline state. Lookup uses the interface language, not the region locale,
+                // Offline state. Lookup uses the interface language, not the region locale,
                 // so zh-Hans does not keep the English kit sentences.
                 let resource = CYKitCopy(locale: locale).resourceLocale
-                CYStateLayout(kind: .offline,
-                              title: Text(verbatim: appLocalized("homeFeed.unavailable", locale: resource)),
-                              detail: Text(verbatim: appLocalized(String.LocalizationValue(stringLiteral: unavailableMessageKey ?? "auth.notConfigured"), locale: resource)))
+                ContentUnavailableView {
+                    Label {
+                        Text(verbatim: appLocalized("homeFeed.unavailable", locale: resource))
+                    } icon: {
+                        Image(systemName: "wifi.slash")
+                    }
+                } description: {
+                    Text(verbatim: appLocalized(String.LocalizationValue(stringLiteral: unavailableMessageKey ?? "auth.notConfigured"), locale: resource))
+                }
                     .accessibilityElement(children: .combine) // one static text, as the system placeholder was: UITests and VoiceOver read a single state
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background { CYExploreGround() }
                     .accessibilityIdentifier("homeFeed.configurationUnavailable")
             } else if !model.matches(reader) {
-                Color.clear
+                ProgressView("homeFeed.loading")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xxl) {
@@ -91,12 +92,10 @@ import UIKit
                                 // R7-PC-A1-2: a host that routes banners opens the activity list; without one, show the 活动 stream.
                                 if let onActionBanner { onActionBanner(banner) } else if banner.id == "activity_list" { kind = .activities }
                             }
-                            .cySectionReveal(order: 1, gate: reveal)
                             .pageTemplateReadingOrder(80)
                         }
                         if let consent = cityLocationConsent {
                             HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
-                                .transition(.opacity.combined(with: .move(edge: .top)))
                                 .pageTemplateReadingOrder(70)
                         }
                         CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
@@ -117,43 +116,41 @@ import UIKit
                     feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
                     if !feedDown, model.bannerFailed || !model.banners.isEmpty {
                         bannerSection
-                            .padding(.horizontal, -CYSpacing.pageHorizontal)
-                            .cySectionReveal(order: 8, gate: reveal)
                             .pageTemplateReadingOrder(45)
                     }
                     feedSection(.upcoming, order: 4).pageTemplateReadingOrder(40)
                     if !feedDown {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        // Source pages/index feed tabs are 主题 / 活动. The indicator uses textPrimary.
-                        CYTabs(
-                            items: [
-                                CYTabItem(id: HomeFeedKind.topics, title: appLocalized("homeFeed.topics", locale: locale)),
-                                CYTabItem(id: HomeFeedKind.activities, title: appLocalized("homeFeed.activities", locale: locale))
-                            ],
-                            selection: $kind,
-                            variant: .underline
-                        )
+                        // Source pages/index feed tabs are 主题 / 活动: a system segmented picker.
+                        Picker(selection: $kind) {
+                            Text("homeFeed.topics").tag(HomeFeedKind.topics)
+                            Text("homeFeed.activities").tag(HomeFeedKind.activities)
+                        } label: {
+                            Text("homeFeed.content")
+                        }
+                        .pickerStyle(.segmented)
                         .accessibilityIdentifier("homeFeed.kind")
                         .accessibilityLabel(Text("homeFeed.content"))
                         ForEach(Array(model.pagination.items.enumerated()), id: \.element.id) { index, item in
-                            row(item, section: "stream").cyStaggeredAppear(index: index, gate: stagger)
+                            row(item, section: "stream")
                         }
                         if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
                         if model.loadingPage {
-                            if model.pagination.items.isEmpty {
-                                if streamSkeleton {
-                                    CYLoadingStateView(rows: 3)
-                                        .accessibilityLabel(Text("homeFeed.loading"))
-                                        .transition(.opacity)
-                                }
-                            } else { ProgressView("homeFeed.loading") }
+                            ProgressView("homeFeed.loading")
+                                .frame(maxWidth: .infinity)
                         }
-                        else if !model.pageFailed && model.pagination.items.isEmpty && !streamSkeleton {
+                        else if !model.pageFailed && model.pagination.items.isEmpty {
                             // Source empty titles: 暂时没有主题 / 暂时没有活动. The keyword hint stays only after a search.
-                            CYEmptyState(systemImage: "magnifyingglass",
-                                         kind == .topics ? "homeFeed.topicsEmpty" : "homeFeed.activitiesEmpty",
-                                         detail: submittedKeyword.isEmpty ? nil : "homeFeed.emptyHint",
-                                         messageIdentifier: "homeFeed.empty")
+                            ContentUnavailableView {
+                                Label {
+                                    (kind == .topics ? Text("homeFeed.topicsEmpty") : Text("homeFeed.activitiesEmpty"))
+                                        .accessibilityIdentifier("homeFeed.empty")
+                                } icon: {
+                                    Image(systemName: "magnifyingglass")
+                                }
+                            } description: {
+                                if !submittedKeyword.isEmpty { Text("homeFeed.emptyHint") }
+                            }
                         }
                         if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
                             // R7-PC-A1-6 (r1 PC-A-1-11): MP pages on reach-bottom. The sentinel loads the next page when it
@@ -165,16 +162,15 @@ import UIKit
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
                             Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
                     }
-                    .cySectionReveal(order: 5, gate: reveal)
                     .pageTemplateReadingOrder(30)
                     }
-                    todayCard.cySectionReveal(order: 6, gate: reveal).pageTemplateReadingOrder(20)
+                    todayCard.pageTemplateReadingOrder(20)
                     // Mini-program store card (city pass entry): one feed card, never a paywall.
                     MPPassExploreCard().pageTemplateReadingOrder(15)
                     if !continuationCards.isEmpty {
@@ -194,7 +190,6 @@ import UIKit
                             },
                             onRetry: onRetryContinuation
                         )
-                        .cySectionReveal(order: 7, gate: reveal)
                         .pageTemplateReadingOrder(10)
                     }
                     }
@@ -202,16 +197,12 @@ import UIKit
                     .padding(.top, CYSpacing.lg)
                     .padding(.bottom, CYSpacing.jumbo)
                 }
-                .background { CYExploreGround() }
                 .modifier(HomeFeedNavigationSearch(text: $keyword, enabled: !hasHeroHeader, usesDrawer: onOpenUnifiedSearch != nil))
                 .onSubmit(of: .search) { submitFeedSearch() }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
                 .onChange(of: query) { _, value in model.schedule(.query(value), reader: reader, permit: permit) }
-                // Pull to refresh: light tick at release and a 0.45 s floor so a fast reload never flashes the spinner.
-                // Loaded rails stay on screen and change in place (cross-fade per rail); the first-load stagger does not replay.
-                .cyRefreshable { await model.reload(reader: reader, query: query) }
-                .cySkeletonTiming(isLoading: model.loadingPage && model.pagination.items.isEmpty, visible: $streamSkeleton)
-                .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: streamSkeleton)
+                // System pull to refresh. Loaded rails stay on screen and change in place.
+                .refreshable { await model.reload(reader: reader, query: query) }
             }
         }
         // Design hand-off r1 PL-11: one root header. The large title is the tab label (首页); the greeting is its
@@ -226,17 +217,47 @@ import UIKit
         let permit = model.permit(reader)
         if model.bannerFailed { retry(Text("homeFeed.bannersError"), id: "banners") { model.schedule(.banners, reader: reader, permit: permit) } }
         if !model.banners.isEmpty {
-            // Mirrors the mini-program hero swiper: full-width rounded covers, paged, dots, no captions.
-            VStack {
-                CYHeroBanner(items: model.banners.map { banner in
-                    CYHeroBannerItem(id: banner.id, imageURL: QuestifyCardArtwork.safeURL(banner.picUrl), accessibilityLabel: "homeFeed.openFeatured",
-                                     title: banner.contents.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : Text(verbatim: $0) },
-                                     action: banner.destination.map { destination in {
-                        guard model.canOpen(reader) else { return }
-                        switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
-                    } })
-                })
+            // Mirrors the mini-program hero swiper: full-width covers, paged horizontally (system paging scroll view).
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(alignment: .top, spacing: CYSpacing.md) {
+                    ForEach(model.banners) { banner in
+                        bannerSlide(banner).containerRelativeFrame(.horizontal)
+                    }
+                }
+                .scrollTargetLayout()
             }
+            .scrollTargetBehavior(.paging)
+        }
+    }
+    /// One swiper slide: the cover, then the optional caption underneath in system type.
+    @ViewBuilder private func bannerSlide(_ banner: DiscoveryBanner) -> some View {
+        let caption = banner.contents.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        let slide = VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Color.clear
+                .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                .overlay {
+                    if let url = QuestifyCardArtwork.safeURL(banner.picUrl) {
+                        AsyncImage(url: url) { phase in
+                            if let image = phase.image { image.resizable().scaledToFill() } else { Rectangle().fill(.fill.secondary) }
+                        }
+                    } else {
+                        MPAsset.BannerCover.recoHero.resizable().scaledToFill()
+                    }
+                }
+                .clipped()
+            if let caption {
+                Text(verbatim: caption).font(.headline).foregroundStyle(.primary).lineLimit(2)
+            }
+        }
+        if let destination = banner.destination {
+            Button {
+                guard model.canOpen(reader) else { return }
+                switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
+            } label: { slide }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("homeFeed.openFeatured"))
+        } else {
+            slide.accessibilityHidden(true)
         }
     }
     /// One focal point on the first fold: ticket within 24 h > club event today > start a roam.
@@ -278,14 +299,14 @@ import UIKit
                         // polish-d-r1: the footnote is the rail's subtitle, above the carousel, so it never sits under the tab bar.
                         if let items, !items.isEmpty {
                             Text("homeFeed.editorsPicksFootnote")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
                                 .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
                             if model.loading, !failed {
                                 // Also above the carousel, so it never lands under the tab bar.
                                 Text("homeFeed.updating.recommended")
-                                    .cyText(.meta)
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
                                     .accessibilityIdentifier("homeFeed.updating.recommended")
                             }
                         }
@@ -300,28 +321,25 @@ import UIKit
                     if dynamicTypeSize.isAccessibilitySize {
                         ForEach(items) { item in row(item, section: section.rawValue, style: .hero) }
                     } else if section != .nearby {
-                        // Glass carousel for the editor picks and upcoming rails (nearby keeps the compact shelf).
+                        // Editor picks and upcoming: a system horizontal shelf (App Store style).
                         carouselRail(items, section: section)
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: CYSpacing.md) {
+                            LazyHStack(alignment: .top, spacing: CYSpacing.md) {
                                 ForEach(items) { item in
-                                    row(item, section: section.rawValue, style: .shelf)
-                                        // R7-PC-A1-5: MP 附近活动 `进行中` badge.
-                                        .overlay(alignment: .topLeading) {
-                                            if item.isLive(at: Date(), sourceTimeZone: sourceTimeZone) { HomeFeedLiveChip() }
-                                        }
+                                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                        row(item, section: section.rawValue, style: .shelf)
+                                        // R7-PC-A1-5: MP 附近活动 `进行中` badge, as a tinted label under the card.
+                                        if item.isLive(at: Date(), sourceTimeZone: sourceTimeZone) { HomeFeedLiveChip() }
+                                    }
                                 }
                             }
                             .scrollTargetLayout()
-                            .padding(.horizontal, CYSpacing.lg)
                         }
-                        .scrollClipDisabled()
                         .scrollTargetBehavior(.viewAligned)
-                        .padding(.horizontal, -CYSpacing.lg)
                     }
                 } else if model.loading {
-                    CYSkeleton().padding(.vertical, CYSpacing.md).frame(maxWidth: .infinity, minHeight: 88)
+                    ProgressView().frame(maxWidth: .infinity, minHeight: 88)
                 }
                 // Mini-program `正在更新…` line while a loaded rail refreshes, and the editor-picks footnote.
                 if model.loading, let items, !items.isEmpty, !failed, section != .recommended {
@@ -332,15 +350,18 @@ import UIKit
                         case .upcoming: Text("homeFeed.updating.upcoming")
                         }
                     }
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("homeFeed.updating.\(section.rawValue)")
                 }
             }
-            // Skeleton, failure and content cross-fade in place; a rail never swaps instantly.
-            .cyAnimation(CYMotion.standard, value: failed ? 2 : (items == nil ? 0 : 1))
-            .cySectionReveal(order: order, gate: reveal)
         }
+    }
+    /// Club label, first category and status in one secondary line; a repeated value shows once.
+    static func recoCaption(_ item: HomeFeedItem) -> String {
+        var parts: [String] = []
+        for part in [item.clubLabel].compactMap({ $0 }) + recoChips(item) where !parts.contains(part) { parts.append(part) }
+        return parts.joined(separator: " · ")
     }
     static func recoChips(_ item: HomeFeedItem) -> [String] {
         var chips: [String] = []
@@ -348,40 +369,41 @@ import UIKit
         if let status = item.statusLabel?.trimmingCharacters(in: .whitespaces), !status.isEmpty { chips.append(status) }
         return chips
     }
-    /// Glass carousel over the already-loaded section items. Open goes through the same guarded destination as the shelf cards.
+    /// Horizontal shelf over the already-loaded section items. Open goes through the same guarded destination as the
+    /// nearby cards. 即将上线 keeps the source countdown (还剩N天 / 还剩N小时 / 已开始) under each card.
     private func carouselRail(_ items: [HomeFeedItem], section: HomeFeedSection) -> some View {
         let capped = Array(items.prefix(12))
-        let slides: [CYCarouselSlide] = capped.map { item in
-            CYCarouselSlide(id: item.accessibilityKey, seed: item.name, title: item.name,
-                            date: section == .recommended ? editorsPickDate(item) : QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone),
-                            // PC-A-1-6: 编辑精选 keeps Beta 试玩 on the badge. Category, status and club
-                            // share the caption and are left out when the topic-list row did not send them.
-                            place: item.place, badge: section == .upcoming ? upcomingCountdown(item)
-                                : (item.isBeta ? appLocalized("topic.source.betaBadge", locale: locale) : nil),
-                            imageURL: QuestifyCardArtwork.safeURL(item.imageURL),
-                            // Round 4 image parity: MP 编辑精选 falls back to reco-hero.jpg, 即将上线 to route_city_cover.png.
-                            fallback: section == .recommended ? .recoHero : .routeCityCover,
-                            // R7-PC-A1-3: MP index.wxml:107-120 — club label, first category and status on 编辑精选.
-                            club: section == .recommended ? item.clubLabel : nil,
-                            chips: section == .recommended ? Self.recoChips(item) : [])
+        return ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(alignment: .top, spacing: CYSpacing.md) {
+                ForEach(capped) { item in
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        row(item, section: section.rawValue, style: .shelf)
+                        // R7-PC-A1-3: MP index.wxml:107-120 — club label, first category and status on 编辑精选.
+                        if section == .recommended {
+                            let caption = Self.recoCaption(item)
+                            if !caption.isEmpty {
+                                Text(verbatim: caption)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .accessibilityIdentifier("homeFeed.reco.caption.\(item.accessibilityKey)")
+                            }
+                        }
+                        if section == .upcoming, let countdown = upcomingCountdown(item) {
+                            Text(verbatim: countdown)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("homeFeed.upcoming.countdown.\(item.accessibilityKey)")
+                        }
+                    }
+                }
+            }
+            .scrollTargetLayout()
         }
-        return CYCarouselRail(phase: .loaded(slides),
-                              railLabel: section == .recommended ? "carousel.editorsPicks" : "carousel.upcoming",
-                              onOpen: { key in
-                                  guard model.canOpen(reader), let item = capped.first(where: { $0.accessibilityKey == key }) else { return }
-                                  onDestination(item.id)
-                              }) {
-            ForEach(items) { item in row(item, section: section.rawValue, style: .hero) }
-        }
+        .scrollTargetBehavior(.viewAligned)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(section == .recommended ? Text("carousel.editorsPicks") : Text("carousel.upcoming"))
         .accessibilityIdentifier("homeFeed.carousel.\(section.rawValue)")
-    }
-    /// Date line for an 编辑精选 slide, plus the category, status and club already on that topic-list row.
-    /// A missing date or label is left out. Nothing here is filled with 0 or a placeholder.
-    private func editorsPickDate(_ item: HomeFeedItem) -> String? {
-        let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone)
-        let lines = [date].compactMap { $0 } + item.featuredCategoryTags
-            + [item.featuredStatusText, item.featuredClubText].compactMap { $0 }
-        return lines.isEmpty ? nil : lines.joined(separator: "\n")
     }
     /// Source 即将上线 countdown (hengyin 07608d68a, j1 F23): 还剩N天 / 还剩N小时 / 已开始. Unknown start shows nothing.
     private func upcomingCountdown(_ item: HomeFeedItem) -> String? {
@@ -393,13 +415,11 @@ import UIKit
         let hours = max(1, Int(seconds / 3_600))
         return String(localized: LocalizedStringResource("mpfresh.home.countdown.hours \(hours)", table: "MpFresh", locale: locale))
     }
-    /// Large, plain section title (mini-program `sec-title`): no small-caps grouped-list header.
+    /// Plain section title (mini-program `sec-title`) in the system title style.
     private func sectionHeader(_ title: Text) -> some View {
         title
-            .cyText(.sectionTitle)
-            .foregroundStyle(CYColor.textPrimary)
-            .textCase(nil)
-            .padding(.top, CYSpacing.xs)
+            .font(.title2.bold())
+            .foregroundStyle(.primary)
             .accessibilityAddTraits(.isHeader)
     }
     /// MP index.wxml default covers: 编辑精选 reco-hero.jpg (:105), 附近活动 / 即将上线 route_city_cover.png (:151/:188),
@@ -428,7 +448,7 @@ import UIKit
             // on screen is the source, so duplicates across rails and the stream never fight over one id.
             .cyHeroSourceInherited(item.id, isEnabled: heroNamespace != nil && !heroOwned(by: section == "stream" ? nil : section).contains(item.id))
         }
-            .buttonStyle(QuestifyCardButtonStyle())
+            .buttonStyle(.plain)
             .pageTemplateGroupedCard(label: feedCardLabel(item, includeFeaturedFacts: section == HomeFeedSection.recommended.rawValue), traits: .isButton)
             .modifier(HomeFeedOpenPlaceInMaps(url: HomeFeedMapsLink.url(for: item.place), openURL: openURL))
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
@@ -476,17 +496,13 @@ import UIKit
     private func retry(_ message: Text, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Label { message } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                .cyText(.bodyCompact)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             Button("homeFeed.retry", action: action)
-                .buttonStyle(.cySecondary)
-                .frame(minHeight: CYSpacing.minTouchTarget)
+                .buttonStyle(.bordered)
                 .accessibilityIdentifier("homeFeed.retry.\(id)")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(CYSpacing.lg)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .transition(.opacity)
     }
     private func submitFeedSearch() {
         submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -510,11 +526,6 @@ private struct HomeFeedNavigationSearch: ViewModifier {
             content
         }
     }
-}
-
-private extension View {
-    /// Outer stack spacing is 24. Stream rows keep the previous 12pt pitch.
-    func homeFeedStreamPitch() -> some View { padding(.bottom, CYSpacing.md - CYSpacing.xxl) }
 }
 
 extension HomeFeedItem {
@@ -566,29 +577,29 @@ struct HomeFeedFeaturedFacts: View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             if item.isBeta {
                 Text("topic.source.betaBadge")
-                    .cyText(.meta, weight: .semibold)
-                    .foregroundStyle(CYColor.brand)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tint)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("homeFeed.featured.beta")
             }
             ForEach(Array(item.featuredCategoryTags.enumerated()), id: \.offset) { index, name in
                 Text(verbatim: name)
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("homeFeed.featured.category.\(index)")
             }
             if let status = item.featuredStatusText {
                 Text(verbatim: status)
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("homeFeed.featured.status")
             }
             if let club = item.featuredClubText {
                 Text(verbatim: club)
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("homeFeed.featured.club")
             }
@@ -623,8 +634,8 @@ struct HomeFeedCard: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             // R7-PC-A1-4: MP `feedTypeLabel` eyebrow above the card.
             Text(eyebrow)
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
             QuestifyImageEntityCard(imageSource: safeImageSource, title: item.name, fallbackSymbol: typeSymbol,
                                     minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
                 EmptyView()
@@ -637,11 +648,9 @@ struct HomeFeedCard: View {
                 HStack(spacing: CYSpacing.xs) {
                     ForEach(Array(item.feedTags.enumerated()), id: \.offset) { _, tag in
                         Text(verbatim: tag)
-                            .cyText(.meta)
+                            .font(.footnote)
                             .lineLimit(1)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                            .background(CYColor.bgElevated, in: Capsule())
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .accessibilityElement(children: .combine)
@@ -682,28 +691,17 @@ struct HomeFeedCard: View {
         }
     }
     private func statusRow<Value: View>(_ label: LocalizedStringKey, tabular: Bool = false, @ViewBuilder value: () -> Value) -> some View {
-        let valueLabel = value()
-            .cyText(.bodyCompact, monospacedDigit: tabular)
-            .foregroundStyle(CYColor.textPrimary)
-            .fixedSize(horizontal: false, vertical: true)
-        let name = Text(label)
-            .cyText(.meta)
-            .foregroundStyle(CYColor.textSecondary)
-            .fixedSize(horizontal: false, vertical: true)
-        return Group {
-            if dynamicTypeSize >= .xxLarge {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    name
-                    valueLabel.frame(maxWidth: .infinity, alignment: .leading)
-                }
-            } else {
-                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                    name
-                    Spacer(minLength: CYSpacing.sm)
-                    valueLabel.multilineTextAlignment(.trailing)
-                }
-            }
+        // System label/value row; Dynamic Type stacks it on its own.
+        LabeledContent {
+            value()
+                .monospacedDigit()
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+        } label: {
+            Text(label).foregroundStyle(.secondary)
         }
+        .font(.subheadline)
         .accessibilityElement(children: .combine)
     }
     /// Only a safe https cover reaches the card; anything else shows the clean placeholder.
@@ -772,13 +770,8 @@ struct HomeTodayCard: View {
     var onStartRoam: (() -> Void)?
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
-    @Environment(\.cyPalette) private var palette
-    @QuestifyReduceMotion private var reduceMotion
-    /// Wave 3 B2: dip 0.985, touch-origin wave, then the action (see `CYWave.swift`).
-    @State private var ownWave = CYPressWaveModel()
-    /// DEBUG fixtures inject a model so a synthetic finger can drive the card; live screens leave it nil.
+    /// Kept for DEBUG fixtures that still pass a model; the native card uses the system button press.
     var waveModel: CYPressWaveModel?
-    private var wave: CYPressWaveModel { waveModel ?? ownWave }
 
     private var copy: CYKitCopy { CYKitCopy(locale: locale) }
 
@@ -815,42 +808,42 @@ struct HomeTodayCard: View {
         return [time ?? "—", (place?.isEmpty ?? true) ? nil : place].compactMap { $0 }.joined(separator: " · ")
     }
 
-    private var isChinese: Bool { locale.identifier.lowercased().hasPrefix("zh") || locale.language.languageCode?.identifier == "zh" }
-
     var body: some View {
         let c = content
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            // The one light source sits top trailing, away from the text; lantern gold only on the discovery prompt.
-            CYTodayMedallion(symbol: c.symbol, lit: c.id == "roam")
-                .frame(maxWidth: .infinity, alignment: .trailing)
-            Spacer(minLength: CYSpacing.lg)
-            Text(verbatim: c.eyebrow)
-                .cyEyebrow(isChinese: isChinese)
-                .foregroundStyle(.white.opacity(0.78))
+            // Optional cover as one plain header image.
+            if let url = c.imageURL, url.scheme?.lowercased() == "https" {
+                Color.clear
+                    .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                    .overlay {
+                        PlayerFeedRemoteImage(url: url, maxPixel: 1200, placeholder: { Color.clear }, failure: { Color.clear })
+                    }
+                    .clipped()
+                    .accessibilityHidden(true)
+            }
+            Label(c.eyebrow, systemImage: c.symbol)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             Text(verbatim: c.title)
-                .cyText(.pageTitle)
+                .font(.title2.bold())
+                .foregroundStyle(.primary)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if let meta = c.meta {
-                Text(verbatim: meta).cyText(.bodyCompact).monospacedDigit().foregroundStyle(.white.opacity(0.82))
+                Text(verbatim: meta).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
             }
             if let action = c.action {
-                CYPillButton(verbatim: c.pill, style: .primary, fullWidth: false) {
-                    wave.perform(action, waveOn: cyLightAllowed(reduceMotion: reduceMotion))
+                Button(action: action) {
+                    Text(verbatim: c.pill)
                 }
-                    .cyPressWaveExcluded()
-                    .padding(.top, CYSpacing.sm)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .padding(.top, CYSpacing.xs)
                     .accessibilityIdentifier("homeFeed.today.action")
             }
         }
-        .foregroundStyle(.white)
-        .padding(CYSpacing.xl)
-        .frame(maxWidth: .infinity, minHeight: 280, alignment: .bottomLeading)
-        .background { backdrop(c).cyBackdropParallax() }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
-        .cyNightCardDepth(radius: CYRadius.xl)
-        .cyPressWave(wave, onTap: c.action)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .pageTemplateGroupedCard(label: todayLabel(c), traits: c.action == nil ? .isStaticText : .isButton)
         .accessibilityIdentifier("homeFeed.today.\(c.id)")
     }
@@ -863,35 +856,21 @@ struct HomeTodayCard: View {
         label = label + Text(verbatim: ", ") + Text(verbatim: c.pill)
         return label
     }
-
-    private func backdrop(_ c: Content) -> some View {
-        ZStack {
-            CYCoverArt(seed: c.title)
-            if let url = c.imageURL, url.scheme?.lowercased() == "https" {
-                PlayerFeedRemoteImage(url: url, maxPixel: 1200, placeholder: { Color.clear }, failure: { Color.clear })
-            }
-            // Indigo dusk at the top, ink (never pure black) at the foot where the text sits.
-            LinearGradient(stops: [.init(color: CYNight.indigo.opacity(0.45), location: 0),
-                                   .init(color: CYNight.ink0.opacity(0.10), location: 0.35),
-                                   .init(color: CYNight.ink0.opacity(0.90), location: 1)],
-                           startPoint: .top, endPoint: .bottom)
-        }
-    }
 }
 
 #if DEBUG
 #Preview("Today · ticket") {
-    HomeTodayCard(choice: .ticket(HomeTodayFixtures.ticket), onTicket: {}).padding(CYSpacing.pageHorizontal).cyDomainPageBackground().themeDomain(.player)
+    HomeTodayCard(choice: .ticket(HomeTodayFixtures.ticket), onTicket: {}).padding(CYSpacing.pageHorizontal).themeDomain(.player)
 }
 #Preview("Today · club event") {
-    HomeTodayCard(choice: .clubEvent(HomeTodayFixtures.clubEvent), onClubEvent: {}).padding(CYSpacing.pageHorizontal).cyDomainPageBackground().themeDomain(.player)
+    HomeTodayCard(choice: .clubEvent(HomeTodayFixtures.clubEvent), onClubEvent: {}).padding(CYSpacing.pageHorizontal).themeDomain(.player)
 }
 #Preview("Today · roam") {
-    HomeTodayCard(choice: .roam, onStartRoam: {}).padding(CYSpacing.pageHorizontal).cyDomainPageBackground().themeDomain(.player)
+    HomeTodayCard(choice: .roam, onStartRoam: {}).padding(CYSpacing.pageHorizontal).themeDomain(.player)
 }
 #Preview("Today · unknown time, roam") {
     HomeTodayCard(choice: HomeTodayChoice.resolve(ticket: HomeTodayFixtures.unknownTime, clubEvent: nil, now: HomeTodayFixtures.now, calendar: .current), onStartRoam: {})
-        .padding(CYSpacing.pageHorizontal).cyDomainPageBackground().themeDomain(.player)
+        .padding(CYSpacing.pageHorizontal).themeDomain(.player)
 }
 #endif
 
@@ -900,12 +879,8 @@ struct HomeFeedLiveChip: View {
     var body: some View {
         Label("homeFeed.live", systemImage: "play.fill")
             .labelStyle(.titleAndIcon)
-            .cyText(.meta)
-            .foregroundStyle(.white)
-            .padding(.horizontal, CYSpacing.sm)
-            .padding(.vertical, 4)
-            .background(CYColor.brand, in: Capsule())
-            .padding(CYSpacing.sm)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(.tint)
             .accessibilityIdentifier("homeFeed.liveChip")
     }
 }
@@ -930,18 +905,16 @@ struct HomeFeedPlaceLinkRow: View {
     let openURL: OpenURLAction
     var body: some View {
         Button { openURL(url) } label: {
-            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                Text("homeFeed.place")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                Spacer(minLength: CYSpacing.sm)
+            LabeledContent {
                 Label(place, systemImage: "mappin.and.ellipse")
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.brand)
+                    .foregroundStyle(.tint)
                     .multilineTextAlignment(.trailing)
                     .fixedSize(horizontal: false, vertical: true)
+            } label: {
+                Text("homeFeed.place").foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+            .font(.subheadline)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

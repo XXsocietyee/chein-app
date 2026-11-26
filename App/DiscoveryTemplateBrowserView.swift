@@ -4,7 +4,6 @@ import SwiftUI
 @MainActor
 struct DiscoveryTemplateBrowserView: View {
     /// R9-PC-A-N1: the MP bell icon follows Dynamic Type.
-    @ScaledMetric(relativeTo: .body) private var bellSide: CGFloat = 24
     let reader: any DiscoveryReading
     let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
     let authoringRevision: UInt64
@@ -28,7 +27,6 @@ struct DiscoveryTemplateBrowserView: View {
     @StateObject private var shelfGames = DiscoveryLoader<[DiscoveryPlayTemplate]>()
     @StateObject private var home = DiscoveryLoader<DiscoveryTemplateHome>()
     @State private var toastMessage: String?
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
 
     private enum Shelf: String, CaseIterable { case topics, games }
@@ -49,54 +47,61 @@ struct DiscoveryTemplateBrowserView: View {
     var body: some View {
         Group {
             if !reader.isConfigured {
-                CYEmptyState(
-                    systemImage: "network.slash",
-                    "discovery.unavailable",
-                    detail: "auth.notConfigured",
-                    messageIdentifier: "discovery.unavailable",
-                    kind: .offline
-                )
+                ContentUnavailableView {
+                    Label("discovery.unavailable", systemImage: "network.slash")
+                        .accessibilityIdentifier("discovery.unavailable")
+                } description: {
+                    Text("auth.notConfigured")
+                }
             } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
+                List {
+                    Section {
                         GameplayPresetSection(canDraft: !templateTabScope.isStaffReadOnly)
-                            .pageTemplateReadingOrder(10)
-                        if merchantAccessError || (templateTabScope == .merchant(canManageProjects: nil) && onRetryMerchantAccess != nil) {
+                    }
+                    .pageTemplateReadingOrder(10)
+                    if merchantAccessError || (templateTabScope == .merchant(canManageProjects: nil) && onRetryMerchantAccess != nil) {
+                        Section {
                             if let onRetryMerchantAccess {
                                 Button(action: onRetryMerchantAccess) {
-                                    CYNoteBanner(text: Text("discovery.templateTab.accessRetry"), symbol: "arrow.clockwise", tone: .warning)
+                                    Label {
+                                        Text("discovery.templateTab.accessRetry")
+                                    } icon: {
+                                        Image(systemName: "arrow.clockwise").foregroundStyle(.orange)
+                                    }
                                 }
-                                .cyPressable()
                                 .accessibilityIdentifier("discovery.templateTab.retryAccess")
                             } else {
-                                CYNoteBanner(text: Text("discovery.templateTab.accessRetry"), symbol: "exclamationmark.triangle", tone: .warning)
-                                    .accessibilityIdentifier("discovery.templateTab.retryAccess")
+                                Label {
+                                    Text("discovery.templateTab.accessRetry")
+                                } icon: {
+                                    Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                                }
+                                .accessibilityIdentifier("discovery.templateTab.retryAccess")
                             }
-                        } else if templateTabScope == .merchant(canManageProjects: false) {
-                            HStack(alignment: .top, spacing: CYSpacing.sm) {
-                                Image(systemName: "lock.fill").foregroundStyle(palette.warning).accessibilityHidden(true)
-                                Text("discovery.templateTab.staffReadOnly").cyText(.meta)
-                                    .foregroundStyle(palette.textSecondary)
+                        }
+                    } else if templateTabScope == .merchant(canManageProjects: false) {
+                        Section {
+                            Label {
+                                Text("discovery.templateTab.staffReadOnly")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
                                     .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
+                            } icon: {
+                                Image(systemName: "lock.fill").foregroundStyle(.orange).accessibilityHidden(true)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                             .accessibilityAddTraits(.isStaticText)
-                            .pageTemplateReadingOrder(40)
                         }
-                        // MP pages/template/index.js goSearch → /pages/search2/index. One capsule, both shelves.
+                        .pageTemplateReadingOrder(40)
+                    }
+                    Section {
+                        // MP pages/template/index.js goSearch → /pages/search2/index. One entrance, both shelves.
                         NavigationLink { templateShelfSearch } label: {
-                            HStack(spacing: CYSpacing.sm) {
-                                Image(systemName: "magnifyingglass").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-                                Text("discovery.searchAll").cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
-                                Spacer(minLength: 0)
+                            Label {
+                                Text("discovery.searchAll")
+                            } icon: {
+                                Image(systemName: "magnifyingglass")
                             }
-                            .padding(.horizontal, CYSpacing.lg)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
-                            .background(palette.bgElevated, in: Capsule(style: .continuous))
-                            .contentShape(Capsule(style: .continuous))
                         }
-                        .buttonStyle(.plain)
                         .accessibilityIdentifier("discovery.globalSearch")
                         .pageTemplateReadingOrder(35)
                         Picker("discovery.shelf", selection: $tab) {
@@ -104,12 +109,12 @@ struct DiscoveryTemplateBrowserView: View {
                             Text("discovery.games").tag(Shelf.games)
                         }.pickerStyle(.segmented).accessibilityIdentifier("discovery.shelf")
                             .pageTemplateReadingOrder(30)
-                        if tab == .topics { topicShelf.pageTemplateReadingOrder(20) }
-                        else { gameShelf.pageTemplateReadingOrder(20) }
                     }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.lg)
-                }.cyDomainPageBackground().refreshable { await reloadCurrent() }
+                    if tab == .topics { topicShelf }
+                    else { gameShelf }
+                }
+                .listStyle(.insetGrouped)
+                .refreshable { await reloadCurrent() }
             }
         }
         .cyPageTitle("discovery.templateTab.title") // PC-A-2-3: pushed / sheet-hosted page, inline title
@@ -128,10 +133,7 @@ struct DiscoveryTemplateBrowserView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 if let inboxDestination {
                     NavigationLink { inboxDestination() } label: {
-                        MPAsset.FeatureIcon.iconBell.resizable().scaledToFit()
-                            .accessibilityHidden(true)
-                            .frame(width: bellSide, height: bellSide)
-                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        Label("discovery.templateTab.inbox", systemImage: "bell")
                     }
                     .accessibilityLabel(Text("discovery.templateTab.inbox"))
                     .accessibilityIdentifier("discovery.templateTab.inbox")
@@ -209,41 +211,38 @@ struct DiscoveryTemplateBrowserView: View {
         }
     }
 
+    /// A plain list button for shelf filter actions (全部分类, 清除筛选).
     private func filterChip(_ title: Text, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            title.cyText(.meta, weight: .semibold).cyWrapText(alignment: .center)
-                .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textSecondary)
-                .padding(.horizontal, CYSpacing.lg).frame(minHeight: CYSpacing.minTouchTarget)
-                .background(selected ? palette.actionPrimaryBg : Color.clear, in: Capsule(style: .continuous))
-                .overlay { Capsule(style: .continuous).strokeBorder(selected ? Color.clear : palette.borderStrong, lineWidth: 1) }
+            title
         }
-        .buttonStyle(.plain)
         .pageTemplateControl(label: title, traits: selected ? [.isButton, .isSelected] : .isButton)
         .accessibilityValue(title)
         .accessibilityHint(title)
     }
 
     @ViewBuilder private var topicShelf: some View {
-        shelfChipRow(SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag), field: "shelf.topic") { topicTag = $0 }
+        Section {
+            shelfChipRow(SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag), field: "shelf.topic") { topicTag = $0 }
+        }
+        .pageTemplateReadingOrder(20)
         if let error = topics.error {
-            shelfIssue(error, failedTitle: "discovery.topicsFailed") { Task { await loadTopics() } }
+            Section { shelfIssue(error, failedTitle: "discovery.topicsFailed") { Task { await loadTopics() } } }
         }
         if topics.isLoading {
-            if topics.value == nil { CYSkeleton() } else { DiscoveryTemplateSyncingRow(hasLoadedRows: true) }
+            Section { DiscoveryTemplateSyncingRow(hasLoadedRows: topics.value != nil) }
         }
         if let rows = topics.value {
             if rows.isEmpty {
-                CYEmptyState(systemImage: "map", "discovery.emptyTopics", actionTitle: "discovery.emptyRefresh") { Task { await loadTopics() } }
-                    .accessibilityIdentifier("discovery.emptyRefresh")
+                Section { emptyTopics }
             } else {
                 let catalog = SearchDiscoveryFilterParity.visibleTopics(rows)
                 let tags = SearchDiscoveryFilterParity.topicTags(in: catalog, selected: topicTag)
                 let shown = SearchDiscoveryFilterParity.topics(catalog, matching: tags.selection)
                 if catalog.isEmpty {
-                    CYEmptyState(systemImage: "map", "discovery.emptyTopics", actionTitle: "discovery.emptyRefresh") { Task { await loadTopics() } }
-                        .accessibilityIdentifier("discovery.emptyRefresh")
+                    Section { emptyTopics }
                 } else if shown.isEmpty {
-                    CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults")
+                    Section { ContentUnavailableView("discovery.noResults", systemImage: "magnifyingglass") }
                 } else if let selection = tags.selection, let tag = tags.row.first(where: { $0.key == selection }) ?? tags.groups.flatMap(\.tags).first(where: { $0.key == selection }) {
                     topicSection("discovery.topics", rows: shown, hero: true, verbatimTitle: locale.pick(tag.zh, tag.en))
                 } else {
@@ -261,7 +260,17 @@ struct DiscoveryTemplateBrowserView: View {
         }
     }
 
-    /// Every tag group of the current shelf, for the 全部分类 sheet (same source as the chip row).
+    private var emptyTopics: some View {
+        ContentUnavailableView {
+            Label("discovery.emptyTopics", systemImage: "map")
+        } description: {
+            EmptyView()
+        } actions: {
+            DiscoveryTemplateEmptyRefresh { Task { await loadTopics() } }
+        }
+    }
+
+    /// Every tag group of the current shelf, for the 全部分类 sheet (same source as the filter menu).
     private var allTagGroups: [DiscoveryShelfTagGroup] {
         tab == .topics
             ? SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag).groups
@@ -269,25 +278,26 @@ struct DiscoveryTemplateBrowserView: View {
     }
 
     @ViewBuilder private var gameShelf: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        Section {
             shelfChipRow(SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag), field: "shelf.game") { gameTag = $0 }
             if gameTag != nil {
                 Button("discovery.clearFilters") {
                     gameTag = nil
-                }.cyText(.meta, weight: .semibold).foregroundStyle(palette.textSecondary)
-                    .accessibilityLabel(Text("discovery.clearFilters"))
-                    .accessibilityValue(Text(verbatim: clearFilterSpoken))
-                    .accessibilityHint(Text("discovery.clearFilters"))
+                }
+                .accessibilityLabel(Text("discovery.clearFilters"))
+                .accessibilityValue(Text(verbatim: clearFilterSpoken))
+                .accessibilityHint(Text("discovery.clearFilters"))
             }
         }
+        .pageTemplateReadingOrder(20)
         if let error = shelfGames.error, shelfGames.value == nil {
-            DiscoveryErrorView(error: error) { Task { await loadShelfGames() } }
+            Section { DiscoveryErrorView(error: error) { Task { await loadShelfGames() } } }
         }
         if let selection = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag).selection {
-            if shelfGames.isLoading, shelfGames.value == nil { CYSkeleton() }
+            if shelfGames.isLoading, shelfGames.value == nil { Section { loadingRow } }
             if let rows = shelfGames.value {
                 let shown = SearchDiscoveryFilterParity.games(rows, matching: selection)
-                if shown.isEmpty { CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults") }
+                if shown.isEmpty { Section { ContentUnavailableView("discovery.noResults", systemImage: "magnifyingglass") } }
                 else if let tag = shelfTag(SearchDiscoveryFilterParity.gameTags(in: rows, selected: selection), key: selection) {
                     gameSection("discovery.searchResults", rows: shown, verbatimTitle: locale.pick(tag.zh, tag.en))
                 } else { gameSection("discovery.searchResults", rows: shown) }
@@ -304,14 +314,14 @@ struct DiscoveryTemplateBrowserView: View {
             gameSection("discovery.shelf.group.team", rows: SearchDiscoveryFilterParity.games(rows, matching: "team"))
             gameSection("discovery.shelf.group.city", rows: SearchDiscoveryFilterParity.games(rows, matching: "city"))
         } else if shelfGames.isLoading, shelfGames.value == nil {
-            CYSkeleton()
+            Section { loadingRow }
         } else {
-            if home.isLoading { CYSkeleton() }
+            if home.isLoading { Section { loadingRow } }
             if let error = home.error {
-                shelfIssue(error, failedTitle: "discovery.gamesFailed") { Task { await loadHome() } }
+                Section { shelfIssue(error, failedTitle: "discovery.gamesFailed") { Task { await loadHome() } } }
             }
             if let value = home.value {
-                if value.isEmpty { CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames") }
+                if value.isEmpty { Section { ContentUnavailableView("discovery.emptyGames", systemImage: "sparkles.rectangle.stack") } }
                 gameSection("discovery.featured", rows: value.banner, hero: true)
                 gameSection("discovery.latest", rows: value.latest)
                 gameSection("discovery.recommended", rows: value.recommended)
@@ -320,6 +330,13 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
+
+    private var loadingRow: some View {
+        ProgressView()
+            .frame(maxWidth: .infinity)
+            .accessibilityLabel(Text("discovery.loading"))
+    }
+
     /// R7-PC-A2-4: MP `openTopic` — a preview-only row says 暂未开放 instead of opening.
     private func openTopic(_ item: DiscoveryTopicTemplate) {
         if item.previewOnly {
@@ -332,129 +349,128 @@ struct DiscoveryTemplateBrowserView: View {
             coordinator: reader.publicTopicTemplateCoordinator(id: item.id), templateID: item.id)
         topics.cover()
     }
-    /// MP `featTopics` swiper (shelf/index.wxml:21-36): bundled-cover cards with page dots.
+    /// MP `featTopics` swiper (shelf/index.wxml:21-36): bundled covers in a system page view with page dots.
     @ViewBuilder private func featuredTopicRail(_ rows: [DiscoveryTopicTemplate]) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYSectionHeader("discovery.featured")
+        Section {
             TabView {
                 ForEach(rows, id: \.id) { item in
                     Button { openTopic(item) } label: {
-                        if let art = TemplateShelfArt.topicCover(item.name) {
-                            TemplateShelfArtHeroCard(art: art, title: item.name.isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name), meta: item.subtitle)
-                        } else {
-                            CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
-                        }
+                        DiscoveryShelfFeatureTile(art: TemplateShelfArt.topicCover(item.name), imageSource: item.imgUrl,
+                                                  title: item.name.isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name),
+                                                  meta: item.subtitle)
                     }
                     .buttonStyle(.plain)
                     .allowsHitTesting(topics.canOpen(reader: reader))
-                    .padding(.bottom, CYSpacing.xl)
+                    .padding(.bottom, 28)
                     .pageTemplateGroupedCard(label: topicCardLabel(item), traits: .isButton)
                     .accessibilityIdentifier("discovery.topic.featured.\(item.id)")
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .indexViewStyle(.page(backgroundDisplayMode: .interactive))
-            .aspectRatio(16.0 / 11.5, contentMode: .fit)
+            .aspectRatio(16.0 / 13.0, contentMode: .fit)
             .accessibilityIdentifier("discovery.featuredTopics")
+        } header: {
+            Text("discovery.featured")
         }
     }
-    /// `shelfKey` names a secondary shelf: its cards get `discovery.topic.<shelfKey>.<id>` so the main card id stays unique.
+    /// `shelfKey` names a secondary shelf: its rows get `discovery.topic.<shelfKey>.<id>` so the main row id stays unique.
     @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate], hint: LocalizedStringKey? = nil, hero: Bool = false, verbatimTitle: String? = nil, shelfKey: String? = nil) -> some View {
         if !rows.isEmpty {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                if let shownTitle = verbatimTitle {
-                    Text(verbatim: shownTitle).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                } else {
-                    CYSectionHeader(title, subtitle: hint)
-                }
+            Section {
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
                     Button {
                         openTopic(item)
                     } label: {
-                        // MP asset (shelf/art.js THEMES): a known topic name always shows its bundled cover.
-                        if hero && index == 0, let art = TemplateShelfArt.topicCover(item.name) {
-                            TemplateShelfArtHeroCard(art: art, title: item.name.isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name), meta: item.subtitle)
-                        } else if hero && index == 0 {
-                            CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
-                        } else {
-                            HStack(alignment: .top, spacing: CYSpacing.md) {
-                                if let art = TemplateShelfArt.topicCover(item.name) { TemplateShelfArtThumb(art: art) }
-                                else { DiscoveryTopicCoverThumb(urlString: item.imgUrl, seed: item.name) }
-                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").cyText(.cardTitle)
-                                        .foregroundStyle(palette.textPrimary)
+                        VStack(alignment: .leading, spacing: 8) {
+                            // MP asset (shelf/art.js THEMES): a known topic name always shows its bundled cover.
+                            if hero && index == 0 {
+                                DiscoveryShelfHeaderImage(art: TemplateShelfArt.topicCover(item.name), imageSource: item.imgUrl)
+                            }
+                            HStack(alignment: .top, spacing: 12) {
+                                if !(hero && index == 0) {
+                                    if let art = TemplateShelfArt.topicCover(item.name) { TemplateShelfArtThumb(art: art) }
+                                    else { DiscoveryTopicCoverThumb(urlString: item.imgUrl, seed: item.name) }
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(.body)
+                                        .foregroundStyle(.primary)
                                     if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                        Text(item.subtitle).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                                        Text(item.subtitle).font(.subheadline).foregroundStyle(.secondary)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
                                     DiscoveryTopicMetadata(item: item)
                                 }
                                 Spacer(minLength: 0)
-                            }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                            }
                         }
-                    }.buttonStyle(.plain).allowsHitTesting(topics.canOpen(reader: reader))
-                        .pageTemplateGroupedCard(label: topicCardLabel(item), traits: .isButton)
-                        .accessibilityIdentifier(shelfKey.map { "discovery.topic.\($0).\(item.id)" } ?? "discovery.topic.\(item.id)")
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .allowsHitTesting(topics.canOpen(reader: reader))
+                    .pageTemplateGroupedCard(label: topicCardLabel(item), traits: .isButton)
+                    .accessibilityIdentifier(shelfKey.map { "discovery.topic.\($0).\(item.id)" } ?? "discovery.topic.\(item.id)")
                 }
+            } header: {
+                if let shownTitle = verbatimTitle { Text(verbatim: shownTitle) } else { Text(title) }
+            } footer: {
+                if let hint { Text(hint) }
             }
         }
     }
-    /// MP `featGames` swiper (shelf/index.wxml:49-78): one large bundled-cover card per page, with page dots.
+    /// MP `featGames` swiper (shelf/index.wxml:49-78): one bundled cover per page in a system page view, with page dots.
     @ViewBuilder private func featuredGameRail(_ rows: [DiscoveryPlayTemplate]) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYSectionHeader("discovery.featured")
+        Section {
             TabView {
                 ForEach(rows, id: \.id) { item in
                     NavigationLink {
                         DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
                     } label: {
-                        if let art = TemplateShelfArt.gameCover(item.title) {
-                            TemplateShelfArtHeroCard(art: art, title: Text(verbatim: item.title), meta: item.description)
-                        } else {
-                            CYImageCard(verbatim: item.title, fallback: "discovery.untitledPlay", meta: item.description, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
-                        }
+                        DiscoveryShelfFeatureTile(art: TemplateShelfArt.gameCover(item.title), imageSource: item.imgUrl,
+                                                  title: item.title.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: item.title),
+                                                  meta: item.description)
                     }
                     .buttonStyle(.plain)
-                    .padding(.bottom, CYSpacing.xl)
+                    .padding(.bottom, 28)
                     .pageTemplateGroupedCard(label: gameCardLabel(item), traits: .isButton)
                     .accessibilityIdentifier("discovery.play.featured.\(item.id)")
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .indexViewStyle(.page(backgroundDisplayMode: .interactive))
-            .aspectRatio(16.0 / 11.5, contentMode: .fit)
+            .aspectRatio(16.0 / 13.0, contentMode: .fit)
             .accessibilityIdentifier("discovery.featuredGames")
+        } header: {
+            Text("discovery.featured")
         }
     }
     @ViewBuilder private func gameSection(_ title: LocalizedStringKey, rows: [DiscoveryPlayTemplate], hero: Bool = false, verbatimTitle: String? = nil) -> some View {
         if !rows.isEmpty {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                if let shownTitle = verbatimTitle {
-                    Text(verbatim: shownTitle).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                } else {
-                    CYSectionHeader(title)
-                }
+            Section {
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
                     NavigationLink {
                         DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
                     } label: {
                         // MP asset (shelf/game-covers.js GAMES): a known play title always shows its bundled cover.
-                        if hero && index == 0, let art = TemplateShelfArt.gameCover(item.title) {
-                            TemplateShelfArtHeroCard(art: art, title: item.title.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: item.title), meta: item.description)
-                        } else if hero && index == 0 {
-                            CYImageCard(verbatim: item.title, fallback: "discovery.untitledPlay", meta: item.description, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                        if hero && index == 0 {
+                            VStack(alignment: .leading, spacing: 8) {
+                                DiscoveryShelfHeaderImage(art: TemplateShelfArt.gameCover(item.title), imageSource: item.imgUrl)
+                                DiscoveryPlayRow(item: item)
+                            }
                         } else if let art = TemplateShelfArt.gameCover(item.title) {
-                            HStack(alignment: .top, spacing: CYSpacing.md) {
+                            HStack(alignment: .top, spacing: 12) {
                                 TemplateShelfArtThumb(art: art)
                                 DiscoveryPlayRow(item: item)
-                            }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                            }
                         } else {
-                            DiscoveryPlayRow(item: item).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                            DiscoveryPlayRow(item: item)
                         }
-                    }.buttonStyle(.plain)
+                    }
                     .pageTemplateGroupedCard(label: gameCardLabel(item), traits: .isButton)
                     .accessibilityIdentifier("discovery.play.\(item.id)")
                 }
+            } header: {
+                if let shownTitle = verbatimTitle { Text(verbatim: shownTitle) } else { Text(title) }
             }
         }
     }
@@ -482,13 +498,16 @@ struct DiscoveryTemplateBrowserView: View {
             detail = nil
         }
         let canRetry = !unauthorized && (reason?.retryable ?? true)
-        return CYStateLayout(
-            kind: offline ? .offline : .failure,
-            title: Text(title),
-            detail: detail.map { Text($0) },
-            primary: canRetry ? (title: "action.retry", action: retry) : nil,
-            primaryIdentifier: canRetry ? "discovery.retry" : nil
-        )
+        return ContentUnavailableView {
+            Label(title, systemImage: offline ? "wifi.slash" : "exclamationmark.triangle")
+        } description: {
+            if let detail { Text(detail) }
+        } actions: {
+            if canRetry {
+                Button("action.retry", action: retry)
+                    .accessibilityIdentifier("discovery.retry")
+            }
+        }
     }
 
     private func topicCardLabel(_ item: DiscoveryTopicTemplate) -> Text {
@@ -523,19 +542,32 @@ struct DiscoveryTemplateBrowserView: View {
         tags.row.first { $0.key == key } ?? tags.groups.flatMap(\.tags).first { $0.key == key }
     }
 
-    private func shelfChipRow(_ tags: DiscoveryShelfTagSet, field: String, select: @escaping (String?) -> Void) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: CYSpacing.sm) {
-                filterChip(Text(verbatim: locale.pick("全部", "All")), selected: tags.selection == nil) { select(nil) }
-                    .accessibilityIdentifier("\(field).all")
-                ForEach(tags.row) { tag in
-                    filterChip(Text(verbatim: locale.pick(tag.zh, tag.en)), selected: tags.selection == tag.key) { select(tag.key) }
-                        .accessibilityIdentifier("\(field).\(tag.key)")
-                }
-                filterChip(Text(verbatim: locale.pick("全部分类", "All categories")), selected: false) { showsAllTags = true }
-                    .accessibilityIdentifier("\(field).allCategories")
+    /// Shelf category filter as a system menu (current choice shown on the trailing side), plus the 全部分类 sheet.
+    @ViewBuilder private func shelfChipRow(_ tags: DiscoveryShelfTagSet, field: String, select: @escaping (String?) -> Void) -> some View {
+        let all = locale.pick("全部", "All")
+        let current = tags.selection.flatMap { key in shelfTag(tags, key: key).map { locale.pick($0.zh, $0.en) } } ?? all
+        Menu {
+            Button { select(nil) } label: {
+                if tags.selection == nil { Label(all, systemImage: "checkmark") } else { Text(verbatim: all) }
             }
-        }.accessibilityIdentifier(field)
+            .accessibilityIdentifier("\(field).all")
+            ForEach(tags.row) { tag in
+                let name = locale.pick(tag.zh, tag.en)
+                Button { select(tag.key) } label: {
+                    if tags.selection == tag.key { Label(name, systemImage: "checkmark") } else { Text(verbatim: name) }
+                }
+                .accessibilityIdentifier("\(field).\(tag.key)")
+            }
+        } label: {
+            LabeledContent {
+                Text(verbatim: current)
+            } label: {
+                Label(locale.pick("分类", "Category"), systemImage: "line.3.horizontal.decrease.circle")
+            }
+        }
+        .accessibilityIdentifier(field)
+        filterChip(Text(verbatim: locale.pick("全部分类", "All categories")), selected: false) { showsAllTags = true }
+            .accessibilityIdentifier("\(field).allCategories")
     }
 
     private func loadShelfGames() async {
@@ -572,45 +604,29 @@ struct DiscoveryTemplateBrowserView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    Button(action: { choose(nil) }) {
-                        Text(verbatim: locale.pick("全部", "All"))
-                            .cyText(.body, weight: selected == nil ? .semibold : .regular)
-                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("discovery.allCategories.all")
-                    .accessibilityLabel(Text(verbatim: locale.pick("全部", "All")))
-                    .accessibilityValue(Text(verbatim: locale.pick("全部", "All")))
-                    .accessibilityHint(Text(verbatim: locale.pick("全部分类", "All categories")))
-                    ForEach(groups) { group in
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text(verbatim: locale.pick(group.zh, group.en))
-                                .cyText(.cardTitle)
-                            ForEach(group.tags) { tag in
-                                Button(action: { choose(tag.key) }) {
-                                    Text(verbatim: locale.pick(tag.zh, tag.en))
-                                        .cyText(.body, weight: selected == tag.key ? .semibold : .regular)
-                                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                                }
-                                .buttonStyle(.plain)
+            List {
+                Section {
+                    row(locale.pick("全部", "All"), isSelected: selected == nil, hint: locale.pick("全部分类", "All categories")) { choose(nil) }
+                        .accessibilityIdentifier("discovery.allCategories.all")
+                }
+                ForEach(groups) { group in
+                    Section {
+                        ForEach(group.tags) { tag in
+                            row(locale.pick(tag.zh, tag.en), isSelected: selected == tag.key, hint: locale.pick(group.zh, group.en)) { choose(tag.key) }
                                 .accessibilityIdentifier("discovery.allCategories.\(tag.key)")
-                                .accessibilityLabel(Text(verbatim: locale.pick(tag.zh, tag.en)))
-                                .accessibilityValue(Text(verbatim: locale.pick(tag.zh, tag.en)))
-                                .accessibilityHint(Text(verbatim: locale.pick(group.zh, group.en)))
-                            }
                         }
+                    } header: {
+                        Text(verbatim: locale.pick(group.zh, group.en))
                     }
                 }
-                .padding(CYSpacing.lg)
             }
+            .listStyle(.insetGrouped)
             .navigationTitle(Text(verbatim: locale.pick("全部分类", "All categories")))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(action: { dismiss() }) {
-                        Image(systemName: "xmark")
+                        Label("action.close", systemImage: "xmark")
                     }
                     .accessibilityIdentifier("discovery.allCategories.close")
                     .accessibilityLabel(Text("action.close"))
@@ -620,8 +636,61 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
+
+    /// Settings-style choice row: the chosen value carries a tinted checkmark.
+    private func row(_ title: String, isSelected: Bool, hint: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Text(verbatim: title).foregroundStyle(.primary)
+                Spacer(minLength: 0)
+                if isSelected {
+                    Image(systemName: "checkmark").foregroundStyle(.tint).accessibilityHidden(true)
+                }
+            }
+        }
+        .accessibilityLabel(Text(verbatim: title))
+        .accessibilityValue(Text(verbatim: title))
+        .accessibilityHint(Text(verbatim: hint))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
 }
 
+
+/// Featured-rail page: the MP bundled cover (or the server cover) as a plain image, then title and meta below it.
+private struct DiscoveryShelfFeatureTile: View {
+    let art: Image?
+    let imageSource: String?
+    let title: Text
+    var meta: String?
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            DiscoveryShelfHeaderImage(art: art, imageSource: imageSource)
+            title.font(.headline).foregroundStyle(.primary).lineLimit(2)
+            if let meta, !meta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .contentShape(Rectangle())
+    }
+}
+
+/// One plain header image: the MP asset when the name is known, else the screened server cover.
+private struct DiscoveryShelfHeaderImage: View {
+    let art: Image?
+    let imageSource: String?
+    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 180
+    var body: some View {
+        if let art {
+            art.resizable().scaledToFill()
+                .frame(height: height).frame(maxWidth: .infinity)
+                .clipped()
+                .accessibilityHidden(true)
+        } else {
+            DiscoveryArtwork(source: imageSource, height: height)
+        }
+    }
+}
 
 @MainActor private struct PublicTemplateCatalogSelection {
     let id = UUID()

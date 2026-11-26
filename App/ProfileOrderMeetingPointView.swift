@@ -42,20 +42,23 @@ import SwiftUI
     let current: @MainActor () -> ProfileOrderMeetingPointContext?
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            CYPillButton("profile.orderMap.open", style: .secondary, systemImage: "map") { model.prepare(current: current()) }
+            Button { model.prepare(current: current()) } label: {
+                Label("profile.orderMap.open", systemImage: "map").frame(maxWidth: .infinity)
+            }
+                .buttonStyle(.bordered).controlSize(.large)
                 .disabled(!model.canPrepare(current: current()))
                 .accessibilityIdentifier("profile.orderMap.open")
             if !model.matches(current()) {
-                Text("profile.orderMap.unavailable").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("profile.orderMap.unavailable").font(.footnote).foregroundStyle(.secondary)
             } else if model.isOpening {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    CYSkeletonBlock(height: 12).frame(maxWidth: 140)
-                    Text("profile.orderMap.opening").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text("profile.orderMap.opening").font(.footnote).foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine).accessibilityIdentifier("profile.orderMap.opening")
             } else if let outcome = model.outcome {
                 Text(LocalizedStringKey(outcome == .opened ? "profile.orderMap.opened" : "profile.orderMap.failed"))
-                    .cyText(.meta).foregroundStyle(outcome == .opened ? CYColor.successText : CYColor.warningText)
+                    .font(.footnote).foregroundStyle(outcome == .opened ? Color.green : Color.orange)
                     .accessibilityIdentifier("profile.orderMap.result")
             }
         }
@@ -94,12 +97,19 @@ import SwiftUI
                                 Text(verbatim: "\(latitude), \(longitude)").monospacedDigit()
                             }
                         }
-                        CYPillButton("profile.orderMap.confirm", systemImage: "map") {
-                            Task { await model.confirm(offered, current: current, open: open) }
-                        }.disabled(!model.owns(offered, current: current()))
-                            .accessibilityIdentifier("profile.orderMap.confirm").e1ActionRow()
+                        Section {
+                            Button {
+                                Task { await model.confirm(offered, current: current, open: open) }
+                            } label: {
+                                Label("profile.orderMap.confirm", systemImage: "map").frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .disabled(!model.owns(offered, current: current()))
+                            .accessibilityIdentifier("profile.orderMap.confirm")
+                            .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+                        }
                     }
-                    .formStyle(.grouped).cyGroupedSurface().navigationTitle(Text("profile.orderMap.review")).navigationBarTitleDisplayMode(.inline)
+                    .formStyle(.grouped).navigationTitle(Text("profile.orderMap.review")).navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
                         Button("action.cancel") { model.cancel(id: offered.id) }
                             .accessibilityIdentifier("profile.orderMap.cancel")

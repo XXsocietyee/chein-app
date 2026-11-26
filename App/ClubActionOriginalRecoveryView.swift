@@ -6,7 +6,6 @@ import SwiftUI
     let clubID: Int
     let identity: ClubReadIdentity
     let coordinator: ClubActionCoordinator
-    @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var reduceMotion
     @State private var revision: UInt64 = 0
     @State private var working = false
@@ -19,24 +18,26 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if case .outcomeUnknown = state {
                     Text("club.action.unknown")
-                        .cyText(.body)
-                        .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                    CYPillButton(
-                        "club.admission.original.read",
-                        style: .secondary,
-                        systemImage: "arrow.clockwise",
-                        tableName: "ClubAdmissionRecovery"
-                    ) {
+                    Button {
                         recover()
+                    } label: {
+                        Label {
+                            Text("club.admission.original.read", tableName: "ClubAdmissionRecovery")
+                        } icon: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                     .disabled(working || !coordinator.canRecoverOriginal(clubID: clubID))
                     .accessibilityIdentifier("club.admission.original.read")
                     .accessibilityLabel(Text("club.admission.original.read", tableName: "ClubAdmissionRecovery"))
                     if !coordinator.canRecoverOriginal(clubID: clubID) {
                         Text("club.action.unavailable")
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 } else if checked, case .acknowledged = state {
@@ -46,8 +47,7 @@ import SwiftUI
                     } icon: {
                         Image(systemName: "checkmark.seal.fill").accessibilityHidden(true)
                     }
-                    .cyText(.body)
-                    .foregroundStyle(palette.textPrimary)
+                    .foregroundStyle(.green)
                     .accessibilityIdentifier("club.admission.original.applied")
                 }
                 if working { ProgressView() }
@@ -56,7 +56,7 @@ import SwiftUI
             .padding(.vertical, showsChrome(state) ? CYSpacing.md : CGFloat(0))
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
-                if showsChrome(state) { palette.bgElevated.ignoresSafeArea(edges: .bottom) }
+                if showsChrome(state) { Rectangle().fill(.bar).ignoresSafeArea(edges: .bottom) }
             }
             .onDisappear { revision &+= 1; task?.cancel(); task = nil; working = false }
             .onChange(of: checked) { _, now in

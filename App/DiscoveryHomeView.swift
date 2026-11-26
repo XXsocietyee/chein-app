@@ -10,7 +10,6 @@ struct DiscoveryHomeView: View {
     @StateObject private var banners = DiscoveryLoader<[DiscoveryBanner]>()
     @StateObject private var home = DiscoveryLoader<DiscoveryTemplateHome>()
     @Environment(\.dynamicTypeSize) private var typeSize
-    @State private var stagger = CYStaggerGate()
 
     init(reader: any DiscoveryReading, topicBrowsingEnabled:Bool=false, onBannerDestination: ((DiscoveryBanner.Destination) -> Void)? = nil) {
         self.reader = reader
@@ -22,27 +21,32 @@ struct DiscoveryHomeView: View {
         NavigationStack {
             Group {
                 if !reader.isConfigured {
-                    CYEmptyState(systemImage: "network.slash", "discovery.unavailable", detail: "auth.notConfigured", kind: .offline)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                        .padding(CYSpacing.pageHorizontal)
-                        .cyDomainPageBackground()
+                    ContentUnavailableView {
+                        Label("discovery.unavailable", systemImage: "network.slash")
+                    } description: {
+                        Text("auth.notConfigured")
+                    }
                 } else {
                     List {
                         entrySection
                         bannerSection
                         if let error = home.error {
-                            DiscoveryErrorView(error: error) { Task { await loadHome() } }
-                                .discoveryHomeRow()
+                            Section {
+                                DiscoveryErrorView(error: error) { Task { await loadHome() } }
+                            }
                         }
                         if home.isLoading {
-                            CYSkeleton()
-                                .accessibilityLabel(Text("discovery.loading"))
-                                .discoveryHomeRow()
+                            Section {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                                    .accessibilityLabel(Text("discovery.loading"))
+                            }
                         }
                         if let value = home.value {
                             if value.isEmpty && !home.isLoading && home.error == nil {
-                                CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames")
-                                    .discoveryHomeRow()
+                                Section {
+                                    ContentUnavailableView("discovery.emptyGames", systemImage: "sparkles.rectangle.stack")
+                                }
                             }
                             // Preserve the server's five separate sections without merging/relabeling rows.
                             playSection("discovery.featured", items: value.banner, hero: true)
@@ -52,7 +56,7 @@ struct DiscoveryHomeView: View {
                             playSection("discovery.hot", items: value.hot)
                         }
                     }
-                    .cyGroupedSurface()
+                    .listStyle(.insetGrouped)
                     .refreshable { await reload() }
                 }
             }
@@ -67,20 +71,16 @@ struct DiscoveryHomeView: View {
         Section {
             if topicBrowsingEnabled {
                 Button { showsTopics=true } label: {
-                    CYListRow("topic.title", card: false) { CYRowIcon(systemImage: "map") }
+                    Label("topic.title", systemImage: "map")
                 }
-                .buttonStyle(.plain)
                 .accessibilityIdentifier("discovery.openRoutes")
             }
             NavigationLink {
                 DiscoveryTemplateBrowserView(reader: reader)
             } label: {
-                CYPillButtonLabel("discovery.browseTemplates", systemImage: "square.stack.3d.up")
+                Label("discovery.browseTemplates", systemImage: "square.stack.3d.up")
             }
-            .buttonStyle(CYPillButtonStyle())
             .accessibilityIdentifier("discovery.openTemplates")
-            .e1ActionRow()
-            .questifyHidesLinkIndicator()
         }
     }
 
@@ -89,30 +89,30 @@ struct DiscoveryHomeView: View {
             Section {
                 DiscoveryErrorView(error: error) { Task { await loadBanners() } }
             } header: {
-                CYSectionHeader("discovery.banners").textCase(nil)
+                Text("discovery.banners")
             }
         } else if banners.isLoading && banners.value == nil {
             Section {
-                CYSkeleton().accessibilityLabel(Text("discovery.loading"))
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel(Text("discovery.loading"))
             } header: {
-                CYSectionHeader("discovery.banners").textCase(nil)
+                Text("discovery.banners")
             }
         }
         if let items = banners.value, !items.isEmpty {
             Section {
+                // A horizontal shelf of banner images (App Store "shelf" pattern); plain images, no card chrome.
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                    LazyHStack(alignment: .top, spacing: 12) {
                         ForEach(Array(items.enumerated()), id: \.offset) { index, banner in
                             DiscoveryHomeBannerCard(banner: banner, index: index, onOpen: onBannerDestination)
-                                .cyStaggeredAppear(index: index, gate: stagger)
                         }
                     }
+                    .padding(.vertical, 4)
                 }
-                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
             } header: {
-                CYSectionHeader("discovery.banners").textCase(nil)
+                Text("discovery.banners")
             }
         }
     }
@@ -126,54 +126,32 @@ struct DiscoveryHomeView: View {
                     } label: {
                         playLabel(item, hero: hero && index == 0)
                     }
-                    .buttonStyle(.plain)
-                    .questifyHidesLinkIndicator()
                     .accessibilityIdentifier("discovery.play.\(item.id)")
-                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .cyStaggeredAppear(index: index, gate: stagger)
                 }
             } header: {
-                CYSectionHeader(title).textCase(nil)
+                Text(title)
             }
         }
     }
 
+    /// The featured first item keeps its cover as one plain header image above the row text.
     @ViewBuilder private func playLabel(_ item: DiscoveryPlayTemplate, hero: Bool) -> some View {
         if hero {
-            CYImageCard(title: playTitle(item), meta: playMeta(item), imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
-                .cachingFeedImage()
+            VStack(alignment: .leading, spacing: 8) {
+                DiscoveryArtwork(source: item.imgUrl, height: 180)
+                DiscoveryPlayRow(item: item)
+            }
         } else if typeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            VStack(alignment: .leading, spacing: 8) {
                 DiscoveryTopicCoverThumb(urlString: item.imgUrl)
                 DiscoveryPlayRow(item: item)
             }
-            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
         } else {
-            HStack(alignment: .top, spacing: CYSpacing.md) {
+            HStack(alignment: .top, spacing: 12) {
                 DiscoveryTopicCoverThumb(urlString: item.imgUrl)
                 DiscoveryPlayRow(item: item)
             }
-            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
         }
-    }
-
-    private func playTitle(_ item: DiscoveryPlayTemplate) -> Text {
-        item.title.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: item.title)
-    }
-
-    /// Pack, players, minutes, then the description. Unknown parts are omitted; a real player count of 0 stays visible.
-    private func playMeta(_ item: DiscoveryPlayTemplate) -> Text? {
-        var parts: [Text] = []
-        if let pack = item.pack { parts.append(Text(pack.label)) }
-        if let players = item.playersText { parts.append(Text(verbatim: players)) }
-        if let minutes = item.durationMinutes { parts.append(Text("discovery.minutes \(minutes)")) }
-        if let description = item.description?.trimmingCharacters(in: .whitespacesAndNewlines), !description.isEmpty {
-            parts.append(Text(verbatim: description))
-        }
-        guard let first = parts.first else { return nil }
-        return parts.dropFirst().reduce(first) { $0 + Text(verbatim: " · ") + $1 }
     }
 
     private func loadBanners() async { await banners.load { try await reader.discoveryBanners() } }
@@ -192,27 +170,22 @@ private struct DiscoveryHomeBannerCard: View {
 
     var body: some View {
         let trimmed = banner.contents?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let card = CYImageCard(
-            title: trimmed.isEmpty ? Text("discovery.openBanner \(index + 1)") : Text(verbatim: trimmed),
-            meta: nil,
-            imageURL: TemplateBrowserPort.coverURL(banner.picUrl),
-            style: .shelf
-        )
+        let tile = VStack(alignment: .leading, spacing: 6) {
+            DiscoveryArtwork(source: banner.picUrl, height: 160)
+            (trimmed.isEmpty ? Text("discovery.openBanner \(index + 1)") : Text(verbatim: trimmed))
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+        }
+        .frame(width: 260)
+        .accessibilityElement(children: .combine)
         if let destination = banner.destination, let onOpen {
-            Button { onOpen(destination) } label: { card }
+            Button { onOpen(destination) } label: { tile }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text("discovery.openBanner \(index + 1)"))
         } else {
-            card
+            tile
         }
-    }
-}
-
-private extension View {
-    func discoveryHomeRow() -> some View {
-        listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
     }
 }
 

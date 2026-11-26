@@ -66,7 +66,8 @@ class AINPCContracts(unittest.TestCase):
     def test_production_binding_is_read_only(self):
         # MP-first (owner 2026-11-25): reads stay on the operations reader; the MP's npc/decor/voice writes go
         # through a real-transport backend admitted by MerchantCityNPCParityGates.mpFirst, never the offline harness.
-        self.assertIn('StoreCharacterOperationsReader(reader: reader)', BINDING)
+        # The voice backend is passed for the MP voice status read; profile reads stay on the operations reader.
+        self.assertIn('StoreCharacterOperationsReader(reader: reader, voice: writer)', BINDING)
         self.assertIn('gates: .mpFirst', BINDING)
         self.assertNotIn('injectedOfflineHarness', BINDING)
 

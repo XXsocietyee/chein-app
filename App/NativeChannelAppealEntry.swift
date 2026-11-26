@@ -48,19 +48,19 @@ import SwiftUI
                         TextField(text: $explanation, axis: .vertical) { Text("input.placeholder", tableName: "NativeChannelAppealDetails") }
                             .lineLimit(3...8)
                             .accessibilityIdentifier("channel.appeal.explanation")
-                        HStack {
+                    } header: { Text("input.title", tableName: "NativeChannelAppealDetails") } footer: {
+                        // The limit hint and validation sit in the section footer, like Settings text fields.
+                        VStack(alignment: .leading, spacing: 4) {
                             if explanationCount > 500 {
-                                Text("input.tooLong", tableName: "NativeChannelAppealDetails").foregroundStyle(CYColor.dangerText)
+                                Text("input.tooLong", tableName: "NativeChannelAppealDetails").foregroundStyle(.red)
                             }
-                            Spacer(minLength: 8)
-                            Text("input.limit", tableName: "NativeChannelAppealDetails").foregroundStyle(.secondary)
-                            Text(verbatim: "\(explanationCount)/500").monospacedDigit().foregroundStyle(explanationCount > 500 ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
-                        }.cyText(.bodyCompact)
-                        Text("input.explanation", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
-                        if explanationCount == 0 {
-                            Text("input.required", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
+                            Text("input.limit", tableName: "NativeChannelAppealDetails")
+                            Text("input.explanation", tableName: "NativeChannelAppealDetails")
+                            if explanationCount == 0 {
+                                Text("input.required", tableName: "NativeChannelAppealDetails")
+                            }
                         }
-                    } header: { Text("input.title", tableName: "NativeChannelAppealDetails") }
+                    }
                     Section {
                         if flow.canSubmit {
                             Button { _ = flow.prepare(.submit, text: explanation) } label: { Text("action.submit", tableName: "NativeChannelAppealDetails").frame(maxWidth: .infinity) }
@@ -85,7 +85,6 @@ import SwiftUI
         .formStyle(.grouped)
         .cyText(.body)
         .foregroundStyle(.primary)
-        .cyGroupedSurface()
         .navigationTitle(Text("entry.title", tableName: "NativeChannelAppealDetails"))
         .navigationBarTitleDisplayMode(.inline)
         // Pull to refresh replaces the refresh row; the same read-only refresh runs.

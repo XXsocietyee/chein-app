@@ -644,7 +644,7 @@ struct RegistrationSheetView: View {
             Section {
                 LabeledContent("registration.hostReservation.status") {
                     Text(verbatim: reservation.statusText)
-                        .foregroundStyle(reservation.awaitingPayment ? CYColor.textPrimary : CYColor.textSecondary)
+                        .foregroundStyle(reservation.awaitingPayment ? .primary : .secondary)
                 }
                 if reservation.awaitingPayment, let deadline = flow.waitlistStatus?.expiresAt {
                     LabeledContent("registration.hostReservation.payBy") {

@@ -10,7 +10,7 @@ class SavedLibrarySourceContracts(unittest.TestCase):
   for x in ['coordinator.state == .acknowledged','coordinator.savedDraft','pending.savedDraft == receipt','receipt.matches(pending, session: session)','receipt.identity == identity','pending.identity == identity']:self.assertIn(x,CORE)
  def test_normal_root_is_one_additive_observation_and_node_branch_is_excluded(self):
   self.assertEqual(HOST.count('.preference(key: TemplateAuthoringSavedResultPreferenceKey.self,'),1);self.assertIn('eligible: onSavedDraft == nil',HOST)
-  self.assertIn('if let onSavedDraft {',HOST);self.assertIn('{ onSavedDraft(saved) }',HOST);self.assertIn('CYPillButton("projectNodeCreate.return", tableName: "ProjectNodeTemplateCreation")',HOST)
+  self.assertIn('if let onSavedDraft {',HOST);self.assertIn('{ onSavedDraft(saved) }',HOST);self.assertIn('Button { onSavedDraft(saved) } label: { Text("projectNodeCreate.return", tableName: "ProjectNodeTemplateCreation") }',HOST)  # native r2: CYPillButton became a system Button with the same action
  def test_normal_launch_reuses_full_existing_library_destination(self):
   self.assertEqual(LAUNCH.count('TemplateAuthoringSaveFlow('),1)
   for name in ['.templateShelfCoordinator()','SessionOwnedMemberTemplateDetailView','SessionOwnedTemplateConfigurationView','SessionWorkshopCreatorConsentView','.templateShelfViewIdentity']:

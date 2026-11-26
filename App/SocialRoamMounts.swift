@@ -13,9 +13,11 @@ import SwiftUI
             Section {
                 ForEach(SquareMineList.allCases, id: \.self) { list in
                     NavigationLink { SquareMineListView(list: list, service: service, token: capabilities.token) } label: {
-                        CYListRow(verbatim: list == .posts ? PlayerCapabilityCopy.text("我的帖文", "My posts", locale)
-                                                           : PlayerCapabilityCopy.text("我的收藏", "Bookmarks", locale), trailing: .none) {
-                            CYRowIcon(systemImage: list == .posts ? "text.bubble" : "bookmark")
+                        Label {
+                            Text(verbatim: list == .posts ? PlayerCapabilityCopy.text("我的帖文", "My posts", locale)
+                                                          : PlayerCapabilityCopy.text("我的收藏", "Bookmarks", locale))
+                        } icon: {
+                            Image(systemName: list == .posts ? "text.bubble" : "bookmark")
                         }
                     }
                     .accessibilityIdentifier("account.square.mine.\(list.rawValue)")
@@ -37,14 +39,12 @@ import SwiftUI
         if let capabilities, let merchantID, merchantID > 0 {
             Section {
                 // One row: the summary draws nothing until a sufficient sample is read, and an empty row would show.
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                VStack(alignment: .leading, spacing: 8) {
                     MerchantSafetySummaryRow(merchantID: merchantID, client: capabilities.client)
                     Button { correcting = true } label: {
-                        CYListRow(verbatim: PlayerCapabilityCopy.text("商家信息纠错", "Correct merchant info", locale), trailing: .none, card: true) {
-                            CYRowIcon(systemImage: "exclamationmark.bubble")
-                        }
+                        Label(PlayerCapabilityCopy.text("商家信息纠错", "Correct merchant info", locale), systemImage: "exclamationmark.bubble")
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderless)
                     .accessibilityIdentifier("merchant.publicHome.correction")
                     .sheet(isPresented: $correcting) {
                         MerchantCorrectionSheet(merchantID: merchantID, client: capabilities.client)
@@ -70,16 +70,16 @@ import SwiftUI
 
     var body: some View {
         if let capabilities, let owner = ownerMemberID.flatMap(PublicMerchantOwnerID.init) {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: 4) {
                 Button { Task { await open(owner, reader: capabilities.merchantHome) } } label: {
                     Label(PlayerCapabilityCopy.text("安全感受评价", "Rate how safe it felt", locale), systemImage: "shield.lefthalf.filled")
                 }
-                .buttonStyle(.cySecondary(fullWidth: false))
+                .buttonStyle(.bordered)
                 .disabled(resolving)
                 .accessibilityIdentifier("storeDayPage.safetyRating")
                 if missed {
                     Text(verbatim: PlayerCapabilityCopy.text("没有找到这家商家", "Merchant not found", locale))
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
             }
             .sheet(item: $rating) {
@@ -362,18 +362,18 @@ struct MapPlaceSuggestions: ViewModifier {
     private struct Key: Hashable { let keyword: String; let area: RoamSearchArea?; let account: Int? }
 
     func body(content: Content) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 4) {
             content
             if capabilities != nil {
                 ForEach(model.places) { place in
                     Button { open(place) } label: {
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text(verbatim: place.name).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: place.name)
                             if !place.address.isEmpty {
-                                Text(verbatim: place.address).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: place.address).font(.subheadline).foregroundStyle(.secondary)
                             }
                         }
-                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -382,7 +382,7 @@ struct MapPlaceSuggestions: ViewModifier {
                 }
                 if model.remoteError {
                     Text(verbatim: PlayerCapabilityCopy.text("地点搜索暂不可用", "Place search is unavailable", locale))
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
             }
         }

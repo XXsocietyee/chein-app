@@ -32,21 +32,21 @@ import SwiftUI
                 VStack(spacing: 8) {
                     // Source order: search (hidden on "mine"), chip tabs, then the summary row.
                     if bucket.isSearchable {
+                        // An in-page system field (not `.searchable`): it hides on 我的 like the MP search bar.
                         TextField("official.search", text: $keyword)
-                            .textFieldStyle(.plain).submitLabel(.search)
-                            .padding(.horizontal, CYSpacing.lg)
-                            .frame(minHeight: 44)
-                            .background(CYColor.bgElevated, in: Capsule()).accessibilityIdentifier("official.search")
+                            .textFieldStyle(.roundedBorder).submitLabel(.search)
+                            .autocorrectionDisabled()
+                            .accessibilityIdentifier("official.search")
                     }
-                    // Source `cy-tabs variant="chip"`: left-aligned capsules, the selected one solid.
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: CYSpacing.sm) {
-                            ForEach(OfficialEventBucket.allCases) { value in
-                                OfficialEventBucketChip(value: value, bucket: $bucket)
-                            }
+                    // Source `cy-tabs variant="chip"` filter tabs: the Apple control is a segmented Picker.
+                    Picker(selection: $bucket) {
+                        ForEach(OfficialEventBucket.allCases) { value in
+                            Text(LocalizedStringKey(value.tabTitleKey)).tag(value)
                         }
+                    } label: {
+                        Text("official.filter")
                     }
-                    .sensoryFeedback(.selection, trigger: bucket)
+                    .pickerStyle(.segmented)
                     .accessibilityElement(children: .contain)
                     .accessibilityLabel(Text("official.filter"))
                     .accessibilityIdentifier("official.filter")
@@ -112,18 +112,17 @@ import SwiftUI
                     } else {
                         Text(verbatim: page.summaryCountText)
                     }
-                }.cyText(.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("officialList.summary")
+                }.font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("officialList.summary")
                 if page.phase == .empty {
                     // R7-PC-C3-3 (MP list/index.js EMPTY_COPY): one title line per tab, no second line; the search keeps its hint.
-                    CYEmptyState(systemImage: bucket == .upcoming && !query.isSearching ? "clock" : "sparkles",
-                                 LocalizedStringKey(query.emptyTitleKey),
-                                 detail: query.isSearching ? LocalizedStringKey(query.emptyDetailKey) : nil)
-                        .listRowBackground(Color.clear)
-                        .transition(.opacity)
+                    emptyState(LocalizedStringKey(query.emptyTitleKey),
+                               systemImage: bucket == .upcoming && !query.isSearching ? "clock" : "sparkles",
+                               detail: query.isSearching ? LocalizedStringKey(query.emptyDetailKey) : nil)
                 }
             }
             ForEach(visible) { event in
                 NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin, topicLinks: topicLinks) } label: { OfficialEventCard(event: event) }
+                    // The card draws its own surface (QuestifyImageEntityCard); no cell behind it.
                     .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
                     .accessibilityElement(children: .combine)
                     .accessibilityAddTraits(.isButton)
@@ -132,8 +131,14 @@ import SwiftUI
             Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
+    }
+    private func emptyState(_ title: LocalizedStringKey, systemImage: String, detail: LocalizedStringKey?) -> some View {
+        ContentUnavailableView {
+            Label(title, systemImage: systemImage)
+        } description: {
+            if let detail { Text(detail) }
+        }
     }
     private func checkPublisherPermission() async {
         let captured = reader.scope
@@ -144,18 +149,5 @@ import SwiftUI
             guard !Task.isCancelled, reader.scope == captured else { return }
             canPublish = allowed; publisherScope = captured
         } catch { /* A failed capability check does not break public discovery or expose publishing. */ }
-    }
-}
-
-/// One 官方活动 filter chip (split out so the chip row type-checks quickly).
-@MainActor private struct OfficialEventBucketChip: View {
-    let value: OfficialEventBucket
-    @Binding var bucket: OfficialEventBucket
-    var body: some View {
-        let key = LocalizedStringKey(value.tabTitleKey)
-        let selected = bucket == value
-        let traits: AccessibilityTraits = selected ? [.isButton, .isSelected] : .isButton
-        return CYFilterChip(key, isSelected: selected) { bucket = value }
-            .pageTemplateControl(label: Text(key), traits: traits)
     }
 }

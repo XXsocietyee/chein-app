@@ -3,8 +3,8 @@ PRODUCT_BUNDLE_IDENTIFIER = invalid.example.questify.ios
 IPHONEOS_DEPLOYMENT_TARGET = 17.0
 SWIFT_VERSION = 5.0
 TARGETED_DEVICE_FAMILY = 1,2
-MARKETING_VERSION = 0.1.0
-CURRENT_PROJECT_VERSION = 1
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 2
 GENERATE_INFOPLIST_FILE = YES
 INFOPLIST_FILE = Config/Info.plist
 INFOPLIST_KEY_CFBundleDisplayName = Questify
@@ -25,7 +25,7 @@ INFOPLIST_KEY_QuestifyAPIBaseURL = $(QUESTIFY_API_BASE_URL)
 QUESTIFY_DEPLOYMENT_ENVIRONMENT = unconfigured
 INFOPLIST_KEY_QuestifyDeploymentEnvironment = $(QUESTIFY_DEPLOYMENT_ENVIRONMENT)
 
-INFOPLIST_KEY_NSCameraUsageDescription = Use the camera to scan QR codes or take aftercare evidence photos when you choose.
+INFOPLIST_KEY_NSCameraUsageDescription = Use the camera only when you choose to scan a QR code, take a photo for a play task, a city stamp, a post or your profile, or view an augmented-reality scene. Merchants also use it to photograph aftercare evidence. Nothing is captured in the background.
 
 // Explicit deployment identity for isolated local session persistence; no default realm.
 QUESTIFY_SESSION_REALM =

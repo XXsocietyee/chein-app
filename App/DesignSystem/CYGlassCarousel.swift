@@ -23,9 +23,6 @@ struct CYCarouselSlide: Identifiable, Hashable {
     var dimmed = false
     /// MP default cover when the slide has no https cover (round 4 image parity); nil keeps the generated art.
     var fallback: CYCarouselFallback? = nil
-    /// R7-PC-A1-3: MP 编辑精选 `v3-reco-club` (clubLabel) and `v3-reco-tags` (tags[0] + statusLabel) (pages/index/index.wxml:107-120).
-    var club: String? = nil
-    var chips: [String] = []
 }
 
 /// Shipped MP default covers a carousel slide can fall back to (Hashable stand-in for `Image`).
@@ -193,7 +190,7 @@ struct CYGlassCarousel: View {
 
     private func spokenLabel(_ slide: CYCarouselSlide, position: Int) -> String {
         let n = slides.count
-        let parts = [slide.club, slide.chips.isEmpty ? nil : slide.chips.joined(separator: " "), slide.title, slide.date, slide.place, appLocalized("carousel.position \(position) \(n)", locale: locale)]
+        let parts = [slide.title, slide.date, slide.place, appLocalized("carousel.position \(position) \(n)", locale: locale)]
         return parts.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
     }
 
@@ -221,8 +218,7 @@ struct CYCarouselCard: View {
             LinearGradient(stops: [.init(color: .clear, location: 0.55),
                                    .init(color: .black.opacity(contrast == .increased ? 0.92 : 0.78), location: 1)],
                            startPoint: .top, endPoint: .bottom)
-            CYCarouselCaption(title: slide.title, date: slide.date, place: slide.place, contrast: contrast,
-                              club: slide.club, chips: slide.chips)
+            CYCarouselCaption(title: slide.title, date: slide.date, place: slide.place, contrast: contrast)
             if slide.kind == .ticket {
                 Path { p in
                     p.move(to: CGPoint(x: 22, y: notchY)); p.addLine(to: CGPoint(x: size.width - 22, y: notchY))
@@ -295,27 +291,10 @@ struct CYCarouselCaption: View {
     var date: String?
     var place: String?
     var contrast: ColorSchemeContrast = .standard
-    var club: String? = nil
-    var chips: [String] = []
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         let reduced = reduceMotion
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            if let club, !club.isEmpty {
-                Label { Text(verbatim: club).lineLimit(1) } icon: { Image(systemName: "person.2.fill") }
-                    .cyText(.meta, weight: .semibold)
-            }
-            if !chips.isEmpty {
-                HStack(spacing: CYSpacing.xs) {
-                    ForEach(Array(chips.enumerated()), id: \.offset) { _, chip in
-                        Text(verbatim: chip)
-                            .cyText(.meta, weight: .semibold)
-                            .lineLimit(1)
-                            .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                            .background(.white.opacity(0.2), in: Capsule())
-                    }
-                }
-            }
             Text(verbatim: title).cyText(.sectionTitle).lineLimit(2)
             if let date, !date.isEmpty { Text(verbatim: date).cyText(.meta).monospacedDigit() }
             if let place, !place.isEmpty { Text(verbatim: place).cyText(.meta).opacity(contrast == .increased ? 1 : 0.85).lineLimit(1) }

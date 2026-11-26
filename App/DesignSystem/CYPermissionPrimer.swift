@@ -60,8 +60,8 @@ struct CYPermissionPrimerContent: Equatable {
         return CYPermissionPrimerContent(
             glyph: "camera.fill",
             title: c("Camera for this moment", "相机只用于这一刻"),
-            body: c("Use the camera to scan QR codes or take aftercare evidence photos when you choose.",
-                    "当你主动选择时，使用相机扫描二维码或拍摄售后凭证照片。"),
+            body: c("Use the camera only when you choose to scan a QR code, take a photo for a play task, a city stamp, a post or your profile, or view an augmented-reality scene. Merchants also use it to photograph aftercare evidence. Nothing is captured in the background.",
+                    "仅在你主动选择时使用相机：扫描二维码，为玩法任务、城市印章、动态或个人资料拍照，或查看 AR 场景；商家也会用它拍摄售后凭证照片。相机不会在后台拍摄。"),
             points: [
                 c("Only when you choose to capture", "仅在你选择拍摄或扫码时"),
                 c("Nothing is recorded in the background", "不会在后台录制"),

@@ -97,6 +97,7 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
                                 Text(LocalizedStringKey("projectChapterAtmosphere.note." + preset.rawValue))
                                     .font(.footnote).foregroundStyle(.secondary)
                             }
+                            .fixedSize(horizontal: false, vertical: true)
                         } icon: {
                             // The swatch is the preset's own data colour, not decoration.
                             Image(systemName: "circle.fill")

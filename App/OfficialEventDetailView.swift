@@ -76,15 +76,11 @@ enum OfficialDetailID {
         if let notice = event.safetyNoticeTitle, event.signed != true {
             Section {
                 Text(verbatim: notice)
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
                     .accessibilityIdentifier(OfficialDetailID.leaf("safetyNotice"))
             } header: {
                 Text(verbatim: OfficialReadCopy.safetyNoticeHeading(locale: locale))
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
             }
         }
     }
@@ -108,16 +104,16 @@ enum OfficialDetailID {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: Self.collectivePercent(collective.percent)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                            Text("official.detailParity.collective.lit").cyText(.meta).foregroundStyle(.secondary)
+                            Text(verbatim: Self.collectivePercent(collective.percent)).font(.title.bold()).monospacedDigit()
+                            Text("official.detailParity.collective.lit").font(.footnote).foregroundStyle(.secondary)
                         }
                         Spacer()
                         Text(verbatim: Self.collectiveCount(collective.current, collective.threshold)).monospacedDigit()
                     }
                     if let fraction = collective.displayFraction {
-                        ProgressView(value: fraction).tint(CYColor.brand).accessibilityHidden(true)
+                        ProgressView(value: fraction).accessibilityHidden(true)
                     }
-                    Text(LocalizedStringKey(presentation.collectiveTipKey)).cyText(.bodyCompact).foregroundStyle(.secondary)
+                    Text(LocalizedStringKey(presentation.collectiveTipKey)).font(.subheadline).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.collective)
             }
         }
@@ -145,49 +141,51 @@ enum OfficialDetailID {
             // shell (back to list), an unclassified record keeps em dashes and says so.
             let page = OfficialEventDetailPageState.project(loading: false, event: event)
             if page.phase == .empty {
-                CYEmptyState(systemImage: "calendar.badge.exclamationmark", "official.detailParity.unavailable.title",
-                             detail: "official.detailParity.unavailable.detail",
-                             actionTitle: "official.detailParity.unavailable.back", actionIdentifier: OfficialDetailID.backToList,
-                             action: { dismiss() })
-                .padding(CYSpacing.lg)
+                ContentUnavailableView {
+                    Label("official.detailParity.unavailable.title", systemImage: "calendar.badge.exclamationmark")
+                } description: {
+                    Text("official.detailParity.unavailable.detail")
+                } actions: {
+                    Button { dismiss() } label: { Text("official.detailParity.unavailable.back") }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier(OfficialDetailID.backToList)
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .cyDomainPageBackground()
                 .accessibilityIdentifier(OfficialDetailID.empty)
             } else {
             List {
                 if page.phase == .unknown {
                     Label("official.detailPage.unknown", systemImage: "questionmark.circle")
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier(OfficialDetailID.unknown)
                 }
                 OfficialEventCard(event: event).questifyCardListRow()
                 OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
-                HStack(spacing: CYSpacing.sm) {
-                    CYStatusChip(LocalizedStringKey(presentation.categoryKey), tone: .neutral)
+                HStack(spacing: 8) {
+                    Text(LocalizedStringKey(presentation.categoryKey)).font(.subheadline).foregroundStyle(.secondary)
                     // MP official-detail/index.wxml:31: the 城瘾官方 organizer logo.
                     MPAsset.BrandLogo.cyLogoMark.resizable().scaledToFill()
                         .frame(width: 24, height: 24).clipShape(Circle()).accessibilityHidden(true)
-                    Text("official.detailParity.organizer").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text("official.detailParity.organizer").font(.subheadline).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.organizer)
                 Section("official.facts") {
                     OfficialDetailFactsStrip(facts: presentation.facts).accessibilityIdentifier(OfficialDetailID.facts)
                     // R7-PC-C4-3: MP official-detail has no 价格 row (index.wxml:155-156), so no 暂无价格信息 placeholder either.
                 }
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        CYHeroHeader(verbatim: event.title)
-                        if let intro = presentation.intro { Text(verbatim: intro).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(verbatim: event.title).font(.title2.bold()).accessibilityAddTraits(.isHeader)
+                        if let intro = presentation.intro { Text(verbatim: intro).foregroundStyle(.secondary).textSelection(.enabled) }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(OfficialDetailID.overview)
                 }
                 if !presentation.cards.isEmpty {
                     Section("official.detailParity.cardsHeading") {
                         ForEach(presentation.cards, id: \.index) { card in
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                OfficialDetailTextView(value: card.title).cyText(.cardTitle)
-                                OfficialDetailTextView(value: card.description).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            VStack(alignment: .leading, spacing: 4) {
+                                OfficialDetailTextView(value: card.title).font(.headline)
+                                OfficialDetailTextView(value: card.description).font(.subheadline).foregroundStyle(.secondary)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                             .accessibilityElement(children: .combine)
                         }
                     }.accessibilityIdentifier(OfficialDetailID.cards)
@@ -200,15 +198,15 @@ enum OfficialDetailID {
                 if event.isV2 {
                     Section {
                         if event.signed != true {
-                            Text("official.detailParity.tasks.signupNote").cyText(.bodyCompact).foregroundStyle(.secondary)
+                            Text("official.detailParity.tasks.signupNote").font(.subheadline).foregroundStyle(.secondary)
                         }
                         if event.paused {
-                            if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(CYColor.dangerText) }
-                            else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(CYColor.dangerText) }
+                            if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(.red) }
+                            else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(.red) }
                         }
-                        if presentation.missions.isEmpty { CYEmptyState(systemImage: "checklist", "official.detailParity.tasks.empty") }
+                        if presentation.missions.isEmpty { ContentUnavailableView("official.detailParity.tasks.empty", systemImage: "checklist") }
                         if topicNameFailed {
-                            Text("official.w206.detail.topicName.failed").cyText(.bodyCompact).foregroundStyle(.secondary)
+                            Text("official.w206.detail.topicName.failed").font(.subheadline).foregroundStyle(.secondary)
                                 .accessibilityIdentifier(OfficialDetailID.topicNameError)
                         }
                         ForEach(presentation.missions, id: \.index) { mission in
@@ -243,7 +241,7 @@ enum OfficialDetailID {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("official.detailParity.rewardFootnote.issue")
                             Text("official.detailParity.rewardFootnote.settlement")
-                        }.cyText(.bodyCompact).foregroundStyle(.secondary)
+                        }.font(.subheadline).foregroundStyle(.secondary)
                             .accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.rewardFootnote)
                     }
                 }
@@ -260,7 +258,7 @@ enum OfficialDetailID {
                         if let eligible = event.eligible { Text(eligible ? "official.eligible" : "official.notEligible") }
                     } else {
                         Text("official.signInForProgress")
-                        if let onLogin { CYPillButton("official.signIn", style: .secondary, action: onLogin) }
+                        if let onLogin { Button("official.signIn", action: onLogin).buttonStyle(.bordered) }
                     }
                 }
                 if reader.isAuthenticated, let actions {
@@ -279,14 +277,14 @@ enum OfficialDetailID {
                     )
                 }
                 if reader.isOfflineExample { Section { OfficialReadOnlyNotice(offline: true) } }
-            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground().themeDomain(.player).tint(CYDomainPalette(.player).brand)
+            }.listStyle(.insetGrouped).themeDomain(.player)
             .accessibilityIdentifier("official.detail.content")
             // R7-PC-C4-2 (MP official-detail/index.wxml:199-207 `od-cta-bar`): the source CTA is pinned to the bottom.
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if hasCTABar(event: event, presentation: presentation) {
                     ctaBar(event: event, presentation: presentation)
-                        .padding(.horizontal, CYSpacing.pageHorizontal)
-                        .padding(.vertical, CYSpacing.sm)
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
                         .frame(maxWidth: .infinity)
                         .background(.bar)
                 }
@@ -360,20 +358,23 @@ struct OfficialTopicLinks {
     let reader: any TopicReading
     let destination: (Int) -> AnyView
 }
-/// Source facts strip: label, value and sub line per fact, scrolled horizontally.
+/// Source facts: label, value and sub line per fact, as system label/value rows (the MP horizontal strip has no
+/// Apple control; `LabeledContent` is the closest).
 struct OfficialDetailFactsStrip: View {
     let facts: [OfficialDetailFact]
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .top, spacing: CYSpacing.xl) {
-                ForEach(facts) { fact in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(fact.labelKey)).cyText(.micro).foregroundStyle(CYColor.textSecondary)
-                        value(fact.value).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                        sub(fact.sub).cyText(.micro).foregroundStyle(CYColor.textSecondary)
-                    }.accessibilityElement(children: .combine)
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(facts) { fact in
+                LabeledContent {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        value(fact.value).monospacedDigit().foregroundStyle(.primary)
+                        sub(fact.sub).font(.footnote).foregroundStyle(.secondary)
+                    }
+                } label: {
+                    Text(LocalizedStringKey(fact.labelKey))
                 }
-            }.padding(.vertical, 4)
+                .accessibilityElement(children: .combine)
+            }
         }
     }
     @ViewBuilder private func value(_ value: OfficialDetailFactValue) -> some View {
@@ -409,8 +410,7 @@ struct OfficialEventLeaderboardRead: View {
         if board.isEmptyBoard {
             Section("official.leaderboard.title") {
                 Text(verbatim: OfficialReadCopy.emptyLeaderboard(locale: locale))
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("official.leaderboard" + "." + "empty")
             }
         } else {
@@ -424,10 +424,11 @@ struct OfficialDetailMissionRow: View {
     var topicName: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            OfficialDetailTextView(value: mission.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            if let topicName { Text("official.w206.detail.boundTopic \(topicName)").cyText(.bodyCompact) }
-            OfficialDetailTextView(value: mission.description).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-            CYStatusChip(LocalizedStringKey(mission.action.key), tone: mission.action == .verified ? .success : .neutral, systemImage: symbol)
+            OfficialDetailTextView(value: mission.title).font(.headline)
+            if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
+            OfficialDetailTextView(value: mission.description).font(.subheadline).foregroundStyle(.secondary)
+            Label { Text(LocalizedStringKey(mission.action.key)) } icon: { Image(systemName: symbol).foregroundStyle(mission.action == .verified ? Color.green : Color.secondary) }
+                .font(.subheadline)
         }.accessibilityElement(children: .combine)
     }
     private var symbol: String {
@@ -455,7 +456,8 @@ extension OfficialEventDetailView {
             NavigationLink { topicLinks.destination(topic) } label: {
                 Text(LocalizedStringKey(presentation.cta.key)).frame(maxWidth: .infinity)
             }
-            .buttonStyle(CYPillButtonStyle())
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .accessibilityIdentifier(OfficialDetailID.ctaTopic)
         } else if !presentation.cta.isSourceAction {
             Text(LocalizedStringKey(presentation.cta.key))

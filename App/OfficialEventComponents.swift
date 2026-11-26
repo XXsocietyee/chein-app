@@ -43,25 +43,28 @@ struct OfficialIssueView: View {
     var body: some View {
         ContentUnavailableView {
             if let copy {
-                Label(copy.title, systemImage: symbol).accessibilityIdentifier(copy.identifier)
+                Label { Text(copy.title).accessibilityIdentifier(copy.identifier) } icon: { Image(systemName: symbol) }
             } else {
-                Label(label ?? issue.key, systemImage: symbol).accessibilityIdentifier("official.issue")
+                Label { Text(label ?? issue.key).accessibilityIdentifier("official.issue") } icon: { Image(systemName: symbol) }
             }
         } description: {
             if let copy {
                 Text(copy.detail)
-                Text(label ?? issue.key).accessibilityIdentifier("official.issue")
+                Text(label ?? issue.key).font(.footnote).accessibilityIdentifier("official.issue")
             }
         } actions: {
             if case .unauthorized = issue, let onLogin {
-                Button("official.signIn", action: onLogin).buttonStyle(.borderedProminent)
+                Button("official.signIn", action: onLogin)
+                    .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("official.signIn")
             } else if case .failed = issue, let retry {
-                Button("official.retry", action: retry).buttonStyle(.bordered)
+                Button("official.retry", action: retry)
+                    .buttonStyle(.bordered)
                     .accessibilityIdentifier("official.retry")
             } else if case .unavailable = issue, let onBack, let copy, let backTitle = copy.backTitle {
                 // An unrecoverable read offers only the way back, never a retry.
-                Button(backTitle, action: onBack).buttonStyle(.bordered)
+                Button(backTitle, action: onBack)
+                    .buttonStyle(.bordered)
                     .accessibilityIdentifier(copy.backIdentifier)
             }
         }
@@ -118,8 +121,7 @@ struct OfficialIssueView: View {
     var body: some View {
         // Own loading/cancellation on a stable container, not Group's changing
         // branches, which can restart the initial read when an error appears.
-        CYLoadSlot(isLoading: isShowingLoad, label: "official.loading", announces: true) {
-            ZStack(alignment: .topLeading) {
+        ZStack(alignment: .topLeading) {
                 if isPrivate && !reader.isAuthenticated { OfficialIssueView(issue: .unauthorized, onLogin: onLogin, label: issueLabel?(.unauthorized)) }
                 else if !reader.isConfigured { OfficialIssueView(issue: .unconfigured) }
                 else if loadedKey != key || loading { Color.clear }
@@ -129,14 +131,16 @@ struct OfficialIssueView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         if refreshing || refreshFailed {
                             Text(refreshing ? "official.refreshing" : "official.refreshFailed")
-                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                .padding(.horizontal).padding(.vertical, CYSpacing.xs)
+                                .font(.footnote).foregroundStyle(.secondary)
+                                .padding(.horizontal).padding(.vertical, 4)
                                 .accessibilityIdentifier(refreshing ? "official.refreshing" : "official.refreshFailed")
                         }
                         content(value)
                     }
                 }
-            }
+        }
+        .overlay {
+            if isShowingLoad { ProgressView().accessibilityLabel(Text("official.loading")) }
         }
         .task(id: key) { await refresh() }
         .refreshable { await refresh() }
@@ -185,7 +189,7 @@ struct OfficialReadOnlyNotice: View {
         // Unavailable actions are simply absent; only the example-content marker remains.
         if offline {
             Label("official.offlineExample", systemImage: "info.circle")
-                .cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -195,9 +199,8 @@ struct OfficialEventCard: View {
         QuestifyImageEntityCard(imageSource: event.coverImage, title: event.title, subtitle: event.subtitle,
                                 fallbackTitle: "official.untitled", fallbackSymbol: "sparkles") {
             // R7-PC-C3-2 (MP list/index.wxml:57 `cy-badge type="status"`): tone follows the status, `play` when live.
-            CYStatusChip(LocalizedStringKey(event.statusKey), tone: OfficialEventStatusStyle.tone(event.status),
-                         systemImage: OfficialEventStatusStyle.symbol(event.status))
-            if event.paused { Label("official.status.paused", systemImage: "pause.circle").foregroundStyle(CYColor.warningText) }
+            OfficialEventStatusLabel(status: event.status, key: event.statusKey)
+            if event.paused { Label("official.status.paused", systemImage: "pause.circle").foregroundStyle(.orange) }
             if event.recruitmentBlocked == true {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("official.informationIncomplete", systemImage: "exclamationmark.triangle")
@@ -218,7 +221,7 @@ struct OfficialEventCard: View {
             else { Text("official.card.participantsUnknown") }
             if event.collectivePercentShown {
                 if let percent = event.collective?.percent {
-                    ProgressView(value: Double(min(100, max(0, percent))), total: 100).tint(CYColor.brand).accessibilityHidden(true)
+                    ProgressView(value: Double(min(100, max(0, percent))), total: 100).accessibilityHidden(true)
                     Text("official.card.collective \(min(100, max(0, percent)))")
                 }
                 else { Text("official.card.collectiveUnknown") }
@@ -230,14 +233,10 @@ struct OfficialEventCard: View {
 }
 
 /// Local O01 styling. It reads the existing caller domain and changes no access or action state.
+/// Native r2: system grouped list and form, system background and accent, Light and Dark.
 struct OfficialFlowSurface: ViewModifier {
-    @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
-        content.cyText(.body).listStyle(.insetGrouped).formStyle(.grouped)
-            .scrollContentBackground(.hidden)
-            .background(Theme.Generated.color("--cy-color-bg-page", in: domain) ?? Color(uiColor: .systemGroupedBackground))
-            .tint(Theme.Generated.color("--cy-color-brand", in: domain) ?? Color.accentColor)
-            .cyApplyColorScheme(domain.forcedColorScheme)
+        content.listStyle(.insetGrouped).formStyle(.grouped)
     }
 }
 
@@ -249,7 +248,6 @@ struct OfficialFlowNotice: View {
             icon: { Image(systemName: symbol).accessibilityHidden(true) }
             .font(.footnote).foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12).background(.quaternary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .accessibilityElement(children: .combine)
     }
 }
@@ -295,15 +293,12 @@ struct OfficialEventTimeValue: View {
 
 /// Functional footer only; system safe-area insets reserve space above the home indicator.
 struct OfficialFlowActionBar<Content: View>: View {
-    @Environment(\.themeDomain) private var domain
     private let content: Content
     init(@ViewBuilder content: () -> Content) { self.content = content() }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) { content }
             .frame(maxWidth: .infinity).padding(.horizontal, 16).padding(.vertical, 12)
             .controlSize(.large).background(.bar)
-            .tint(Theme.Generated.color("--cy-color-brand", in: domain) ?? Color.accentColor)
-            .cyApplyColorScheme(domain.forcedColorScheme)
     }
 }
 
@@ -313,7 +308,7 @@ struct OfficialRecordValue: View {
     let value: String
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title).cyText(.meta).foregroundStyle(.secondary)
+            Text(title).font(.footnote).foregroundStyle(.secondary)
             Text(verbatim: value).font(.footnote.monospaced()).lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         }.frame(maxWidth: .infinity, alignment: .leading)
@@ -332,4 +327,26 @@ enum OfficialEventStatusStyle {
     }
     /// MP `icon="{{item._live ? 'play' : ''}}"`: 报名中 / 进行中 carry the play glyph; other states have none.
     static func symbol(_ status: Int?) -> String? { status == 2 || status == 3 ? "play.fill" : nil }
+    /// System colour for the status symbol: accent for 报名中, green for 进行中, secondary otherwise.
+    static func color(_ status: Int?) -> Color {
+        switch status {
+        case 2: return .accentColor
+        case 3: return .green
+        default: return .secondary
+        }
+    }
+}
+
+/// MP `cy-badge type="status"` as a plain label: status text with a tinted SF Symbol when the event is live.
+struct OfficialEventStatusLabel: View {
+    let status: Int?
+    let key: String
+    var body: some View {
+        if let symbol = OfficialEventStatusStyle.symbol(status) {
+            Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: symbol).foregroundStyle(OfficialEventStatusStyle.color(status)) }
+                .font(.subheadline)
+        } else {
+            Text(LocalizedStringKey(key)).font(.subheadline).foregroundStyle(.secondary)
+        }
+    }
 }

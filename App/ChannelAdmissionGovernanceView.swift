@@ -23,36 +23,33 @@ import SwiftUI
     @State private var revokeID: String?
     @State private var sending = false
     @State private var message = ""
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                CYHeroHeader("admission.title")
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Text("admission.space")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
-                        .accessibilityHidden(true)
+        Form {
+            Section {
+                LabeledContent {
                     Text(verbatim: String(spaceID))
-                        .cyText(.dataXL)
-                        .foregroundStyle(palette.textPrimary)
                         .monospacedDigit()
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityLabel(Text("admission.space"))
-                        .accessibilityValue(Text(verbatim: String(spaceID)))
-                    field("admission.reason", text: $reason)
-                    field("admission.note", text: $note)
-                    field("admission.invite", text: $inviteID)
-                    field("admission.application", text: $applicationID)
-                    field("admission.reasonCode", text: $reasonCode)
+                } label: {
+                    Text("admission.space")
                 }
-                .cyDomainCard()
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("admission.space"))
+                .accessibilityValue(Text(verbatim: String(spaceID)))
+                field("admission.reason", text: $reason)
+                field("admission.note", text: $note)
+                field("admission.invite", text: $inviteID)
+                field("admission.application", text: $applicationID)
+                field("admission.reasonCode", text: $reasonCode)
+            }
 
-                CYPillButton("admission.submit", systemImage: "paperplane.fill") { Task { await submit() } }
-                    .disabled(catalog == nil || sending)
-                    .accessibilityLabel(Text("admission.submit"))
+            Section {
+                Button { Task { await submit() } } label: {
+                    Label("admission.submit", systemImage: "paperplane.fill")
+                }
+                .disabled(catalog == nil || sending)
+                .accessibilityLabel(Text("admission.submit"))
 
                 Menu {
                     Button("admission.cancel") { Task { await cancel() } }
@@ -71,51 +68,35 @@ import SwiftUI
                     recoverButton("admission.recoverPause", lastPauseID)
                     recoverButton("admission.recoverInvite", revokeID)
                 } label: {
-                    HStack(spacing: CYSpacing.sm) {
-                        Text(verbatim: moreTitle)
-                            .cyText(.bodyMedium)
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.footnote.weight(.semibold))
-                            .accessibilityHidden(true)
-                    }
-                    .foregroundStyle(palette.textSecondary)
-                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    Label(moreTitle, systemImage: "ellipsis.circle")
                 }
                 .disabled(sending)
                 .accessibilityLabel(Text(verbatim: moreTitle))
+            }
 
+            Section {
                 if sending {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        CYSkeleton()
-                        ProgressView("admission.sending")
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(Text("admission.sending"))
+                    ProgressView("admission.sending")
+                        .accessibilityLabel(Text("admission.sending"))
                 }
                 if !message.isEmpty {
                     Text(LocalizedStringKey(message))
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 ForEach([submitID, cancelID, approveID, rejectID, leaveID, lastPauseID, revokeID].compactMap { $0 }, id: \.self) { id in
                     Text(verbatim: shownID(id))
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textTertiary)
+                        .font(.footnote)
+                        .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.top, CYSpacing.lg)
-            .padding(.bottom, CYSpacing.xxl)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .scrollDismissesKeyboard(.interactively)
-        .cyDomainPageBackground()
         .themeDomain(.player)
-        .cyHeroScreen()
-        .cyAnimation(value: sending)
+        .navigationTitle(Text("admission.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
     }
 
@@ -131,8 +112,6 @@ import SwiftUI
 
     private func field(_ key: LocalizedStringKey, text: Binding<String>) -> some View {
         TextField(key, text: text)
-            .cyText(.body)
-            .cyField()
     }
 
     private func recoverButton(_ title: LocalizedStringKey, _ requestID: String?) -> some View {

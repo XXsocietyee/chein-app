@@ -6,7 +6,6 @@ import SwiftUI
     var publisher = false
     var onLogin: (() -> Void)? = nil
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     /// Source official-inbox load failure: "邀约没有加载出来" above the retryable issue.
     nonisolated static func issueCopy(_ error: Error) -> OfficialIssueCopy? {
@@ -22,27 +21,28 @@ import SwiftUI
             List {
                 // PC-C-5-3: the current MP inbox has only the page title (drawn by the bar); the stale oi-hero preamble is gone.
                 if page == .empty {
-                    CYEmptyState(systemImage: "tray", "official.inbox.empty")
+                    ContentUnavailableView("official.inbox.empty", systemImage: "tray")
                         .accessibilityIdentifier("official.inbox" + ".empty")
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     // R7-PC-C5-3 (MP official-inbox/index.wxml:14-32): one card per invite, its buttons inside it;
                     // the invite title is plain text, not a tappable-looking row.
                     Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        CYStatusChip(LocalizedStringKey(row.sourceStatusKey), tone: row.isPaused ? .warning : .neutral, systemImage: "envelope")
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label { Text(LocalizedStringKey(row.sourceStatusKey)) } icon: { Image(systemName: "envelope").foregroundStyle(row.isPaused ? Color.orange : Color.secondary) }
+                            .font(.subheadline).foregroundStyle(.secondary)
                         Group {
                             if row.title.isEmpty { Text("official.inviteUntitled") } else { Text(verbatim: row.title) }
                         }
-                        .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
+                        .font(.headline)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                         if let title = row.eventTitle, !title.isEmpty { Text(verbatim: title) }
                         // Source meta line: "(city ‖ 全国) · role".
-                        (cityText(row) + Text(verbatim: " · ") + roleText(row)).cyText(.meta).foregroundStyle(palette.textSecondary)
-                        Text(LocalizedStringKey(row.scopeKey)).cyText(.caption).foregroundStyle(palette.textSecondary)
+                        (cityText(row) + Text(verbatim: " · ") + roleText(row)).font(.footnote).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(row.scopeKey)).font(.caption).foregroundStyle(.secondary)
                         if let note = row.roleNoteTuple {
-                            Text(verbatim: c.t(note.zh, note.en)).cyText(.caption).foregroundStyle(palette.textSecondary)
+                            Text(verbatim: c.t(note.zh, note.en)).font(.caption).foregroundStyle(.secondary)
                         }
                         // capacityFact keeps a literal 0; a missing or non-integer capacity is an em dash.
                         Group {
@@ -50,18 +50,18 @@ import SwiftUI
                             case .known(let cap): Text(verbatim: appLocalized("official.inbox.capacity \(cap)", locale: locale))
                             case .unknown: Text("official.inbox.capacityUnknown")
                             }
-                        }.cyText(.caption).foregroundStyle(palette.textSecondary)
-                        if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).cyText(.caption) }
+                        }.font(.caption).foregroundStyle(.secondary)
+                        if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(.caption) }
                         if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {
-                            Text(verbatim: summary).cyText(.meta)
+                            Text(verbatim: summary).font(.footnote)
                         }
                         if row.isPaused {
                             Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
                                               "This event is paused. Updates will be shared by the organizer before resuming."))
-                                .cyText(.caption).foregroundStyle(palette.warning)
+                                .font(.caption).foregroundStyle(.orange)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status.isEmpty ? "—" : status).cyText(.caption) }
+                        if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status.isEmpty ? "—" : status).font(.caption) }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("official.invite.\(row.id)")
@@ -69,7 +69,7 @@ import SwiftUI
                     }
                 }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
-            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(palette.bgPage)
+            }.listStyle(.insetGrouped)
             .themeDomain(.player)
             .accessibilityIdentifier("official.inbox.content")
             }
@@ -90,7 +90,6 @@ import SwiftUI
     let reader: any OfficialEventReading
     var actions: OfficialActionCoordinator? = nil
     var onLogin: (() -> Void)? = nil
-    @Environment(\.cyPalette) private var palette
     var body: some View {
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "published", onLogin: onLogin,
                            issueLabel: { $0 == .failed ? "official.published.loadFailed" : nil },
@@ -117,17 +116,18 @@ import SwiftUI
                             if broadcast.id > 0 {
                                 // R7-PC-C6-3 (MP official-mine/index.wxml:25-29): tapping the card reads its 复盘 in place.
                                 OfficialBroadcastInlineStatsRow(id: broadcast.id, reader: reader) {
-                                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                    VStack(alignment: .leading, spacing: 6) {
                                         if let facts = broadcast.facts {
-                                            CYStatusChip(OfficialPrivateFactsText.broadcastStatusKey(facts.status), tone: .neutral, systemImage: "megaphone")
+                                            Label { Text(OfficialPrivateFactsText.broadcastStatusKey(facts.status)) } icon: { Image(systemName: "megaphone") }
+                                                .font(.subheadline).foregroundStyle(.secondary)
                                         }
-                                        if broadcast.title.isEmpty { Text("official.untitled").cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
-                                        else { Text(verbatim: broadcast.title).cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
+                                        if broadcast.title.isEmpty { Text("official.untitled").font(.headline).fixedSize(horizontal: false, vertical: true) }
+                                        else { Text(verbatim: broadcast.title).font(.headline).fixedSize(horizontal: false, vertical: true) }
                                         if let facts = broadcast.facts {
-                                            OfficialPrivateFactsText.broadcastLine(facts).cyText(.meta).foregroundStyle(palette.textSecondary)
+                                            OfficialPrivateFactsText.broadcastLine(facts).font(.footnote).foregroundStyle(.secondary)
                                         }
-                                        if let content = broadcast.content { Text(verbatim: content).cyText(.meta).lineLimit(3).fixedSize(horizontal: false, vertical: true) }
-                                        if let reach = broadcast.reach { Text("official.published.reach \(reach)").cyText(.caption).foregroundStyle(palette.textSecondary).monospacedDigit() }
+                                        if let content = broadcast.content { Text(verbatim: content).font(.footnote).lineLimit(3).fixedSize(horizontal: false, vertical: true) }
+                                        if let reach = broadcast.reach { Text("official.published.reach \(reach)").font(.caption).foregroundStyle(.secondary).monospacedDigit() }
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 }.accessibilityIdentifier("official.broadcast.\(broadcast.id)")
@@ -135,37 +135,36 @@ import SwiftUI
                         }
                 } header: { Text("official.published.broadcastsHeader \(broadcasts.count)") }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
-            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(CYColor.bgPage)
+            }.listStyle(.insetGrouped)
             .accessibilityIdentifier("official.published.content")
         }.appNavigationTitle("official.published.title").navigationBarTitleDisplayMode(.inline)
     }
     private func publishedEventRow(_ event: OfficialEvent) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            CYStatusChip(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)),
-                         tone: OfficialEventStatusStyle.tone(event.status), systemImage: OfficialEventStatusStyle.symbol(event.status))
+        VStack(alignment: .leading, spacing: 6) {
+            OfficialEventStatusLabel(status: event.status, key: OfficialPublishedPresentation.ownerStatusKey(event.status))
                 .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
             if let title = OfficialPublishedPresentation.nonBlank(event.title) {
-                Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: title).font(.headline).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
             } else {
-                Text("official.privateParity.published.untitledEvent").cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
+                Text("official.privateParity.published.untitledEvent").font(.headline).fixedSize(horizontal: false, vertical: true)
             }
             // Source sub line: city, then " · category" only when the server sent one.
             let city = OfficialPublishedPresentation.nonBlank(event.city).map { Text(verbatim: $0) } ?? Text(verbatim: "—")
             Group {
                 if OfficialPublishedPresentation.nonBlank(event.category) != nil { city + Text(verbatim: " · ") + Text(LocalizedStringKey(event.categoryKey)) }
                 else { city }
-            }.cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+            }.font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
     }
     /// Mini-program `cy-empty` with a title only.
     private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey? = nil) -> some View {
-        // Mini-program `cy-empty` (title, optional sub): quiet centred empty row.
-        VStack(spacing: CYSpacing.xs) {
-            Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textSecondary)
-            if let detail { Text(detail).cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center) }
-        }.frame(maxWidth: .infinity).padding(.vertical, CYSpacing.md).accessibilityElement(children: .combine)
+        // Mini-program `cy-empty` (title, optional sub): a plain secondary row, as Settings shows an empty list.
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).foregroundStyle(.secondary)
+            if let detail { Text(detail).font(.footnote).foregroundStyle(.secondary) }
+        }.accessibilityElement(children: .combine)
     }
 }
 @MainActor struct OfficialBroadcastStatsView: View {
@@ -178,11 +177,11 @@ import SwiftUI
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "stats.\(id).\(reload)", onLogin: onLogin, load: { try await reader.broadcastStats(id: id) }) { stats in
             List {
                 if let line = stats.presentedSummaryLine(locale: locale) {
-                    Text(verbatim: line).cyText(.body).accessibilityIdentifier("official.broadcast.summary")
+                    Text(verbatim: line).font(.body).accessibilityIdentifier("official.broadcast.summary")
                 } else if stats.canRecoverInapp {
                     Text(verbatim: OfficialReadCopy.recoverableDelivery(locale: locale))
-                        .cyText(.bodyCompact)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("official.broadcast." + "recoverable")
                 }
                 // R7-PC-C6-3: only the stats the page can name; an unknown key is never printed raw.
@@ -241,37 +240,36 @@ private extension Decimal {
     @ViewBuilder let label: () -> Content
     private enum Phase: Equatable { case idle, loading, loaded(OfficialBroadcastStats), failed(String?) }
     @State private var phase: Phase = .idle
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 4) {
             Button { load() } label: {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                VStack(alignment: .leading, spacing: 4) {
                     label()
                     switch phase {
                     case .idle: EmptyView()
                     case .loading:
-                        Text("official.published.statsLoading").cyText(.caption).foregroundStyle(palette.textSecondary)
+                        Text("official.published.statsLoading").font(.caption).foregroundStyle(.secondary)
                     case .loaded(let stats):
                         if let line = stats.presentedSummaryLine(locale: locale) {
-                            Text(verbatim: line).cyText(.caption).foregroundStyle(palette.textSecondary)
+                            Text(verbatim: line).font(.caption).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("official.broadcast.summary")
                         } else if let counts = OfficialBroadcastStatsText.counts(stats) {
-                            Text("official.published.statsLine \(counts.reached) \(counts.clicked)").cyText(.caption).monospacedDigit()
-                                .foregroundStyle(palette.textSecondary)
+                            Text("official.published.statsLine \(counts.reached) \(counts.clicked)").font(.caption).monospacedDigit()
+                                .foregroundStyle(.secondary)
                         } else if stats.canRecoverInapp {
                             Text(verbatim: OfficialReadCopy.recoverableDelivery(locale: locale))
-                                .cyText(.caption)
-                                .foregroundStyle(palette.textSecondary)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                                 .accessibilityIdentifier("official.broadcast." + "recoverable")
                         }
                     case .failed(let note):
                         Text(verbatim: OfficialBroadcastStats.failureLine(serverMessage: note, locale: locale))
-                            .cyText(.caption)
-                            .foregroundStyle(CYColor.dangerText)
+                            .font(.caption)
+                            .foregroundStyle(.red)
                     }
                 }
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

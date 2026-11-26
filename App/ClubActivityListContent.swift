@@ -27,7 +27,7 @@ import SwiftUI
             }
         } else {
         Section("club.activityList.current") {
-            Text("club.activityList.timeZone").cyText(.meta).foregroundStyle(.secondary)
+            Text("club.activityList.timeZone").font(.footnote).foregroundStyle(.secondary)
             if rows.isEmpty { Text("club.calendar.noEvents").accessibilityIdentifier("club.calendar.empty") }
             else if currentRows.isEmpty { Text("club.activityList.noCurrent").accessibilityIdentifier("club.activityList.current.empty") }
             ForEach(currentRows) { row in item(row) }
@@ -39,8 +39,8 @@ import SwiftUI
     }
     @ViewBuilder private func item(_ row: ClubActivityRow) -> some View {
         if canOpen {
-            Button { open(row) } label: { ClubActivityCard(row: row) }
-                .buttonStyle(.plain).accessibilityHint("roamEvent.openTopic")
+            Button { open(row) } label: { ClubActivityCard(row: row).foregroundStyle(.primary) }
+                .accessibilityHint("roamEvent.openTopic")
                 .accessibilityIdentifier("club.calendar.topic.\(row.id)")
         } else { ClubActivityCard(row: row) }
         if let report { report(row) }
@@ -51,47 +51,47 @@ private struct ClubActivityCard: View {
     let row: ClubActivityRow
     @Environment(\.locale) private var locale
     var body: some View {
-        // CLB-detail-39 (MP detail wxml:166-212, `.ev-*`): a card surface whose cover (130 pt) carries the status chip
-        // at its top-left; text below uses the type tokens only.
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                Group {
-                    if let cover = row.cover {
-                        SquareImage(source: cover)
-                    } else {
-                        // Round 2 MP asset: the MP event card falls back to `route_free_cover.png` (club/detail wxml:169).
-                        MPAsset.BannerCover.routeFreeCover.resizable().scaledToFill()
-                    }
-                }
-                .frame(maxWidth: .infinity).frame(height: 130).clipped().accessibilityHidden(true)
-                CYStatusChip(LocalizedStringKey("club.activityList.status." + row.status.rawValue),
-                             tone: row.status == .live ? .success : (row.status == .ended ? .neutral : .info))
-                    .padding(CYSpacing.sm)
-                    .accessibilityIdentifier("club.activityList.status.\(row.id)")
-            }
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                if let name = row.name { Text(verbatim: name).cyText(.cardTitle) }
-                else { Text("club.calendar.untitled").cyText(.cardTitle) }
-                if let value = timeText { Text(verbatim: value).cyText(.body) }
-                else { Text("club.calendar.dateUnknown").cyText(.body) }
-                if let address = row.address {
-                    Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") }
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                }
-                Text(LocalizedStringKey("club.activityList.category." + row.category.rawValue)).cyText(.meta).foregroundStyle(.secondary)
-                if row.signups != nil || row.stations != nil || row.mileageKM != nil {
-                    ViewThatFits(in: .horizontal) {
-                        HStack(alignment: .top, spacing: 20) { stats }
-                        VStack(alignment: .leading, spacing: 8) { stats }
-                    }
+        // CLB-detail-39 (MP detail wxml:166-212, `.ev-*`): the cover (130 pt), then the status and details as plain
+        // system text. The list row is the card.
+        VStack(alignment: .leading, spacing: 8) {
+            Group {
+                if let cover = row.cover {
+                    SquareImage(source: cover)
+                } else {
+                    // Round 2 MP asset: the MP event card falls back to `route_free_cover.png` (club/detail wxml:169).
+                    MPAsset.BannerCover.routeFreeCover.resizable().scaledToFill()
                 }
             }
-            .padding(CYSpacing.md)
+            .frame(maxWidth: .infinity).frame(height: 130)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .accessibilityHidden(true)
+            Label {
+                Text(LocalizedStringKey("club.activityList.status." + row.status.rawValue))
+            } icon: {
+                Image(systemName: "circle.fill").imageScale(.small)
+                    .foregroundStyle(row.status == .live ? Color.green : (row.status == .ended ? Color.secondary : Color.blue))
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("club.activityList.status.\(row.id)")
+            if let name = row.name { Text(verbatim: name).font(.headline) }
+            else { Text("club.calendar.untitled").font(.headline) }
+            if let value = timeText { Text(verbatim: value) }
+            else { Text("club.calendar.dateUnknown") }
+            if let address = row.address {
+                Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") }
+                    .font(.subheadline).foregroundStyle(.secondary)
+            }
+            Text(LocalizedStringKey("club.activityList.category." + row.category.rawValue)).font(.subheadline).foregroundStyle(.secondary)
+            if row.signups != nil || row.stations != nil || row.mileageKM != nil {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .top, spacing: 20) { stats }
+                    VStack(alignment: .leading, spacing: 8) { stats }
+                }
+            }
         }
+        .padding(.vertical, 4)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.bgRaised)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-        .padding(.vertical, CYSpacing.xs)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
@@ -102,8 +102,8 @@ private struct ClubActivityCard: View {
     }
     private func stat(_ value: Double, title: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(value, format: .number).cyText(.cardTitle)
-            Text(title).cyText(.meta).foregroundStyle(.secondary)
+            Text(value, format: .number).font(.headline)
+            Text(title).font(.footnote).foregroundStyle(.secondary)
         }.accessibilityElement(children: .combine)
     }
     private var timeText: String? {

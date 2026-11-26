@@ -11,7 +11,8 @@ class PreferenceDraftContracts(unittest.TestCase):
         ui = self.source('App/TemplatePreferenceDraftEditor.swift')
         self.assertIn('model.draft.preferenceJson = value', ui)
         self.assertIn('model.changed()', ui)
-        self.assertIn('CYConfirmSheet(', ui)
+        # native r2: CYConfirmSheet became a system destructive confirmationDialog
+        self.assertIn('.confirmationDialog(appLocalized("templateAuthor.preference.example", locale: locale), isPresented: $replaceExample', ui)
         for forbidden in ['UserDefaults', 'URLSession', 'JSONEncoder', 'OwnedTemplateConfigurationSnapshot']:
             self.assertNotIn(forbidden, ui)
         domain = self.source('Core/TemplateAuthoringDomain.swift')

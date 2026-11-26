@@ -209,6 +209,8 @@ struct TeamTrailSection: View {
     @State private var recorder = TeamTrailForegroundRecorder()
     /// PLAY-r8-1 (MP AUDIT-1122 L01-039): the share switch starts off; only the player's own choice turns it on.
     @State private var share = false
+    /// Native r2 city run map: mirrors this section's last team read onto the map (no extra request).
+    @Environment(\.cityOrientationTeamsSink) private var teamsSink
 
     /// L01-039: never upload for a player who has not decided, even when the server's default says share.
     private var recording: Bool { scenePhase == .active && model?.canRun == true && model?.needsConsent == false }
@@ -257,6 +259,7 @@ struct TeamTrailSection: View {
             }
         }
         .onChange(of: recording, initial: true) { _, on in if on { recorder.start() } else { recorder.stop() } }
+        .onChange(of: model?.state.share == true ? (model?.teams ?? []) : [], initial: true) { _, teams in teamsSink?(teams) }
         .onDisappear {
             recorder.stop()
             if let model { Task { await model.finish() } }

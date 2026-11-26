@@ -41,6 +41,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     /// CLB-r7-A-06 (MP js:2488): access/me delegatedRoleCount, shown as 「N 已委派」 beside 角色与权限.
     @State private var delegatedRoleCount = 0
     @State private var showsSettings = false
+    @State private var groupCodeToast: LocalizedStringKey?
+    /// CLB-r9-detail-01: the member whose public profile the avatar strip opened.
+    @State private var stripProfileMemberID: Int?
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -110,7 +113,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 Section {
                     ClubDetailHeader(club: club, memberText: facts.meta, content: facts.content)
                         .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
                 }
                 if let actionCoordinator {
                     ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
@@ -133,11 +135,19 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     ClubManageQuickActions(canScan: club.canGovern || canManageActivities(club), canGovern: club.canGovern,
                                            canManageActivities: canManageActivities(club), autoStartScan: autoScan && !consumedAutoScan,
                                            submitScan: (reader as? AppSession)?.clubScanSubmit,
-                                           onConsumeAutoStart: { consumedAutoScan = true })
+                                           onConsumeAutoStart: { consumedAutoScan = true },
+                                           onSettings: openSettingsAction,
+                                           onGroupCode: groupCodeQuickAction(club))
                 }
                 // CLB-detail-09 / CLB-r7-A-04 (MP wxml:452-475): 管理中的项目 with 活动导演台 and 场次工具.
-                if tab == .manage, club.canGovern || canManageActivities(club), management?.governance != nil {
-                    ClubManagedProjectsMount(model: r8Mounts) { r8Route = $0 }
+                if tab == .manage, club.canGovern || canManageActivities(club), let governance = management?.governance {
+                    ClubManagedProjectsSection(model: r8Mounts, clubID: club.id, access: governance.access,
+                                               permissions: projectPermissions(club),
+                                               hidesEmpty: club.isOwner && ownerStage?.stage == .publish,
+                                               onRetry: { Task { await reloadProjects(club: club, tab: tab) } },
+                                               onOpenTopic: { openedTopicID = $0 },
+                                               onPublish: publishAction(club),
+                                               open: { r8Route = $0 })
                 }
                 // CLB-G04 (MP js:3780-3847): 可对接的活动 + 我的合作, owner only.
                 if tab == .manage, club.isOwner, let session = reader as? AppSession {
@@ -145,37 +155,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 if tab == .manage, club.isOwner, let access = management?.governance?.access {
                     ClubEditionsShareSection(clubID: club.id, access: access)
-                }
-                if tab == .posts, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
-                    Section {
-                        NavigationLink { SessionClubChatView(clubID: id, session: session) } label: {
-                            CYListRow("club.chat.title", trailing: .none, card: true) { CYRowIcon(systemImage: "person.3") }
-                        }.buttonStyle(.plain)
-                            .accessibilityIdentifier("club.chat.entry")
-                        NavigationLink { BeGapImDesk(clubID: Int64(id), session: session) } label: {
-                            CYListRow("beGapIm.entry", trailing: .none, card: true) { CYRowIcon(systemImage: "list.bullet.rectangle") }
-                        }.buttonStyle(.plain)
-                            .accessibilityIdentifier("beGapIm.entry")
-                        if facts.channels {
-                        NavigationLink {
-                            ClubChannelMessagingHostView(
-                                club: club,
-                                reader: reader,
-                                manageGrant: manageGrant,
-                                safetyService: session.makeClubChannelSafetyService(
-                                    club: club,
-                                    management: management,
-                                    community: community
-                                ),
-                                onSignIn: onSignIn
-                            )
-                        } label: {
-                            Label(locale.pick("俱乐部频道", "Club Channels"), systemImage: "number.square")
-                        }
-                        .accessibilityIdentifier("club.channels.discordEntry")
-                        }
-                        NativeChannelManagementClubEntry(club: club, session: session)
-                    }
                 }
                 if tab == .manage, club.isOwner, let session = reader as? AppSession {
                     Section { NavigationLink("context.ai.title") { SessionClubAIDesignView(session: session, clubID: id) }.accessibilityIdentifier("club.context.openAI") }
@@ -194,7 +173,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 if tab == .posts, community == nil {
                     Section {
-                        CYEmptyState(systemImage: "text.bubble", "club.detail.posts.unavailable")
+                        ContentUnavailableView("club.detail.posts.unavailable", systemImage: "text.bubble")
                             .accessibilityIdentifier("club.detail.posts.unavailable")
                     }
                 }
@@ -213,14 +192,15 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         // MP 「发布 +」 / 发布主题 for the owner or `club:activity:manage` (wxml:204-213, CLB-detail-20).
                         Section {
                             NavigationLink { SessionClubProjectLaunchView(session: session, club: club) } label: {
-                                CYListRow("club.detail.events.publish", trailing: .none) { CYRowIcon(systemImage: "plus") }
+                                Label("club.detail.events.publish", systemImage: "plus")
                             }
                             .accessibilityIdentifier("club.detail.events.publish")
                         }
                     }
                     SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn, embedded: { openedTopicID = $0 },
                         undertake: viewerDomain == .merchant ? { r8Route = .undertake(topicID: $0) } : nil,
-                        onPublish: canManageActivities(club) ? { r8Route = .publish } : nil)
+                        onPublish: canManageActivities(club) ? { r8Route = .publish } : nil,
+                        groupCode: groupCodeCardAction(club))
                 }
                 // V2 governance has its own access/me model, including delegated event staff.
                 if tab == .events, let governance = management?.governance {
@@ -286,6 +266,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         // CLB-G08 (MP wxml:265-280): four member avatars and +N above 查看全部成员.
                         if club.canSeeMembers, !r8Mounts.memberAvatars.isEmpty {
                             ClubGapMemberAvatarStrip(avatars: r8Mounts.memberAvatars, totalCount: r8Mounts.memberTotal) { showsMembers = true }
+                                .memberTap(stripProfileAction)
                                 .frame(minHeight: CYSpacing.minTouchTarget)
                                 .accessibilityIdentifier("club.detail.memberStrip")
                         }
@@ -340,14 +321,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                     ForEach(ClubInlineLeaderboardModel.Sort.allCases) { Text($0.titleKey).tag($0) }
                                 }
                             } label: {
-                                HStack(spacing: CYSpacing.xs) {
-                                    Text("club.gov.sort")
-                                    Spacer(minLength: CYSpacing.sm)
-                                    Text(r8Leaderboard.sort.titleKey).foregroundStyle(CYColor.textSecondary)
-                                    Image(systemName: "chevron.down").font(.footnote).foregroundStyle(CYColor.textSecondary)
-                                        .accessibilityHidden(true)
+                                LabeledContent("club.gov.sort") {
+                                    HStack(spacing: CYSpacing.xs) {
+                                        Text(r8Leaderboard.sort.titleKey)
+                                        Image(systemName: "chevron.up.chevron.down").font(.footnote)
+                                            .accessibilityHidden(true)
+                                    }
+                                    .foregroundStyle(.secondary)
                                 }
-                                .frame(minHeight: CYSpacing.minTouchTarget)
                             }
                             .accessibilityIdentifier("club.detail.leaderboard.sort")
                             ClubInlineLeaderboardRows(model: r8Leaderboard, club: club, identity: reader.clubIdentity, governance: governance) {
@@ -375,8 +356,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     // CLB-r7-A-02 (MP wxml:288, D13): say so when the server could not confirm the viewer's role.
                     if club.viewerIdentityUnavailable {
                         Section {
-                            Text("club.detail.identityUnavailable").cyText(.meta).foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                            Text("club.detail.identityUnavailable").font(.subheadline).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("club.detail.identityUnavailable")
                         }
                     }
@@ -391,6 +371,39 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 .accessibilityIdentifier("club.detail.safety.appeal")
                         }
                     }
+                    // CLB-detail-14 (MP detail wxml:83-84, 96-158): 帖文 is the feed only; the MP dropped 进入群聊 from the club
+                    // page. The chat, IM desk and channel rows keep working on 概览 for members, above 退出 / 举报.
+                    if tab == .overview, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
+                        Section {
+                            NavigationLink { SessionClubChatView(clubID: id, session: session) } label: {
+                                Label("club.chat.title", systemImage: "person.3")
+                            }
+                                .accessibilityIdentifier("club.chat.entry")
+                            NavigationLink { BeGapImDesk(clubID: Int64(id), session: session) } label: {
+                                Label("beGapIm.entry", systemImage: "list.bullet.rectangle")
+                            }
+                                .accessibilityIdentifier("beGapIm.entry")
+                            if facts.channels {
+                            NavigationLink {
+                                ClubChannelMessagingHostView(
+                                    club: club,
+                                    reader: reader,
+                                    manageGrant: manageGrant,
+                                    safetyService: session.makeClubChannelSafetyService(
+                                        club: club,
+                                        management: management,
+                                        community: community
+                                    ),
+                                    onSignIn: onSignIn
+                                )
+                            } label: {
+                                Label(locale.pick("俱乐部频道", "Club Channels"), systemImage: "number.square")
+                            }
+                            .accessibilityIdentifier("club.channels.discordEntry")
+                            }
+                            NativeChannelManagementClubEntry(club: club, session: session)
+                        }
+                    }
                     // HANDOFF-R1 MC-20: 退出俱乐部 and 举报俱乐部 close 概览 as quiet red rows; 退出 still confirms.
                     if let actionCoordinator {
                         ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
@@ -403,9 +416,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
-            .cyGroupedSurface()
-            .scrollContentBackground(.hidden)
-            .cyDomainPageBackground()
             .cyTracksHeroScroll($heroScrolledAway)
             .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
             .task(id: "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)") {
@@ -423,9 +433,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .toolbar {
                 // MC-22: share sits in the bar beside the system back (a glass circle on iOS 26+ bars).
                 ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubID: club.id, clubName: club.name) }
-                // CLB-G06 (MP wxml:12-14, 690): the settings gear. The mounted sheet carries the owner rows only
-                // (编辑 / 转让 / 解散), so it shows for the owner; admins keep their rows on 管理 (CLB-r7-A-06 open).
-                if club.isOwner, management?.operations != nil {
+                // CLB-G06 (MP wxml:11-14, 690): the settings gear for `club.isOwner || canUseManageTab`; the sheet
+                // filters its rows by the same permissions as the MP (owner-only governance rows).
+                if club.isOwner || ClubDetailTabPolicy(club: club, grant: manageGrant).canUseManageTab, management?.operations != nil {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button { showsSettings = true } label: { Image(systemName: "gearshape") }
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
@@ -436,22 +446,31 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
             .sheet(isPresented: $showsSettings) {
                 // CLB-G19: 改为转让主理人 beside 解散 in 危险操作 (owner only, as in the MP).
-                ClubGapSettingsSheet(clubName: club.name, canGovern: true,
+                ClubGapSettingsSheet(clubName: club.name, canGovern: club.isOwner,
                                      onEditClub: { r8Route = .workspace },
                                      onTransferOwner: { r8Route = management?.governance == nil ? nil : .transferOwner },
                                      onDissolveClub: { r8Route = .workspace })
-                    .clubTools(customers: management?.governance == nil ? nil : { r8Route = .customers },
-                               enroll: management?.governance == nil ? nil : { r8Route = .enroll },
-                               eventOps: management?.governance == nil ? nil : { r8Route = .eventOps },
-                               roles: management?.governance == nil ? nil : { r8Route = .roles })
+                    // MP wxml:697-797 row gates: 查看客户 / 报名名册 owner or admin; 活动运营 owner or club:activity:manage;
+                    // 角色与权限 owner or club:role:manage.
+                    .clubTools(customers: settingsRoute(.customers, allowed: club.isOwner || club.viewerIsAdmin),
+                               enroll: settingsRoute(.enroll, allowed: club.isOwner || club.viewerIsAdmin),
+                               eventOps: settingsRoute(.eventOps, allowed: canManageActivities(club)),
+                               roles: settingsRoute(.roles, allowed: club.isOwner || manageGrant?.permissions.contains("club:role:manage") == true))
                     .clubToolCounts(customers: r8Mounts.customerCountText, topics: r8Mounts.topicTotal,
                                     delegatedRoles: delegatedRoleCount)
                     .presentationDetents([.medium, .large])
                     .task {
                         guard let governance = management?.governance else { return }
                         await r8Mounts.loadSettingsCounts(clubID: club.id, canSeeCustomers: club.isOwner || club.viewerIsAdmin,
-                                                          access: governance.access)
+                                                          access: governance.access, locale: locale)
                     }
+            }
+            .cyToast(message: $groupCodeToast)
+            .navigationDestination(item: $stripProfileMemberID) { memberID in
+                if let profile = management?.governance?.enrollmentProfile {
+                    SocialPublicProfileView(memberID: memberID, reader: profile.reader, squareReader: profile.squareReader,
+                                            actions: profile.actions, isCurrent: { stripProfileMemberID == memberID })
+                }
             }
             .navigationDestination(item: $r8Route) { route in
                 ClubDetailR8Destination(route: route, club: club, identity: reader.clubIdentity,
@@ -502,7 +521,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
         }.navigationTitle(navigationTitleText).navigationBarTitleDisplayMode(.inline)
             .cyPushedChrome(domain: viewerDomain)
-            .cyDomainPageBackground()
             .tint(CYDomainPalette(viewerDomain).brand)
             .id(id)
             .onAppear {
@@ -535,6 +553,62 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         return (raw == ClubDetailPageModel.unknownMark ? raw : (Int(raw).map { ClubMemberCountLocalization.text($0, locale: locale) } ?? raw), raw, ready.showsChannels, ready)
     }
 
+    /// CLB-r9-detail-01 (MP `goMemberProfile` js:2529-2534): a strip avatar opens that member's public profile when the
+    /// profile reader belongs to this viewer; otherwise the tap stays on 查看全部成员.
+    private var stripProfileAction: ((Int) -> Void)? {
+        guard reader.clubIdentity.isSignedIn, let profile = management?.governance?.enrollmentProfile,
+              profile.reader.isConfigured, profile.reader.identity.accountID == reader.clubIdentity.accountID else { return nil }
+        return { stripProfileMemberID = $0 }
+    }
+    /// CLB-G06: the 设置 quick action (typed, not a ternary inside the body).
+    private var openSettingsAction: (() -> Void)? {
+        guard management?.operations != nil else { return nil }
+        return { showsSettings = true }
+    }
+    /// CLB-detail-35: MP `canManage` for 出示团码 = owner, admin or `club:event:checkin` (wxml:212).
+    private func canShowGroupCode(_ club: ClubRecord) -> Bool {
+        (club.isOwner || club.viewerIsAdmin || manageGrant?.permissions.contains("club:event:checkin") == true)
+            && management?.governance != nil
+    }
+    private func groupCodeCardAction(_ club: ClubRecord) -> ((Int) -> Void)? {
+        guard canShowGroupCode(club) else { return nil }
+        return { r8Route = .groupCode(topicID: $0) }
+    }
+    /// MP `onClubGroupCode` (js:1078-1101): no project → 还没有项目，先发布一个主题; several → pick one below; one → its code.
+    private func groupCodeQuickAction(_ club: ClubRecord) -> (() -> Void)? {
+        guard canShowGroupCode(club) else { return nil }
+        return {
+            let topics = Set(r8Mounts.projects.map(\.id))
+            if topics.isEmpty { groupCodeToast = "club.groupCode.noProject" }
+            else if topics.count > 1 { groupCodeToast = "club.groupCode.pickBelow" }
+            else if let only = topics.first { r8Route = .groupCode(topicID: only) }
+        }
+    }
+    /// CLB-G06: one settings-sheet row's route, or nil (row hidden) without governance or permission.
+    private func settingsRoute(_ route: ClubDetailR8Route, allowed: Bool) -> (() -> Void)? {
+        guard allowed, management?.governance != nil else { return nil }
+        return { r8Route = route }
+    }
+    /// CLB-r7-A-04: MP `chooseActivityTool` flags (detail js:1179-1215) from access/me.
+    private func projectPermissions(_ club: ClubRecord) -> ClubManagedProjectPermissions {
+        let granted = manageGrant?.permissions ?? []
+        return ClubManagedProjectPermissions(isOwner: club.isOwner, isAdmin: club.viewerIsAdmin,
+                                             canManageActivities: canManageActivities(club),
+                                             canOperateEvents: granted.contains("club:event:operate"),
+                                             canCheckInEvents: granted.contains("club:event:checkin"),
+                                             canManageRoles: granted.contains("club:role:manage"))
+    }
+    /// CLB-detail-09: MP `onCreateTeam` for `club.isOwner || canManageActivities` (wxml:472, 478).
+    private func publishAction(_ club: ClubRecord) -> (() -> Void)? {
+        guard canManageActivities(club) else { return nil }
+        return { r8Route = .publish }
+    }
+    /// CLB-detail-09: 项目列表加载失败 → 重新加载 (MP `bind:retry="loadTopics"`).
+    private func reloadProjects(club: ClubRecord, tab: ClubDetailTab) async {
+        guard let governance = management?.governance else { return }
+        await r8Mounts.loadProjects(key: r8Key(club, tab: tab), clubID: club.id, showsDirector: club.isOwner || club.viewerIsAdmin,
+                                    locale: locale, access: governance.access, force: true)
+    }
     private func r8Key(_ club: ClubRecord, tab: ClubDetailTab) -> String {
         "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)|\(managementRevision)"
     }
@@ -617,7 +691,6 @@ private struct ClubDetailHeader: View {
     let content: ClubDetailPageContent?
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
-    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 160  // CLB-detail-37: MP cover-wrap 160
 
     private static func known(_ value: String?) -> String? {
@@ -651,19 +724,17 @@ private struct ClubDetailHeader: View {
                     if !typeSize.isAccessibilitySize {
                         ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: false, fallback: MPAsset.BrandLogo.dLogo)
                             .frame(width: 56, height: 56)  // CLB-detail-37: MP logo 112 rpx
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(CYNight.glassEdgeTop, lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                             .accessibilityIdentifier("club.detail.logo")
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        ClubName(value: club.name).cyText(.pageTitle).foregroundStyle(palette.textPrimary)
+                        ClubName(value: club.name).font(.title2.bold())
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("club.detail.name")
-                            .cyHeroTitleRise()
                         if !metaLine.isEmpty {
                             // CLB-detail-37 (MP .profile-meta-text 16 pt): bodyCompact (15) is the nearest step on the type scale.
-                            Text(verbatim: metaLine).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                            Text(verbatim: metaLine).font(.subheadline).foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("club.detail.fact.memberCount")
                         }
@@ -679,8 +750,8 @@ private struct ClubDetailHeader: View {
                         if leaderText != nil, cityText != nil { Text(verbatim: "·").accessibilityHidden(true) }
                         if let cityText { Text(verbatim: cityText).accessibilityIdentifier("club.detail.fact.city") }
                     }
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.detail.factsGrid")
                 }
@@ -689,11 +760,12 @@ private struct ClubDetailHeader: View {
                 // stays in the action panel right under the header).
                 // CLB-detail-24: MP gives 邀请成员 to the owner and administrators only (wxml:260, 765).
                 if club.isOwner || club.viewerIsAdmin {
-                    ClubHeaderInviteButton(clubName: club.name)
+                    ClubHeaderInviteButton(clubName: club.name, clubID: club.id)
                         .padding(.top, CYSpacing.xs)
                 }
             }
             .padding(.horizontal, CYSpacing.lg)
+            .padding(.bottom, CYSpacing.md)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -702,17 +774,19 @@ private struct ClubDetailHeader: View {
     @ViewBuilder private var statusTags: some View {
         if club.isOwner || club.isJoined || club.joinPending || club.myJoinStatus == 2 || club.viewerIsAdmin {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                HStack(spacing: CYSpacing.sm) {
-                    if club.isOwner { CYStatusChip("club.role.creator", tone: .neutral, systemImage: "person.crop.circle.badge.checkmark") }
-                    else if club.isJoined { CYStatusChip("club.membership.joined", tone: .neutral, systemImage: "checkmark.circle") }
-                    else if club.joinPending { CYStatusChip("club.membership.pending", tone: .warning, systemImage: "clock") }
-                    else if club.myJoinStatus == 2 { CYStatusChip("club.membership.rejected", tone: .danger, systemImage: "xmark.circle") }
-                    if club.viewerIsAdmin { CYStatusChip("club.viewerAdministrator", tone: .neutral, systemImage: "person.badge.shield.checkmark") }
+                HStack(spacing: CYSpacing.md) {
+                    if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
+                    else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
+                    else if club.joinPending { Label("club.membership.pending", systemImage: "clock").foregroundStyle(.orange) }
+                    else if club.myJoinStatus == 2 { Label("club.membership.rejected", systemImage: "xmark.circle").foregroundStyle(.red) }
+                    if club.viewerIsAdmin { Label("club.viewerAdministrator", systemImage: "person.badge.shield.checkmark") }
                 }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
                 if club.myJoinStatus == 2, let reason = club.myJoinReviewReason {
                     Text(verbatim: locale.pick("申请未通过：\(reason)", "Application not approved: \(reason)"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.dangerText)
+                        .font(.subheadline)
+                        .foregroundStyle(.red)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.membership.rejectedReason")
                 }

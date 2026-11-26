@@ -13,41 +13,39 @@ private func ncmString(_ key: String, locale: Locale, table: String) -> String {
 
 private func ncmHeader(_ key: String) -> some View {
     Text(LocalizedStringKey(key), tableName: "NativeChannelManagement")
-        .cyText(.sectionTitle)
-        .foregroundStyle(CYColor.textPrimary)
-        .textCase(nil)
-        .fixedSize(horizontal: false, vertical: true)
-        .accessibilityAddTraits(.isHeader)
 }
 
 private func ncmServerHeader(_ name: String) -> some View {
     let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
     return Text(verbatim: trimmed.isEmpty ? "—" : trimmed)
-        .cyText(.sectionTitle)
-        .foregroundStyle(CYColor.textPrimary)
-        .textCase(nil)
-        .fixedSize(horizontal: false, vertical: true)
-        .accessibilityAddTraits(.isHeader)
 }
 
-private func ncmPageRow(_ key: String, systemImage: String, locale: Locale, table: String = "NativeChannelManagement", trailing: CYListRowTrailing = .none) -> some View {
-    CYListRow(verbatim: ncmString(key, locale: locale, table: table), trailing: trailing) {
-        CYRowIcon(systemImage: systemImage)
+/// Settings-style row label. `chevron` is for rows that are Buttons driving a push or sheet (NavigationLink adds its own).
+@ViewBuilder
+private func ncmPageRow(_ key: String, systemImage: String, locale: Locale, table: String = "NativeChannelManagement", chevron: Bool = false) -> some View {
+    if chevron {
+        LabeledContent {
+            ncmChevron()
+        } label: {
+            Label { Text(verbatim: ncmString(key, locale: locale, table: table)).foregroundStyle(.primary) } icon: { Image(systemName: systemImage) }
+        }
+    } else {
+        Label { Text(verbatim: ncmString(key, locale: locale, table: table)).foregroundStyle(.primary) } icon: { Image(systemName: systemImage) }
     }
 }
 
-private func ncmLoading() -> some View {
-    CYSkeleton()
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("cy.state.loading"))
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
+private func ncmChevron() -> some View {
+    Image(systemName: "chevron.right")
+        .font(.footnote.weight(.semibold))
+        .foregroundStyle(.tertiary)
+        .accessibilityHidden(true)
 }
 
-private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-    content()
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
+private func ncmLoading() -> some View {
+    ProgressView()
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("cy.state.loading"))
 }
 
 /// Optional destinations reuse the host's existing message consumer and original 8's Webhook UI.
@@ -89,14 +87,14 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
         Group {
             if model.isCurrent {
                 List {
-                    directoryTitle
+                    spaceNameSection
                     if model.busy { ncmLoading() }
                     NativeChannelManagementIssueView(issue: model.issue)
                     NativeChannelManagementRecoveryView(model: model)
                     NativeChannelManagementOutcomeView(outcome: model.outcome)
                     if let directory = model.directory {
                         if directory.channels.isEmpty {
-                            ncmClearRow { CYEmptyState(systemImage: "number.square", "empty", tableName: "NativeChannelManagement") }
+                            Section { ContentUnavailableView { Label { ncmText("empty") } icon: { Image(systemName: "number.square") } } }
                         }
                         if !directory.ungrouped.isEmpty {
                             Section { ForEach(directory.ungrouped) { row in channelRow(row) } }
@@ -105,10 +103,12 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                             Section { ForEach(group.channels) { row in channelRow(row) } } header: { ncmServerHeader(group.category.name) }
                         }
                     } else if !model.busy {
-                        ncmClearRow {
-                            VStack(spacing: CYSpacing.md) {
-                                CYEmptyState(systemImage: "number.square", "d7.channelManage.loadFailed", tableName: "NativeChannelManagement", kind: .failure)
-                                CYPillButton("refresh", style: .secondary, tableName: "NativeChannelManagement") { Task { await model.loadDirectory() } }
+                        Section {
+                            ContentUnavailableView {
+                                Label { ncmText("d7.channelManage.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle") }
+                            } actions: {
+                                Button { Task { await model.loadDirectory() } } label: { ncmText("refresh") }
+                                    .buttonStyle(.bordered)
                                     .accessibilityLabel(ncmText("refresh"))
                             }
                         }
@@ -132,18 +132,24 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                     if model.managerInventoryConfirmed && model.managementInventory.contains(where: { $0.kind == 0 && $0.status < 2 }) {
                         Section { ForEach(model.managementInventory.filter { $0.kind == 0 && $0.status < 2 }) { row in
                             Button { selection.selected = row.id } label: {
-                                CYListRow(verbatim: row.name, trailing: .chevron) { CYRowIcon(systemImage: "folder") }
+                                LabeledContent {
+                                    ncmChevron()
+                                } label: {
+                                    Label { Text(verbatim: row.name).foregroundStyle(.primary) } icon: { Image(systemName: "folder") }
+                                }
                             }
-                            .buttonStyle(.plain)
                             .accessibilityLabel(Text(verbatim: shown(row.name)))
                         } } header: { ncmHeader("manageCategories") }
                     }
                     if !model.managementInventory.filter({ $0.status == 3 }).isEmpty {
                         Section { ForEach(model.managementInventory.filter { $0.status == 3 }) { row in
                             NavigationLink { NativeChannelManagementEditorView(model: model, channel: row) } label: {
-                                CYListRow(verbatim: row.name, meta: ncmString("pendingDeletion", locale: locale), trailing: .none) {
-                                    CYRowIcon(systemImage: "clock.arrow.circlepath")
-                                }
+                                Label {
+                                    VStack(alignment: .leading) {
+                                        Text(verbatim: row.name)
+                                        Text(verbatim: ncmString("pendingDeletion", locale: locale)).font(.subheadline).foregroundStyle(.secondary)
+                                    }
+                                } icon: { Image(systemName: "clock.arrow.circlepath") }
                             }
                             .accessibilityLabel(Text(verbatim: "\(shown(row.name)), \(ncmString("pendingDeletion", locale: locale))"))
                         } } header: { ncmHeader("recoveryChannels") }
@@ -153,6 +159,14 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                 .cyText(.body)
                 .refreshable { await model.loadDirectory() }
                 .toolbar {
+                    if model.canCreate {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button { creates = true } label: { Label { ncmText("create") } icon: { Image(systemName: "plus") } }
+                                .disabled(model.busy)
+                                .accessibilityIdentifier("ncm.create")
+                                .accessibilityLabel(ncmText("create"))
+                        }
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
                             Toggle(isOn: Binding(get: { model.showingOwnHidden }, set: { value in Task { await model.loadDirectory(showOwnHidden: value) } })) {
@@ -164,31 +178,11 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                     }
                 }
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                        directoryTitleContent
-                        NativeChannelManagementUnavailableView()
-                    }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.bottom, CYSpacing.xl)
-                }
-            }
-        }
-        .safeAreaInset(edge: .bottom) {
-            if model.isCurrent, model.canCreate {
-                CYPillButton("create", systemImage: "plus", tableName: "NativeChannelManagement") { creates = true }
-                    .disabled(model.busy)
-                    .accessibilityIdentifier("ncm.create")
-                    .accessibilityLabel(ncmText("create"))
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.md)
-                    .background(CYColor.bgPage.ignoresSafeArea(edges: .bottom))
+                NativeChannelManagementUnavailableView()
             }
         }
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
-        .tint(CYColor.textPrimary)
-        .cyHeroScreen()
+        .navigationTitle(ncmText("directory"))
         .navigationDestination(item: selection.binding) { id in
             let visit = selection.route(for: id, parentCurrent: parentRouteIsActive)
             let owner = model
@@ -215,21 +209,14 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
         }
         .onChange(of: scenePhase) { _, value in if value != .active { model.retire() } }
     }
-    private var directoryTitle: some View {
-        directoryTitleContent
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-    }
-    private var directoryTitleContent: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            CYHeroHeader("directory", tableName: "NativeChannelManagement")
-            if let spaceName {
-                let trimmed = spaceName.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !trimmed.isEmpty {
-                    Text(verbatim: trimmed)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+    /// The space's own name, shown once at the top like a Settings header row.
+    @ViewBuilder private var spaceNameSection: some View {
+        if let spaceName {
+            let trimmed = spaceName.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                Section {
+                    Label(trimmed, systemImage: "person.3")
+                        .font(.headline)
                 }
             }
         }
@@ -242,23 +229,29 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
     }
     private func channelRow(_ row: NativeChannelManagementChannel) -> some View {
         Button { selection.selected = row.id } label: {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                CYListRow(verbatim: row.name, trailing: .chevron) {
-                    CYRowIcon(systemImage: row.kind == 2 ? "megaphone" : "number")
-                }
-                if row.status == 1 || row.visibility == 2 {
-                    HStack(spacing: CYSpacing.sm) {
-                        if row.status == 1 {
-                            CYStatusChip(verbatim: ncmString("d7.channelManage.archivedShort", locale: locale), tone: .warning, systemImage: "archivebox")
-                        }
-                        if row.visibility == 2 {
-                            CYStatusChip(verbatim: ncmString("private", locale: locale), tone: .neutral, systemImage: "lock")
+            LabeledContent {
+                ncmChevron()
+            } label: {
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: row.name).foregroundStyle(.primary)
+                        if row.status == 1 || row.visibility == 2 {
+                            HStack(spacing: 8) {
+                                if row.status == 1 {
+                                    Label(ncmString("d7.channelManage.archivedShort", locale: locale), systemImage: "archivebox")
+                                }
+                                if row.visibility == 2 {
+                                    Label(ncmString("private", locale: locale), systemImage: "lock")
+                                }
+                            }
+                            .labelStyle(.titleAndIcon)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                         }
                     }
-                }
+                } icon: { Image(systemName: row.kind == 2 ? "megaphone" : "number") }
             }
         }
-        .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: channelLabel(row)))
         .accessibilityIdentifier("ncm.channel.\(row.id)")
     }
@@ -303,7 +296,6 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
         Group {
             if model.isCurrent {
                 Form {
-                    detailTitle
                     if model.busy { ncmLoading() }
                     NativeChannelManagementIssueView(issue: model.issue)
                     NativeChannelManagementRecoveryView(model: model)
@@ -311,13 +303,13 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                     if let row = model.detail, row.id == channelID {
                         Section {
                             if let topic = row.topic, !topic.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                Text(verbatim: topic).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                                Text(verbatim: topic)
                                     .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
                             }
                             statusFact(row)
-                            CYFactRow(label: ncmText("visibility"), value: ncmString(row.visibility == 2 ? "private" : "public", locale: locale))
+                            LabeledContent { Text(verbatim: ncmString(row.visibility == 2 ? "private" : "public", locale: locale)) } label: { ncmText("visibility") }
                             slowmodeFact(row)
-                            CYFactRow(label: ncmText("members"), value: memberValue(row))
+                            LabeledContent { Text(verbatim: memberValue(row)) } label: { ncmText("members") }
                         }
                         // Chat and channel activity.
                         Section {
@@ -334,9 +326,8 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                             }
                             if row.kind != 0, row.scope.guildKind == 1, (destinations.contextProgress != nil || destinations.progress != nil) {
                                 Button { progressVisit.wrappedValue = true } label: {
-                                    ncmPageRow("title", systemImage: "chart.bar", locale: locale, table: "NativeChannelProgress", trailing: .chevron)
+                                    ncmPageRow("title", systemImage: "chart.bar", locale: locale, table: "NativeChannelProgress", chevron: true)
                                 }
-                                .buttonStyle(.plain)
                                 .accessibilityIdentifier("ncm.progressEntry")
                                 .accessibilityLabel(Text(verbatim: ncmString("title", locale: locale, table: "NativeChannelProgress")))
                             }
@@ -426,18 +417,19 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                             if row.scope.guildKind == 1, row.permissionNames.isSuperset(of: ["VIEW_CHANNEL", "READ_HISTORY", "MANAGE_WEBHOOKS"]),
                                destinations.webhook != nil {
                                 Button { webhookVisit.wrappedValue = true } label: {
-                                    ncmPageRow("d7.channelManage.webhooks", systemImage: "point.3.connected.trianglepath.dotted", locale: locale, trailing: .chevron)
+                                    ncmPageRow("d7.channelManage.webhooks", systemImage: "point.3.connected.trianglepath.dotted", locale: locale, chevron: true)
                                 }
-                                .buttonStyle(.plain)
                                 .accessibilityIdentifier("ncm.webhookEntry")
                                 .accessibilityLabel(ncmText("d7.channelManage.webhooks"))
                             }
                         }
                     } else if !model.busy {
-                        ncmClearRow {
-                            VStack(spacing: CYSpacing.md) {
-                                CYEmptyState(systemImage: "number.square", "d7.channelManage.channelLoadFailed", tableName: "NativeChannelManagement", kind: .failure)
-                                CYPillButton("refresh", style: .secondary, tableName: "NativeChannelManagement") { Task { await model.loadDetail(channelID) } }
+                        Section {
+                            ContentUnavailableView {
+                                Label { ncmText("d7.channelManage.channelLoadFailed") } icon: { Image(systemName: "exclamationmark.triangle") }
+                            } actions: {
+                                Button { Task { await model.loadDetail(channelID) } } label: { ncmText("refresh") }
+                                    .buttonStyle(.bordered)
                                     .accessibilityLabel(ncmText("refresh"))
                             }
                         }
@@ -447,20 +439,11 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                 .cyText(.body)
                 .refreshable { await model.loadDetail(channelID) }
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                        detailTitleContent
-                        NativeChannelManagementUnavailableView()
-                    }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.bottom, CYSpacing.xl)
-                }
+                NativeChannelManagementUnavailableView()
             }
         }
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
-        .tint(CYColor.textPrimary)
-        .cyHeroScreen()
+        .navigationTitle(detailTitle)
         .task(id: channelID) { await model.loadDetail(channelID) }
         .sheet(isPresented: progressVisit) {
             Group {
@@ -479,26 +462,22 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                 .presentationDragIndicator(.visible)
         }
     }
-    private var detailTitle: some View {
-        detailTitleContent
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-    }
-    @ViewBuilder private var detailTitleContent: some View {
+    private var detailTitle: Text {
         if model.detail?.id == channelID {
-            CYHeroHeader(verbatim: shown(model.detail?.name ?? ""))
-        } else {
-            CYHeroHeader("detail", tableName: "NativeChannelManagement")
+            return Text(verbatim: shown(model.detail?.name ?? ""))
         }
+        return ncmText("detail")
     }
     private func statusFact(_ row: NativeChannelManagementChannel) -> some View {
         let key = row.status == 1 ? "d7.channelManage.archivedShort" : "active"
-        return HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-            ncmText("status").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            Spacer(minLength: CYSpacing.sm)
-            CYStatusChip(verbatim: ncmString(key, locale: locale), tone: row.status == 1 ? .warning : .success, systemImage: row.status == 1 ? "archivebox" : "checkmark")
-        }
-        .frame(minHeight: CYSpacing.minTouchTarget)
+        return LabeledContent {
+            Label {
+                Text(verbatim: ncmString(key, locale: locale))
+            } icon: {
+                Image(systemName: row.status == 1 ? "archivebox" : "checkmark.circle.fill")
+                    .foregroundStyle(row.status == 1 ? Color.orange : Color.green)
+            }
+        } label: { ncmText("status") }
         .accessibilityElement(children: .combine)
     }
     /// Zero slowmode is off. A missing value (-1 on inventory rows) is unknown, not zero.
@@ -511,7 +490,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
         } else {
             value = "—"
         }
-        return CYFactRow(label: ncmText("slowmode"), value: value)
+        return LabeledContent { Text(verbatim: value) } label: { ncmText("slowmode") }
     }
     /// Nil member count is unknown. A real 0 stays 0.
     private func memberValue(_ row: NativeChannelManagementChannel) -> String {
@@ -540,7 +519,6 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
         Group {
             if model.isCurrent {
                 Form {
-                    editorTitle
                     if model.busy { ncmLoading() }
                     NativeChannelManagementIssueView(issue: localIssue ?? model.issue)
                     Section {
@@ -563,16 +541,15 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                         }
                     }.disabled(channel.map({ $0.status != 0 }) ?? false)
                     if let channel, let purge = channel.purgeAt {
-                        Section { LabeledContent { Text(verbatim: shown(purge)).cyText(.body) } label: { ncmText("purgeAt") } }
+                        Section { LabeledContent { Text(verbatim: shown(purge)) } label: { ncmText("purgeAt") } }
                     }
                     Section { TextField(text: $reason, prompt: ncmText("reason"), axis: .vertical) { ncmText("reason") }.lineLimit(2...4) }
                     if channel == nil || channel?.status == 0 {
                         Section {
-                            CYPillButton("review", tableName: "NativeChannelManagement") { prepareEdit() }
+                            Button { prepareEdit() } label: { ncmText("review") }
                                 .disabled(model.busy || model.pending != nil)
                                 .accessibilityIdentifier("ncm.reviewEdit")
                                 .accessibilityLabel(ncmText("review"))
-                                .listRowBackground(Color.clear)
                         }
                     }
                     if let channel {
@@ -591,20 +568,11 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                 .cyText(.body)
                 .disabled(model.busy)
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                        editorTitleContent
-                        NativeChannelManagementUnavailableView()
-                    }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.bottom, CYSpacing.xl)
-                }
+                NativeChannelManagementUnavailableView()
             }
         }
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
-        .tint(CYColor.textPrimary)
-        .cyHeroScreen()
+        .navigationTitle(ncmText(channel == nil ? "create" : "settings"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { ncmText("close") } } }
         .sheet(isPresented: $reviews) {
             NavigationStack { NativeChannelManagementReviewView(model: model) }
@@ -612,14 +580,6 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                 .presentationDragIndicator(.visible)
         }
         .onChange(of: draft.kind) { _, kind in if kind == 0 { draft.parentID = "0" } }
-    }
-    private var editorTitle: some View {
-        editorTitleContent
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-    }
-    private var editorTitleContent: some View {
-        CYHeroHeader(channel == nil ? "create" : "settings", tableName: "NativeChannelManagement")
     }
     private func shown(_ value: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -637,12 +597,10 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                         channel: NativeChannelManagementChannel, destructive: Bool = false) -> some View {
         if destructive {
             Button(role: .destructive) { prepareLifecycle(operation, channel: channel) } label: { ncmText(key) }
-                .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
                 .disabled(model.busy || model.pending != nil)
                 .accessibilityLabel(ncmText(key))
         } else {
             Button { prepareLifecycle(operation, channel: channel) } label: { ncmText(key) }
-                .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
                 .disabled(model.busy || model.pending != nil)
                 .accessibilityLabel(ncmText(key))
         }
@@ -669,62 +627,51 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
     @Environment(\.locale) private var locale
     var body: some View {
         Form {
-            reviewTitle
             NativeChannelManagementIssueView(issue: model.issue)
             if model.isCurrent, let intent = model.prepared {
                 Section {
-                    ncmText("operation.\(intent.operation.rawValue)").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    ncmText("operation.\(intent.operation.rawValue)").font(.headline)
                         .fixedSize(horizontal: false, vertical: true)
                     if let type = intent.targetType, let target = intent.targetID {
-                        CYFactRow(label: ncmText("permissionTarget"), value: type == 1 ? ncmString("everyone", locale: locale) : roleName(target))
+                        LabeledContent { Text(verbatim: type == 1 ? ncmString("everyone", locale: locale) : roleName(target)) } label: { ncmText("permissionTarget") }
                     }
                     ForEach(intent.fields.keys.sorted(), id: \.self) { key in
-                        CYFactRow(label: ncmText("field.\(key)"), value: display(intent.fields[key], key: key))
+                        LabeledContent { Text(verbatim: display(intent.fields[key], key: key)) } label: { ncmText("field.\(key)") }
                     }
-                    CYFactRow(label: ncmText("d7.channelManage.reasonLabel"), value: shown(intent.reason))
+                    LabeledContent { Text(verbatim: shown(intent.reason)) } label: { ncmText("d7.channelManage.reasonLabel") }
                 }
                 if intent.isPermissionChange && !model.permissionWritesAvailable {
-                    Section { ncmText("permissionSubmissionUnavailable").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+                    Section { ncmText("permissionSubmissionUnavailable").foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
                 }
                 Section {
                     if intent.operation == .delete {
                         Button(role: .destructive) {
                             Task { await model.submitPrepared(); if model.prepared == nil { dismiss() } }
                         } label: { ncmText("confirm") }
-                        .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
                         .disabled(!model.canSubmitPrepared)
                         .accessibilityIdentifier("ncm.confirmOriginal")
                         .accessibilityLabel(ncmText("confirm"))
                     } else {
-                        CYPillButton("confirm", tableName: "NativeChannelManagement") {
+                        Button {
                             Task { await model.submitPrepared(); if model.prepared == nil { dismiss() } }
-                        }
+                        } label: { ncmText("confirm") }
                         .disabled(!model.canSubmitPrepared)
                         .accessibilityIdentifier("ncm.confirmOriginal")
                         .accessibilityLabel(ncmText("confirm"))
-                        .listRowBackground(Color.clear)
                     }
                 }
             } else {
-                ncmClearRow {
-                    CYEmptyState(systemImage: "arrow.clockwise", "refreshRequired", tableName: "NativeChannelManagement")
+                Section {
+                    ContentUnavailableView { Label { ncmText("refreshRequired") } icon: { Image(systemName: "arrow.clockwise") } }
                 }
             }
         }
         .formStyle(.grouped)
-        .cyText(.body)
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
-        .tint(CYColor.textPrimary)
-        .cyHeroScreen()
+        .navigationTitle(ncmText("review"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { model.cancelPreparation(); dismiss() } label: { ncmText("cancel") } } }
         .interactiveDismissDisabled(model.busy)
         .onDisappear { if !model.busy { model.cancelPreparation() } }
-    }
-    private var reviewTitle: some View {
-        CYHeroHeader("review", tableName: "NativeChannelManagement")
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
     }
     /// Role overrides name the server's role; a missing name shows "—" rather than a raw number.
     private func roleName(_ id: String) -> String {
@@ -757,19 +704,16 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
     var body: some View {
         if model.isCurrent, model.pending != nil {
             Section {
-                CYNoteBanner(text: ncmText("originalPending"), symbol: "clock.arrow.circlepath", tone: .warning)
-                CYPillButton("queryOriginal", style: .secondary, tableName: "NativeChannelManagement") { Task { await model.recoverOriginal() } }
+                Label { ncmText("originalPending") } icon: { Image(systemName: "clock.arrow.circlepath").foregroundStyle(.orange) }
+                Button { Task { await model.recoverOriginal() } } label: { ncmText("queryOriginal") }
                     .disabled(model.busy)
                     .accessibilityLabel(ncmText("queryOriginal"))
-                    .listRowBackground(Color.clear)
                 if model.canResendOriginal {
-                    CYPillButton("retryOriginal", style: .tertiary, tableName: "NativeChannelManagement") { Task { await model.resendOriginal() } }
+                    Button { Task { await model.resendOriginal() } } label: { ncmText("retryOriginal") }
                         .disabled(model.busy)
                         .accessibilityLabel(ncmText("retryOriginal"))
-                        .listRowBackground(Color.clear)
                 }
             }
-            .cyText(.body)
         }
     }
 }
@@ -781,20 +725,21 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
             Section {
                 switch outcome {
                 case .applied(let result):
-                    CYNoteBanner(text: ncmText("applied"), symbol: "checkmark.circle", tone: .success)
+                    note(ncmText("applied"), symbol: "checkmark.circle.fill", tint: .green)
                     if let name = result.name {
                         Text(verbatim: shown(name))
-                            .cyText(.sectionTitle)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                case .appliedRedacted: CYNoteBanner(text: ncmText("appliedRedacted"), symbol: "checkmark.circle", tone: .success)
-                case .pending: CYNoteBanner(text: ncmText("originalPending"), symbol: "clock.arrow.circlepath", tone: .warning)
-                case .notFound: CYNoteBanner(text: ncmText("notFoundUnknown"), symbol: "questionmark.circle", tone: .neutral)
+                case .appliedRedacted: note(ncmText("appliedRedacted"), symbol: "checkmark.circle.fill", tint: .green)
+                case .pending: note(ncmText("originalPending"), symbol: "clock.arrow.circlepath", tint: .orange)
+                case .notFound: note(ncmText("notFoundUnknown"), symbol: "questionmark.circle", tint: .secondary)
                 }
             }
-            .cyText(.body)
         }
+    }
+    private func note(_ text: Text, symbol: String, tint: Color) -> some View {
+        Label { text } icon: { Image(systemName: symbol).foregroundStyle(tint) }
     }
     private func shown(_ value: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -804,17 +749,11 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
 
 @MainActor struct NativeChannelManagementUnavailableView: View {
     var body: some View {
-        VStack(spacing: CYSpacing.sm) {
-            CYEmptyState(systemImage: "lock.shield", "unavailable", tableName: "NativeChannelManagement")
+        ContentUnavailableView {
+            Label { Text("unavailable", tableName: "NativeChannelManagement") } icon: { Image(systemName: "lock.shield") }
+        } description: {
             Text("entryUnavailable", tableName: "NativeChannelManagement")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.lg)
     }
 }
 
@@ -822,9 +761,9 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
     let issue: NativeChannelManagementError?
     var body: some View {
         if let issue {
-            CYNoteBanner(text: ncmText(key(issue)), symbol: "exclamationmark.circle", tone: .warning)
+            Label { ncmText(key(issue)) } icon: { Image(systemName: "exclamationmark.circle").foregroundStyle(.orange) }
+                .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("ncm.issue")
-                .listRowBackground(Color.clear)
         }
     }
     private func key(_ issue: NativeChannelManagementError) -> String {
