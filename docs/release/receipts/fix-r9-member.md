@@ -45,3 +45,37 @@ Money stays off. Pay, 立即支付, 取消并退款, refund execution and gift c
 | FIN-20-6 | fixed elsewhere | c1a70c209 | App/SocialInviteHistoryView.swift toolbar `ShareLink` (already on the tip) |
 | R8-MEM-26-1 | blocked | — | The Core link rule on the tip keeps `subpackageMember/mytemplate/mytemplate` as a reviewed page (Core/MiniProgramPageLink.swift:124-126). That contradicts the cursor-r9-member receipt (rewrite to official-mine). The app route matches Core, so I left it alone. The owner or Cursor needs to decide. |
 | MKT-3-1 | blocked | — | The Core half is not built: cursor-r9-member files gift claim as money, and the audit disagrees. Owner call. |
+
+## Round 3 (parity-r10 queue, native-r2 EVERYTHING native)
+
+Source: `origin/audit/parity-r10-member:docs/audit/parity-r10/member.md`, Claude App rows. Brief: `native-r2.md` on `design/handoff-r2`.
+Same gates as above: nothing compiled, every declaration grepped, `check_scaffold.py` PASS at each commit.
+
+### Merge
+- `origin/ui/combined-r7` 2aa2141f8 (native-r2 restyle of the same screens), merge 354b9f8af. Conflicts were resolved on the tip's native components, keeping the r9 behaviour:
+  - `CouponCodeView`: tip `List`. MKT-9-2 kept (no 出示 sheet; `issue` on appear / phase / foreground). The review phase shows a system `ProgressView` instead of `CYLoadingState`.
+  - `CouponManagementView`: tip native rows. MKT-10-3 kept (`.sheet(item:)` with `[.medium, .large]`).
+  - `ProfileOrdersView`: tip `insetGrouped` rows. R7-MEM-16-1 kept (swipe action + context menu), and R9-MEM-17-2 kept (`ProfileOrderSettlementCopy`).
+  - `Localizable.xcstrings`: 3-way key union, tip order, new keys appended.
+- Later tips were merged before each push.
+
+### Rows
+
+| id | status | SHA | app file |
+|---|---|---|---|
+| MKT-7-3b | fixed | fa230d1b6 | `App/FreeExploreBundleLaunchView.swift`: 取消预约 (BOOKED, quote→confirm form with the waiver toggle), 更换商家 (RESERVED/AVAILABLE units) and 商家评价 (per reservation), as sheets with `[.medium, .large]`. Gate: `BundleCommerceCatalog.shows`, the same as the 套餐 hub. `App/BundleCommerceMount.swift` `FreeExploreBundleAction(Sheet)`; `App/FreeExploreBundleReadEntry.swift` passes the host. The participation-detail mount stays read-only (no host passed). |
+| NAT-6 | fixed | 8c9408404 | `App/InvoiceLaunchTitleEditor.swift`: 保存 → toolbar `.confirmationAction` |
+| NAT-12 | fixed | 8c9408404 | `App/TicketWalletView.swift`: app-only glass carousel removed (MP signup/index.wxml has no swiper; the rows open the same tickets) |
+| NAT-13 | fixed | 8c9408404 | `App/TicketPassSheet.swift`: `CYTicketPassShape` notch/tear removed; `Divider` + `secondarySystemGroupedBackground` |
+| NAT-17 | fixed (mycanyu) | 8c9408404 | `App/PlayerJourneyViews.swift`: 查看报名凭证 `.bordered`; cover placeholder background removed |
+| NAT-11 | fixed | ce2c6feb5 | `App/CharacterSheetDetailView.swift`: `List(.insetGrouped)`; capsules → secondary text |
+| NAT-10 | fixed | f7f5d0670 | `App/OrientScoreView.swift`, `App/OrientScoreSettlementControls.swift`, `App/OrientScoreReviewSection.swift`, `App/MPGap/Member/OrientScoreGapViews.swift`: Sections; system button styles |
+| NAT-9 | fixed | 1b868d8e6 | `App/FreeExploreBundleLaunchView.swift`: `List(.insetGrouped)`; chapter/store `Picker`; step indicator → section header; review sheet → `Form` + toolbar confirm/cancel |
+| NAT-1, 2, 3, 4, 5, 7, 8, 14, 15, 16 | fixed on the tip | — | already native in `ui/combined-r7` (component-level `CYEmptyState`/`CYStateLayout`/`CYStatusChip`/`CYPillButton`/`CYSkeleton`, no `CYNight`/gradients in PassMarket/PassMembership, no `preferredColorScheme(.dark)` in `TicketPassPresentView`, no `CYTabs` on invoice/appeal) |
+| FIN-17-4b | fixed earlier | 5043b2ced | `App/ProfileOrderSourceDetailSections.swift` follow → `followClubOwner` (`/api/user/follow/action`) |
+| R8-MEM-26-1b | blocked (Cursor Core first) | — | `Core/MiniProgramPageLink.swift:124-126` still keeps the mytemplate rule; the App case follows Core |
+| MKT-3-1b | not ours (Cursor Core) | — | — |
+
+Native notes:
+- The MP draws 取消预约 and 使用每月免费取消 as two buttons. The app has one 取消预约 that opens the existing quote form, where the waiver is a `Toggle`.
+- The QR tile keeps its white fill, because the code needs it to scan.
