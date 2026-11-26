@@ -32,9 +32,11 @@ import SwiftUI
     var body: some View {
         List {
             if context.access.identity == nil {
-                CYPillButton("square.gov.signIn", action: context.signIn).listRowBackground(Color.clear).accessibilityIdentifier("square.gov.signIn")
+                Section {
+                    Button("square.gov.signIn", action: context.signIn).accessibilityIdentifier("square.gov.signIn")
+                }
             } else {
-                if loading { CYSkeleton().accessibilityIdentifier("square.gov.loading") }
+                if loading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("square.gov.loading") }
                 if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("square.gov.message") }
                 if let snapshot {
                     Button("square.gov.drafts", action: context.openDrafts)
@@ -45,6 +47,7 @@ import SwiftUI
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .cyPageTitle("square.gov.title")
         .refreshable { if context.access.identity != nil, !loading { await reload() } }
         .task { await reload() }
@@ -61,7 +64,7 @@ import SwiftUI
                 Form {
                     Text("square.gov.appealFacts")
                     TextField("square.gov.reason", text: $reason, axis: .vertical).lineLimit(3...6).accessibilityIdentifier("square.gov.reason")
-                    Text("\(reason.count)/1000")
+                    Text(verbatim: "\(reason.count)/1000").font(.footnote).foregroundStyle(.secondary).monospacedDigit()
                     Button("square.gov.review") {
                         pendingAppeal = .appeal(enforcementID: record.id, reason: reason)
                         appeal = nil
