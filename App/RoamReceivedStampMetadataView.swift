@@ -222,7 +222,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                         openStamp(stamp)
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
-                            RoamStampCard(stamp: stamp, offline: false, allowsRemoteImages: false)
+                            RoamStampCard(stamp: stamp, offline: false, allowsRemoteImages: scope.allowsRemoteImages)
                             if let key = RoamReceivedStampKind.key(stamp.kind) { receivedStampText(key).cyText(.meta) }
                         }
                     }
@@ -287,7 +287,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
     var body: some View {
         List {
             if scenePhase == .active && scope.isCurrent && isCurrent() && stamp.isVisible {
-                RoamStampCard(stamp: stamp, offline: false, allowsRemoteImages: false)
+                RoamStampCard(stamp: stamp, offline: false, allowsRemoteImages: scope.allowsRemoteImages)
                 receivedStampText("anonymous")
                     .background { RoamReceivedStampAccessibilityAnchor(id: "roam.receivedMetadata.anonymous") }
                     .accessibilityIdentifier("roam.receivedMetadata.anonymous")
