@@ -110,7 +110,7 @@ import SwiftUI
                 legalEffectiveDate(page)
             }
         }
-        .font(.footnote).foregroundStyle(.tertiary).padding(.top, 16)
+        .font(.footnote).foregroundStyle(.secondary).padding(.top, 16) // legal metadata keeps secondary (not tertiary) contrast
         Text("settingsNative.legal.noAcceptance").font(.footnote).foregroundStyle(.secondary)
             .accessibilityIdentifier("settingsNative.legal.noAcceptance")
     }

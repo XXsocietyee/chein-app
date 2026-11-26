@@ -362,7 +362,7 @@
   {
     "key": "orderLifecycle.state.refunded",
     "en": "Refunded",
-    "zh-Hans": "已退款"
+    "zh-Hans": "退款成功"
   },
   {
     "key": "orderLifecycle.state.pendingPayment",
