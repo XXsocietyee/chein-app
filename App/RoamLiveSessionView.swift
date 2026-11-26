@@ -1,4 +1,5 @@
 import CoreLocation
+import MapKit
 import SwiftUI
 import UIKit
 import Combine
@@ -87,12 +88,13 @@ import QuestifyCore
     @State private var revealToastShown = false
     @State private var revealToastTask: Task<Void, Never>?
     @State private var nearbyExpanded = true
-    @State private var celebrations = CYCelebrationCenter()
     /// B04: once the walk is settled and archived the screen becomes the mini-program finish report.
     @State private var finishReport: RoamFinishReport?
+    /// Start tapped, waiting for the controller; a refused start clears it.
     @State private var goCommitted = false
-    @State private var goWave = 0
-    @Namespace private var goNamespace
+    /// P-040: the session list is a persistent system sheet over the map (Apple Maps / Fitness pattern).
+    @State private var sessionSheetShown = false
+    @State private var sessionDetent: PresentationDetent = .fraction(0.3)
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -106,13 +108,10 @@ import QuestifyCore
     private var currentBrowseReader: (any RoamExperienceReading)? {
         browseReader(for: browse.target?.context.kind ?? .history)
     }
-    /// ROAM-4 (hand-off PL-20, MP B1 实时漫游地图): the map is the screen. Full-bleed fog map, the HUD as a glass card
-    /// at the top, and the session status / nearby / trace list in the shared three-detent panel over the map.
+    /// ROAM-4 / P-040 (hand-off PL-20, MP B1 实时漫游地图): the map is the screen. A map fills it and the metrics,
+    /// status, nearby and trace lists sit in one persistent system sheet with the Apple Maps detents.
     private var sessionContent: some View {
-        CYMapScaffold(detent: .medium, map: { liveMapGround }, controls: { hud }, floating: { EmptyView() },
-                      panel: { sessionList })
-        // Mini-program pbar: one main round control (start / pause / continue) with 结束 beside it.
-        .safeAreaInset(edge: .bottom) { actionBar }
+        liveMapGround
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 InGameChannelToolbarButton(
@@ -131,12 +130,77 @@ import QuestifyCore
                     .accessibilityIdentifier("roam.live.tools")
             }
         }
+        .onAppear { sessionSheetShown = true }
+        .onDisappear { sessionSheetShown = false }
+        .sheet(isPresented: $sessionSheetShown) { sessionSheet }
+        .task(id: runnersReadKey) { await readRunners() }
+        .cyPageTitle("roam.experience.live")
+    }
+    /// The persistent sheet. Every other presentation of the session hangs off it: the view presenting this sheet
+    /// cannot present a second one, the sheet can.
+    private var sessionSheet: some View {
+        NavigationStack {
+            sessionList
+                // Mini-program pbar: one main control (start / pause / continue) with 结束 beside it.
+                .safeAreaInset(edge: .bottom) { actionBar }
+                .toolbar(.hidden, for: .navigationBar)
+        }
+        .presentationDetents([.fraction(0.3), .medium, .large], selection: $sessionDetent)
+        .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        .presentationContentInteraction(.scrolls)
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled()
         .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled,
                                       fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding)
         }
-        .task(id: runnersReadKey) { await readRunners() }
-        .cyPageTitle("roam.experience.live")
+        .sheet(isPresented: $showingLocationPriming, onDismiss: {
+            guard locationPrimingAllowed else { return }
+            locationPrimingAllowed = false
+            Task {
+                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    environmentSession: offlineWriteSession.session,
+                    routes: ["/api/roam/reveal", "/api/compliance/consents"]
+                ) {
+                    await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+                }
+            }
+        }) { Group {
+            CYPermissionPrimerScreen(kind: .location, onPrimary: {
+                CYPermissionSystemPrompt.notePrimed(.location)
+                locationPrimingAllowed = true
+                showingLocationPriming = false
+            }, onSecondary: { showingLocationPriming = false })
+        }.cySheet(detents: [.large]) }
+        // Was the custom `PlayAreaRoamFinishModal`; same copy, same identifier, system dialog.
+        .confirmationDialog(Text(verbatim: PlayAreaPopupCopy.text("结束本次漫游?", "End this roam?", locale: locale)),
+                            isPresented: $confirmFinish, titleVisibility: .visible) {
+            Button(role: .destructive) {
+                confirmFinish = false
+                Task { await owner.finish() }
+            } label: {
+                Text(verbatim: PlayAreaPopupCopy.text("结束漫游", "End roam", locale: locale))
+            }
+            .accessibilityIdentifier("roam.live.finish.confirm")
+            Button(role: .cancel) { confirmFinish = false } label: {
+                Text(verbatim: PlayAreaPopupCopy.text("取消", "Cancel", locale: locale))
+            }
+        } message: {
+            Text(verbatim: PlayAreaPopupCopy.text(
+                "足迹和探店都会保存,结算后可领足迹卡。本次漫游立即结算,结束后不能继续这一次漫游。",
+                "Your footprints and shop visits are saved. After settlement you can collect the footprint card. This roam settles now and can't be continued.",
+                locale: locale))
+        }
+        .sheet(isPresented: $showRules) {
+            NavigationStack { RoamLiveRulesView() }.cySheet()
+        }
+        .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
+        .background {
+            if let target = browse.target {
+                RoamPausedBrowseSheetOwner(presentation: browse, target: target,
+                    owner: owner, reader: browseReader(for: target.context.kind)).id(target.id)
+            }
+        }
     }
     private var fogOnBinding: Binding<Bool> {
         Binding(get: { !fogOff }, set: { fogOff = RoamFogPreference.setFogOff(!$0, in: .standard) })
@@ -175,11 +239,18 @@ import QuestifyCore
                            onBaked: fogMap.onBaked, onSelect: { _ in })
                 .ignoresSafeArea()
         } else {
-            ZStack { CYMapPlaceholder(fog: false); if !fogOff { fogEdge.ignoresSafeArea() } }
+            Map(initialPosition: .userLocation(fallback: .automatic)) { UserAnnotation() }
+                .mapControls {
+                    MapUserLocationButton()
+                    MapCompass()
+                    MapScaleView()
+                }
+                .accessibilityIdentifier("roam.live.map")
         }
     }
     private var sessionList: some View {
         List {
+            if owner.phase != .unavailable { hud }
             if offlineExample { RoamExperienceNotice(offline: true) }
             if model.syncStatus.isOffline {
                 Section {
@@ -314,9 +385,9 @@ import QuestifyCore
                 }
             }
         }
+        .listStyle(.insetGrouped)
         // Identify the list only; the inset actions keep their own accessible identities.
         .accessibilityIdentifier("roam.live.session")
-        .scrollContentBackground(.hidden)
     }
     /// First GO only: one inline card instead of a toggle the player must find first. Agreeing records the consent and
     /// starts the roam through the same path as the Go button (location priming still comes first when undecided).
@@ -326,10 +397,14 @@ import QuestifyCore
             Text("roam.live.consentCard.body").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             // PL-20 / PL-25 (HIG Privacy): one button that leads to the system location prompt.
-            CYPillButton("primer.location.allow", fullWidth: true, tableName: "DesignR1") {
+            Button {
                 purposeAccepted = true; storedPurposeAccepted = true
                 if !owner.busy, owner.record == nil { beginStart() }
+            } label: {
+                Text("primer.location.allow", tableName: "DesignR1").frame(maxWidth: .infinity)
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(owner.busy)
             .accessibilityIdentifier("roam.live.consent")
         }
@@ -394,8 +469,6 @@ import QuestifyCore
                 bizID: MiniProgramAnalytics.bizID(owner.completedHistory?.serverSessionID), pagePath: "/pages/roam/index",
                 properties: ["shops": .integer(Int64(result?.sessionShops ?? 0)), "pois": .integer(Int64(result?.newPois ?? 0))])
         }
-        guard id != nil, let payload = RoamSummaryCelebration.payload(owner, history: model.finishedHistory) else { return }
-        celebrations.enqueue(.roamSummary(payload))
     }
     var body: some View {
         sessionObservers
@@ -405,7 +478,8 @@ import QuestifyCore
         .cyHaptic(.impactMedium, trigger: owner.phase == .paused)
         .task(id: owner.phase) { await pulseWhileActive() }
         .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count, sessionID: owner.record?.sessionID ?? 0))
-        .cyCelebrations(celebrations)
+        // P-040: the settle moment is a system success haptic (the summary itself is the finish report).
+        .sensoryFeedback(.success, trigger: RoamSummaryCelebration.settledSessionID(owner)) { old, new in new != nil && new != old }
         .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in settledSessionChanged(id) }
         .overlay(alignment: .top) {
             if revealToastShown {
@@ -426,44 +500,8 @@ import QuestifyCore
                 withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { revealToastShown = false }
             }
         }
-        .sheet(isPresented: $showingLocationPriming, onDismiss: {
-            guard locationPrimingAllowed else { return }
-            locationPrimingAllowed = false
-            Task {
-                await SessionOfflineSyncModel.shared.performWriteOptIn(
-                    environmentSession: offlineWriteSession.session,
-                    routes: ["/api/roam/reveal", "/api/compliance/consents"]
-                ) {
-                    await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
-                }
-            }
-        }) { Group {
-            CYPermissionPrimerScreen(kind: .location, onPrimary: {
-                CYPermissionSystemPrompt.notePrimed(.location)
-                locationPrimingAllowed = true
-                showingLocationPriming = false
-            }, onSecondary: { showingLocationPriming = false })
-        }.cySheet(detents: [.large]) }
-        .overlay {
-            if confirmFinish {
-                PlayAreaRoamFinishModal(onConfirm: {
-                    confirmFinish = false
-                    Task { await owner.finish() }
-                }, onCancel: { confirmFinish = false })
-            }
-        }
-        .sheet(isPresented: $showRules) {
-            NavigationStack { RoamLiveRulesView() }.cySheet()
-        }
-        .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
         .background {
             RoamPausedBrowseLifetimeAnchor(presentation: browse).frame(width: 0, height: 0)
-        }
-        .background {
-            if let target = browse.target {
-                RoamPausedBrowseSheetOwner(presentation: browse, target: target,
-                    owner: owner, reader: browseReader(for: target.context.kind)).id(target.id)
-            }
         }
     }
     private func pulseWhileActive() async {
@@ -476,49 +514,41 @@ import QuestifyCore
         }
     }
     private var roamPhase: RoamPhase { RoamPhase(owner.phase) }
-    /// Fog over the map ground: exhaustive over `RoamPhase`. Only walking animates the edge; every other phase shows the static edge.
-    @ViewBuilder private var fogEdge: some View {
-        let explored = RoamLiveCoveragePresentation(controller: owner).percentage.map { Double($0) / 100 }
-        switch roamPhase {
-        case .walking:
-            CYFogLayer(explored: explored, revealTick: revealTick, radiusScale: roamPhase.fogRadiusScale, animated: true)
-        case .idle, .starting, .paused, .finishing, .finished, .blocked:
-            CYFogLayer(explored: explored, revealTick: revealTick, radiusScale: roamPhase.fogRadiusScale, animated: false)
-        }
-    }
-    /// Mini-program pcard: the goal line with the phase, then 用时 / 地盘 / 距离 (公里).
-    /// Built inline so every controller change redraws it.
-    private var hud: some View {
+    /// Mini-program pcard as a system list section: the goal line with the phase, then 用时 / 地盘 / 距离 (公里)
+    /// as `LabeledContent` rows. Built inline so every controller change redraws it.
+    @ViewBuilder private var hud: some View {
         let active = owner.phase == .active
-        return VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
+        Section {
+            TimelineView(.animation(minimumInterval: RoamLiveTick.interval(reduceMotion: reduceMotion), paused: owner.phase != .active || !owner.foreground)) { _ in
+                RoamLiveElapsedRow(seconds: owner.record == nil ? nil : owner.localForegroundElapsedSeconds)
+            }
+            RoamLiveCoverageRow(presentation: .init(controller: owner))
+            RoamLiveStatTile(value: hudDistance, label: "roam.live.stat.distance")
+                .accessibilityIdentifier("roam.live.distance")
+        } header: {
+            HStack(alignment: .firstTextBaseline) {
                 Text(active ? "roam.live.goal" : phaseText)
-                    .cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.live.phase")
-                Spacer(minLength: 0)
-                // PL-14: a labelled status tag, never a dot alone.
-                CYRoamStatusTag(phase: roamPhase)
-                    .accessibilityIdentifier("roam.live.statusTag")
-            }
-            HStack(alignment: .top, spacing: 8) {
-                TimelineView(.animation(minimumInterval: RoamLiveTick.interval(reduceMotion: reduceMotion), paused: owner.phase != .active || !owner.foreground)) { _ in
-                    RoamLiveElapsedRow(seconds: owner.record == nil ? nil : owner.localForegroundElapsedSeconds)
+                Spacer(minLength: 8)
+                // PL-14: a labelled status, never a symbol alone. New ground bounces the symbol (P-040).
+                Label {
+                    Text(phaseText)
+                } icon: {
+                    Image(systemName: roamPhase.statusSymbol)
+                        .symbolEffect(.bounce, value: revealTick)
+                        .accessibilityHidden(true)
                 }
-                RoamLiveCoverageRow(presentation: .init(controller: owner))
-                RoamLiveStatTile(value: hudDistance, label: "roam.live.stat.distance")
-                    .accessibilityIdentifier("roam.live.distance")
+                .accessibilityIdentifier("roam.live.statusTag")
             }
+            .textCase(nil)
         }
-        .padding(CYSpacing.lg)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
-            .strokeBorder(active ? CYColor.borderStrong : CYColor.borderSubtle, lineWidth: 1))
     }
     private var hudDistance: String {
         guard let meters = owner.record?.distanceMeters, meters.isFinite, meters >= 0 else { return "—" }
         return (meters / 1000).formatted(.number.precision(.fractionLength(1)))
     }
-    /// Bottom game bar. Every button keeps its identifier and controller call.
+    /// Bottom bar of the session sheet. Every button keeps its identifier and controller call (P-040: system buttons,
+    /// a tap on 开始 instead of hold-to-start).
     @ViewBuilder private var actionBar: some View {
         let canStart = [.ready, .locationDenied, .paused].contains(owner.phase)
         let canFinish = [.active, .paused].contains(owner.phase) && owner.record != nil
@@ -528,23 +558,21 @@ import QuestifyCore
                     Button { owner.pause() } label: {
                         Label("roam.live.pause", systemImage: "pause.fill").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.cyPrimary)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .accessibilityIdentifier("roam.live.pause")
-                    CYGoPuck().matchedGeometryEffect(id: "go", in: goNamespace)
                 } else if canStart, owner.record == nil {
-                    if goCommitted {
-                        // Committed, waiting for the controller: the pill has already shrunk into the puck.
-                        Color.clear.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                        CYGoPuck().matchedGeometryEffect(id: "go", in: goNamespace)
-                    } else if purposeAccepted {
-                        // PL-20 / PL-25: hold-to-start appears only once location use is allowed. Before that the
-                        // consent card's single 允许使用位置 pill is the only primary on the screen.
-                        Spacer(minLength: 0)
-                        CYGoHoldPill(enabled: !owner.busy) { commitGo() }
-                            .matchedGeometryEffect(id: "go", in: goNamespace)
-                            // ROAM-12 / PL-42: VoiceOver and Switch Control start without the hold gesture.
-                            .accessibilityAction(named: Text("roam.w208.intro.start")) { if !owner.busy { commitGo() } }
-                        Spacer(minLength: 0)
+                    // PL-20 / PL-25: 开始 appears only once location use is allowed. Before that the consent card's
+                    // single 允许使用位置 button is the only primary on the screen.
+                    if purposeAccepted {
+                        Button { commitGo() } label: {
+                            Label("roam.w208.intro.start", systemImage: "figure.walk")
+                                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .disabled(owner.busy || goCommitted)
+                        .accessibilityIdentifier("roam.live.start")
                     }
                 } else if canStart, owner.record?.finishRequested == false {
                     Button {
@@ -559,31 +587,29 @@ import QuestifyCore
                     } label: {
                         Label("roam.live.resume", systemImage: "play.fill").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.cyPrimary)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.resume")
                 }
                 if canFinish {
-                    // Demoted from a destructive pill to a glass circle; same confirmation dialog and identifier.
-                    CYGlassButton(systemImage: "flag.checkered", label: "roam.live.finish") { confirmFinish = true }
-                        .disabled(owner.busy).accessibilityIdentifier("roam.live.finish")
+                    // Same confirmation dialog and identifier; a secondary system button beside the primary one.
+                    Button(role: .destructive) { confirmFinish = true } label: {
+                        Label("roam.live.finish", systemImage: "flag.checkered")
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(owner.busy).accessibilityIdentifier("roam.live.finish")
                 }
             }
-            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-            .animation(reduceMotion ? nil : CYMotion.entrance, value: owner.phase)
-            .animation(reduceMotion ? nil : CYMotion.entrance, value: goCommitted)
-            // The wave leaves the puck (bottom-right) and crosses the map; the oversized frame never affects layout.
-            .overlay(alignment: .bottomTrailing) {
-                Color.clear.frame(width: 44, height: 44)
-                    .overlay { CYGoWave(trigger: goWave).frame(width: 1600, height: 1600) }
-                    .padding(.trailing, CYSpacing.lg).padding(.bottom, CYSpacing.sm)
-            }
+            .padding(.horizontal).padding(.vertical, 8)
+            .background(.bar)
         }
     }
-    /// Hold committed: shrink the pill into the puck, fire the wave, then start. A refused start brings the pill back.
+    /// 开始 tapped: start through the same path as before. A refused start re-enables the button.
     private func commitGo() {
         if CLLocationManager().authorizationStatus == .notDetermined { showingLocationPriming = true; return }
         goCommitted = true
-        goWave += 1
         Task {
             await SessionOfflineSyncModel.shared.performWriteOptIn(
                 environmentSession: offlineWriteSession.session,
@@ -803,20 +829,20 @@ struct RoamLiveCoverageCopy {
     }
 }
 
-/// One HUD reading: a large number over a short label, as in the mini-program pstat.
+/// One HUD reading: a short label and its value, as in the mini-program pstat.
 struct RoamLiveStatTile: View {
     let value: String
     let label: LocalizedStringKey
     var body: some View {
-        VStack(spacing: 2) {
-            Text(verbatim: value).cyText(.sheetTitle).monospacedDigit()
-                .cyWrapText(alignment: .center)
+        // P-040: a system `LabeledContent` row (Fitness summary) instead of a big-number tile.
+        LabeledContent {
+            Text(verbatim: value).monospacedDigit()
                 // PL-20 / PL-48: live numbers roll instead of jumping.
                 .contentTransition(.numericText())
                 .animation(.snappy, value: value)
-            Text(label).cyText(.meta).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
+        } label: {
+            Text(label)
         }
-        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }
 }
