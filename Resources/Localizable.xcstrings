@@ -299910,6 +299910,23 @@
         }
       }
     },
+    "club.host.requiredFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name and contact are required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实名/昵称和联系方式为必填"
+          }
+        }
+      }
+    },
     "club.host.optionalHint": {
       "extractionState": "manual",
       "localizations": {

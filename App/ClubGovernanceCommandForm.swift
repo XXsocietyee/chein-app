@@ -144,25 +144,19 @@ import SwiftUI
                 if applyStep == 1 {
                     Section {
                         ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { applyFieldRow($0) }
-                        if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).font(.footnote).foregroundStyle(.red)
-                                .accessibilityIdentifier("club.player.apply.nameGap")
-                        }
-                        if applyBlocked, (draft.text["phone"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).font(.footnote).foregroundStyle(.red)
-                                .accessibilityIdentifier("club.player.apply.phoneGap")
-                        }
-                    } header: { applyStepHeader(1) } footer: { Text("club.host.contactPrivate") }
+                    } header: { applyStepHeader(1) } footer: { applyContactFooter }
                         .disabled(busy || locked || review != nil)
                 }
                 if applyStep == 2 {
                     Section {
                         ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { applyFieldRow($0) }
+                    } header: { applyStepHeader(2) } footer: {
+                        // CLB-r10-nat-apply-03: the field error sits in the footer (MP apply js 请选择组织经验 toast).
                         if applyBlocked, (draft.text["experience"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).font(.footnote).foregroundStyle(.red)
+                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).foregroundStyle(.red)
                                 .accessibilityIdentifier("club.player.apply.experienceGap")
                         }
-                    } header: { applyStepHeader(2) }
+                    }
                         .disabled(busy || locked || review != nil)
                 }
                 if applyStep == 3 {
@@ -720,6 +714,22 @@ import SwiftUI
     private var applyReady: Bool {
         applyStep == 0 || ClubHostApplyPort.canAdvance(step: applyStep, text: draft.text)
     }
+    /// CLB-r10-nat-apply-03 (MP apply wxml:63-80): which fields are required, the privacy note, then the field
+    /// errors, all in the step-1 footer instead of a red `*` and red rows between the inputs.
+    @ViewBuilder private var applyContactFooter: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("club.host.requiredFooter")
+            Text("club.host.contactPrivate")
+            if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).foregroundStyle(.red)
+                    .accessibilityIdentifier("club.player.apply.nameGap")
+            }
+            if applyBlocked, (draft.text["phone"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).foregroundStyle(.red)
+                    .accessibilityIdentifier("club.player.apply.phoneGap")
+            }
+        }
+    }
     private var applyAdvanceButton: some View {
         Button {
             guard applyReady else { applyBlocked = true; return }
@@ -734,8 +744,8 @@ import SwiftUI
     private func setApplyStep(_ next: Int) {
         if reduceMotion { applyStep = next } else { withAnimation(.easeInOut(duration: 0.2)) { applyStep = next } }
     }
-    /// CLB-apply-07 (MP apply wxml:63-113): a persistent label above each input (`*` on the two required fields;
-    /// the optional labels already read （选填）) and the MP placeholder inside it. Choice fields keep `fieldRow`.
+    /// CLB-apply-07 (MP apply wxml:63-113): a persistent label on each input (the optional labels already read （选填）)
+    /// and the MP placeholder inside it; the MP `*` became the step footer's required note (nat-apply-03). Choice fields keep `fieldRow`.
     @ViewBuilder private func applyFieldRow(_ key: String) -> some View {
         if key == "experience", let choices = draft.choices(key) {
             // CLB-apply-06 (MP apply wxml:94-101): 组织经验 is one radio card per option (create-wizard kit).
@@ -748,12 +758,8 @@ import SwiftUI
             fieldRow(key)
         } else {
             let required = ClubHostApplyFieldCopy.required.contains(key)
-            VStack(alignment: .leading, spacing: 4) {
-                (Text(LocalizedStringKey("club.gov.field." + key))
-                 + (required ? Text(verbatim: " *").foregroundColor(.red) : Text(verbatim: "")))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
+            // CLB-r10-nat-apply-03: a system-labelled row (label leading, field trailing); required-ness is in the footer.
+            LabeledContent {
                 TextField(text: textBinding(key), prompt: Text(LocalizedStringKey("club.host.placeholder." + key))) {
                     Text(LocalizedStringKey("club.gov.field." + key))
                 }
@@ -761,8 +767,9 @@ import SwiftUI
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityHint(required ? Text("club.host.requiredHint") : Text("club.host.optionalHint"))
                 .accessibilityIdentifier("club.gov.input." + key)
+            } label: {
+                Text(LocalizedStringKey("club.gov.field." + key)).accessibilityHidden(true)
             }
-            .padding(.vertical, 2)
         }
     }
     @ViewBuilder private func fieldRow(_ key: String) -> some View {
