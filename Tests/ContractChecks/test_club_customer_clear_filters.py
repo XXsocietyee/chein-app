@@ -55,14 +55,16 @@ class ClubCustomerClearFiltersContracts(unittest.TestCase):
     def test_normal_customer_inputs_keep_all_four_filters_and_explicit_search(self):
         controls = span(self.source, "if operation == .customers {\n                Section {", "if operation == .topicCustomers")
         self.assertIn('["all", "repeat", "new", "remark"]', controls)
-        # CLB-customers-07 (fix-r8-club): MP chip row; each chip writes through the same binding.
-        self.assertIn('customerFilterBinding.wrappedValue = value', controls)
-        self.assertIn('TextField("club.gov.keyword", text: customerKeywordBinding)', controls)
-        self.assertIn(".onSubmit { loadCustomersNow() }", controls)
-        # The separate Search button was removed in the restyle; search stays explicit via the keyboard submit action.
-        self.assertIn('.submitLabel(.search)', controls)
+        # CLB-customers-07, native-r2 club (6580945b5): the chip row is a segmented Picker on the same binding;
+        # the keyword is the system bar search field whose submit is the explicit search.
+        self.assertIn('Picker("club.gov.filter", selection: customerFilterBinding)', controls)
+        self.assertIn('.tag(value)', controls)
         self.assertNotIn('Button("club.gov.search")', controls)
         self.assertNotIn(".onChange", controls)
+        search = span(self.source, "private struct ClubCustomerKeywordSearch: ViewModifier {", "struct ClubCustomerFilters")
+        self.assertIn('.searchable(text: text, prompt: Text("club.gov.keyword"))', search)
+        self.assertIn('.onSubmit(of: .search) { submit() }', search)
+        self.assertIn('.modifier(ClubCustomerKeywordSearch(enabled: operation == .customers, text: customerKeywordBinding,\n                                            submit: { loadCustomersNow() }))', self.source)
 
     def test_input_bindings_schedule_only_actual_user_value_changes(self):
         filter_binding = span(self.source, "private var customerFilterBinding:", "private var customerKeywordBinding:")

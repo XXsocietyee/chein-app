@@ -94,14 +94,14 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
         spans = [
             # Parity r2 (X1 / X3): this span runs into bodyNavigation, whose hero row and stacked failure sections were
             # replaced by the inline title and one failure block; the customer filter rows inside it are unchanged.
-            ('            if operation == .customers {', '            if operation == .topicCustomers {', '9d1b66318bd2072bf08f9cdc1ed8243f2c1b5bd39c22ee7943ad2d0bf443ccf5'),  # fix-r8-club round 5: the roles reread-failure toast (CLB-r7-C-03) sits in this span. fix-r8-club: the customer filter is the MP chip row (CLB-customers-07). fix-r3-club-a: apply guest state (CLB-apply-08) and the answer-sheet loading/failure copy (CLB-topic-story-03, round 3) join this span; fix-r3-club-b round 4: the check-in read-failure states, the customer 编辑 button key and the 客户 bar title also sit in it (customer filter rows unchanged)
+            ('            if operation == .customers {', '            if operation == .topicCustomers {', 'd606542e305327ef2a8c1c81ef468e7a6fa16de6ad7c9fd2aefa25b9fd43738b'),  # native-r2 club round 2 (6580945b5): ContentUnavailableView/ProgressView, segmented filter Picker, bar search; retry guards and identifiers unchanged  # fix-r8-club round 5: the roles reread-failure toast (CLB-r7-C-03) sits in this span. fix-r8-club: the customer filter is the MP chip row (CLB-customers-07). fix-r3-club-a: apply guest state (CLB-apply-08) and the answer-sheet loading/failure copy (CLB-topic-story-03, round 3) join this span; fix-r3-club-b round 4: the check-in read-failure states, the customer 编辑 button key and the 客户 bar title also sit in it (customer filter rows unchanged)
             # 4df2d6204: only the one-line `Shared read.` doc comment above load() joined this span (code unchanged).
             ('    @MainActor private func loadCustomersNow()', '    @MainActor private func load() async {', '8b3e17fc32550dbf23bde3d92acb94d92dbf7c4881d6b0fd3235f5b28b5130b7'),
             # fix-r3-club-b: this span also holds the notify retry footnote (CLB-notify-09/-10) and the check-in
             # error-phase guard (CLB-checkin-detail-03); the customer rows inside it are unchanged. Round 4: the customer
             # 编辑 button keeps 编辑标签与备注 as its VoiceOver label.
-            ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', 'c02e5b5010b6e7d2d97a0da2fdb56079fbccdf326fcf0023763d7640c14b7e44'),
-            ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', 'bcd35b8ec7f7bea931be735cb83dd3bd34d3f4aed3fe5a26ff455fc588734fe0'),
+            ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', '979eb8ef4c95cc37c2a2ca77b0c83872b898d677494e1cbc71d8e3a21f442def'),  # native-r2 club round 2: only the paid-amount font token dropped
+            ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', 'f9fa4c8b1a6654e0e65a6a3b11f2676cfc949f38d22e029c29676c98f35ea6b4'),  # native-r2 club round 2: adds only the ClubCustomerKeywordSearch modifier (bar search, explicit submit)
         ]
         for start, end, expected in spans:
             text = source[source.index(start):source.index(end, source.index(start))]

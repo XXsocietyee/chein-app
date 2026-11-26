@@ -62,7 +62,8 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
  def testLocalLayoutReplacesMissingHistoricalHelpers(self):
   s=self.src('App/WalletIncomeAnalysisView.swift')
   self.assertNotIn('.walletContentList()',s);self.assertNotIn('WalletReadOnlyDetailStyle()',s)
-  self.assertIn('private struct WalletIncomeAnalysisDetailStyle: LabeledContentStyle',s)
+  # native-r2 me-account batch 2 (63c28ff09): system LabeledContent rows replace the local detail style.
+  self.assertNotIn('WalletIncomeAnalysisDetailStyle',s);self.assertIn('LabeledContent { Text(verbatim: String(summary.unknownCount)) } label: { text("unknown") }',s)
   self.assertIn('if !dynamicTypeSize.isAccessibilitySize',s)
   self.assertIn('else { monthRows(summary, currency: currency) }',s)
  def testNativeRegressionScenariosAreAuthored(self):

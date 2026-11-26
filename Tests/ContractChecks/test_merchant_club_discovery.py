@@ -100,7 +100,7 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
         self.assertIn('''if !discoveryScope.isMerchantViewer {
                         NavigationLink {
                             ClubOwnedView(''', source)
-        self.assertIn('CYListRow("club.owned", trailing: .chevron)', source)
+        self.assertIn('Label("club.owned", systemImage: "person.crop.circle")', source)  # native-r2 club round 2
         self.assertIn('clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)', source)
         self.assertIn('let nearby = locality.nearby(home.nearby, in: discoveryScope)', source)
         # Merchant viewers get the locality list only: the owned/joined list is in the non-merchant branch.
@@ -113,8 +113,8 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
         for marker in ['club.locality.loading', 'club.locality.unavailable', 'club.home.locality.retry',
                        'club.locality.ready', 'club.tab.empty.merchant']:
             self.assertIn(marker, source)
-        self.assertIn('actionTitle: "action.retry"', source)
-        self.assertIn(') { Task { await loadLocality() } }', source)
+        # native-r2 club round 2: ContentUnavailableView with a system retry button, same action and identifier.
+        self.assertIn('Button("action.retry") { Task { await loadLocality() } }', source)
 
     def test_bilingual_fragment_is_merged_without_empty_strings(self):
         fragment = json.loads(self.read('Resources/MerchantClubDiscoveryLocalizations.fragment.json'))
