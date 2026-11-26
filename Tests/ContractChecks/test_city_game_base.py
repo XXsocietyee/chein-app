@@ -91,9 +91,12 @@ class CityGameBaseContracts(unittest.TestCase):
         self.assertIn('await model?.load()', slot)
         self.assertIn('.onDisappear { model?.invalidate() }', slot)
         review = code('App/CityGamePanel.swift').split('private func reviewCard(', 1)[1].split('private var unknownSection:', 1)[0]
+        # N-ORIENT (r10, play-roam.md §5; MP subpackageCity): system Buttons replace CYPillButton,
+        # large control size keeps the 44 pt target.
         for key in ['cityGame.review.confirm', 'cityGame.review.cancel']:
-            self.assertIn('CYPillButton("' + key + '"', review)  # kit pill buttons carry the 44 pt target and the system button style
-        self.assertIn('CYPillButton("cityGame.review.cancel", style: .tertiary, tableName: "CityGame")', review)
+            self.assertIn('Text("' + key + '", tableName: "CityGame")', review)
+        self.assertNotIn('CYPillButton', review)
+        self.assertIn('.buttonStyle(.borderedProminent).controlSize(.large)', review)
         self.assertIn('.disabled(!model.reviewAffordable)', review)
         self.assertIn('await model.confirm()', review)
         self.assertIn('{ model.cancelReview() }', review)
