@@ -29,7 +29,9 @@ class ClubDetailTabContracts(unittest.TestCase):
         self.assertIn('tabs.resolve(selectedTab ?? tabs.initialTab(requested: focusPostID != nil ? .posts : requestedTab))', view)
         # Header and join/quit stay above the tabs; each moved section is behind its tab.
         self.assertLess(view.index('ClubActionPanel('), view.index('ClubDetailTabBar('))
-        for marker, tab in [('club.chat.entry', '.posts'), ('ClubCommunityEntry(', '.posts'), ('SessionClubPublicActivityListView(clubID: id', '.events'),
+        # CLB-detail-14 (0bcd0607d): 帖文 is the feed only; the chat entry moved to 概览 behind the same member gate.
+        self.assertIn('if tab == .overview, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn', view)
+        for marker, tab in [('club.chat.entry', '.overview'), ('ClubCommunityEntry(', '.posts'), ('SessionClubPublicActivityListView(clubID: id', '.events'),
                             ('club.openManagement', '.manage'), ('club.statsOverview.open', '.manage'), ('club.openMembers', '.overview'),
                             ('ClubMerchantDiscoveryView(', '.manage'), ('club.projectLaunch.entry', '.manage'),
                             ('club.detail.leaderboard.open', '.overview')]:

@@ -52,6 +52,14 @@ Core (Swift) tests were fixed by reading the code (there is no compiler here). T
 - test_wallet_income_analysis_closure…testLocalLayoutReplacesMissingHistoricalHelpers: fixed (test). System LabeledContent replaces the local style. The historical helpers are still absent.
 - The template_* tests touched by round 2 conflicted with this branch. Upstream's round-2 re-pins were taken, and they pass. test_template_preference_draft keeps this branch's scope/MERCHANT fix.
 
+### Regressions from the 2aa2141f8 merge (fix/r9-club-a + native-r2 flows), in A1 prefixes
+
+- test_club_detail_tabs…test_detail_view_gates_every_tab_section: fixed (test). CLB-detail-14 (0bcd0607d) moved the chat entry to 概览. The owner/member + signed-in gate is asserted.
+- test_club_enrollment_contracts…test_additive_fragment_is_bilingual_and_covers_ui: fixed (code). Added `club.enroll.refreshing` to Resources/ClubEnrollmentLocalizations.fragment.json, with copy identical to Localizable.xcstrings.
+- test_club_feed_read_parity…test_club_home_uses_existing_reader_without_inheriting_mutation_context: fixed (test). CLB-detail-34 (666d94a69) makes the feed open the same full club page as the list rows. The test pins the feed destination to the exact list-row construction (no extra context), and the reader/revision fences stay. **Owner review:** this deliberately reverses the earlier "feed never inherits the mutation context" rule.
+- test_club_host_application_materials…test_normal_existing_host_apply_owns_the_material_model: fixed (test). CLB-apply-05 (35cb3f59b) mounts ClubHostCertImagesSection, which uses the shared uploader and sends `certImages`. The old rows stay unmounted.
+- test_club_ops_event…test_every_table_key_is_bilingual: fixed (test). `MemberMissingLinkState(identifier: "clubOpsEvent.missingParam")` is an accessibility identifier, not copy, so it is stripped like message/action identifiers.
+
 ## Core (Swift)
 
 - ClubOwnerRefundTests/testAcknowledgedCashProcessingIsNotPayoutSuccess: fixed upstream by 843dbf458. Run 30 had refund off, so `.disabled` became outcomeUnknown. The test now sets `testDerivation = {.refund}` and the coordinator keeps the acknowledged receipt.
