@@ -563,6 +563,8 @@ struct JourneySeatsView: View {
     @State private var inviteShown = false
     @State private var cancelTarget: JourneyInvitedRow?
     @State private var transferSeat: JourneyTransferSeat?
+    /// N-JOURNEY-2 (r10): the start asks once in a system dialog instead of a hold gesture.
+    @State private var confirmStart = false
 
     var body: some View {
         Group {
@@ -626,10 +628,19 @@ struct JourneySeatsView: View {
                 if content.showsParty { party(content) }
                 JourneyLobbyHowToCard(stops: content.stopCount, minutes: content.estimatedMinutes)
                 if let me = content.me, !me.name.isEmpty {
-                    Button(action: onEditMe) {
-                        MPCard { MPRow(title: Text("mp.seats.playAs \(me.name)"), value: Text("mp.seats.edit"), chevron: true) }
+                    // N-JOURNEY-2 (r10): a system GroupBox row with a disclosure chevron.
+                    GroupBox {
+                        Button(action: onEditMe) {
+                            LabeledContent {
+                                HStack(spacing: CYSpacing.xs) {
+                                    Text("mp.seats.edit")
+                                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).accessibilityHidden(true)
+                                }
+                            } label: { Text("mp.seats.playAs \(me.name)") }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.cyPressable)
                     .accessibilityIdentifier("journeySeats.editMe")
                 }
 
@@ -639,7 +650,7 @@ struct JourneySeatsView: View {
                 if content.showsParty && (!content.invited.isEmpty || content.actionError != nil || (onTransfer != nil && !content.transferable.isEmpty)) {
                     if let error = content.actionError { MPInlineError(text: Text(verbatim: error)) }
                     if !content.invited.isEmpty {
-                        MPRows(items: content.invited) { row in
+                        GroupBox { VStack(alignment: .leading, spacing: CYSpacing.sm) { ForEach(content.invited) { row in
                             HStack(spacing: CYSpacing.md) {
                                 Text(verbatim: String(row.no)).cyText(.cardTitle).monospacedDigit().frame(width: 28)
                                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
@@ -669,11 +680,10 @@ struct JourneySeatsView: View {
                                     .accessibilityIdentifier("journeySeats.more.\(row.no)")
                                 }
                             }
-                            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-                        }
+                        } } }
                     }
                     if onTransfer != nil && !content.transferable.isEmpty {
-                        MPRows(items: content.transferable.map(JourneyTransferSeat.init)) { seat in
+                        GroupBox { VStack(alignment: .leading, spacing: CYSpacing.sm) { ForEach(content.transferable.map(JourneyTransferSeat.init)) { seat in
                             HStack(spacing: CYSpacing.md) {
                                 Text(verbatim: String(seat.no)).cyText(.cardTitle).monospacedDigit().frame(width: 28)
                                 Text("mp.seats.transferable").cyText(.bodyMedium)
@@ -683,8 +693,7 @@ struct JourneySeatsView: View {
                                     .accessibilityLabel(Text("mp.seats.transfer.a11y \(seat.no)"))
                                     .accessibilityIdentifier("journeySeats.transfer.\(seat.no)")
                             }
-                            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-                        }
+                        } } }
                     }
                 }
             }
@@ -696,9 +705,21 @@ struct JourneySeatsView: View {
             if content.canGoToStart {
                 // Design hand-off r1 PL-03 / PL-42: the lobby starts with a 0.8 s hold on the one primary.
                 // verify-r1 2.4 / N-13: the button says the gesture it needs; the caption reassures. VoiceOver keeps 去起点.
-                MPBottomBar { CYHoldToStartButton("mp.seats.holdToStart", systemImage: "flag.fill", caption: "mp.seats.holdCaption",
-                                                  accessibilityTitle: "mp.seats.goStart", onStart: onStart).accessibilityIdentifier("journeySeats.start") }
+                // N-JOURNEY-2 (r10): one `.borderedProminent` 去起点 (MP subpackageJourney/pages/seats/index.wxml goStart)
+                // and a system confirmation dialog in place of the hold gesture; the caption is the dialog message.
+                MPBottomBar {
+                    Button { confirmStart = true } label: {
+                        Label("mp.seats.goStart", systemImage: "flag.fill").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .accessibilityIdentifier("journeySeats.start")
+                }
             }
+        }
+        .confirmationDialog(Text("mp.seats.goStart"), isPresented: $confirmStart, titleVisibility: .visible) {
+            Button("mp.seats.goStart") { onStart() }
+        } message: {
+            Text("mp.seats.holdCaption")
         }
         .cySheet(isPresented: $inviteShown) { JourneyInviteSheet(content: content) }
         .cySheet(item: $transferSeat) { seat in
