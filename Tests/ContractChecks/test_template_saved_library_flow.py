@@ -36,7 +36,7 @@ class SavedLibrarySourceContracts(unittest.TestCase):
   self.assertIn('func suspend() { active = false; invalidate() }',FLOW);self.assertIn('func retire() { suspend(); latest = nil; admitted = nil }',FLOW)
   self.assertIn('.onDisappear { controller.retire() }',FLOW);self.assertIn('else { controller.suspend() }',FLOW)
  def test_destination_replacement_and_result_ui_are_complete(self):
-  for x in ['if controller.showingLibrary { library() }','TemplateAuthoringView(coordinator: coordinator','.onPreferenceChange(TemplateAuthoringSavedResultPreferenceKey.self)','.sheet(item: controller.presentationBinding())','close: controller.closeAction(value)']:self.assertIn(x,FLOW)
+  for x in ['if controller.showingLibrary { library() }','TemplateAuthoringView(coordinator: coordinator','.onPreferenceChange(TemplateAuthoringSavedResultPreferenceKey.self)','.cySheet(item: controller.presentationBinding())','close: controller.closeAction(value)']:self.assertIn(x,FLOW)
   self.assertIn('result.memberTemplateID.rawValue',PANEL);self.assertIn('.interactiveDismissDisabled(true)',PANEL)
  def test_bilingual_named_table_is_exact(self):
   keys=set(re.findall(r'"(templateSavedResult\.(?:title|detail|identity|destination|openLibrary))"',PANEL))

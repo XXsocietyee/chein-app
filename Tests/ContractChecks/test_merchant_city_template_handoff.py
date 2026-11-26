@@ -67,7 +67,7 @@ class CityTemplateHandoffContracts(unittest.TestCase):
   self.assertIn('.modifier(MerchantCityTemplateHandoffPresentation(model: cityTemplateHandoff, binding: placementTemplateBinding))',host)
   self.assertIn('MerchantCityTemplateHandoffField(binding: placementTemplateBinding, model: cityTemplateHandoff)',host)
   row=view.split('@MainActor struct MerchantCityTemplateHandoffField')[1].split('@MainActor struct MerchantCityTemplateHandoffPresentation')[0]
-  for marker in ['@StateObject', '.sheet(', '.onDisappear', '.onChange']:self.assertNotIn(marker,row)
+  for marker in ['@StateObject', '.cySheet(', '.onDisappear', '.onChange']:self.assertNotIn(marker,row)
   self.assertIn('.id(model.opening?.id)',view);self.assertIn('content.background {',view)
   self.assertIn('.modifier(MerchantCityTemplateHandoffPresentation(model: handoff, binding: state.binding))',fixture)
  def test_17_old_sheet_callbacks_are_exact_opening_scoped(self):

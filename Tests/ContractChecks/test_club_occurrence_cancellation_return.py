@@ -61,7 +61,7 @@ class ClubOccurrenceCancellationReturnContracts(unittest.TestCase):
 
     def test_current_uuid_sheet_belongs_to_stable_parent(self):
         self.assertIn('@StateObject private var occurrenceCancellationReturn', self.host)
-        self.assertIn('.sheet(isPresented: owner.binding(item, source: source, active: active)', self.presenter)
+        self.assertIn('.cySheet(isPresented: owner.binding(item, source: source, active: active)', self.presenter)
         self.assertIn('if owner.dismissed(item, source: source(), active: active()) { didDismiss() }', self.presenter)
         self.assertIn('didDismiss: finishOccurrenceCancellationReturn)\n                    .id(item.id)', self.host)
 

@@ -55,7 +55,7 @@ class PlayerActionReviewContract(unittest.TestCase):
                   '.focused($focusedNode, equals: node.id)', '.scrollDismissesKeyboard(.interactively)',
                   'Button("action.done") { focusedNode = nil }']:
             self.assertIn(x,self.host)
-        self.assertNotIn('.sheet(',self.owner)
+        self.assertNotIn('.cySheet(',self.owner)
         self.assertIn('proxy.scrollTo(id, anchor: .top)',self.host)
         self.assertIn('if let id, actionReview.review?.id == id',self.host)
     def test_original_unknown_recovery_and_readbacks_remain_explicit(self):

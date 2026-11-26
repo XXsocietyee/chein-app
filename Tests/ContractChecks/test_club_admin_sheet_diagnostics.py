@@ -30,7 +30,7 @@ class ClubAdminSheetDiagnosticContracts(unittest.TestCase):
         source=(ROOT/'App/ClubOperationsFixtureSupport.swift').read_text()
         self.assertTrue(source.startswith('#if DEBUG'))
         self.assertIn('manageTapCount += 1; destination = .init(target: .club(81))',source)
-        self.assertIn('.sheet(item: $destination)',source)
+        self.assertIn('.cySheet(item: $destination)',source)
         self.assertIn('.onAppear { sheetAppearCount += 1; sheetVisible = true }',source)
         self.assertIn('.onDisappear { sheetDisappearCount += 1; sheetVisible = false }',source)
         diagnostic=source.split('private var presentationDiagnostic: String {',1)[1].split('\n    }',1)[0]

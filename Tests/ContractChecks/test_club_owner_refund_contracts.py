@@ -75,7 +75,7 @@ class ClubOwnerRefundContractChecks(unittest.TestCase):
             self.assertIn(label, ui)
     def test_confirmation_cancel_and_lifecycle_are_wired(self):
         code = self.text('App/ClubOwnerRefundPanel.swift')
-        for marker in ['.sheet(item: $review, onDismiss: cancelPending)', 'coordinator?.cancel(pending)', '.interactiveDismissDisabled(status.inFlight)', '.onChange(of: identity)', '.onDisappear { coordinator?.leave(ownerID: ownerID) }', '.disabled(!model.confirmEnabled)']:
+        for marker in ['.cySheet(item: $review, onDismiss: cancelPending)', 'coordinator?.cancel(pending)', '.interactiveDismissDisabled(status.inFlight)', '.onChange(of: identity)', '.onDisappear { coordinator?.leave(ownerID: ownerID) }', '.disabled(!model.confirmEnabled)']:
             self.assertIn(marker, code)
         self.assertIn('ClubOwnerRefundPanel(target:', self.text('App/ClubGovernanceViews.swift'))
         self.assertIn('ownerRefund: governance.ownerRefund', self.text('App/ClubDetailView.swift'))

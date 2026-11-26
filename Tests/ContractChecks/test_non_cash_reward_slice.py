@@ -23,7 +23,7 @@ class NonCashRewardSliceChecks(unittest.TestCase):
         detail = source.split('private struct NonCashRewardDetailView: View {', 1)[1].split('private struct NonCashRewardDetailContent: View {', 1)[0]
         rows = source.split('private struct NonCashRewardDetailContent: View {', 1)[1].split('/// Only DEBUG', 1)[0]
         self.assertIn('@State private var presenting = false', detail)
-        self.assertIn('.sheet(isPresented: $presenting)', detail)
+        self.assertIn('.cySheet(isPresented: $presenting)', detail)
         self.assertIn('if presentationAllowed', detail)
         self.assertIn('guard presentationAllowed, merchantNavigation.canOpen else { return }', detail)
         self.assertIn('reader.isAuthenticated, reader.isConfigured, reader.isOfflineExample', detail)

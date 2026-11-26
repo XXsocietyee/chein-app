@@ -10,7 +10,7 @@ class ClubOccurrenceReturnOwnerContracts(unittest.TestCase):
         source = self.source('App/ClubSeriesOccurrenceBrowser.swift').split('@MainActor struct ClubSeriesOccurrenceBrowser: View {', 1)[1]
         for part in ['@ObservedObject var host:', '@ObservedObject var model:', 'host.toggle(source, current:', 'host.open(route, source:', 'host.requestReload(source, current:']:
             self.assertIn(part, source)
-        for part in ['@State', '.sheet(', '.onDisappear', '.task(', 'model.leave(', 'model.activate(', 'model.bind(']:
+        for part in ['@State', '.cySheet(', '.onDisappear', '.task(', 'model.leave(', 'model.activate(', 'model.bind(']:
             self.assertNotIn(part, source)
     def test_stable_parent_owns_specific_presentation_and_lifetime(self):
         source = self.source('App/ClubGovernanceViews.swift')

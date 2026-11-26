@@ -88,7 +88,7 @@ class ProfileFavoriteRemovalSourceChecks(unittest.TestCase):
   self.assertIn('onOpenPost?(.init(id: post.id, generation: post.generation))',self.host)
   self.assertIn('NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")',self.host)
  def test_sheet_cannot_retire_another_presentation(self):
-  self.assertIn('.sheet(item: $presentation) { value in',self.view)
+  self.assertIn('.cySheet(item: $presentation) { value in',self.view)
   self.assertNotIn('onDismiss: { if let id = controller.presentationID',self.view)
   self.assertIn('.onDisappear {\n                diagnostics?.record("sheet.disappeared", scene: scenePhase, presentation: presentation, controller: controller)\n                finish()\n            }',self.view)
   self.assertIn('controller.retire(id)',self.view)

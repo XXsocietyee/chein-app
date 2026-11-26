@@ -21,7 +21,7 @@ class PublishingAIPromptChecks(unittest.TestCase):
   self.assertEqual(h.count('PublishingAIPromptControls(controller:'),1);self.assertEqual(h.count('.modifier(PublishingAIPromptLifetime('),1)
   self.assertIn('}.navigationTitle("contextPublish.ai.title").navigationBarTitleDisplayMode(.inline)\n            .modifier(PublishingAIPromptLifetime(',h)
   row=v[v.index('@MainActor struct PublishingAIPromptControls:'):v.index('@MainActor struct PublishingAIPromptLifetime:')]
-  for bad in ['onDisappear','onAppear','@StateObject','scenePhase','.sheet(']:self.assertNotIn(bad,row)
+  for bad in ['onDisappear','onAppear','@StateObject','scenePhase','.cySheet(']:self.assertNotIn(bad,row)
   # native r2: custom capsule chip on .borderless became the system .bordered capsule button
   self.assertIn('if flow.candidate == nil',row);self.assertIn('.buttonStyle(.bordered).buttonBorderShape(.capsule)',row)
   self.assertIn('token == self.generation',v);self.assertIn('controller.retire()',v);self.assertIn('.focused($ideaFocused)',h)

@@ -16,7 +16,7 @@ class ClubOwnerFundsParentContracts(unittest.TestCase):
         self.assertIn('availability == .positive',workflow)
     def test_lazy_row_only_observes_stable_parent(self):
         self.assertIn('@StateObject private var ownerFundsParent = ClubOwnerFundsParent()',self.host)
-        for forbidden in ['@StateObject','.sheet(','.task(','.onDisappear','.onChange(']:self.assertNotIn(forbidden,self.row)
+        for forbidden in ['@StateObject','.cySheet(','.task(','.onDisappear','.onChange(']:self.assertNotIn(forbidden,self.row)
         self.assertIn('@ObservedObject var workflow: ClubOwnerFundsWorkflow',self.row)
         self.assertIn('@ObservedObject var parent: ClubOwnerFundsParent',self.row)
     def test_source_and_ticket_capture_exact_reader_scope_and_attachment(self):
@@ -27,7 +27,7 @@ class ClubOwnerFundsParentContracts(unittest.TestCase):
     def test_contact_uses_concrete_nonnil_stable_presenter(self):
         self.assertIn('if let item = ownerFundsParent.contact',self.host)
         self.assertIn('returned: { Task { await loadOwnerFundsIfNeeded() } }).id(item.id)',self.host)
-        self.assertIn('.sheet(isPresented: owner.binding(item, current: current, active: active)',self.funds)
+        self.assertIn('.cySheet(isPresented: owner.binding(item, current: current, active: active)',self.funds)
         self.assertIn('owner.current(item, source: current(), active: active()), let support = context.support',self.funds)
     def test_old_close_and_dismiss_cannot_touch_replacement(self):
         self.assertIn('guard contact == item else { return }; isPresented = false; workflow.closeContact()',self.owner)

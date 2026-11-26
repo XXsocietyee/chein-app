@@ -44,7 +44,7 @@ class P04PublicationPresentationCloseoutTests(unittest.TestCase):
             for lang in ['en','zh-Hans']:
                 unit=catalogs[table][key]['localizations'][lang]['stringUnit'];self.assertEqual(unit['state'],'translated');self.assertTrue(unit['value'].strip())
     def testReviewLoadingAndConfirmationHostKeepOriginalIdentity(self):
-        self.contains('ApprovedTopicReviewRequestView',['if original.flow.isCurrent','if model.isWorking','.task(id: original.id) { await model.load() }','.sheet(item: model.binding(confirmation))','if model.owns(captured)','confirm: { model.confirm(captured) }, cancel: { model.cancel(captured) }'])
+        self.contains('ApprovedTopicReviewRequestView',['if original.flow.isCurrent','if model.isWorking','.task(id: original.id) { await model.load() }','.cySheet(item: model.binding(confirmation))','if model.owns(captured)','confirm: { model.confirm(captured) }, cancel: { model.cancel(captured) }'])
     def testStyleHelpersHaveSingleDefinition(self):
         source='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
         for value in ['struct P04LifecycleSurface: ViewModifier','func p04LifecycleSurface()','func p04FactRow()','func p04RecoveryRecord()']:self.assertEqual(source.count(value),1)

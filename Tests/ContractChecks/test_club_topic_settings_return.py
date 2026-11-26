@@ -50,7 +50,7 @@ class ClubTopicSettingsReturnContracts(unittest.TestCase):
         self.assertIn('@StateObject private var topicSettingsReturn',self.host)
         self.assertIn('if let item = topicSettingsReturn.item {',self.host)
         self.assertIn('didDismiss: finishTopicSettingsReturn).id(item.id)',self.host)
-        self.assertIn('.sheet(isPresented: owner.binding(item,',self.owner)
+        self.assertIn('.cySheet(isPresented: owner.binding(item,',self.owner)
         self.assertIn('item?.id == expected.id && attachment == expected.attachment',self.owner)
         self.assertIn('guard !shown, self.current(expected',self.owner)
         self.assertIn('testOldBindingDismissalAndAcknowledgementCannotCloseReopenedEditor',self.tests)

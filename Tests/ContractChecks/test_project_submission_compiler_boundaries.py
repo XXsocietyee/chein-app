@@ -19,7 +19,7 @@ class ProjectSubmissionCompilerBoundaries(unittest.TestCase):
         body, binding, result = self.parts()
         for token in ['let presentedSubmission = submission',
                       'let submissionIncarnation = model.editorIncarnation',
-                      '.sheet(item: submissionBinding(presentedSubmission: presentedSubmission, submissionIncarnation: submissionIncarnation)) { receipt in',
+                      '.cySheet(item: submissionBinding(presentedSubmission: presentedSubmission, submissionIncarnation: submissionIncarnation)) { receipt in',
                       'submissionResult(receipt: receipt, submissionIncarnation: submissionIncarnation)']:
             self.assertIn(token, body)
         self.assertIn('presentedSubmission: PublishingSubmissionHandoff?, submissionIncarnation: UUID) -> Binding<PublishingSubmissionHandoff?>', binding)

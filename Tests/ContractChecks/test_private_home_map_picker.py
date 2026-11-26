@@ -12,7 +12,7 @@ class PrivateHomeMapPickerContracts(unittest.TestCase):
 
     def test_real_owner_entry_hosts_picker_and_existing_confirmation(self):
         view = self.read('App/PrivateHomeView.swift')
-        for marker in ['PrivateHomeView(model: coordinator, mapAdapter: mapAdapter)', 'PrivateHomeInactiveMapKitAdapter()', 'picker.open()', '.sheet(isPresented:', 'PrivateHomeMapPickerView(picker: picker, initialLabel: label)', 'await model.confirm()', 'PrivateHomeCoordinateReview(point: point)']:
+        for marker in ['PrivateHomeView(model: coordinator, mapAdapter: mapAdapter)', 'PrivateHomeInactiveMapKitAdapter()', 'picker.open()', '.cySheet(isPresented:', 'PrivateHomeMapPickerView(picker: picker, initialLabel: label)', 'await model.confirm()', 'PrivateHomeCoordinateReview(point: point)']:
             self.assertIn(marker, view)
         picker = self.read('App/PrivateHomeMapPicker.swift')
         self.assertIn('owner.prepareSet(label: label, point: point)', picker)

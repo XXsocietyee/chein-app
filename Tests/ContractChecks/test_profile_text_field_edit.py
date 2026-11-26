@@ -62,7 +62,7 @@ class ProfileTextFieldEditContracts(unittest.TestCase):
         binding = section('func textEditPresentation(for presented: ProfileTextFieldEdit?)', 'func ')
         self.assertIn('guard let presented, self.textEdit?.id == presented.id else { return nil }', binding)
         self.assertIn('if value == nil, let presented { self.cancelTextEdit(presented) }', binding)
-        self.assertIn('.sheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) })', read('App/ProfileEditView.swift'))
+        self.assertIn('.cySheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) })', read('App/ProfileEditView.swift'))
         self.assertIn('.id(value.id)', read('App/ProfileEditView.swift'))
         self.assertIn('}.interactiveDismissDisabled(false)', read('App/ProfileEditView.swift'))
         editor = read('App/ProfileTextFieldEditor.swift')

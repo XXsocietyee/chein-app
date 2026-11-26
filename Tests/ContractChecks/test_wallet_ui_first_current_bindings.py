@@ -37,7 +37,7 @@ class WalletUIFirstCurrentBindingTests(unittest.TestCase):
     def test_brand_lease_belongs_to_stable_document_and_editor(self):
         source = (ROOT / 'App/MerchantBrandImagesView.swift').read_text()
         entry = source.split('@MainActor struct MerchantBrandImagesEntry', 1)[1].split('/// Presentation belongs', 1)[0]
-        for forbidden in ['@State ', '.sheet(', '.onDisappear', 'retire()']:
+        for forbidden in ['@State ', '.cySheet(', '.onDisappear', 'retire()']:
             self.assertNotIn(forbidden, entry)
         self.assertIn('@Published var brandImagesPresentation: MerchantBrandImagesModel?', (ROOT / 'App/MerchantOperationsViews.swift').read_text())
         self.assertIn('.modifier(MerchantBrandImagesPresentation(document: model))', (ROOT / 'App/MerchantOperationsEditor.swift').read_text())

@@ -15,7 +15,7 @@ class TopicSessionSelectionChecks(unittest.TestCase):
 
     def test_existing_action_bar_opens_sheet_and_return_refreshes_same_topic(self):
         for value in ['TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } }',
-                      '.sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } })',
+                      '.cySheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } })',
                       'TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)',
                       'showingSessionSelection = false']:
             self.assertIn(value, self.detail)

@@ -47,7 +47,7 @@ class ClubRoleManagementReturnContracts(unittest.TestCase):
                       'didDismiss: finishRoleManagementReturn).id(item.id)']:
             self.assertIn(token,self.host)
         for token in ['item?.id == expected.id','attachment == expected.attachment','expected.source == source',
-                      '.sheet(isPresented: owner.binding(item,']:
+                      '.cySheet(isPresented: owner.binding(item,']:
             self.assertIn(token,self.owner)
     def testReturnReadIsReservedAndOnlyCurrentVisibleScopeCanRun(self):
         self.assertIn('retire(); readTicket = ticket',self.owner)

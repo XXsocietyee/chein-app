@@ -73,7 +73,7 @@ class MerchantNPCPresetContracts(unittest.TestCase):
         self.assertIn('@StateObject private var presetPresentation = MerchantNPCPresetPresentation()',full)
         self.assertIn('.modifier(MerchantNPCPresetStablePresentation(document: model, presentation: presetPresentation))',full)
         row=APP.split('@MainActor struct MerchantNPCPresetSection:')[1].split('/// The full editor retains')[0]
-        for token in ['.sheet(', '.onDisappear', '@State ']: self.assertNotIn(token,row)
+        for token in ['.cySheet(', '.onDisappear', '@State ']: self.assertNotIn(token,row)
         self.assertIn('if !value.avatar.hasPrefix("px1:")',EDITOR)
         self.assertIn('mediaSection("merchant.operations.avatar", field: .avatar)',EDITOR)
     def test_character_bounds_and_explicit_empty_wire_values(self):

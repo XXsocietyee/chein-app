@@ -60,7 +60,7 @@ class MerchantReviewPhotoGalleryContracts(unittest.TestCase):
         self.assertIn('let shown = self.session, shown.isCurrent else { return nil }',self.gallery)
         host=self.gallery.split('.background {')[1].split('.onAppear')[0]
         self.assertIn('Color.clear.frame(width: 0, height: 0)',host)
-        self.assertIn('.sheet(item: model.presentationBinding())',host)
+        self.assertIn('.cySheet(item: model.presentationBinding())',host)
         self.assertIn('.id(model.generation)',host)
     def test_late_image_phase_and_retry_are_generation_fenced(self):
         self.assertGreaterEqual(self.gallery.count('session.isImageCurrent(generation, at: position)'),2)

@@ -53,7 +53,7 @@ class ClubProfileChoiceOwnerContracts(unittest.TestCase):
     def test_lazy_control_is_observer_without_presentation_or_cleanup(self):
         control = span(self.view, 'struct ClubProfileChoiceControl:', 'struct ClubProfileChoicePresentationOwner:')
         self.assertIn('@ObservedObject var controller: ClubProfileChoiceController', control)
-        for token in ['@StateObject', '.sheet(', '.onDisappear', '.onChange', 'controller.close(']:
+        for token in ['@StateObject', '.cySheet(', '.onDisappear', '.onChange', 'controller.close(']:
             self.assertNotIn(token, control)
         self.assertIn('controller.open(kind: kind, source: draft, context: context, isCurrent: isCurrent)', control)
 

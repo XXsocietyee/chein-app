@@ -64,7 +64,7 @@ class PlayAnswerReviewJourneyContracts(unittest.TestCase):
                      'try reviewOwner.prepare(answer: answer, offered: offeredAnswer)')
         self.require(v, '.onChange(of: reviewOwner.readGeneration)', 'reviewOwner.discardInvalidUnclaimedReview()')
         self.require(self.read('App/PlayAnswerReview.swift'), 'guard showing, let offered = review, claimedID == nil, !model.canConfirmAnswerReview(offered)')
-        self.assertNotIn('.sheet(item:', v)
+        self.assertNotIn('.cySheet(item:', v)
         self.assertNotIn('model.submit(nodeID:', v)
         s = self.read('App/PlayAnswerReview.swift')
         self.require(s, 'let offered: PlayAnswerReview', 'owner.isPresented(offered)', 'owner.cancel(offered)',

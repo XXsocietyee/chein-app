@@ -88,7 +88,7 @@ class ClubOperationsSourceChecks(unittest.TestCase):
         for unsafe in ['URLSession','HTTPTransport','UserDefaults','https://']: self.assertNotIn(unsafe,source)
     def test_ui_has_native_review_unknown_lock_and_accessibility(self):
         ui = self.text('App/ClubOperationsViews.swift') + self.text('App/ClubOperationsReviewView.swift')
-        for required in ['.sheet(item:', '.interactiveDismissDisabled(', 'accessibilityIdentifier', 'accessibilityReduceMotion', 'QuestifyImageEntityCard', '.confirmationDialog(', 'TextField(', 'Toggle(', 'Picker(']: self.assertIn(required,ui)
+        for required in ['.cySheet(item:', '.interactiveDismissDisabled(', 'accessibilityIdentifier', 'accessibilityReduceMotion', 'QuestifyImageEntityCard', '.confirmationDialog(', 'TextField(', 'Toggle(', 'Picker(']: self.assertIn(required,ui)
         # Design-system card chrome may stroke only with a CYColor token; no ad-hoc drawn controls.
         for stroke in re.findall(r'\.stroke\([^)]*\)',ui): self.assertTrue(stroke.startswith('.stroke(CYColor.'),stroke)
         self.assertNotIn('allowsHitTesting(false)',ui)

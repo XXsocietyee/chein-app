@@ -29,7 +29,7 @@ class AcceptanceR2ClubLeaveConfirmation(unittest.TestCase):
         # onDisappear reset the confirmation before it could present.
         after_section = self.body.split('} header: {', 1)[1]
         header, tail = after_section.split('\n        }\n', 1)
-        for modifier in ['.sheet(', '.onDisappear', '.onChange(', '.confirmationDialog(']:
+        for modifier in ['.cySheet(', '.onDisappear', '.onChange(', '.confirmationDialog(']:
             self.assertNotIn(modifier, tail, modifier)
         self.assertIn('.onDisappear { reset() }', header)
         self.assertIn('.onChange(of: identity) { _, _ in reset() }', header)
@@ -37,13 +37,13 @@ class AcceptanceR2ClubLeaveConfirmation(unittest.TestCase):
     def test_single_confirmation_sheet_on_membership_button(self):
         # One presenter per placement: the header placement's membership row, and (design r1 MC-20)
         # the single page-end row. The two placements are exclusive branches of one panel instance.
-        self.assertEqual(self.source.count('.sheet('), 2)
+        self.assertEqual(self.source.count('.cySheet('), 2)
         page_end = self.source.split('private var pageEndSection', 1)[1].split('private func membershipButton', 1)[0]
-        self.assertIn('.sheet(isPresented: confirmationPresented) { confirmationSheet }', page_end)
+        self.assertIn('.cySheet(isPresented: confirmationPresented) { confirmationSheet }', page_end)
         self.assertIn('.onDisappear { reset() }', page_end)
         self.assertNotIn('ProgressView', page_end)
         self.assertIn('membershipButton(action, state: state)\n'
-                      '                                .sheet(isPresented: confirmationPresented) { confirmationSheet }',
+                      '                                .cySheet(isPresented: confirmationPresented) { confirmationSheet }',
                       self.source)
         self.assertIn('confirmIdentifier: "club.action.confirm"', self.source)
         self.assertIn('{ submit(value) }', self.source)
@@ -86,7 +86,7 @@ class AcceptanceR2ComposerKeyboard(unittest.TestCase):
 
     def test_history_pins_composer_with_bottom_safe_area_inset(self):
         source = strip_comments(read('App/MessagingHistoryView.swift'))
-        inset = source.split('.safeAreaInset(edge:.bottom) {', 1)[1].split('.sheet(isPresented: $showingPollComposer)', 1)[0]
+        inset = source.split('.safeAreaInset(edge:.bottom) {', 1)[1].split('.cySheet(isPresented: $showingPollComposer)', 1)[0]
         self.assertIn('MessageActionComposer(', inset)
         self.assertIn('.scrollDismissesKeyboard(.interactively)', source)
         self.assertNotIn('onTapGesture', source.split('private var transcript', 1)[1].split('private func reload', 1)[0])

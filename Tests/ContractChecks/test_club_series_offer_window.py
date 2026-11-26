@@ -70,7 +70,7 @@ class ClubSeriesOfferWindowContracts(unittest.TestCase):
                 self.assertTrue(strings[key]['localizations'][locale]['stringUnit']['value'])
 
     def test_no_new_service_or_submit_path_in_local_field(self):
-        for token in ['Task', 'await', '.send(', '.read(', 'coordinator', 'grant', 'Button(', '.sheet(', '@State']:
+        for token in ['Task', 'await', '.send(', '.read(', 'coordinator', 'grant', 'Button(', '.cySheet(', '@State']:
             self.assertNotIn(token, self.source)
         self.assertIn('try await coordinator.prepare(draft.command())', self.form)
         self.assertIn('try await coordinator.confirm(review)', self.form)

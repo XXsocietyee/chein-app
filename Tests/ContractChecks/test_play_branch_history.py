@@ -69,7 +69,7 @@ class PlayBranchHistoryContracts(unittest.TestCase):
             self.assertIn(required,text)
         self.assertNotIn('let rows:',text)
         summary=read('App/PlayTaskSummaryView.swift')
-        for required in ['.sheet(item: $branchHistorySelection)', 'selection.presentation(snapshot: snapshot)', '.onDisappear { branchHistorySelection = nil }', 'if current != branchHistorySelection', 'if value != "ready" && value != "unknown"']:
+        for required in ['.cySheet(item: $branchHistorySelection)', 'selection.presentation(snapshot: snapshot)', '.onDisappear { branchHistorySelection = nil }', 'if current != branchHistorySelection', 'if value != "ready" && value != "unknown"']:
             self.assertIn(required,summary)
     def test_ui_is_read_only_and_plain_text(self):
         for path in ['App/PlayBranchHistoryView.swift','Core/PlayBranchHistoryPresentation.swift','Core/PlayBranchHistoryLog.swift']:
