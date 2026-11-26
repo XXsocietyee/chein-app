@@ -62,15 +62,15 @@ enum PublishDesignFixtures {
             }
             return wrap(NavigationStack { DiscoveryTopicTemplatePreview(coordinator: coordinator) })
         case "publish-cover":
-            return wrap(NavigationStack { Form { Section { ActivityCoverAuthoringSection(owner: ActivityCoverAuthoringOwner()) } header: { CYSectionHeader("publishModes.coverSection") } }
-                .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "封面设置（设计预览）")).navigationBarTitleDisplayMode(.inline) })
+            return wrap(NavigationStack { Form { Section { ActivityCoverAuthoringSection(owner: ActivityCoverAuthoringOwner()) } header: { Text("publishModes.coverSection") } }
+                .navigationTitle(Text(verbatim: "封面设置（设计预览）")).navigationBarTitleDisplayMode(.inline) })
         case "publish-template-select":
             let owner = ActivityTemplateSelectionOwner()
             let rows = [(1, "示例：西湖夜游漫步（设计预览）", #","players":"2-4人","duration":45"#), (2, "示例：运河博物寻踪（设计预览）", #","players":"3人""#), (3, "示例：老街图集模板（设计预览）", #","advancedConfigJson":"{}""#)]
                 .compactMap { try? ActivityTemplateChoice(JSONDecoder().decode(ProjectEditJSON.self, from: Data(#"{"id":\#($0.0),"title":"\#($0.1)"\#($0.2)}"#.utf8))) }
             owner.designPreviewRows(rows, selected: 1)
             return wrap(NavigationStack { Form { ActivityTemplateSelectionSection(owner: owner, apply: { _ in true }, createAvailable: true) }
-                .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "模板选择（设计预览）")).navigationBarTitleDisplayMode(.inline) })
+                .navigationTitle(Text(verbatim: "模板选择（设计预览）")).navigationBarTitleDisplayMode(.inline) })
         // fix/r3-account-publish-b: the pass reveal with the MP key frame sheets (paid plays the full intro every time).
         case "fr3-pass-reveal-paid":
             return wrap(NavigationStack { PassRevealView(paid: PassRevealPaidFacts(count: 12, untilText: "2027-11-24"), accountKey: "fixture") })
@@ -147,7 +147,6 @@ enum PublishDesignFixtures {
             }
             .padding(CYSpacing.pageHorizontal)
         }
-        .background(palette.bgPage)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             CYFooterBar {
                 ActivityPublishingWizardNavigation(step: step, enabled: true, onCancel: {}, onBack: { step = max(0, step - 1) }, onNext: { step = min(2, step + 1) }, onReview: {})
@@ -215,7 +214,6 @@ enum PublishDesignFixtures {
             }
         }
         .formStyle(.grouped)
-        .cyGroupedSurface()
         .cyDomainScreen(.topicEditor)
     }
 

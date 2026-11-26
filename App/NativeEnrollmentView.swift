@@ -11,30 +11,22 @@ import CryptoKit
     var body: some View {
         Form {
             Section {
-                CYHeroHeader("nativeEnrollment.title") {
-                    CYCoverArt(seed: "native-enrollment", symbol: "checkmark.shield", showsDebugLabel: false, cornerRadius: CYRadius.lg)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 120)
-                        .accessibilityHidden(true)
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
-            }
-            Section {
                 Text("nativeEnrollment.boundary")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                CYListRow("nativeEnrollment.app", trailing: .value(shown(model.scope.appID))) { CYRowIcon(systemImage: "app") }
-                CYListRow("nativeEnrollment.environment", trailing: .value(shown(model.scope.environment))) { CYRowIcon(systemImage: "server.rack") }
-                CYListRow("nativeEnrollment.account", trailing: .value(String(model.scope.accountID))) { CYRowIcon(systemImage: "person") }
+                fact("nativeEnrollment.app", shown(model.scope.appID), systemImage: "app")
+                fact("nativeEnrollment.environment", shown(model.scope.environment), systemImage: "server.rack")
+                fact("nativeEnrollment.account", String(model.scope.accountID), systemImage: "person")
                 if let key = model.record?.deviceKeyID {
-                    CYListRow("nativeEnrollment.fingerprint", trailing: .value(fingerprint(key))) { CYRowIcon(systemImage: "touchid") }
+                    fact("nativeEnrollment.fingerprint", fingerprint(key), systemImage: "touchid")
                 }
-                CYStatusChip(LocalizedStringKey("nativeEnrollment.phase." + model.phase), tone: phaseTone, systemImage: phaseSymbol)
+                Label(LocalizedStringKey("nativeEnrollment.phase." + model.phase), systemImage: phaseSymbol)
+                    .foregroundStyle(phaseTone)
                     .accessibilityIdentifier("nativeEnrollment.phase")
                 if let issue = model.issue {
-                    CYStatusChip(LocalizedStringKey("nativeEnrollment.issue." + issue.rawValue), tone: .danger, systemImage: "exclamationmark.triangle")
+                    Label(LocalizedStringKey("nativeEnrollment.issue." + issue.rawValue), systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.red)
                         .accessibilityIdentifier("nativeEnrollment.issue")
                 }
                 if let privacyURL { Link("nativePlatform.privacy", destination: privacyURL) }
@@ -52,16 +44,16 @@ import CryptoKit
                 }
                 if model.canSubmit {
                     Text("nativeEnrollment.proofLocal")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     pill("nativeEnrollment.enroll", .enroll, systemImage: "checkmark.circle") { review = .enroll }
                         .accessibilityIdentifier("nativeEnrollment.enroll")
                 }
                 if model.canRetryEnrollment {
                     Text("nativeEnrollment.recoveryProof")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     pill("nativeEnrollment.retryEnroll", .retryEnroll, systemImage: "arrow.clockwise") { Task { await model.retryExactEnrollment() } }
                         .accessibilityIdentifier("nativeEnrollment.retryEnroll")
@@ -72,72 +64,67 @@ import CryptoKit
                 }
                 if model.canRetryRevocation {
                     Text("nativeEnrollment.recoveryRevoke")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Button("nativeEnrollment.retryRevoke", role: .destructive) { review = .revoke }
                         .accessibilityIdentifier("nativeEnrollment.retryRevoke")
                 }
                 if working {
-                    CYSkeleton()
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
                         .accessibilityLabel(Text("nativePlatform.working"))
                     Text("nativePlatform.working")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
-        .cyText(.body)
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .formStyle(.grouped)
+        .navigationTitle(Text("nativeEnrollment.title"))
         .privacySensitive()
         .accessibilityIdentifier("nativeEnrollment.host")
-        .cyAnimation(value: model.phase)
         .task { await model.load() }
         .sheet(item: $review) { action in
             NavigationStack {
                 Form {
                     Section {
-                        CYHeroHeader("nativeEnrollment.reviewTitle")
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets())
-                    }
-                    Section {
                         Text(LocalizedStringKey("nativeEnrollment.review." + action.rawValue))
-                            .cyText(.body)
                             .fixedSize(horizontal: false, vertical: true)
                         Text("nativeEnrollment.noHardwareProof")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         if action == .create {
                             Text("nativeEnrollment.keyDurability")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         if action == .revoke {
                             Text("nativeEnrollment.revokeConsequence")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        CYListRow("nativeEnrollment.account", trailing: .value(String(model.scope.accountID))) { CYRowIcon(systemImage: "person") }
-                        CYListRow("nativeEnrollment.app", trailing: .value(shown(model.scope.appID))) { CYRowIcon(systemImage: "app") }
+                        fact("nativeEnrollment.account", String(model.scope.accountID), systemImage: "person")
+                        fact("nativeEnrollment.app", shown(model.scope.appID), systemImage: "app")
                         if let privacyURL { Link("nativePlatform.privacy", destination: privacyURL) }
                         if action == .revoke {
                             Button(LocalizedStringKey("nativeEnrollment.confirm." + action.rawValue), role: .destructive) { confirm(action) }
                                 .accessibilityIdentifier("nativeEnrollment.confirm")
                         } else {
-                            CYPillButton(LocalizedStringKey("nativeEnrollment.confirm." + action.rawValue), systemImage: "checkmark.circle") { confirm(action) }
-                                .accessibilityIdentifier("nativeEnrollment.confirm")
+                            Button { confirm(action) } label: {
+                                Label(LocalizedStringKey("nativeEnrollment.confirm." + action.rawValue), systemImage: "checkmark.circle")
+                            }
+                            .accessibilityIdentifier("nativeEnrollment.confirm")
                         }
                     }
                 }
-                .cyText(.body)
-                .cyGroupedSurface()
-                .cyHeroScreen()
+                .formStyle(.grouped)
+                .navigationTitle(Text("nativeEnrollment.reviewTitle"))
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("nativePlatform.cancel") { review = nil } } }
             }
             .presentationDetents([.medium, .large])
@@ -157,13 +144,13 @@ import CryptoKit
         return .refresh
     }
     private var working: Bool { ["generating", "preparing", "attesting", "enrolling", "revoking"].contains(model.phase) }
-    private var phaseTone: CYStatusTone {
+    private var phaseTone: Color {
         switch model.phase {
-        case "active": return .success
-        case "failed", "revoked", "disabled": return .danger
-        case "unknown", "stale", "recovery": return .warning
-        case "generating", "preparing", "attesting", "enrolling", "revoking", "review": return .info
-        default: return .neutral
+        case "active": return .green
+        case "failed", "revoked", "disabled": return .red
+        case "unknown", "stale", "recovery": return .orange
+        case "generating", "preparing", "attesting", "enrolling", "revoking", "review": return .accentColor
+        default: return .secondary
         }
     }
     private var phaseSymbol: String {
@@ -175,8 +162,17 @@ import CryptoKit
         default: return "circle"
         }
     }
+    /// Form button row; the one next step the model expects reads semibold, as Settings marks its default action.
     private func pill(_ title: LocalizedStringKey, _ kind: Primary, systemImage: String, action: @escaping () -> Void) -> some View {
-        CYPillButton(title, style: enrollmentPrimary == kind ? .primary : .secondary, systemImage: systemImage, action: action)
+        Button(action: action) { Label(title, systemImage: systemImage) }
+            .fontWeight(enrollmentPrimary == kind ? .semibold : .regular)
+    }
+    private func fact(_ title: LocalizedStringKey, _ value: String, systemImage: String) -> some View {
+        LabeledContent {
+            Text(verbatim: value)
+        } label: {
+            Label(title, systemImage: systemImage)
+        }
     }
     /// Blank scope text is unknown. A real account id, including 0, stays a number.
     private func shown(_ value: String) -> String {
