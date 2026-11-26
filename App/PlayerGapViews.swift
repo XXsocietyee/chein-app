@@ -87,7 +87,13 @@ struct OfficialSignupCommandSection: View {
     }
 
     private func run(_ work: @escaping @MainActor () async -> OfficialSignupReceipt.State?) {
-        Task { if await work() != nil { onSettled() } }
+        Task {
+            guard let state = await work() else { return }
+            // R7-PC-C4-4: MP official-detail/index.js:604-610 asks to be reminded of the activity start right after
+            // a successful signup. iOS asks for notification permission once, only while it is still undetermined.
+            if case .applied = state { try? await NativeNotificationPermissionAdapter().requestFromUserAction() }
+            onSettled()
+        }
     }
 }
 
