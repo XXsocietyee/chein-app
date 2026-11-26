@@ -18,11 +18,34 @@ They were re-checked on the tip and are listed as fixed with the original SHA.
 | CLB-detail-34 | P1 | fixed (r9, verified on tip) | 666d94a69 | App/ClubHomeView.swift:134, 179 (actionCoordinator, management, community passed) |
 | CLB-G13b | P1 | fixed (r9, verified on tip) | 9c917c011 | App/ClubGovernanceViews.swift:2113 (`directorActive` = director mounted), 结束活动 confirm + 更多 row. endTopic dispatch follows the money gate. |
 | CLB-G13c | P1 | fixed (r9, verified on tip) | 5a2c5bee1 | App/ClubTopicDirectorMount.swift:124-150 (准备总览 only while preparing, 联系商家 on `merchantHoldBlocked`) |
-| CLB-topic-detail-06 | P1 | blocked (Cursor Core) | — | Inline save-on-change toggles need (1) CLB-r10-gate-05 (club-b) so `saveTopicSettings` dispatches in Release and (2) `ClubGovernanceCoordinator.confirm` (Core/ClubGovernanceCoordinator.swift:171-221) to release or reconcile the journal lock after an acknowledged save; today a second toggle is refused as `outcomeLocked`. Not changed here: an uncompiled edit to the write journal is too risky. The sheet editor (App/ClubTopicSettingsReturn.swift) still works. |
+| CLB-topic-detail-06 | P1 | blocked (Cursor Core) | — | Round 2: (1) CLB-r10-gate-05 has landed (club-b 193356907, `saveTopicSettings` in `ClubMPFirstGovernance.clubOps`). Still blocked on (2) `ClubGovernanceCoordinator.confirm` (Core/ClubGovernanceCoordinator.swift:171-221) to release or reconcile the journal lock after an acknowledged save; today a second toggle is refused as `outcomeLocked`. Not changed here: an uncompiled edit to the write journal is too risky. The sheet editor (App/ClubTopicSettingsReturn.swift) still works. |
 | CLB-topic-detail-10 | P1 | partly | ea3f91375, 208903166 | App/ClubGovernanceViews.swift:1980-1996: the 定向广播 row stays visible (disabled) and the reason sits in the Section footer (MP wxml:621-624). Open: the NO_RECIPIENT sentence needs the director wire key for the broadcast blocker on `PlayDirectorProjection` (Core/PlayDirectorRuntime.swift:4); the MP source was not available in this run to confirm the key. |
 | CLB-topic-story-04 | P1 | fixed | 87eb12b52, 701d5097e | Core/ClubStoryPresentation.swift (`ClubStoryStop.latitude/longitude`); App/ClubStoryViews.swift:213-215; App/MPGap/Club/ClubGapRound4Views.swift:135 (`club.story.openInMaps`) |
 
-Strings: `docs/port/strings/fix-r10-club-c.json` (1 key, merged into `Resources/Localizable.xcstrings`).
+## Round 2: club.md §3a P2, first half in queue order (16 rows: CLB-r9-gate-04 … CLB-r9-native-05)
+
+Each row was checked against the other lanes' receipts and re-verified on the tip (every r9 SHA below is an ancestor of HEAD).
+
+| id | sev | status | SHA | app file:line |
+|---|---|---|---|---|
+| CLB-r9-gate-04 | P2 | fixed (other lane) | 097702ffb (acct-a receipt) | acct-a owns it: post/comment originals stay nil, MP post/comment paths are already in `clubCommunityPaths`. Not touched here. |
+| CLB-detail-42 | P2 | fixed | 3ab7e881a | Core/ClubDetailTabs.swift:80-91 (`ClubDetailHeaderFact`, dead `ClubDetailOverviewFactsGrid` removed again); App/ClubDetailView.swift:709-714, 772-783 (`factsLine`: missing 主理人 / 城市 → `club.detail.factPending` 待补充); Tests/CoreTests/ClubDetailPageReadyTests.swift:32; Tests/ContractChecks/test_club_detail_page_ready.py:70-76 (pin moved to the key + live caller, MP citation). acct-a's 097702ffb deletion is not on any branch, so it was redone. |
+| CLB-r9-detail-01 | P2 | fixed | b698382a1, 1b7c983ef | App/ClubDetailR8Mounts.swift (`ClubDetailStripMemberOpen`: owner/admin get the 公开资料 / 客户档案 `.confirmationDialog`, same strings as the contribution board, MP `goMemberProfile` js:2529-2534); App/ClubDetailView.swift:251, 452, 567-576. |
+| CLB-r9-detail-03 | P2 | fixed (r9, verified on tip) | 0589d6682 | App/MPGap/Club/ClubGapManageExtensions.swift (settings rows → catalog keys) |
+| CLB-r7-A-07 | P2 | fixed (r9, verified on tip) | cef838d90 | App/ClubMembersView.swift (`loadGovernGrant`: co-owner with club:member:manage) |
+| CLB-r9-native-07 | P2 | fixed (r9, verified on tip) | 9bb9fff7c | App/MPGap/Club/ClubGapManageExtensions.swift, ClubGapRound4Views.swift (`common.close` / `common.cancel`) |
+| CLB-G13d | P2 | fixed (r9, verified on tip) | 7eba5ec4f | App/ClubTopicDirectorMount.swift (`ClubTopicDirectorToolsSection`) |
+| CLB-topic-detail-05 | P2 | fixed (r9, verified on tip) | 70cccab93 | App/ClubTopicDetail+Port.swift (台账), App/ClubGovernanceViews.swift (更多 rows) |
+| CLB-r9-topic-detail-01 | P2 | fixed (r9, verified on tip) | b92b696e6 | App/ClubTopicMerchantContent.swift:48-56 (`club.topicMerchants.phoneCopied`) |
+| CLB-r9-topic-detail-02 | P2 | fixed (r9, verified on tip) | ed97d12fe | App/ClubGovernanceViews.swift (one 更多) |
+| CLB-topic-story-06 | P2 | fixed (r9, verified on tip) | b4d7d7052 | App/ClubGovernanceViews.swift:2394 (`club.story.noRoute`) |
+| CLB-r9-topic-story-01 | P2 | fixed (r9, verified on tip) | 333115610 | App/MPReviewedPageScreen.swift:379-400 |
+| CLB-r9-event-ops-01 | P2 | partly | 0f7ad2d13 | App/ClubOpsEventView.swift (`topicFacts` from the hub's eventTopics read, `topicPicker` Picker(.menu) above 添加日期 when >1 topic; the push opens with the picked topic first via `focusFirst`). Open: the series form still opens from the pushed topic list, because `seriesCreationReturn` lives in ClubGovernanceReadView; opening it straight from the hub needs that return source moved. |
+| CLB-event-ops-05 | P2 | fixed (r9, verified on tip) | 96e188c2e | App/ClubOpsEventView.swift:47-61 |
+| CLB-r9-native-02 | P2 | fixed (r9, verified on tip) | 269b8dac0 | App/MPGap/Club/ClubGapTopicDirectorViews.swift |
+| CLB-r9-native-05 | P2 | fixed (r9, verified on tip) | 6baff7f92 | App/ClubStoryViews.swift, App/MPGap/Club/ClubGapRound4Views.swift |
+
+Strings: `docs/port/strings/fix-r10-club-c.json` (3 keys: `club.story.openInMaps`, `club.detail.factPending` in `Resources/Localizable.xcstrings`; `clubOpsEvent.recurrence.topic` in `Resources/ClubOpsEvent.xcstrings`).
 Tests: Tests/CoreTests/PublicContentShareLinkTests.swift (club + ticket universal links parse back), Tests/CoreTests/ClubStoryPresentationTests.swift (stop coordinates);
 contract checks updated with MP citations: test_club_detail_tabs.py, test_community_media_integration.py, test_club_story_projection.py.
 
