@@ -28,6 +28,31 @@ extension EnvironmentValues {
     @Namespace private var hero
     private var scope: UUID { reader.scope }
     private var effectiveMedia: (any ObjectCardImageLoading)? { media ?? envMedia }
+    /// OCARDS-3b: the category filter is a system `Menu` in the toolbar, labelled with the MP category icon
+    /// (subpackageP3/object-cards/index/index.wxml:14-16, 45-52; `CAT_ICON` index.js:18-22).
+    @ToolbarContentBuilder private var categoryToolbar: some ToolbarContent {
+        if reader.isAuthenticated && reader.isConfigured {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    ForEach(ObjectCardCategory.allCases) { category in
+                        Button { Task { await model.load(category: category, reader: reader) } } label: {
+                            Label { Text(LocalizedStringKey(category.localizationKey)) } icon: { category.mpIcon }
+                        }
+                        .accessibilityIdentifier("objects.category.\(category.localizationKey)")
+                        .accessibilityAddTraits(category == model.category ? .isSelected : [])
+                    }
+                } label: {
+                    Label {
+                        Text(LocalizedStringKey(model.category.localizationKey))
+                    } icon: {
+                        model.category.mpIcon.resizable().scaledToFit().frame(width: 24, height: 24)
+                    }
+                }
+                .disabled(model.loading)
+                .accessibilityIdentifier("objects.filter")
+            }
+        }
+    }
     var body: some View {
         List {
             // OCARDS-4 (signed-out part): 去登录 opens 我的, like the MP access gate.
@@ -39,23 +64,6 @@ extension EnvironmentValues {
             else if !reader.isConfigured { CYEmptyState(systemImage: "rectangle.stack", "objects.disabled") }
             else {
                 Section {
-                    Menu {
-                        ForEach(ObjectCardCategory.allCases) { category in
-                            Button(LocalizedStringKey(category.localizationKey)) { Task { await model.load(category: category, reader: reader) } }
-                                .accessibilityIdentifier("objects.category.\(category.localizationKey)")
-                        }
-                    } label: {
-                        // MP object-cards wxml:15: the filter shows the category's own icon (`cat/*.png`, MP assets).
-                        Label {
-                            Text(LocalizedStringKey(model.category.localizationKey))
-                        } icon: {
-                            model.category.mpIcon.resizable().scaledToFit().frame(width: 24, height: 24).accessibilityHidden(true)
-                        }
-                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.borderless)
-                    .disabled(model.loading).accessibilityIdentifier("objects.filter")
                     if model.loading { CYSkeleton().accessibilityLabel(Text("objects.loading")) }
                     if model.failed, model.access == .denied {
                         Text("objectCards.denied").accessibilityIdentifier("objects.denied")
@@ -105,6 +113,7 @@ extension EnvironmentValues {
             }
         }.cyGroupedSurface()
         .cyAlbumChildTitle("objects.title")
+        .toolbar { categoryToolbar }
         .themeDomain(.player).privacySensitive()
         .task(id: scope) {
             if model.loadedScope != scope { model.invalidate() }
