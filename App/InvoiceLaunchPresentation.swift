@@ -310,16 +310,17 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
                 // R7-MEM-14-1: an unconfirmed title save reads 上次保存结果未确认 · 确认前请勿修改抬头 (MP invoice-titles).
                 let savingTitle = model.overview?.pending?.kind == .saveTitle
                 let key = model.recheckMissed ? "notFound" : (savingTitle ? "titleSave.unknown" : "unknown")
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Label { invoiceText(key) } icon: { Image(systemName: "clock.badge.questionmark") }
-                        .cyText(.bodyMedium)
+                VStack(alignment: .leading, spacing: 4) {
+                    Label { invoiceText(key) } icon: { Image(systemName: "clock.badge.questionmark").foregroundStyle(.orange) }
+                        .font(.body)
                     invoiceText(key + ".sub")
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline).foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine).accessibilityIdentifier("invoice.pending")
-                CYPillButton(model.recheckMissed ? "recheck" : "checkResult", style: .secondary, tableName: "InvoiceLaunchUI") { Task { await model.refresh(manual: true) } }
+                Button { Task { await model.refresh(manual: true) } } label: {
+                    Text(model.recheckMissed ? "recheck" : "checkResult", tableName: "InvoiceLaunchUI")
+                }
                     .disabled(model.busy).accessibilityIdentifier("invoice.recover")
-                    .listRowBackground(Color.clear)
             }
         }
         if model.issue == "session" {
@@ -328,7 +329,8 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
                 Label { Text(sessionTitle) } icon: { Image(systemName: "lock") }
             } description: { invoiceText("session") } actions: {
                 if let onSignIn {
-                    CYPillButton("auth.wechat.signIn", style: .primary, fullWidth: false, action: onSignIn)
+                    Button(action: onSignIn) { Text("auth.wechat.signIn") }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
                         .accessibilityIdentifier("invoice.signIn")
                 }
             }
@@ -342,18 +344,21 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
         } else if model.issue == "loadFailed", model.overview != nil {
             // The last list stays; the failed refresh is stated in place with a retry (X5).
             Section {
-                CYInlineError(verbatim: invoiceString(loadFailedKey)) { Task { if let retry { await retry() } else { await model.refresh() } } }
+                Label { Text(verbatim: invoiceString(loadFailedKey)) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }
+                Button("cy.state.offline.retry") { Task { if let retry { await retry() } else { await model.refresh() } } }
             }
-                .listRowBackground(Color.clear)
         } else if let issue = model.issue {
             ContentUnavailableView {
                 Label { invoiceText(issue == "loadFailed" ? loadFailedKey : issue) } icon: { Image(systemName: "exclamationmark.circle") }
             } actions: {
-                CYPillButton("retry", style: .secondary, fullWidth: false, tableName: "InvoiceLaunchUI") { Task { if let retry { await retry() } else { await model.refresh() } } }
+                Button { Task { if let retry { await retry() } else { await model.refresh() } } } label: { Text("retry", tableName: "InvoiceLaunchUI") }
+                    .buttonStyle(.bordered).controlSize(.large)
                     .disabled(model.busy)
             }
         } else if model.busy && model.overview == nil {
-            CYLoadingStateView(rows: 3).listRowBackground(Color.clear).accessibilityLabel(invoiceText("loading"))
+            Section {
+                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(invoiceText("loading"))
+            }
         }
     }
 }
@@ -363,17 +368,18 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
     let notice: InvoiceLaunchWriteNotice
     var onReselect: (() -> Void)? = nil
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 4) {
             Label { invoiceText(notice.titleKey) } icon: {
                 Image(systemName: notice.kind == .unknown ? "clock.badge.questionmark" : "exclamationmark.circle.fill")
-                    .foregroundStyle(notice.kind == .unknown ? CYColor.textSecondary : CYColor.dangerText)
+                    .foregroundStyle(notice.kind == .unknown ? Color.secondary : Color.red)
             }
-            .cyText(.bodyMedium)
+            .font(.body)
             if let detail = notice.detailKey {
-                invoiceText(detail).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                invoiceText(detail).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             if notice.offersReselect, let onReselect {
-                CYPillButton("reselect", style: .secondary, fullWidth: false, tableName: "InvoiceLaunchUI", action: onReselect)
+                Button(action: onReselect) { Text("reselect", tableName: "InvoiceLaunchUI") }
+                    .buttonStyle(.bordered)
                     .accessibilityIdentifier("invoice.reselect")
             }
         }
@@ -433,6 +439,11 @@ extension InvoiceLaunchStatus {
     var chipTone: CYStatusTone {
         switch playerState { case .issued: return .success; case .rejected: return .danger; case .paused: return .warning
         case .cancelled: return .neutral; case .issuing: return .info }
+    }
+    /// Native r2: the tint of the status symbol (a `Label` replaces the chip).
+    var chipTint: Color {
+        switch playerState { case .issued: return .green; case .rejected: return .red; case .paused: return .orange
+        case .cancelled: return .secondary; case .issuing: return .blue }
     }
     var chipSymbol: String {
         switch playerState { case .issued: return "checkmark.circle"; case .rejected: return "xmark.circle"; case .paused: return "pause.circle"

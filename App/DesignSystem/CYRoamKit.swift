@@ -154,22 +154,9 @@ struct CYFogLayer: View {
 
     private var drifts: Bool { animated && !reduceMotion }
 
+    /// Native r2: no fog vignette (decorative). Draws nothing; the map shows as is. Coverage numbers stay in Core.
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 20.0, paused: !drifts)) { timeline in
-            CYFogCanvas(scale: boost * radiusScale,
-                        time: drifts ? timeline.date.timeIntervalSinceReferenceDate : 0,
-                        explored: min(max(explored ?? 0.15, 0), 1), trail: trail, player: player)
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-        .onChange(of: revealTick) { _, _ in
-            guard !reduceMotion else { return }
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { boost = 1.2 }
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(380))
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) { boost = 1 }
-            }
-        }
+        EmptyView()
     }
 }
 

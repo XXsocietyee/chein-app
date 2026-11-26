@@ -152,43 +152,26 @@ struct CYDomainTabLabel: View {
     }
 }
 
-/// Styles a native `TabView` like the mini-program bar for a role domain.
+/// Native r2 (owner 2026-11-26, "everything native"): the tab bar keeps the system material, colours and tint for every
+/// role. The modifier stays so existing call sites compile; it no longer paints a gradient or forces a colour scheme.
 struct CYDomainTabBarStyle: ViewModifier {
     let domain: ThemeDomain
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     func body(content: Content) -> some View {
-        if domain == .merchant {
-            // Merchant light tab bar: transparent -> solid page/white vertical fade, no top stroke.
-            content
-                .toolbarBackground(
-                    LinearGradient(
-                        colors: [Color.white.opacity(0), Color.white.opacity(0.96)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    for: .tabBar
-                )
-                .toolbarBackground(.visible, for: .tabBar)
-                .toolbarColorScheme(.light, for: .tabBar)
-        } else {
-            // Player dark tab bar: transparent -> bgPage dark top-fade gradient (solid fallback when Reduce Transparency).
-            let bottomColor = CYDomainPalette(.player).bgPage
-            content
-                .toolbarBackground(
-                    reduceTransparency
-                        ? AnyShapeStyle(bottomColor)
-                        : AnyShapeStyle(
-                            LinearGradient(
-                                colors: [bottomColor.opacity(0), bottomColor.opacity(0.96), bottomColor],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        ),
-                    for: .tabBar
-                )
-                .toolbarBackground(.visible, for: .tabBar)
-                .toolbarColorScheme(.dark, for: .tabBar)
+        content
+    }
+}
+
+extension RootTab {
+    /// Native r2 player bar symbols (首页 house · 漫游 map · 发布 plus.circle · 俱乐部 person.2 · 我的 person.crop.circle).
+    /// App-side so `Core/RootTab.systemImage` (the parity contract) stays unchanged.
+    var nativeSystemImage: String {
+        switch self {
+        case .home: return "house"
+        case .roam: return "map"
+        case .publish: return "plus.circle"
+        case .club: return "person.2"
+        case .mine: return "person.crop.circle"
         }
     }
 }
@@ -396,46 +379,6 @@ private final class CYTabBarAccessibilityAnchor: UIView {
 }
 #endif
 
-#if canImport(UIKit)
-/// UIKit appearance for the parts SwiftUI cannot style: unselected items at 0.6 opacity
-/// (`Theme.MiniProgramChrome.tabUnselectedOpacity`), selected icon/label in the primary ink (neutral, PL-01).
-/// Call once at launch (for example from the App initialiser).
-@MainActor
-enum CYTabBarAppearance {
-    static func install() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithTransparentBackground()
-
-        let unselectedAlpha = Theme.MiniProgramChrome.tabUnselectedOpacity
-        let unselected = UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(white: 1, alpha: unselectedAlpha)
-                : UIColor(white: 0, alpha: unselectedAlpha)
-        }
-        // PL-01 (design hand-off r1): neutral selection. Selected = primary ink at full opacity with a Semibold label.
-        let selectedInk = UIColor { traits in
-            traits.userInterfaceStyle == .dark ? UIColor(white: 0xF8 / 255.0, alpha: 1) : UIColor(white: 0, alpha: 1)
-        }
-        let selectedFont = UIFont.systemFont(ofSize: 10, weight: .semibold)
-        let normalFont = UIFont.systemFont(ofSize: 10, weight: .regular)
-        let layouts: [UITabBarItemAppearance] = [
-            appearance.stackedLayoutAppearance,
-            appearance.inlineLayoutAppearance,
-            appearance.compactInlineLayoutAppearance,
-        ]
-        for layout in layouts {
-            layout.normal.iconColor = unselected
-            layout.normal.titleTextAttributes = [.foregroundColor: unselected, .font: normalFont]
-            layout.selected.iconColor = selectedInk
-            layout.selected.titleTextAttributes = [.foregroundColor: selectedInk, .font: selectedFont]
-        }
-
-        UITabBar.appearance().tintColor = selectedInk
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-    }
-}
-#endif
 
 // MARK: - Previews (synthetic, preview-only; tab titles use existing catalog keys)
 

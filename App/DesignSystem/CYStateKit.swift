@@ -101,69 +101,21 @@ enum CYStateKind: Equatable {
 
 // MARK: - Art
 
-/// Two paper cards fanned behind a glowing medallion, a corner badge and sparkles. 132pt design size, scales with `size`.
+/// Native r2: no drawn art. The mini-program illustration when one exists (`MPAsset`), otherwise the plain
+/// SF Symbol the system `ContentUnavailableView` would show. No glow, cards, sparkles or float motion.
 struct CYStateArt: View {
     let kind: CYStateKind
     var size: CGFloat = 132
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var floating = false
 
     var body: some View {
         if let illustration = CYEmptyIllustration.kind(matching: kind == .orders ? "ticket" : kind.symbol) {
             CYEmptyIllustration(kind: illustration, size: size)
         } else {
-            illustrated
+            Image(systemName: kind.symbol)
+                .font(.largeTitle)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
         }
-    }
-
-    @ViewBuilder
-    private var illustrated: some View {
-        let hue = kind.hue
-        let sat = kind.muted ? 0.12 : 0.62
-        let top = Color(hue: hue, saturation: sat, brightness: kind.muted ? 0.62 : 0.86)
-        let bottom = Color(hue: (hue + 0.06).truncatingRemainder(dividingBy: 1), saturation: min(1, sat + 0.2), brightness: kind.muted ? 0.30 : 0.42)
-        ZStack {
-            Circle()
-                .fill(RadialGradient(colors: [top.opacity(0.34), .clear], center: .center, startRadius: 0, endRadius: size * 0.72))
-                .frame(width: size * 1.5, height: size * 1.5)
-            RoundedRectangle(cornerRadius: size * 0.17, style: .continuous)
-                .fill(palette.bgRaised)
-                .overlay(RoundedRectangle(cornerRadius: size * 0.17, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
-                .frame(width: size * 0.66, height: size * 0.76)
-                .rotationEffect(.degrees(-10))
-                .offset(x: -size * 0.10, y: size * 0.02)
-            RoundedRectangle(cornerRadius: size * 0.17, style: .continuous)
-                .fill(LinearGradient(colors: [top, bottom], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .overlay(RoundedRectangle(cornerRadius: size * 0.17, style: .continuous).strokeBorder(.white.opacity(0.18), lineWidth: 1))
-                .overlay(
-                    Image(systemName: kind.symbol)
-                        .font(.system(size: size * 0.30, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
-                )
-                .frame(width: size * 0.66, height: size * 0.76)
-                .rotationEffect(.degrees(6))
-                .offset(x: size * 0.06, y: -size * 0.02)
-                .shadow(color: .black.opacity(0.28), radius: 10, y: 6)
-            if let accessory = kind.accessory {
-                Image(systemName: accessory)
-                    .font(.system(size: size * 0.14, weight: .bold))
-                    .foregroundStyle(palette.textInverse)
-                    .frame(width: size * 0.3, height: size * 0.3)
-                    .background(Circle().fill(palette.brand))
-                    .overlay(Circle().strokeBorder(palette.bgPage, lineWidth: 3))
-                    .offset(x: size * 0.30, y: size * 0.30)
-            }
-            Image(systemName: "sparkle").font(.system(size: size * 0.11)).foregroundStyle(top.opacity(0.9)).offset(x: -size * 0.40, y: -size * 0.34)
-            Image(systemName: "sparkle").font(.system(size: size * 0.07)).foregroundStyle(top.opacity(0.7)).offset(x: size * 0.38, y: -size * 0.40)
-            Circle().fill(top.opacity(0.55)).frame(width: size * 0.05, height: size * 0.05).offset(x: -size * 0.44, y: size * 0.18)
-        }
-        .frame(width: size * 1.2, height: size * 1.1)
-        .offset(y: floating && !reduceMotion ? -3 : 3)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 2.6).repeatForever(autoreverses: true), value: floating)
-        .onAppear { floating = true }
-        .accessibilityHidden(true)
     }
 }
 
@@ -195,7 +147,6 @@ struct CYStateLayout: View {
                     CYEmptyIllustration(kind: emptyIllustration, size: artSize)
                 } else {
                     Image(systemName: kind.symbol)
-                        .foregroundStyle(palette.textTertiary)
                 }
             }
         } description: {
@@ -265,7 +216,6 @@ struct CYContentState: View {
                 Text(title)
             } icon: {
                 Image(systemName: kind.symbol)
-                    .foregroundStyle(palette.textTertiary)
             }
         } description: {
             if let descriptionVerbatim {
@@ -294,15 +244,15 @@ struct CYStateActionButton<ButtonLabel: View>: View {
         case .primary:
             Button(action: action, label: label)
                 .buttonStyle(.borderedProminent)
-                .frame(minHeight: CYSpacing.minTouchTarget)
+                .controlSize(.large)
         case .secondary:
             Button(action: action, label: label)
                 .buttonStyle(.bordered)
-                .frame(minHeight: CYSpacing.minTouchTarget)
+                .controlSize(.large)
         case .tertiary:
             Button(action: action, label: label)
                 .buttonStyle(.borderless)
-                .frame(minHeight: CYSpacing.minTouchTarget)
+                .controlSize(.large)
         }
     }
 }
@@ -315,55 +265,35 @@ extension View {
 
 // MARK: - Offline
 
-/// Offline / stale strip: a quiet capsule above cached content, not an alert.
+/// Offline / stale strip (native r2): a `Label(wifi.slash)` footnote and a borderless retry. No capsule chrome.
 struct CYOfflineStrip: View {
     var onRetry: (() -> Void)? = nil
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let t = CYKitCopy(locale: locale)
-        Group {
-            if dynamicTypeSize >= .xxLarge {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    stripLabel(t)
-                    stripRetry(t)
-                }
-            } else {
-                HStack(spacing: CYSpacing.sm) {
-                    stripLabel(t)
-                    Spacer(minLength: 0)
-                    stripRetry(t)
-                }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: CYSpacing.sm) {
+                stripLabel(t)
+                Spacer(minLength: 0)
+                stripRetry(t)
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                stripLabel(t)
+                stripRetry(t)
             }
         }
-        .foregroundStyle(palette.textPrimary)
-        .padding(.horizontal, CYSpacing.lg)
-        .padding(.vertical, CYSpacing.sm)
-        .background(
-            RoundedRectangle(
-                cornerRadius: dynamicTypeSize >= .xxLarge ? CYRadius.lg : CYRadius.pill,
-                style: .continuous
-            )
-            .fill(palette.bgRaised)
-        )
-        .overlay(
-            RoundedRectangle(
-                cornerRadius: dynamicTypeSize >= .xxLarge ? CYRadius.lg : CYRadius.pill,
-                style: .continuous
-            )
-            .strokeBorder(palette.borderSubtle, lineWidth: 1)
-        )
         .accessibilityElement(children: .combine)
     }
 
     private func stripLabel(_ t: CYKitCopy) -> some View {
-        HStack(alignment: .top, spacing: CYSpacing.sm) {
-            Image(systemName: "wifi.slash").accessibilityHidden(true).font(.footnote.weight(.semibold))
+        Label {
             Text(verbatim: appLocalized("cy.kit.offline.saved", locale: t.resourceLocale))
-                .cyText(.meta)
                 .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: "wifi.slash")
         }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
     }
 
     @ViewBuilder
@@ -371,10 +301,9 @@ struct CYOfflineStrip: View {
         if let onRetry {
             Button(action: onRetry) {
                 Text(verbatim: appLocalized("cy.kit.offline.retry", locale: t.resourceLocale))
-                    .cyText(.meta, weight: .semibold)
-                    .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(minHeight: 44)
+            .buttonStyle(.borderless)
+            .font(.footnote)
         }
     }
 }
@@ -439,7 +368,6 @@ struct CYPermissionPriming: View {
     let kind: CYPermissionKind
     let onAllow: () -> Void
     let onNotNow: () -> Void
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
 
@@ -451,14 +379,13 @@ struct CYPermissionPriming: View {
                     Spacer(minLength: CYSpacing.xxl)
                     CYStateArt(kind: kind.artKind, size: typeSize.isAccessibilitySize ? 88 : 168)
                     Text(verbatim: kind.title(t))
-                        .cyText(.pageTitle)
-                        .foregroundStyle(palette.textPrimary)
+                        .font(.title2.bold())
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                     Text(verbatim: kind.benefit(t))
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -475,35 +402,31 @@ struct CYPermissionPriming: View {
             .padding(.horizontal, CYSpacing.lg)
             .padding(.top, CYSpacing.sm)
             .padding(.bottom, CYSpacing.md)
-            .background(palette.bgPage)
         }
-        .cyDomainPageBackground()
+        .background(Color(uiColor: .systemBackground))
     }
 }
 
-/// In-place card for a permission that was declined: says what is lost, offers Settings once. Replaces ad-hoc captions.
+/// In-place state for a permission that was declined (native r2): `ContentUnavailableView` with one Settings action.
 struct CYPermissionDeniedCard: View {
     let kind: CYPermissionKind
     let onOpenSettings: () -> Void
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
 
     var body: some View {
         let t = CYKitCopy(locale: locale)
-        VStack(spacing: CYSpacing.md) {
-            CYStateArt(kind: kind.artKind, size: 96)
-            Text(verbatim: kind == .location ? t("Location is off", "定位没开") : t("Camera is off", "相机没开"))
-                .cyText(.cardTitle)
-                .foregroundStyle(palette.textPrimary)
+        ContentUnavailableView {
+            Label {
+                Text(verbatim: kind == .location ? t("Location is off", "定位没开") : t("Camera is off", "相机没开"))
+            } icon: {
+                Image(systemName: kind == .location ? "location.slash" : "camera")
+            }
+        } description: {
             Text(verbatim: kind == .location
                  ? t("Turn it on in Settings to roam and collect nearby stamps.", "在“设置”中开启后，即可漫游并收集附近的印章。")
                  : t("Turn it on in Settings to take stamp photos.", "在“设置”中开启后，即可拍摄印章照片。"))
-                .cyText(.bodyCompact)
-                .foregroundStyle(palette.textSecondary)
-                .multilineTextAlignment(.center)
+        } actions: {
             CYPillButton(verbatim: t("Open Settings", "打开设置"), style: .secondary, fullWidth: false, action: onOpenSettings)
         }
-        .frame(maxWidth: .infinity)
-        .padding(CYSpacing.lg)
     }
 }

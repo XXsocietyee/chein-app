@@ -8,7 +8,6 @@ struct BundleReserveWindowView: View {
     let onChoose: (Int64) -> Void
     @State private var selection: Date?
     @State private var commitTick = 0
-    @Environment(\.cyPalette) private var palette
     private let table = "BundleStall"
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
     private func date(_ ms: Int64) -> Date { Date(timeIntervalSince1970: Double(ms) / 1_000) }
@@ -20,37 +19,34 @@ struct BundleReserveWindowView: View {
                 DatePicker(selection: Binding(get: { selection ?? range.lowerBound },
                                               set: { selection = $0 }),
                            in: range) { text("window.pick") }
-                    .cyText(.body)
-                    .tint(palette.textPrimary)
-                    .listRowInsets(rowInsets)
-                CYPillButton("window.choose", systemImage: "calendar.badge.checkmark", tableName: table) {
+                Button {
                     commit(in: range)
+                } label: {
+                    Label { text("window.choose") } icon: { Image(systemName: "calendar.badge.checkmark") }
                 }
                 .accessibilityLabel(text("window.choose"))
                 .cyHaptic(.impactMedium, trigger: commitTick)
-                .listRowInsets(rowInsets)
-                .listRowBackground(Color.clear)
             } header: {
                 hero
             }
         } else {
             Section {
-                CYEmptyState(systemImage: "calendar.badge.exclamationmark", "window.none", tableName: table, messageIdentifier: "bundleStall.noWindow")
-                    .listRowInsets(rowInsets)
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label {
+                        text("window.none").accessibilityIdentifier("bundleStall.noWindow")
+                    } icon: {
+                        Image(systemName: "calendar.badge.exclamationmark")
+                    }
+                }
             } header: {
                 hero
             }
         }
     }
 
-    /// Native restyle r1 (spec §3.2): the window title is the section header, not an in-list hero title.
+    /// Native r2: the window title is the section header, not an in-list hero title.
     private var hero: some View {
         text("window.header")
-    }
-
-    private var rowInsets: EdgeInsets {
-        EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal)
     }
 
     private func commit(in range: ClosedRange<Date>) {

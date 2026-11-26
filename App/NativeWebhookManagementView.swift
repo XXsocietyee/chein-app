@@ -5,10 +5,8 @@ import SwiftUI
     @ObservedObject var model: NativeWebhookViewModel
     var body: some View {
         List {
-            CYHeroHeader(verbatim: nativeWebhookLocalized("d7.webhook.title"))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if model.coordinator == nil {
-                CYEmptyState(systemImage: "point.3.connected.trianglepath.dotted", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.unavailable")))
+                ContentUnavailableView(nativeWebhookLocalized("d7.webhook.unavailable"), systemImage: "point.3.connected.trianglepath.dotted")
                     .accessibilityIdentifier("webhook.source.unavailable")
             } else {
                 Section {
@@ -21,12 +19,10 @@ import SwiftUI
                     .pickerStyle(.segmented).disabled(model.coordinator?.busy == true)
                     .accessibilityIdentifier("webhook.family")
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
                 NativeWebhookStatusSection(model: model)
                 if model.coordinator?.pending != nil {
                     Section(nativeWebhookLocalized("d7.webhook.pending.title")) {
-                        CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.resume.continue"), style: .secondary) { Task { await model.openRecovery() } }
+                        Button(nativeWebhookLocalized("d7.webhook.resume.continue")) { Task { await model.openRecovery() } }
                             .disabled(!model.available || model.coordinator?.busy == true)
                             .accessibilityIdentifier("webhook.pending.recover")
                     }
@@ -34,7 +30,7 @@ import SwiftUI
                 if let coordinator = model.coordinator, model.available {
                     Section {
                         if coordinator.resources.isEmpty && !coordinator.busy {
-                            CYEmptyState(systemImage: "point.3.connected.trianglepath.dotted", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.list.empty")))
+                            ContentUnavailableView(nativeWebhookLocalized("d7.webhook.list.empty"), systemImage: "point.3.connected.trianglepath.dotted")
                                 .accessibilityIdentifier("webhook.resources.empty")
                         }
                         ForEach(coordinator.resources) { resource in
@@ -50,27 +46,31 @@ import SwiftUI
                             .accessibilityIdentifier("webhook.resource.\(resource.id.rawValue)")
                         }
                         if coordinator.hasMoreResources {
-                            CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.loadMore"), style: .secondary) { Task { await coordinator.load(nextPage: true) } }
+                            Button(nativeWebhookLocalized("d7.webhook.loadMore")) { Task { await coordinator.load(nextPage: true) } }
                                 .disabled(coordinator.busy).accessibilityIdentifier("webhook.resources.more")
                         }
                     }
                     Section {
-                        CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.add")) { model.edit() }.nativeChannelFlowAction()
-                            .disabled(!model.canMutate).accessibilityIdentifier("webhook.resource.create")
+                        Button { model.edit() } label: {
+                            Label(nativeWebhookLocalized("d7.webhook.add"), systemImage: "plus")
+                        }
+                        .disabled(!model.canMutate).accessibilityIdentifier("webhook.resource.create")
                     }
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
                 } else if model.coordinator?.busy == false {
-                    CYEmptyState(systemImage: "exclamationmark.circle", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.list.loadFailed")), detail: LocalizedStringKey(nativeWebhookLocalized("d7.webhook.list.loadFailed.message")))
+                    ContentUnavailableView {
+                        Label(nativeWebhookLocalized("d7.webhook.list.loadFailed"), systemImage: "exclamationmark.circle")
+                    } description: {
+                        Text(nativeWebhookLocalized("d7.webhook.list.loadFailed.message"))
+                    }
                 }
                 Section {
-                    CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.reload"), style: .secondary) { Task { await model.coordinator?.load() } }
+                    Button(nativeWebhookLocalized("d7.webhook.reload")) { Task { await model.coordinator?.load() } }
                         .disabled(model.coordinator?.busy == true).accessibilityIdentifier("webhook.resources.refresh")
                 }
             }
         }
         .nativeChannelFlowPage()
-        .cyHeroScreen()
+        .navigationTitle(nativeWebhookLocalized("d7.webhook.title"))
         .refreshable { await model.coordinator?.load() }
         .accessibilityIdentifier("webhook.resources")
     }
@@ -122,7 +122,7 @@ import SwiftUI
                     }
                 }
                 Section {
-                    CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.edit"), style: .secondary) { model.edit(resource) }
+                    Button(nativeWebhookLocalized("d7.webhook.edit")) { model.edit(resource) }
                         .accessibilityIdentifier("webhook.resource.edit")
                     Button(resource.status == .active ? nativeWebhookLocalized("d7.webhook.turnOff") : nativeWebhookLocalized("d7.webhook.turnOn")) {
                         model.setActive(resource.status != .active, resource: resource)
@@ -138,15 +138,19 @@ import SwiftUI
                 }
                 .disabled(!model.canMutate)
                 if coordinator.pending != nil {
-                    Section { CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.resume.continue"), style: .secondary) { Task { await model.openRecovery() } }
+                    Section { Button(nativeWebhookLocalized("d7.webhook.resume.continue")) { Task { await model.openRecovery() } }
                         .disabled(coordinator.busy).accessibilityIdentifier("webhook.detail.recover") }
                 }
                 Section {
-                    CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.reload"), style: .secondary) { Task { await coordinator.select(resourceID) } }
+                    Button(nativeWebhookLocalized("d7.webhook.reload")) { Task { await coordinator.select(resourceID) } }
                         .disabled(coordinator.busy).accessibilityIdentifier("webhook.detail.refresh")
                 }
             } else if model.coordinator?.busy == false {
-                CYEmptyState(systemImage: "exclamationmark.circle", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.detail.loadFailed")), detail: LocalizedStringKey(nativeWebhookLocalized("d7.webhook.goBack")))
+                ContentUnavailableView {
+                    Label(nativeWebhookLocalized("d7.webhook.detail.loadFailed"), systemImage: "exclamationmark.circle")
+                } description: {
+                    Text(nativeWebhookLocalized("d7.webhook.goBack"))
+                }
             }
         }
         .nativeChannelFlowPage()
@@ -162,7 +166,7 @@ import SwiftUI
                     Text(nativeWebhookLocalized("d7.webhook.test.choose")).tag("")
                     ForEach(subscribed) { option in Text(option.title).tag(option.id) }
                 }.accessibilityIdentifier("webhook.test.event")
-                CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.test.send"), style: .secondary) { model.action(.test(eventType: testEvent), resource: resource) }
+                Button(nativeWebhookLocalized("d7.webhook.test.send")) { model.action(.test(eventType: testEvent), resource: resource) }
                     .disabled(!model.canMutate || resource.status != .active || !subscribed.contains(where: { $0.id == testEvent }))
                     .accessibilityIdentifier("webhook.test.prepare")
             } else {

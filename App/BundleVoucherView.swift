@@ -13,22 +13,47 @@ import SwiftUI
         List {
             switch model.state {
             case .idle, .loading:
-                Section { CYLoadingStateView(rows: 2).accessibilityLabel(text("bundle.voucher.loading")) }.listRowBackground(Color.clear)
+                Section {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .accessibilityLabel(text("bundle.voucher.loading"))
+                }
+                .listRowBackground(Color.clear)
             case .unavailable:
-                Section { CYEmptyState(systemImage: "qrcode", "bundle.voucher.unavailable", tableName: table, messageIdentifier: "bundleVoucher.unavailable") }.listRowBackground(Color.clear)
+                Section {
+                    ContentUnavailableView {
+                        Label {
+                            text("bundle.voucher.unavailable").accessibilityIdentifier("bundleVoucher.unavailable")
+                        } icon: {
+                            Image(systemName: "qrcode")
+                        }
+                    }
+                }
+                .listRowBackground(Color.clear)
             case .failed:
                 Section {
-                    CYEmptyState(systemImage: "exclamationmark.triangle", "bundle.voucher.error", tableName: table,
-                                 messageIdentifier: "bundleVoucher.error", actionTitle: "action.retry") { Task { await model.reload() } }
-                }.listRowBackground(Color.clear)
+                    ContentUnavailableView {
+                        Label {
+                            text("bundle.voucher.error").accessibilityIdentifier("bundleVoucher.error")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle")
+                        }
+                    } actions: {
+                        Button { Task { await model.reload() } } label: { Text("action.retry") }
+                            .buttonStyle(.borderedProminent)
+                    }
+                }
+                .listRowBackground(Color.clear)
             case .loaded(let voucher):
                 content(voucher)
             }
         }
         .navigationTitle(Text("bundle.voucher.title", tableName: table)).navigationBarTitleDisplayMode(.inline)
         .task { await model.appear() }
+        .refreshable { await model.reload() }
         .onDisappear { model.disappear() }
-        .cyDomainScreen(.player)
+        .listStyle(.insetGrouped)
+        .themeDomain(.player)
     }
 
     @ViewBuilder private func content(_ voucher: BundleVoucher) -> some View {
@@ -38,7 +63,7 @@ import SwiftUI
                 text("bundle.voucher.hidden")
             } else if let code = voucher.mainCode, !code.isEmpty {
                 Text(verbatim: code)
-                    .cyText(.dataXL, monospacedDigit: true).monospaced()
+                    .font(.title.weight(.semibold)).monospaced()
                     .privacySensitive()
                     .accessibilityIdentifier("bundleVoucher.mainCode")
                 if let validTo = voucher.mainValidTo { LabeledContent { Text(verbatim: validTo) } label: { text("bundle.voucher.validTo") } }
@@ -51,8 +76,8 @@ import SwiftUI
             ForEach(voucher.subs, id: \.unitID) { sub in
                 VStack(alignment: .leading, spacing: 4) {
                     if !hidden { Text(verbatim: sub.unitCode).font(.body.monospaced()).privacySensitive() }
-                    CYStatusChip(verbatim: sub.status)
-                    if let validTo = sub.validTo { Text(verbatim: validTo).cyText(.meta) }
+                    Text(verbatim: sub.status).font(.subheadline).foregroundStyle(.secondary)
+                    if let validTo = sub.validTo { Text(verbatim: validTo).font(.footnote).foregroundStyle(.secondary) }
                 }
             }
         } header: { text("bundle.voucher.subs") }

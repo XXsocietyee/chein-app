@@ -14,9 +14,6 @@ import SwiftUI
     @State private var visible = false
     /// Survives the detail reload that clears `flow.detail`. An unconfirmed appeal keeps the id written before the first send.
     @State private var appealRetention = ReportAppealRetention()
-    private var gutter: EdgeInsets {
-        EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
-    }
     var body: some View {
         let rendered = readIntent()
         List {
@@ -24,42 +21,45 @@ import SwiftUI
             if let flow, let original = flow.detailRecord {
                 if let record = flow.detail {
                     // Source report-detail head card: 「对象 · 原因」 with the stage on the right, then 编号 N · 提交于 time.
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        CYStatusChip(verbatim: copy("report.stage.\(record.stageKey)"), tone: stageTone(record.stage))
-                        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-                            Text(verbatim: copy("report.target.\(record.targetKey)"))
-                            Text(verbatim: "·").accessibilityHidden(true)
-                            if let label = flow.reasonLabel(for: record) { Text(verbatim: shown(label)) }
-                            else { Text(verbatim: copy("report.reason.fallback")) }
+                    Section {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label {
+                                Text(verbatim: copy("report.stage.\(record.stageKey)"))
+                            } icon: {
+                                Image(systemName: "circle.fill").foregroundStyle(stageTint(record.stage))
+                            }
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                Text(verbatim: copy("report.target.\(record.targetKey)"))
+                                Text(verbatim: "·").accessibilityHidden(true)
+                                if let label = flow.reasonLabel(for: record) { Text(verbatim: shown(label)) }
+                                else { Text(verbatim: copy("report.reason.fallback")) }
+                            }
+                            .font(.headline)
+                            .fixedSize(horizontal: false, vertical: true)
+                            // PLY-29-3: mini-program stage hint (report-common STAGES[].hint).
+                            if ["SUBMITTED", "TRIAGED", "INVESTIGATING", "RESOLVED", "CLOSED", "APPEALED"].contains(record.stageKey) {
+                                Text(verbatim: copy("report.stageHint.\(record.stageKey)"))
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            HStack(spacing: 4) {
+                                Text("u9cde.report.submittedAt")
+                                MemberReportProgressTimeView(value: record.createTime)
+                            }.font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                            // Round 4: MP head-card ETA line 「预计 … 前给出结论」 (report-detail wxml:23), as on 我的举报.
+                            if !record.isDecided, let eta = record.estimatedResolveAt?.display() {
+                                Text("report.eta \(eta)", tableName: "MemberReportProgress")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        // PLY-29-3: mini-program stage hint (report-common STAGES[].hint).
-                        if ["SUBMITTED", "TRIAGED", "INVESTIGATING", "RESOLVED", "CLOSED", "APPEALED"].contains(record.stageKey) {
-                            Text(verbatim: copy("report.stageHint.\(record.stageKey)"))
-                                .cyText(.bodyCompact)
-                                .foregroundStyle(CYColor.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        HStack(spacing: CYSpacing.xs) {
-                            Text("u9cde.report.submittedAt")
-                            MemberReportProgressTimeView(value: record.createTime)
-                        }.cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
-                        // Round 4: MP head-card ETA line 「预计 … 前给出结论」 (report-detail wxml:23), as on 我的举报.
-                        if !record.isDecided, let eta = record.estimatedResolveAt?.display() {
-                            Text("report.eta \(eta)", tableName: "MemberReportProgress")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
-                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("report.detail.head")
                     }
-                    .padding(CYSpacing.lg)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("report.detail.head")
-                    .listRowInsets(gutter)
-                    .listRowBackground(Color.clear)
                 }
                 if keepsAppeal(flow), let client = session.playerCapabilityClient() {
                     ReportAppealSection(reportID: Int(original.id), client: client,
@@ -69,66 +69,69 @@ import SwiftUI
                 }
                 if let record = flow.detail {
                     if record.stageKey == "APPEALED" {
-                        memberReportProgressText("report.appealed.note")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .listRowInsets(gutter)
-                            .listRowBackground(Color.clear)
-                            .accessibilityIdentifier("report.detail.appealed")
+                        Section {} footer: {
+                            memberReportProgressText("report.appealed.note")
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("report.detail.appealed")
+                        }
                     }
                     if let summary = record.decisionSummary, !summary.isEmpty {
-                        Section { Text(verbatim: shown(summary)).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).listRowInsets(gutter) } header: { Text("u9cde.report.decision") }
+                        Section { Text(verbatim: shown(summary)).fixedSize(horizontal: false, vertical: true) } header: { Text("u9cde.report.decision") }
                     }
                     if let description = record.description, !description.isEmpty {
                         Section {
                             Text(verbatim: shown(description))
-                                .cyText(.body)
-                                .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .listRowInsets(gutter)
-                                .listRowBackground(Color.clear)
                         } header: { Text("u9cde.report.yourNote") }
                     }
                     if record.anonymityPolicy == "SUBJECT_HIDDEN" {
-                        memberReportProgressText("report.privacy.source")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .listRowInsets(gutter)
-                            .listRowBackground(Color.clear)
+                        Section {} footer: {
+                            memberReportProgressText("report.privacy.source")
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                     if let evidence = record.evidenceAssetIds {
-                        fact(copy("report.evidence.count"), value: String(evidence.count), systemImage: "paperclip")
+                        Section { fact(copy("report.evidence.count"), value: String(evidence.count), systemImage: "paperclip") }
                     }
                     if let timeline = record.timeline, !timeline.isEmpty {
                         Section {
                             ForEach(Array(timeline.enumerated()), id: \.offset) { _, event in
-                                timelineRow(event).listRowInsets(gutter).listRowBackground(Color.clear)
+                                timelineRow(event)
                             }
                         } header: { Text("u9cde.report.progress") }
                     } else {
                         Section {
-                            Text("u9cde.report.progressEmpty").cyText(.body).foregroundStyle(CYColor.textSecondary)
+                            Text("u9cde.report.progressEmpty").foregroundStyle(.secondary)
                                 .accessibilityIdentifier("report.timeline.empty")
-                                .listRowInsets(gutter)
-                                .listRowBackground(Color.clear)
                         } header: { Text("u9cde.report.progress") }
                     }
                 }
                 if flow.busy {
-                    CYSkeleton().listRowInsets(gutter).listRowBackground(Color.clear)
+                    Section { ProgressView().frame(maxWidth: .infinity) }
                 }
                 if let failure = flow.failure {
-                    CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failureKey(failure)), tableName: "MemberReportProgress", actionTitle: "report.retry", action: { load(rendered) })
-                        .listRowInsets(gutter)
-                        .listRowBackground(Color.clear)
+                    ContentUnavailableView {
+                        Label {
+                            Text(LocalizedStringKey(failureKey(failure)), tableName: "MemberReportProgress")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle")
+                        }
+                    } description: {
+                        EmptyView()
+                    } actions: {
+                        Button { load(rendered) } label: { Text("report.retry", tableName: "MemberReportProgress") }
+                            .buttonStyle(.bordered)
+                    }
                 }
             } else {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "report.error.disabled", tableName: "MemberReportProgress")
-                    .listRowInsets(gutter)
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label {
+                        Text("report.error.disabled", tableName: "MemberReportProgress")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                }
             }
             // PLY-29-2: the developer boundary footer (which contradicted the appeal button) is gone.
             // R7-MEM-29-1: MP report-detail 查看我的全部举报 (wxml:48-49) opens 我的举报.
@@ -140,19 +143,15 @@ import SwiftUI
                         NavigationLink { SquareReportProgressView(session: session) } label: { allReportsLabel }
                     }
                 }
-                .frame(minHeight: CYSpacing.minTouchTarget)
-                .listRowInsets(gutter)
                 .accessibilityIdentifier("report.progress.detail.allReports")
             }
         }
-        .listStyle(.plain)
-        .cyGroupedSurface()
+        .listStyle(.insetGrouped)
         .cyPushedChrome(domain: .player)
         .navigationTitle(memberReportProgressText("report.detail.title")).navigationBarTitleDisplayMode(.inline)
         .refreshable { if let (original, intent) = readIntent(), original.accepts(intent) { await original.loadDetail(intent: intent) } }
         .privacySensitive()
         .accessibilityIdentifier("report.progress.detail")
-        .cyAnimation(value: flow?.busy == true)
         .onAppear { visible = true; start() }
         .onDisappear { visible = false; retire() }
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
@@ -161,29 +160,33 @@ import SwiftUI
         .cyDomainScreen(.player)
     }
     private func timelineRow(_ event: MemberReportProgressEvent) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            CYListRow(verbatim: copy(event.titleKey), meta: event.stageKey.map { copy("report.stage.\($0)") }, trailing: .none) {
-                CYRowIcon(systemImage: "clock")
+        Label {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(verbatim: shown(copy(event.titleKey)))
+                if let stage = event.stageKey {
+                    Text(verbatim: copy("report.stage.\(stage)"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                if let note = event.publicNote, !note.isEmpty {
+                    Text(verbatim: shown(note))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                MemberReportProgressTimeView(value: event.createTime)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
-            if let note = event.publicNote, !note.isEmpty {
-                Text(verbatim: shown(note))
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            MemberReportProgressTimeView(value: event.createTime)
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+        } icon: {
+            Image(systemName: "clock")
         }
         .accessibilityElement(children: .combine)
     }
     private func fact(_ title: String, value: String? = nil, systemImage: String) -> some View {
-        let trailing: CYListRowTrailing = value.map { .value(shown($0)) } ?? .none
-        return CYListRow(verbatim: title, trailing: trailing) {
-            CYRowIcon(systemImage: systemImage)
+        LabeledContent {
+            if let value { Text(verbatim: shown(value)).monospacedDigit() }
+        } label: {
+            Label(shown(title), systemImage: systemImage)
         }
-        .listRowInsets(gutter)
-        .listRowBackground(Color.clear)
     }
     private var allReportsLabel: some View {
         Text(verbatim: CoreLoopCopy(locale: locale).t("查看我的全部举报", "View all my reports"))
@@ -203,12 +206,12 @@ import SwiftUI
         String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "MemberReportProgress", locale: locale))
     }
     private func failureKey(_ failure: MemberReportProgressFailure) -> String { "report.error.\(failure)" }
-    private func stageTone(_ stage: String) -> CYStatusTone {
+    private func stageTint(_ stage: String) -> Color {
         switch stage {
-        case "RESOLVED", "CLOSED": return .success
-        case "APPEALED": return .warning
-        case "INVESTIGATING", "TRIAGED": return .info
-        default: return .neutral
+        case "RESOLVED", "CLOSED": return .green
+        case "APPEALED": return .orange
+        case "INVESTIGATING", "TRIAGED": return .blue
+        default: return .secondary
         }
     }
     /// Blank server copy is unknown. Numeric ids, versions and evidence counts stay as written, including 0.
@@ -262,15 +265,43 @@ import SwiftUI
     @ViewBuilder private var state: some View {
         switch phase {
         case .loading, .ready:
-            CYSkeleton().padding(CYSpacing.pageHorizontal)
+            ProgressView()
         case .signedOut:
-            CYEmptyState(systemImage: "person.crop.circle", "report.signIn.title", tableName: "MemberReportProgress",
-                         actionTitle: "report.signIn.action", actionIdentifier: "report.detail.signIn", actionStyle: .primary) { showsSignIn = true }
+            ContentUnavailableView {
+                Label {
+                    Text("report.signIn.title", tableName: "MemberReportProgress")
+                } icon: {
+                    Image(systemName: "person.crop.circle")
+                }
+            } description: {
+                EmptyView()
+            } actions: {
+                Button { showsSignIn = true } label: { Text("report.signIn.action", tableName: "MemberReportProgress") }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("report.detail.signIn")
+            }
         case .notFound:
-            CYEmptyState(systemImage: "doc.text.magnifyingglass", "report.detail.notFound", tableName: "MemberReportProgress")
+            ContentUnavailableView {
+                Label {
+                    Text("report.detail.notFound", tableName: "MemberReportProgress")
+                } icon: {
+                    Image(systemName: "doc.text.magnifyingglass")
+                }
+            }
         case .failed:
-            CYEmptyState(systemImage: "exclamationmark.triangle", "report.detail.failed", tableName: "MemberReportProgress",
-                         actionTitle: "report.retry", kind: .failure) { Task { await resolve() } }
+            ContentUnavailableView {
+                Label {
+                    Text("report.detail.failed", tableName: "MemberReportProgress")
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+            } description: {
+                EmptyView()
+            } actions: {
+                Button { Task { await resolve() } } label: { Text("report.retry", tableName: "MemberReportProgress") }
+                    .buttonStyle(.bordered)
+            }
         }
     }
 

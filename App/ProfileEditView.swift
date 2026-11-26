@@ -635,9 +635,11 @@ struct ProfileEditView: View {
     private var editorForm: some View {
         Form {
             if model.coordinator.identity == nil {
-                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "profile.edit.signIn")
+                ContentUnavailableView("profile.edit.signIn", systemImage: "person.crop.circle.badge.exclamationmark")
+                    .listRowBackground(Color.clear)
             } else if !model.coordinator.isConfigured {
-                CYEmptyState(systemImage: "network.slash", "profile.edit.unavailable")
+                ContentUnavailableView("profile.edit.unavailable", systemImage: "network.slash")
+                    .listRowBackground(Color.clear)
             } else {
                 if model.coordinator.snapshot != nil {
                     // Mini-program pages/gerenziliao order: avatar, nickname, phone, city signature, works, contact QR, route preferences.
@@ -692,16 +694,10 @@ struct ProfileEditView: View {
                         // A3-09 (gerenziliao.wxml 路线偏好): the chosen preferences as chips; ids without a loaded name are skipped.
                         let named = (selectedPreferences ?? []).compactMap { preferenceNames[$0] }
                         if !named.isEmpty {
-                            ClubR1WrapLayout(spacing: CYSpacing.sm) {
-                                ForEach(Array(named.enumerated()), id: \.offset) { _, name in
-                                    Text(verbatim: name)
-                                        .cyText(.meta, weight: .medium)
-                                        .foregroundStyle(CYColor.textPrimary)
-                                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                                        .background(CYColor.bgRaised, in: Capsule(style: .continuous))
-                                }
-                            }
-                            .accessibilityElement(children: .combine)
+                            Text(verbatim: named.joined(separator: " · "))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("profile.edit.preferenceChips")
                         }
                         Button("profile.preferenceRemoval.open") { model.beginTextEdit(.preferences) }
@@ -712,27 +708,39 @@ struct ProfileEditView: View {
                     }
                 }
                 if let key = model.coordinator.messageKey {
-                    CYStatusChip(LocalizedStringKey(key))
+                    Text(LocalizedStringKey(key))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("profile.edit.status")
                 }
                 if savingProfile {
                     Label { Text("profile.edit.saving") } icon: { ProgressView() }
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("profile.edit.saving")
                 }
                 if let remote = model.coordinator.remoteMessage { Text(verbatim: remote) }
                 if saveFailed, !savingProfile {
                     Label { Text("profile.edit.saveFailed") } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                        .foregroundStyle(CYColor.dangerText)
+                        .foregroundStyle(.red)
                         .accessibilityIdentifier("profile.edit.saveFailed")
-                    CYPillButton("profile.edit.retrySave") { saveFailed = false; Task { await model.prepare() } }
+                    Button { saveFailed = false; Task { await model.prepare() } } label: {
+                        Text("profile.edit.retrySave").frame(maxWidth: .infinity)
+                    }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
                         .disabled(model.busy || model.textEdit != nil)
                         .accessibilityIdentifier("profile.edit.retrySave")
                 }
-                CYPillButton(LocalizedStringKey(model.coordinator.isLocked ? "profile.edit.check" : "profile.edit.reload"), style: .secondary) {
+                Button {
                     Task { await model.requestReload() }
-                }.disabled(model.busy || model.textEdit != nil).accessibilityIdentifier("profile.edit.reload")
-                if model.busy { CYSkeleton().accessibilityIdentifier("profile.edit.busy") }
+                } label: {
+                    Text(LocalizedStringKey(model.coordinator.isLocked ? "profile.edit.check" : "profile.edit.reload"))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .disabled(model.busy || model.textEdit != nil).accessibilityIdentifier("profile.edit.reload")
+                if model.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("profile.edit.busy") }
             }
         }
     }
@@ -742,13 +750,20 @@ struct ProfileEditView: View {
         .cyPushedChrome(domain: .player)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.coordinator.identity != nil, model.coordinator.isConfigured, model.coordinator.snapshot != nil {
-                CYFooterBar {
-                    CYPillButton("profile.edit.review") { Task { await model.prepare() } }
+                VStack(spacing: 0) {
+                    Divider()
+                    Button { Task { await model.prepare() } } label: {
+                        Text("profile.edit.review").frame(maxWidth: .infinity)
+                    }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                         .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
                                   || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
                         .accessibilityIdentifier("profile.edit.review")
                         .sensoryFeedback(.selection, trigger: model.confirmation?.id)
+                        .padding()
                 }
+                .background(.bar)
             }
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
@@ -840,7 +855,8 @@ struct ProfileEditView: View {
                         if value.payload.avatarReplacement != nil { Text("profile.avatar.confirmChange") }
                         Text("profile.edit.confirmHint")
                     }
-                    CYPillButton("profile.edit.confirm") {
+                    Section {
+                    Button {
                         Task {
                             savingProfile = true; saveFailed = false
                             let receipt = await model.save(value)
@@ -855,11 +871,21 @@ struct ProfileEditView: View {
                             try? await Task.sleep(for: .milliseconds(900))
                             if let onSaved { onSaved() } else { dismiss() }
                         }
+                    } label: {
+                        Text("profile.edit.confirm").frame(maxWidth: .infinity)
                     }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                         .accessibilityIdentifier("profile.edit.confirm")
-                    CYPillButton("profile.edit.cancel", style: .tertiary) {
+                    Button {
                         model.coordinator.cancel(value); model.confirmation = nil
+                    } label: {
+                        Text("profile.edit.cancel").frame(maxWidth: .infinity)
                     }
+                        .buttonStyle(.borderless)
+                        .controlSize(.large)
+                    }
+                    .listRowBackground(Color.clear)
                 }.appNavigationTitle("profile.edit.reviewTitle").navigationBarTitleDisplayMode(.inline)
             }.interactiveDismissDisabled(model.busy)
             .themeDomain(.player)

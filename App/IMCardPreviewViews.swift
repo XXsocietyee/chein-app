@@ -17,38 +17,62 @@ import MapKit
     var body: some View {
         Group {
             if let detail, loadedScope == reader.scope {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                VStack(alignment: .leading) {
                     if isSignup {
-                        CYStatusChip("im.card.signupFlag", tone: .success, systemImage: "checkmark.seal")
+                        Label {
+                            Text("im.card.signupFlag")
+                        } icon: {
+                            Image(systemName: "checkmark.seal").foregroundStyle(.green)
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                     }
-                    CYImageCard(
-                        title: Text(verbatim: displayName(detail.name)),
-                        meta: summary(detail),
-                        imageURL: coverURL(detail),
-                        style: .hero
-                    )
-                    // MP im/chat/index.wxml:92: no cover shows `/images/cover-route.svg`.
-                    .fallbackArtwork(MPAsset.BannerCover.coverRoute)
+                    Color.clear
+                        .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                        .overlay {
+                            if let url = coverURL(detail) {
+                                AsyncImage(url: url) { phase in
+                                    if let image = phase.image {
+                                        image.resizable().scaledToFill()
+                                    } else {
+                                        // MP im/chat/index.wxml:92: no cover shows `/images/cover-route.svg`.
+                                        MPAsset.BannerCover.coverRoute.resizable().scaledToFill()
+                                    }
+                                }
+                            } else {
+                                MPAsset.BannerCover.coverRoute.resizable().scaledToFill()
+                            }
+                        }
+                        .clipped()
+                        .accessibilityHidden(true)
+                    Text(verbatim: displayName(detail.name))
+                        .font(.headline)
+                    if let meta = summary(detail) {
+                        meta
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("im.card.route.loaded")
             } else if failed {
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    "im.card.routeUnavailable",
-                    messageIdentifier: "im.card.route.unavailable",
-                    actionTitle: "messaging.retry",
-                    actionIdentifier: "im.card.route.retry",
-                    kind: .failure
-                ) { Task { await load() } }
+                ContentUnavailableView {
+                    Label("im.card.routeUnavailable", systemImage: "exclamationmark.triangle")
+                } description: {
+                    EmptyView()
+                } actions: {
+                    Button("messaging.retry") { Task { await load() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("im.card.route.retry")
+                }
                 .disabled(loading)
+                .accessibilityIdentifier("im.card.route.unavailable")
             } else {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                HStack {
                     Text("im.card.routeLoading")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    CYSkeleton().accessibilityHidden(true)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    ProgressView()
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("im.card.route.loading")
@@ -59,7 +83,7 @@ import MapKit
     private func displayName(_ name: String) -> String {
         name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : name
     }
-    /// HTTPS cover only. Anything else falls through to generated art inside `CYImageCard`.
+    /// HTTPS cover only. Anything else falls back to the MP route cover.
     private func coverURL(_ detail: TopicDetail) -> URL? {
         let candidates = [detail.imageURL].compactMap { $0 } + detail.images
         for raw in candidates {
@@ -109,26 +133,23 @@ struct IMLocationCardMap: View {
     var body: some View {
         let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading) {
             Color.clear
                 .aspectRatio(16.0 / 10.0, contentMode: .fit)
                 .overlay {
                     Map(initialPosition: .region(CYMapRegion.region(center: coordinate, span: 0.01))) {
                         Marker(title ?? "", coordinate: coordinate)
                     }
-                    .mapStyle(.standard(elevation: .flat, emphasis: .muted))
-                    .environment(\.colorScheme, .light)
-                    .background { CYMapPlaceholder(fog: false) }
+                    .mapStyle(.standard)
                     .accessibilityHidden(true)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                .clipped()
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text("im.card.locationMap"))
                 .accessibilityIdentifier("im.card.locationMap")
             Text(verbatim: trimmed.isEmpty ? "—" : trimmed)
-                .cyText(.cardTitle)
-                .foregroundStyle(CYColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(.headline)
+                .foregroundStyle(.primary)
         }
     }
 }

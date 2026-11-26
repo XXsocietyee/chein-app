@@ -30,9 +30,10 @@ import SwiftUI
                     ForEach(TemplateSensorDraft.Kind.allCases) { kind in Text(LocalizedStringKey(kind.labelKey)).tag(kind.rawValue) }
                 }.accessibilityIdentifier("sensorDraft.type")
                 ForEach(value.kind?.parameters ?? [], id: \.rawValue) { parameter in
-                    VStack(alignment: .leading) {
-                        Text(LocalizedStringKey(parameter.labelKey)).cyText(.bodyMedium)
+                    VStack(alignment: .leading, spacing: 4) {
+                        LabeledContent {
                         TextField(LocalizedStringKey(parameter.labelKey), text: Binding(get: { value.input(parameter) }, set: { model.setSensorInput(parameter, $0) }))
+                            .multilineTextAlignment(.trailing)
                             .focused($focusedParameter, equals: parameter.rawValue)
                             .keyboardType(.numberPad).accessibilityIdentifier("sensorDraft.input." + parameter.rawValue)
                             .toolbar {
@@ -44,8 +45,9 @@ import SwiftUI
                                     }
                                 }
                             }
-                        Text("1…\(parameter.maximum)").cyText(.meta).foregroundStyle(.secondary)
-                        if value.integer(parameter) == nil { Text("sensorDraft.invalidField").cyText(.meta).foregroundStyle(.secondary) }
+                        } label: { Text(LocalizedStringKey(parameter.labelKey)) }
+                        Text(verbatim: "1…\(parameter.maximum)").font(.footnote).foregroundStyle(.secondary)
+                        if value.integer(parameter) == nil { Text("sensorDraft.invalidField").font(.footnote).foregroundStyle(.red) }
                     }
                 }
             } else { Text("sensorDraft.preserved").foregroundStyle(.secondary).accessibilityIdentifier("sensorDraft.preserved") }
@@ -59,11 +61,12 @@ import SwiftUI
     @ObservedObject var model: TemplateAuthoringModel
     var body: some View {
         List {
-            Section { CYHeroHeader("sensorDraft.preview").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if model.canEdit, model.draft.id == nil, model.draft.validationMethod.rawValue == 7 {
                 TemplateSensorDraftPreviewContent(draft: model.draft.sensorDraft ?? .init())
-            } else { CYEmptyState(systemImage: "sensor", "sensorDraft.unavailable") }
-        }.cyGroupedSurface()
+            } else { ContentUnavailableView { Label("sensorDraft.unavailable", systemImage: "sensor") } }
+        }
+        .navigationTitle(Text("sensorDraft.preview"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
