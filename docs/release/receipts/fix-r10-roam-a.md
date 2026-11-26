@@ -4,6 +4,7 @@
 - Base: `origin/ui/combined-r7` @ `d9832ac50`. Branch: `fix/r10-roam-a`.
 - Not compiled (no Swift toolchain in the cloud). Every type/member used was grepped first.
 - Gates: `check_scaffold.py` PASS structural; `check_a11y_lint.py` PASS (0 new); `contract_ratchet.py --check` — see "Gates" below.
+- Round 3 gates (lane head after merging `origin/ui/combined-r7`): scaffold PASS, a11y PASS 0 new, ratchet 192 failing / baseline 192 / new 0.
 
 ## P0
 
