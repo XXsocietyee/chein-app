@@ -75,6 +75,10 @@ enum MPFirstClubWriteRoute {
         "api/club/governance/list", "api/club/governance/cases/mine", "api/club/dissolution-blockers",
         "api/publisher/identity/status", "api/club/roles/list"
     ]
+    /// CLB-G13a: the club staff shared-run command (MP topic-detail director.js confirmGenericOps / plan-fallback.js →
+    /// `executeAction`). Admitted only with the exact `PlaySharedRunOps.acceptsCommandBody` envelope and a 通用玩法 /
+    /// PLAN_FALLBACK action; the server checks the staff role. Not money (`GameSharedRunControl.RUN_CONTROL_ACTIONS`).
+    static let sharedRunCommandPath = "api/game/session/command"
     private static let moneyKeys: Set<String> = [
         "payAmount", "payChannel", "withdrawAmount", "refundId", "payoutAccount", "quoteId", "memberDiscountPrice"
     ]
@@ -91,8 +95,9 @@ enum MPFirstClubWriteRoute {
               !relative.contains("pay") && !relative.contains("refund") && !relative.contains("payout")
                 && !relative.contains("withdraw") && !relative.contains("quote") && !relative.contains("registration")
                 && !relative.contains("pricing") && !relative.contains("settlement"),
-              governancePaths.contains(relative) || operationPaths.contains(relative),
+              governancePaths.contains(relative) || operationPaths.contains(relative) || relative == sharedRunCommandPath,
               let body = request.httpBody, body.count < 65_536,
+              relative != sharedRunCommandPath || PlaySharedRunOps.acceptsCommandBody(body),
               let parsed = try? JSONSerialization.jsonObject(with: body),
               let object = parsed as? [String: Any],
               moneyKeys.isDisjoint(with: object.keys) else { return false }

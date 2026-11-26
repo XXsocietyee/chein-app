@@ -11,6 +11,8 @@ struct PopupCloseEnvironmentActions {
     var sendAttendanceCommand: (@MainActor (_ eventID: Int, _ action: OfficialAttendanceAction, _ fields: [String: String]) async -> OfficialOrganizerReceipt?)?
     var loadPlanFallback: (@MainActor (_ activityID: Int, _ expectedRevision: Int) async -> PlayPlanFallbackStatus?)?
     var submitPlanFallback: (@MainActor (_ activityID: Int, _ expectedRevision: Int, _ reason: String) async -> Result<PlayPlanFallbackResult, Error>)?
+    /// CLB-G13a: one 通用玩法 action (MP director.js confirmGenericOps → executeAction). Success carries the outcome.
+    var submitSharedRunAction: (@MainActor (_ activityID: Int, _ expectedRevision: Int, _ action: String, _ payload: [String: PlayWireValue]) async -> Result<String, Error>)?
 }
 
 private struct PopupCloseEnvironmentActionsKey: EnvironmentKey {
@@ -138,6 +140,19 @@ extension AppSession {
             do {
                 let result = try await service.submitPlanFallback(activityID: activityID, expectedRevision: expectedRevision, reason: reason, token: token)
                 return .success(result)
+            } catch {
+                return .failure(error)
+            }
+        }
+        actions.submitSharedRunAction = { [weak self] activityID, expectedRevision, action, payload in
+            guard let self, let api = self.regionalConfiguration?.apiConfiguration,
+                  let token = self.token, AuthRequestBuilder.isValidToken(token) else {
+                return .failure(PlayExperienceError.disabled)
+            }
+            let service = PlayExperienceService(configuration: api, transport: self.runtimeHTTPTransport, enabled: [.reads, .directorCommands])
+            do {
+                return .success(try await service.submitSharedRunAction(activityID: activityID, expectedRevision: expectedRevision,
+                                                                        action: action, payload: payload, token: token))
             } catch {
                 return .failure(error)
             }

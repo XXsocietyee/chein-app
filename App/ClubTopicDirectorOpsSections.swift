@@ -1,13 +1,19 @@
 import SwiftUI
 
 /// CLB-G13a: 通用玩法现场运营 inside the topic director block.
-/// Reads shared-run control and opens the director page for each offered action.
+/// Reads shared-run control. Each offered action opens its own form sheet (`ClubTopicGenericOpsSheet`, MP
+/// topic-detail index.wxml:212-236); 开始离线记录 and 工作人员指导完成 (answer form not ported) still open the director page.
+/// Rows are disabled while the director write is locked (MP wxml:204-209 `writeLocked`).
 @MainActor struct ClubTopicGenericOpsSection: View {
     let activityID: Int
     let revision: Int
+    var writeLocked: Bool = false
     let onOpenAction: (String) -> Void
+    var onSubmitted: () -> Void = {}
     @Environment(\.playerGapService) private var service
     @State private var control: PlayWireValue?
+    @State private var editing: ClubTopicGenericOpsSelection?
+    @State private var reloadToken = 0
 
     static let actionOrder = ["ACT_UNLOCK", "ARRIVAL_CONFIRM", "ARRIVAL_REVOKE", "RUN_PAUSE", "RUN_RESUME", "RUN_INTERRUPT",
                               "RUN_CANCEL", "MANUAL_BEGIN", "STAFF_MANUAL_SIGN", "MANUAL_IMPORT", "MANUAL_REVIEW",
@@ -33,7 +39,7 @@ import SwiftUI
                         teamsLine(teams)
                     }
                     ForEach(offeredActions, id: \.self) { action in
-                        Button { onOpenAction(action) } label: {
+                        Button { open(action) } label: {
                             HStack {
                                 Text(LocalizedStringKey("club.topic.genericOps.action." + action))
                                 Spacer(minLength: 0)
@@ -43,6 +49,7 @@ import SwiftUI
                             .contentShape(Rectangle())
                         }
                         .foregroundStyle(.primary)
+                        .disabled(writeLocked)
                         .accessibilityIdentifier("club.topic.genericOps.\(action)")
                     }
                 } header: {
@@ -50,13 +57,38 @@ import SwiftUI
                 }
             }
         }
-        .task(id: "\(activityID):\(revision)") {
+        .task(id: "\(activityID):\(revision):\(reloadToken)") {
             guard let service, case let .ready(data) = await service.sharedControl(activityID: activityID) else {
                 control = nil
                 return
             }
             control = data
         }
+        .sheet(item: $editing) { selection in
+            sheet(selection)
+        }
+    }
+
+    /// MP director.js openGenericOps: nothing while locked or before control loads.
+    private func open(_ action: String) {
+        guard !writeLocked, control != nil else { return }
+        if PlaySharedRunOps.formActions.contains(action) {
+            editing = ClubTopicGenericOpsSelection(action: action)
+        } else {
+            onOpenAction(action)
+        }
+    }
+
+    @ViewBuilder private func sheet(_ selection: ClubTopicGenericOpsSelection) -> some View {
+        if let snapshot = control {
+            ClubTopicGenericOpsSheet(activityID: activityID, action: selection.action, control: snapshot,
+                                     writeLocked: writeLocked, onSubmitted: submitted)
+        }
+    }
+
+    private func submitted() {
+        reloadToken &+= 1
+        onSubmitted()
     }
 
     private func statusLine(_ run: PlayWireValue) -> some View {
