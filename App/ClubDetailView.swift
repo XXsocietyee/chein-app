@@ -139,8 +139,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                            onGroupCode: groupCodeQuickAction(club))
                 }
                 // CLB-detail-09 / CLB-r7-A-04 (MP wxml:452-475): 管理中的项目 with 活动导演台 and 场次工具.
-                if tab == .manage, club.canGovern || canManageActivities(club), management?.governance != nil {
-                    ClubManagedProjectsMount(model: r8Mounts) { r8Route = $0 }
+                if tab == .manage, club.canGovern || canManageActivities(club), let governance = management?.governance {
+                    ClubManagedProjectsSection(model: r8Mounts, clubID: club.id, access: governance.access,
+                                               permissions: projectPermissions(club),
+                                               hidesEmpty: club.isOwner && ownerStage?.stage == .publish,
+                                               onRetry: { Task { await reloadProjects(club: club, tab: tab) } },
+                                               onOpenTopic: { openedTopicID = $0 },
+                                               onPublish: publishAction(club),
+                                               open: { r8Route = $0 })
                 }
                 // CLB-G04 (MP js:3780-3847): 可对接的活动 + 我的合作, owner only.
                 if tab == .manage, club.isOwner, let session = reader as? AppSession {
@@ -570,6 +576,26 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     private func settingsRoute(_ route: ClubDetailR8Route, allowed: Bool) -> (() -> Void)? {
         guard allowed, management?.governance != nil else { return nil }
         return { r8Route = route }
+    }
+    /// CLB-r7-A-04: MP `chooseActivityTool` flags (detail js:1179-1215) from access/me.
+    private func projectPermissions(_ club: ClubRecord) -> ClubManagedProjectPermissions {
+        let granted = manageGrant?.permissions ?? []
+        return ClubManagedProjectPermissions(isOwner: club.isOwner, isAdmin: club.viewerIsAdmin,
+                                             canManageActivities: canManageActivities(club),
+                                             canOperateEvents: granted.contains("club:event:operate"),
+                                             canCheckInEvents: granted.contains("club:event:checkin"),
+                                             canManageRoles: granted.contains("club:role:manage"))
+    }
+    /// CLB-detail-09: MP `onCreateTeam` for `club.isOwner || canManageActivities` (wxml:472, 478).
+    private func publishAction(_ club: ClubRecord) -> (() -> Void)? {
+        guard canManageActivities(club) else { return nil }
+        return { r8Route = .publish }
+    }
+    /// CLB-detail-09: 项目列表加载失败 → 重新加载 (MP `bind:retry="loadTopics"`).
+    private func reloadProjects(club: ClubRecord, tab: ClubDetailTab) async {
+        guard let governance = management?.governance else { return }
+        await r8Mounts.loadProjects(key: r8Key(club, tab: tab), clubID: club.id, showsDirector: club.isOwner || club.viewerIsAdmin,
+                                    locale: locale, access: governance.access, force: true)
     }
     private func r8Key(_ club: ClubRecord, tab: ClubDetailTab) -> String {
         "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)|\(managementRevision)"
