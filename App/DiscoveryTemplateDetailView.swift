@@ -592,19 +592,35 @@ struct DiscoveryTopicTemplatePreview: View {
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }
-    /// 能力: the stat cards, then each stop (grouped by chapter) with its play pill, what the player does,
-    /// and about-minutes. The old summary chips duplicated those cards (MP topic-detail capabilities, 2026-11-14).
+    /// 能力: MP `buildSummary` (topic-detail index.js) — 模式 / 时间 / 章节 / 站点, then each stop.
+    /// A missing fact is left off the row. 时间 is only 可以跨天 on free exploration. Chapter count is
+    /// omitted when free exploration already counts one stop per chapter. 节点 / 玩法 / 总时长 are not this row.
     @ViewBuilder private func topicCapabilities(_ item: PublicTopicTemplateDetail) -> some View {
         let free = item.mode == "FREE_EXPLORE"
         let stops = Self.numberedStops(item.chapters, freeExplore: free)
+        let chapters = item.chapters.count
+        let showChapters = chapters > 0 && !(free && chapters == stops.count)
         Section {
-            // R7-PC-A8-1 (r1 PC-A-8-3): MP `xb-stat` cards — 节点 / 玩法 / 总时长.
             HStack(alignment: .top) {
-                topicStat(Text(verbatim: String(stops.count)), label: "discovery.templateDetail.stat.nodes")
-                if !item.games.isEmpty {
-                    topicStat(Text(verbatim: String(item.games.count)), label: "discovery.templateDetail.stat.games")
+                if free {
+                    topicStat(Text("u10.template.summary.free"), label: "projectEdit.mode")
+                        .accessibilityIdentifier("discovery.topicDetail.summary.mode")
+                } else {
+                    topicStat(Text("u10.template.summary.city"), label: "projectEdit.mode")
+                        .accessibilityIdentifier("discovery.topicDetail.summary.mode")
                 }
-                topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+                if free {
+                    topicStat(Text("u10.template.summary.multiDay"), label: "activityPublishing.review.time")
+                        .accessibilityIdentifier("discovery.topicDetail.summary.time")
+                }
+                if showChapters {
+                    topicStat(Text(verbatim: String(chapters)), label: "discovery.templateDetail.stat.chapters")
+                        .accessibilityIdentifier("discovery.topicDetail.summary.chapters")
+                }
+                if !stops.isEmpty {
+                    topicStat(Text(verbatim: String(stops.count)), label: "discovery.publicStations")
+                        .accessibilityIdentifier("discovery.topicDetail.summary.stops")
+                }
             }
             .accessibilityIdentifier("discovery.topicDetail.stats")
             if stops.isEmpty {
@@ -641,7 +657,10 @@ struct DiscoveryTopicTemplatePreview: View {
                 .frame(width: stopIndex, height: stopIndex)
                 .background(palette.bgElevated, in: Circle())
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                if let name = stop.name { Text(verbatim: name).cyText(.label).cyWrapText() }
+                // MP `n.name || '第 ' + no + ' 站'`: a blank stop still names its place in the route.
+                (stop.name.map { Text(verbatim: $0) } ?? Text("u10.template.stopNo \(stop.number)"))
+                    .cyText(.label)
+                    .cyWrapText()
                 if let game = stop.game {
                     HStack(spacing: CYSpacing.xxs) {
                         if let art = TemplateShelfArt.gameProp(game) {
